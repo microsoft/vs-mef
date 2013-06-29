@@ -59,6 +59,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CompositionConfiguration.cs" />
+    <Compile Include="CompositionContainer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

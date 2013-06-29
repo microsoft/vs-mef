@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     public class SimpleImportExportTests
     {
         [Fact]
-        public void AcquireSingleExport()
+        public void AcquireSingleExportv2()
         {
             var configuration = new ContainerConfiguration()
                 .WithPart(typeof(Apple));
@@ -22,11 +22,33 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
-        public void AcquireExportWithImport()
+        public void AcquireSingleExportv3()
+        {
+            var configuration = new CompositionConfiguration();
+            configuration.AddPart(typeof(Apple));
+            var container = configuration.CreateContainer();
+            Apple apple = container.GetExport<Apple>();
+            Assert.NotNull(apple);
+        }
+
+        [Fact]
+        public void AcquireExportWithImportv2()
         {
             var configuration = new ContainerConfiguration()
                 .WithPart(typeof(Apple))
                 .WithPart(typeof(Tree));
+            CompositionHost container = configuration.CreateContainer();
+            Tree tree = container.GetExport<Tree>();
+            Assert.NotNull(tree);
+            Assert.NotNull(tree.Apple);
+        }
+
+        [Fact]
+        public void AcquireExportWithImportv3()
+        {
+            var configuration = new CompositionConfiguration();
+            configuration.AddPart(typeof(Apple));
+            configuration.AddPart(typeof(Tree));
             var container = configuration.CreateContainer();
             Tree tree = container.GetExport<Tree>();
             Assert.NotNull(tree);
