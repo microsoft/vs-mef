@@ -118,7 +118,7 @@ foreach (var part in this.Configuration.Parts)
             
             #line default
             #line hidden
-            this.Write(" = GetOrCreate");
+            this.Write(" = this.GetOrCreate");
             
             #line 49 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(exportingParts.Single().Id));

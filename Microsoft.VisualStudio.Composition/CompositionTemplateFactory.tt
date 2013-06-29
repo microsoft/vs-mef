@@ -46,7 +46,7 @@ foreach (var part in this.Configuration.Parts)
 		if (exportingParts.Any())
 		{
 #>
-		result.<#= import.Key.Name #> = GetOrCreate<#= exportingParts.Single().Id #>();
+		result.<#= import.Key.Name #> = this.GetOrCreate<#= exportingParts.Single().Id #>();
 <#
 		}
 	}

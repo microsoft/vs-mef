@@ -60,6 +60,13 @@
             parameters.ReferencedAssemblies.AddRange(this.Parts.Select(p => p.Type.Assembly.Location).Distinct().ToArray());
             parameters.OutputAssembly = targetPath;
             CompilerResults results = provider.CompileAssemblyFromFile(parameters, sourceFilePath);
+            if (results.Errors.HasErrors || results.Errors.HasWarnings)
+            {
+                foreach (var error in results.Errors)
+                {
+                    Console.WriteLine(error);
+                }
+            }
             Verify.Operation(!results.Errors.HasErrors, "Compilation errors occurred.");
             return results.CompiledAssembly;
         }
