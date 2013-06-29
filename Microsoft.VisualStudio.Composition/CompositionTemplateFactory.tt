@@ -10,15 +10,15 @@ using System.Linq;
 using Microsoft.VisualStudio.Composition;
 
 internal class CompiledExportFactory : ExportFactory {
-	public override T GetExport<T>()
+	protected override object GetExport(Type type)
 	{
 <#
 foreach (var part in this.Parts) 
 {
 #>
-		if (typeof(T).IsEquivalentTo(typeof(<#= part.FullName #>)))
+		if (type.IsEquivalentTo(typeof(<#= part.FullName #>)))
 		{
-			return (T)(object)new <#= part.FullName #>();
+			return new <#= part.FullName #>();
 		}
 <#
 }

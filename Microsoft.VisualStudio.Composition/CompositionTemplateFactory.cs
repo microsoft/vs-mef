@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             this.Write("\r\nusing System;\r\nusing System.Collections.Generic;\r\nusing System.Linq;\r\nusing Mic" +
                     "rosoft.VisualStudio.Composition;\r\n\r\ninternal class CompiledExportFactory : Expor" +
-                    "tFactory {\r\n\tpublic override T GetExport<T>()\r\n\t{\r\n");
+                    "tFactory {\r\n\tprotected override object GetExport(Type type)\r\n\t{\r\n");
             
             #line 15 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
@@ -40,14 +40,14 @@ foreach (var part in this.Parts)
             
             #line default
             #line hidden
-            this.Write("\t\tif (typeof(T).IsEquivalentTo(typeof(");
+            this.Write("\t\tif (type.IsEquivalentTo(typeof(");
             
             #line 19 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(part.FullName));
             
             #line default
             #line hidden
-            this.Write(")))\r\n\t\t{\r\n\t\t\treturn (T)(object)new ");
+            this.Write(")))\r\n\t\t{\r\n\t\t\treturn new ");
             
             #line 21 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(part.FullName));

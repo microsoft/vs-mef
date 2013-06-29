@@ -8,6 +8,11 @@
 
     public abstract class ExportFactory
     {
-        public abstract T GetExport<T>() where T : class;
+        public T GetExport<T>() where T : class
+        {
+            return (T)this.GetExport(typeof(T));
+        }
+
+        protected abstract object GetExport(Type type);
     }
 }
