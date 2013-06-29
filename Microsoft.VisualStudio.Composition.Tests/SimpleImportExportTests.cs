@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task AcquireSingleExportv3()
         {
             var configurationBuilder = new CompositionConfigurationBuilder();
-            configurationBuilder.AddPart(typeof(Apple));
+            configurationBuilder.AddType(typeof(Apple));
             var configuration = configurationBuilder.CreateConfiguration();
             var containerFactory = await configuration.CreateContainerFactoryAsync();
             var container = containerFactory.CreateContainer();
@@ -49,8 +49,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task AcquireExportWithImportv3()
         {
             var configurationBuilder = new CompositionConfigurationBuilder();
-            configurationBuilder.AddPart(typeof(Apple));
-            configurationBuilder.AddPart(typeof(Tree));
+            configurationBuilder.AddType(typeof(Apple));
+            configurationBuilder.AddType(typeof(Tree));
             var configuration = configurationBuilder.CreateConfiguration();
             var containerFactory = await configuration.CreateContainerFactoryAsync();
             var container = containerFactory.CreateContainer();

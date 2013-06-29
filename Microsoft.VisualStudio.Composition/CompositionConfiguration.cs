@@ -16,9 +16,9 @@
 
     public class CompositionConfiguration
     {
-        private readonly IReadOnlyList<Type> parts;
+        private readonly IReadOnlyCollection<ComposablePart> parts;
 
-        internal CompositionConfiguration(IReadOnlyList<Type> parts)
+        internal CompositionConfiguration(IReadOnlyCollection<ComposablePart> parts)
         {
             Requires.NotNull(parts, "parts");
 
@@ -48,7 +48,7 @@
             var provider = CodeDomProvider.CreateProvider("c#");
             var parameters = new CompilerParameters(new[] { typeof(Enumerable).Assembly.Location, Assembly.GetExecutingAssembly().Location });
             parameters.IncludeDebugInformation = true;
-            parameters.ReferencedAssemblies.AddRange(this.parts.Select(p => p.Assembly.Location).Distinct().ToArray());
+            parameters.ReferencedAssemblies.AddRange(this.parts.Select(p => p.Type.Assembly.Location).Distinct().ToArray());
             parameters.OutputAssembly = targetPath;
             CompilerResults results = provider.CompileAssemblyFromFile(parameters, sourceFilePath);
             Verify.Operation(!results.Errors.HasErrors, "Compilation errors occurred.");

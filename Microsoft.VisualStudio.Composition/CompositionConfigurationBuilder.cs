@@ -10,20 +10,23 @@
     {
         public CompositionConfigurationBuilder()
         {
-            this.Parts = new List<Type>();
+            this.Types = new List<Type>();
         }
 
-        internal List<Type> Parts { get; private set; }
+        internal List<Type> Types { get; private set; }
 
-        public void AddPart(Type part)
+        public void AddType(Type type)
         {
-            this.Parts.Add(part);
+            this.Types.Add(type);
         }
 
         public CompositionConfiguration CreateConfiguration()
         {
+            PartDiscovery discovery = new AttributedPartDiscovery();
+            var parts = this.Types.Select(discovery.CreatePart).ToList();
+
             // Use snapshots of all our present values.
-            return new CompositionConfiguration(this.Parts.ToList());
+            return new CompositionConfiguration(parts);
         }
     }
 }

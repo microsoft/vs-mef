@@ -18,9 +18,9 @@ internal class CompiledExportFactory : ExportFactory
 foreach (var part in this.Parts) 
 {
 #>
-		if (type.IsEquivalentTo(typeof(<#= part.FullName #>)))
+		if (type.IsEquivalentTo(typeof(<#= part.Type.FullName #>)))
 		{
-			return this.GetOrCreate<#= part.Name #>();
+			return this.GetOrCreate<#= part.Type.Name #>();
 		}
 <#
 }
@@ -33,9 +33,9 @@ foreach (var part in this.Parts)
 foreach (var part in this.Parts) 
 {
 #>
-	protected <#= part.FullName #> GetOrCreate<#= part.Name #>()
+	protected <#= part.Type.FullName #> GetOrCreate<#= part.Type.Name #>()
 	{
-		var result = new <#= part.FullName #>();
+		var result = new <#= part.Type.FullName #>();
 		return result;
 	}
 <#
@@ -44,5 +44,5 @@ foreach (var part in this.Parts)
 }
 
 <#+
-	public IReadOnlyList<Type> Parts { get; set; }
+	public IReadOnlyCollection<ComposablePart> Parts { get; set; }
 #>

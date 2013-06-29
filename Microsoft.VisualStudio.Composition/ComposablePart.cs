@@ -1,0 +1,30 @@
+﻿namespace Microsoft.VisualStudio.Composition
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Reflection;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Validation;
+
+    public class ComposablePart
+    {
+        public ComposablePart(Type partType, IReadOnlyCollection<ExportDefinition> exports, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports)
+        {
+            Requires.NotNull(partType, "partType");
+            Requires.NotNull(exports, "exports");
+            Requires.NotNull(imports, "imports");
+
+            this.Type = partType;
+            this.ExportDefinitions = exports;
+            this.ImportDefinitions = imports;
+        }
+
+        public Type Type { get; private set; }
+
+        public IReadOnlyCollection<ExportDefinition> ExportDefinitions { get; private set; }
+
+        public IReadOnlyDictionary<MemberInfo, ImportDefinition> ImportDefinitions { get; private set; }
+    }
+}

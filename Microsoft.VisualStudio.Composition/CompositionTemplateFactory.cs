@@ -44,14 +44,14 @@ foreach (var part in this.Parts)
             this.Write("\t\tif (type.IsEquivalentTo(typeof(");
             
             #line 21 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(part.FullName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(part.Type.FullName));
             
             #line default
             #line hidden
             this.Write(")))\r\n\t\t{\r\n\t\t\treturn this.GetOrCreate");
             
             #line 23 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(part.Name));
+            this.Write(this.ToStringHelper.ToStringWithCulture(part.Type.Name));
             
             #line default
             #line hidden
@@ -77,21 +77,21 @@ foreach (var part in this.Parts)
             this.Write("\tprotected ");
             
             #line 36 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(part.FullName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(part.Type.FullName));
             
             #line default
             #line hidden
             this.Write(" GetOrCreate");
             
             #line 36 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(part.Name));
+            this.Write(this.ToStringHelper.ToStringWithCulture(part.Type.Name));
             
             #line default
             #line hidden
             this.Write("()\r\n\t{\r\n\t\tvar result = new ");
             
             #line 38 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(part.FullName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(part.Type.FullName));
             
             #line default
             #line hidden
@@ -110,7 +110,7 @@ foreach (var part in this.Parts)
         
         #line 46 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
-	public IReadOnlyList<Type> Parts { get; set; }
+	public IReadOnlyCollection<ComposablePart> Parts { get; set; }
 
         
         #line default
