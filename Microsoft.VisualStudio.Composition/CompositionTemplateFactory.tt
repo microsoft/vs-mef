@@ -7,9 +7,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Microsoft.VisualStudio.Composition;
 
-internal class CompiledExportFactory : ExportFactory {
+internal class CompiledExportFactory : ExportFactory
+{
 	protected override object GetExport(Type type)
 	{
 <#
@@ -18,7 +20,7 @@ foreach (var part in this.Parts)
 #>
 		if (type.IsEquivalentTo(typeof(<#= part.FullName #>)))
 		{
-			return new <#= part.FullName #>();
+			return this.GetOrCreate<#= part.Name #>();
 		}
 <#
 }
@@ -26,6 +28,19 @@ foreach (var part in this.Parts)
 
 		throw new ArgumentException();
 	}
+
+<#
+foreach (var part in this.Parts) 
+{
+#>
+	protected <#= part.FullName #> GetOrCreate<#= part.Name #>()
+	{
+		var result = new <#= part.FullName #>();
+		return result;
+	}
+<#
+}
+#>
 }
 
 <#+

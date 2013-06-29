@@ -27,23 +27,32 @@
 
         public Task<ContainerFactory> CreateContainerFactoryAsync()
         {
+            var sourceFilePath = CreateCompositionSourceFile();
+            Assembly precompiledComposition = Compile(sourceFilePath);
+            return Task.FromResult(new ContainerFactory(precompiledComposition));
+        }
+
+        private string CreateCompositionSourceFile()
+        {
             var templateFactory = new CompositionTemplateFactory();
             templateFactory.Parts = this.parts;
             string source = templateFactory.TransformText();
-
             var sourceFilePath = Path.GetTempFileName();
-            var targetPath = Path.GetTempFileName();
-
             File.WriteAllText(sourceFilePath, source);
+            return sourceFilePath;
+        }
+
+        private Assembly Compile(string sourceFilePath)
+        {
+            var targetPath = Path.GetTempFileName();
             var provider = CodeDomProvider.CreateProvider("c#");
             var parameters = new CompilerParameters(new[] { typeof(Enumerable).Assembly.Location, Assembly.GetExecutingAssembly().Location });
             parameters.IncludeDebugInformation = true;
             parameters.ReferencedAssemblies.AddRange(this.parts.Select(p => p.Assembly.Location).Distinct().ToArray());
             parameters.OutputAssembly = targetPath;
             CompilerResults results = provider.CompileAssemblyFromFile(parameters, sourceFilePath);
-
-            Assembly precompiledComposition = results.CompiledAssembly;
-            return Task.FromResult(new ContainerFactory(precompiledComposition));
+            Verify.Operation(!results.Errors.HasErrors, "Compilation errors occurred.");
+            return results.CompiledAssembly;
         }
     }
 }
