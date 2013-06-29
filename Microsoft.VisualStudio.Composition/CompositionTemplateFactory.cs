@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Composition
             
             #line 16 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
-foreach (var part in this.Parts)
+foreach (var part in this.Configuration.Parts)
 {
 	foreach (var exportDefinition in part.ExportDefinitions)
 	{
@@ -71,7 +71,7 @@ foreach (var part in this.Parts)
             
             #line 34 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
-foreach (var part in this.Parts) 
+foreach (var part in this.Configuration.Parts) 
 {
 
             
@@ -98,9 +98,46 @@ foreach (var part in this.Parts)
             
             #line default
             #line hidden
-            this.Write("();\r\n\t\treturn result;\r\n\t}\r\n");
+            this.Write("();\r\n");
             
-            #line 44 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 42 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+
+	foreach (var import in part.ImportDefinitions)
+	{
+		var exportingParts = this.Configuration.GetPartsWithExportsSatisfying(import.Value);
+		if (exportingParts.Any())
+		{
+
+            
+            #line default
+            #line hidden
+            this.Write("\t\tresult.");
+            
+            #line 49 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(import.Key.Name));
+            
+            #line default
+            #line hidden
+            this.Write(" = GetOrCreate");
+            
+            #line 49 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(exportingParts.Single().Id));
+            
+            #line default
+            #line hidden
+            this.Write("();\r\n");
+            
+            #line 50 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+
+		}
+	}
+
+            
+            #line default
+            #line hidden
+            this.Write("\t\treturn result;\r\n\t}\r\n");
+            
+            #line 56 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 }
 
@@ -111,9 +148,9 @@ foreach (var part in this.Parts)
             return this.GenerationEnvironment.ToString();
         }
         
-        #line 49 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+        #line 61 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
-	public IReadOnlyCollection<ComposablePart> Parts { get; set; }
+	public CompositionConfiguration Configuration { get; set; }
 
         
         #line default

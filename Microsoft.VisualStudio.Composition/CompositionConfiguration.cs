@@ -16,13 +16,21 @@
 
     public class CompositionConfiguration
     {
-        private readonly IReadOnlyCollection<ComposablePart> parts;
-
         internal CompositionConfiguration(IReadOnlyCollection<ComposablePart> parts)
         {
             Requires.NotNull(parts, "parts");
 
-            this.parts = parts;
+            this.Parts = parts;
+        }
+
+        public IReadOnlyCollection<ComposablePart> Parts { get; private set; }
+
+        public IReadOnlyCollection<ComposablePart> GetPartsWithExportsSatisfying(ImportDefinition importDefinition)
+        {
+            return (from part in this.Parts
+                    from export in part.ExportDefinitions
+                    where export.Contract.Equals(importDefinition.Contract)
+                    select part).Distinct().ToList();
         }
 
         public Task<ContainerFactory> CreateContainerFactoryAsync()
@@ -35,7 +43,7 @@
         private string CreateCompositionSourceFile()
         {
             var templateFactory = new CompositionTemplateFactory();
-            templateFactory.Parts = this.parts;
+            templateFactory.Configuration = this;
             string source = templateFactory.TransformText();
             var sourceFilePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".cs");
             File.WriteAllText(sourceFilePath, source);
@@ -49,7 +57,7 @@
             var provider = CodeDomProvider.CreateProvider("c#");
             var parameters = new CompilerParameters(new[] { typeof(Enumerable).Assembly.Location, Assembly.GetExecutingAssembly().Location });
             parameters.IncludeDebugInformation = true;
-            parameters.ReferencedAssemblies.AddRange(this.parts.Select(p => p.Type.Assembly.Location).Distinct().ToArray());
+            parameters.ReferencedAssemblies.AddRange(this.Parts.Select(p => p.Type.Assembly.Location).Distinct().ToArray());
             parameters.OutputAssembly = targetPath;
             CompilerResults results = provider.CompileAssemblyFromFile(parameters, sourceFilePath);
             Verify.Operation(!results.Errors.HasErrors, "Compilation errors occurred.");

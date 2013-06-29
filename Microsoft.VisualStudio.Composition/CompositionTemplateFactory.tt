@@ -14,7 +14,7 @@ internal class CompiledExportFactory : ExportFactory
 {
 	protected override object GetExport(Type type)
 	{<#
-foreach (var part in this.Parts)
+foreach (var part in this.Configuration.Parts)
 {
 	foreach (var exportDefinition in part.ExportDefinitions)
 	{
@@ -32,13 +32,25 @@ foreach (var part in this.Parts)
 		throw new ArgumentException();
 	}
 <#
-foreach (var part in this.Parts) 
+foreach (var part in this.Configuration.Parts) 
 {
 #>
 
 	protected <#= part.Type.FullName #> GetOrCreate<#= part.Id #>()
 	{
 		var result = new <#= part.Type.FullName #>();
+<#
+	foreach (var import in part.ImportDefinitions)
+	{
+		var exportingParts = this.Configuration.GetPartsWithExportsSatisfying(import.Value);
+		if (exportingParts.Any())
+		{
+#>
+		result.<#= import.Key.Name #> = GetOrCreate<#= exportingParts.Single().Id #>();
+<#
+		}
+	}
+#>
 		return result;
 	}
 <#
@@ -47,5 +59,5 @@ foreach (var part in this.Parts)
 }
 
 <#+
-	public IReadOnlyCollection<ComposablePart> Parts { get; set; }
+	public CompositionConfiguration Configuration { get; set; }
 #>
