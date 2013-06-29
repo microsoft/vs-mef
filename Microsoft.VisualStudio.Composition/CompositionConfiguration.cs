@@ -37,8 +37,9 @@
             var templateFactory = new CompositionTemplateFactory();
             templateFactory.Parts = this.parts;
             string source = templateFactory.TransformText();
-            var sourceFilePath = Path.GetTempFileName();
+            var sourceFilePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".cs");
             File.WriteAllText(sourceFilePath, source);
+            Console.WriteLine(source);
             return sourceFilePath;
         }
 

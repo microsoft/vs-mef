@@ -23,6 +23,11 @@
 
         public Type Type { get; private set; }
 
+        public string Id
+        {
+            get { return this.Type.Name; }
+        }
+
         public IReadOnlyCollection<ExportDefinition> ExportDefinitions { get; private set; }
 
         public IReadOnlyDictionary<MemberInfo, ImportDefinition> ImportDefinitions { get; private set; }

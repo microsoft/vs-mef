@@ -65,7 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AttributedPartDiscovery.cs" />
-    <Compile Include="AttributeModelDiscovery.cs" />
+    <Compile Include="PartDiscovery.cs" />
     <Compile Include="ComposablePart.cs" />
     <Compile Include="CompositionConfigurationBuilder.cs" />
     <Compile Include="CompositionContainer.cs" />
