@@ -46,7 +46,7 @@ foreach (var part in this.Configuration.Parts)
             this.Write("\r\n\t\tif (type.IsEquivalentTo(typeof(");
             
             #line 23 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(exportDefinition.Contract.Type.FullName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(exportDefinition.Contract.Type)));
             
             #line default
             #line hidden
@@ -80,7 +80,7 @@ foreach (var part in this.Configuration.Parts)
             this.Write("\r\n\tprotected ");
             
             #line 39 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(part.Type.FullName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(part.Type)));
             
             #line default
             #line hidden
@@ -94,7 +94,7 @@ foreach (var part in this.Configuration.Parts)
             this.Write("()\r\n\t{\r\n\t\tvar result = new ");
             
             #line 41 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(part.Type.FullName));
+            this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(part.Type)));
             
             #line default
             #line hidden
@@ -151,6 +151,18 @@ foreach (var part in this.Configuration.Parts)
         #line 61 "c:\users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 	public CompositionConfiguration Configuration { get; set; }
+
+	private static string GetTypeName(Type type)
+	{
+		if (type.DeclaringType != null)
+		{
+			return GetTypeName(type.DeclaringType) + "." + type.Name;
+		}
+		else
+		{
+			return type.FullName;
+		}
+	}
 
         
         #line default

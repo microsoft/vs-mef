@@ -20,7 +20,7 @@ foreach (var part in this.Configuration.Parts)
 	{
 #>
 
-		if (type.IsEquivalentTo(typeof(<#= exportDefinition.Contract.Type.FullName #>)))
+		if (type.IsEquivalentTo(typeof(<#= GetTypeName(exportDefinition.Contract.Type) #>)))
 		{
 			return this.GetOrCreate<#= part.Id #>();
 		}
@@ -36,9 +36,9 @@ foreach (var part in this.Configuration.Parts)
 {
 #>
 
-	protected <#= part.Type.FullName #> GetOrCreate<#= part.Id #>()
+	protected <#= GetTypeName(part.Type) #> GetOrCreate<#= part.Id #>()
 	{
-		var result = new <#= part.Type.FullName #>();
+		var result = new <#= GetTypeName(part.Type) #>();
 <#
 	foreach (var import in part.ImportDefinitions)
 	{
@@ -60,4 +60,16 @@ foreach (var part in this.Configuration.Parts)
 
 <#+
 	public CompositionConfiguration Configuration { get; set; }
+
+	private static string GetTypeName(Type type)
+	{
+		if (type.DeclaringType != null)
+		{
+			return GetTypeName(type.DeclaringType) + "." + type.Name;
+		}
+		else
+		{
+			return type.FullName;
+		}
+	}
 #>

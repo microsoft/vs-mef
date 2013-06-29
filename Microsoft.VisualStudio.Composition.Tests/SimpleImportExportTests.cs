@@ -58,17 +58,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(tree);
             Assert.NotNull(tree.Apple);
         }
-    }
 
-    [Export]
-    public class Apple
-    {
-    }
+        [Export]
+        public class Apple
+        {
+        }
 
-    [Export]
-    public class Tree
-    {
-        [Import]
-        public Apple Apple { get; set; }
+        [Export]
+        public class Tree
+        {
+            [Import]
+            public Apple Apple { get; set; }
+        }
     }
 }
