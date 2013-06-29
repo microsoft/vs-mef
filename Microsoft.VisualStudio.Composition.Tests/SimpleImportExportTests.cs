@@ -22,11 +22,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
-        public void AcquireSingleExportv3()
+        public async Task AcquireSingleExportv3()
         {
-            var configuration = new CompositionConfiguration();
-            configuration.AddPart(typeof(Apple));
-            var container = configuration.CreateContainer();
+            var configurationBuilder = new CompositionConfigurationBuilder();
+            configurationBuilder.AddPart(typeof(Apple));
+            var configuration = configurationBuilder.CreateConfiguration();
+            var containerFactory = await configuration.CreateContainerFactoryAsync();
+            var container = containerFactory.CreateContainer();
             Apple apple = container.GetExport<Apple>();
             Assert.NotNull(apple);
         }
@@ -44,12 +46,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
-        public void AcquireExportWithImportv3()
+        public async Task AcquireExportWithImportv3()
         {
-            var configuration = new CompositionConfiguration();
-            configuration.AddPart(typeof(Apple));
-            configuration.AddPart(typeof(Tree));
-            var container = configuration.CreateContainer();
+            var configurationBuilder = new CompositionConfigurationBuilder();
+            configurationBuilder.AddPart(typeof(Apple));
+            configurationBuilder.AddPart(typeof(Tree));
+            var configuration = configurationBuilder.CreateConfiguration();
+            var containerFactory = await configuration.CreateContainerFactoryAsync();
+            var container = containerFactory.CreateContainer();
             Tree tree = container.GetExport<Tree>();
             Assert.NotNull(tree);
             Assert.NotNull(tree.Apple);
