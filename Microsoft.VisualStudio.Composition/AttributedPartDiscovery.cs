@@ -28,10 +28,19 @@
             foreach (var member in partType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
                 var importAttribute = member.GetCustomAttribute<ImportAttribute>();
+                var importManyAttribute = member.GetCustomAttribute<ImportManyAttribute>();
+                Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", "Member \"{0}\" contains both ImportAttribute and ImportManyAttribute.", member.Name);
+
                 if (importAttribute != null)
                 {
                     var contract = new CompositionContract(importAttribute.ContractName, member.PropertyType);
-                    var importDefinition = new ImportDefinition(contract, importAttribute.AllowDefault);
+                    var importDefinition = new ImportDefinition(contract, importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne);
+                    imports.Add(member, importDefinition);
+                }
+                else if (importManyAttribute != null)
+                {
+                    var contract = new CompositionContract(importManyAttribute.ContractName, member.PropertyType);
+                    var importDefinition = new ImportDefinition(contract, ImportCardinality.ZeroOrMore);
                     imports.Add(member, importDefinition);
                 }
             }

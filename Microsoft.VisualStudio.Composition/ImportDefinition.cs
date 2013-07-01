@@ -9,15 +9,15 @@
 
     public class ImportDefinition
     {
-        public ImportDefinition(CompositionContract contract, bool allowDefault)
+        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality)
         {
             Requires.NotNull(contract, "contract");
 
             this.Contract = contract;
-            this.AllowDefault = allowDefault;
+            this.Cardinality = cardinality;
         }
 
-        public bool AllowDefault { get; private set; }
+        public ImportCardinality Cardinality { get; private set; }
 
         public CompositionContract Contract { get; private set; }
     }
