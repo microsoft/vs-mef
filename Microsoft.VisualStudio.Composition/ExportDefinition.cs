@@ -7,7 +7,7 @@
     using System.Threading.Tasks;
     using Validation;
 
-    public class ExportDefinition
+    public class ExportDefinition : IEquatable<ExportDefinition>
     {
         public ExportDefinition(CompositionContract contract)
         {
@@ -16,5 +16,20 @@
         }
 
         public CompositionContract Contract { get; private set; }
+
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as ExportDefinition);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Contract == null ? 0 : this.Contract.GetHashCode();
+        }
+
+        public bool Equals(ExportDefinition other)
+        {
+            return this.Contract.Equals(other.Contract);
+        }
     }
 }

@@ -12,17 +12,33 @@ using Microsoft.VisualStudio.Composition;
 
 internal class CompiledExportFactory : ExportFactory
 {
-	protected override object GetExport(Type type)
+	protected override object GetExport(ExportDefinition exportDefinition)
 	{<#
 foreach (var part in this.Configuration.Parts)
 {
-	foreach (var exportDefinition in part.ExportDefinitions)
+	foreach (var partExport in part.ExportDefinitions)
 	{
 #>
 
-		if (type.IsEquivalentTo(typeof(<#= GetTypeName(exportDefinition.Contract.Type) #>)))
+		if (exportDefinition.Contract.Type.IsEquivalentTo(typeof(<#= GetTypeName(partExport.Contract.Type) #>)))
 		{
-			return this.GetOrCreate<#= part.Id #>();
+<#
+			if (partExport.Contract.ContractName == null)
+			{
+#>
+			if (exportDefinition.Contract.ContractName == null)
+<#
+			}
+			else
+			{
+#>
+			if (exportDefinition.Contract.ContractName == "<#= partExport.Contract.ContractName #>")
+<#
+			}
+#>
+			{
+				return this.GetOrCreate<#= part.Id #>();
+			}
 		}
 <#
 	}

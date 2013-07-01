@@ -10,20 +10,34 @@
 
     public class NamedTypedExportTests
     {
-        [Fact]
-        public async Task AcquireExportWithNamedImports()
+        public NamedTypedExportTests()
         {
             var configurationBuilder = new CompositionConfigurationBuilder();
             configurationBuilder.AddType(typeof(FruitTree));
             configurationBuilder.AddType(typeof(Apple));
             configurationBuilder.AddType(typeof(Pear));
             var configuration = configurationBuilder.CreateConfiguration();
-            var containerFactory = await configuration.CreateContainerFactoryAsync();
-            var container = containerFactory.CreateContainer();
-            FruitTree tree = container.GetExport<FruitTree>();
+            var containerFactory = configuration.CreateContainerFactoryAsync().Result;
+            this.container = containerFactory.CreateContainer();
+        }
+
+        protected CompositionContainer container;
+
+        [Fact]
+        public void AcquireExportWithNamedImports()
+        {
+            FruitTree tree = this.container.GetExport<FruitTree>();
             Assert.NotNull(tree);
             Assert.NotNull(tree.Pear);
             Assert.IsAssignableFrom(typeof(Pear), tree.Pear);
+        }
+
+        [Fact]
+        public void AcquireNamedExport()
+        {
+            Fruit fruit = this.container.GetExport<Fruit>("Pear");
+            Assert.NotNull(fruit);
+            Assert.IsAssignableFrom(typeof(Pear), fruit);
         }
 
         public class Fruit { }

@@ -10,9 +10,15 @@
     {
         public T GetExport<T>() where T : class
         {
-            return (T)this.GetExport(typeof(T));
+            return this.GetExport<T>(null);
         }
 
-        protected abstract object GetExport(Type type);
+        public T GetExport<T>(string contractName) where T : class
+        {
+            var exportDefinition = new ExportDefinition(new CompositionContract(contractName, typeof(T)));
+            return (T)this.GetExport(exportDefinition);
+        }
+
+        protected abstract object GetExport(ExportDefinition exportDefinition);
     }
 }

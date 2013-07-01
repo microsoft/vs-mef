@@ -18,5 +18,10 @@
         {
             return this.exportFactory.GetExport<T>();
         }
+
+        public T GetExport<T>(string contractName) where T : class
+        {
+            return this.exportFactory.GetExport<T>(contractName);
+        }
     }
 }
