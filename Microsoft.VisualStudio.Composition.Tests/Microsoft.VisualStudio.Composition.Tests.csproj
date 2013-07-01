@@ -65,6 +65,7 @@
     <Compile Include="ImportManyTests.cs" />
     <Compile Include="OpenGenericExportTests.cs" />
     <Compile Include="NamedTypedExportTests.cs" />
+    <Compile Include="SharedNoBoundaryExportsTests.cs" />
     <Compile Include="SimpleImportExportTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
