@@ -22,6 +22,7 @@
 
             var extendable = container.GetExport<Extendable>();
             Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
             Assert.Equal(0, extendable.Extensions.Count);
         }
 
@@ -38,6 +39,7 @@
 
             var extendable = container.GetExport<Extendable>();
             Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
             Assert.Equal(1, extendable.Extensions.Count);
             Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions[0]);
         }
@@ -55,6 +57,7 @@
 
             var extendable = container.GetExport<Extendable>();
             Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
             Assert.Equal(2, extendable.Extensions.Count);
             Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
             Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
