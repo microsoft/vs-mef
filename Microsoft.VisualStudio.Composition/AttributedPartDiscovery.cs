@@ -39,7 +39,8 @@
                 }
                 else if (importManyAttribute != null)
                 {
-                    var contract = new CompositionContract(importManyAttribute.ContractName, member.PropertyType);
+                    var contractType = member.PropertyType.GetGenericArguments()[0];
+                    var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
                     var importDefinition = new ImportDefinition(contract, ImportCardinality.ZeroOrMore);
                     imports.Add(member, importDefinition);
                 }
