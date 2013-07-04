@@ -7,7 +7,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    [Export]
+    [Export, Export("YetAnotherExport", typeof(object))]
     public class YetAnotherExport
     {
     }

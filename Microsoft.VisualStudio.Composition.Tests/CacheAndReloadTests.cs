@@ -31,25 +31,44 @@
         /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
         /// </summary>
         [Fact]
-        public void ComposableAssembliesLazyLoaded()
+        public void ComposableAssembliesLazyLoadedWhenQueried()
         {
             var configuration = CompositionConfiguration.Create(typeof(ExternalExport), typeof(YetAnotherExport));
             string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             configuration.Save(path);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
-            var appDomainSetup = new AppDomainSetup()
-            {
-                ApplicationBase = AppDomain.CurrentDomain.SetupInformation.ApplicationBase,
-            };
-            appDomainSetup = AppDomain.CurrentDomain.SetupInformation;
-            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, appDomainSetup);
+            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
             try
             {
                 var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
                 driver.Initialize(path);
                 driver.TestExternalExport(typeof(ExternalExport).Assembly.Location);
                 driver.TestYetAnotherExport(typeof(YetAnotherExport).Assembly.Location);
+            }
+            finally
+            {
+                AppDomain.Unload(appDomain);
+            }
+        }
+
+        /// <summary>
+        /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
+        /// </summary>
+        [Fact]
+        public void ComposableAssembliesLazyLoadedByLazyImport()
+        {
+            var configuration = CompositionConfiguration.Create(typeof(ExternalExport), typeof(YetAnotherExport));
+            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            configuration.Save(path);
+
+            // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
+            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
+            try
+            {
+                var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
+                driver.Initialize(path);
+                driver.TestExternalExportWithLazy(typeof(YetAnotherExport).Assembly.Location);
             }
             finally
             {
@@ -82,6 +101,16 @@
                 Assert.False(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 this.CauseLazyLoad2(container);
                 Assert.True(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            internal void TestExternalExportWithLazy(string lazyLoadedAssemblyPath)
+            {
+                Assert.False(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                var exportWithLazy = container.GetExport<ExternalExportWithLazy>();
+                Assert.False(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                Assert.NotNull(exportWithLazy.YetAnotherExport.Value);
+                Assert.True(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+
             }
 
             private void CauseLazyLoad1(CompositionContainer container)
