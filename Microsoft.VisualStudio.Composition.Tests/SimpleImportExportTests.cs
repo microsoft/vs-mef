@@ -24,9 +24,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public void AcquireSingleExportv3()
         {
-            var configuration = CompositionConfiguration.Create(
+            var container = TestUtilities.CreateContainer(
                 typeof(Apple));
-            var container = configuration.CreateContainer();
             Apple apple = container.GetExport<Apple>();
             Assert.NotNull(apple);
         }
@@ -46,10 +45,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public async Task AcquireExportWithImportv3()
         {
-            var configuration = CompositionConfiguration.Create(
+            var container = TestUtilities.CreateContainer(
                 typeof(Apple),
                 typeof(Tree));
-            var container = configuration.CreateContainer();
             Tree tree = container.GetExport<Tree>();
             Assert.NotNull(tree);
             Assert.NotNull(tree.Apple);

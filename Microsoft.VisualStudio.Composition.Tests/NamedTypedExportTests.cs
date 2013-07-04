@@ -13,11 +13,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
     {
         public NamedTypedExportTests()
         {
-            var configuration = CompositionConfiguration.Create(
+            this.container = TestUtilities.CreateContainer(
                 typeof(FruitTree),
                 typeof(Apple),
                 typeof(Pear));
-            this.container = configuration.CreateContainer();
         }
 
         protected CompositionContainer container;

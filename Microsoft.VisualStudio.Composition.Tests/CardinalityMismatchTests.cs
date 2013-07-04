@@ -20,9 +20,7 @@
         [Fact]
         public void MissingOptionalImport()
         {
-            var configuration = CompositionConfiguration.Create(
-                typeof(OptionalImportMissing));
-            var container = configuration.CreateContainer();
+            var container = TestUtilities.CreateContainer(typeof(OptionalImportMissing));
 
             var export = container.GetExport<OptionalImportMissing>();
             Assert.NotNull(export);

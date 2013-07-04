@@ -25,10 +25,9 @@
         [Fact]
         public void AcquireOpenGenericExportv3()
         {
-            var configuration = CompositionConfiguration.Create(
+            var container = TestUtilities.CreateContainer(
                 typeof(User),
                 typeof(Useful<>));
-            var container = configuration.CreateContainer();
 
             Useful<int> useful = container.GetExport<Useful<int>>();
             Assert.NotNull(useful);
@@ -49,10 +48,9 @@
         [Fact]
         public void AcquireExportWithImportOfOpenGenericExportv3()
         {
-            var configuration = CompositionConfiguration.Create(
+            var container = TestUtilities.CreateContainer(
                 typeof(User),
                 typeof(Useful<>));
-            var container = configuration.CreateContainer();
 
             User user = container.GetExport<User>();
             Assert.NotNull(user);

@@ -13,9 +13,8 @@
         [Fact]
         public void DisposablePartDisposedWithContainer()
         {
-            var configuration = CompositionConfiguration.Create(
+            var container = TestUtilities.CreateContainer(
                 typeof(DisposablePart));
-            var container = configuration.CreateContainer();
 
             var part = container.GetExport<DisposablePart>();
             Assert.False(part.IsDisposed);

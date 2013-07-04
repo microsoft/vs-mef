@@ -13,11 +13,10 @@
         [Fact]
         public void AcquireSharedExportTwiceYieldsSameInstance()
         {
-            var configuration = CompositionConfiguration.Create(
+            var container = TestUtilities.CreateContainer(
                 typeof(SharedExport),
                 typeof(Importer1),
                 typeof(Importer2));
-            var container = configuration.CreateContainer();
 
             var firstResult = container.GetExport<SharedExport>();
             var secondResult = container.GetExport<SharedExport>();
@@ -29,11 +28,10 @@
         [Fact]
         public void ImportingSharedExportAtMultipleSitesYieldsSameInstance()
         {
-            var configuration = CompositionConfiguration.Create(
+            var container = TestUtilities.CreateContainer(
                 typeof(SharedExport),
                 typeof(Importer1),
                 typeof(Importer2));
-            var container = configuration.CreateContainer();
 
             var importer1 = container.GetExport<Importer1>();
             var importer2 = container.GetExport<Importer2>();

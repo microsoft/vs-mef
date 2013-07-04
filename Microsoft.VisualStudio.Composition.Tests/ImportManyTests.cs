@@ -13,10 +13,9 @@
         [Fact]
         public void ImportManyWithNone()
         {
-            var configuration = CompositionConfiguration.Create(
+            var container = TestUtilities.CreateContainer(
                 typeof(Extendable),
                 typeof(ExtensionOne));
-            var container = configuration.CreateContainer();
 
             var extendable = container.GetExport<Extendable>();
             Assert.NotNull(extendable);
@@ -28,10 +27,9 @@
         [Fact]
         public void ImportManyWithOne()
         {
-            var configuration = CompositionConfiguration.Create(
+            var container = TestUtilities.CreateContainer(
                 typeof(Extendable),
                 typeof(ExtensionOne));
-            var container = configuration.CreateContainer();
 
             var extendable = container.GetExport<Extendable>();
             Assert.NotNull(extendable);
@@ -43,11 +41,10 @@
         [Fact]
         public void ImportManyWithTwo()
         {
-            var configuration = CompositionConfiguration.Create(
+            var container = TestUtilities.CreateContainer(
                 typeof(Extendable),
                 typeof(ExtensionOne),
                 typeof(ExtensionTwo));
-            var container = configuration.CreateContainer();
 
             var extendable = container.GetExport<Extendable>();
             Assert.NotNull(extendable);

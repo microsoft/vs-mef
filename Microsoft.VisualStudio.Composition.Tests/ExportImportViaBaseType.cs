@@ -13,10 +13,9 @@
         [Fact]
         public void ImportViaExportedInterface()
         {
-            var configuration = CompositionConfiguration.Create(
+            var container = TestUtilities.CreateContainer(
                 typeof(Implementor),
                 typeof(Consumer));
-            var container = configuration.CreateContainer();
 
             Consumer consumer = container.GetExport<Consumer>();
             Assert.NotNull(consumer);
