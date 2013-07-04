@@ -23,6 +23,10 @@
             Assert.False(part.IsDisposed);
             container.Dispose();
             Assert.True(part.IsDisposed);
+
+            // Values not created should not be disposed.
+            Assert.False(UninstantiatedPart.EverInstantiated);
+            Assert.False(UninstantiatedPart.EverDisposed);
         }
 
         [Export]
@@ -33,6 +37,22 @@
             public void Dispose()
             {
                 this.IsDisposed = true;
+            }
+        }
+
+        [Export]
+        public class UninstantiatedPart : IDisposable
+        {
+            public UninstantiatedPart()
+            {
+                EverInstantiated = true;
+            }
+            public static bool EverDisposed { get; private set; }
+            public static bool EverInstantiated { get; private set; }
+
+            public void Dispose()
+            {
+                EverDisposed = true;
             }
         }
     }
