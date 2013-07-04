@@ -38,6 +38,10 @@
     <Reference Include="Microsoft.Build.Tasks.v12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Build.Utilities.v12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.0.12.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Bcl.Immutable.1.0.12-beta\lib\portable-net45+win8+wp8\System.Collections.Immutable.dll</HintPath>
+    </Reference>
     <Reference Include="System.Composition.AttributedModel">
       <HintPath>..\packages\Microsoft.Composition.1.0.16\lib\net45\System.Composition.AttributedModel.dll</HintPath>
     </Reference>
@@ -65,9 +69,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AttributedPartDiscovery.cs" />
+    <Compile Include="ComposableCatalog.cs" />
+    <Compile Include="ComposablePart.cs" />
+    <Compile Include="Dgml.cs" />
+    <Compile Include="Export.cs" />
     <Compile Include="ImportCardinality.cs" />
     <Compile Include="PartDiscovery.cs" />
-    <Compile Include="ComposablePart.cs" />
+    <Compile Include="ComposablePartDefinition.cs" />
     <Compile Include="CompositionConfigurationBuilder.cs" />
     <Compile Include="CompositionContainer.cs" />
     <Compile Include="CompositionConfiguration.cs" />

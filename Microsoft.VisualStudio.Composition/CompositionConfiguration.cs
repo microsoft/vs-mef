@@ -9,6 +9,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using System.Xml.Linq;
     using Microsoft.Build.Tasks;
     using Microsoft.Build.Utilities;
     using Validation;
@@ -16,22 +17,14 @@
 
     public class CompositionConfiguration
     {
-        internal CompositionConfiguration(IReadOnlyCollection<ComposablePart> parts)
+        internal CompositionConfiguration(ComposableCatalog catalog)
         {
-            Requires.NotNull(parts, "parts");
+            Requires.NotNull(catalog, "catalog");
 
-            this.Parts = parts;
+            this.Catalog = catalog;
         }
 
-        public IReadOnlyCollection<ComposablePart> Parts { get; private set; }
-
-        public IReadOnlyCollection<ComposablePart> GetPartsWithExportsSatisfying(ImportDefinition importDefinition)
-        {
-            return (from part in this.Parts
-                    from export in part.ExportDefinitions
-                    where export.Contract.Equals(importDefinition.Contract)
-                    select part).Distinct().ToList();
-        }
+        public ComposableCatalog Catalog { get; private set; }
 
         public Task<ContainerFactory> CreateContainerFactoryAsync()
         {
@@ -57,7 +50,7 @@
             var provider = CodeDomProvider.CreateProvider("c#");
             var parameters = new CompilerParameters(new[] { typeof(Enumerable).Assembly.Location, Assembly.GetExecutingAssembly().Location });
             parameters.IncludeDebugInformation = true;
-            parameters.ReferencedAssemblies.AddRange(this.Parts.Select(p => p.Type.Assembly.Location).Distinct().ToArray());
+            parameters.ReferencedAssemblies.AddRange(this.Catalog.Assemblies.Select(a => a.Location).Distinct().ToArray());
             parameters.OutputAssembly = targetPath;
             CompilerResults results = provider.CompileAssemblyFromFile(parameters, sourceFilePath);
             if (results.Errors.HasErrors || results.Errors.HasWarnings)
@@ -69,6 +62,14 @@
             }
             Verify.Operation(!results.Errors.HasErrors, "Compilation errors occurred.");
             return results.CompiledAssembly;
+        }
+
+        public XDocument CreateDgml()
+        {
+            XElement nodes, links;
+            var dgml = Dgml.Create(out nodes, out links);
+
+            return dgml;
         }
     }
 }

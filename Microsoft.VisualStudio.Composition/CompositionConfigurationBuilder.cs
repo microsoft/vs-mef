@@ -23,10 +23,13 @@
         public CompositionConfiguration CreateConfiguration()
         {
             PartDiscovery discovery = new AttributedPartDiscovery();
-            var parts = this.Types.Select(discovery.CreatePart).ToList();
+            var parts = from type in this.Types
+                        let part = discovery.CreatePart(type)
+                        select part;
+            var catalog = ComposableCatalog.Create(parts);
 
             // Use snapshots of all our present values.
-            return new CompositionConfiguration(parts);
+            return new CompositionConfiguration(catalog);
         }
     }
 }

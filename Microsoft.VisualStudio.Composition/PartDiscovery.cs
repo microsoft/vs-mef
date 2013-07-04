@@ -8,6 +8,6 @@
 
     public abstract class PartDiscovery
     {
-        public abstract ComposablePart CreatePart(Type partType);
+        public abstract ComposablePartDefinition CreatePart(Type partType);
     }
 }

@@ -17,6 +17,15 @@
 
         public CompositionContract Contract { get; private set; }
 
+        public string SharingBoundary { get; private set; }
+
+        public bool IsShared
+        {
+            get { return this.SharingBoundary != null; }
+        }
+
+        public IReadOnlyDictionary<string, string> Metadata { get; private set; }
+
         public override bool Equals(object obj)
         {
             return this.Equals(obj as ExportDefinition);
@@ -29,7 +38,8 @@
 
         public bool Equals(ExportDefinition other)
         {
-            return this.Contract.Equals(other.Contract);
+            return this.Contract.Equals(other.Contract)
+                && this.SharingBoundary == other.SharingBoundary;
         }
     }
 }

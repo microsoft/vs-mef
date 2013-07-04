@@ -11,7 +11,7 @@
 
     public class AttributedPartDiscovery : PartDiscovery
     {
-        public override ComposablePart CreatePart(Type partType)
+        public override ComposablePartDefinition CreatePart(Type partType)
         {
             Requires.NotNull(partType, "partType");
 
@@ -46,7 +46,7 @@
                 }
             }
 
-            return new ComposablePart(partType, exports, imports);
+            return new ComposablePartDefinition(partType, exports, imports);
         }
     }
 }

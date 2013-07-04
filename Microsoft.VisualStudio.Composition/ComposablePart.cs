@@ -3,33 +3,27 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
 
     public class ComposablePart
     {
-        public ComposablePart(Type partType, IReadOnlyCollection<ExportDefinition> exports, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports)
+        public ComposablePart(ComposablePartDefinition definition, IReadOnlyDictionary<ImportDefinition, IReadOnlyList<Export>> satisfyingExports)
         {
-            Requires.NotNull(partType, "partType");
-            Requires.NotNull(exports, "exports");
-            Requires.NotNull(imports, "imports");
+            Requires.NotNull(definition, "definition");
+            Requires.NotNull(satisfyingExports, "satisfyingExports");
 
-            this.Type = partType;
-            this.ExportDefinitions = exports;
-            this.ImportDefinitions = imports;
+            this.Definition = definition;
+            this.SatisfyingExports = satisfyingExports;
+
+            // Make sure we have entries for every import.
+            Requires.Argument(satisfyingExports.Count == definition.ImportDefinitions.Count && definition.ImportDefinitions.All(d => satisfyingExports.ContainsKey(d.Value)), "satisfyingExports", "There should be exactly one entry for every import.");
+            Requires.Argument(satisfyingExports.All(kv => kv.Value != null), "satisfyingExports", "All values must be non-null.");
         }
 
-        public Type Type { get; private set; }
+        public ComposablePartDefinition Definition { get; private set; }
 
-        public string Id
-        {
-            get { return this.Type.Name; }
-        }
-
-        public IReadOnlyCollection<ExportDefinition> ExportDefinitions { get; private set; }
-
-        public IReadOnlyDictionary<MemberInfo, ImportDefinition> ImportDefinitions { get; private set; }
+        public IReadOnlyDictionary<ImportDefinition, IReadOnlyList<Export>> SatisfyingExports { get; private set; }
     }
 }

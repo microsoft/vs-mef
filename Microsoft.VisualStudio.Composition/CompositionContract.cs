@@ -39,7 +39,7 @@
 
         public override int GetHashCode()
         {
-            return this.Type.GetHashCode() + StringComparer.Ordinal.GetHashCode(this.ContractName);
+            return this.Type.GetHashCode() + (this.ContractName != null ? StringComparer.Ordinal.GetHashCode(this.ContractName) : 0);
         }
     }
 }

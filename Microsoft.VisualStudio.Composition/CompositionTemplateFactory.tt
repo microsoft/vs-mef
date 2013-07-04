@@ -14,7 +14,7 @@ internal class CompiledExportFactory : ExportFactory
 {
 	protected override object GetExport(ExportDefinition exportDefinition)
 	{<#
-foreach (var part in this.Configuration.Parts)
+foreach (var part in this.Configuration.Catalog.Parts)
 {
 	foreach (var partExport in part.ExportDefinitions)
 	{
@@ -48,7 +48,7 @@ foreach (var part in this.Configuration.Parts)
 		throw new ArgumentException();
 	}
 <#
-foreach (var part in this.Configuration.Parts) 
+foreach (var part in this.Configuration.Catalog.Parts) 
 {
 #>
 
@@ -58,11 +58,11 @@ foreach (var part in this.Configuration.Parts)
 <#
 	foreach (var import in part.ImportDefinitions)
 	{
-		var exportingParts = this.Configuration.GetPartsWithExportsSatisfying(import.Value);
-		if (exportingParts.Any())
+		var exports = this.Configuration.Catalog.GetExports(import.Value);
+		if (exports.Any())
 		{
 #>
-		result.<#= import.Key.Name #> = this.GetOrCreate<#= exportingParts.Single().Id #>();
+		result.<#= import.Key.Name #> = this.GetOrCreate<#= exports.Single().PartDefinition.Id #>();
 <#
 		}
 	}
