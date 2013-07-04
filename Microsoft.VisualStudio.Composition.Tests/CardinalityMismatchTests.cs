@@ -13,19 +13,15 @@
         [Fact]
         public void MissingRequiredImport()
         {
-            var configurationBuilder = new CompositionConfigurationBuilder();
-            configurationBuilder.AddType(typeof(RequiredImportMissing));
-
             // The configuration is invalid, so prevent its creation.
-            Assert.Throws<InvalidOperationException>(() => configurationBuilder.CreateConfiguration());
+            Assert.Throws<InvalidOperationException>(() => CompositionConfiguration.Create(typeof(RequiredImportMissing)));
         }
 
         [Fact]
         public void MissingOptionalImport()
         {
-            var configurationBuilder = new CompositionConfigurationBuilder();
-            configurationBuilder.AddType(typeof(OptionalImportMissing));
-            var configuration = configurationBuilder.CreateConfiguration();
+            var configuration = CompositionConfiguration.Create(
+                typeof(OptionalImportMissing));
             var container = configuration.CreateContainer();
 
             var export = container.GetExport<OptionalImportMissing>();

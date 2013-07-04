@@ -13,10 +13,9 @@
         [Fact]
         public void ImportManyWithNone()
         {
-            var configurationBuilder = new CompositionConfigurationBuilder();
-            configurationBuilder.AddType(typeof(Extendable));
-            configurationBuilder.AddType(typeof(ExtensionOne));
-            var configuration = configurationBuilder.CreateConfiguration();
+            var configuration = CompositionConfiguration.Create(
+                typeof(Extendable),
+                typeof(ExtensionOne));
             var container = configuration.CreateContainer();
 
             var extendable = container.GetExport<Extendable>();
@@ -29,10 +28,9 @@
         [Fact]
         public void ImportManyWithOne()
         {
-            var configurationBuilder = new CompositionConfigurationBuilder();
-            configurationBuilder.AddType(typeof(Extendable));
-            configurationBuilder.AddType(typeof(ExtensionOne));
-            var configuration = configurationBuilder.CreateConfiguration();
+            var configuration = CompositionConfiguration.Create(
+                typeof(Extendable),
+                typeof(ExtensionOne));
             var container = configuration.CreateContainer();
 
             var extendable = container.GetExport<Extendable>();
@@ -45,11 +43,10 @@
         [Fact]
         public void ImportManyWithTwo()
         {
-            var configurationBuilder = new CompositionConfigurationBuilder();
-            configurationBuilder.AddType(typeof(Extendable));
-            configurationBuilder.AddType(typeof(ExtensionOne));
-            configurationBuilder.AddType(typeof(ExtensionTwo));
-            var configuration = configurationBuilder.CreateConfiguration();
+            var configuration = CompositionConfiguration.Create(
+                typeof(Extendable),
+                typeof(ExtensionOne),
+                typeof(ExtensionTwo));
             var container = configuration.CreateContainer();
 
             var extendable = container.GetExport<Extendable>();

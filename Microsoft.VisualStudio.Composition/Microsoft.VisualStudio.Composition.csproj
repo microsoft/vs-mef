@@ -76,7 +76,6 @@
     <Compile Include="ImportCardinality.cs" />
     <Compile Include="PartDiscovery.cs" />
     <Compile Include="ComposablePartDefinition.cs" />
-    <Compile Include="CompositionConfigurationBuilder.cs" />
     <Compile Include="CompositionContainer.cs" />
     <Compile Include="CompositionConfiguration.cs" />
     <Compile Include="CompositionContract.cs" />

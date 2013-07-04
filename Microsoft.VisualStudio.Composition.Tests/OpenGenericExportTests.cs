@@ -25,10 +25,9 @@
         [Fact]
         public void AcquireOpenGenericExportv3()
         {
-            var configurationBuilder = new CompositionConfigurationBuilder();
-            configurationBuilder.AddType(typeof(User));
-            configurationBuilder.AddType(typeof(Useful<>));
-            var configuration = configurationBuilder.CreateConfiguration();
+            var configuration = CompositionConfiguration.Create(
+                typeof(User),
+                typeof(Useful<>));
             var container = configuration.CreateContainer();
 
             Useful<int> useful = container.GetExport<Useful<int>>();
@@ -50,10 +49,9 @@
         [Fact]
         public void AcquireExportWithImportOfOpenGenericExportv3()
         {
-            var configurationBuilder = new CompositionConfigurationBuilder();
-            configurationBuilder.AddType(typeof(User));
-            configurationBuilder.AddType(typeof(Useful<>));
-            var configuration = configurationBuilder.CreateConfiguration();
+            var configuration = CompositionConfiguration.Create(
+                typeof(User),
+                typeof(Useful<>));
             var container = configuration.CreateContainer();
 
             User user = container.GetExport<User>();

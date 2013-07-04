@@ -13,10 +13,9 @@
         [Fact]
         public void ImportViaExportedInterface()
         {
-            var configurationBuilder = new CompositionConfigurationBuilder();
-            configurationBuilder.AddType(typeof(Implementor));
-            configurationBuilder.AddType(typeof(Consumer));
-            var configuration = configurationBuilder.CreateConfiguration();
+            var configuration = CompositionConfiguration.Create(
+                typeof(Implementor),
+                typeof(Consumer));
             var container = configuration.CreateContainer();
 
             Consumer consumer = container.GetExport<Consumer>();

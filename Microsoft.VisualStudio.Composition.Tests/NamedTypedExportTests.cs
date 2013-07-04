@@ -1,4 +1,5 @@
-﻿namespace Microsoft.VisualStudio.Composition.Tests
+﻿
+namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
     using System.Collections.Generic;
@@ -12,11 +13,10 @@
     {
         public NamedTypedExportTests()
         {
-            var configurationBuilder = new CompositionConfigurationBuilder();
-            configurationBuilder.AddType(typeof(FruitTree));
-            configurationBuilder.AddType(typeof(Apple));
-            configurationBuilder.AddType(typeof(Pear));
-            var configuration = configurationBuilder.CreateConfiguration();
+            var configuration = CompositionConfiguration.Create(
+                typeof(FruitTree),
+                typeof(Apple),
+                typeof(Pear));
             this.container = configuration.CreateContainer();
         }
 

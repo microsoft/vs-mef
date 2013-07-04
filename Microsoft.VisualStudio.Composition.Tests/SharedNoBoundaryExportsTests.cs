@@ -13,11 +13,10 @@
         [Fact]
         public void AcquireSharedExportTwiceYieldsSameInstance()
         {
-            var configurationBuilder = new CompositionConfigurationBuilder();
-            configurationBuilder.AddType(typeof(SharedExport));
-            configurationBuilder.AddType(typeof(Importer1));
-            configurationBuilder.AddType(typeof(Importer2));
-            var configuration = configurationBuilder.CreateConfiguration();
+            var configuration = CompositionConfiguration.Create(
+                typeof(SharedExport),
+                typeof(Importer1),
+                typeof(Importer2));
             var container = configuration.CreateContainer();
 
             var firstResult = container.GetExport<SharedExport>();
@@ -30,11 +29,10 @@
         [Fact]
         public void ImportingSharedExportAtMultipleSitesYieldsSameInstance()
         {
-            var configurationBuilder = new CompositionConfigurationBuilder();
-            configurationBuilder.AddType(typeof(SharedExport));
-            configurationBuilder.AddType(typeof(Importer1));
-            configurationBuilder.AddType(typeof(Importer2));
-            var configuration = configurationBuilder.CreateConfiguration();
+            var configuration = CompositionConfiguration.Create(
+                typeof(SharedExport),
+                typeof(Importer1),
+                typeof(Importer2));
             var container = configuration.CreateContainer();
 
             var importer1 = container.GetExport<Importer1>();

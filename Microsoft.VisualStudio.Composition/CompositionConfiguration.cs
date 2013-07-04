@@ -19,7 +19,7 @@
     {
         private Lazy<Assembly> precompiledAssembly;
 
-        internal CompositionConfiguration(ComposableCatalog catalog)
+        private CompositionConfiguration(ComposableCatalog catalog)
         {
             Requires.NotNull(catalog, "catalog");
 
@@ -28,6 +28,16 @@
         }
 
         public ComposableCatalog Catalog { get; private set; }
+
+        public static CompositionConfiguration Create(ComposableCatalog catalog)
+        {
+            return new CompositionConfiguration(catalog);
+        }
+
+        public static CompositionConfiguration Create(params Type[] parts)
+        {
+            return new CompositionConfiguration(ComposableCatalog.Create(parts));
+        }
 
         public CompositionContainer CreateContainer()
         {

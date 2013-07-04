@@ -13,9 +13,8 @@
         [Fact]
         public void DisposablePartDisposedWithContainer()
         {
-            var configurationBuilder = new CompositionConfigurationBuilder();
-            configurationBuilder.AddType(typeof(DisposablePart));
-            var configuration = configurationBuilder.CreateConfiguration();
+            var configuration = CompositionConfiguration.Create(
+                typeof(DisposablePart));
             var container = configuration.CreateContainer();
 
             var part = container.GetExport<DisposablePart>();

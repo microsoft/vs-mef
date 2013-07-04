@@ -17,10 +17,9 @@
         [Fact]
         public void CreateDgmlFromComposition()
         {
-            var configurationBuilder = new CompositionConfigurationBuilder();
-            configurationBuilder.AddType(typeof(Exporter));
-            configurationBuilder.AddType(typeof(Importer));
-            var configuration = configurationBuilder.CreateConfiguration();
+            var configuration = CompositionConfiguration.Create(
+                typeof(Exporter),
+                typeof(Importer));
             XDocument dgml = configuration.CreateDgml();
             Assert.NotNull(dgml);
 
