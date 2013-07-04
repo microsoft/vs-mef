@@ -25,5 +25,21 @@
         public ComposablePartDefinition Definition { get; private set; }
 
         public IReadOnlyDictionary<ImportDefinition, IReadOnlyList<Export>> SatisfyingExports { get; private set; }
+
+        public void Validate()
+        {
+            foreach (var pair in this.SatisfyingExports)
+            {
+                switch (pair.Key.Cardinality)
+                {
+                    case ImportCardinality.ExactlyOne:
+                        Verify.Operation(pair.Value.Count == 1, "Import of {0} expected 1 export but found {1}.", pair.Key.Contract, pair.Value.Count);
+                        break;
+                    case ImportCardinality.OneOrZero:
+                        Verify.Operation(pair.Value.Count < 2, "Import of {0} expected 1 or 0 exports but found {1}.", pair.Key.Contract, pair.Value.Count);
+                        break;
+                }
+            }
+        }
     }
 }

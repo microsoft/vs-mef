@@ -53,7 +53,23 @@
             }
 
             // Validate configuration.
-            //// TODO: code here
+            foreach (var part in parts)
+            {
+                var exceptions = new List<Exception>();
+                try
+                {
+                    part.Validate();
+                }
+                catch (Exception ex)
+                {
+                    exceptions.Add(ex);
+                }
+
+                if (exceptions.Count > 0)
+                {
+                    throw new AggregateException(exceptions);
+                }
+            }
 
             return new CompositionConfiguration(catalog, parts.ToImmutable());
         }

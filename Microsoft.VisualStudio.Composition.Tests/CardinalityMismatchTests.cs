@@ -14,7 +14,7 @@
         public void MissingRequiredImport()
         {
             // The configuration is invalid, so prevent its creation.
-            Assert.Throws<InvalidOperationException>(() => CompositionConfiguration.Create(typeof(RequiredImportMissing)));
+            Assert.Throws<AggregateException>(() => CompositionConfiguration.Create(typeof(RequiredImportMissing)));
         }
 
         [Fact]
