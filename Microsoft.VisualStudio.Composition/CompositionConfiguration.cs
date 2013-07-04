@@ -6,6 +6,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Linq.Expressions;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
@@ -15,9 +16,10 @@
     using Validation;
     using Task = System.Threading.Tasks.Task;
 
-    public class CompositionConfiguration
+    public class CompositionConfiguration : ICompositionContainerFactory
     {
         private Lazy<Assembly> precompiledAssembly;
+        private Lazy<ContainerFactory> containerFactory;
 
         private CompositionConfiguration(ComposableCatalog catalog)
         {
@@ -25,6 +27,7 @@
 
             this.Catalog = catalog;
             this.precompiledAssembly = new Lazy<Assembly>(this.CreateAssembly, true);
+            this.containerFactory = new Lazy<ContainerFactory>(() => new ContainerFactory(this.precompiledAssembly.Value), true);
         }
 
         public ComposableCatalog Catalog { get; private set; }
@@ -39,11 +42,21 @@
             return new CompositionConfiguration(ComposableCatalog.Create(parts));
         }
 
+        public static ICompositionContainerFactory Load(string path)
+        {
+            return new ContainerFactory(Assembly.LoadFile(path));
+        }
+
+        public void Save(string assemblyPath)
+        {
+            Requires.NotNullOrEmpty(assemblyPath, "assemblyPath");
+
+            File.Copy(precompiledAssembly.Value.Location, assemblyPath);
+        }
+
         public CompositionContainer CreateContainer()
         {
-            var exportFactoryType = this.precompiledAssembly.Value.GetType("CompiledExportFactory");
-            var exportFactory = (ExportFactory)Activator.CreateInstance(exportFactoryType);
-            return new CompositionContainer(exportFactory);
+            return this.containerFactory.Value.CreateContainer();
         }
 
         private string CreateCompositionSourceFile()
@@ -90,6 +103,24 @@
             var dgml = Dgml.Create(out nodes, out links);
 
             return dgml;
+        }
+
+        private class ContainerFactory : ICompositionContainerFactory
+        {
+            private Func<ExportFactory> createFactory;
+
+            internal ContainerFactory(Assembly assembly)
+            {
+                Requires.NotNull(assembly, "assembly");
+
+                var exportFactoryType = assembly.GetType("CompiledExportFactory");
+                this.createFactory = () => (ExportFactory)Activator.CreateInstance(exportFactoryType);
+            }
+
+            public CompositionContainer CreateContainer()
+            {
+                return new CompositionContainer(this.createFactory());
+            }
         }
     }
 }
