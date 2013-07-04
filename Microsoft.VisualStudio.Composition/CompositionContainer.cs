@@ -3,7 +3,7 @@
     using System;
     using Validation;
 
-    public class CompositionContainer
+    public class CompositionContainer : IDisposable
     {
         private readonly ExportFactory exportFactory;
 
@@ -22,6 +22,11 @@
         public T GetExport<T>(string contractName) where T : class
         {
             return this.exportFactory.GetExport<T>(contractName);
+        }
+
+        public void Dispose()
+        {
+            // TODO: dispose of any instantiated, disposable values in the container.
         }
     }
 }

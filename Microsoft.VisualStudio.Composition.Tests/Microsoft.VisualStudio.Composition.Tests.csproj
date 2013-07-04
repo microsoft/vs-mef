@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="DgmlProduction.cs" />
+    <Compile Include="DisposablePartsTests.cs" />
     <Compile Include="ExportImportViaBaseType.cs" />
     <Compile Include="ImportManyTests.cs" />
     <Compile Include="OpenGenericExportTests.cs" />
