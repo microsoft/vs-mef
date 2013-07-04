@@ -15,7 +15,7 @@
         internal const string Namespace = "http://schemas.microsoft.com/vs/2009/dgml";
         
         [Fact]
-        public void CreateDgmlFromComposition()
+        public void CreateDgmlFromConfiguration()
         {
             var configuration = CompositionConfiguration.Create(
                 typeof(Exporter),
@@ -29,7 +29,7 @@
             Console.WriteLine(dgml);
 
             var nodes = dgml.Root.Element(XName.Get("Nodes", Namespace)).Elements(XName.Get("Node", Namespace));
-            var links = dgml.Root.Element(XName.Get("Links", Namespace)).Elements(XName.Get("Links", Namespace));
+            var links = dgml.Root.Element(XName.Get("Links", Namespace)).Elements(XName.Get("Link", Namespace));
             var exportingPartNode = nodes.Single(e => e.Attribute("Label").Value.Contains("Exporter"));
             var importingPartNode = nodes.Single(e => e.Attribute("Label").Value.Contains("Importer"));
             var link = links.Single();

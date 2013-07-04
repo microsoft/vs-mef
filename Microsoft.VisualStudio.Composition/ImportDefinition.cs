@@ -38,7 +38,7 @@
                 return false;
             }
 
-            return this.Contract.Equals(other)
+            return this.Contract.Equals(other.Contract)
                 && this.Cardinality == other.Cardinality;
         }
     }

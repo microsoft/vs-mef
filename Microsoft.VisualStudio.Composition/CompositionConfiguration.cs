@@ -4,6 +4,7 @@
     using System.CodeDom;
     using System.CodeDom.Compiler;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.IO;
     using System.Linq;
     using System.Linq.Expressions;
@@ -21,25 +22,47 @@
         private Lazy<Assembly> precompiledAssembly;
         private Lazy<ContainerFactory> containerFactory;
 
-        private CompositionConfiguration(ComposableCatalog catalog)
+        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposablePart> parts)
         {
             Requires.NotNull(catalog, "catalog");
+            Requires.NotNull(parts, "parts");
 
             this.Catalog = catalog;
+            this.Parts = parts;
+
+            // Arrange for actually compiling the assembly when asked for.
             this.precompiledAssembly = new Lazy<Assembly>(this.CreateAssembly, true);
             this.containerFactory = new Lazy<ContainerFactory>(() => new ContainerFactory(this.precompiledAssembly.Value), true);
         }
 
         public ComposableCatalog Catalog { get; private set; }
 
+        public ISet<ComposablePart> Parts { get; private set; }
+
         public static CompositionConfiguration Create(ComposableCatalog catalog)
         {
-            return new CompositionConfiguration(catalog);
+            Requires.NotNull(catalog, "catalog");
+
+            var parts = ImmutableHashSet.CreateBuilder<ComposablePart>();
+
+            foreach (ComposablePartDefinition part in catalog.Parts)
+            {
+                var satisfyingImports = part.ImportDefinitions.ToImmutableDictionary(i => i.Value, i => catalog.GetExports(i.Value));
+                var composedPart = new ComposablePart(part, satisfyingImports);
+                parts.Add(composedPart);
+            }
+
+            // Validate configuration.
+            //// TODO: code here
+
+            return new CompositionConfiguration(catalog, parts.ToImmutable());
         }
 
         public static CompositionConfiguration Create(params Type[] parts)
         {
-            return new CompositionConfiguration(ComposableCatalog.Create(parts));
+            Requires.NotNull(parts, "parts");
+
+            return Create(ComposableCatalog.Create(parts));
         }
 
         public static ICompositionContainerFactory Load(string path)
@@ -101,6 +124,18 @@
         {
             XElement nodes, links;
             var dgml = Dgml.Create(out nodes, out links);
+
+            foreach (var part in this.Parts)
+            {
+                nodes.Add(Dgml.Node(part.Definition.Id, part.Definition.Id));
+                foreach (var import in part.Definition.ImportDefinitions)
+                {
+                    foreach (Export export in part.SatisfyingExports[import.Value])
+                    {
+                        links.Add(Dgml.Link(export.PartDefinition.Id, part.Definition.Id));
+                    }
+                }
+            }
 
             return dgml;
         }
