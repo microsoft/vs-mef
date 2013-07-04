@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="CacheAndReloadTests.cs" />
     <Compile Include="CardinalityMismatchTests.cs" />
+    <Compile Include="ContainerIsolationTests.cs" />
     <Compile Include="DgmlProduction.cs" />
     <Compile Include="DisposablePartsTests.cs" />
     <Compile Include="ExportImportViaBaseType.cs" />
