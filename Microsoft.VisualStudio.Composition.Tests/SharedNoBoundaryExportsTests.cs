@@ -18,8 +18,7 @@
             configurationBuilder.AddType(typeof(Importer1));
             configurationBuilder.AddType(typeof(Importer2));
             var configuration = configurationBuilder.CreateConfiguration();
-            var containerFactory = configuration.CreateContainerFactoryAsync().Result;
-            var container = containerFactory.CreateContainer();
+            var container = configuration.CreateContainer();
 
             var firstResult = container.GetExport<SharedExport>();
             var secondResult = container.GetExport<SharedExport>();
@@ -36,8 +35,7 @@
             configurationBuilder.AddType(typeof(Importer1));
             configurationBuilder.AddType(typeof(Importer2));
             var configuration = configurationBuilder.CreateConfiguration();
-            var containerFactory = configuration.CreateContainerFactoryAsync().Result;
-            var container = containerFactory.CreateContainer();
+            var container = configuration.CreateContainer();
 
             var importer1 = container.GetExport<Importer1>();
             var importer2 = container.GetExport<Importer2>();

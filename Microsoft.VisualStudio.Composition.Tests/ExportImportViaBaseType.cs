@@ -17,8 +17,7 @@
             configurationBuilder.AddType(typeof(Implementor));
             configurationBuilder.AddType(typeof(Consumer));
             var configuration = configurationBuilder.CreateConfiguration();
-            var containerFactory = configuration.CreateContainerFactoryAsync().Result;
-            var container = containerFactory.CreateContainer();
+            var container = configuration.CreateContainer();
 
             Consumer consumer = container.GetExport<Consumer>();
             Assert.NotNull(consumer);

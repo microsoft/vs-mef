@@ -26,8 +26,7 @@
             var configurationBuilder = new CompositionConfigurationBuilder();
             configurationBuilder.AddType(typeof(OptionalImportMissing));
             var configuration = configurationBuilder.CreateConfiguration();
-            var containerFactory = configuration.CreateContainerFactoryAsync().Result;
-            var container = containerFactory.CreateContainer();
+            var container = configuration.CreateContainer();
 
             var export = container.GetExport<OptionalImportMissing>();
             Assert.NotNull(export);

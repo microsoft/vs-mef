@@ -17,8 +17,7 @@
             configurationBuilder.AddType(typeof(Apple));
             configurationBuilder.AddType(typeof(Pear));
             var configuration = configurationBuilder.CreateConfiguration();
-            var containerFactory = configuration.CreateContainerFactoryAsync().Result;
-            this.container = containerFactory.CreateContainer();
+            this.container = configuration.CreateContainer();
         }
 
         protected CompositionContainer container;

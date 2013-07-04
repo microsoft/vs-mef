@@ -16,8 +16,7 @@
             var configurationBuilder = new CompositionConfigurationBuilder();
             configurationBuilder.AddType(typeof(DisposablePart));
             var configuration = configurationBuilder.CreateConfiguration();
-            var containerFactory = configuration.CreateContainerFactoryAsync().Result;
-            var container = containerFactory.CreateContainer();
+            var container = configuration.CreateContainer();
 
             var part = container.GetExport<DisposablePart>();
             Assert.False(part.IsDisposed);

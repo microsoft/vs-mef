@@ -29,8 +29,7 @@
             configurationBuilder.AddType(typeof(User));
             configurationBuilder.AddType(typeof(Useful<>));
             var configuration = configurationBuilder.CreateConfiguration();
-            var containerFactory = configuration.CreateContainerFactoryAsync().Result;
-            var container = containerFactory.CreateContainer();
+            var container = configuration.CreateContainer();
 
             Useful<int> useful = container.GetExport<Useful<int>>();
             Assert.NotNull(useful);
@@ -55,8 +54,7 @@
             configurationBuilder.AddType(typeof(User));
             configurationBuilder.AddType(typeof(Useful<>));
             var configuration = configurationBuilder.CreateConfiguration();
-            var containerFactory = configuration.CreateContainerFactoryAsync().Result;
-            var container = containerFactory.CreateContainer();
+            var container = configuration.CreateContainer();
 
             User user = container.GetExport<User>();
             Assert.NotNull(user);

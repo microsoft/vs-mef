@@ -17,8 +17,7 @@
             configurationBuilder.AddType(typeof(Extendable));
             configurationBuilder.AddType(typeof(ExtensionOne));
             var configuration = configurationBuilder.CreateConfiguration();
-            var containerFactory = configuration.CreateContainerFactoryAsync().Result;
-            var container = containerFactory.CreateContainer();
+            var container = configuration.CreateContainer();
 
             var extendable = container.GetExport<Extendable>();
             Assert.NotNull(extendable);
@@ -34,8 +33,7 @@
             configurationBuilder.AddType(typeof(Extendable));
             configurationBuilder.AddType(typeof(ExtensionOne));
             var configuration = configurationBuilder.CreateConfiguration();
-            var containerFactory = configuration.CreateContainerFactoryAsync().Result;
-            var container = containerFactory.CreateContainer();
+            var container = configuration.CreateContainer();
 
             var extendable = container.GetExport<Extendable>();
             Assert.NotNull(extendable);
@@ -52,8 +50,7 @@
             configurationBuilder.AddType(typeof(ExtensionOne));
             configurationBuilder.AddType(typeof(ExtensionTwo));
             var configuration = configurationBuilder.CreateConfiguration();
-            var containerFactory = configuration.CreateContainerFactoryAsync().Result;
-            var container = containerFactory.CreateContainer();
+            var container = configuration.CreateContainer();
 
             var extendable = container.GetExport<Extendable>();
             Assert.NotNull(extendable);

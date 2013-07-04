@@ -85,7 +85,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CompositionTemplateFactory.tt</DependentUpon>
     </Compile>
-    <Compile Include="ContainerFactory.cs" />
     <Compile Include="ExportDefinition.cs" />
     <Compile Include="ExportFactory.cs" />
     <Compile Include="ImportDefinition.cs" />

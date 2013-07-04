@@ -22,13 +22,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
-        public async Task AcquireSingleExportv3()
+        public void AcquireSingleExportv3()
         {
             var configurationBuilder = new CompositionConfigurationBuilder();
             configurationBuilder.AddType(typeof(Apple));
             var configuration = configurationBuilder.CreateConfiguration();
-            var containerFactory = await configuration.CreateContainerFactoryAsync();
-            var container = containerFactory.CreateContainer();
+            var container = configuration.CreateContainer();
             Apple apple = container.GetExport<Apple>();
             Assert.NotNull(apple);
         }
@@ -52,8 +51,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             configurationBuilder.AddType(typeof(Apple));
             configurationBuilder.AddType(typeof(Tree));
             var configuration = configurationBuilder.CreateConfiguration();
-            var containerFactory = await configuration.CreateContainerFactoryAsync();
-            var container = containerFactory.CreateContainer();
+            var container = configuration.CreateContainer();
             Tree tree = container.GetExport<Tree>();
             Assert.NotNull(tree);
             Assert.NotNull(tree.Apple);

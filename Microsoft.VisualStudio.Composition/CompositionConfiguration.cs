@@ -17,20 +17,23 @@
 
     public class CompositionConfiguration
     {
+        private Lazy<Assembly> precompiledAssembly;
+
         internal CompositionConfiguration(ComposableCatalog catalog)
         {
             Requires.NotNull(catalog, "catalog");
 
             this.Catalog = catalog;
+            this.precompiledAssembly = new Lazy<Assembly>(this.CreateAssembly, true);
         }
 
         public ComposableCatalog Catalog { get; private set; }
 
-        public Task<ContainerFactory> CreateContainerFactoryAsync()
+        public CompositionContainer CreateContainer()
         {
-            var sourceFilePath = CreateCompositionSourceFile();
-            Assembly precompiledComposition = Compile(sourceFilePath);
-            return Task.FromResult(new ContainerFactory(precompiledComposition));
+            var exportFactoryType = this.precompiledAssembly.Value.GetType("CompiledExportFactory");
+            var exportFactory = (ExportFactory)Activator.CreateInstance(exportFactoryType);
+            return new CompositionContainer(exportFactory);
         }
 
         private string CreateCompositionSourceFile()
@@ -42,6 +45,13 @@
             File.WriteAllText(sourceFilePath, source);
             Console.WriteLine(source);
             return sourceFilePath;
+        }
+
+        private Assembly CreateAssembly()
+        {
+            var sourceFilePath = this.CreateCompositionSourceFile();
+            Assembly precompiledComposition = this.Compile(sourceFilePath);
+            return precompiledComposition;
         }
 
         private Assembly Compile(string sourceFilePath)
