@@ -37,15 +37,31 @@
 
                 if (importAttribute != null)
                 {
-                    var contract = new CompositionContract(importAttribute.ContractName, member.PropertyType);
-                    var importDefinition = new ImportDefinition(contract, importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne);
+                    Type contractType = member.PropertyType;
+                    bool isLazy = false;
+                    if (member.PropertyType.IsGenericType)
+                    {
+                        var genericDefinition = member.PropertyType.GetGenericTypeDefinition();
+                        if (genericDefinition.IsEquivalentTo(typeof(Lazy<>)))
+                        {
+                            isLazy = true;
+                            contractType = contractType.GetGenericArguments()[0];
+                        }
+                    }
+
+                    var contract = new CompositionContract(importAttribute.ContractName, contractType);
+                    var importDefinition = new ImportDefinition(
+                        contract,
+                        importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
+                        isLazy);
                     imports.Add(member, importDefinition);
                 }
                 else if (importManyAttribute != null)
                 {
-                    var contractType = member.PropertyType.GetGenericArguments()[0];
+                    Type contractType = member.PropertyType.GetGenericArguments()[0];
+                    bool isLazy = false; // TODO: add support for lazy
                     var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
-                    var importDefinition = new ImportDefinition(contract, ImportCardinality.ZeroOrMore);
+                    var importDefinition = new ImportDefinition(contract, ImportCardinality.ZeroOrMore, isLazy);
                     imports.Add(member, importDefinition);
                 }
                 else if (exportAttribute != null)

@@ -7,14 +7,15 @@
     using System.Threading.Tasks;
     using Validation;
 
-    public class ImportDefinition  : IEquatable<ImportDefinition>
+    public class ImportDefinition : IEquatable<ImportDefinition>
     {
-        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality)
+        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, bool lazy)
         {
             Requires.NotNull(contract, "contract");
 
             this.Contract = contract;
             this.Cardinality = cardinality;
+            this.IsLazy = lazy;
         }
 
         public ImportCardinality Cardinality { get; private set; }
@@ -22,6 +23,18 @@
         public bool IsLazy { get; private set; }
 
         public CompositionContract Contract { get; private set; }
+
+        /// <summary>
+        /// Gets the actual type (without the Lazy{T} wrapper) of the importing member.
+        /// </summary>
+        public Type CoercedValueType
+        {
+            get
+            {
+                // MEF v2 only allows for this to match the contract itself. MEF v1 was more flexible.
+                return this.Contract.Type;
+            }
+        }
 
         public override int GetHashCode()
         {

@@ -10,7 +10,7 @@ using Xunit;
 
     public class LazyImportTests
     {
-        [Fact(Skip = "Functionality not yet implemented.")]
+        [Fact]
         public void LazyImport()
         {
             var container = TestUtilities.CreateContainer(typeof(ExportWithLazyImport), typeof(AnotherExport));

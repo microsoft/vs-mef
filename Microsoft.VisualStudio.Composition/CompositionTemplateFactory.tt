@@ -63,8 +63,15 @@ foreach (var part in this.Configuration.Parts)
 		var exports = satisfyingExport.Value;
 		if (exports.Any())
 		{
+			string left = "result." + importingMember.Name;
+			string right = "this.GetOrCreate" + exports.Single().PartDefinition.Id + "()";
+			if (importDefinition.IsLazy)
+			{
+				right = "new Lazy<" + GetTypeName(importDefinition.CoercedValueType) + ">(() => " + right + ")";
+			}
+
 #>
-		result.<#= importingMember.Name #> = this.GetOrCreate<#= exports.Single().PartDefinition.Id #>();
+		<#= left #> = <#= right #>;
 <#
 		}
 	}
