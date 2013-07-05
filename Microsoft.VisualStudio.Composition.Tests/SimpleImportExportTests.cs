@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
-        public async Task AcquireExportWithImportv3()
+        public void AcquireExportWithImportv3()
         {
             var container = TestUtilities.CreateContainer(
                 typeof(Apple),
