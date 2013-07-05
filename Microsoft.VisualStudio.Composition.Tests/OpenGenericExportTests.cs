@@ -22,7 +22,7 @@
             Assert.NotNull(useful);
         }
 
-        [Fact]
+        [Fact(Skip = "Functionality not yet implemented.")]
         public void AcquireOpenGenericExportv3()
         {
             var container = TestUtilities.CreateContainer(
@@ -45,7 +45,7 @@
             Assert.NotNull(user.Useful);
         }
 
-        [Fact]
+        [Fact(Skip = "Functionality not yet implemented.")]
         public void AcquireExportWithImportOfOpenGenericExportv3()
         {
             var container = TestUtilities.CreateContainer(

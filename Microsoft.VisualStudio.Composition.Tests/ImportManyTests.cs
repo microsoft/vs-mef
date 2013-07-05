@@ -10,7 +10,7 @@
 
     public class ImportManyTests
     {
-        [Fact]
+        [Fact(Skip = "Functionality not yet implemented.")]
         public void ImportManyWithNone()
         {
             var container = TestUtilities.CreateContainer(
@@ -24,7 +24,7 @@
         }
 
 
-        [Fact]
+        [Fact(Skip = "Functionality not yet implemented.")]
         public void ImportManyWithOne()
         {
             var container = TestUtilities.CreateContainer(
@@ -38,7 +38,7 @@
             Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions[0]);
         }
 
-        [Fact]
+        [Fact(Skip = "Functionality not yet implemented.")]
         public void ImportManyWithTwo()
         {
             var container = TestUtilities.CreateContainer(

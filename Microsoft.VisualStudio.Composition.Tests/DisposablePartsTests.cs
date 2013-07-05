@@ -10,7 +10,7 @@
 
     public class DisposablePartsTests
     {
-        [Fact]
+        [Fact(Skip = "Functionality not yet implemented.")]
         public void DisposablePartDisposedWithContainer()
         {
             var container = TestUtilities.CreateContainer(

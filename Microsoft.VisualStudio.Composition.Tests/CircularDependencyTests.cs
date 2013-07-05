@@ -81,7 +81,7 @@
 
         #region Large loop of all non-shared exports
 
-        [Fact]
+        [Fact(Skip = "Functionality not yet implemented.")]
         public void LoopOfNonSharedExports()
         {
             // There is no way to resolve this catalog. It would instantiate parts forever.

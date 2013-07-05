@@ -10,7 +10,7 @@ using Xunit;
 
     public class LazyImportTests
     {
-        [Fact]
+        [Fact(Skip = "Functionality not yet implemented.")]
         public void LazyImport()
         {
             var container = TestUtilities.CreateContainer(typeof(ExportWithLazyImport), typeof(AnotherExport));
@@ -30,7 +30,7 @@ using Xunit;
             Assert.NotSame(anotherExport, anotherExport2);
         }
 
-        [Fact]
+        [Fact(Skip = "Functionality not yet implemented.")]
         public void LazyImportMany()
         {
             var container = TestUtilities.CreateContainer(typeof(ExportWithLazyImport), typeof(AnotherExport));
@@ -45,7 +45,7 @@ using Xunit;
         /// <summary>
         /// Verifies that the Lazy{T} instance itself is shared across all importers.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "Functionality not yet implemented.")]
         public void LazyImportOfSharedExportHasSharedLazy()
         {
             var container = TestUtilities.CreateContainer(typeof(ExportWithLazyImportOfSharedExport), typeof(SharedExport));
@@ -60,7 +60,7 @@ using Xunit;
             Assert.Same(firstInstance.SharedExport, secondInstance.SharedExport);
         }
 
-        [Fact]
+        [Fact(Skip = "Functionality not yet implemented.")]
         public void LazyImportOfSharedExportHasCreatedValueWhenCreatedByOtherMeans()
         {
             var container = TestUtilities.CreateContainer(typeof(ExportWithLazyImportOfSharedExport), typeof(SharedExport));

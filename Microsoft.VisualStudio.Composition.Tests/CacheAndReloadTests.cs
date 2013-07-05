@@ -30,7 +30,7 @@
         /// <summary>
         /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "Functionality not yet implemented.")]
         public void ComposableAssembliesLazyLoadedWhenQueried()
         {
             var configuration = CompositionConfiguration.Create(typeof(ExternalExport), typeof(YetAnotherExport));
@@ -55,7 +55,7 @@
         /// <summary>
         /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "Functionality not yet implemented.")]
         public void ComposableAssembliesLazyLoadedByLazyImport()
         {
             var configuration = CompositionConfiguration.Create(typeof(ExternalExport), typeof(YetAnotherExport));

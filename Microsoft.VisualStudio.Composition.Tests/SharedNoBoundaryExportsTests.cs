@@ -10,7 +10,7 @@
 
     public class SharedNoBoundaryExportsTests
     {
-        [Fact]
+        [Fact(Skip = "Functionality not yet implemented.")]
         public void AcquireSharedExportTwiceYieldsSameInstance()
         {
             var container = TestUtilities.CreateContainer(
@@ -25,7 +25,7 @@
             Assert.Same(firstResult, secondResult);
         }
 
-        [Fact]
+        [Fact(Skip = "Functionality not yet implemented.")]
         public void ImportingSharedExportAtMultipleSitesYieldsSameInstance()
         {
             var container = TestUtilities.CreateContainer(
