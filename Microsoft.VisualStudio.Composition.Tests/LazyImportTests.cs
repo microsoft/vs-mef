@@ -10,6 +10,11 @@ using Xunit;
 
     public class LazyImportTests
     {
+        public LazyImportTests()
+        {
+            AnotherExport.ConstructionCount = 0;
+        }
+
         [Fact]
         public void LazyImport()
         {
@@ -30,10 +35,10 @@ using Xunit;
             Assert.NotSame(anotherExport, anotherExport2);
         }
 
-        [Fact(Skip = "Functionality not yet implemented.")]
+        [Fact]
         public void LazyImportMany()
         {
-            var container = TestUtilities.CreateContainer(typeof(ExportWithLazyImport), typeof(AnotherExport));
+            var container = TestUtilities.CreateContainer(typeof(ExportWithListOfLazyImport), typeof(AnotherExport));
             var lazyImport = container.GetExport<ExportWithListOfLazyImport>();
             Assert.Equal(1, lazyImport.AnotherExports.Count);
             Assert.Equal(0, AnotherExport.ConstructionCount);

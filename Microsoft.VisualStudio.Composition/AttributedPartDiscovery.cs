@@ -39,7 +39,7 @@
                 {
                     Type contractType = member.PropertyType;
                     bool isLazy = false;
-                    if (member.PropertyType.IsGenericType)
+                    if (contractType.IsGenericType)
                     {
                         var genericDefinition = member.PropertyType.GetGenericTypeDefinition();
                         if (genericDefinition.IsEquivalentTo(typeof(Lazy<>)))
@@ -59,7 +59,17 @@
                 else if (importManyAttribute != null)
                 {
                     Type contractType = member.PropertyType.GetGenericArguments()[0];
-                    bool isLazy = false; // TODO: add support for lazy
+                    bool isLazy = false;
+                    if (contractType.IsGenericType)
+                    {
+                        var genericDefinition = contractType.GetGenericTypeDefinition();
+                        if (genericDefinition.IsEquivalentTo(typeof(Lazy<>)))
+                        {
+                            isLazy = true;
+                            contractType = contractType.GetGenericArguments()[0];
+                        }
+                    }
+
                     var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
                     var importDefinition = new ImportDefinition(contract, ImportCardinality.ZeroOrMore, isLazy);
                     imports.Add(member, importDefinition);

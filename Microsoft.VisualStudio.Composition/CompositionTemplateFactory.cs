@@ -163,7 +163,11 @@ foreach (var part in this.Configuration.Parts)
 			string right = "new List<" + fullTypeNameWithPerhapsLazy + "> {";
 			foreach (var export in exports)
 			{
-				right += "\n\t\t\tthis.GetOrCreate" + export.PartDefinition.Id + "(),";
+				right += "\n\t\t\t";
+				if (importDefinition.IsLazy) { right += "new " + fullTypeNameWithPerhapsLazy + "(() => "; }
+				right += "this.GetOrCreate" + export.PartDefinition.Id + "()";
+				if (importDefinition.IsLazy) { right += ")"; }
+				right += ",";
 			}
 
 			right += "\n\t\t}";
@@ -176,21 +180,21 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("\t\t");
             
-            #line 84 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 88 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(left));
             
             #line default
             #line hidden
             this.Write(" = ");
             
-            #line 84 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 88 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(right));
             
             #line default
             #line hidden
             this.Write(";\r\n");
             
-            #line 85 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 89 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 		}
 		else if (exports.Any())
@@ -207,21 +211,21 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("\t\t");
             
-            #line 96 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 100 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(left));
             
             #line default
             #line hidden
             this.Write(" = ");
             
-            #line 96 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 100 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(right));
             
             #line default
             #line hidden
             this.Write(";\r\n");
             
-            #line 97 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 101 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 		}
 	}
@@ -231,7 +235,7 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("\t\treturn result;\r\n\t}\r\n");
             
-            #line 103 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 107 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 }
 
@@ -242,7 +246,7 @@ foreach (var part in this.Configuration.Parts)
             return this.GenerationEnvironment.ToString();
         }
         
-        #line 108 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+        #line 112 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 	public CompositionConfiguration Configuration { get; set; }
 
