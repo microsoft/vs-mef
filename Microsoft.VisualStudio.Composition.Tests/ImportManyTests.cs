@@ -10,12 +10,11 @@
 
     public class ImportManyTests
     {
-        [Fact(Skip = "Functionality not yet implemented.")]
+        [Fact]
         public void ImportManyWithNone()
         {
             var container = TestUtilities.CreateContainer(
-                typeof(Extendable),
-                typeof(ExtensionOne));
+                typeof(Extendable));
 
             var extendable = container.GetExport<Extendable>();
             Assert.NotNull(extendable);
@@ -24,7 +23,7 @@
         }
 
 
-        [Fact(Skip = "Functionality not yet implemented.")]
+        [Fact]
         public void ImportManyWithOne()
         {
             var container = TestUtilities.CreateContainer(
@@ -38,7 +37,7 @@
             Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions[0]);
         }
 
-        [Fact(Skip = "Functionality not yet implemented.")]
+        [Fact]
         public void ImportManyWithTwo()
         {
             var container = TestUtilities.CreateContainer(
@@ -66,7 +65,7 @@
         public class Extendable
         {
             [ImportMany]
-            public List<IExtension> Extensions { get; set; }
+            public IReadOnlyList<IExtension> Extensions { get; set; }
         }
     }
 }

@@ -61,13 +61,35 @@ foreach (var part in this.Configuration.Parts)
 		var importingMember = satisfyingExport.Key.ImportingMember;
 		var importDefinition = satisfyingExport.Key.ImportDefinition;
 		var exports = satisfyingExport.Value;
-		if (exports.Any())
+		string fullTypeNameWithPerhapsLazy = GetTypeName(importDefinition.CoercedValueType);
+		if (importDefinition.IsLazy)
 		{
-			string left = "result." + importingMember.Name;
+			fullTypeNameWithPerhapsLazy = "Lazy<" + fullTypeNameWithPerhapsLazy + ">";
+		}
+
+		string left = "result." + importingMember.Name;
+		if (importDefinition.Cardinality == ImportCardinality.ZeroOrMore)
+		{
+			string right = "new List<" + fullTypeNameWithPerhapsLazy + "> {";
+			foreach (var export in exports)
+			{
+				right += "\n\t\t\tthis.GetOrCreate" + export.PartDefinition.Id + "(),";
+			}
+
+			right += "\n\t\t}";
+			if (importDefinition.IsLazy)
+			{
+			}
+#>
+		<#= left #> = <#= right #>;
+<#
+		}
+		else if (exports.Any())
+		{
 			string right = "this.GetOrCreate" + exports.Single().PartDefinition.Id + "()";
 			if (importDefinition.IsLazy)
 			{
-				right = "new Lazy<" + GetTypeName(importDefinition.CoercedValueType) + ">(() => " + right + ")";
+				right = "new " + fullTypeNameWithPerhapsLazy + "(() => " + right + ")";
 			}
 
 #>
