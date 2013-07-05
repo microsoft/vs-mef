@@ -148,86 +148,7 @@ foreach (var part in this.Configuration.Parts)
 
 	foreach (var satisfyingExport in part.SatisfyingExports)
 	{
-		var importingMember = satisfyingExport.Key.ImportingMember;
-		var importDefinition = satisfyingExport.Key.ImportDefinition;
-		var exports = satisfyingExport.Value;
-		string fullTypeNameWithPerhapsLazy = GetTypeName(importDefinition.CoercedValueType);
-		if (importDefinition.IsLazy)
-		{
-			fullTypeNameWithPerhapsLazy = "Lazy<" + fullTypeNameWithPerhapsLazy + ">";
-		}
-
-		string left = "result." + importingMember.Name;
-		if (importDefinition.Cardinality == ImportCardinality.ZeroOrMore)
-		{
-			string right = "new List<" + fullTypeNameWithPerhapsLazy + "> {";
-			foreach (var export in exports)
-			{
-				right += "\n\t\t\t";
-				if (importDefinition.IsLazy) { right += "new " + fullTypeNameWithPerhapsLazy + "(() => "; }
-				right += "this.GetOrCreate" + export.PartDefinition.Id + "()";
-				if (importDefinition.IsLazy) { right += ")"; }
-				right += ",";
-			}
-
-			right += "\n\t\t}";
-			if (importDefinition.IsLazy)
-			{
-			}
-
-            
-            #line default
-            #line hidden
-            this.Write("\t\t");
-            
-            #line 88 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(left));
-            
-            #line default
-            #line hidden
-            this.Write(" = ");
-            
-            #line 88 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(right));
-            
-            #line default
-            #line hidden
-            this.Write(";\r\n");
-            
-            #line 89 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-
-		}
-		else if (exports.Any())
-		{
-			string right = "this.GetOrCreate" + exports.Single().PartDefinition.Id + "()";
-			if (importDefinition.IsLazy)
-			{
-				right = "new " + fullTypeNameWithPerhapsLazy + "(() => " + right + ")";
-			}
-
-
-            
-            #line default
-            #line hidden
-            this.Write("\t\t");
-            
-            #line 100 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(left));
-            
-            #line default
-            #line hidden
-            this.Write(" = ");
-            
-            #line 100 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(right));
-            
-            #line default
-            #line hidden
-            this.Write(";\r\n");
-            
-            #line 101 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-
-		}
+		this.EmitImportSatisfyingAssignment(satisfyingExport);
 	}
 
             
@@ -235,36 +156,16 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("\t\treturn result;\r\n\t}\r\n");
             
-            #line 107 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 66 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 }
 
             
             #line default
             #line hidden
-            this.Write("}\r\n\r\n");
+            this.Write("}\r\n");
             return this.GenerationEnvironment.ToString();
         }
-        
-        #line 112 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-
-	public CompositionConfiguration Configuration { get; set; }
-
-	private static string GetTypeName(Type type)
-	{
-		if (type.DeclaringType != null)
-		{
-			return GetTypeName(type.DeclaringType) + "." + type.Name;
-		}
-		else
-		{
-			return type.FullName;
-		}
-	}
-
-        
-        #line default
-        #line hidden
     }
     
     #line default
