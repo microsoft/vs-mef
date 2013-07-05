@@ -48,21 +48,23 @@ foreach (var part in this.Configuration.Catalog.Parts)
 		throw new ArgumentException();
 	}
 <#
-foreach (var part in this.Configuration.Catalog.Parts) 
+foreach (var part in this.Configuration.Parts) 
 {
 #>
 
-	protected <#= GetTypeName(part.Type) #> GetOrCreate<#= part.Id #>()
+	protected <#= GetTypeName(part.Definition.Type) #> GetOrCreate<#= part.Definition.Id #>()
 	{
-		var result = new <#= GetTypeName(part.Type) #>();
+		var result = new <#= GetTypeName(part.Definition.Type) #>();
 <#
-	foreach (var import in part.ImportDefinitions)
+	foreach (var importMemberAndDefinition in part.Definition.ImportDefinitions)
 	{
-		var exports = this.Configuration.Catalog.GetExports(import.Value);
+		var importingMember = importMemberAndDefinition.Key;
+		var importDefinition = importMemberAndDefinition.Value;
+		var exports = part.SatisfyingExports[importDefinition ];
 		if (exports.Any())
 		{
 #>
-		result.<#= import.Key.Name #> = this.GetOrCreate<#= exports.Single().PartDefinition.Id #>();
+		result.<#= importingMember.Name #> = this.GetOrCreate<#= exports.Single().PartDefinition.Id #>();
 <#
 		}
 	}

@@ -115,7 +115,7 @@ foreach (var part in this.Configuration.Catalog.Parts)
             
             #line 50 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
-foreach (var part in this.Configuration.Catalog.Parts) 
+foreach (var part in this.Configuration.Parts) 
 {
 
             
@@ -124,21 +124,21 @@ foreach (var part in this.Configuration.Catalog.Parts)
             this.Write("\r\n\tprotected ");
             
             #line 55 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(part.Type)));
+            this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(part.Definition.Type)));
             
             #line default
             #line hidden
             this.Write(" GetOrCreate");
             
             #line 55 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(part.Id));
+            this.Write(this.ToStringHelper.ToStringWithCulture(part.Definition.Id));
             
             #line default
             #line hidden
             this.Write("()\r\n\t{\r\n\t\tvar result = new ");
             
             #line 57 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(part.Type)));
+            this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(part.Definition.Type)));
             
             #line default
             #line hidden
@@ -146,9 +146,11 @@ foreach (var part in this.Configuration.Catalog.Parts)
             
             #line 58 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
-	foreach (var import in part.ImportDefinitions)
+	foreach (var importMemberAndDefinition in part.Definition.ImportDefinitions)
 	{
-		var exports = this.Configuration.Catalog.GetExports(import.Value);
+		var importingMember = importMemberAndDefinition.Key;
+		var importDefinition = importMemberAndDefinition.Value;
+		var exports = part.SatisfyingExports[importDefinition ];
 		if (exports.Any())
 		{
 
@@ -157,21 +159,21 @@ foreach (var part in this.Configuration.Catalog.Parts)
             #line hidden
             this.Write("\t\tresult.");
             
-            #line 65 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(import.Key.Name));
+            #line 67 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(importingMember.Name));
             
             #line default
             #line hidden
             this.Write(" = this.GetOrCreate");
             
-            #line 65 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 67 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(exports.Single().PartDefinition.Id));
             
             #line default
             #line hidden
             this.Write("();\r\n");
             
-            #line 66 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 68 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 		}
 	}
@@ -181,7 +183,7 @@ foreach (var part in this.Configuration.Catalog.Parts)
             #line hidden
             this.Write("\t\treturn result;\r\n\t}\r\n");
             
-            #line 72 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 74 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 }
 
@@ -192,7 +194,7 @@ foreach (var part in this.Configuration.Catalog.Parts)
             return this.GenerationEnvironment.ToString();
         }
         
-        #line 77 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+        #line 79 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 	public CompositionConfiguration Configuration { get; set; }
 
