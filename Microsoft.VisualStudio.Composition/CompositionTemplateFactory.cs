@@ -44,7 +44,7 @@ internal class CompiledExportFactory : ExportFactory
 
 foreach (var part in this.Configuration.Catalog.Parts)
 {
-	foreach (var partExport in part.ExportDefinitions)
+	foreach (var partExport in part.ExportDefinitionsOnType)
 	{
 
             
@@ -146,11 +146,11 @@ foreach (var part in this.Configuration.Parts)
             
             #line 58 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
-	foreach (var importMemberAndDefinition in part.Definition.ImportDefinitions)
+	foreach (var satisfyingExport in part.SatisfyingExports)
 	{
-		var importingMember = importMemberAndDefinition.Key;
-		var importDefinition = importMemberAndDefinition.Value;
-		var exports = part.SatisfyingExports[importDefinition ];
+		var importingMember = satisfyingExport.Key.ImportingMember;
+		var importDefinition = satisfyingExport.Key.ImportDefinition;
+		var exports = satisfyingExport.Value;
 		if (exports.Any())
 		{
 

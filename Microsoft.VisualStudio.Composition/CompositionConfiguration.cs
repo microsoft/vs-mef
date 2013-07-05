@@ -47,7 +47,9 @@
 
             foreach (ComposablePartDefinition part in catalog.Parts)
             {
-                var satisfyingImports = part.ImportDefinitions.ToImmutableDictionary(i => i.Value, i => catalog.GetExports(i.Value));
+                var satisfyingImports = part.ImportDefinitions.ToImmutableDictionary(
+                    i => new Import(part, i.Value, i.Key),
+                    i => catalog.GetExports(i.Value));
                 var composedPart = new ComposablePart(part, satisfyingImports);
                 parts.Add(composedPart);
             }
@@ -144,9 +146,9 @@
             foreach (var part in this.Parts)
             {
                 nodes.Add(Dgml.Node(part.Definition.Id, part.Definition.Id));
-                foreach (var import in part.Definition.ImportDefinitions)
+                foreach (var import in part.SatisfyingExports.Keys)
                 {
-                    foreach (Export export in part.SatisfyingExports[import.Value])
+                    foreach (Export export in part.SatisfyingExports[import])
                     {
                         links.Add(Dgml.Link(export.PartDefinition.Id, part.Definition.Id));
                     }

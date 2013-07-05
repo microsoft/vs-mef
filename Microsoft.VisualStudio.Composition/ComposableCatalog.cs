@@ -80,10 +80,18 @@
             var parts = this.parts.Add(partDefinition);
             var exportsByContract = this.exportsByContract;
 
-            foreach (var export in partDefinition.ExportDefinitions)
+            foreach (var export in partDefinition.ExportDefinitionsOnType)
             {
                 var list = exportsByContract.GetValueOrDefault(export.Contract, ImmutableList.Create<Export>());
-                exportsByContract = exportsByContract.SetItem(export.Contract, list.Add(new Export(export, partDefinition)));
+                exportsByContract = exportsByContract.SetItem(export.Contract, list.Add(new Export(export, partDefinition, exportingMember: null)));
+            }
+
+            foreach (var exportPair in partDefinition.ExportDefinitionsOnMembers)
+            {
+                var member = exportPair.Key;
+                var export = exportPair.Value;
+                var list = exportsByContract.GetValueOrDefault(export.Contract, ImmutableList.Create<Export>());
+                exportsByContract = exportsByContract.SetItem(export.Contract, list.Add(new Export(export, partDefinition, member)));
             }
 
             return new ComposableCatalog(types, parts, exportsByContract);

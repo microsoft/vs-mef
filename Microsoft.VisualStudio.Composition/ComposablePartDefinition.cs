@@ -10,14 +10,16 @@
 
     public class ComposablePartDefinition
     {
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exports, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports)
+        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, ExportDefinition> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports)
         {
             Requires.NotNull(partType, "partType");
-            Requires.NotNull(exports, "exports");
+            Requires.NotNull(exportsOnType, "exportsOnType");
+            Requires.NotNull(exportsOnMembers, "exportsOnMembers");
             Requires.NotNull(imports, "imports");
 
             this.Type = partType;
-            this.ExportDefinitions = exports;
+            this.ExportDefinitionsOnType = exportsOnType;
+            this.ExportDefinitionsOnMembers = exportsOnMembers;
             this.ImportDefinitions = imports;
         }
 
@@ -28,7 +30,14 @@
             get { return this.Type.Name; }
         }
 
-        public IReadOnlyCollection<ExportDefinition> ExportDefinitions { get; private set; }
+        //public IEnumerable<ExportDefinition> ExportDefinitions
+        //{
+        //    get { return this.ExportDefinitionsOnType.Concat(this.ExportDefinitionsOnMembers.Values); }
+        //}
+
+        public IReadOnlyCollection<ExportDefinition> ExportDefinitionsOnType { get; private set; }
+
+        public IReadOnlyDictionary<MemberInfo, ExportDefinition> ExportDefinitionsOnMembers { get; private set; }
 
         public IReadOnlyDictionary<MemberInfo, ImportDefinition> ImportDefinitions { get; private set; }
     }

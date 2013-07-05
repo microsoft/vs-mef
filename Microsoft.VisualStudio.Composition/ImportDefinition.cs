@@ -19,6 +19,8 @@
 
         public ImportCardinality Cardinality { get; private set; }
 
+        public bool IsLazy { get; private set; }
+
         public CompositionContract Contract { get; private set; }
 
         public override int GetHashCode()
