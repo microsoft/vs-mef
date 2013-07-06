@@ -179,7 +179,7 @@
             {
                 Requires.NotNull(assembly, "assembly");
 
-                var exportFactoryType = assembly.GetType("CompiledExportFactory");
+                var exportFactoryType = assembly.GetType("CompiledExportProvider");
                 this.createFactory = () => (ExportProvider)Activator.CreateInstance(exportFactoryType);
             }
 

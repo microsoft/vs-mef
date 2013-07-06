@@ -44,7 +44,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.Composition;
 
-internal class CompiledExportFactory : ExportProvider
+internal class CompiledExportProvider : ExportProvider
 {
 	protected override object GetExport(ExportDefinition exportDefinition)
 	{
@@ -114,7 +114,7 @@ foreach (var part in this.Configuration.Catalog.Parts)
             
             #line default
             #line hidden
-            this.Write("\t\t\t\tvar genericTemplateMethod = typeof(CompiledExportFactory).GetMethod(\"");
+            this.Write("\t\t\t\tvar genericTemplateMethod = typeof(CompiledExportProvider).GetMethod(\"");
             
             #line 54 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetPartFactoryMethodNameNoTypeArgs(part)));

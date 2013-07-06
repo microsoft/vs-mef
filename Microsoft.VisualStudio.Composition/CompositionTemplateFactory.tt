@@ -19,7 +19,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.Composition;
 
-internal class CompiledExportFactory : ExportProvider
+internal class CompiledExportProvider : ExportProvider
 {
 	protected override object GetExport(ExportDefinition exportDefinition)
 	{
@@ -51,7 +51,7 @@ foreach (var part in this.Configuration.Catalog.Parts)
 				if (part.Type.IsGenericType)
 				{
 #>
-				var genericTemplateMethod = typeof(CompiledExportFactory).GetMethod("<#= GetPartFactoryMethodNameNoTypeArgs(part) #>", BindingFlags.Instance | BindingFlags.NonPublic);
+				var genericTemplateMethod = typeof(CompiledExportProvider).GetMethod("<#= GetPartFactoryMethodNameNoTypeArgs(part) #>", BindingFlags.Instance | BindingFlags.NonPublic);
 				var genericMethod = genericTemplateMethod.MakeGenericMethod(exportDefinition.Contract.Type.GetGenericArguments());
 				return genericMethod.Invoke(this, new object[0]);
 <#
