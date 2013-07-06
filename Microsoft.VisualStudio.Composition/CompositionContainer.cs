@@ -5,9 +5,9 @@
 
     public class CompositionContainer : IDisposable
     {
-        private readonly ExportFactory exportFactory;
+        private readonly ExportProvider exportFactory;
 
-        internal CompositionContainer(ExportFactory exportFactory)
+        internal CompositionContainer(ExportProvider exportFactory)
         {
             Requires.NotNull(exportFactory, "exportFactory");
 

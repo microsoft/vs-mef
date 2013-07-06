@@ -8,7 +8,7 @@
     using System.Threading.Tasks;
     using Validation;
 
-    public abstract class ExportFactory
+    public abstract class ExportProvider
     {
         private readonly object syncObject = new object();
 

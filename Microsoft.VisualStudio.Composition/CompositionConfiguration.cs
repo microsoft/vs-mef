@@ -173,14 +173,14 @@
 
         private class ContainerFactory : ICompositionContainerFactory
         {
-            private Func<ExportFactory> createFactory;
+            private Func<ExportProvider> createFactory;
 
             internal ContainerFactory(Assembly assembly)
             {
                 Requires.NotNull(assembly, "assembly");
 
                 var exportFactoryType = assembly.GetType("CompiledExportFactory");
-                this.createFactory = () => (ExportFactory)Activator.CreateInstance(exportFactoryType);
+                this.createFactory = () => (ExportProvider)Activator.CreateInstance(exportFactoryType);
             }
 
             public CompositionContainer CreateContainer()

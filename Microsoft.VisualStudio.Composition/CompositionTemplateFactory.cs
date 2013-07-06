@@ -44,7 +44,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.VisualStudio.Composition;
 
-internal class CompiledExportFactory : ExportFactory
+internal class CompiledExportFactory : ExportProvider
 {
 	protected override object GetExport(ExportDefinition exportDefinition)
 	{");

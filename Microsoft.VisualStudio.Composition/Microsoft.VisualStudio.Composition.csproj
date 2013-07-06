@@ -93,7 +93,7 @@
       <DependentUpon>CompositionTemplateFactory.tt</DependentUpon>
     </Compile>
     <Compile Include="ExportDefinition.cs" />
-    <Compile Include="ExportFactory.cs" />
+    <Compile Include="ExportProvider.cs" />
     <Compile Include="ImportDefinition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
