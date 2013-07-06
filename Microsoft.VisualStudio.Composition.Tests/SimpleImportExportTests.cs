@@ -12,45 +12,28 @@ namespace Microsoft.VisualStudio.Composition.Tests
     public class SimpleImportExportTests
     {
         [Fact]
-        public void AcquireSingleExportv2()
+        public void AcquireSingleExport()
         {
-            var configuration = new ContainerConfiguration()
-                .WithPart(typeof(Apple));
-            var container = configuration.CreateContainer();
-            Apple apple = container.GetExport<Apple>();
-            Assert.NotNull(apple);
+            TestUtilities.RunV2andV3CompatTest(
+                new[] { typeof(Apple) },
+                container =>
+                {
+                    Apple apple = container.GetExport<Apple>();
+                    Assert.NotNull(apple);
+                });
         }
 
         [Fact]
-        public void AcquireSingleExportv3()
+        public void AcquireExportWithImport()
         {
-            var container = TestUtilities.CreateContainer(
-                typeof(Apple));
-            Apple apple = container.GetExport<Apple>();
-            Assert.NotNull(apple);
-        }
-
-        [Fact]
-        public void AcquireExportWithImportv2()
-        {
-            var configuration = new ContainerConfiguration()
-                .WithPart(typeof(Apple))
-                .WithPart(typeof(Tree));
-            CompositionHost container = configuration.CreateContainer();
-            Tree tree = container.GetExport<Tree>();
-            Assert.NotNull(tree);
-            Assert.NotNull(tree.Apple);
-        }
-
-        [Fact]
-        public void AcquireExportWithImportv3()
-        {
-            var container = TestUtilities.CreateContainer(
-                typeof(Apple),
-                typeof(Tree));
-            Tree tree = container.GetExport<Tree>();
-            Assert.NotNull(tree);
-            Assert.NotNull(tree.Apple);
+            TestUtilities.RunV2andV3CompatTest(
+                new[] { typeof(Apple), typeof(Tree) },
+                container =>
+                {
+                    Tree tree = container.GetExport<Tree>();
+                    Assert.NotNull(tree);
+                    Assert.NotNull(tree.Apple);
+                });
         }
 
         [Export]

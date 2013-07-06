@@ -14,12 +14,12 @@
             this.exportFactory = exportFactory;
         }
 
-        public T GetExport<T>() where T : class
+        public T GetExport<T>()
         {
             return this.exportFactory.GetExport<T>();
         }
 
-        public T GetExport<T>(string contractName) where T : class
+        public T GetExport<T>(string contractName)
         {
             return this.exportFactory.GetExport<T>(contractName);
         }
