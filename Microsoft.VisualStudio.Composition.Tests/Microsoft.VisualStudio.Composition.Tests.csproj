@@ -79,7 +79,7 @@
     <Compile Include="ContainerIsolationTests.cs" />
     <Compile Include="DgmlProduction.cs" />
     <Compile Include="DisposablePartsTests.cs" />
-    <Compile Include="EngineAttributes.cs" />
+    <Compile Include="CompositionEngines.cs" />
     <Compile Include="ExportImportViaBaseType.cs" />
     <Compile Include="IContainer.cs" />
     <Compile Include="ImportManyTests.cs" />
