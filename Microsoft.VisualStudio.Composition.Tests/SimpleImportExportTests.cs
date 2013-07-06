@@ -12,31 +12,19 @@
 
     public class SimpleImportExportTests
     {
-        [Fact]
-        public void AcquireSingleExport()
+        [CompatFact(CompositionEngines.Both)]
+        public void AcquireSingleExport(IContainer container)
         {
-            TestUtilities.RunMultiEngineTest(
-                TestUtilities.EngineAttributes.V1 | TestUtilities.EngineAttributes.V2,
-                new[] { typeof(Apple) },
-                container =>
-                {
-                    Apple apple = container.GetExport<Apple>();
-                    Assert.NotNull(apple);
-                });
+            Apple apple = container.GetExport<Apple>();
+            Assert.NotNull(apple);
         }
 
-        [Fact]
-        public void AcquireExportWithImport()
+        [CompatFact(CompositionEngines.Both)]
+        public void AcquireExportWithImport(IContainer container)
         {
-            TestUtilities.RunMultiEngineTest(
-                TestUtilities.EngineAttributes.V1 | TestUtilities.EngineAttributes.V2,
-                new[] { typeof(Apple), typeof(Tree) },
-                container =>
-                {
-                    Tree tree = container.GetExport<Tree>();
-                    Assert.NotNull(tree);
-                    Assert.NotNull(tree.Apple);
-                });
+            Tree tree = container.GetExport<Tree>();
+            Assert.NotNull(tree);
+            Assert.NotNull(tree.Apple);
         }
 
         [Export]

@@ -74,10 +74,14 @@
     <Compile Include="CacheAndReloadTests.cs" />
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="CircularDependencyTests.cs" />
+    <Compile Include="CompatCommand.cs" />
+    <Compile Include="CompatFactAttribute.cs" />
     <Compile Include="ContainerIsolationTests.cs" />
     <Compile Include="DgmlProduction.cs" />
     <Compile Include="DisposablePartsTests.cs" />
+    <Compile Include="EngineAttributes.cs" />
     <Compile Include="ExportImportViaBaseType.cs" />
+    <Compile Include="IContainer.cs" />
     <Compile Include="ImportManyTests.cs" />
     <Compile Include="LazyImportTests.cs" />
     <Compile Include="OpenGenericExportTests.cs" />

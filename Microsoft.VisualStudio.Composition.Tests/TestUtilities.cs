@@ -11,14 +11,6 @@
 
     internal static class TestUtilities
     {
-        [Flags]
-        internal enum EngineAttributes
-        {
-            Unspecified = 0,
-            V1,
-            V2,
-        }
-
         internal static CompositionContainer CreateContainer(params Type[] parts)
         {
             return CompositionConfiguration.Create(parts).CreateContainer();
@@ -40,17 +32,17 @@
 
         internal static IContainer CreateContainerV3(params Type[] parts)
         {
-            return CreateContainerV3(parts, EngineAttributes.Unspecified);
+            return CreateContainerV3(parts, CompositionEngines.Unspecified);
         }
 
-        internal static IContainer CreateContainerV3(Type[] parts, EngineAttributes attributesDiscovery)
+        internal static IContainer CreateContainerV3(Type[] parts, CompositionEngines attributesDiscovery)
         {
             PartDiscovery discovery = null;
-            if (attributesDiscovery.HasFlag(EngineAttributes.V1))
+            if (attributesDiscovery.HasFlag(CompositionEngines.V1))
             {
                 discovery = new AttributedPartDiscoveryV1();
             }
-            else if (attributesDiscovery.HasFlag(EngineAttributes.V2))
+            else if (attributesDiscovery.HasFlag(CompositionEngines.V2))
             {
                 discovery = new AttributedPartDiscovery();
             }
@@ -61,28 +53,21 @@
             return new V3ContainerWrapper(container);
         }
 
-        internal static void RunMultiEngineTest(EngineAttributes attributesVersion, Type[] parts, Action<IContainer> test)
+        internal static void RunMultiEngineTest(CompositionEngines attributesVersion, Type[] parts, Action<IContainer> test)
         {
-            if (attributesVersion.HasFlag(EngineAttributes.V1))
+            if (attributesVersion.HasFlag(CompositionEngines.V1))
             {
                 // Run the test against System.ComponentModel.Composition.
                 test(CreateContainerV1(parts));
-                test(CreateContainerV3(parts, EngineAttributes.V1));
+                test(CreateContainerV3(parts, CompositionEngines.V1));
             }
 
-            if (attributesVersion.HasFlag(EngineAttributes.V2))
+            if (attributesVersion.HasFlag(CompositionEngines.V2))
             {
                 // Run the test against System.Composition.
                 test(CreateContainerV2(parts));
-                test(CreateContainerV3(parts, EngineAttributes.V2));
+                test(CreateContainerV3(parts, CompositionEngines.V2));
             }
-        }
-
-        internal interface IContainer
-        {
-            T GetExport<T>();
-
-            T GetExport<T>(string contractName);
         }
 
         private class V1ContainerWrapper : IContainer
