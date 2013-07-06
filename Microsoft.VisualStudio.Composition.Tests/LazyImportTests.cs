@@ -47,13 +47,13 @@ using Xunit;
         /// <summary>
         /// Verifies that the Lazy{T} instance itself is shared across all importers.
         /// </summary>
-        [Fact(Skip = "Functionality not yet implemented.")]
-        public void LazyImportOfSharedExportHasSharedLazy()
+        [MefFact(CompositionEngines.Unspecified, typeof(ExportWithLazyImportOfSharedExport), typeof(SharedExport))]
+        public void LazyImportOfSharedExportHasSharedLazy(IContainer container)
         {
-            var container = TestUtilities.CreateContainer(typeof(ExportWithLazyImportOfSharedExport), typeof(SharedExport));
             var firstInstance = container.GetExport<ExportWithLazyImportOfSharedExport>();
             var secondInstance = container.GetExport<ExportWithLazyImportOfSharedExport>();
             Assert.NotSame(firstInstance, secondInstance); // We should get two copies of the non-shared instance
+            Assert.Same(firstInstance.SharedExport.Value, secondInstance.SharedExport.Value);
 
             // We're intentionally verifying the instance of the Lazy<T> *itself* (not its value).
             // We want it shared so that if any one service queries Lazy<T>.IsValueCreated, it will return true
