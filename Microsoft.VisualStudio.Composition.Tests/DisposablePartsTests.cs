@@ -7,26 +7,21 @@
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using MefV3 = System.ComponentModel.Composition;
 
     public class DisposablePartsTests
     {
-        [Fact(Skip = "Functionality not yet implemented.")]
-        public void DisposablePartDisposedWithContainer()
+        [MefFact(CompositionEngines.V2 | CompositionEngines.V1)]
+        public void DisposablePartDisposedWithContainer(IContainer container)
         {
-            var container = TestUtilities.CreateContainer(
-                typeof(DisposablePart));
-
             var part = container.GetExport<DisposablePart>();
             Assert.False(part.IsDisposed);
             container.Dispose();
             Assert.True(part.IsDisposed);
-
-            // Values not created should not be disposed.
-            Assert.False(UninstantiatedPart.EverInstantiated);
-            Assert.False(UninstantiatedPart.EverDisposed);
         }
 
         [Export]
+        [MefV3.Export, MefV3.PartCreationPolicy(MefV3.CreationPolicy.NonShared)]
         public class DisposablePart : IDisposable
         {
             public bool IsDisposed { get; private set; }
@@ -38,18 +33,16 @@
         }
 
         [Export]
+        [MefV3.Export, MefV3.PartCreationPolicy(MefV3.CreationPolicy.NonShared)]
         public class UninstantiatedPart : IDisposable
         {
             public UninstantiatedPart()
             {
-                EverInstantiated = true;
+                Assert.False(true, "This should never be instantiated.");
             }
-            public static bool EverDisposed { get; private set; }
-            public static bool EverInstantiated { get; private set; }
 
             public void Dispose()
             {
-                EverDisposed = true;
             }
         }
     }

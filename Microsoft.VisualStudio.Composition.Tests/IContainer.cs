@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public interface IContainer
+    public interface IContainer : IDisposable
     {
         T GetExport<T>();
 

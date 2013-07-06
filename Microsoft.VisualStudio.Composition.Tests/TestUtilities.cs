@@ -96,6 +96,11 @@
             {
                 return this.container.GetExportedValue<T>(contractName);
             }
+
+            public void Dispose()
+            {
+                this.container.Dispose();
+            }
         }
 
 
@@ -118,6 +123,11 @@
             {
                 return this.container.GetExport<T>(contractName);
             }
+
+            public void Dispose()
+            {
+                this.container.Dispose();
+            }
         }
 
         private class V3ContainerWrapper : IContainer
@@ -138,6 +148,11 @@
             public T GetExport<T>(string contractName)
             {
                 return this.container.GetExport<T>(contractName);
+            }
+
+            public void Dispose()
+            {
+                this.container.Dispose();
             }
         }
     }
