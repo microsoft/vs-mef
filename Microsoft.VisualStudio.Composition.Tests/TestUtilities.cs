@@ -15,16 +15,24 @@
             return CompositionConfiguration.Create(parts).CreateContainer();
         }
 
+        internal static IContainer CreateContainerV2(params Type[] parts)
+        {
+            var configuration = new ContainerConfiguration().WithParts(parts);
+            var container = configuration.CreateContainer();
+            return new V2ContainerWrapper(container);
+        }
+
+        internal static IContainer CreateContainerV3(params Type[] parts)
+        {
+            var configuration = CompositionConfiguration.Create(parts);
+            var container = configuration.CreateContainer();
+            return new V3ContainerWrapper(container);
+        }
+
         internal static void RunMultiEngineTest(Type[] parts, Action<IContainer> test)
         {
-            var v2configuration = new ContainerConfiguration().WithParts(parts);
-            var v3configuration = CompositionConfiguration.Create(parts);
-
-            CompositionHost v2container = v2configuration.CreateContainer();
-            CompositionContainer v3container = v3configuration.CreateContainer();
-
-            test(new V2ContainerWrapper(v2container));
-            test(new V3ContainerWrapper(v3container));
+            test(CreateContainerV2(parts));
+            test(CreateContainerV3(parts));
         }
 
         internal interface IContainer
