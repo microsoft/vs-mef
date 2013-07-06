@@ -14,6 +14,7 @@
         [Flags]
         internal enum EngineAttributes
         {
+            Unspecified = 0,
             V1,
             V2,
         }
@@ -39,7 +40,23 @@
 
         internal static IContainer CreateContainerV3(params Type[] parts)
         {
-            var configuration = CompositionConfiguration.Create(parts);
+            return CreateContainerV3(parts, EngineAttributes.Unspecified);
+        }
+
+        internal static IContainer CreateContainerV3(Type[] parts, EngineAttributes attributesDiscovery)
+        {
+            PartDiscovery discovery = null;
+            if (attributesDiscovery.HasFlag(EngineAttributes.V1))
+            {
+                discovery = new AttributedPartDiscoveryV1();
+            }
+            else if (attributesDiscovery.HasFlag(EngineAttributes.V2))
+            {
+                discovery = new AttributedPartDiscovery();
+            }
+
+            var catalog = ComposableCatalog.Create(parts, discovery);
+            var configuration = CompositionConfiguration.Create(catalog);
             var container = configuration.CreateContainer();
             return new V3ContainerWrapper(container);
         }
@@ -48,15 +65,17 @@
         {
             if (attributesVersion.HasFlag(EngineAttributes.V1))
             {
+                // Run the test against System.ComponentModel.Composition.
                 test(CreateContainerV1(parts));
+                test(CreateContainerV3(parts, EngineAttributes.V1));
             }
 
             if (attributesVersion.HasFlag(EngineAttributes.V2))
             {
+                // Run the test against System.Composition.
                 test(CreateContainerV2(parts));
+                test(CreateContainerV3(parts, EngineAttributes.V2));
             }
-
-            test(CreateContainerV3(parts));
         }
 
         internal interface IContainer
