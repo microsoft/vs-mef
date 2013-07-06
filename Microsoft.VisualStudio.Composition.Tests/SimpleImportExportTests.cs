@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Composition;
-using System.Composition.Hosting;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
-
-namespace Microsoft.VisualStudio.Composition.Tests
+﻿namespace Microsoft.VisualStudio.Composition.Tests
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Composition;
+    using System.Composition.Hosting;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Xunit;
+    using MefV1 = System.ComponentModel.Composition;
+
     public class SimpleImportExportTests
     {
         [Fact]
@@ -37,14 +38,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class Apple
         {
         }
 
         [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class Tree
         {
             [Import]
+            [MefV1.Import]
             public Apple Apple { get; set; }
         }
     }
