@@ -19,14 +19,12 @@
 
         protected override IEnumerable<ITestCommand> EnumerateTestCommands(IMethodInfo method)
         {
-            if (this.compositionVersions.HasFlag(CompositionEngines.V1))
+            foreach (var engine in new[] { CompositionEngines.V1, CompositionEngines.V2, CompositionEngines.V3EmulatingV1, CompositionEngines.V3EmulatingV2 })
             {
-                yield return new CompatCommand(method, CompositionEngines.V1);
-            }
-
-            if (this.compositionVersions.HasFlag(CompositionEngines.V2))
-            {
-                yield return new CompatCommand(method, CompositionEngines.V2);
+                if (this.compositionVersions.HasFlag(engine))
+                {
+                    yield return new CompatCommand(method, engine);
+                }
             }
         }
     }

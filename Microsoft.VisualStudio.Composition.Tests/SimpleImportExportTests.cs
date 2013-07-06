@@ -12,14 +12,14 @@
 
     public class SimpleImportExportTests
     {
-        [CompatFact(CompositionEngines.Both)]
+        [CompatFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void AcquireSingleExport(IContainer container)
         {
             Apple apple = container.GetExport<Apple>();
             Assert.NotNull(apple);
         }
 
-        [CompatFact(CompositionEngines.Both)]
+        [CompatFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void AcquireExportWithImport(IContainer container)
         {
             Tree tree = container.GetExport<Tree>();

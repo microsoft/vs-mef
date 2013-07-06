@@ -57,17 +57,24 @@
         {
             if (attributesVersion.HasFlag(CompositionEngines.V1))
             {
-                // Run the test against System.ComponentModel.Composition.
                 test(CreateContainerV1(parts));
+            }
+
+            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1))
+            {
                 test(CreateContainerV3(parts, CompositionEngines.V1));
             }
 
             if (attributesVersion.HasFlag(CompositionEngines.V2))
             {
-                // Run the test against System.Composition.
                 test(CreateContainerV2(parts));
+            }
+
+            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV2))
+            {
                 test(CreateContainerV3(parts, CompositionEngines.V2));
             }
+
         }
 
         private class V1ContainerWrapper : IContainer
