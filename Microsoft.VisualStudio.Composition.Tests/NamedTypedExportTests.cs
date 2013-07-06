@@ -11,29 +11,19 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
     public class NamedTypedExportTests
     {
-        public NamedTypedExportTests()
+        [MefFact(CompositionEngines.V2Compat)]
+        public void AcquireExportWithNamedImports(IContainer container)
         {
-            this.container = TestUtilities.CreateContainer(
-                typeof(FruitTree),
-                typeof(Apple),
-                typeof(Pear));
-        }
-
-        protected CompositionContainer container;
-
-        [Fact]
-        public void AcquireExportWithNamedImports()
-        {
-            FruitTree tree = this.container.GetExport<FruitTree>();
+            FruitTree tree = container.GetExport<FruitTree>();
             Assert.NotNull(tree);
             Assert.NotNull(tree.Pear);
             Assert.IsAssignableFrom(typeof(Pear), tree.Pear);
         }
 
-        [Fact]
-        public void AcquireNamedExport()
+        [MefFact(CompositionEngines.V2Compat)]
+        public void AcquireNamedExport(IContainer container)
         {
-            Fruit fruit = this.container.GetExport<Fruit>("Pear");
+            Fruit fruit = container.GetExport<Fruit>("Pear");
             Assert.NotNull(fruit);
             Assert.IsAssignableFrom(typeof(Pear), fruit);
         }

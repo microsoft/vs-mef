@@ -10,14 +10,9 @@
 
     public class SharedNoBoundaryExportsTests
     {
-        [Fact]
-        public void AcquireSharedExportTwiceYieldsSameInstance()
+        [MefFact(CompositionEngines.V2Compat)]
+        public void AcquireSharedExportTwiceYieldsSameInstance(IContainer container)
         {
-            var container = TestUtilities.CreateContainer(
-                typeof(SharedExport),
-                typeof(Importer1),
-                typeof(Importer2));
-
             var firstResult = container.GetExport<SharedExport>();
             var secondResult = container.GetExport<SharedExport>();
             Assert.NotNull(firstResult);
@@ -25,14 +20,9 @@
             Assert.Same(firstResult, secondResult);
         }
 
-        [Fact]
-        public void ImportingSharedExportAtMultipleSitesYieldsSameInstance()
+        [MefFact(CompositionEngines.V2Compat)]
+        public void ImportingSharedExportAtMultipleSitesYieldsSameInstance(IContainer container)
         {
-            var container = TestUtilities.CreateContainer(
-                typeof(SharedExport),
-                typeof(Importer1),
-                typeof(Importer2));
-
             var importer1 = container.GetExport<Importer1>();
             var importer2 = container.GetExport<Importer2>();
             Assert.NotNull(importer1.ImportingProperty1);

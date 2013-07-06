@@ -10,13 +10,9 @@
 
     public class ExportImportViaBaseType
     {
-        [Fact]
-        public void ImportViaExportedInterface()
+        [MefFact(CompositionEngines.V2Compat)]
+        public void ImportViaExportedInterface(IContainer container)
         {
-            var container = TestUtilities.CreateContainer(
-                typeof(Implementor),
-                typeof(Consumer));
-
             Consumer consumer = container.GetExport<Consumer>();
             Assert.NotNull(consumer);
             Assert.NotNull(consumer.Imported);

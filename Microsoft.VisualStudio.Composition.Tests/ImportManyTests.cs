@@ -10,12 +10,9 @@
 
     public class ImportManyTests
     {
-        [Fact]
-        public void ImportManyWithNone()
+        [MefFact(CompositionEngines.V2Compat, typeof(Extendable))]
+        public void ImportManyWithNone(IContainer container)
         {
-            var container = TestUtilities.CreateContainer(
-                typeof(Extendable));
-
             var extendable = container.GetExport<Extendable>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
@@ -23,13 +20,9 @@
         }
 
 
-        [Fact]
-        public void ImportManyWithOne()
+        [MefFact(CompositionEngines.V2Compat, typeof(Extendable), typeof(ExtensionOne))]
+        public void ImportManyWithOne(IContainer container)
         {
-            var container = TestUtilities.CreateContainer(
-                typeof(Extendable),
-                typeof(ExtensionOne));
-
             var extendable = container.GetExport<Extendable>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
@@ -37,14 +30,9 @@
             Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions[0]);
         }
 
-        [Fact]
-        public void ImportManyWithTwo()
+        [MefFact(CompositionEngines.V2Compat)]
+        public void ImportManyWithTwo(IContainer container)
         {
-            var container = TestUtilities.CreateContainer(
-                typeof(Extendable),
-                typeof(ExtensionOne),
-                typeof(ExtensionTwo));
-
             var extendable = container.GetExport<Extendable>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
@@ -65,7 +53,7 @@
         public class Extendable
         {
             [ImportMany]
-            public IReadOnlyList<IExtension> Extensions { get; set; }
+            public IList<IExtension> Extensions { get; set; }
         }
     }
 }

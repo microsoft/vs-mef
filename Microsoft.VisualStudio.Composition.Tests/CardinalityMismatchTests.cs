@@ -17,11 +17,9 @@
             Assert.Throws<AggregateException>(() => CompositionConfiguration.Create(typeof(RequiredImportMissing)));
         }
 
-        [Fact]
-        public void MissingOptionalImport()
+        [MefFact(CompositionEngines.V2Compat, typeof(OptionalImportMissing))]
+        public void MissingOptionalImport(IContainer container)
         {
-            var container = TestUtilities.CreateContainer(typeof(OptionalImportMissing));
-
             var export = container.GetExport<OptionalImportMissing>();
             Assert.NotNull(export);
             Assert.Null(export.MissingOptionalImport);

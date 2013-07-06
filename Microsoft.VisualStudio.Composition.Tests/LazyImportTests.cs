@@ -15,11 +15,9 @@ using Xunit;
             AnotherExport.ConstructionCount = 0;
         }
 
-        [Fact]
-        public void LazyImport()
+        [MefFact(CompositionEngines.V2Compat, typeof(ExportWithLazyImport), typeof(AnotherExport))]
+        public void LazyImport(IContainer container)
         {
-            var container = TestUtilities.CreateContainer(typeof(ExportWithLazyImport), typeof(AnotherExport));
-
             var lazyImport = container.GetExport<ExportWithLazyImport>();
             Assert.Equal(0, AnotherExport.ConstructionCount);
             Assert.False(lazyImport.AnotherExport.IsValueCreated);
@@ -35,10 +33,9 @@ using Xunit;
             Assert.NotSame(anotherExport, anotherExport2);
         }
 
-        [Fact]
-        public void LazyImportMany()
+        [MefFact(CompositionEngines.V2Compat, typeof(ExportWithListOfLazyImport), typeof(AnotherExport))]
+        public void LazyImportMany(IContainer container)
         {
-            var container = TestUtilities.CreateContainer(typeof(ExportWithListOfLazyImport), typeof(AnotherExport));
             var lazyImport = container.GetExport<ExportWithListOfLazyImport>();
             Assert.Equal(1, lazyImport.AnotherExports.Count);
             Assert.Equal(0, AnotherExport.ConstructionCount);
@@ -97,7 +94,7 @@ using Xunit;
         public class ExportWithListOfLazyImport
         {
             [ImportMany]
-            public List<Lazy<AnotherExport>> AnotherExports { get; set; }
+            public IList<Lazy<AnotherExport>> AnotherExports { get; set; }
         }
 
         [Export]

@@ -11,47 +11,16 @@
 
     public class OpenGenericExportTests
     {
-        [Fact]
-        public void AcquireOpenGenericExportv2()
+        [MefFact(CompositionEngines.V2)] // TODO: enable for V3
+        public void AcquireOpenGenericExport(IContainer container)
         {
-            var configuration = new ContainerConfiguration()
-                .WithPart(typeof(Useful<>))
-                .WithPart(typeof(User));
-            CompositionHost container = configuration.CreateContainer();
             Useful<int> useful = container.GetExport<Useful<int>>();
             Assert.NotNull(useful);
         }
 
-        [Fact(Skip = "Functionality not yet implemented.")]
-        public void AcquireOpenGenericExportv3()
+        [MefFact(CompositionEngines.V2)] // TODO: enable for V3
+        public void AcquireExportWithImportOfOpenGenericExport(IContainer container)
         {
-            var container = TestUtilities.CreateContainer(
-                typeof(User),
-                typeof(Useful<>));
-
-            Useful<int> useful = container.GetExport<Useful<int>>();
-            Assert.NotNull(useful);
-        }
-
-        [Fact]
-        public void AcquireExportWithImportOfOpenGenericExportv2()
-        {
-            var configuration = new ContainerConfiguration()
-                .WithPart(typeof(Useful<>))
-                .WithPart(typeof(User));
-            CompositionHost container = configuration.CreateContainer();
-            User user = container.GetExport<User>();
-            Assert.NotNull(user);
-            Assert.NotNull(user.Useful);
-        }
-
-        [Fact(Skip = "Functionality not yet implemented.")]
-        public void AcquireExportWithImportOfOpenGenericExportv3()
-        {
-            var container = TestUtilities.CreateContainer(
-                typeof(User),
-                typeof(Useful<>));
-
             User user = container.GetExport<User>();
             Assert.NotNull(user);
             Assert.NotNull(user.Useful);
