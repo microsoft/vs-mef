@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public void AcquireSingleExport()
         {
-            TestUtilities.RunV2andV3CompatTest(
+            TestUtilities.RunMultiEngineTest(
                 new[] { typeof(Apple) },
                 container =>
                 {
@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public void AcquireExportWithImport()
         {
-            TestUtilities.RunV2andV3CompatTest(
+            TestUtilities.RunMultiEngineTest(
                 new[] { typeof(Apple), typeof(Tree) },
                 container =>
                 {

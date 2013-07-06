@@ -15,7 +15,7 @@
             return CompositionConfiguration.Create(parts).CreateContainer();
         }
 
-        internal static void RunV2andV3CompatTest(Type[] parts, Action<IContainer> test)
+        internal static void RunMultiEngineTest(Type[] parts, Action<IContainer> test)
         {
             var v2configuration = new ContainerConfiguration().WithParts(parts);
             var v3configuration = CompositionConfiguration.Create(parts);
