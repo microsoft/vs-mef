@@ -5,25 +5,36 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Validation;
     using Xunit;
     using Xunit.Sdk;
 
-    public class CompatFactAttribute : FactAttribute
+    public class MefFactAttribute : FactAttribute
     {
-        private CompositionEngines compositionVersions;
+        private readonly CompositionEngines compositionVersions;
+        private readonly Type[] parts;
 
-        public CompatFactAttribute(CompositionEngines compositionVersions)
+        public MefFactAttribute(CompositionEngines compositionVersions)
         {
             this.compositionVersions = compositionVersions;
         }
 
+        public MefFactAttribute(CompositionEngines compositionVersions, params Type[] parts)
+            : this(compositionVersions)
+        {
+            Requires.NotNull(parts, "parts");
+
+            this.parts = parts;
+        }
+
         protected override IEnumerable<ITestCommand> EnumerateTestCommands(IMethodInfo method)
         {
+            var parts = this.parts ?? method.Class.Type.GetNestedTypes();
             foreach (var engine in new[] { CompositionEngines.V1, CompositionEngines.V2, CompositionEngines.V3EmulatingV1, CompositionEngines.V3EmulatingV2 })
             {
                 if (this.compositionVersions.HasFlag(engine))
                 {
-                    yield return new CompatCommand(method, engine);
+                    yield return new MefTestCommand(method, engine, parts);
                 }
             }
         }

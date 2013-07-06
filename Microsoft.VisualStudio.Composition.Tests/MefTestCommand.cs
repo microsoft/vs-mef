@@ -7,14 +7,16 @@
     using System.Threading.Tasks;
     using Xunit.Sdk;
 
-    public class CompatCommand : FactCommand
+    public class MefTestCommand : FactCommand
     {
-        private CompositionEngines engineVersion;
+        private readonly CompositionEngines engineVersion;
+        private readonly Type[] parts;
 
-        public CompatCommand(IMethodInfo method, CompositionEngines engineVersion)
+        public MefTestCommand(IMethodInfo method, CompositionEngines engineVersion, Type[] parts)
             : base(method)
         {
             this.engineVersion = engineVersion;
+            this.parts = parts;
             this.DisplayName += " " + engineVersion;
         }
 
@@ -22,7 +24,7 @@
         {
             TestUtilities.RunMultiEngineTest(
                 this.engineVersion,
-                this.testMethod.Class.Type.GetNestedTypes(),
+                this.parts,
                 container => this.testMethod.Invoke(testClass, container));
 
             return new PassedResult(this.testMethod, this.DisplayName);

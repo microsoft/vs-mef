@@ -74,8 +74,8 @@
     <Compile Include="CacheAndReloadTests.cs" />
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="CircularDependencyTests.cs" />
-    <Compile Include="CompatCommand.cs" />
-    <Compile Include="CompatFactAttribute.cs" />
+    <Compile Include="MefTestCommand.cs" />
+    <Compile Include="MefFactAttribute.cs" />
     <Compile Include="ContainerIsolationTests.cs" />
     <Compile Include="DgmlProduction.cs" />
     <Compile Include="DisposablePartsTests.cs" />
