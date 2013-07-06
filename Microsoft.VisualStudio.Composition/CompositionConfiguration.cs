@@ -100,6 +100,18 @@
             return this.containerFactory.Value.CreateContainer();
         }
 
+        private static void WriteWithLineNumbers(TextWriter writer, string content)
+        {
+            Requires.NotNull(writer, "writer");
+            Requires.NotNull(content, "content");
+
+            int lineNumber = 0;
+            foreach (string line in content.Split('\n'))
+            {
+                writer.WriteLine("{0,5}: {1}", ++lineNumber, line.Trim('\r', '\n'));
+            }
+        }
+
         private string CreateCompositionSourceFile()
         {
             var templateFactory = new CompositionTemplateFactory();
@@ -107,7 +119,7 @@
             string source = templateFactory.TransformText();
             var sourceFilePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".cs");
             File.WriteAllText(sourceFilePath, source);
-            Console.WriteLine(source);
+            WriteWithLineNumbers(Console.Out, source);
             return sourceFilePath;
         }
 
@@ -134,6 +146,7 @@
                     Console.WriteLine(error);
                 }
             }
+
             Verify.Operation(!results.Errors.HasErrors, "Compilation errors occurred.");
             return results.CompiledAssembly;
         }

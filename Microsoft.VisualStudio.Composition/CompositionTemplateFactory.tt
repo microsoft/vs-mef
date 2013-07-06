@@ -63,14 +63,35 @@ foreach (var part in this.Configuration.Parts)
 
 	protected <#= GetTypeName(part.Definition.Type) #> GetOrCreate<#= part.Definition.Id #>()
 	{
-		var result = new <#= GetTypeName(part.Definition.Type) #>();
 <#
-	foreach (var satisfyingExport in part.SatisfyingExports)
-	{
-		this.EmitImportSatisfyingAssignment(satisfyingExport);
-	}
+		if (part.Definition.IsShared)
+		{
 #>
-		return result;
+		Lazy<<#= GetTypeName(part.Definition.Type) #>> lazyResult;
+		if (!this.TryGetSharedInstanceFactory(out lazyResult))
+		{
+			lazyResult = new Lazy<<#= GetTypeName(part.Definition.Type) #>>(delegate
+			{
+<#
+				this.PushIndent("\t\t");
+				EmitInstantiatePart(part);
+				this.PopIndent();
+#>
+			});
+
+			lazyResult = this.GetOrAddSharedInstanceFactory(lazyResult);
+		}
+
+		return lazyResult.Value;
+<#
+		}
+		else
+		{
+			this.PushIndent("\t");
+			EmitInstantiatePart(part);
+			this.PopIndent();
+		}
+#>
 	}
 <#
 }

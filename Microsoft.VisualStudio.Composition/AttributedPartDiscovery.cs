@@ -27,6 +27,13 @@
                 exportsOnType.Add(exportDefinition);
             }
 
+            var sharedAttribute = partType.GetCustomAttribute<SharedAttribute>();
+            string sharingBoundary = null;
+            if (sharedAttribute != null)
+            {
+                sharingBoundary = sharedAttribute.SharingBoundary ?? string.Empty;
+            }
+
             foreach (var member in partType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
                 var importAttribute = member.GetCustomAttribute<ImportAttribute>();
@@ -82,7 +89,7 @@
                 }
             }
 
-            return new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable());
+            return new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary);
         }
     }
 }

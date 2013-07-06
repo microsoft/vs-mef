@@ -10,7 +10,7 @@
 
     public class ComposablePartDefinition
     {
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, ExportDefinition> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports)
+        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, ExportDefinition> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, string sharingBoundary)
         {
             Requires.NotNull(partType, "partType");
             Requires.NotNull(exportsOnType, "exportsOnType");
@@ -21,6 +21,7 @@
             this.ExportDefinitionsOnType = exportsOnType;
             this.ExportDefinitionsOnMembers = exportsOnMembers;
             this.ImportDefinitions = imports;
+            this.SharingBoundary = sharingBoundary;
         }
 
         public Type Type { get; private set; }
@@ -30,10 +31,12 @@
             get { return this.Type.Name; }
         }
 
-        //public IEnumerable<ExportDefinition> ExportDefinitions
-        //{
-        //    get { return this.ExportDefinitionsOnType.Concat(this.ExportDefinitionsOnMembers.Values); }
-        //}
+        public string SharingBoundary { get; private set; }
+
+        public bool IsShared
+        {
+            get { return this.SharingBoundary != null; }
+        }
 
         public IReadOnlyCollection<ExportDefinition> ExportDefinitionsOnType { get; private set; }
 
