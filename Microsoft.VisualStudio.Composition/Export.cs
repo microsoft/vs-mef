@@ -17,7 +17,7 @@
 
             this.ExportDefinition = exportDefinition;
             this.PartDefinition = partDefinition;
-            this.ExortingMember = exportingMember;
+            this.ExportingMember = exportingMember;
         }
 
         public ExportDefinition ExportDefinition { get; private set; }
@@ -27,6 +27,6 @@
         /// <summary>
         /// Gets the member with the ExportAttribute applied. <c>null</c> when the export is on the type itself.
         /// </summary>
-        public MemberInfo ExortingMember { get; private set; }
+        public MemberInfo ExportingMember { get; private set; }
     }
 }
