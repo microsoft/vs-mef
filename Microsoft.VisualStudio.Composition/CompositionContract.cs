@@ -21,6 +21,16 @@
 
         public Type Type { get; private set; }
 
+        public CompositionContract GetContractToMatchExports()
+        {
+            if (this.Type.IsGenericType && !this.Type.IsGenericTypeDefinition)
+            {
+                return new CompositionContract(this.ContractName, this.Type.GetGenericTypeDefinition());
+            }
+
+            return this;
+        }
+
         public override bool Equals(object obj)
         {
             return this.Equals(obj as CompositionContract);

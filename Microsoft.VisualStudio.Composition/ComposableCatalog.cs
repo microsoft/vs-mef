@@ -32,7 +32,9 @@
         {
             Requires.NotNull(import, "import");
 
-            var exports = this.exportsByContract.GetValueOrDefault(import.Contract, ImmutableList.Create<Export>());
+            var exports = this.exportsByContract.GetValueOrDefault(
+                import.Contract.GetContractToMatchExports(),
+                ImmutableList.Create<Export>());
             return exports;
         }
 

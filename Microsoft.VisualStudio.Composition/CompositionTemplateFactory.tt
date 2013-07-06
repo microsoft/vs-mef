@@ -22,14 +22,15 @@ using Microsoft.VisualStudio.Composition;
 internal class CompiledExportFactory : ExportProvider
 {
 	protected override object GetExport(ExportDefinition exportDefinition)
-	{<#
+	{
+		Type exportTypeDefinition = exportDefinition.Contract.Type.IsGenericType ? exportDefinition.Contract.Type.GetGenericTypeDefinition() : exportDefinition.Contract.Type;<#
 foreach (var part in this.Configuration.Catalog.Parts)
 {
 	foreach (var partExport in part.ExportDefinitionsOnType)
 	{
 #>
 
-		if (exportDefinition.Contract.Type.IsEquivalentTo(typeof(<#= GetTypeName(partExport.Contract.Type) #>)))
+		if (exportTypeDefinition.IsEquivalentTo(typeof(<#= GetTypeName(partExport.Contract.Type, genericTypeDefinition: true) #>)))
 		{
 <#
 			if (partExport.Contract.ContractName == null)
@@ -46,7 +47,22 @@ foreach (var part in this.Configuration.Catalog.Parts)
 			}
 #>
 			{
-				return this.GetOrCreate<#= part.Id #>();
+<#
+				if (part.Type.IsGenericType)
+				{
+#>
+				var genericTemplateMethod = typeof(CompiledExportFactory).GetMethod("<#= GetPartFactoryMethodNameNoTypeArgs(part) #>", BindingFlags.Instance | BindingFlags.NonPublic);
+				var genericMethod = genericTemplateMethod.MakeGenericMethod(exportDefinition.Contract.Type.GetGenericArguments());
+				return genericMethod.Invoke(this, new object[0]);
+<#
+				}
+				else
+				{
+#>
+				return this.<#= GetPartFactoryMethodName(part) #>();
+<#
+				}
+#>
 			}
 		}
 <#
@@ -61,7 +77,7 @@ foreach (var part in this.Configuration.Parts)
 {
 #>
 
-	protected <#= GetTypeName(part.Definition.Type) #> GetOrCreate<#= part.Definition.Id #>()
+	protected <#= GetTypeName(part.Definition.Type) #> <#= GetPartFactoryMethodName(part.Definition) #>()
 	{
 <#
 		if (part.Definition.IsShared)

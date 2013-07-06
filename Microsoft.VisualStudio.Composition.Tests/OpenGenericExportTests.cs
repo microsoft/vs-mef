@@ -11,14 +11,14 @@
 
     public class OpenGenericExportTests
     {
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void AcquireOpenGenericExport(IContainer container)
         {
             Useful<int> useful = container.GetExport<Useful<int>>();
             Assert.NotNull(useful);
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void AcquireExportWithImportOfOpenGenericExport(IContainer container)
         {
             User user = container.GetExport<User>();
