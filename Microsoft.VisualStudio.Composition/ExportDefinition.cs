@@ -2,11 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
 
+    [DebuggerDisplay("{Contract.Type.Name,nq}")]
     public class ExportDefinition : IEquatable<ExportDefinition>
     {
         public ExportDefinition(CompositionContract contract)

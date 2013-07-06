@@ -2,11 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
 
+    [DebuggerDisplay("{Type.Name,nq} ({ContractName})")]
     public class CompositionContract : IEquatable<CompositionContract>
     {
         public CompositionContract(string contractName, Type type)
