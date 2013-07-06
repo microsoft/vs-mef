@@ -43,7 +43,7 @@
         {
             Requires.NotNull(catalog, "catalog");
 
-            var parts = ImmutableHashSet.CreateBuilder<ComposablePart>();
+            var partsBuilder = ImmutableHashSet.CreateBuilder<ComposablePart>();
 
             foreach (ComposablePartDefinition part in catalog.Parts)
             {
@@ -51,8 +51,10 @@
                     i => new Import(part, i.Value, i.Key),
                     i => catalog.GetExports(i.Value));
                 var composedPart = new ComposablePart(part, satisfyingImports);
-                parts.Add(composedPart);
+                partsBuilder.Add(composedPart);
             }
+
+            var parts = partsBuilder.ToImmutable();
 
             // Validate configuration.
             foreach (var part in parts)
@@ -73,7 +75,10 @@
                 }
             }
 
-            return new CompositionConfiguration(catalog, parts.ToImmutable());
+            // Detect loops of all non-shared parts.
+            CheckForLoopsOfNonSharedParts(parts);
+
+            return new CompositionConfiguration(catalog, parts);
         }
 
         public static CompositionConfiguration Create(params Type[] parts)
@@ -110,6 +115,56 @@
             {
                 writer.WriteLine("{0,5}: {1}", ++lineNumber, line.Trim('\r', '\n'));
             }
+        }
+
+        private static void CheckForLoopsOfNonSharedParts(ImmutableHashSet<ComposablePart> parts)
+        {
+            var partsAndDirectImports = new Dictionary<ComposablePart, ImmutableHashSet<ComposablePart>>();
+
+            // First create a map of each NonShared part and the NonShared parts it directly imports.
+            foreach (var part in parts.Where(p => !p.Definition.IsShared))
+            {
+                var directlyImportedParts = (from exportList in part.SatisfyingExports.Values
+                                             from export in exportList
+                                             let exportingPart = parts.Single(p => p.Definition == export.PartDefinition)
+                                             where !exportingPart.Definition.IsShared
+                                             select exportingPart).ToImmutableHashSet();
+                partsAndDirectImports.Add(part, directlyImportedParts);
+            }
+
+            // Now create a map of each part and all the parts it transitively imports.
+            Verify.Operation(!IsLoopPresent(partsAndDirectImports.Keys, p => partsAndDirectImports[p]), "Loop detected.");
+        }
+
+        private static bool IsLoopPresent<T>(IEnumerable<T> values, Func<T, IEnumerable<T>> getDirectLinks)
+        {
+            Requires.NotNull(values, "values");
+            Requires.NotNull(getDirectLinks, "getDirectLinks");
+
+            var visitedNodes = new HashSet<T>();
+            var queue = new Queue<T>();
+            foreach (T value in values)
+            {
+                visitedNodes.Clear();
+                queue.Clear();
+
+                queue.Enqueue(value);
+                while (queue.Count > 0)
+                {
+                    var node = queue.Dequeue();
+                    if (!visitedNodes.Add(node))
+                    {
+                        return true;
+                    }
+
+                    foreach (var directLink in getDirectLinks(node).Distinct())
+                    {
+                        queue.Enqueue(directLink);
+                    }
+                }
+            }
+
+            return false;
         }
 
         private string CreateCompositionSourceFile()

@@ -81,11 +81,11 @@
 
         #region Large loop of all non-shared exports
 
-        [Fact(Skip = "Functionality not yet implemented.")]
+        [Fact]
         public void LoopOfNonSharedExports()
         {
             // There is no way to resolve this catalog. It would instantiate parts forever.
-            Assert.Throws<AggregateException>(() => CompositionConfiguration.Create(
+            Assert.Throws<InvalidOperationException>(() => CompositionConfiguration.Create(
                 typeof(NonSharedPart1),
                 typeof(NonSharedPart2),
                 typeof(NonSharedPart3)));
@@ -94,18 +94,21 @@
         [Export]
         public class NonSharedPart1
         {
+            [Import]
             public NonSharedPart2 Part2 { get; set; }
         }
 
         [Export]
         public class NonSharedPart2
         {
+            [Import]
             public NonSharedPart3 Part3 { get; set; }
         }
 
         [Export]
         public class NonSharedPart3
         {
+            [Import]
             public NonSharedPart1 Part1 { get; set; }
         }
 
