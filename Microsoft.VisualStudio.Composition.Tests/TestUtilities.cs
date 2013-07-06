@@ -11,6 +11,13 @@
 
     internal static class TestUtilities
     {
+        [Flags]
+        internal enum EngineAttributes
+        {
+            V1,
+            V2,
+        }
+
         internal static CompositionContainer CreateContainer(params Type[] parts)
         {
             return CompositionConfiguration.Create(parts).CreateContainer();
@@ -37,10 +44,18 @@
             return new V3ContainerWrapper(container);
         }
 
-        internal static void RunMultiEngineTest(Type[] parts, Action<IContainer> test)
+        internal static void RunMultiEngineTest(EngineAttributes attributesVersion, Type[] parts, Action<IContainer> test)
         {
-            test(CreateContainerV1(parts));
-            test(CreateContainerV2(parts));
+            if (attributesVersion.HasFlag(EngineAttributes.V1))
+            {
+                test(CreateContainerV1(parts));
+            }
+
+            if (attributesVersion.HasFlag(EngineAttributes.V2))
+            {
+                test(CreateContainerV2(parts));
+            }
+
             test(CreateContainerV3(parts));
         }
 

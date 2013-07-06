@@ -16,6 +16,7 @@
         public void AcquireSingleExport()
         {
             TestUtilities.RunMultiEngineTest(
+                TestUtilities.EngineAttributes.V1 | TestUtilities.EngineAttributes.V2,
                 new[] { typeof(Apple) },
                 container =>
                 {
@@ -28,6 +29,7 @@
         public void AcquireExportWithImport()
         {
             TestUtilities.RunMultiEngineTest(
+                TestUtilities.EngineAttributes.V1 | TestUtilities.EngineAttributes.V2,
                 new[] { typeof(Apple), typeof(Tree) },
                 container =>
                 {
