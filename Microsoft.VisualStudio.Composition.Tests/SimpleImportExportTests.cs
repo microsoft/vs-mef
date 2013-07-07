@@ -15,14 +15,14 @@
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void AcquireSingleExport(IContainer container)
         {
-            Apple apple = container.GetExport<Apple>();
+            Apple apple = container.GetExportedValue<Apple>();
             Assert.NotNull(apple);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void AcquireExportWithImport(IContainer container)
         {
-            Tree tree = container.GetExport<Tree>();
+            Tree tree = container.GetExportedValue<Tree>();
             Assert.NotNull(tree);
             Assert.NotNull(tree.Apple);
         }

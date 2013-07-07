@@ -18,14 +18,14 @@ using Xunit;
         [MefFact(CompositionEngines.V2Compat, typeof(ExportWithLazyImport), typeof(AnotherExport))]
         public void LazyImport(IContainer container)
         {
-            var lazyImport = container.GetExport<ExportWithLazyImport>();
+            var lazyImport = container.GetExportedValue<ExportWithLazyImport>();
             Assert.Equal(0, AnotherExport.ConstructionCount);
             Assert.False(lazyImport.AnotherExport.IsValueCreated);
             AnotherExport anotherExport = lazyImport.AnotherExport.Value;
             Assert.Equal(1, AnotherExport.ConstructionCount);
 
             // Verify that another instance gets its own instance of what it's importing (since it's non-shared).
-            var lazyImport2 = container.GetExport<ExportWithLazyImport>();
+            var lazyImport2 = container.GetExportedValue<ExportWithLazyImport>();
             Assert.Equal(1, AnotherExport.ConstructionCount);
             Assert.False(lazyImport2.AnotherExport.IsValueCreated);
             AnotherExport anotherExport2 = lazyImport2.AnotherExport.Value;
@@ -36,7 +36,7 @@ using Xunit;
         [MefFact(CompositionEngines.V2Compat, typeof(ExportWithListOfLazyImport), typeof(AnotherExport))]
         public void LazyImportMany(IContainer container)
         {
-            var lazyImport = container.GetExport<ExportWithListOfLazyImport>();
+            var lazyImport = container.GetExportedValue<ExportWithListOfLazyImport>();
             Assert.Equal(1, lazyImport.AnotherExports.Count);
             Assert.Equal(0, AnotherExport.ConstructionCount);
             Assert.False(lazyImport.AnotherExports[0].IsValueCreated);
@@ -50,8 +50,8 @@ using Xunit;
         [MefFact(CompositionEngines.Unspecified, typeof(ExportWithLazyImportOfSharedExport), typeof(SharedExport))]
         public void LazyImportOfSharedExportHasSharedLazy(IContainer container)
         {
-            var firstInstance = container.GetExport<ExportWithLazyImportOfSharedExport>();
-            var secondInstance = container.GetExport<ExportWithLazyImportOfSharedExport>();
+            var firstInstance = container.GetExportedValue<ExportWithLazyImportOfSharedExport>();
+            var secondInstance = container.GetExportedValue<ExportWithLazyImportOfSharedExport>();
             Assert.NotSame(firstInstance, secondInstance); // We should get two copies of the non-shared instance
             Assert.Same(firstInstance.SharedExport.Value, secondInstance.SharedExport.Value);
 
@@ -67,9 +67,9 @@ using Xunit;
         {
             var container = TestUtilities.CreateContainer(typeof(ExportWithLazyImportOfSharedExport), typeof(SharedExport));
 
-            var lazyImporter = container.GetExport<ExportWithLazyImportOfSharedExport>();
+            var lazyImporter = container.GetExportedValue<ExportWithLazyImportOfSharedExport>();
             Assert.False(lazyImporter.SharedExport.IsValueCreated);
-            var sharedService = container.GetExport<SharedExport>();
+            var sharedService = container.GetExportedValue<SharedExport>();
 
             // This should be true, not because the lazyImporter instance evaluated the lazy,
             // but because this should reflect whether the service has actually been loaded.

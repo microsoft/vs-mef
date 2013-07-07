@@ -23,7 +23,7 @@
 
             var reconstitutedConfiguration = CompositionConfiguration.Load(path);
             var container = reconstitutedConfiguration.CreateContainer();
-            SomeExport export = container.GetExport<SomeExport>();
+            SomeExport export = container.GetExportedValue<SomeExport>();
             Assert.NotNull(export);
         }
 

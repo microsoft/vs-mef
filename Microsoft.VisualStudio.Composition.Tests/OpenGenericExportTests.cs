@@ -14,14 +14,14 @@
         [MefFact(CompositionEngines.V2Compat)]
         public void AcquireOpenGenericExport(IContainer container)
         {
-            Useful<int> useful = container.GetExport<Useful<int>>();
+            Useful<int> useful = container.GetExportedValue<Useful<int>>();
             Assert.NotNull(useful);
         }
 
         [MefFact(CompositionEngines.V2Compat)]
         public void AcquireExportWithImportOfOpenGenericExport(IContainer container)
         {
-            User user = container.GetExport<User>();
+            User user = container.GetExportedValue<User>();
             Assert.NotNull(user);
             Assert.NotNull(user.Useful);
         }

@@ -17,12 +17,12 @@
         /// </summary>
         private Dictionary<Type, object> sharedInstantiatedExports = new Dictionary<Type, object>();
 
-        public T GetExport<T>()
+        public T GetExportedValue<T>()
         {
-            return this.GetExport<T>(null);
+            return this.GetExportedValue<T>(null);
         }
 
-        public T GetExport<T>(string contractName)
+        public T GetExportedValue<T>(string contractName)
         {
             var exportDefinition = new ExportDefinition(new CompositionContract(contractName, typeof(T)));
             return (T)this.GetExport(exportDefinition);

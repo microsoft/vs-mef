@@ -14,7 +14,7 @@
         [MefFact(CompositionEngines.V2 | CompositionEngines.V1)]
         public void DisposablePartDisposedWithContainer(IContainer container)
         {
-            var part = container.GetExport<DisposablePart>();
+            var part = container.GetExportedValue<DisposablePart>();
             Assert.False(part.IsDisposed);
             container.Dispose();
             Assert.True(part.IsDisposed);

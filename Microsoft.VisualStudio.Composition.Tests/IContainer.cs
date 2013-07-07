@@ -8,8 +8,8 @@
 
     public interface IContainer : IDisposable
     {
-        T GetExport<T>();
+        T GetExportedValue<T>();
 
-        T GetExport<T>(string contractName);
+        T GetExportedValue<T>(string contractName);
     }
 }

@@ -13,7 +13,7 @@
         [MefFact(CompositionEngines.V2Compat, typeof(Extendable))]
         public void ImportManyWithNone(IContainer container)
         {
-            var extendable = container.GetExport<Extendable>();
+            var extendable = container.GetExportedValue<Extendable>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
             Assert.Equal(0, extendable.Extensions.Count);
@@ -23,7 +23,7 @@
         [MefFact(CompositionEngines.V2Compat, typeof(Extendable), typeof(ExtensionOne))]
         public void ImportManyWithOne(IContainer container)
         {
-            var extendable = container.GetExport<Extendable>();
+            var extendable = container.GetExportedValue<Extendable>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
             Assert.Equal(1, extendable.Extensions.Count);
@@ -33,7 +33,7 @@
         [MefFact(CompositionEngines.V2Compat)]
         public void ImportManyWithTwo(IContainer container)
         {
-            var extendable = container.GetExport<Extendable>();
+            var extendable = container.GetExportedValue<Extendable>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
             Assert.Equal(2, extendable.Extensions.Count);

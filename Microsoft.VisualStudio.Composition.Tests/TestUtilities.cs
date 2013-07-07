@@ -87,12 +87,12 @@
                 this.container = container;
             }
 
-            public T GetExport<T>()
+            public T GetExportedValue<T>()
             {
                 return this.container.GetExportedValue<T>();
             }
 
-            public T GetExport<T>(string contractName)
+            public T GetExportedValue<T>(string contractName)
             {
                 return this.container.GetExportedValue<T>(contractName);
             }
@@ -114,12 +114,12 @@
                 this.container = container;
             }
 
-            public T GetExport<T>()
+            public T GetExportedValue<T>()
             {
                 return this.container.GetExport<T>();
             }
 
-            public T GetExport<T>(string contractName)
+            public T GetExportedValue<T>(string contractName)
             {
                 return this.container.GetExport<T>(contractName);
             }
@@ -140,14 +140,14 @@
                 this.container = container;
             }
 
-            public T GetExport<T>()
+            public T GetExportedValue<T>()
             {
-                return this.container.GetExport<T>();
+                return this.container.GetExportedValue<T>();
             }
 
-            public T GetExport<T>(string contractName)
+            public T GetExportedValue<T>(string contractName)
             {
-                return this.container.GetExport<T>(contractName);
+                return this.container.GetExportedValue<T>(contractName);
             }
 
             public void Dispose()

@@ -13,7 +13,7 @@
         [MefFact(CompositionEngines.V2Compat)]
         public void ImportViaExportedInterface(IContainer container)
         {
-            Consumer consumer = container.GetExport<Consumer>();
+            Consumer consumer = container.GetExportedValue<Consumer>();
             Assert.NotNull(consumer);
             Assert.NotNull(consumer.Imported);
             Assert.IsAssignableFrom(typeof(Implementor), consumer.Imported);

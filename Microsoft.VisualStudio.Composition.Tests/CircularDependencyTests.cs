@@ -15,8 +15,8 @@
         [MefFact(CompositionEngines.V2, typeof(SharedExport1), typeof(SharedExport2))]
         public void CircularDependenciesSharedExports(IContainer container)
         {
-            var export1 = container.GetExport<SharedExport1>();
-            var export2 = container.GetExport<SharedExport2>();
+            var export1 = container.GetExportedValue<SharedExport1>();
+            var export2 = container.GetExportedValue<SharedExport2>();
             Assert.Same(export1.Export2, export2);
             Assert.Same(export2.Export1, export1);
         }
@@ -42,9 +42,9 @@
         [MefFact(CompositionEngines.V2, typeof(SharedExportInLoopOfNonShared), typeof(NonSharedExportInLoopWithShared), typeof(AnotherNonSharedExportInLoopWithShared))]
         public void CircularDependenciesOneSharedExport(IContainer container)
         {
-            var shared = container.GetExport<SharedExportInLoopOfNonShared>();
-            var nonShared = container.GetExport<NonSharedExportInLoopWithShared>();
-            var anotherNonShared = container.GetExport<AnotherNonSharedExportInLoopWithShared>();
+            var shared = container.GetExportedValue<SharedExportInLoopOfNonShared>();
+            var nonShared = container.GetExportedValue<NonSharedExportInLoopWithShared>();
+            var anotherNonShared = container.GetExportedValue<AnotherNonSharedExportInLoopWithShared>();
             Assert.NotSame(nonShared, shared.Other);
             Assert.NotSame(anotherNonShared, nonShared.Another);
             Assert.NotSame(anotherNonShared, shared.Other.Another);
@@ -120,7 +120,7 @@
         [MefFact(CompositionEngines.V2, typeof(SelfImportingSharedPart))]
         public void SelfImportingSharedPartSucceeds(IContainer container)
         {
-            var value = container.GetExport<SelfImportingSharedPart>();
+            var value = container.GetExportedValue<SelfImportingSharedPart>();
             Assert.Same(value, value.Self);
         }
 

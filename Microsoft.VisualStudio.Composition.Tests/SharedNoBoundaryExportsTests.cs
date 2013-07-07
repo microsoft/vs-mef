@@ -13,8 +13,8 @@
         [MefFact(CompositionEngines.V2Compat)]
         public void AcquireSharedExportTwiceYieldsSameInstance(IContainer container)
         {
-            var firstResult = container.GetExport<SharedExport>();
-            var secondResult = container.GetExport<SharedExport>();
+            var firstResult = container.GetExportedValue<SharedExport>();
+            var secondResult = container.GetExportedValue<SharedExport>();
             Assert.NotNull(firstResult);
             Assert.NotNull(secondResult);
             Assert.Same(firstResult, secondResult);
@@ -23,8 +23,8 @@
         [MefFact(CompositionEngines.V2Compat)]
         public void ImportingSharedExportAtMultipleSitesYieldsSameInstance(IContainer container)
         {
-            var importer1 = container.GetExport<Importer1>();
-            var importer2 = container.GetExport<Importer2>();
+            var importer1 = container.GetExportedValue<Importer1>();
+            var importer2 = container.GetExportedValue<Importer2>();
             Assert.NotNull(importer1.ImportingProperty1);
             Assert.NotNull(importer1.ImportingProperty2);
             Assert.NotNull(importer2.ImportingProperty1);

@@ -14,14 +14,14 @@
             this.exportFactory = exportFactory;
         }
 
-        public T GetExport<T>()
+        public T GetExportedValue<T>()
         {
-            return this.exportFactory.GetExport<T>();
+            return this.exportFactory.GetExportedValue<T>();
         }
 
-        public T GetExport<T>(string contractName)
+        public T GetExportedValue<T>(string contractName)
         {
-            return this.exportFactory.GetExport<T>(contractName);
+            return this.exportFactory.GetExportedValue<T>(contractName);
         }
 
         public void Dispose()

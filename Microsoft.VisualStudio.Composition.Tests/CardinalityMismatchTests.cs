@@ -20,7 +20,7 @@
         [MefFact(CompositionEngines.V2Compat, typeof(OptionalImportMissing))]
         public void MissingOptionalImport(IContainer container)
         {
-            var export = container.GetExport<OptionalImportMissing>();
+            var export = container.GetExportedValue<OptionalImportMissing>();
             Assert.NotNull(export);
             Assert.Null(export.MissingOptionalImport);
         }

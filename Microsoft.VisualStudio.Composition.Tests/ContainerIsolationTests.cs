@@ -17,8 +17,8 @@
             var container1 = configuration.CreateContainer();
             var container2 = configuration.CreateContainer();
 
-            var export1 = container1.GetExport<SharedExport>();
-            var export2 = container2.GetExport<SharedExport>();
+            var export1 = container1.GetExportedValue<SharedExport>();
+            var export2 = container2.GetExportedValue<SharedExport>();
             Assert.NotSame(export1, export2);
         }
 

@@ -88,7 +88,7 @@
             internal void TestExternalExportWithLazy(string lazyLoadedAssemblyPath)
             {
                 Assert.False(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
-                var exportWithLazy = container.GetExport<ExternalExportWithLazy>();
+                var exportWithLazy = container.GetExportedValue<ExternalExportWithLazy>();
                 Assert.False(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 Assert.NotNull(exportWithLazy.YetAnotherExport.Value);
                 Assert.True(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
@@ -99,7 +99,7 @@
             {
                 // Actually the lazy load happens before GetExport is actually called since this method
                 // references a type in that assembly.
-                var export = container.GetExport<ExternalExport>();
+                var export = container.GetExportedValue<ExternalExport>();
                 Assert.NotNull(export);
             }
 
@@ -107,7 +107,7 @@
             {
                 // Actually the lazy load happens before GetExport is actually called since this method
                 // references a type in that assembly.
-                var export = container.GetExport<YetAnotherExport>();
+                var export = container.GetExportedValue<YetAnotherExport>();
                 Assert.NotNull(export);
             }
         }
