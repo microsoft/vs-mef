@@ -33,6 +33,13 @@ using Xunit;
             Assert.NotSame(anotherExport, anotherExport2);
         }
 
+        [MefFact(CompositionEngines.V2Compat, typeof(ExportWithLazyImportOfBaseType), typeof(AnotherExport))]
+        public void LazyImportByBaseType(IContainer container)
+        {
+            var lazyImport = container.GetExportedValue<ExportWithLazyImportOfBaseType>();
+            Assert.IsType(typeof(AnotherExport), lazyImport.AnotherExport.Value);
+        }
+
         [MefFact(CompositionEngines.V2Compat, typeof(ExportWithListOfLazyImport), typeof(AnotherExport))]
         public void LazyImportMany(IContainer container)
         {
@@ -98,6 +105,14 @@ using Xunit;
         }
 
         [Export]
+        public class ExportWithLazyImportOfBaseType
+        {
+            [Import("AnotherExport")]
+            public Lazy<object> AnotherExport { get; set; }
+        }
+
+        [Export]
+        [Export("AnotherExport", typeof(object))]
         public class AnotherExport
         {
             internal static int ConstructionCount;
