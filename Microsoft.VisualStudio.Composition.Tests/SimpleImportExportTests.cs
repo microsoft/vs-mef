@@ -12,11 +12,35 @@
 
     public class SimpleImportExportTests
     {
+        public SimpleImportExportTests()
+        {
+            Apple.CreatedCount = 0;
+        }
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void AcquireSingleExport(IContainer container)
         {
             Apple apple = container.GetExportedValue<Apple>();
             Assert.NotNull(apple);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        public void AcquireSingleLazyExport(IContainer container)
+        {
+            ILazy<Apple> appleLazy = container.GetExport<Apple>();
+            Assert.NotNull(appleLazy);
+
+            // Make sure the Apple hasn't been created yet.
+            Assert.False(appleLazy.IsValueCreated);
+            Assert.Equal(0, Apple.CreatedCount);
+
+            // Now go ahead and evaluate the Lazy
+            Apple apple = appleLazy.Value;
+            Assert.True(appleLazy.IsValueCreated);
+            Assert.NotNull(apple);
+
+            // And check that the side-effects are correct.
+            Assert.Equal(1, Apple.CreatedCount);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
@@ -31,6 +55,12 @@
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class Apple
         {
+            internal static int CreatedCount;
+
+            public Apple()
+            {
+                CreatedCount++;
+            }
         }
 
         [Export]
