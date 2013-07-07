@@ -45,13 +45,13 @@
                 if (importAttribute != null)
                 {
                     Type contractType = member.PropertyType;
-                    bool isLazy = false;
+                    Type lazyType = null;
                     if (contractType.IsGenericType)
                     {
                         var genericDefinition = member.PropertyType.GetGenericTypeDefinition();
-                        if (genericDefinition.IsEquivalentTo(typeof(Lazy<>)))
+                        if (genericDefinition.IsEquivalentTo(typeof(ILazy<>)) || genericDefinition.IsEquivalentTo(typeof(Lazy<>)))
                         {
-                            isLazy = true;
+                            lazyType = member.PropertyType;
                             contractType = contractType.GetGenericArguments()[0];
                         }
                     }
@@ -60,25 +60,25 @@
                     var importDefinition = new ImportDefinition(
                         contract,
                         importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
-                        isLazy);
+                        lazyType);
                     imports.Add(member, importDefinition);
                 }
                 else if (importManyAttribute != null)
                 {
                     Type contractType = member.PropertyType.GetGenericArguments()[0];
-                    bool isLazy = false;
+                    Type lazyType = null;
                     if (contractType.IsGenericType)
                     {
                         var genericDefinition = contractType.GetGenericTypeDefinition();
-                        if (genericDefinition.IsEquivalentTo(typeof(Lazy<>)))
+                        if (genericDefinition.IsEquivalentTo(typeof(ILazy<>)) || genericDefinition.IsEquivalentTo(typeof(Lazy<>)))
                         {
-                            isLazy = true;
+                            lazyType = contractType;
                             contractType = contractType.GetGenericArguments()[0];
                         }
                     }
 
                     var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
-                    var importDefinition = new ImportDefinition(contract, ImportCardinality.ZeroOrMore, isLazy);
+                    var importDefinition = new ImportDefinition(contract, ImportCardinality.ZeroOrMore, lazyType);
                     imports.Add(member, importDefinition);
                 }
                 else if (exportAttribute != null)

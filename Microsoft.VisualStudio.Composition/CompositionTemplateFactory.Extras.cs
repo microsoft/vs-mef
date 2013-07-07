@@ -21,6 +21,10 @@
             if (importDefinition.IsLazy)
             {
                 fullTypeNameWithPerhapsLazy = "Lazy<" + fullTypeNameWithPerhapsLazy + ">";
+                if (!importDefinition.IsLazyConcreteType)
+                {
+                    fullTypeNameWithPerhapsLazy = "I" + fullTypeNameWithPerhapsLazy;
+                }
             }
 
             string left = "result." + importingMember.Name;
@@ -32,9 +36,31 @@
                 foreach (var export in exports)
                 {
                     right += Environment.NewLine + this.CurrentIndent;
-                    if (importDefinition.IsLazy) { right += "new " + fullTypeNameWithPerhapsLazy + "(() => "; }
+                    if (importDefinition.IsLazyConcreteType)
+                    {
+                        if (importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
+                        {
+                            right += "(" + fullTypeNameWithPerhapsLazy + ")";
+                        }
+                        else
+                        {
+                            right += "new " + fullTypeNameWithPerhapsLazy + "(() => ";
+                        }
+                    }
+
                     right += "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "()";
-                    if (importDefinition.IsLazy) { right += ")"; }
+                    if (importDefinition.IsLazy)
+                    {
+                        if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
+                        {
+                            right += ".Value, true)";
+                        }
+                    }
+                    else
+                    {
+                        right += ".Value";
+                    }
+
                     right += ",";
                 }
 
@@ -46,10 +72,31 @@
             }
             else if (exports.Any())
             {
-                right = "this." + GetPartFactoryMethodName(exports.Single().PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "()";
+                var export = exports.Single();
+                right = string.Empty;
+                if (importDefinition.IsLazyConcreteType)
+                {
+                    if (importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
+                    {
+                        right += "(" + fullTypeNameWithPerhapsLazy + ")";
+                    }
+                    else
+                    {
+                        right += "new " + fullTypeNameWithPerhapsLazy + "(() => ";
+                    }
+                }
+
+                right += "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "()";
                 if (importDefinition.IsLazy)
                 {
-                    right = "new " + fullTypeNameWithPerhapsLazy + "(() => " + right + ")";
+                    if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
+                    {
+                        right += ".Value, true)";
+                    }
+                }
+                else
+                {
+                    right += ".Value";
                 }
             }
 

@@ -11,18 +11,28 @@
     [DebuggerDisplay("{Contract.Type.Name,nq} (Lazy: {IsLazy}, {Cardinality})")]
     public class ImportDefinition : IEquatable<ImportDefinition>
     {
-        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, bool lazy)
+        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, Type lazyType)
         {
             Requires.NotNull(contract, "contract");
 
             this.Contract = contract;
             this.Cardinality = cardinality;
-            this.IsLazy = lazy;
+            this.LazyType = lazyType;
         }
 
         public ImportCardinality Cardinality { get; private set; }
 
-        public bool IsLazy { get; private set; }
+        public bool IsLazy
+        {
+            get { return this.LazyType != null; }
+        }
+
+        public bool IsLazyConcreteType
+        {
+            get { return this.LazyType != null && this.LazyType.GetGenericTypeDefinition().IsEquivalentTo(typeof(Lazy<>)); }
+        }
+
+        public Type LazyType { get; private set; }
 
         public CompositionContract Contract { get; private set; }
 
