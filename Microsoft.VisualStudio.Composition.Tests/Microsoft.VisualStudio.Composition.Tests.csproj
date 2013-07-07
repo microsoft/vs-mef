@@ -87,6 +87,7 @@
     <Compile Include="OpenGenericExportTests.cs" />
     <Compile Include="NamedTypedExportTests.cs" />
     <Compile Include="SharedNoBoundaryExportsTests.cs" />
+    <Compile Include="SharingBoundaryTests.cs" />
     <Compile Include="SimpleImportExportTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestUtilities.cs" />
