@@ -15,7 +15,7 @@ using Xunit;
             AnotherExport.ConstructionCount = 0;
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV2, typeof(ExportWithLazyImport), typeof(AnotherExport))]
+        [MefFact(CompositionEngines.V2Compat, typeof(ExportWithLazyImport), typeof(AnotherExport))]
         public void LazyImport(IContainer container)
         {
             var lazyImport = container.GetExportedValue<ExportWithLazyImport>();
@@ -33,7 +33,7 @@ using Xunit;
             Assert.NotSame(anotherExport, anotherExport2);
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV2, typeof(ExportWithListOfLazyImport), typeof(AnotherExport))]
+        [MefFact(CompositionEngines.V2Compat, typeof(ExportWithListOfLazyImport), typeof(AnotherExport))]
         public void LazyImportMany(IContainer container)
         {
             var lazyImport = container.GetExportedValue<ExportWithListOfLazyImport>();
@@ -80,21 +80,21 @@ using Xunit;
         public class ExportWithLazyImport
         {
             [Import]
-            public ILazy<AnotherExport> AnotherExport { get; set; }
+            public Lazy<AnotherExport> AnotherExport { get; set; }
         }
 
         [Export]
         public class ExportWithLazyImportOfSharedExport
         {
             [Import]
-            public ILazy<SharedExport> SharedExport { get; set; }
+            public Lazy<SharedExport> SharedExport { get; set; }
         }
 
         [Export]
         public class ExportWithListOfLazyImport
         {
             [ImportMany]
-            public IList<ILazy<AnotherExport>> AnotherExports { get; set; }
+            public IList<Lazy<AnotherExport>> AnotherExports { get; set; }
         }
 
         [Export]
