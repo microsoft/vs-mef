@@ -170,23 +170,30 @@ foreach (var part in this.Configuration.Parts)
             
             #line default
             #line hidden
-            this.Write("\r\n\tprotected ");
+            this.Write("\r\n\tprotected ILazy<");
             
             #line 80 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(part.Definition.Type)));
             
             #line default
             #line hidden
-            this.Write(" ");
+            this.Write("> ");
             
             #line 80 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetPartFactoryMethodName(part.Definition)));
             
             #line default
             #line hidden
-            this.Write("()\r\n\t{\r\n");
+            this.Write("()\r\n\t{\r\n\t\tILazy<");
             
             #line 82 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(part.Definition.Type)));
+            
+            #line default
+            #line hidden
+            this.Write("> lazyResult;\r\n");
+            
+            #line 83 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 		if (part.Definition.IsShared)
 		{
@@ -194,24 +201,47 @@ foreach (var part in this.Configuration.Parts)
             
             #line default
             #line hidden
-            this.Write("\t\tLazy<");
-            
-            #line 86 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(part.Definition.Type)));
-            
-            #line default
-            #line hidden
-            this.Write("> lazyResult;\r\n\t\tif (!this.TryGetSharedInstanceFactory(out lazyResult))\r\n\t\t{\r\n\t\t\t" +
-                    "lazyResult = new Lazy<");
+            this.Write("\t\tif (!this.TryGetSharedInstanceFactory(out lazyResult))\r\n\t\t{\r\n\t\t\tlazyResult = ne" +
+                    "w LazyPart<");
             
             #line 89 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(part.Definition.Type)));
             
             #line default
             #line hidden
-            this.Write(">(delegate\r\n\t\t\t{\r\n");
+            this.Write(">(\r\n\t\t\t\tdelegate\r\n\t\t\t\t{\r\n");
             
-            #line 91 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 92 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+
+				this.PushIndent("\t\t\t");
+				EmitInstantiatePart(part);
+				this.PopIndent();
+
+            
+            #line default
+            #line hidden
+            this.Write("\t\t\t\t});\r\n\r\n\t\t\tlazyResult = this.GetOrAddSharedInstanceFactory(lazyResult);\r\n\t\t}\r\n" +
+                    "");
+            
+            #line 101 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+
+		}
+		else
+		{
+
+            
+            #line default
+            #line hidden
+            this.Write("\t\tlazyResult = new LazyPart<");
+            
+            #line 106 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(part.Definition.Type)));
+            
+            #line default
+            #line hidden
+            this.Write(">(\r\n\t\t\tdelegate\r\n\t\t\t{\r\n");
+            
+            #line 109 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 				this.PushIndent("\t\t");
 				EmitInstantiatePart(part);
@@ -220,25 +250,18 @@ foreach (var part in this.Configuration.Parts)
             
             #line default
             #line hidden
-            this.Write("\t\t\t});\r\n\r\n\t\t\tlazyResult = this.GetOrAddSharedInstanceFactory(lazyResult);\r\n\t\t}\r\n\r" +
-                    "\n\t\treturn lazyResult.Value;\r\n");
+            this.Write("\t\t\t});\r\n");
             
-            #line 102 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 115 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
-		}
-		else
-		{
-			this.PushIndent("\t");
-			EmitInstantiatePart(part);
-			this.PopIndent();
 		}
 
             
             #line default
             #line hidden
-            this.Write("\t}\r\n");
+            this.Write("\r\n\t\treturn lazyResult;\r\n\t}\r\n");
             
-            #line 112 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 121 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 }
 

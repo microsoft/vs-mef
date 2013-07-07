@@ -77,16 +77,34 @@ foreach (var part in this.Configuration.Parts)
 {
 #>
 
-	protected <#= GetTypeName(part.Definition.Type) #> <#= GetPartFactoryMethodName(part.Definition) #>()
+	protected ILazy<<#= GetTypeName(part.Definition.Type) #>> <#= GetPartFactoryMethodName(part.Definition) #>()
 	{
+		ILazy<<#= GetTypeName(part.Definition.Type) #>> lazyResult;
 <#
 		if (part.Definition.IsShared)
 		{
 #>
-		Lazy<<#= GetTypeName(part.Definition.Type) #>> lazyResult;
 		if (!this.TryGetSharedInstanceFactory(out lazyResult))
 		{
-			lazyResult = new Lazy<<#= GetTypeName(part.Definition.Type) #>>(delegate
+			lazyResult = new LazyPart<<#= GetTypeName(part.Definition.Type) #>>(
+				delegate
+				{
+<#
+				this.PushIndent("\t\t\t");
+				EmitInstantiatePart(part);
+				this.PopIndent();
+#>
+				});
+
+			lazyResult = this.GetOrAddSharedInstanceFactory(lazyResult);
+		}
+<#
+		}
+		else
+		{
+#>
+		lazyResult = new LazyPart<<#= GetTypeName(part.Definition.Type) #>>(
+			delegate
 			{
 <#
 				this.PushIndent("\t\t");
@@ -94,20 +112,11 @@ foreach (var part in this.Configuration.Parts)
 				this.PopIndent();
 #>
 			});
-
-			lazyResult = this.GetOrAddSharedInstanceFactory(lazyResult);
-		}
-
-		return lazyResult.Value;
 <#
 		}
-		else
-		{
-			this.PushIndent("\t");
-			EmitInstantiatePart(part);
-			this.PopIndent();
-		}
 #>
+
+		return lazyResult;
 	}
 <#
 }

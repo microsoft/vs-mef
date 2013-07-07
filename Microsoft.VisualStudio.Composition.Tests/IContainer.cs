@@ -11,5 +11,9 @@
         T GetExportedValue<T>();
 
         T GetExportedValue<T>(string contractName);
+
+        ILazy<T> GetExport<T>();
+
+        ILazy<T> GetExport<T>(string contractName);
     }
 }

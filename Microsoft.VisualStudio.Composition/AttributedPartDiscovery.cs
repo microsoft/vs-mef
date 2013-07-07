@@ -49,7 +49,7 @@
                     if (contractType.IsGenericType)
                     {
                         var genericDefinition = member.PropertyType.GetGenericTypeDefinition();
-                        if (genericDefinition.IsEquivalentTo(typeof(Lazy<>)))
+                        if (genericDefinition.IsEquivalentTo(typeof(ILazy<>)))
                         {
                             isLazy = true;
                             contractType = contractType.GetGenericArguments()[0];
@@ -70,7 +70,7 @@
                     if (contractType.IsGenericType)
                     {
                         var genericDefinition = contractType.GetGenericTypeDefinition();
-                        if (genericDefinition.IsEquivalentTo(typeof(Lazy<>)))
+                        if (genericDefinition.IsEquivalentTo(typeof(ILazy<>)))
                         {
                             isLazy = true;
                             contractType = contractType.GetGenericArguments()[0];

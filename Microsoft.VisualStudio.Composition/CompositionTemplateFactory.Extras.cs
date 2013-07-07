@@ -20,7 +20,7 @@
             string fullTypeNameWithPerhapsLazy = GetTypeName(importDefinition.CoercedValueType);
             if (importDefinition.IsLazy)
             {
-                fullTypeNameWithPerhapsLazy = "Lazy<" + fullTypeNameWithPerhapsLazy + ">";
+                fullTypeNameWithPerhapsLazy = "ILazy<" + fullTypeNameWithPerhapsLazy + ">";
             }
 
             string left = "result." + importingMember.Name;
@@ -32,9 +32,8 @@
                 foreach (var export in exports)
                 {
                     right += Environment.NewLine + this.CurrentIndent;
-                    if (importDefinition.IsLazy) { right += "new " + fullTypeNameWithPerhapsLazy + "(() => "; }
                     right += "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "()";
-                    if (importDefinition.IsLazy) { right += ")"; }
+                    if (!importDefinition.IsLazy) { right += ".Value"; }
                     right += ",";
                 }
 
@@ -47,9 +46,9 @@
             else if (exports.Any())
             {
                 right = "this." + GetPartFactoryMethodName(exports.Single().PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "()";
-                if (importDefinition.IsLazy)
+                if (!importDefinition.IsLazy)
                 {
-                    right = "new " + fullTypeNameWithPerhapsLazy + "(() => " + right + ")";
+                    right += ".Value";
                 }
             }
 

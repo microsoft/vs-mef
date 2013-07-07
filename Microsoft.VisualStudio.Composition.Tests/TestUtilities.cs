@@ -87,6 +87,16 @@
                 this.container = container;
             }
 
+            public ILazy<T> GetExport<T>()
+            {
+                return new LazyWrapper<T>(this.container.GetExport<T>());
+            }
+
+            public ILazy<T> GetExport<T>(string contractName)
+            {
+                return new LazyWrapper<T>(this.container.GetExport<T>(contractName));
+            }
+
             public T GetExportedValue<T>()
             {
                 return this.container.GetExportedValue<T>();
@@ -112,6 +122,18 @@
             {
                 Requires.NotNull(container, "container");
                 this.container = container;
+            }
+
+            public ILazy<T> GetExport<T>()
+            {
+                // MEF v2 doesn't support this, so emulate it.
+                return new LazyPart<T>(() => this.container.GetExport<T>());
+            }
+
+            public ILazy<T> GetExport<T>(string contractName)
+            {
+                // MEF v2 doesn't support this, so emulate it.
+                return new LazyPart<T>(() => this.container.GetExport<T>(contractName));
             }
 
             public T GetExportedValue<T>()
@@ -140,6 +162,16 @@
                 this.container = container;
             }
 
+            public ILazy<T> GetExport<T>()
+            {
+                return this.container.GetExport<T>();
+            }
+
+            public ILazy<T> GetExport<T>(string contractName)
+            {
+                return this.container.GetExport<T>(contractName);
+            }
+
             public T GetExportedValue<T>()
             {
                 return this.container.GetExportedValue<T>();
@@ -153,6 +185,27 @@
             public void Dispose()
             {
                 this.container.Dispose();
+            }
+        }
+
+        private class LazyWrapper<T> : ILazy<T>
+        {
+            private readonly Lazy<T> inner;
+
+            internal LazyWrapper(Lazy<T> lazy)
+            {
+                Requires.NotNull(lazy, "lazy");
+                this.inner = lazy;
+            }
+
+            public bool IsValueCreated
+            {
+                get { return this.inner.IsValueCreated; }
+            }
+
+            public T Value
+            {
+                get { return this.inner.Value; }
             }
         }
     }
