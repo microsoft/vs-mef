@@ -12,10 +12,9 @@
     {
         #region Tight loop of all shared exports
 
-        [Fact(Skip = "StackOverflows")]
-        public void CircularDependenciesSharedExports()
+        [MefFact(CompositionEngines.V2, typeof(SharedExport1), typeof(SharedExport2))]
+        public void CircularDependenciesSharedExports(IContainer container)
         {
-            var container = TestUtilities.CreateContainer(typeof(SharedExport1), typeof(SharedExport2));
             var export1 = container.GetExport<SharedExport1>();
             var export2 = container.GetExport<SharedExport2>();
             Assert.Same(export1.Export2, export2);
@@ -40,13 +39,9 @@
 
         #region Loop with just one shared export
 
-        [Fact(Skip = "StackOverflows")]
-        public void CircularDependenciesOneSharedExport()
+        [MefFact(CompositionEngines.V2, typeof(SharedExportInLoopOfNonShared), typeof(NonSharedExportInLoopWithShared), typeof(AnotherNonSharedExportInLoopWithShared))]
+        public void CircularDependenciesOneSharedExport(IContainer container)
         {
-            var container = TestUtilities.CreateContainer(
-                typeof(SharedExportInLoopOfNonShared),
-                typeof(NonSharedExportInLoopWithShared),
-                typeof(AnotherNonSharedExportInLoopWithShared));
             var shared = container.GetExport<SharedExportInLoopOfNonShared>();
             var nonShared = container.GetExport<NonSharedExportInLoopWithShared>();
             var anotherNonShared = container.GetExport<AnotherNonSharedExportInLoopWithShared>();
@@ -122,10 +117,9 @@
             Assert.Throws<AggregateException>(() => TestUtilities.CreateContainer(typeof(SelfImportingNonSharedPart)));
         }
 
-        [Fact(Skip = "StackOverflows")]
-        public void SelfImportingSharedPartSucceeds()
+        [MefFact(CompositionEngines.V2, typeof(SelfImportingSharedPart))]
+        public void SelfImportingSharedPartSucceeds(IContainer container)
         {
-            var container = TestUtilities.CreateContainer(typeof(SelfImportingSharedPart));
             var value = container.GetExport<SelfImportingSharedPart>();
             Assert.Same(value, value.Self);
         }
@@ -141,7 +135,7 @@
         public class SelfImportingSharedPart
         {
             [Import]
-            public SelfImportingNonSharedPart Self { get; set; }
+            public SelfImportingSharedPart Self { get; set; }
         }
 
         #endregion
