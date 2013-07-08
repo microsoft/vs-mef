@@ -93,5 +93,10 @@
                 ? new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary)
                 : null;
         }
+
+        public override IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

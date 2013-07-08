@@ -75,6 +75,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssembliesLazyLoadedTests.cs" />
+    <Compile Include="AttributedPartDiscoveryTestBase.cs" />
+    <Compile Include="AttributedPartDiscoveryTests.cs" />
+    <Compile Include="AttributedPartDiscoveryV1Tests.cs" />
     <Compile Include="CacheAndReloadTests.cs" />
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="CircularDependencyTests.cs" />
@@ -111,6 +114,10 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AppDomainTests\Microsoft.VisualStudio.Composition.AppDomainTests.csproj">
       <Project>{15fc5b0e-ae82-4437-8916-b59e646c41e7}</Project>
       <Name>Microsoft.VisualStudio.Composition.AppDomainTests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests.csproj">
+      <Project>{37e36aec-3319-4219-974f-d258fbe8d143}</Project>
+      <Name>Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests</Name>
     </ProjectReference>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj">
       <Project>{1ca6a92c-5dd9-4be5-b5b7-ee4a1318b4c2}</Project>
