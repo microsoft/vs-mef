@@ -135,6 +135,7 @@
 
         public class MetadataClass
         {
+            // Only MEFv1 requires this constructor -- MEFv2 doesn't need it.
             public MetadataClass(IDictionary<string, object> data)
             {
                 object value;
