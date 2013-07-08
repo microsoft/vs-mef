@@ -74,6 +74,7 @@
     <Compile Include="CacheAndReloadTests.cs" />
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="CircularDependencyTests.cs" />
+    <Compile Include="ImportMetadataConstraintTests.cs" />
     <Compile Include="ImportMetadataTests.cs" />
     <Compile Include="MefTestCommand.cs" />
     <Compile Include="MefFactAttribute.cs" />
@@ -85,6 +86,7 @@
     <Compile Include="IContainer.cs" />
     <Compile Include="ImportManyTests.cs" />
     <Compile Include="LazyImportTests.cs" />
+    <Compile Include="OnImportsSatisfiedTests.cs" />
     <Compile Include="OpenGenericExportTests.cs" />
     <Compile Include="NamedTypedExportTests.cs" />
     <Compile Include="SharedNoBoundaryExportsTests.cs" />

@@ -74,6 +74,13 @@
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Single().Value);
         }
 
+        [Fact(Skip = "Test not yet implemented.")]
+        public void MetadataViewAsFilter()
+        {
+            // TODO: Test that required / optional properties on metadata view interface
+            // properly filter the exports used to satisfy the import[many].
+        }
+
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [MefV1.ExportMetadata("a", "b")]
         [Export]
