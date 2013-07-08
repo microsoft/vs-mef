@@ -37,8 +37,11 @@
                 }
             }
 
-            foreach (var member in partType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            foreach (var member in Enumerable.Concat<MemberInfo>(partType.GetProperties(BindingFlags.Instance | BindingFlags.Public), partType.GetFields(BindingFlags.Instance | BindingFlags.Public)))
             {
+                var property = member as PropertyInfo;
+                var field = member as FieldInfo;
+                var propertyOrFieldType = property != null ? property.PropertyType : field.FieldType;
                 var importAttribute = member.GetCustomAttribute<ImportAttribute>();
                 var importManyAttribute = member.GetCustomAttribute<ImportManyAttribute>();
                 var exportAttribute = member.GetCustomAttribute<ExportAttribute>();
@@ -47,14 +50,14 @@
 
                 if (importAttribute != null)
                 {
-                    Type contractType = member.PropertyType;
+                    Type contractType = propertyOrFieldType;
                     Type lazyType = null;
                     if (contractType.IsGenericType)
                     {
-                        var genericDefinition = member.PropertyType.GetGenericTypeDefinition();
+                        var genericDefinition = propertyOrFieldType.GetGenericTypeDefinition();
                         if (genericDefinition.IsEquivalentTo(typeof(ILazy<>)) | genericDefinition.IsEquivalentTo(typeof(Lazy<>)))
                         {
-                            lazyType = member.PropertyType;
+                            lazyType = propertyOrFieldType;
                             contractType = contractType.GetGenericArguments()[0];
                         }
                     }
@@ -68,7 +71,7 @@
                 }
                 else if (importManyAttribute != null)
                 {
-                    Type contractType = member.PropertyType.GetGenericArguments()[0];
+                    Type contractType = propertyOrFieldType.GetGenericArguments()[0];
                     Type lazyType = null;
                     if (contractType.IsGenericType)
                     {
@@ -86,7 +89,7 @@
                 }
                 else if (exportAttribute != null)
                 {
-                    var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? member.PropertyType);
+                    var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? propertyOrFieldType);
                     var exportDefinition = new ExportDefinition(contract);
                     exportsOnMembers.Add(member, exportDefinition);
                 }

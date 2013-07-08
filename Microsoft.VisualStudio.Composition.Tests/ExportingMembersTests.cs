@@ -11,7 +11,7 @@
 
     public class ExportingMembersTests
     {
-        [MefFact(CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V1Compat)]
         public void ExportedField(IContainer container)
         {
             string actual = container.GetExportedValue<string>("Field");
