@@ -18,7 +18,7 @@
             Assert.Equal("Andrew", actual);
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void ExportedProperty(IContainer container)
         {
             string actual = container.GetExportedValue<string>("Property");

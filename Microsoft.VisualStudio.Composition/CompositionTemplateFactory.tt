@@ -26,8 +26,10 @@ internal class CompiledExportProvider : ExportProvider
 		Type exportTypeDefinition = exportDefinition.Contract.Type.IsGenericType ? exportDefinition.Contract.Type.GetGenericTypeDefinition() : exportDefinition.Contract.Type;<#
 foreach (var part in this.Configuration.Catalog.Parts)
 {
-	foreach (var partExport in part.ExportDefinitionsOnType)
+	foreach (var partExportPair in part.ExportDefinitions)
 	{
+		var member = partExportPair.Key;
+		var partExport = partExportPair.Value;
 #>
 
 		if (exportTypeDefinition.IsEquivalentTo(typeof(<#= GetTypeName(partExport.Contract.Type, genericTypeDefinition: true) #>)))
@@ -53,13 +55,15 @@ foreach (var part in this.Configuration.Catalog.Parts)
 #>
 				var genericTemplateMethod = typeof(CompiledExportProvider).GetMethod("<#= GetPartFactoryMethodNameNoTypeArgs(part) #>", BindingFlags.Instance | BindingFlags.NonPublic);
 				var genericMethod = genericTemplateMethod.MakeGenericMethod(exportDefinition.Contract.Type.GetGenericArguments());
-				return genericMethod.Invoke(this, new object[0]);
+				var part = genericMethod.Invoke(this, new object[0]);
+				return <#=GetPartOrMemberLazy("part", member, partExport)#>;
 <#
 				}
 				else
 				{
 #>
-				return this.<#= GetPartFactoryMethodName(part) #>();
+				var part = this.<#= GetPartFactoryMethodName(part) #>();
+				return <#=GetPartOrMemberLazy("part", member, partExport)#>;
 <#
 				}
 #>

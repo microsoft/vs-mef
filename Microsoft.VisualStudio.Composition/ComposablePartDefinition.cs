@@ -47,6 +47,22 @@
 
         public IReadOnlyDictionary<MemberInfo, ExportDefinition> ExportDefinitionsOnMembers { get; private set; }
 
+        public IEnumerable<KeyValuePair<MemberInfo, ExportDefinition>> ExportDefinitions
+        {
+            get
+            {
+                foreach (var export in this.ExportDefinitionsOnType)
+                {
+                    yield return new KeyValuePair<MemberInfo, ExportDefinition>(null, export);
+                }
+
+                foreach (var export in this.ExportDefinitionsOnMembers)
+                {
+                    yield return export;
+                }
+            }
+        }
+
         public IReadOnlyDictionary<MemberInfo, ImportDefinition> ImportDefinitions { get; private set; }
     }
 }

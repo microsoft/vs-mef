@@ -1,12 +1,13 @@
 ﻿namespace Microsoft.VisualStudio.Composition
 {
     using System;
-    using System.Collections.Generic;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using Validation;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+using Validation;
 
     partial class CompositionTemplateFactory
     {
@@ -241,6 +242,33 @@
             }
 
             return name;
+        }
+
+        private static string GetPartOrMemberLazy(string partLocalVariableName, MemberInfo member, ExportDefinition exportDefinition)
+        {
+            Requires.NotNullOrEmpty(partLocalVariableName, "partLocalVariableName");
+            Requires.NotNull(exportDefinition, "exportDefinition");
+
+            if (member == null)
+            {
+                return partLocalVariableName;
+            }
+
+            switch (member.MemberType)
+            {
+                case MemberTypes.Method:
+                    throw new NotSupportedException(); // TODO
+                case MemberTypes.Field:
+                case MemberTypes.Property:
+                    return string.Format(
+                        CultureInfo.InvariantCulture,
+                        "new LazyPart<{0}>(() => {1}.Value.{2})",
+                        GetTypeName(exportDefinition.Contract.Type),
+                        partLocalVariableName,
+                        member.Name);
+                default:
+                    throw new NotSupportedException();
+            }
         }
     }
 }
