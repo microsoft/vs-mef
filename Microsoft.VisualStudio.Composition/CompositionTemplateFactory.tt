@@ -32,7 +32,7 @@ foreach (var part in this.Configuration.Catalog.Parts)
 		var partExport = partExportPair.Value;
 #>
 
-		if (exportTypeDefinition.IsEquivalentTo(typeof(<#= GetTypeName(partExport.Contract.Type, genericTypeDefinition: true) #>)))
+		if (<#= partExport.Contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type" #>.IsEquivalentTo(typeof(<#= GetTypeName(partExport.Contract.Type, partExport.Contract.Type.IsGenericTypeDefinition) #>)))
 		{
 <#
 			if (partExport.Contract.ContractName == null)

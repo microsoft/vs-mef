@@ -62,10 +62,17 @@ foreach (var part in this.Configuration.Catalog.Parts)
             
             #line default
             #line hidden
-            this.Write("\r\n\t\tif (exportTypeDefinition.IsEquivalentTo(typeof(");
+            this.Write("\r\n\t\tif (");
             
             #line 35 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(partExport.Contract.Type, genericTypeDefinition: true)));
+            this.Write(this.ToStringHelper.ToStringWithCulture(partExport.Contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type"));
+            
+            #line default
+            #line hidden
+            this.Write(".IsEquivalentTo(typeof(");
+            
+            #line 35 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(partExport.Contract.Type, partExport.Contract.Type.IsGenericTypeDefinition)));
             
             #line default
             #line hidden

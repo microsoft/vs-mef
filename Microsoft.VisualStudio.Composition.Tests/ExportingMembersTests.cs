@@ -25,11 +25,68 @@
             Assert.Equal("Andrew", actual);
         }
 
-        [MefFact(CompositionEngines.V1)]
-        public void ExportedMethod(IContainer container)
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        public void ExportedPropertyGenericType(IContainer container)
+        {
+            var actual = container.GetExportedValue<Comparer<int>>("PropertyGenericType");
+            Assert.NotNull(actual);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        public void ExportedPropertyGenericTypeWrongTypeArgs(IContainer container)
+        {
+            try
+            {
+                container.GetExportedValue<Comparer<bool>>("PropertyGenericType");
+                Assert.False(true, "Expected exception not thrown.");
+            }
+            catch (ArgumentException) { } // V3
+            catch (MefV1.ImportCardinalityMismatchException)
+            {
+            }
+            catch (System.Composition.Hosting.CompositionFailedException)
+            {
+            }
+        }
+
+        [MefFact(CompositionEngines.V1Compat)]
+        public void ExportedMethodAction(IContainer container)
         {
             var actual = container.GetExportedValue<Action>("Method");
             Assert.NotNull(actual);
+        }
+
+        [MefFact(CompositionEngines.V1Compat)]
+        public void ExportedMethodActionOf2(IContainer container)
+        {
+            var actual = container.GetExportedValue<Action<int, string>>("Method");
+            Assert.NotNull(actual);
+        }
+
+        [MefFact(CompositionEngines.V1Compat)]
+        public void ExportedMethodFunc(IContainer container)
+        {
+            var actual = container.GetExportedValue<Func<bool>>("Method");
+            Assert.NotNull(actual);
+        }
+
+        [MefFact(CompositionEngines.V1Compat)]
+        public void ExportedMethodFuncOf2(IContainer container)
+        {
+            var actual = container.GetExportedValue<Func<int, string, bool>>("Method");
+            Assert.NotNull(actual);
+        }
+
+        [MefFact(CompositionEngines.V1Compat)]
+        public void ExportedMethodFuncOf2WrongTypeArgs(IContainer container)
+        {
+            try
+            {
+                container.GetExportedValue<Func<string, string, bool>>("Method");
+                Assert.False(true, "Expected exception not thrown.");
+            }
+            catch (MefV1.ImportCardinalityMismatchException) { }
+            catch (ArgumentException) { } // V3
         }
 
         public class ExportingMembersClass
@@ -44,9 +101,33 @@
                 get { return "Andrew"; }
             }
 
+            [Export("PropertyGenericType")]
+            [MefV1.Export("PropertyGenericType")]
+            public Comparer<int> PropertyGenericType
+            {
+                get { return Comparer<int>.Default; }
+            }
+
             [MefV1.Export("Method")]
             public void SomeAction()
             {
+            }
+
+            [MefV1.Export("Method")]
+            public void SomeAction(int a, string b)
+            {
+            }
+
+            [MefV1.Export("Method")]
+            public bool SomeFunc()
+            {
+                return true;
+            }
+
+            [MefV1.Export("Method")]
+            public bool SomeFunc(int a, string b)
+            {
+                return true;
             }
         }
     }

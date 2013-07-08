@@ -22,7 +22,8 @@
 
             foreach (var exportAttribute in partType.GetCustomAttributes<ExportAttribute>())
             {
-                var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? partType);
+                var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
+                var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? partType);
                 var exportDefinition = new ExportDefinition(contract);
                 exportsOnType.Add(exportDefinition);
             }
@@ -95,6 +96,18 @@
                 }
             }
 
+            foreach (var method in partType.GetMethods(BindingFlags.Public | BindingFlags.Instance))
+            {
+                var exportAttribute = method.GetCustomAttribute<ExportAttribute>();
+                if (exportAttribute != null)
+                {
+                    Type contractType = exportAttribute.ContractType ?? GetContractTypeForDelegate(method);
+                    var contract = new CompositionContract(exportAttribute.ContractName, contractType);
+                    var exportDefinition = new ExportDefinition(contract);
+                    exportsOnMembers.Add(method, exportDefinition);
+                }
+            }
+
             MethodInfo onImportsSatisfied = null;
             if (typeof(IPartImportsSatisfiedNotification).IsAssignableFrom(partType))
             {
@@ -104,6 +117,30 @@
             return exportsOnMembers.Count > 0 || exportsOnType.Count > 0
                 ? new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary, onImportsSatisfied)
                 : null;
+        }
+
+        private static Type GetContractTypeForDelegate(MethodInfo method)
+        {
+            Type genericTypeDefinition;
+            int parametersCount = method.GetParameters().Length;
+            var typeArguments = method.GetParameters().Select(p => p.ParameterType).ToList();
+            var voidResult = method.ReturnType.IsEquivalentTo(typeof(void));
+            if (voidResult)
+            {
+                if (typeArguments.Count == 0)
+                {
+                    return typeof(Action);
+                }
+
+                genericTypeDefinition = Type.GetType("System.Action`" + typeArguments.Count);
+            }
+            else
+            {
+                typeArguments.Add(method.ReturnType);
+                genericTypeDefinition = Type.GetType("System.Func`" + typeArguments.Count);
+            }
+
+            return genericTypeDefinition.MakeGenericType(typeArguments.ToArray());
         }
 
         public override IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly)

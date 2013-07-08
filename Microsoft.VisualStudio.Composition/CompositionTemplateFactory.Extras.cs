@@ -170,7 +170,7 @@ using Validation;
             string name = fullName ? type.FullName : type.Name;
             if (type.IsGenericType)
             {
-                name = name.Substring(0, type.Name.IndexOf('`'));
+                name = name.Substring(0, name.IndexOf('`'));
                 name += "<";
                 name += new String(',', type.GetGenericArguments().Length - 1);
                 name += ">";
@@ -209,11 +209,19 @@ using Validation;
             Requires.NotNullOrEmpty(originalName, "originalName");
 
             string name = originalName;
-            if (originalName.IndexOf('`') >= 0)
+            int backTickIndex = originalName.IndexOf('`');
+            if (backTickIndex >= 0)
             {
                 name = originalName.Substring(0, name.IndexOf('`'));
                 name += "<";
-                int typeArgumentsCount = int.Parse(originalName.Substring(originalName.IndexOf('`') + 1), CultureInfo.InvariantCulture);
+                int typeArgIndex = originalName.IndexOf('[', backTickIndex + 1);
+                string typeArgumentsCountString = originalName.Substring(backTickIndex + 1);
+                if (typeArgIndex >= 0)
+                {
+                    typeArgumentsCountString = typeArgumentsCountString.Substring(0, typeArgIndex - backTickIndex - 1);
+                }
+
+                int typeArgumentsCount = int.Parse(typeArgumentsCountString, CultureInfo.InvariantCulture);
                 if (typeArguments == null || typeArguments.Length == 0)
                 {
                     if (typeArgumentsCount == 1)
@@ -257,7 +265,12 @@ using Validation;
             switch (member.MemberType)
             {
                 case MemberTypes.Method:
-                    throw new NotSupportedException(); // TODO
+                    return string.Format(
+                        CultureInfo.InvariantCulture,
+                        "new LazyPart<{0}>(() => new {0}({1}.Value.{2}))",
+                        GetTypeName(exportDefinition.Contract.Type),
+                        partLocalVariableName,
+                        member.Name);
                 case MemberTypes.Field:
                 case MemberTypes.Property:
                     return string.Format(

@@ -22,7 +22,8 @@
 
             foreach (var exportAttribute in partType.GetCustomAttributes<ExportAttribute>())
             {
-                var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? partType);
+                var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
+                var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? partType);
                 var exportDefinition = new ExportDefinition(contract);
                 exportsOnType.Add(exportDefinition);
             }
