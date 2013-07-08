@@ -9,6 +9,7 @@
     using Xunit;
     using Xunit.Sdk;
 
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class MefFactAttribute : FactAttribute
     {
         private readonly CompositionEngines compositionVersions;
