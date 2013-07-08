@@ -11,7 +11,7 @@
 
     public class ImportMetadataTests
     {
-        [MefFact(CompositionEngines.V2 | CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V2Compat | CompositionEngines.V1Compat, typeof(ImportingPartWithMetadataDictionary), typeof(PartWithExportMetadata))]
         public void ImportWithMetadataDictionary(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPartWithMetadataDictionary>();
@@ -21,7 +21,7 @@
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Value);
         }
 
-        [MefFact(CompositionEngines.V2 | CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V2 | CompositionEngines.V1, typeof(ImportManyPartWithMetadataDictionary), typeof(PartWithExportMetadata))]
         public void ImportManyWithMetadataDictionary(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportManyPartWithMetadataDictionary>();
@@ -32,7 +32,7 @@
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Single().Value);
         }
 
-        [MefFact(CompositionEngines.V2 | CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V2 | CompositionEngines.V1, typeof(ImportingPartWithMetadataClass), typeof(PartWithExportMetadata))]
         public void ImportWithMetadataClass(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPartWithMetadataClass>();
