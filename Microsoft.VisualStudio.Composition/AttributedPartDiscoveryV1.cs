@@ -92,7 +92,9 @@
                 }
             }
 
-            return new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary);
+            return exportsOnMembers.Count > 0 || exportsOnType.Count > 0
+                ? new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary)
+                : null;
         }
     }
 }

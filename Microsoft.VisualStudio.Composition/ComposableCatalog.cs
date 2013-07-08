@@ -61,11 +61,12 @@
             return parts.Aggregate(Create(), (catalog, part) => catalog.WithPart(part));
         }
 
-        public static ComposableCatalog Create(IEnumerable<Type> types, PartDiscovery discovery = null) {
+        public static ComposableCatalog Create(IEnumerable<Type> types, PartDiscovery discovery = null)
+        {
             Requires.NotNull(types, "types");
             discovery = discovery ?? new AttributedPartDiscovery();
 
-            return Create(types.Select(discovery.CreatePart));
+            return Create(types.Select(discovery.CreatePart).Where(p => p != null));
         }
 
         public static ComposableCatalog Create(params Type[] types)

@@ -34,6 +34,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.0.12.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.Bcl.Immutable.1.0.12-beta\lib\portable-net45+win8+wp8\System.Collections.Immutable.dll</HintPath>
+    </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Composition.AttributedModel, Version=1.0.17.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -74,6 +78,7 @@
     <Compile Include="CacheAndReloadTests.cs" />
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="CircularDependencyTests.cs" />
+    <Compile Include="CompositionCatalogTests.cs" />
     <Compile Include="ImportMetadataConstraintTests.cs" />
     <Compile Include="ImportMetadataTests.cs" />
     <Compile Include="MefTestCommand.cs" />
