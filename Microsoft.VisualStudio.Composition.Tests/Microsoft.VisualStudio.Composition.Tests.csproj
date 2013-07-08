@@ -74,6 +74,7 @@
     <Compile Include="CacheAndReloadTests.cs" />
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="CircularDependencyTests.cs" />
+    <Compile Include="ImportMetadataTests.cs" />
     <Compile Include="MefTestCommand.cs" />
     <Compile Include="MefFactAttribute.cs" />
     <Compile Include="ContainerIsolationTests.cs" />
