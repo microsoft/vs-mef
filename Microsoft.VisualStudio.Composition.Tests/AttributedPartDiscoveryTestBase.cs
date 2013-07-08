@@ -34,7 +34,7 @@
             Assert.True(result.IsShared);
         }
 
-        [Fact(Skip = "Feature not yet implemented.")]
+        [Fact]
         public void AssemblyDiscoveryFindsTopLevelParts()
         {
             var parts = this.DiscoveryService.CreateParts(typeof(NonDiscoverablePart).Assembly);
@@ -42,7 +42,7 @@
             Assert.True(parts.Any(p => p.Type.IsEquivalentTo(typeof(DiscoverablePart2))));
         }
 
-        [Fact(Skip = "Feature not yet implemented.")]
+        [Fact]
         public void AssemblyDiscoveryOmitsNonDiscoverableParts()
         {
             var parts = this.DiscoveryService.CreateParts(typeof(NonDiscoverablePart).Assembly);
@@ -50,7 +50,7 @@
             Assert.False(parts.Any(p => p.Type.IsEquivalentTo(typeof(NonDiscoverablePart))));
         }
 
-        [Fact(Skip = "Feature not yet implemented.")]
+        [Fact]
         public void AssemblyDiscoveryFindsNestedParts()
         {
             var parts = this.DiscoveryService.CreateParts(typeof(NonDiscoverablePart).Assembly);

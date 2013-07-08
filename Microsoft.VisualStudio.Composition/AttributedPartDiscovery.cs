@@ -107,7 +107,14 @@
 
         public override IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly)
         {
-            throw new NotImplementedException();
+            Requires.NotNull(assembly, "assembly");
+
+            var parts = from type in assembly.GetExportedTypes()
+                        where type.GetCustomAttribute<PartNotDiscoverableAttribute>() == null
+                        let part = this.CreatePart(type)
+                        where part != null
+                        select part;
+            return parts.ToImmutableArray();
         }
     }
 }
