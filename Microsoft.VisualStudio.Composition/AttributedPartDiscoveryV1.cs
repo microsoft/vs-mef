@@ -19,12 +19,13 @@
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, ExportDefinition>();
             var imports = ImmutableDictionary.CreateBuilder<MemberInfo, ImportDefinition>();
+            var exportMetadataOnType = GetExportMetadata(partType.GetCustomAttributes());
 
             foreach (var exportAttribute in partType.GetCustomAttributes<ExportAttribute>())
             {
                 var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
                 var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? partType);
-                var exportDefinition = new ExportDefinition(contract);
+                var exportDefinition = new ExportDefinition(contract, exportMetadataOnType);
                 exportsOnType.Add(exportDefinition);
             }
 
@@ -53,14 +54,10 @@
                 {
                     Type contractType = propertyOrFieldType;
                     Type lazyType = null;
-                    if (contractType.IsGenericType)
+                    if (contractType.IsAnyLazyType())
                     {
-                        var genericDefinition = propertyOrFieldType.GetGenericTypeDefinition();
-                        if (genericDefinition.IsEquivalentTo(typeof(ILazy<>)) | genericDefinition.IsEquivalentTo(typeof(Lazy<>)))
-                        {
-                            lazyType = propertyOrFieldType;
-                            contractType = contractType.GetGenericArguments()[0];
-                        }
+                        lazyType = propertyOrFieldType;
+                        contractType = contractType.GetGenericArguments()[0];
                     }
 
                     var contract = new CompositionContract(importAttribute.ContractName, contractType);
@@ -74,14 +71,10 @@
                 {
                     Type contractType = propertyOrFieldType.GetGenericArguments()[0];
                     Type lazyType = null;
-                    if (contractType.IsGenericType)
+                    if (contractType.IsAnyLazyType())
                     {
-                        var genericDefinition = contractType.GetGenericTypeDefinition();
-                        if (genericDefinition.IsEquivalentTo(typeof(ILazy<>)) | genericDefinition.IsEquivalentTo(typeof(Lazy<>)))
-                        {
-                            lazyType = contractType;
-                            contractType = contractType.GetGenericArguments()[0];
-                        }
+                        lazyType = contractType;
+                        contractType = contractType.GetGenericArguments()[0];
                     }
 
                     var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
@@ -90,8 +83,9 @@
                 }
                 else if (exportAttribute != null)
                 {
+                    var exportMetadataOnMember = GetExportMetadata(member.GetCustomAttributes());
                     var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? propertyOrFieldType);
-                    var exportDefinition = new ExportDefinition(contract);
+                    var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
                     exportsOnMembers.Add(member, exportDefinition);
                 }
             }
@@ -101,9 +95,10 @@
                 var exportAttribute = method.GetCustomAttribute<ExportAttribute>();
                 if (exportAttribute != null)
                 {
+                    var exportMetadataOnMember = GetExportMetadata(method.GetCustomAttributes());
                     Type contractType = exportAttribute.ContractType ?? GetContractTypeForDelegate(method);
                     var contract = new CompositionContract(exportAttribute.ContractName, contractType);
-                    var exportDefinition = new ExportDefinition(contract);
+                    var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
                     exportsOnMembers.Add(method, exportDefinition);
                 }
             }
@@ -117,6 +112,31 @@
             return exportsOnMembers.Count > 0 || exportsOnType.Count > 0
                 ? new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary, onImportsSatisfied)
                 : null;
+        }
+
+        private static IReadOnlyDictionary<string, object> GetExportMetadata(IEnumerable<Attribute> attributes)
+        {
+            Requires.NotNull(attributes, "attributes");
+
+            var result = ImmutableDictionary.CreateBuilder<string, object>();
+            foreach (var attribute in attributes)
+            {
+                var exportMetadataAttribute = attribute as ExportMetadataAttribute;
+                if (exportMetadataAttribute != null)
+                {
+                    result.Add(exportMetadataAttribute.Name, exportMetadataAttribute.Value);
+                }
+                else if (attribute.GetType().GetCustomAttribute<MetadataAttributeAttribute>() != null)
+                {
+                    var properties = attribute.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                    foreach (var property in properties.Where(p => p.DeclaringType != typeof(Attribute)))
+                    {
+                        result.Add(property.Name, property.GetValue(attribute));
+                    }
+                }
+            }
+
+            return result.ToImmutable();
         }
 
         private static Type GetContractTypeForDelegate(MethodInfo method)

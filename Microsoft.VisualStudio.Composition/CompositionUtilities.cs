@@ -33,5 +33,31 @@
 
             return newLazy;
         }
+
+        internal static bool IsAnyLazyType(this Type type)
+        {
+            if (type == null || !type.IsGenericType)
+            {
+                return false;
+            }
+
+            var typeDefinition = type.GetGenericTypeDefinition();
+            return typeDefinition.IsEquivalentTo(typeof(Lazy<>))
+                || typeDefinition.IsEquivalentTo(typeof(Lazy<,>))
+                || typeDefinition.IsEquivalentTo(typeof(ILazy<>))
+                || typeDefinition.IsEquivalentTo(typeof(ILazy<,>));
+        }
+
+        internal static bool IsConcreteLazyType(this Type type)
+        {
+            if (type == null || !type.IsGenericType)
+            {
+                return false;
+            }
+
+            var typeDefinition = type.GetGenericTypeDefinition();
+            return typeDefinition.IsEquivalentTo(typeof(Lazy<>))
+                || typeDefinition.IsEquivalentTo(typeof(Lazy<,>));
+        }
     }
 }

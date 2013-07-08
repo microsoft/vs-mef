@@ -11,23 +11,23 @@
 
     public class CustomMetadataTests
     {
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void CustomMetadataOnExportedType(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPart>();
             Assert.Equal("Andrew", part.ImportOfType.Metadata["Name"]);
-            Assert.Equal(4, part.ImportOfType.Metadata["Age"]);
+            Assert.Equal("4", part.ImportOfType.Metadata["Age"]);
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void CustomMetadataOnExportedProperty(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPart>();
             Assert.Equal("Andrew", part.ImportOfProperty.Metadata["Name"]);
-            Assert.Equal(4, part.ImportOfProperty.Metadata["Age"]);
+            Assert.Equal("4", part.ImportOfProperty.Metadata["Age"]);
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void CustomMetadataDictionaryCaseSensitive(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPart>();
@@ -44,14 +44,14 @@
             public Lazy<string, IDictionary<string, object>> ImportOfProperty { get; set; }
         }
 
-        [MefV1.Export, NameAndAgeV1(Name = "Andrew", Age = 4)]
-        [Export, NameAndAgeV2(Name = "Andrew", Age = 4)]
+        [MefV1.Export, NameAndAgeV1(Name = "Andrew", Age = "4")]
+        [Export, NameAndAgeV2(Name = "Andrew", Age = "4")]
         public class ExportedTypeWithMetadata { }
 
         public class TypeWithExportingMemberAndMetadata
         {
-            [MefV1.Export, NameAndAgeV1(Name = "Andrew", Age = 4)]
-            [Export, NameAndAgeV2(Name = "Andrew", Age = 4)]
+            [MefV1.Export, NameAndAgeV1(Name = "Andrew", Age = "4")]
+            [Export, NameAndAgeV2(Name = "Andrew", Age = "4")]
             public string SomeValue
             {
                 get { return "Foo"; }

@@ -12,6 +12,8 @@
     public class NameAndAgeV2Attribute : Attribute
     {
         public string Name { get; set; }
-        public int Age { get; set; }
+  
+        // TODO: make this an integer and verify tests still pass.
+        public string Age { get; set; }
     }
 }

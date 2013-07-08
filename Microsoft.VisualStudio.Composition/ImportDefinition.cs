@@ -29,10 +29,27 @@
 
         public bool IsLazyConcreteType
         {
-            get { return this.LazyType != null && this.LazyType.GetGenericTypeDefinition().IsEquivalentTo(typeof(Lazy<>)); }
+            get { return this.LazyType.IsAnyLazyType(); }
         }
 
         public Type LazyType { get; private set; }
+
+        public Type MetadataType
+        {
+            get
+            {
+                if (this.LazyType != null)
+                {
+                    var lazyTypeDefinition = this.LazyType.GetGenericTypeDefinition();
+                    if (lazyTypeDefinition.IsEquivalentTo(typeof(Lazy<,>)) || lazyTypeDefinition.IsEquivalentTo(typeof(ILazy<,>)))
+                    {
+                        return this.LazyType.GetGenericArguments()[1];
+                    }
+                }
+
+                return null;
+            }
+        }
 
         public CompositionContract Contract { get; private set; }
 

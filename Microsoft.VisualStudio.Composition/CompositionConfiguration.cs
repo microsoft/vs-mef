@@ -193,6 +193,8 @@
             parameters.IncludeDebugInformation = true;
             parameters.ReferencedAssemblies.AddRange(this.Catalog.Assemblies.Select(a => a.Location).Distinct().ToArray());
             parameters.ReferencedAssemblies.Add(typeof(System.ComponentModel.Composition.IPartImportsSatisfiedNotification).Assembly.Location);
+            //parameters.ReferencedAssemblies.Add(typeof(System.Collections.Immutable.ImmutableDictionary).Assembly.Location);
+            //parameters.CompilerOptions += @" /r:sr=""C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETCore\v4.5\System.Runtime.dll""";
             // TODO: we must reference all assemblies that define the types we touch, or that define types implemented by the types we touch.
             parameters.OutputAssembly = targetPath;
             CompilerResults results = provider.CompileAssemblyFromFile(parameters, sourceFilePath);

@@ -11,15 +11,18 @@
     [DebuggerDisplay("{Contract.Type.Name,nq}")]
     public class ExportDefinition : IEquatable<ExportDefinition>
     {
-        public ExportDefinition(CompositionContract contract)
+        public ExportDefinition(CompositionContract contract, IReadOnlyDictionary<string, object> metadata)
         {
             Requires.NotNull(contract, "contract");
+            Requires.NotNull(metadata, "metadata");
+
             this.Contract = contract;
+            this.Metadata = metadata;
         }
 
         public CompositionContract Contract { get; private set; }
 
-        public IReadOnlyDictionary<string, string> Metadata { get; private set; }
+        public IReadOnlyDictionary<string, object> Metadata { get; private set; }
 
         public override bool Equals(object obj)
         {

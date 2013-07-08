@@ -1,13 +1,13 @@
 ﻿namespace Microsoft.VisualStudio.Composition
 {
     using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Validation;
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.Linq;
+    using System.Reflection;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Validation;
 
     partial class CompositionTemplateFactory
     {
@@ -18,15 +18,7 @@ using Validation;
             var importingMember = satisfyingExport.Key.ImportingMember;
             var importDefinition = satisfyingExport.Key.ImportDefinition;
             var exports = satisfyingExport.Value;
-            string fullTypeNameWithPerhapsLazy = GetTypeName(importDefinition.CoercedValueType);
-            if (importDefinition.IsLazy)
-            {
-                fullTypeNameWithPerhapsLazy = "Lazy<" + fullTypeNameWithPerhapsLazy + ">";
-                if (!importDefinition.IsLazyConcreteType)
-                {
-                    fullTypeNameWithPerhapsLazy = "I" + fullTypeNameWithPerhapsLazy;
-                }
-            }
+            string fullTypeNameWithPerhapsLazy = GetTypeName(importDefinition.LazyType ?? importDefinition.CoercedValueType);
 
             string left = "result." + importingMember.Name;
             string right = null;
@@ -36,6 +28,7 @@ using Validation;
                 this.PushIndent("\t");
                 foreach (var export in exports)
                 {
+                    string memberModifier = export.ExportingMember == null ? string.Empty : "." + export.ExportingMember.Name;
                     right += Environment.NewLine + this.CurrentIndent;
                     if (importDefinition.IsLazyConcreteType)
                     {
@@ -54,12 +47,12 @@ using Validation;
                     {
                         if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
                         {
-                            right += ".Value, true)";
+                            right += ".Value" + memberModifier + ", true)";
                         }
                     }
                     else
                     {
-                        right += ".Value";
+                        right += ".Value" + memberModifier;
                     }
 
                     right += ",";
@@ -67,17 +60,15 @@ using Validation;
 
                 this.PopIndent();
                 right += Environment.NewLine + this.CurrentIndent + "}";
-                if (importDefinition.IsLazy)
-                {
-                }
             }
             else if (exports.Any())
             {
                 var export = exports.Single();
+                string memberModifier = export.ExportingMember == null ? string.Empty : "." + export.ExportingMember.Name;
                 right = string.Empty;
                 if (importDefinition.IsLazyConcreteType)
                 {
-                    if (importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
+                    if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
                     {
                         right += "(" + fullTypeNameWithPerhapsLazy + ")";
                     }
@@ -87,17 +78,23 @@ using Validation;
                     }
                 }
 
-                right += "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "()";
+                this.Write(this.CurrentIndent);
+                this.WriteLine("var {0} = {1};", importingMember.Name, "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "()");
+                right += importingMember.Name;
                 if (importDefinition.IsLazy)
                 {
-                    if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
+                    if (importDefinition.MetadataType != null)
                     {
-                        right += ".Value, true)";
+                        right += ".Value" + memberModifier + ", " + GetExportMetadata(export) + ", true)";
+                    }
+                    else if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
+                    {
+                        right += ".Value" + memberModifier + ", true)";
                     }
                 }
                 else
                 {
-                    right += ".Value";
+                    right += ".Value" + memberModifier;
                 }
             }
 
@@ -106,6 +103,18 @@ using Validation;
                 this.Write(this.CurrentIndent);
                 this.WriteLine("{0} = {1};", left, right);
             }
+        }
+
+        private string GetExportMetadata(Export export)
+        {
+            var builder = new StringBuilder() ;
+            builder.Append("new Dictionary<string, object> {");
+            foreach (var metadatum in export.ExportDefinition.Metadata)
+            {
+                builder.AppendFormat(" {{ \"{0}\", \"{1}\" }}, ", metadatum.Key, (string)metadatum.Value);
+            }
+            builder.Append("}");
+            return builder.ToString();
         }
 
         private void EmitInstantiatePart(ComposablePart part)
@@ -144,6 +153,11 @@ using Validation;
 
         private static string GetTypeName(Type type, bool genericTypeDefinition)
         {
+            if (type.IsGenericParameter)
+            {
+                return type.Name;
+            }
+
             string result = string.Empty;
             if (type.DeclaringType != null)
             {
@@ -156,7 +170,7 @@ using Validation;
             }
             else
             {
-                string[] typeArguments = type.GetGenericArguments().Select(t => t.Name).ToArray();
+                string[] typeArguments = type.GetGenericArguments().Select(GetTypeName).ToArray();
                 result += ReplaceBackTickWithTypeArgs(type.DeclaringType == null ? type.FullName : type.Name, typeArguments);
             }
 

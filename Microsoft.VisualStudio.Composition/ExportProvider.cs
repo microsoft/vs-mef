@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Linq;
     using System.Text;
@@ -24,7 +25,7 @@
 
         public ILazy<T> GetExport<T>(string contractName)
         {
-            var exportDefinition = new ExportDefinition(new CompositionContract(contractName, typeof(T)));
+            var exportDefinition = new ExportDefinition(new CompositionContract(contractName, typeof(T)), ImmutableDictionary.Create<string, object>());
             return (ILazy<T>)this.GetExport(exportDefinition);
         }
 
