@@ -37,11 +37,24 @@
             Assert.Equal(3, subscope.BoundaryScopedNonSharedParts.Count);
         }
 
+        [MefFact(CompositionEngines.V2)]
+        public void ImportManyPullsPartIntoSharedBoundary(IContainer container)
+        {
+            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<PartWithImportManyOfScopedExports>());
+        }
+
         [Export]
         public class RootPart
         {
             [Import, SharingBoundary("SomeBoundary")]
             public ExportFactory<BoundaryPart> Factory { get; set; }
+        }
+
+        [Export]
+        public class PartWithImportManyOfScopedExports
+        {
+            [ImportMany("NonSharedWithinBoundaryParts")]
+            public IList<object> BoundaryScopedNonSharedParts { get; set; }
         }
 
         [Export, Shared("SomeBoundary")]
