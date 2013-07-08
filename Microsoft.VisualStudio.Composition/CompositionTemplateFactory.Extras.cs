@@ -116,6 +116,22 @@
                 this.EmitImportSatisfyingAssignment(satisfyingExport);
             }
 
+            if (part.Definition.OnImportsSatisfied != null)
+            {
+                if (part.Definition.OnImportsSatisfied.DeclaringType.IsInterface)
+                {
+                    this.Write(this.CurrentIndent);
+                    this.WriteLine("{0} onImportsSatisfiedInterface = result;", part.Definition.OnImportsSatisfied.DeclaringType.FullName);
+                    this.Write(this.CurrentIndent);
+                    this.WriteLine("onImportsSatisfiedInterface.{0}();", part.Definition.OnImportsSatisfied.Name);
+                }
+                else
+                {
+                    this.Write(this.CurrentIndent);
+                    this.WriteLine("result.{0}();", part.Definition.OnImportsSatisfied.Name);
+                }
+            }
+
             this.Write(this.CurrentIndent);
             this.WriteLine("return result;");
         }

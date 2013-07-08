@@ -12,7 +12,7 @@
     [DebuggerDisplay("{Type.Name}")]
     public class ComposablePartDefinition
     {
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, ExportDefinition> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, string sharingBoundary)
+        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, ExportDefinition> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, string sharingBoundary, MethodInfo onImportsSatisfied)
         {
             Requires.NotNull(partType, "partType");
             Requires.NotNull(exportsOnType, "exportsOnType");
@@ -24,6 +24,7 @@
             this.ExportDefinitionsOnMembers = exportsOnMembers;
             this.ImportDefinitions = imports;
             this.SharingBoundary = sharingBoundary;
+            this.OnImportsSatisfied = onImportsSatisfied;
         }
 
         public Type Type { get; private set; }
@@ -39,6 +40,8 @@
         {
             get { return this.SharingBoundary != null; }
         }
+
+        public MethodInfo OnImportsSatisfied { get; private set; }
 
         public IReadOnlyCollection<ExportDefinition> ExportDefinitionsOnType { get; private set; }
 

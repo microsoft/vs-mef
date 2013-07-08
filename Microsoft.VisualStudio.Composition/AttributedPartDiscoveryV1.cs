@@ -92,8 +92,14 @@
                 }
             }
 
+            MethodInfo onImportsSatisfied = null;
+            if (typeof(IPartImportsSatisfiedNotification).IsAssignableFrom(partType))
+            {
+                onImportsSatisfied = typeof(IPartImportsSatisfiedNotification).GetMethod("OnImportsSatisfied", BindingFlags.Public | BindingFlags.Instance);
+            }
+
             return exportsOnMembers.Count > 0 || exportsOnType.Count > 0
-                ? new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary)
+                ? new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary, onImportsSatisfied)
                 : null;
         }
 

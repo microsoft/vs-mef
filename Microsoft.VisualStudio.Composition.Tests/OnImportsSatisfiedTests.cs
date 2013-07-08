@@ -11,7 +11,7 @@
 
     public class OnImportsSatisfiedTests
     {
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void OnImportsSatisfied(IContainer container)
         {
             var part = container.GetExportedValue<SpecialPart>();
@@ -33,7 +33,7 @@
                 Assert.NotNull(this.SomeImport);
             }
 
-            // V1
+            // V1. We're using explicit implementation syntax deliberately as part of the test.
             void MefV1.IPartImportsSatisfiedNotification.OnImportsSatisfied()
             {
                 this.ImportsSatisfiedInvocationCount++;

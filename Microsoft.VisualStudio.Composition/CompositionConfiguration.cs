@@ -192,6 +192,7 @@
             var parameters = new CompilerParameters(new[] { typeof(Enumerable).Assembly.Location, Assembly.GetExecutingAssembly().Location });
             parameters.IncludeDebugInformation = true;
             parameters.ReferencedAssemblies.AddRange(this.Catalog.Assemblies.Select(a => a.Location).Distinct().ToArray());
+            parameters.ReferencedAssemblies.Add(typeof(System.ComponentModel.Composition.IPartImportsSatisfiedNotification).Assembly.Location);
             parameters.OutputAssembly = targetPath;
             CompilerResults results = provider.CompileAssemblyFromFile(parameters, sourceFilePath);
             if (results.Errors.HasErrors || results.Errors.HasWarnings)

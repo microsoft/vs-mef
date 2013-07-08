@@ -89,8 +89,19 @@
                 }
             }
 
+            MethodInfo onImportsSatisfied = null;
+            foreach (var method in partType.GetMethods(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (method.GetCustomAttribute<OnImportsSatisfiedAttribute>() != null)
+                {
+                    Verify.Operation(method.GetParameters().Length == 0, "OnImportsSatisfied method should take no parameters.");
+                    Verify.Operation(onImportsSatisfied == null, "Only one OnImportsSatisfied method is supported.");
+                    onImportsSatisfied = method;
+                }
+            }
+
             return exportsOnMembers.Count > 0 || exportsOnType.Count > 0
-                ? new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary)
+                ? new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary, onImportsSatisfied)
                 : null;
         }
 
