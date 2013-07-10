@@ -79,7 +79,6 @@
     <Compile Include="ComposableCatalog.cs" />
     <Compile Include="ComposablePart.cs" />
     <Compile Include="CompositionTemplateFactory.Extras.cs" />
-    <Compile Include="CompositionUtilities.cs" />
     <Compile Include="Dgml.cs" />
     <Compile Include="Export.cs" />
     <Compile Include="ICompositionContainerFactory.cs" />
@@ -87,6 +86,7 @@
     <Compile Include="ILazy`1.cs" />
     <Compile Include="Import.cs" />
     <Compile Include="ImportCardinality.cs" />
+    <Compile Include="LazyPart.cs" />
     <Compile Include="LazyPart`2.cs" />
     <Compile Include="LazyPart`1.cs" />
     <Compile Include="PartDiscovery.cs" />

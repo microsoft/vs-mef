@@ -7,7 +7,7 @@
     using System.Threading.Tasks;
     using Validation;
 
-    public static class CompositionUtilities
+    public static class LazyPart
     {
         public static Lazy<TBase> ToLazy<T, TBase>(this ILazy<T> lazy) where TBase : T
         {
