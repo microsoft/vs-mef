@@ -7,6 +7,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using MefV1 = System.ComponentModel.Composition;
 
     public class CircularDependencyTests
     {
@@ -138,10 +139,17 @@
 
         #region Imports self
 
-        [Fact(Skip = "StackOverflows")]
+        [Fact]
         public void SelfImportingNonSharedPartThrows()
         {
-            Assert.Throws<AggregateException>(() => TestUtilities.CreateContainer(typeof(SelfImportingNonSharedPart)));
+            Assert.Throws<InvalidOperationException>(() => TestUtilities.CreateContainer(typeof(SelfImportingNonSharedPart)));
+        }
+
+        [Fact]
+        public void SelfImportingNonSharedPartThrowsV1()
+        {
+            var container = TestUtilities.CreateContainerV1(typeof(SelfImportingNonSharedPart));
+            Assert.Throws<MefV1.CompositionException>(() => container.GetExportedValue<SelfImportingNonSharedPart>());
         }
 
         [MefFact(CompositionEngines.V2, typeof(SelfImportingSharedPart))]
@@ -152,9 +160,11 @@
         }
 
         [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class SelfImportingNonSharedPart
         {
             [Import]
+            [MefV1.Import]
             public SelfImportingNonSharedPart Self { get; set; }
         }
 
