@@ -152,6 +152,13 @@
             Assert.Throws<MefV1.CompositionException>(() => container.GetExportedValue<SelfImportingNonSharedPart>());
         }
 
+        [Fact]
+        public void SelfImportingNonSharedPartThrowsV2()
+        {
+            var container = TestUtilities.CreateContainerV2(typeof(SelfImportingNonSharedPart));
+            Assert.Throws<System.Composition.Hosting.CompositionFailedException>(() => container.GetExportedValue<SelfImportingNonSharedPart>());
+        }
+
         [MefFact(CompositionEngines.V2, typeof(SelfImportingSharedPart))]
         public void SelfImportingSharedPartSucceeds(IContainer container)
         {
