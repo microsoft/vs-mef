@@ -16,7 +16,7 @@
         /// <summary>
         /// A dictionary of types to their Lazy{T} factories.
         /// </summary>
-        private Dictionary<Type, object> sharedInstantiatedExports = new Dictionary<Type, object>();
+        private readonly Dictionary<Type, object> sharedInstantiatedExports = new Dictionary<Type, object>();
 
         public ILazy<T> GetExport<T>()
         {
