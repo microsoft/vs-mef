@@ -37,6 +37,33 @@
 
         #endregion
 
+        #region Tight loop of all shared lazy exports
+
+        [MefFact(CompositionEngines.V2Compat, typeof(LazySharedExport1), typeof(LazySharedExport2))]
+        public void CircularDependenciesLazySharedExports(IContainer container)
+        {
+            var export1 = container.GetExportedValue<LazySharedExport1>();
+            var export2 = container.GetExportedValue<LazySharedExport2>();
+            Assert.Same(export1.Export2.Value, export2);
+            Assert.Same(export2.Export1.Value, export1);
+        }
+
+        [Export, Shared]
+        public class LazySharedExport1
+        {
+            [Import]
+            public Lazy<LazySharedExport2> Export2 { get; set; }
+        }
+
+        [Export, Shared]
+        public class LazySharedExport2
+        {
+            [Import]
+            public Lazy<LazySharedExport1> Export1 { get; set; }
+        }
+
+        #endregion
+
         #region Loop with just one shared export
 
         [MefFact(CompositionEngines.V2, typeof(SharedExportInLoopOfNonShared), typeof(NonSharedExportInLoopWithShared), typeof(AnotherNonSharedExportInLoopWithShared))]
