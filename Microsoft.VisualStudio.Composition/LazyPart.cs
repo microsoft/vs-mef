@@ -34,6 +34,11 @@
             return newLazy;
         }
 
+        public static ILazy<T> Wrap<T>(T value)
+        {
+            return new LazyPart<T>(() => value);
+        }
+
         internal static bool IsAnyLazyType(this Type type)
         {
             if (type == null || !type.IsGenericType)

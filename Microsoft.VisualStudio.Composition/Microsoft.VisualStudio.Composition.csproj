@@ -79,6 +79,11 @@
     <Compile Include="ComposableCatalog.cs" />
     <Compile Include="ComposablePart.cs" />
     <Compile Include="CompositionTemplateFactory.Extras.cs" />
+    <Compile Include="CompositionTemplateFactory.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CompositionTemplateFactory.tt</DependentUpon>
+    </Compile>
     <Compile Include="Dgml.cs" />
     <Compile Include="Export.cs" />
     <Compile Include="ICompositionContainerFactory.cs" />
@@ -94,11 +99,6 @@
     <Compile Include="CompositionContainer.cs" />
     <Compile Include="CompositionConfiguration.cs" />
     <Compile Include="CompositionContract.cs" />
-    <Compile Include="CompositionTemplateFactory.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CompositionTemplateFactory.tt</DependentUpon>
-    </Compile>
     <Compile Include="ExportDefinition.cs" />
     <Compile Include="ExportProvider.cs" />
     <Compile Include="ImportDefinition.cs" />
@@ -106,8 +106,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CompositionTemplateFactory.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>CompositionTemplateFactory.cs</LastGenOutput>
+      <Generator>TextTemplatingFilePreprocessor</Generator>
     </None>
     <None Include="packages.config" />
   </ItemGroup>

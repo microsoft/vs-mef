@@ -78,6 +78,9 @@
     <Compile Include="AttributedPartDiscoveryTestBase.cs" />
     <Compile Include="AttributedPartDiscoveryTests.cs" />
     <Compile Include="AttributedPartDiscoveryV1Tests.cs" />
+    <Compile Include="c:\Users\andarno\AppData\Local\Temp\mmbzpbds.x04.cs">
+      <Link>mmbzpbds.x04.cs</Link>
+    </Compile>
     <Compile Include="CacheAndReloadTests.cs" />
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="CircularDependencyTests.cs" />

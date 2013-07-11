@@ -43,7 +43,7 @@
                         }
                     }
 
-                    right += "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "()";
+                    right += "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "(provisionalDisposableObjects, provisionalSharedObjects)";
                     if (importDefinition.IsLazy)
                     {
                         if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
@@ -86,7 +86,7 @@
                     }
 
                     this.Write(this.CurrentIndent);
-                    this.WriteLine("var {0} = {1};", importingMember.Name, "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "()");
+                    this.WriteLine("var {0} = {1};", importingMember.Name, "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "(provisionalDisposableObjects, provisionalSharedObjects)");
                     right += importingMember.Name;
                     if (importDefinition.IsLazy)
                     {
@@ -129,6 +129,9 @@
         {
             this.Write(this.CurrentIndent);
             this.WriteLine("var result = new {0}();", GetTypeName(part.Definition.Type));
+            this.Write(this.CurrentIndent);
+            this.WriteLine("provisionalSharedObjects.Add(typeof({0}), result);", GetTypeName(part.Definition.Type));
+
             foreach (var satisfyingExport in part.SatisfyingExports)
             {
                 this.EmitImportSatisfyingAssignment(satisfyingExport);
