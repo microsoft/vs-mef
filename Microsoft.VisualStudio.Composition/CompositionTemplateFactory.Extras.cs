@@ -26,7 +26,7 @@
             if (importDefinition.Cardinality == ImportCardinality.ZeroOrMore)
             {
                 right = "new List<" + fullTypeNameWithPerhapsLazy + "> {";
-                this.PushIndent("\t");
+                this.PushIndent("    ");
                 foreach (var export in exports)
                 {
                     string memberModifier = export.ExportingMember == null ? string.Empty : "." + export.ExportingMember.Name;
