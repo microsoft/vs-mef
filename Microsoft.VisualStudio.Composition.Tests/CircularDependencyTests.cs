@@ -11,17 +11,6 @@
 
     public class CircularDependencyTests
     {
-        [Fact]
-        public void PrototypeTest()
-        {
-            var configuration = CompositionConfiguration.Load(GetType().Assembly.Location);
-            var container = configuration.CreateContainer();
-            var export1 = container.GetExportedValue<SharedExport1>();
-            var export2 = container.GetExportedValue<SharedExport2>();
-            Assert.Same(export1.Export2, export2);
-            Assert.Same(export2.Export1, export1);
-        }
-
         #region Tight loop of all shared exports
 
         [MefFact(CompositionEngines.V2Compat, typeof(SharedExport1), typeof(SharedExport2))]
