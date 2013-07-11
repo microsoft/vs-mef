@@ -67,7 +67,7 @@
 
         #region Loop with just one shared export
 
-        [MefFact(CompositionEngines.V2, typeof(SharedExportInLoopOfNonShared), typeof(NonSharedExportInLoopWithShared), typeof(AnotherNonSharedExportInLoopWithShared))]
+        [MefFact(CompositionEngines.V2Compat, typeof(SharedExportInLoopOfNonShared), typeof(NonSharedExportInLoopWithShared), typeof(AnotherNonSharedExportInLoopWithShared))]
         public void CircularDependenciesOneSharedExport(IContainer container)
         {
             var shared = container.GetExportedValue<SharedExportInLoopOfNonShared>();
