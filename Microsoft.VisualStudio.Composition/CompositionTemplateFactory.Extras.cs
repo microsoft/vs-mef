@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
@@ -98,13 +99,13 @@
                         if (importDefinition.MetadataType != null)
                         {
                             right.AppendFormat(".Value{0}, ", memberModifier);
-                            if (importDefinition.MetadataType.IsClass)
+                            if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
                             {
-                                right.AppendFormat("new {0}(", GetTypeName(importDefinition.MetadataType));
+                                right.AppendFormat("new {0}(", GetClassNameForMetadataView(importDefinition.MetadataType));
                             }
 
                             right.Append(GetExportMetadata(export));
-                            if (importDefinition.MetadataType.IsClass)
+                            if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
                             {
                                 right.Append(")");
                             }
@@ -177,6 +178,21 @@
             this.WriteLine("return result;");
         }
 
+        private HashSet<Type> GetMetadataViewInterfaces()
+        {
+            var set = new HashSet<Type>();
+
+            set.UnionWith(
+                from part in this.Configuration.Parts
+                from importAndExports in part.SatisfyingExports
+                where importAndExports.Value.Count > 0
+                let metadataType = importAndExports.Key.ImportDefinition.MetadataType
+                where metadataType != null && metadataType.IsInterface && metadataType != typeof(IDictionary<string, object>)
+                select metadataType);
+
+            return set;
+        }
+
         private static string GetTypeName(Type type)
         {
             return GetTypeName(type, genericTypeDefinition: false);
@@ -206,6 +222,42 @@
             }
 
             return result;
+        }
+
+        private static string GetClassNameForMetadataView(Type metadataView)
+        {
+            Requires.NotNull(metadataView, "metadataView");
+
+            if (metadataView.IsInterface)
+            {
+                return "ClassFor" + metadataView.Name;
+            }
+
+            return GetTypeName(metadataView);
+        }
+
+        private static string GetValueOrDefaultForMetadataView(PropertyInfo property, string sourceVarName)
+        {
+            var defaultValueAttribute = property.GetCustomAttribute<DefaultValueAttribute>();
+            if (defaultValueAttribute != null)
+            {
+                return String.Format(
+                    CultureInfo.InvariantCulture,
+                    @"({0})({1}.ContainsKey(""{2}"") ? {1}[""{2}""] : ""{3}"")",
+                    GetTypeName(property.PropertyType),
+                    sourceVarName,
+                    property.Name,
+                    defaultValueAttribute.Value);
+            }
+            else
+            {
+                return String.Format(
+                    CultureInfo.InvariantCulture,
+                    @"({0}){1}[""{2}""]",
+                    GetTypeName(property.PropertyType),
+                    sourceVarName,
+                    property.Name);
+            }
         }
 
         private static string FilterTypeNameForGenericTypeDefinition(Type type, bool fullName)
