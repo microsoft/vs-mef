@@ -22,6 +22,24 @@
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Value);
         }
 
+        [MefFact(CompositionEngines.V2 | CompositionEngines.V1, typeof(ImportingPartWithMetadataDictionary), typeof(PartWithExportMetadata))]
+        public void MetadataDictionaryInstanceSharedAcrossImports(IContainer container)
+        {
+            var importingPart1 = container.GetExportedValue<ImportingPartWithMetadataDictionary>();
+            var importingPart2 = container.GetExportedValue<ImportingPartWithMetadataDictionary>();
+            Assert.NotSame(importingPart1, importingPart2); // non-shared part is crucial to the integrity of this test.
+
+            // Ensure that the dictionary instances are shared.
+            Assert.Same(importingPart1.ImportingProperty.Metadata, importingPart2.ImportingProperty.Metadata);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(ImportingPartWithMetadataDictionary), typeof(PartWithExportMetadata))]
+        public void MetadataDictionaryInstanceIsImmutable(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<ImportingPartWithMetadataDictionary>();
+            Assert.Throws<NotSupportedException>(() => importingPart.ImportingProperty.Metadata["foo"] = 5);
+        }
+
         [MefFact(CompositionEngines.V2 | CompositionEngines.V1, typeof(ImportManyPartWithMetadataDictionary), typeof(PartWithExportMetadata))]
         public void ImportManyWithMetadataDictionary(IContainer container)
         {
