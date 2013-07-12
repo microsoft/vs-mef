@@ -11,6 +11,8 @@
 
     public class DisposablePartsTests
     {
+        #region Dispoable part happy path test
+
         [MefFact(CompositionEngines.V2 | CompositionEngines.V1)]
         public void DisposablePartDisposedWithContainer(IContainer container)
         {
@@ -45,5 +47,58 @@
             {
             }
         }
+
+        #endregion
+
+        #region Part disposed on exception test
+
+        [MefFact(CompositionEngines.Unspecified, typeof(ThrowingPart), typeof(ImportToThrowingPart))]
+        public void PartDisposedWhenThrows(IContainer container)
+        {
+            ThrowingPart.InstantiatedCounter = 0;
+            ThrowingPart.DisposedCounter = 0;
+            try
+            {
+                container.GetExportedValue<ThrowingPart>();
+                Assert.False(true, "An exception should have been thrown.");
+            }
+            catch { }
+
+            Assert.Equal(1, ThrowingPart.InstantiatedCounter);
+            Assert.Equal(1, ThrowingPart.DisposedCounter);
+        }
+
+        [Export]
+        [MefV3.Export, MefV3.PartCreationPolicy(MefV3.CreationPolicy.NonShared)]
+        public class ThrowingPart : IDisposable
+        {
+            internal static int InstantiatedCounter;
+            internal static int DisposedCounter;
+
+            public ThrowingPart()
+            {
+                InstantiatedCounter++;
+            }
+
+            [Import]
+            [MefV3.Import]
+            public ImportToThrowingPart ImportProperty
+            {
+                set { throw new ApplicationException(); }
+            }
+
+            public void Dispose()
+            {
+                DisposedCounter++;
+            }
+        }
+
+        [Export]
+        [MefV3.Export, MefV3.PartCreationPolicy(MefV3.CreationPolicy.NonShared)]
+        public class ImportToThrowingPart
+        {
+        }
+
+        #endregion
     }
 }
