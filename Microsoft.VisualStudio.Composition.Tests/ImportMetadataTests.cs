@@ -33,7 +33,7 @@
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Single().Value);
         }
 
-        [MefFact(CompositionEngines.V2 | CompositionEngines.V1, typeof(ImportingPartWithMetadataClass), typeof(PartWithExportMetadata))]
+        [MefFact(CompositionEngines.V2Compat | CompositionEngines.V1Compat, typeof(ImportingPartWithMetadataClass), typeof(PartWithExportMetadata))]
         public void ImportWithMetadataClass(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPartWithMetadataClass>();

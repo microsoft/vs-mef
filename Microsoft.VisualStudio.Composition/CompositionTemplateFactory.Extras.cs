@@ -92,7 +92,19 @@
                     {
                         if (importDefinition.MetadataType != null)
                         {
-                            right += ".Value" + memberModifier + ", " + GetExportMetadata(export) + ", true)";
+                            right += ".Value" + memberModifier + ", ";
+                            if (importDefinition.MetadataType.IsClass)
+                            {
+                                right += "new " + GetTypeName(importDefinition.MetadataType) + "(";
+                            }
+
+                            right += GetExportMetadata(export);
+                            if (importDefinition.MetadataType.IsClass)
+                            {
+                                right += ")";
+                            }
+
+                            right += ", true)";
                         }
                         else if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
                         {
@@ -115,7 +127,7 @@
 
         private string GetExportMetadata(Export export)
         {
-            var builder = new StringBuilder() ;
+            var builder = new StringBuilder();
             builder.Append("new Dictionary<string, object> {");
             foreach (var metadatum in export.ExportDefinition.Metadata)
             {
