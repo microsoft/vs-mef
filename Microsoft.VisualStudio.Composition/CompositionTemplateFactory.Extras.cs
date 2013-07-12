@@ -22,54 +22,59 @@
             string fullTypeNameWithPerhapsLazy = GetTypeName(importDefinition.LazyType ?? importDefinition.CoercedValueType);
 
             string left = "result." + importingMember.Name;
-            string right = null;
+            var right = new StringBuilder();
             if (importDefinition.Cardinality == ImportCardinality.ZeroOrMore)
             {
-                right = "new List<" + fullTypeNameWithPerhapsLazy + "> {";
+                right.AppendFormat("new List<{0}> {{", fullTypeNameWithPerhapsLazy);
                 this.PushIndent("    ");
                 foreach (var export in exports)
                 {
                     string memberModifier = export.ExportingMember == null ? string.Empty : "." + export.ExportingMember.Name;
-                    right += Environment.NewLine + this.CurrentIndent;
+                    right.AppendLine();
+                    right.Append(this.CurrentIndent);
                     if (importDefinition.IsLazyConcreteType)
                     {
                         if (importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
                         {
-                            right += "(" + fullTypeNameWithPerhapsLazy + ")";
+                            right.AppendFormat("({0})", fullTypeNameWithPerhapsLazy);
                         }
                         else
                         {
-                            right += "new " + fullTypeNameWithPerhapsLazy + "(() => ";
+                            right.AppendFormat("new {0}(() => ", fullTypeNameWithPerhapsLazy);
                         }
                     }
 
-                    right += "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "(provisionalDisposableObjects, provisionalSharedObjects)";
+                    right.AppendFormat(
+                        "this.{0}(provisionalDisposableObjects, provisionalSharedObjects)",
+                        GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
                     if (importDefinition.IsLazy)
                     {
                         if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
                         {
-                            right += ".Value" + memberModifier + ", true)";
+                            right.AppendFormat(".Value{0}, true)", memberModifier);
                         }
                     }
                     else
                     {
-                        right += ".Value" + memberModifier;
+                        right.Append(".Value");
+                        right.Append(memberModifier);
                     }
 
-                    right += ",";
+                    right.Append(",");
                 }
 
                 this.PopIndent();
-                right += Environment.NewLine + this.CurrentIndent + "}";
+                right.Append(Environment.NewLine);
+                right.Append(this.CurrentIndent);
+                right.Append("}");
             }
             else if (exports.Any())
             {
                 var export = exports.Single();
                 string memberModifier = export.ExportingMember == null ? string.Empty : "." + export.ExportingMember.Name;
-                right = string.Empty;
                 if (export.PartDefinition == importingPartDefinition && importingPartDefinition.IsShared)
                 {
-                    right += "result";
+                    right.Append("result");
                 }
                 else
                 {
@@ -77,51 +82,54 @@
                     {
                         if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
                         {
-                            right += "(" + fullTypeNameWithPerhapsLazy + ")";
+                            right.AppendFormat("({0})", fullTypeNameWithPerhapsLazy);
                         }
                         else
                         {
-                            right += "new " + fullTypeNameWithPerhapsLazy + "(() => ";
+                            right.AppendFormat("new {0}(() => ", fullTypeNameWithPerhapsLazy);
                         }
                     }
 
                     this.Write(this.CurrentIndent);
                     this.WriteLine("var {0} = {1};", importingMember.Name, "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "(provisionalDisposableObjects, provisionalSharedObjects)");
-                    right += importingMember.Name;
+                    right.Append(importingMember.Name);
                     if (importDefinition.IsLazy)
                     {
                         if (importDefinition.MetadataType != null)
                         {
-                            right += ".Value" + memberModifier + ", ";
+                            right.AppendFormat(".Value{0}, ", memberModifier);
                             if (importDefinition.MetadataType.IsClass)
                             {
-                                right += "new " + GetTypeName(importDefinition.MetadataType) + "(";
+                                right.AppendFormat("new {0}(", GetTypeName(importDefinition.MetadataType));
                             }
 
-                            right += GetExportMetadata(export);
+                            right.Append(GetExportMetadata(export));
                             if (importDefinition.MetadataType.IsClass)
                             {
-                                right += ")";
+                                right.Append(")");
                             }
 
-                            right += ", true)";
+                            right.Append(", true)");
                         }
                         else if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
                         {
-                            right += ".Value" + memberModifier + ", true)";
+                            right.AppendFormat(".Value{0}, true)", memberModifier);
                         }
                     }
                     else
                     {
-                        right += ".Value" + memberModifier;
+                        right.AppendFormat(".Value{0}", memberModifier);
                     }
                 }
             }
 
-            if (right != null)
+            if (right.Length > 0)
             {
                 this.Write(this.CurrentIndent);
-                this.WriteLine("{0} = {1};", left, right);
+                this.Write(left);
+                this.Write(" = ");
+                this.Write(right.ToString());
+                this.WriteLine(";");
             }
         }
 
