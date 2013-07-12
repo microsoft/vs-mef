@@ -89,7 +89,7 @@ foreach (var part in this.Configuration.Catalog.Parts)
                 {
                     item.Dispose();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     ////Debug.Fail(ex.Message);
                     throw;
