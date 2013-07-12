@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Composition;
     using System.Linq;
     using System.Text;
@@ -74,12 +75,56 @@
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Single().Value);
         }
 
-        [Fact(Skip = "Test not yet implemented.")]
-        public void MetadataViewAsFilter()
+        #region Metaview filtering tests
+
+        [MefFact(CompositionEngines.V1, typeof(ImportingPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB))]
+        public void ImportWithMetadataViewAsFilter(IContainer container)
         {
-            // TODO: Test that required / optional properties on metadata view interface
-            // properly filter the exports used to satisfy the import[many].
+            var importer = container.GetExportedValue<ImportingPartOfObjectWithMetadataInterface>();
+
+            // metadata "a" is mandatory per the interface, whereas "B" is optional.
+            Assert.IsType<PartWithExportMetadataA>(importer.ImportingProperty.Value);
         }
+
+        [MefFact(CompositionEngines.V1, typeof(ImportManyPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB), typeof(PartWithExportMetadataAB))]
+        public void ImportManyWithMetadataViewAsFilter(IContainer container)
+        {
+            var importer = container.GetExportedValue<ImportManyPartOfObjectWithMetadataInterface>();
+
+            // metadata "a" is mandatory per the interface, whereas "B" is optional.
+            Assert.Equal(2, importer.ImportingProperty.Count());
+            Assert.Equal(1, importer.ImportingProperty.Select(v => v.Value).OfType<PartWithExportMetadataA>().Count());
+            Assert.Equal(1, importer.ImportingProperty.Select(v => v.Value).OfType<PartWithExportMetadataAB>().Count());
+        }
+
+        [MefV1.Export]
+        public class ImportingPartOfObjectWithMetadataInterface
+        {
+            [MefV1.Import("ExportWithMetadata")]
+            public Lazy<object, IMetadata> ImportingProperty { get; set; }
+        }
+
+        [MefV1.Export]
+        public class ImportManyPartOfObjectWithMetadataInterface
+        {
+            [MefV1.ImportMany("ExportWithMetadata")]
+            public IEnumerable<Lazy<object, IMetadata>> ImportingProperty { get; set; }
+        }
+
+        [MefV1.Export("ExportWithMetadata", typeof(object))]
+        [MefV1.ExportMetadata("a", "b")]
+        public class PartWithExportMetadataA { }
+
+        [MefV1.Export("ExportWithMetadata", typeof(object))]
+        [MefV1.ExportMetadata("B", "c")]
+        public class PartWithExportMetadataB { }
+
+        [MefV1.Export("ExportWithMetadata", typeof(object))]
+        [MefV1.ExportMetadata("a", "b")]
+        [MefV1.ExportMetadata("B", "c")]
+        public class PartWithExportMetadataAB { }
+
+        #endregion
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [MefV1.ExportMetadata("a", "b")]
@@ -138,6 +183,9 @@
         public interface IMetadata
         {
             string a { get; }
+
+            [DefaultValue("someDefault")]
+            string B { get; }
         }
 
         public class MetadataClass
