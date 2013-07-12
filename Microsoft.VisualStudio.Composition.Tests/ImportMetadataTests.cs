@@ -93,6 +93,17 @@
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Single().Value);
         }
 
+        [MefFact(CompositionEngines.Unspecified, typeof(ImportingPartWithMetadataInterface), typeof(PartWithExportMetadata))]
+        public void MetadataViewInterfaceInstanceSharedAcrossImports(IContainer container)
+        {
+            var importingPart1 = container.GetExportedValue<ImportingPartWithMetadataInterface>();
+            var importingPart2 = container.GetExportedValue<ImportingPartWithMetadataInterface>();
+            Assert.NotSame(importingPart1, importingPart2); // non-shared part is crucial to the integrity of this test.
+
+            // Ensure that the interface instances are shared.
+            Assert.Same(importingPart1.ImportingProperty.Metadata, importingPart2.ImportingProperty.Metadata);
+        }
+
         #region Metaview filtering tests
 
         [MefFact(CompositionEngines.V1, typeof(ImportingPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB))]
