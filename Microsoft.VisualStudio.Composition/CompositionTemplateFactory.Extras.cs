@@ -17,6 +17,7 @@
 
         private void EmitImportSatisfyingAssignment(KeyValuePair<Import, IReadOnlyList<Export>> satisfyingExport)
         {
+            var import = satisfyingExport.Key;
             var importingMember = satisfyingExport.Key.ImportingMember;
             var importDefinition = satisfyingExport.Key.ImportDefinition;
             var importingPartDefinition = satisfyingExport.Key.PartDefinition;
@@ -33,13 +34,7 @@
                 {
                     right.WriteLine();
                     right.Write(this.CurrentIndent);
-                    using (this.ValueFactory(satisfyingExport.Key, export, right))
-                    {
-                        right.Write(
-                            "this.{0}(provisionalSharedObjects)",
-                            GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
-                    }
-
+                    this.EmitValueFactory(import, export, right);
                     right.Write(",");
                 }
 
@@ -57,12 +52,7 @@
                 }
                 else
                 {
-                    using (this.ValueFactory(satisfyingExport.Key, export, right))
-                    {
-                        this.Write(this.CurrentIndent);
-                        this.WriteLine("var {0} = {1};", importingMember.Name, "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "(provisionalSharedObjects)");
-                        right.Write(importingMember.Name);
-                    }
+                    this.EmitValueFactory(import, export, right);
                 }
             }
 
@@ -75,6 +65,17 @@
                 this.Write(rightString);
                 this.WriteLine(";");
             }
+        }
+
+        private void EmitValueFactory(Import import, Export export, StringWriter right)
+        {
+            using (this.ValueFactoryWrapper(import, export, right))
+            {
+                right.Write(
+                    "this.{0}(provisionalSharedObjects)",
+                    GetPartFactoryMethodName(export.PartDefinition, import.ImportDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
+            }
+
         }
 
         private string GetExportMetadata(Export export)
@@ -142,7 +143,7 @@
             return set;
         }
 
-        private IDisposable ValueFactory(Import import, Export export, TextWriter writer)
+        private IDisposable ValueFactoryWrapper(Import import, Export export, TextWriter writer)
         {
             var importDefinition = import.ImportDefinition;
             string memberModifier = export.ExportingMember == null ? string.Empty : "." + export.ExportingMember.Name;
