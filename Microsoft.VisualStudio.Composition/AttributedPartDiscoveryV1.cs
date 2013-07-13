@@ -53,10 +53,15 @@
                 if (importAttribute != null)
                 {
                     Type contractType = propertyOrFieldType;
-                    Type lazyType = null;
+                    Type wrapperType = null;
                     if (contractType.IsAnyLazyType())
                     {
-                        lazyType = propertyOrFieldType;
+                        wrapperType = propertyOrFieldType;
+                        contractType = contractType.GetGenericArguments()[0];
+                    }
+                    else if (contractType.IsExportFactoryTypeV1())
+                    {
+                        wrapperType = propertyOrFieldType;
                         contractType = contractType.GetGenericArguments()[0];
                     }
 
@@ -64,7 +69,7 @@
                     var importDefinition = new ImportDefinition(
                         contract,
                         importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
-                        lazyType,
+                        wrapperType,
                         ImmutableList.Create<IImportSatisfiabilityConstraint>());
                     imports.Add(member, importDefinition);
                 }

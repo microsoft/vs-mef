@@ -11,14 +11,16 @@
     [DebuggerDisplay("{Contract.Type.Name,nq} (Lazy: {IsLazy}, {Cardinality})")]
     public class ImportDefinition : IEquatable<ImportDefinition>
     {
-        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, Type lazyType, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints)
+        private readonly Type wrapperType;
+
+        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, Type wrapperType, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints)
         {
             Requires.NotNull(contract, "contract");
             Requires.NotNull(additionalConstraints, "additionalConstraints");
 
             this.Contract = contract;
             this.Cardinality = cardinality;
-            this.LazyType = lazyType;
+            this.wrapperType = wrapperType;
             this.ExportContraints = additionalConstraints;
         }
 
@@ -26,15 +28,28 @@
 
         public bool IsLazy
         {
-            get { return this.LazyType != null; }
+            get { return this.wrapperType.IsAnyLazyType(); }
         }
 
         public bool IsLazyConcreteType
         {
-            get { return this.LazyType.IsAnyLazyType(); }
+            get { return this.wrapperType.IsConcreteLazyType(); }
         }
 
-        public Type LazyType { get; private set; }
+        public Type LazyType
+        {
+            get { return this.IsLazy ? this.wrapperType : null; }
+        }
+
+        public bool IsExportFactory
+        {
+            get { return this.wrapperType.IsExportFactoryTypeV1() || this.wrapperType.IsExportFactoryTypeV2(); }
+        }
+
+        public Type ExportFactoryType
+        {
+            get { return this.IsExportFactory ? this.wrapperType : null; }
+        }
 
         public Type MetadataType
         {
