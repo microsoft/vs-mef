@@ -26,10 +26,7 @@ internal class CompiledExportProvider : ExportProvider
     protected override object GetExport(ExportDefinition exportDefinition)
     {
         var provisionalSharedObjects = new Dictionary<Type, object>();
-        var provisionalDisposableObjects = new List<IDisposable>();
-        try
-        {
-            Type exportTypeDefinition = exportDefinition.Contract.Type.IsGenericType ? exportDefinition.Contract.Type.GetGenericTypeDefinition() : exportDefinition.Contract.Type;<#
+        Type exportTypeDefinition = exportDefinition.Contract.Type.IsGenericType ? exportDefinition.Contract.Type.GetGenericTypeDefinition() : exportDefinition.Contract.Type;<#
 foreach (var part in this.Configuration.Catalog.Parts)
 {
     foreach (var partExportPair in part.ExportDefinitions)
@@ -38,74 +35,56 @@ foreach (var part in this.Configuration.Catalog.Parts)
         var partExport = partExportPair.Value;
 #>
 
-            if (<#= partExport.Contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type" #>.IsEquivalentTo(typeof(<#= GetTypeName(partExport.Contract.Type, partExport.Contract.Type.IsGenericTypeDefinition) #>)))
-            {
+        if (<#= partExport.Contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type" #>.IsEquivalentTo(typeof(<#= GetTypeName(partExport.Contract.Type, partExport.Contract.Type.IsGenericTypeDefinition) #>)))
+        {
 <#
             if (partExport.Contract.ContractName == null)
             {
 #>
-                if (exportDefinition.Contract.ContractName == null)
+            if (exportDefinition.Contract.ContractName == null)
 <#
             }
             else
             {
 #>
-                if (exportDefinition.Contract.ContractName == "<#= partExport.Contract.ContractName #>")
+            if (exportDefinition.Contract.ContractName == "<#= partExport.Contract.ContractName #>")
 <#
             }
 #>
-                {
+            {
 <#
                 if (part.Type.IsGenericType)
                 {
 #>
-                    var genericTemplateMethod = typeof(CompiledExportProvider).GetMethod("<#= GetPartFactoryMethodNameNoTypeArgs(part) #>", BindingFlags.Instance | BindingFlags.NonPublic);
-                    var genericMethod = genericTemplateMethod.MakeGenericMethod(exportDefinition.Contract.Type.GetGenericArguments());
-                    var part = genericMethod.Invoke(this, new object[] { provisionalDisposableObjects, provisionalSharedObjects });
-                    return <#=GetPartOrMemberLazy("part", member, partExport)#>;
+                var genericTemplateMethod = typeof(CompiledExportProvider).GetMethod("<#= GetPartFactoryMethodNameNoTypeArgs(part) #>", BindingFlags.Instance | BindingFlags.NonPublic);
+                var genericMethod = genericTemplateMethod.MakeGenericMethod(exportDefinition.Contract.Type.GetGenericArguments());
+                var part = genericMethod.Invoke(this, new object[] { provisionalSharedObjects });
+                return <#=GetPartOrMemberLazy("part", member, partExport)#>;
 <#
                 }
                 else
                 {
 #>
-                    var part = this.<#= GetPartFactoryMethodName(part) #>(provisionalDisposableObjects, provisionalSharedObjects);
-                    return <#=GetPartOrMemberLazy("part", member, partExport)#>;
+                var part = this.<#= GetPartFactoryMethodName(part) #>(provisionalSharedObjects);
+                return <#=GetPartOrMemberLazy("part", member, partExport)#>;
 <#
                 }
 #>
-                }
             }
+        }
 <#
     }
 }
 #>
 
-            throw new ArgumentException();
-        }
-        catch
-        {
-            foreach (var item in provisionalDisposableObjects)
-            {
-                try
-                {
-                    item.Dispose();
-                }
-                catch (Exception)
-                {
-                    ////Debug.Fail(ex.Message);
-                    throw;
-                }
-            }
-
-            throw;
-        }
+        throw new ArgumentException();
     }
 <#
 foreach (var part in this.Configuration.Parts) 
 {
 #>
 
-    protected ILazy<<#= GetTypeName(part.Definition.Type) #>> <#= GetPartFactoryMethodName(part.Definition) #>(List<IDisposable> provisionalDisposableObjects, Dictionary<Type, object> provisionalSharedObjects)
+    protected ILazy<<#= GetTypeName(part.Definition.Type) #>> <#= GetPartFactoryMethodName(part.Definition) #>(Dictionary<Type, object> provisionalSharedObjects)
     {
         ILazy<<#= GetTypeName(part.Definition.Type) #>> value;
         if (TryGetProvisionalSharedExport(provisionalSharedObjects, out value))
@@ -124,7 +103,7 @@ foreach (var part in this.Configuration.Parts)
                 delegate
                 {
 <#
-                this.PushIndent("\t\t\t");
+                this.PushIndent("            ");
                 EmitInstantiatePart(part);
                 this.PopIndent();
 #>
@@ -141,7 +120,7 @@ foreach (var part in this.Configuration.Parts)
             delegate
             {
 <#
-                this.PushIndent("\t\t");
+                this.PushIndent("        ");
                 EmitInstantiatePart(part);
                 this.PopIndent();
 #>

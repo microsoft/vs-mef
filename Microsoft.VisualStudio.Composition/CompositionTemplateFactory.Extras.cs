@@ -46,7 +46,7 @@
                     }
 
                     right.AppendFormat(
-                        "this.{0}(provisionalDisposableObjects, provisionalSharedObjects)",
+                        "this.{0}(provisionalSharedObjects)",
                         GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
                     if (importDefinition.IsLazy)
                     {
@@ -92,7 +92,7 @@
                     }
 
                     this.Write(this.CurrentIndent);
-                    this.WriteLine("var {0} = {1};", importingMember.Name, "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "(provisionalDisposableObjects, provisionalSharedObjects)");
+                    this.WriteLine("var {0} = {1};", importingMember.Name, "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "(provisionalSharedObjects)");
                     right.Append(importingMember.Name);
                     if (importDefinition.IsLazy)
                     {

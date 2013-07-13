@@ -52,7 +52,7 @@
 
         #region Part disposed on exception test
 
-        [MefFact(CompositionEngines.Unspecified, typeof(ThrowingPart), typeof(ImportToThrowingPart))]
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(ThrowingPart), typeof(ImportToThrowingPart))]
         public void PartDisposedWhenThrows(IContainer container)
         {
             ThrowingPart.InstantiatedCounter = 0;
@@ -64,6 +64,7 @@
             }
             catch { }
 
+            container.Dispose();
             Assert.Equal(1, ThrowingPart.InstantiatedCounter);
             Assert.Equal(1, ThrowingPart.DisposedCounter);
         }
