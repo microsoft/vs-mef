@@ -31,51 +31,13 @@
                 this.PushIndent("    ");
                 foreach (var export in exports)
                 {
-                    string memberModifier = export.ExportingMember == null ? string.Empty : "." + export.ExportingMember.Name;
                     right.WriteLine();
                     right.Write(this.CurrentIndent);
-                    if (importDefinition.IsLazyConcreteType)
+                    using (this.ValueFactory(satisfyingExport.Key, export, right))
                     {
-                        if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
-                        {
-                            right.Write("({0})", fullTypeNameWithPerhapsLazy);
-                        }
-                        else
-                        {
-                            right.Write("new {0}(() => ", fullTypeNameWithPerhapsLazy);
-                        }
-                    }
-
-                    right.Write(
-                        "this.{0}(provisionalSharedObjects)",
-                        GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
-                    if (importDefinition.IsLazy)
-                    {
-                        if (importDefinition.MetadataType != null)
-                        {
-                            right.Write(".Value{0}, ", memberModifier);
-                            if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
-                            {
-                                right.Write("new {0}(", GetClassNameForMetadataView(importDefinition.MetadataType));
-                            }
-
-                            right.Write(GetExportMetadata(export));
-                            if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
-                            {
-                                right.Write(")");
-                            }
-
-                            right.Write(", true)");
-                        }
-                        else if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
-                        {
-                            right.Write(".Value{0}, true)", memberModifier);
-                        }
-                    }
-                    else
-                    {
-                        right.Write(".Value");
-                        right.Write(memberModifier);
+                        right.Write(
+                            "this.{0}(provisionalSharedObjects)",
+                            GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
                     }
 
                     right.Write(",");
@@ -95,7 +57,7 @@
                 }
                 else
                 {
-                    using (ValueFactory(satisfyingExport.Key, export, right))
+                    using (this.ValueFactory(satisfyingExport.Key, export, right))
                     {
                         this.Write(this.CurrentIndent);
                         this.WriteLine("var {0} = {1};", importingMember.Name, "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "(provisionalSharedObjects)");
