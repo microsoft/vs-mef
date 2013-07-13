@@ -9,7 +9,7 @@
     using System.Threading.Tasks;
     using Validation;
 
-    public abstract class ExportProvider
+    public abstract class ExportProvider : IDisposable
     {
         private readonly object syncObject = new object();
 
@@ -17,6 +17,11 @@
         /// A dictionary of types to their Lazy{T} factories.
         /// </summary>
         private readonly Dictionary<Type, object> sharedInstantiatedExports = new Dictionary<Type, object>();
+
+        /// <summary>
+        /// The disposable objects whose lifetimes are controlled by this instance.
+        /// </summary>
+        private readonly HashSet<IDisposable> disposableInstantiatedParts = new HashSet<IDisposable>();
 
         public ILazy<T> GetExport<T>()
         {
@@ -37,6 +42,24 @@
         public T GetExportedValue<T>(string contractName)
         {
             return this.GetExport<T>(contractName).Value;
+        }
+
+        public void Dispose()
+        {
+            // Snapshot the contents of the collection within the lock,
+            // then dispose of the values outside the lock to avoid
+            // executing arbitrary 3rd-party code within our lock.
+            List<IDisposable> disposableSnapshot;
+            lock (this.syncObject)
+            {
+                disposableSnapshot = new List<IDisposable>(this.disposableInstantiatedParts);
+                this.disposableInstantiatedParts.Clear();
+            }
+
+            foreach (var item in disposableSnapshot)
+            {
+                item.Dispose();
+            }
         }
 
         /// <summary>
@@ -70,6 +93,16 @@
 
                 this.sharedInstantiatedExports.Add(typeof(T), value);
                 return value;
+            }
+        }
+
+        protected void TrackDisposableValue(IDisposable value)
+        {
+            Requires.NotNull(value, "value");
+
+            lock (this.syncObject)
+            {
+                this.disposableInstantiatedParts.Add(value);
             }
         }
     }

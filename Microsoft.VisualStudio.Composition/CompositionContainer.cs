@@ -36,7 +36,7 @@
 
         public void Dispose()
         {
-            // TODO: dispose of any instantiated, disposable values in the container.
+            this.exportFactory.Dispose();
         }
     }
 }

@@ -150,6 +150,12 @@
         {
             this.Write(this.CurrentIndent);
             this.WriteLine("var result = new {0}();", GetTypeName(part.Definition.Type));
+            if (typeof(IDisposable).IsAssignableFrom(part.Definition.Type))
+            {
+                this.Write(this.CurrentIndent);
+                this.WriteLine("this.TrackDisposableValue(result);");
+            }
+
             this.Write(this.CurrentIndent);
             this.WriteLine("provisionalSharedObjects.Add(typeof({0}), result);", GetTypeName(part.Definition.Type));
 

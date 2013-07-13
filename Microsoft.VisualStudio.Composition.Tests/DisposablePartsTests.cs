@@ -13,7 +13,7 @@
     {
         #region Dispoable part happy path test
 
-        [MefFact(CompositionEngines.V2 | CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V2Compat | CompositionEngines.V1Compat, typeof(DisposablePart), typeof(UninstantiatedPart))]
         public void DisposablePartDisposedWithContainer(IContainer container)
         {
             var part = container.GetExportedValue<DisposablePart>();
@@ -52,7 +52,7 @@
 
         #region Part disposed on exception test
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(ThrowingPart), typeof(ImportToThrowingPart))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ThrowingPart), typeof(ImportToThrowingPart))]
         public void PartDisposedWhenThrows(IContainer container)
         {
             ThrowingPart.InstantiatedCounter = 0;
