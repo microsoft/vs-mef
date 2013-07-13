@@ -40,7 +40,7 @@
             Assert.Throws<NotSupportedException>(() => importingPart.ImportingProperty.Metadata["foo"] = 5);
         }
 
-        [MefFact(CompositionEngines.V2 | CompositionEngines.V1, typeof(ImportManyPartWithMetadataDictionary), typeof(PartWithExportMetadata))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ImportManyPartWithMetadataDictionary), typeof(PartWithExportMetadata))]
         public void ImportManyWithMetadataDictionary(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportManyPartWithMetadataDictionary>();
@@ -61,7 +61,7 @@
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Value);
         }
 
-        [MefFact(CompositionEngines.V2 | CompositionEngines.V1, typeof(ImportManyPartWithMetadataClass), typeof(PartWithExportMetadata))]
+        [MefFact(CompositionEngines.V2Compat | CompositionEngines.V1Compat, typeof(ImportManyPartWithMetadataClass), typeof(PartWithExportMetadata))]
         public void ImportManyWithMetadataClass(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportManyPartWithMetadataClass>();
@@ -82,7 +82,7 @@
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Value);
         }
 
-        [MefFact(CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportManyPartWithMetadataInterface), typeof(PartWithExportMetadata))]
         public void ImportManyWithMetadataInterface(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportManyPartWithMetadataInterface>();

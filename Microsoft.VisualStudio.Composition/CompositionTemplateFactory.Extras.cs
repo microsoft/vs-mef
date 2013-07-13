@@ -35,7 +35,7 @@
                     right.Append(this.CurrentIndent);
                     if (importDefinition.IsLazyConcreteType)
                     {
-                        if (importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
+                        if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
                         {
                             right.AppendFormat("({0})", fullTypeNameWithPerhapsLazy);
                         }
@@ -50,7 +50,23 @@
                         GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
                     if (importDefinition.IsLazy)
                     {
-                        if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
+                        if (importDefinition.MetadataType != null)
+                        {
+                            right.AppendFormat(".Value{0}, ", memberModifier);
+                            if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
+                            {
+                                right.AppendFormat("new {0}(", GetClassNameForMetadataView(importDefinition.MetadataType));
+                            }
+
+                            right.Append(GetExportMetadata(export));
+                            if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
+                            {
+                                right.Append(")");
+                            }
+
+                            right.Append(", true)");
+                        }
+                        else if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
                         {
                             right.AppendFormat(".Value{0}, true)", memberModifier);
                         }
