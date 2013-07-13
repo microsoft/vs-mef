@@ -22,26 +22,20 @@
             var importDefinition = satisfyingExport.Key.ImportDefinition;
             var importingPartDefinition = satisfyingExport.Key.PartDefinition;
             var exports = satisfyingExport.Value;
-            string fullTypeNameWithPerhapsLazy = GetTypeName(importDefinition.LazyType ?? importDefinition.CoercedValueType);
 
-            string left = "result." + importingMember.Name;
             var right = new StringWriter();
             if (importDefinition.Cardinality == ImportCardinality.ZeroOrMore)
             {
-                right.Write("new List<{0}> {{", fullTypeNameWithPerhapsLazy);
-                this.PushIndent("    ");
-                foreach (var export in exports)
+                using (this.ImportManySatisfyingCollection(importDefinition, right))
                 {
-                    right.WriteLine();
-                    right.Write(this.CurrentIndent);
-                    this.EmitValueFactory(import, export, right);
-                    right.Write(",");
+                    foreach (var export in exports)
+                    {
+                        right.WriteLine();
+                        right.Write(this.CurrentIndent);
+                        this.EmitValueFactory(import, export, right);
+                        right.Write(",");
+                    }
                 }
-
-                this.PopIndent();
-                right.Write(Environment.NewLine);
-                right.Write(this.CurrentIndent);
-                right.Write("}");
             }
             else if (exports.Any())
             {
@@ -60,11 +54,26 @@
             if (rightString.Length > 0)
             {
                 this.Write(this.CurrentIndent);
-                this.Write(left);
+                this.Write("result.{0}",  importingMember.Name);
                 this.Write(" = ");
                 this.Write(rightString);
                 this.WriteLine(";");
             }
+        }
+
+        private IDisposable ImportManySatisfyingCollection(ImportDefinition importDefinition, StringWriter writer)
+        {
+            writer.Write("new List<{0}> {{", GetTypeName(importDefinition.LazyType ?? importDefinition.CoercedValueType));
+            this.PushIndent("    ");
+
+            return new DisposableWithAction(delegate
+            {
+                this.PopIndent();
+                writer.Write(Environment.NewLine);
+                writer.Write(this.CurrentIndent);
+                writer.Write("}");
+            });
+
         }
 
         private void EmitValueFactory(Import import, Export export, StringWriter right)
