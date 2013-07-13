@@ -11,13 +11,15 @@
     [DebuggerDisplay("{Contract.Type.Name,nq} (Lazy: {IsLazy}, {Cardinality})")]
     public class ImportDefinition : IEquatable<ImportDefinition>
     {
-        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, Type lazyType)
+        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, Type lazyType, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints)
         {
             Requires.NotNull(contract, "contract");
+            Requires.NotNull(additionalConstraints, "additionalConstraints");
 
             this.Contract = contract;
             this.Cardinality = cardinality;
             this.LazyType = lazyType;
+            this.ExportContraints = additionalConstraints;
         }
 
         public ImportCardinality Cardinality { get; private set; }
@@ -52,6 +54,8 @@
         }
 
         public CompositionContract Contract { get; private set; }
+
+        public IReadOnlyCollection<IImportSatisfiabilityConstraint> ExportContraints { get; private set; }
 
         /// <summary>
         /// Gets the actual type (without the Lazy{T} wrapper) of the importing member.

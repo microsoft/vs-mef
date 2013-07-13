@@ -44,6 +44,12 @@
                 Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", "Member \"{0}\" contains both ImportAttribute and ImportManyAttribute.", member.Name);
                 Requires.Argument(!(exportAttribute != null && (importAttribute != null || importManyAttribute != null)), "partType", "Member \"{0}\" contains both import and export attributes.", member.Name);
 
+                var importConstraints = ImmutableList.CreateBuilder<IImportSatisfiabilityConstraint>();
+                foreach (var importConstraint in member.GetCustomAttributes<ImportMetadataConstraintAttribute>())
+                {
+                    importConstraints.Add(new ImportMetadataValueConstraint(importConstraint.Name, importConstraint.Value));
+                }
+
                 if (importAttribute != null)
                 {
                     Type contractType = member.PropertyType;
@@ -58,7 +64,8 @@
                     var importDefinition = new ImportDefinition(
                         contract,
                         importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
-                        lazyType);
+                        lazyType,
+                        importConstraints.ToImmutable());
                     imports.Add(member, importDefinition);
                 }
                 else if (importManyAttribute != null)
@@ -72,7 +79,11 @@
                     }
 
                     var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
-                    var importDefinition = new ImportDefinition(contract, ImportCardinality.ZeroOrMore, lazyType);
+                    var importDefinition = new ImportDefinition(
+                        contract,
+                        ImportCardinality.ZeroOrMore,
+                        lazyType,
+                        importConstraints.ToImmutable());
                     imports.Add(member, importDefinition);
                 }
                 else if (exportAttribute != null)

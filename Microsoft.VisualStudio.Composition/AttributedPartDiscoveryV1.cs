@@ -64,7 +64,8 @@
                     var importDefinition = new ImportDefinition(
                         contract,
                         importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
-                        lazyType);
+                        lazyType,
+                        ImmutableList.Create<IImportSatisfiabilityConstraint>());
                     imports.Add(member, importDefinition);
                 }
                 else if (importManyAttribute != null)
@@ -78,7 +79,11 @@
                     }
 
                     var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
-                    var importDefinition = new ImportDefinition(contract, ImportCardinality.ZeroOrMore, lazyType);
+                    var importDefinition = new ImportDefinition(
+                        contract,
+                        ImportCardinality.ZeroOrMore,
+                        lazyType,
+                        ImmutableList.Create<IImportSatisfiabilityConstraint>());
                     imports.Add(member, importDefinition);
                 }
                 else if (exportAttribute != null)

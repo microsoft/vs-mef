@@ -10,21 +10,21 @@
 
     public class ImportMetadataConstraintTests
     {
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void ImportOneWithConstraint(IContainer container)
         {
             var part = container.GetExportedValue<ImportOneWithContraintPart>();
             Assert.IsType<ExportFirst>(part.FirstByOne);
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void ImportManyWithConstraintToOne(IContainer container)
         {
             var part = container.GetExportedValue<ImportOneWithContraintPart>();
             Assert.IsType<ExportSecond>(part.SecondByMany.Single());
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void ImportManyWithConstraintToTwo(IContainer container)
         {
             var part = container.GetExportedValue<ImportOneWithContraintPart>();
@@ -33,7 +33,7 @@
             Assert.Equal(1, part.OddNumberedExports.OfType<ExportThird>().Count());
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void ImportManyUnconstrained(IContainer container)
         {
             var part = container.GetExportedValue<ImportOneWithContraintPart>();

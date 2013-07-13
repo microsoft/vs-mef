@@ -39,6 +39,7 @@
 
             var filteredExports = from export in exports
                                   where HasMetadata(export.ExportDefinition, GetRequiredMetadata(import))
+                                  where import.ExportContraints.All(c => c.IsSatisfiedBy(import, export.ExportDefinition))
                                   select export;
 
             return ImmutableList.From(filteredExports);
