@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.ComponentModel;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -35,7 +36,12 @@
             var exports = this.exportsByContract.GetValueOrDefault(
                 import.Contract.GetContractToMatchExports(),
                 ImmutableList.Create<Export>());
-            return exports;
+
+            var filteredExports = from export in exports
+                                  where HasMetadata(export.ExportDefinition, GetRequiredMetadata(import))
+                                  select export;
+
+            return ImmutableList.From(filteredExports);
         }
 
         public IEnumerable<Assembly> Assemblies
@@ -98,6 +104,37 @@
             }
 
             return new ComposableCatalog(types, parts, exportsByContract);
+        }
+
+        private static bool HasMetadata(ExportDefinition exportDefinition, IReadOnlyCollection<string> metadataNames)
+        {
+            Requires.NotNull(exportDefinition, "exportDefinition");
+            Requires.NotNull(metadataNames, "metadataNames");
+
+            return metadataNames.All(name => exportDefinition.Metadata.ContainsKey(name));
+        }
+
+        private static IReadOnlyCollection<string> GetRequiredMetadata(ImportDefinition importDefinition)
+        {
+            Requires.NotNull(importDefinition, "importDefinition");
+
+            var requiredMetadata = ImmutableHashSet.CreateBuilder<string>();
+
+            if (importDefinition.MetadataType != null)
+            {
+                if (importDefinition.MetadataType.IsInterface && !importDefinition.MetadataType.IsEquivalentTo(typeof(IDictionary<string, object>)))
+                {
+                    foreach (var property in importDefinition.MetadataType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                    {
+                        if (property.GetCustomAttribute<DefaultValueAttribute>() == null)
+                        {
+                            requiredMetadata.Add(property.Name);
+                        }
+                    }
+                }
+            }
+
+            return requiredMetadata.ToImmutable();
         }
     }
 }

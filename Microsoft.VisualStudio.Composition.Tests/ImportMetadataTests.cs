@@ -106,7 +106,7 @@
 
         #region Metaview filtering tests
 
-        [MefFact(CompositionEngines.V1, typeof(ImportingPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportingPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB))]
         public void ImportWithMetadataViewAsFilter(IContainer container)
         {
             var importer = container.GetExportedValue<ImportingPartOfObjectWithMetadataInterface>();
@@ -115,7 +115,7 @@
             Assert.IsType<PartWithExportMetadataA>(importer.ImportingProperty.Value);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ImportManyPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB), typeof(PartWithExportMetadataAB))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportManyPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB), typeof(PartWithExportMetadataAB))]
         public void ImportManyWithMetadataViewAsFilter(IContainer container)
         {
             var importer = container.GetExportedValue<ImportManyPartOfObjectWithMetadataInterface>();
