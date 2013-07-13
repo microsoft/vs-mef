@@ -17,7 +17,9 @@
             NonSharedPart.DisposalCounter = 0;
         }
 
-        [MefFact(CompositionEngines.V1)]
+        #region V1 tests
+
+        [MefFact(CompositionEngines.V1, typeof(PartFactoryV1), typeof(NonSharedPart))]
         public void ExportFactoryForNonSharedPartV1(IContainer container)
         {
             var partFactory = container.GetExportedValue<PartFactoryV1>();
@@ -37,7 +39,54 @@
             Assert.Equal(1, NonSharedPart.DisposalCounter);
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1, typeof(PartFactoryManyV1), typeof(NonSharedPart), typeof(NonSharedPart2))]
+        public void ExportFactoryForNonSharedPartManyV1(IContainer container)
+        {
+            var partFactory = container.GetExportedValue<PartFactoryManyV1>();
+            Assert.NotNull(partFactory.Factories);
+            Assert.Equal(2, partFactory.Factories.Length);
+
+            Assert.NotNull(partFactory.FactoriesWithMetadata);
+            Assert.Equal(2, partFactory.FactoriesWithMetadata.Length);
+            var factory1 = partFactory.FactoriesWithMetadata.Single(f => "V".Equals(f.Metadata["N"]));
+            var factory2 = partFactory.FactoriesWithMetadata.Single(f => "V2".Equals(f.Metadata["N"]));
+
+            using (var exportContext = factory1.CreateExport())
+            {
+                Assert.IsType<NonSharedPart>(exportContext.Value);
+            }
+
+            using (var exportContext = factory2.CreateExport())
+            {
+                Assert.IsType<NonSharedPart2>(exportContext.Value);
+            }
+        }
+
+        [MefV1.Export]
+        public class PartFactoryV1
+        {
+            [MefV1.Import]
+            public MefV1.ExportFactory<NonSharedPart> Factory { get; set; }
+
+            [MefV1.Import]
+            public MefV1.ExportFactory<NonSharedPart, IDictionary<string, object>> FactoryWithMetadata { get; set; }
+        }
+
+        [MefV1.Export]
+        public class PartFactoryManyV1
+        {
+            [MefV1.ImportMany]
+            public MefV1.ExportFactory<NonSharedPart>[] Factories { get; set; }
+
+            [MefV1.ImportMany]
+            public MefV1.ExportFactory<NonSharedPart, IDictionary<string, object>>[] FactoriesWithMetadata { get; set; }
+        }
+
+        #endregion
+
+        #region V2 tests
+
+        [MefFact(CompositionEngines.V2, typeof(PartFactoryV2), typeof(NonSharedPart))]
         public void ExportFactoryForNonSharedPartV2(IContainer container)
         {
             var partFactory = container.GetExportedValue<PartFactoryV2>();
@@ -57,14 +106,27 @@
             Assert.Equal(1, NonSharedPart.DisposalCounter);
         }
 
-        [MefV1.Export]
-        public class PartFactoryV1
+        [MefFact(CompositionEngines.V2, typeof(PartFactoryManyV2), typeof(NonSharedPart), typeof(NonSharedPart2))]
+        public void ExportFactoryForNonSharedPartManyV2(IContainer container)
         {
-            [MefV1.Import]
-            public MefV1.ExportFactory<NonSharedPart> Factory { get; set; }
+            var partFactory = container.GetExportedValue<PartFactoryManyV2>();
+            Assert.NotNull(partFactory.Factories);
+            Assert.Equal(2, partFactory.Factories.Length);
 
-            [MefV1.Import]
-            public MefV1.ExportFactory<NonSharedPart, IDictionary<string, object>> FactoryWithMetadata { get; set; }
+            Assert.NotNull(partFactory.FactoriesWithMetadata);
+            Assert.Equal(2, partFactory.FactoriesWithMetadata.Length);
+            var factory1 = partFactory.FactoriesWithMetadata.Single(f => "V".Equals(f.Metadata["N"]));
+            var factory2 = partFactory.FactoriesWithMetadata.Single(f => "V2".Equals(f.Metadata["N"]));
+
+            using (var exportContext = factory1.CreateExport())
+            {
+                Assert.IsType<NonSharedPart>(exportContext.Value);
+            }
+
+            using (var exportContext = factory2.CreateExport())
+            {
+                Assert.IsType<NonSharedPart2>(exportContext.Value);
+            }
         }
 
         [Export]
@@ -76,6 +138,18 @@
             [Import]
             public ExportFactory<NonSharedPart, IDictionary<string, object>> FactoryWithMetadata { get; set; }
         }
+
+        [Export]
+        public class PartFactoryManyV2
+        {
+            [ImportMany]
+            public ExportFactory<NonSharedPart>[] Factories { get; set; }
+
+            [ImportMany]
+            public ExportFactory<NonSharedPart, IDictionary<string, object>>[] FactoriesWithMetadata { get; set; }
+        }
+
+        #endregion
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [MefV1.ExportMetadata("N", "V")]
@@ -95,6 +169,14 @@
             {
                 DisposalCounter++;
             }
+        }
+
+        [MefV1.Export(typeof(NonSharedPart)), MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        [MefV1.ExportMetadata("N", "V2")]
+        [Export(typeof(NonSharedPart))]
+        [ExportMetadata("N", "V2")]
+        public class NonSharedPart2 : NonSharedPart
+        {
         }
     }
 }
