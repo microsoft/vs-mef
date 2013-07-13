@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.Globalization;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -23,129 +24,93 @@
             string fullTypeNameWithPerhapsLazy = GetTypeName(importDefinition.LazyType ?? importDefinition.CoercedValueType);
 
             string left = "result." + importingMember.Name;
-            var right = new StringBuilder();
+            var right = new StringWriter();
             if (importDefinition.Cardinality == ImportCardinality.ZeroOrMore)
             {
-                right.AppendFormat("new List<{0}> {{", fullTypeNameWithPerhapsLazy);
+                right.Write("new List<{0}> {{", fullTypeNameWithPerhapsLazy);
                 this.PushIndent("    ");
                 foreach (var export in exports)
                 {
                     string memberModifier = export.ExportingMember == null ? string.Empty : "." + export.ExportingMember.Name;
-                    right.AppendLine();
-                    right.Append(this.CurrentIndent);
+                    right.WriteLine();
+                    right.Write(this.CurrentIndent);
                     if (importDefinition.IsLazyConcreteType)
                     {
                         if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
                         {
-                            right.AppendFormat("({0})", fullTypeNameWithPerhapsLazy);
+                            right.Write("({0})", fullTypeNameWithPerhapsLazy);
                         }
                         else
                         {
-                            right.AppendFormat("new {0}(() => ", fullTypeNameWithPerhapsLazy);
+                            right.Write("new {0}(() => ", fullTypeNameWithPerhapsLazy);
                         }
                     }
 
-                    right.AppendFormat(
+                    right.Write(
                         "this.{0}(provisionalSharedObjects)",
                         GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
                     if (importDefinition.IsLazy)
                     {
                         if (importDefinition.MetadataType != null)
                         {
-                            right.AppendFormat(".Value{0}, ", memberModifier);
+                            right.Write(".Value{0}, ", memberModifier);
                             if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
                             {
-                                right.AppendFormat("new {0}(", GetClassNameForMetadataView(importDefinition.MetadataType));
+                                right.Write("new {0}(", GetClassNameForMetadataView(importDefinition.MetadataType));
                             }
 
-                            right.Append(GetExportMetadata(export));
+                            right.Write(GetExportMetadata(export));
                             if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
                             {
-                                right.Append(")");
+                                right.Write(")");
                             }
 
-                            right.Append(", true)");
+                            right.Write(", true)");
                         }
                         else if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
                         {
-                            right.AppendFormat(".Value{0}, true)", memberModifier);
+                            right.Write(".Value{0}, true)", memberModifier);
                         }
                     }
                     else
                     {
-                        right.Append(".Value");
-                        right.Append(memberModifier);
+                        right.Write(".Value");
+                        right.Write(memberModifier);
                     }
 
-                    right.Append(",");
+                    right.Write(",");
                 }
 
                 this.PopIndent();
-                right.Append(Environment.NewLine);
-                right.Append(this.CurrentIndent);
-                right.Append("}");
+                right.Write(Environment.NewLine);
+                right.Write(this.CurrentIndent);
+                right.Write("}");
             }
             else if (exports.Any())
             {
                 var export = exports.Single();
-                string memberModifier = export.ExportingMember == null ? string.Empty : "." + export.ExportingMember.Name;
                 if (export.PartDefinition == importingPartDefinition && importingPartDefinition.IsShared)
                 {
-                    right.Append("result");
+                    right.Write("result");
                 }
                 else
                 {
-                    if (importDefinition.IsLazyConcreteType)
+                    using (ValueFactory(satisfyingExport.Key, export, right))
                     {
-                        if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
-                        {
-                            right.AppendFormat("({0})", fullTypeNameWithPerhapsLazy);
-                        }
-                        else
-                        {
-                            right.AppendFormat("new {0}(() => ", fullTypeNameWithPerhapsLazy);
-                        }
-                    }
-
-                    this.Write(this.CurrentIndent);
-                    this.WriteLine("var {0} = {1};", importingMember.Name, "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "(provisionalSharedObjects)");
-                    right.Append(importingMember.Name);
-                    if (importDefinition.IsLazy)
-                    {
-                        if (importDefinition.MetadataType != null)
-                        {
-                            right.AppendFormat(".Value{0}, ", memberModifier);
-                            if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
-                            {
-                                right.AppendFormat("new {0}(", GetClassNameForMetadataView(importDefinition.MetadataType));
-                            }
-
-                            right.Append(GetExportMetadata(export));
-                            if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
-                            {
-                                right.Append(")");
-                            }
-
-                            right.Append(", true)");
-                        }
-                        else if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
-                        {
-                            right.AppendFormat(".Value{0}, true)", memberModifier);
-                        }
-                    }
-                    else
-                    {
-                        right.AppendFormat(".Value{0}", memberModifier);
+                        this.Write(this.CurrentIndent);
+                        this.WriteLine("var {0} = {1};", importingMember.Name, "this." + GetPartFactoryMethodName(export.PartDefinition, importDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()) + "(provisionalSharedObjects)");
+                        right.Write(importingMember.Name);
                     }
                 }
             }
 
-            if (right.Length > 0)
+            string rightString = right.ToString();
+            if (rightString.Length > 0)
             {
                 this.Write(this.CurrentIndent);
                 this.Write(left);
                 this.Write(" = ");
-                this.Write(right.ToString());
+                this.Write(rightString);
                 this.WriteLine(";");
             }
         }
@@ -213,6 +178,56 @@
                 select metadataType);
 
             return set;
+        }
+
+        private IDisposable ValueFactory(Import import, Export export, TextWriter writer)
+        {
+            var importDefinition = import.ImportDefinition;
+            string memberModifier = export.ExportingMember == null ? string.Empty : "." + export.ExportingMember.Name;
+
+            string fullTypeNameWithPerhapsLazy = GetTypeName(importDefinition.LazyType ?? importDefinition.CoercedValueType);
+            if (importDefinition.IsLazyConcreteType)
+            {
+                if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
+                {
+                    writer.Write("({0})", fullTypeNameWithPerhapsLazy);
+                }
+                else
+                {
+                    writer.Write("new {0}(() => ", fullTypeNameWithPerhapsLazy);
+                }
+            }
+
+            return new DisposableWithAction(() =>
+            {
+                if (importDefinition.IsLazy)
+                {
+                    if (importDefinition.MetadataType != null)
+                    {
+                        writer.Write(".Value{0}, ", memberModifier);
+                        if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
+                        {
+                            writer.Write("new {0}(", GetClassNameForMetadataView(importDefinition.MetadataType));
+                        }
+
+                        writer.Write(GetExportMetadata(export));
+                        if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
+                        {
+                            writer.Write(")");
+                        }
+
+                        writer.Write(", true)");
+                    }
+                    else if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
+                    {
+                        writer.Write(".Value{0}, true)", memberModifier);
+                    }
+                }
+                else
+                {
+                    writer.Write(".Value{0}", memberModifier);
+                }
+            });
         }
 
         private static string GetTypeName(Type type)

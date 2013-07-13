@@ -85,6 +85,7 @@
       <DependentUpon>CompositionTemplateFactory.tt</DependentUpon>
     </Compile>
     <Compile Include="Dgml.cs" />
+    <Compile Include="DisposableWithAction.cs" />
     <Compile Include="Export.cs" />
     <Compile Include="ExportFactory.cs" />
     <Compile Include="ICompositionContainerFactory.cs" />
