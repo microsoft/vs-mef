@@ -164,6 +164,7 @@
         {
             var value = container.GetExportedValue<SelfImportingSharedPart>();
             Assert.Same(value, value.Self);
+            Assert.Same(value, value.LazySelf.Value);
         }
 
         [Export]
@@ -182,6 +183,10 @@
             [Import]
             [MefV1.Import]
             public SelfImportingSharedPart Self { get; set; }
+
+            [Import]
+            [MefV1.Import]
+            public Lazy<SelfImportingSharedPart> LazySelf { get; set; }
         }
 
         #endregion

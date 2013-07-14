@@ -41,16 +41,7 @@
             }
             else if (exports.Any())
             {
-                var export = exports.Single();
-                if (export.PartDefinition == importingPartDefinition)
-                {
-                    // The part is importing itself. So just assign it directly.
-                    right.Write(InstantiatedPartLocalVarName);
-                }
-                else
-                {
-                    this.EmitValueFactory(import, export, right);
-                }
+                this.EmitValueFactory(import, exports.Single(), right);
             }
 
             string rightString = right.ToString();
@@ -79,15 +70,22 @@
 
         }
 
-        private void EmitValueFactory(Import import, Export export, StringWriter right)
+        private void EmitValueFactory(Import import, Export export, StringWriter writer)
         {
-            using (this.ValueFactoryWrapper(import, export, right))
+            using (this.ValueFactoryWrapper(import, export, writer))
             {
-                right.Write(
-                    "this.{0}(provisionalSharedObjects)",
-                    GetPartFactoryMethodName(export.PartDefinition, import.ImportDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
+                if (export.PartDefinition == import.PartDefinition)
+                {
+                    // The part is importing itself. So just assign it directly.
+                    writer.Write(InstantiatedPartLocalVarName);
+                }
+                else
+                {
+                    writer.Write(
+                        "this.{0}(provisionalSharedObjects)",
+                        GetPartFactoryMethodName(export.PartDefinition, import.ImportDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
+                }
             }
-
         }
 
         private string GetExportMetadata(Export export)
@@ -163,7 +161,7 @@
             string fullTypeNameWithPerhapsLazy = GetTypeName(importDefinition.LazyType ?? importDefinition.CoercedValueType);
             if (importDefinition.IsLazyConcreteType)
             {
-                if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
+                if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type) && import.PartDefinition != export.PartDefinition)
                 {
                     writer.Write("({0})", fullTypeNameWithPerhapsLazy);
                 }
@@ -197,8 +195,12 @@
                     {
                         writer.Write(".Value{0}, true)", memberModifier);
                     }
+                    else if (import.PartDefinition == export.PartDefinition)
+                    {
+                        writer.Write(", true)");
+                    }
                 }
-                else
+                else if (import.PartDefinition != export.PartDefinition)
                 {
                     writer.Write(".Value{0}", memberModifier);
                 }
