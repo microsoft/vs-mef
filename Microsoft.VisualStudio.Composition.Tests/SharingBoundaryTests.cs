@@ -29,12 +29,28 @@
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<NonSharedPartThatIndirectlyImportsBoundaryPart>());
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void ScopedNonSharedPartsAvailableToSharingBoundaryPart(IContainer container)
         {
             var root = container.GetExportedValue<RootPart>();
             var subscope = root.Factory.CreateExport().Value;
             Assert.Equal(3, subscope.BoundaryScopedNonSharedParts.Count);
+        }
+
+        [MefFact(CompositionEngines.V2)]
+        public void ScopedNonSharedPartsIsolatedToSharingBoundaryPart(IContainer container)
+        {
+            var root = container.GetExportedValue<RootPart>();
+            
+            var subscope1 = root.Factory.CreateExport().Value;
+            var subscope2 = root.Factory.CreateExport().Value;
+
+            foreach (var export in subscope1.BoundaryScopedNonSharedParts)
+            {
+                // If this fails, it means that scoped parts are being inappropriately shared between
+                // instances of the sub-scopes.
+                Assert.False(subscope2.BoundaryScopedNonSharedParts.Contains(export));
+            }
         }
 
         [MefFact(CompositionEngines.V2)]
