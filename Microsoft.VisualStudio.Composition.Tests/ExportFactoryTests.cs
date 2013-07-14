@@ -86,7 +86,7 @@
 
         #region V2 tests
 
-        [MefFact(CompositionEngines.V2, typeof(PartFactoryV2), typeof(NonSharedPart))]
+        [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryV2), typeof(NonSharedPart))]
         public void ExportFactoryForNonSharedPartV2(IContainer container)
         {
             var partFactory = container.GetExportedValue<PartFactoryV2>();
@@ -106,7 +106,7 @@
             Assert.Equal(1, NonSharedPart.DisposalCounter);
         }
 
-        [MefFact(CompositionEngines.V2, typeof(PartFactoryManyV2), typeof(NonSharedPart), typeof(NonSharedPart2))]
+        [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryManyV2), typeof(NonSharedPart), typeof(NonSharedPart2))]
         public void ExportFactoryForNonSharedPartManyV2(IContainer container)
         {
             var partFactory = container.GetExportedValue<PartFactoryManyV2>();

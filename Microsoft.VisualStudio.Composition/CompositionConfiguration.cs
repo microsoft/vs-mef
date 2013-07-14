@@ -11,7 +11,11 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using System.Xml;
     using System.Xml.Linq;
+    using Microsoft.Build.Construction;
+    using Microsoft.Build.Evaluation;
+    using Microsoft.Build.Execution;
     using Microsoft.Build.Tasks;
     using Microsoft.Build.Utilities;
     using Validation;
@@ -188,27 +192,59 @@
         private Assembly Compile(string sourceFilePath)
         {
             var targetPath = Path.GetTempFileName();
-            var provider = CodeDomProvider.CreateProvider("c#");
-            var parameters = new CompilerParameters(new[] { typeof(Enumerable).Assembly.Location, Assembly.GetExecutingAssembly().Location });
-            parameters.IncludeDebugInformation = true;
-            parameters.ReferencedAssemblies.AddRange(this.Catalog.Assemblies.Select(a => a.Location).Distinct().ToArray());
-            parameters.ReferencedAssemblies.Add(typeof(System.ComponentModel.Composition.IPartImportsSatisfiedNotification).Assembly.Location);
-            //parameters.ReferencedAssemblies.Add(typeof(System.Composition.ExportFactory<>).Assembly.Location);
-            //parameters.ReferencedAssemblies.Add(typeof(System.Collections.Immutable.ImmutableDictionary).Assembly.Location);
-            //parameters.CompilerOptions += @" /r:sr=""C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETCore\v4.5\System.Runtime.dll""";
-            // TODO: we must reference all assemblies that define the types we touch, or that define types implemented by the types we touch.
-            parameters.OutputAssembly = targetPath;
-            CompilerResults results = provider.CompileAssemblyFromFile(parameters, sourceFilePath);
-            if (results.Errors.HasErrors || results.Errors.HasWarnings)
+
+            var pc = new ProjectCollection();
+            ProjectRootElement pre;
+            using (var templateStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Microsoft.VisualStudio.Composition.PrecompiledTemplate.csproj"))
             {
-                foreach (var error in results.Errors)
+                using (var xmlReader = XmlReader.Create(templateStream))
                 {
-                    Console.WriteLine(error);
+                    pre = ProjectRootElement.Create(xmlReader, pc);
                 }
             }
 
-            Verify.Operation(!results.Errors.HasErrors, "Compilation errors occurred.");
-            return results.CompiledAssembly;
+            var globalProperties = new Dictionary<string, string> {
+                { "Configuration", "Debug" },
+                { "OutputPath", Path.GetDirectoryName(targetPath) }
+            };
+            var project = new Project(pre, globalProperties, null, pc);
+            project.SetProperty("AssemblyName", Path.GetFileNameWithoutExtension(targetPath));
+            project.AddItem("Compile", ProjectCollection.Escape(sourceFilePath));
+            project.AddItem("Reference", ProjectCollection.Escape(Assembly.GetExecutingAssembly().Location));
+            project.AddItem("Reference", ProjectCollection.Escape(typeof(System.Composition.ExportFactory<>).Assembly.Location));
+            project.AddItem("Reference", ProjectCollection.Escape(typeof(System.Collections.Immutable.ImmutableDictionary).Assembly.Location));
+
+            // TODO: we must reference all assemblies that define the types we touch, or that define types implemented by the types we touch.
+            foreach (string catalogAssembly in this.Catalog.Assemblies.Select(a => a.Location).Distinct())
+            {
+                project.AddItem("Reference", ProjectCollection.Escape(catalogAssembly));
+            }
+
+            string projectPath = Path.GetTempFileName();
+            project.Save(projectPath);
+            BuildResult buildResult;
+            using (var buildManager = new BuildManager())
+            {
+                var hostServices = new HostServices();
+                buildManager.BeginBuild(new BuildParameters(pc) { DisableInProcNode = true });
+                var buildSubmission = buildManager.PendBuildRequest(new BuildRequestData(projectPath, globalProperties, null, new[] { "Build", "GetTargetPath" }, hostServices));
+                buildResult = buildSubmission.Execute();
+                buildManager.EndBuild();
+            }
+
+            if (buildResult.OverallResult != BuildResultCode.Success)
+            {
+                Console.WriteLine("Build errors");
+            }
+
+            if (buildResult.OverallResult != BuildResultCode.Success)
+            {
+                throw new InvalidOperationException("Build failed. Project File was \""  + projectPath + "\"", buildResult.Exception);
+            }
+
+            string finalAssemblyPath = buildResult.ResultsByTarget["GetTargetPath"].Items.Single().ItemSpec;
+
+            return Assembly.LoadFrom(finalAssemblyPath);
         }
 
         public XDocument CreateDgml()
