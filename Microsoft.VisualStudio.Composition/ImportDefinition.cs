@@ -55,12 +55,12 @@
         {
             get
             {
-                if (this.LazyType != null)
+                if (this.IsLazy || this.IsExportFactory)
                 {
-                    var lazyTypeDefinition = this.LazyType.GetGenericTypeDefinition();
-                    if (lazyTypeDefinition.IsEquivalentTo(typeof(Lazy<,>)) || lazyTypeDefinition.IsEquivalentTo(typeof(ILazy<,>)))
+                    var args = this.wrapperType.GetGenericArguments();
+                    if (args.Length == 2)
                     {
-                        return this.LazyType.GetGenericArguments()[1];
+                        return args[1];
                     }
                 }
 

@@ -169,6 +169,24 @@
                     writer.Write("new {0}(() => ", fullTypeNameWithPerhapsLazy);
                 }
             }
+            else if (importDefinition.IsExportFactory)
+            {
+                writer.Write(
+                    "new {0}(() => {{ var temp = ",
+                    GetTypeName(importDefinition.ExportFactoryType));
+                return new DisposableWithAction(delegate
+                {
+                    writer.Write(".Value; return Tuple.Create<{0}, Action>(temp, () => {{ ", GetTypeName(importDefinition.CoercedValueType));
+                    if (typeof(IDisposable).IsAssignableFrom(export.PartDefinition.Type))
+                    {
+                        writer.Write("((IDisposable)temp).Dispose(); ");
+                    }
+
+                    writer.Write("}); }");
+                    this.WriteExportMetadataReference(export, importDefinition, writer);
+                    writer.Write(")");
+                });
+            }
 
             return new DisposableWithAction(() =>
             {
@@ -178,18 +196,8 @@
                 {
                     if (importDefinition.MetadataType != null)
                     {
-                        writer.Write("{0}, ", memberAccessor);
-                        if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
-                        {
-                            writer.Write("new {0}(", GetClassNameForMetadataView(importDefinition.MetadataType));
-                        }
-
-                        writer.Write(GetExportMetadata(export));
-                        if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
-                        {
-                            writer.Write(")");
-                        }
-
+                        writer.Write("{0}", memberAccessor);
+                        this.WriteExportMetadataReference(export, importDefinition, writer);
                         writer.Write(", true)");
                     }
                     else if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
@@ -206,6 +214,24 @@
                     writer.Write(memberAccessor);
                 }
             });
+        }
+
+        private void WriteExportMetadataReference(Export export, ImportDefinition importDefinition, TextWriter writer)
+        {
+            if (importDefinition.MetadataType != null)
+            {
+                writer.Write(", ");
+                if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
+                {
+                    writer.Write("new {0}(", GetClassNameForMetadataView(importDefinition.MetadataType));
+                }
+
+                writer.Write(GetExportMetadata(export));
+                if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
+                {
+                    writer.Write(")");
+                }
+            }
         }
 
         private static string GetTypeName(Type type)

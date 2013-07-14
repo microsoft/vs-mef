@@ -19,7 +19,7 @@
 
         #region V1 tests
 
-        [MefFact(CompositionEngines.V1, typeof(PartFactoryV1), typeof(NonSharedPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(NonSharedPart))]
         public void ExportFactoryForNonSharedPartV1(IContainer container)
         {
             var partFactory = container.GetExportedValue<PartFactoryV1>();
