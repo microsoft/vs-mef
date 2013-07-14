@@ -156,11 +156,10 @@
         private IDisposable ValueFactoryWrapper(Import import, Export export, TextWriter writer)
         {
             var importDefinition = import.ImportDefinition;
-            string memberModifier = export.ExportingMember == null ? string.Empty : "." + export.ExportingMember.Name;
 
-            string fullTypeNameWithPerhapsLazy = GetTypeName(importDefinition.LazyType ?? importDefinition.CoercedValueType);
             if (importDefinition.IsLazyConcreteType)
             {
+                string fullTypeNameWithPerhapsLazy = GetTypeName(importDefinition.LazyType ?? importDefinition.CoercedValueType);
                 if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type) && import.PartDefinition != export.PartDefinition)
                 {
                     writer.Write("({0})", fullTypeNameWithPerhapsLazy);
@@ -173,11 +172,13 @@
 
             return new DisposableWithAction(() =>
             {
+                string memberModifier = export.ExportingMember == null ? string.Empty : "." + export.ExportingMember.Name;
+                string memberAccessor = ".Value" + memberModifier;
                 if (importDefinition.IsLazy)
                 {
                     if (importDefinition.MetadataType != null)
                     {
-                        writer.Write(".Value{0}, ", memberModifier);
+                        writer.Write("{0}, ", memberAccessor);
                         if (importDefinition.MetadataType != typeof(IDictionary<string, object>))
                         {
                             writer.Write("new {0}(", GetClassNameForMetadataView(importDefinition.MetadataType));
@@ -193,7 +194,7 @@
                     }
                     else if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
                     {
-                        writer.Write(".Value{0}, true)", memberModifier);
+                        writer.Write("{0}, true)", memberAccessor);
                     }
                     else if (import.PartDefinition == export.PartDefinition)
                     {
@@ -202,7 +203,7 @@
                 }
                 else if (import.PartDefinition != export.PartDefinition)
                 {
-                    writer.Write(".Value{0}", memberModifier);
+                    writer.Write(memberAccessor);
                 }
             });
         }
