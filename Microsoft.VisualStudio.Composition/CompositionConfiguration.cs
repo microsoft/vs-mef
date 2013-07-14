@@ -73,7 +73,11 @@
             }
 
             // Detect loops of all non-shared parts.
-            CheckForLoopsOfNonSharedParts(parts);
+            if (IsLoopPresent(parts))
+            {
+                Console.WriteLine(CreateDgml(parts));
+                Verify.FailOperation("Loop detected.");
+            }
 
             return new CompositionConfiguration(catalog, parts);
         }
@@ -117,7 +121,7 @@
             }
         }
 
-        private static void CheckForLoopsOfNonSharedParts(ImmutableHashSet<ComposablePart> parts)
+        private static bool IsLoopPresent(ImmutableHashSet<ComposablePart> parts)
         {
             var partsAndDirectImports = new Dictionary<ComposablePart, ImmutableHashSet<ComposablePart>>();
 
@@ -133,7 +137,7 @@
             }
 
             // Now create a map of each part and all the parts it transitively imports.
-            Verify.Operation(!IsLoopPresent(partsAndDirectImports.Keys, p => partsAndDirectImports[p]), "Loop detected.");
+            return IsLoopPresent(partsAndDirectImports.Keys, p => partsAndDirectImports[p]);
         }
 
         private static bool IsLoopPresent<T>(IEnumerable<T> values, Func<T, IEnumerable<T>> getDirectLinks)
@@ -154,7 +158,13 @@
                     var node = queue.Dequeue();
                     if (!visitedNodes.Add(node))
                     {
-                        return true;
+                        // Only claim to have detected a loop if we got back to the *original* part.
+                        // This is because they may be multiple legit routes from the original part
+                        // to the part we're looking at now.
+                        if (value.Equals(node))
+                        {
+                            return true;
+                        }
                     }
 
                     foreach (var directLink in getDirectLinks(node).Distinct())
@@ -240,10 +250,17 @@
 
         public XDocument CreateDgml()
         {
+            return CreateDgml(this.Parts);
+        }
+
+        private static XDocument CreateDgml(ISet<ComposablePart> parts)
+        {
+            Requires.NotNull(parts, "parts");
+
             XElement nodes, links;
             var dgml = Dgml.Create(out nodes, out links);
 
-            foreach (var part in this.Parts)
+            foreach (var part in parts)
             {
                 nodes.Add(Dgml.Node(part.Definition.Id, part.Definition.Id));
                 foreach (var import in part.SatisfyingExports.Keys)

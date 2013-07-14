@@ -190,5 +190,46 @@
         }
 
         #endregion
+
+        #region No loop, but with multiple paths to a common import
+
+        [Fact]
+        public void ValidMultiplePaths()
+        {
+            CompositionConfiguration.Create(
+                typeof(ValidMultiplePathRoot),
+                typeof(ValidMultiplePathTrail1),
+                typeof(ValidMultiplePathTrail2),
+                typeof(ValidMultiplePathCommonImport));
+        }
+
+        [Export]
+        public class ValidMultiplePathRoot
+        {
+            [Import]
+            public ValidMultiplePathTrail1 Trail1 { get; set; }
+
+            [Import]
+            public ValidMultiplePathTrail2 Trail2 { get; set; }
+        }
+
+        [Export]
+        public class ValidMultiplePathTrail1
+        {
+            [Import]
+            public ValidMultiplePathCommonImport ImportingProperty { get; set; }
+        }
+
+        [Export]
+        public class ValidMultiplePathTrail2
+        {
+            [Import]
+            public ValidMultiplePathCommonImport ImportingProperty { get; set; }
+        }
+
+        [Export]
+        public class ValidMultiplePathCommonImport { }
+
+        #endregion
     }
 }
