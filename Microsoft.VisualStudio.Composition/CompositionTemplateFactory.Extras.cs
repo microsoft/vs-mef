@@ -13,6 +13,8 @@
 
     partial class CompositionTemplateFactory
     {
+        private const string InstantiatedPartLocalVarName = "result";
+
         public CompositionConfiguration Configuration { get; set; }
 
         private void EmitImportSatisfyingAssignment(KeyValuePair<Import, IReadOnlyList<Export>> satisfyingExport)
@@ -40,9 +42,10 @@
             else if (exports.Any())
             {
                 var export = exports.Single();
-                if (export.PartDefinition == importingPartDefinition && importingPartDefinition.IsShared)
+                if (export.PartDefinition == importingPartDefinition)
                 {
-                    right.Write("result");
+                    // The part is importing itself. So just assign it directly.
+                    right.Write(InstantiatedPartLocalVarName);
                 }
                 else
                 {
@@ -54,7 +57,7 @@
             if (rightString.Length > 0)
             {
                 this.Write(this.CurrentIndent);
-                this.Write("result.{0}",  importingMember.Name);
+                this.Write("{0}.{1}", InstantiatedPartLocalVarName, importingMember.Name);
                 this.Write(" = ");
                 this.Write(rightString);
                 this.WriteLine(";");
@@ -102,15 +105,15 @@
         private void EmitInstantiatePart(ComposablePart part)
         {
             this.Write(this.CurrentIndent);
-            this.WriteLine("var result = new {0}();", GetTypeName(part.Definition.Type));
+            this.WriteLine("var {0} = new {1}();", InstantiatedPartLocalVarName, GetTypeName(part.Definition.Type));
             if (typeof(IDisposable).IsAssignableFrom(part.Definition.Type))
             {
                 this.Write(this.CurrentIndent);
-                this.WriteLine("this.TrackDisposableValue(result);");
+                this.WriteLine("this.TrackDisposableValue({0});", InstantiatedPartLocalVarName);
             }
 
             this.Write(this.CurrentIndent);
-            this.WriteLine("provisionalSharedObjects.Add(typeof({0}), result);", GetTypeName(part.Definition.Type));
+            this.WriteLine("provisionalSharedObjects.Add(typeof({0}), {1});", GetTypeName(part.Definition.Type), InstantiatedPartLocalVarName);
 
             foreach (var satisfyingExport in part.SatisfyingExports)
             {
@@ -122,19 +125,19 @@
                 if (part.Definition.OnImportsSatisfied.DeclaringType.IsInterface)
                 {
                     this.Write(this.CurrentIndent);
-                    this.WriteLine("{0} onImportsSatisfiedInterface = result;", part.Definition.OnImportsSatisfied.DeclaringType.FullName);
+                    this.WriteLine("{0} onImportsSatisfiedInterface = {1};", part.Definition.OnImportsSatisfied.DeclaringType.FullName, InstantiatedPartLocalVarName);
                     this.Write(this.CurrentIndent);
                     this.WriteLine("onImportsSatisfiedInterface.{0}();", part.Definition.OnImportsSatisfied.Name);
                 }
                 else
                 {
                     this.Write(this.CurrentIndent);
-                    this.WriteLine("result.{0}();", part.Definition.OnImportsSatisfied.Name);
+                    this.WriteLine("{0}.{1}();", InstantiatedPartLocalVarName, part.Definition.OnImportsSatisfied.Name);
                 }
             }
 
             this.Write(this.CurrentIndent);
-            this.WriteLine("return result;");
+            this.WriteLine("return {0};", InstantiatedPartLocalVarName);
         }
 
         private HashSet<Type> GetMetadataViewInterfaces()
