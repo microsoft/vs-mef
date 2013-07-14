@@ -195,7 +195,7 @@
 
             var pc = new ProjectCollection();
             ProjectRootElement pre;
-            using (var templateStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Microsoft.VisualStudio.Composition.PrecompiledTemplate.csproj"))
+            using (var templateStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Microsoft.VisualStudio.Composition.CompositionTemplateFactory.csproj"))
             {
                 using (var xmlReader = XmlReader.Create(templateStream))
                 {
