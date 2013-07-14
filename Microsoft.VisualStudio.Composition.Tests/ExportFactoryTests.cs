@@ -39,15 +39,15 @@
             Assert.Equal(1, NonSharedPart.DisposalCounter);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartFactoryManyV1), typeof(NonSharedPart), typeof(NonSharedPart2))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryManyV1), typeof(NonSharedPart), typeof(NonSharedPart2))]
         public void ExportFactoryForNonSharedPartManyV1(IContainer container)
         {
             var partFactory = container.GetExportedValue<PartFactoryManyV1>();
             Assert.NotNull(partFactory.Factories);
-            Assert.Equal(2, partFactory.Factories.Length);
+            Assert.Equal(2, partFactory.Factories.Count());
 
             Assert.NotNull(partFactory.FactoriesWithMetadata);
-            Assert.Equal(2, partFactory.FactoriesWithMetadata.Length);
+            Assert.Equal(2, partFactory.FactoriesWithMetadata.Count());
             var factory1 = partFactory.FactoriesWithMetadata.Single(f => "V".Equals(f.Metadata["N"]));
             var factory2 = partFactory.FactoriesWithMetadata.Single(f => "V2".Equals(f.Metadata["N"]));
 
@@ -76,10 +76,10 @@
         public class PartFactoryManyV1
         {
             [MefV1.ImportMany]
-            public MefV1.ExportFactory<NonSharedPart>[] Factories { get; set; }
+            public IEnumerable<MefV1.ExportFactory<NonSharedPart>> Factories { get; set; }
 
             [MefV1.ImportMany]
-            public MefV1.ExportFactory<NonSharedPart, IDictionary<string, object>>[] FactoriesWithMetadata { get; set; }
+            public IEnumerable<MefV1.ExportFactory<NonSharedPart, IDictionary<string, object>>> FactoriesWithMetadata { get; set; }
         }
 
         #endregion
@@ -111,10 +111,10 @@
         {
             var partFactory = container.GetExportedValue<PartFactoryManyV2>();
             Assert.NotNull(partFactory.Factories);
-            Assert.Equal(2, partFactory.Factories.Length);
+            Assert.Equal(2, partFactory.Factories.Count());
 
             Assert.NotNull(partFactory.FactoriesWithMetadata);
-            Assert.Equal(2, partFactory.FactoriesWithMetadata.Length);
+            Assert.Equal(2, partFactory.FactoriesWithMetadata.Count());
             var factory1 = partFactory.FactoriesWithMetadata.Single(f => "V".Equals(f.Metadata["N"]));
             var factory2 = partFactory.FactoriesWithMetadata.Single(f => "V2".Equals(f.Metadata["N"]));
 
@@ -143,10 +143,10 @@
         public class PartFactoryManyV2
         {
             [ImportMany]
-            public ExportFactory<NonSharedPart>[] Factories { get; set; }
+            public IEnumerable<ExportFactory<NonSharedPart>> Factories { get; set; }
 
             [ImportMany]
-            public ExportFactory<NonSharedPart, IDictionary<string, object>>[] FactoriesWithMetadata { get; set; }
+            public IEnumerable<ExportFactory<NonSharedPart, IDictionary<string, object>>> FactoriesWithMetadata { get; set; }
         }
 
         #endregion

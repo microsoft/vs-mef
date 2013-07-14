@@ -54,14 +54,9 @@
                 {
                     Type contractType = propertyOrFieldType;
                     Type wrapperType = null;
-                    if (contractType.IsAnyLazyType())
+                    if (contractType.IsAnyLazyType() || contractType.IsExportFactoryTypeV1())
                     {
-                        wrapperType = propertyOrFieldType;
-                        contractType = contractType.GetGenericArguments()[0];
-                    }
-                    else if (contractType.IsExportFactoryTypeV1())
-                    {
-                        wrapperType = propertyOrFieldType;
+                        wrapperType = contractType;
                         contractType = contractType.GetGenericArguments()[0];
                     }
 
@@ -76,10 +71,10 @@
                 else if (importManyAttribute != null)
                 {
                     Type contractType = propertyOrFieldType.GetGenericArguments()[0];
-                    Type lazyType = null;
-                    if (contractType.IsAnyLazyType())
+                    Type wrapperType = null;
+                    if (contractType.IsAnyLazyType() || contractType.IsExportFactoryTypeV1())
                     {
-                        lazyType = contractType;
+                        wrapperType = contractType;
                         contractType = contractType.GetGenericArguments()[0];
                     }
 
@@ -87,7 +82,7 @@
                     var importDefinition = new ImportDefinition(
                         contract,
                         ImportCardinality.ZeroOrMore,
-                        lazyType,
+                        wrapperType,
                         ImmutableList.Create<IImportSatisfiabilityConstraint>());
                     imports.Add(member, importDefinition);
                 }

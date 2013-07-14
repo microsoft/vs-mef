@@ -53,10 +53,10 @@
                 if (importAttribute != null)
                 {
                     Type contractType = member.PropertyType;
-                    Type lazyType = null;
-                    if (contractType.IsAnyLazyType())
+                    Type wrapperType = null;
+                    if (contractType.IsAnyLazyType() || contractType.IsExportFactoryTypeV2())
                     {
-                        lazyType = member.PropertyType;
+                        wrapperType = contractType;
                         contractType = contractType.GetGenericArguments()[0];
                     }
 
@@ -64,17 +64,17 @@
                     var importDefinition = new ImportDefinition(
                         contract,
                         importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
-                        lazyType,
+                        wrapperType,
                         importConstraints.ToImmutable());
                     imports.Add(member, importDefinition);
                 }
                 else if (importManyAttribute != null)
                 {
                     Type contractType = member.PropertyType.GetGenericArguments()[0];
-                    Type lazyType = null;
-                    if (contractType.IsAnyLazyType())
+                    Type wrapperType = null;
+                    if (contractType.IsAnyLazyType() || contractType.IsExportFactoryTypeV2())
                     {
-                        lazyType = contractType;
+                        wrapperType = contractType;
                         contractType = contractType.GetGenericArguments()[0];
                     }
 
@@ -82,7 +82,7 @@
                     var importDefinition = new ImportDefinition(
                         contract,
                         ImportCardinality.ZeroOrMore,
-                        lazyType,
+                        wrapperType,
                         importConstraints.ToImmutable());
                     imports.Add(member, importDefinition);
                 }
