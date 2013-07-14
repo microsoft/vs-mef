@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="AttributedPartDiscoveryV1.cs" />
     <Compile Include="AttributedPartDiscovery.cs" />
+    <Compile Include="AwaitExtensions.cs" />
     <Compile Include="ComposableCatalog.cs" />
     <Compile Include="ComposablePart.cs" />
     <Compile Include="CompositionTemplateFactory.Extras.cs" />

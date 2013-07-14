@@ -11,6 +11,12 @@
 
     internal static class TestUtilities
     {
+        internal static CompositionContainer CreateContainer(this CompositionConfiguration configuration)
+        {
+            Requires.NotNull(configuration, "configuration");
+            return configuration.CreateContainerFactoryAsync().Result.CreateContainer();
+        }
+
         internal static CompositionContainer CreateContainer(params Type[] parts)
         {
             return CompositionConfiguration.Create(parts).CreateContainer();

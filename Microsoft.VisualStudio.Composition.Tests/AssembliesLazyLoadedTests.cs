@@ -16,11 +16,11 @@
         /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
         /// </summary>
         [Fact(Skip = "Functionality not yet implemented.")]
-        public void ComposableAssembliesLazyLoadedWhenQueried()
+        public async Task ComposableAssembliesLazyLoadedWhenQueried()
         {
             var configuration = CompositionConfiguration.Create(typeof(ExternalExport), typeof(YetAnotherExport));
             string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            configuration.Save(path);
+            await configuration.SaveAsync(path);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
             var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
@@ -41,11 +41,11 @@
         /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
         /// </summary>
         [Fact(Skip = "Functionality not yet implemented.")]
-        public void ComposableAssembliesLazyLoadedByLazyImport()
+        public async Task ComposableAssembliesLazyLoadedByLazyImport()
         {
             var configuration = CompositionConfiguration.Create(typeof(ExternalExport), typeof(YetAnotherExport));
             string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            configuration.Save(path);
+            await configuration.SaveAsync(path);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
             var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);

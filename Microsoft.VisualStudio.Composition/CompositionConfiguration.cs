@@ -21,11 +21,8 @@
     using Validation;
     using Task = System.Threading.Tasks.Task;
 
-    public class CompositionConfiguration : ICompositionContainerFactory
+    public class CompositionConfiguration
     {
-        private Lazy<Assembly> precompiledAssembly;
-        private Lazy<ContainerFactory> containerFactory;
-
         private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposablePart> parts)
         {
             Requires.NotNull(catalog, "catalog");
@@ -33,10 +30,6 @@
 
             this.Catalog = catalog;
             this.Parts = parts;
-
-            // Arrange for actually compiling the assembly when asked for.
-            this.precompiledAssembly = new Lazy<Assembly>(this.CreateAssembly, true);
-            this.containerFactory = new Lazy<ContainerFactory>(() => new ContainerFactory(this.precompiledAssembly.Value), true);
         }
 
         public ComposableCatalog Catalog { get; private set; }
@@ -97,16 +90,19 @@
             return new ContainerFactory(Assembly.LoadFile(path));
         }
 
-        public void Save(string assemblyPath)
+        public async Task SaveAsync(string assemblyPath)
         {
             Requires.NotNullOrEmpty(assemblyPath, "assemblyPath");
 
-            File.Copy(precompiledAssembly.Value.Location, assemblyPath);
+            var sourceFilePath = this.CreateCompositionSourceFile();
+            await this.CompileAsync(sourceFilePath, assemblyPath);
         }
 
-        public CompositionContainer CreateContainer()
+        public async Task<ICompositionContainerFactory> CreateContainerFactoryAsync()
         {
-            return this.containerFactory.Value.CreateContainer();
+            string targetPath = Path.GetTempFileName();
+            await this.SaveAsync(targetPath);
+            return Load(targetPath);
         }
 
         private static void WriteWithLineNumbers(TextWriter writer, string content)
@@ -182,17 +178,8 @@
             return sourceFilePath;
         }
 
-        private Assembly CreateAssembly()
+        private async Task CompileAsync(string sourceFilePath, string targetPath)
         {
-            var sourceFilePath = this.CreateCompositionSourceFile();
-            Assembly precompiledComposition = this.Compile(sourceFilePath);
-            return precompiledComposition;
-        }
-
-        private Assembly Compile(string sourceFilePath)
-        {
-            var targetPath = Path.GetTempFileName();
-
             var pc = new ProjectCollection();
             ProjectRootElement pre;
             using (var templateStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Microsoft.VisualStudio.Composition.CompositionTemplateFactory.csproj"))
@@ -228,7 +215,7 @@
                 var hostServices = new HostServices();
                 buildManager.BeginBuild(new BuildParameters(pc) { DisableInProcNode = true });
                 var buildSubmission = buildManager.PendBuildRequest(new BuildRequestData(projectPath, globalProperties, null, new[] { "Build", "GetTargetPath" }, hostServices));
-                buildResult = buildSubmission.Execute();
+                buildResult = await buildSubmission.ExecuteAsync();
                 buildManager.EndBuild();
             }
 
@@ -239,12 +226,16 @@
 
             if (buildResult.OverallResult != BuildResultCode.Success)
             {
-                throw new InvalidOperationException("Build failed. Project File was \""  + projectPath + "\"", buildResult.Exception);
+                throw new InvalidOperationException("Build failed. Project File was \"" + projectPath + "\"", buildResult.Exception);
             }
 
             string finalAssemblyPath = buildResult.ResultsByTarget["GetTargetPath"].Items.Single().ItemSpec;
-
-            return Assembly.LoadFrom(finalAssemblyPath);
+            if (Path.GetFileName(finalAssemblyPath) != Path.GetFileName(targetPath))
+            {
+                // If the caller requested a non .dll extension, we need to honor that.
+                File.Delete(targetPath);
+                File.Move(finalAssemblyPath, targetPath);
+            }
         }
 
         public XDocument CreateDgml()

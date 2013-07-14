@@ -14,11 +14,11 @@
     public class CacheAndReloadTests
     {
         [Fact]
-        public void CacheAndReload()
+        public async Task CacheAndReload()
         {
             var configuration = CompositionConfiguration.Create(typeof(SomeExport));
             string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            configuration.Save(path);
+            await configuration.SaveAsync(path);
             configuration = null;
 
             var reconstitutedConfiguration = CompositionConfiguration.Load(path);
