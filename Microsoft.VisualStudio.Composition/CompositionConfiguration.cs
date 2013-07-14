@@ -16,6 +16,8 @@
     using Microsoft.Build.Construction;
     using Microsoft.Build.Evaluation;
     using Microsoft.Build.Execution;
+    using Microsoft.Build.Framework;
+    using Microsoft.Build.Logging;
     using Microsoft.Build.Tasks;
     using Microsoft.Build.Utilities;
     using Validation;
@@ -223,7 +225,12 @@
             using (var buildManager = new BuildManager())
             {
                 var hostServices = new HostServices();
-                buildManager.BeginBuild(new BuildParameters(pc) { DisableInProcNode = true });
+                var logger = new ConsoleLogger(LoggerVerbosity.Minimal);
+                buildManager.BeginBuild(new BuildParameters(pc)
+                {
+                    DisableInProcNode = true,
+                    Loggers = new ILogger[] { logger },
+                });
                 var buildSubmission = buildManager.PendBuildRequest(new BuildRequestData(projectPath, globalProperties, null, new[] { "Build", "GetTargetPath" }, hostServices));
                 buildResult = await buildSubmission.ExecuteAsync();
                 buildManager.EndBuild();
