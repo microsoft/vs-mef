@@ -83,6 +83,7 @@
     <Compile Include="CircularDependencyTests.cs" />
     <Compile Include="CompositionCatalogTests.cs" />
     <Compile Include="CustomMetadataTests.cs" />
+    <Compile Include="ExplicitImportIdentityTypeTests.cs" />
     <Compile Include="ExportFactoryTests.cs" />
     <Compile Include="ExportingMembersTests.cs" />
     <Compile Include="NameAndAgeV1Attribute.cs" />
