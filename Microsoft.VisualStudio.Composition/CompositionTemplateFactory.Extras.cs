@@ -96,7 +96,7 @@
             {
                 builder.AppendFormat(" {{ \"{0}\", \"{1}\" }}, ", metadatum.Key, (string)metadatum.Value);
             }
-            builder.Append("}");
+            builder.Append("}.ToImmutableDictionary()");
             return builder.ToString();
         }
 

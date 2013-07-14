@@ -33,7 +33,7 @@
             Assert.Same(importingPart1.ImportingProperty.Metadata, importingPart2.ImportingProperty.Metadata);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ImportingPartWithMetadataDictionary), typeof(PartWithExportMetadata))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportingPartWithMetadataDictionary), typeof(PartWithExportMetadata))]
         public void MetadataDictionaryInstanceIsImmutable(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPartWithMetadataDictionary>();
