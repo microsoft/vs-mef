@@ -100,6 +100,7 @@
     <Compile Include="IContainer.cs" />
     <Compile Include="ImportManyTests.cs" />
     <Compile Include="LazyImportTests.cs" />
+    <Compile Include="NonPublicImportsExportsTests.cs" />
     <Compile Include="OnImportsSatisfiedTests.cs" />
     <Compile Include="OpenGenericExportTests.cs" />
     <Compile Include="NamedTypedExportTests.cs" />
