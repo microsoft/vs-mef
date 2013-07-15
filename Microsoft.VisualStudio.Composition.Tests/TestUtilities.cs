@@ -25,7 +25,7 @@
         internal static IContainer CreateContainerV1(params Type[] parts)
         {
             var catalog = new MefV1.Hosting.TypeCatalog(parts);
-            var container = new MefV1.Hosting.CompositionContainer(catalog);
+            var container = new MefV1.Hosting.CompositionContainer(catalog, MefV1.Hosting.CompositionOptions.ExportCompositionService);
             return new V1ContainerWrapper(container);
         }
 
