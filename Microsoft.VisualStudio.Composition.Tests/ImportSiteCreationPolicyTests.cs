@@ -12,7 +12,7 @@
     {
         #region Import of PartCreationPolicy.Any tests and parts
 
-        [MefFact(CompositionEngines.V1Compat)]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportAnyAsAnyPart), typeof(ExportWithAnyCreationPolicy), typeof(ExportWithDefaultCreationPolicy))]
         public void ImportAnyAsAny(IContainer container)
         {
             var part1 = container.GetExportedValue<ImportAnyAsAnyPart>();
@@ -23,7 +23,7 @@
             Assert.Same(part1.ImportDefaultAsDefault, part2.ImportDefaultAsDefault);
         }
 
-        [MefFact(CompositionEngines.V1Compat)]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportAnyAsSharedPart), typeof(ExportWithAnyCreationPolicy))]
         public void ImportAnyAsShared(IContainer container)
         {
             var part1 = container.GetExportedValue<ImportAnyAsSharedPart>();
@@ -31,7 +31,7 @@
             Assert.Same(part1.ImportingProperty, part2.ImportingProperty);
         }
 
-        [MefFact(CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V1, typeof(ImportAnyAsNonSharedPart), typeof(ExportWithAnyCreationPolicy))]
         public void ImportAnyAsNonShared(IContainer container)
         {
             var part1 = container.GetExportedValue<ImportAnyAsNonSharedPart>();
@@ -79,7 +79,7 @@
 
         #region Import of PartCreationPolicy.Shared tests and parts
 
-        [MefFact(CompositionEngines.V1Compat)]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportSharedAsAnyPart), typeof(ExportWithSharedCreationPolicy))]
         public void ImportSharedAsAny(IContainer container)
         {
             var part1 = container.GetExportedValue<ImportSharedAsAnyPart>();
@@ -87,7 +87,7 @@
             Assert.Same(part1.ImportingProperty, part2.ImportingProperty);
         }
 
-        [MefFact(CompositionEngines.V1Compat)]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportSharedAsSharedPart), typeof(ExportWithSharedCreationPolicy))]
         public void ImportSharedAsShared(IContainer container)
         {
             var part1 = container.GetExportedValue<ImportSharedAsSharedPart>();
@@ -95,7 +95,7 @@
             Assert.Same(part1.ImportingProperty, part2.ImportingProperty);
         }
 
-        [MefFact(CompositionEngines.V1, InvalidConfiguration = true)]
+        [MefFact(CompositionEngines.V1, typeof(ImportSharedAsNonSharedPart), typeof(ExportWithSharedCreationPolicy), InvalidConfiguration = true)]
         public void ImportSharedAsNonShared(IContainer container)
         {
             container.GetExportedValue<ImportSharedAsNonSharedPart>();
@@ -129,7 +129,7 @@
 
         #region Import of PartCreationPolicy.NonShared parts
 
-        [MefFact(CompositionEngines.V1Compat)]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportNonSharedAsAnyPart), typeof(ExportWithNonSharedCreationPolicy))]
         public void ImportNonSharedAsAny(IContainer container)
         {
             var part1 = container.GetExportedValue<ImportNonSharedAsAnyPart>();
@@ -137,13 +137,13 @@
             Assert.NotSame(part1.ImportingProperty, part2.ImportingProperty);
         }
 
-        [MefFact(CompositionEngines.V1, InvalidConfiguration = true)]
+        [MefFact(CompositionEngines.V1, typeof(ImportNonSharedAsSharedPart), typeof(ExportWithNonSharedCreationPolicy), InvalidConfiguration = true)]
         public void ImportNonSharedAsShared(IContainer container)
         {
             container.GetExportedValue<ImportNonSharedAsSharedPart>();
         }
 
-        [MefFact(CompositionEngines.V1Compat)]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportNonSharedAsNonSharedPart), typeof(ExportWithNonSharedCreationPolicy))]
         public void ImportNonSharedAsNonShared(IContainer container)
         {
             var part1 = container.GetExportedValue<ImportNonSharedAsNonSharedPart>();
