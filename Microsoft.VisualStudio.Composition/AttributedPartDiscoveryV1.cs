@@ -20,6 +20,7 @@
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, ExportDefinition>();
             var imports = ImmutableDictionary.CreateBuilder<MemberInfo, ImportDefinition>();
             var exportMetadataOnType = GetExportMetadata(partType.GetCustomAttributes());
+            var partCreationPolicy = CreationPolicy.Any;
 
             foreach (var exportAttribute in partType.GetCustomAttributes<ExportAttribute>())
             {
@@ -33,6 +34,7 @@
             string sharingBoundary = string.Empty;
             if (partCreationPolicyAttribute != null)
             {
+                partCreationPolicy = partCreationPolicyAttribute.CreationPolicy;
                 if (partCreationPolicyAttribute.CreationPolicy == CreationPolicy.NonShared)
                 {
                     sharingBoundary = null;
@@ -49,10 +51,18 @@
                 var exportAttribute = member.GetCustomAttribute<ExportAttribute>();
                 Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", "Member \"{0}\" contains both ImportAttribute and ImportManyAttribute.", member.Name);
                 Requires.Argument(!(exportAttribute != null && (importAttribute != null || importManyAttribute != null)), "partType", "Member \"{0}\" contains both import and export attributes.", member.Name);
+                var requiredCreationPolicy = CreationPolicy.Any;
 
                 if (importAttribute != null)
                 {
+                    requiredCreationPolicy = importAttribute.RequiredCreationPolicy;
                     Type contractType = propertyOrFieldType;
+
+                    if (contractType.IsExportFactoryTypeV1())
+                    {
+                        requiredCreationPolicy = CreationPolicy.NonShared;
+                    }
+                    
                     Type wrapperType = null;
                     if (contractType.IsAnyLazyType() || contractType.IsExportFactoryTypeV1())
                     {
@@ -65,12 +75,20 @@
                         contract,
                         importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
                         wrapperType,
-                        ImmutableList.Create<IImportSatisfiabilityConstraint>());
+                        ImmutableList.Create<IImportSatisfiabilityConstraint>(),
+                        requiredCreationPolicy);
                     imports.Add(member, importDefinition);
                 }
                 else if (importManyAttribute != null)
                 {
+                    requiredCreationPolicy = importManyAttribute.RequiredCreationPolicy;
                     Type contractType = propertyOrFieldType.GetGenericArguments()[0];
+
+                    if (contractType.IsExportFactoryTypeV1())
+                    {
+                        requiredCreationPolicy = CreationPolicy.NonShared;
+                    }
+                    
                     Type wrapperType = null;
                     if (contractType.IsAnyLazyType() || contractType.IsExportFactoryTypeV1())
                     {
@@ -83,7 +101,8 @@
                         contract,
                         ImportCardinality.ZeroOrMore,
                         wrapperType,
-                        ImmutableList.Create<IImportSatisfiabilityConstraint>());
+                        ImmutableList.Create<IImportSatisfiabilityConstraint>(),
+                        requiredCreationPolicy);
                     imports.Add(member, importDefinition);
                 }
                 else if (exportAttribute != null)
@@ -115,7 +134,7 @@
             }
 
             return exportsOnMembers.Count > 0 || exportsOnType.Count > 0
-                ? new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary, onImportsSatisfied)
+                ? new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary, onImportsSatisfied, partCreationPolicy)
                 : null;
         }
 

@@ -9,6 +9,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
+    using MefV1 = System.ComponentModel.Composition;
 
     public class ComposableCatalog
     {
@@ -38,6 +39,7 @@
                 ImmutableList.Create<Export>());
 
             var filteredExports = from export in exports
+                                  where HasCompatibleCreationPolicies(export.PartDefinition, import)
                                   where HasMetadata(export.ExportDefinition, GetRequiredMetadata(import))
                                   where import.ExportContraints.All(c => c.IsSatisfiedBy(import, export.ExportDefinition))
                                   select export;
@@ -113,6 +115,13 @@
             Requires.NotNull(metadataNames, "metadataNames");
 
             return metadataNames.All(name => exportDefinition.Metadata.ContainsKey(name));
+        }
+
+        private static bool HasCompatibleCreationPolicies(ComposablePartDefinition exportPartDefinition, ImportDefinition importDefinition)
+        {
+            return exportPartDefinition.CreationPolicy == MefV1.CreationPolicy.Any
+                || importDefinition.RequiredCreationPolicy == MefV1.CreationPolicy.Any
+                || exportPartDefinition.CreationPolicy == importDefinition.RequiredCreationPolicy;
         }
 
         private static IReadOnlyCollection<string> GetRequiredMetadata(ImportDefinition importDefinition)

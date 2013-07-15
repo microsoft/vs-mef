@@ -10,6 +10,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
+    using MefV1 = System.ComponentModel.Composition;
 
     partial class CompositionTemplateFactory
     {
@@ -82,8 +83,9 @@
                 else
                 {
                     writer.Write(
-                        "this.{0}(provisionalSharedObjects)",
-                        GetPartFactoryMethodName(export.PartDefinition, import.ImportDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
+                        "this.{0}(provisionalSharedObjects{1})",
+                        GetPartFactoryMethodName(export.PartDefinition, import.ImportDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()),
+                        import.ImportDefinition.RequiredCreationPolicy == MefV1.CreationPolicy.NonShared ? ", nonSharedInstanceRequired: true" : string.Empty);
                 }
             }
         }

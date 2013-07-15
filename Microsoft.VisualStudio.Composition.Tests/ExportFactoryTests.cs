@@ -151,6 +151,40 @@
 
         #endregion
 
+        #region Invalid configuration tests
+
+        [MefFact(CompositionEngines.V1, typeof(ExportWithSharedCreationPolicy), typeof(ExportFactoryOfSharedPartV1Part))]
+        public void ExportFactoryOfSharedPartV1(IContainer container)
+        {
+            container.GetExportedValue<ExportFactoryOfSharedPartV1Part>();
+        }
+
+        [MefFact(CompositionEngines.V2, typeof(ExportWithSharedCreationPolicy), typeof(ExportFactoryOfSharedPartV2Part))]
+        public void ExportFactoryOfSharedPartV2(IContainer container)
+        {
+            container.GetExportedValue<ExportFactoryOfSharedPartV2Part>();
+        }
+
+        [MefV1.Export]
+        [Export, Shared]
+        public class ExportWithSharedCreationPolicy { }
+
+        [MefV1.Export]
+        public class ExportFactoryOfSharedPartV1Part
+        {
+            [MefV1.Import]
+            public MefV1.ExportFactory<ExportWithSharedCreationPolicy> Factory { get; set; }
+        }
+
+        [Export]
+        public class ExportFactoryOfSharedPartV2Part
+        {
+            [Import]
+            public ExportFactory<ExportWithSharedCreationPolicy> Factory { get; set; }
+        }
+
+        #endregion
+
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [MefV1.ExportMetadata("N", "V")]
         [Export]

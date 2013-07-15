@@ -31,7 +31,7 @@
             Assert.Same(part1.ImportingProperty, part2.ImportingProperty);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ImportAnyAsNonSharedPart), typeof(ExportWithAnyCreationPolicy))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportAnyAsNonSharedPart), typeof(ExportWithAnyCreationPolicy))]
         public void ImportAnyAsNonShared(IContainer container)
         {
             var part1 = container.GetExportedValue<ImportAnyAsNonSharedPart>();
@@ -95,19 +95,34 @@
             Assert.Same(part1.ImportingProperty, part2.ImportingProperty);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ImportSharedAsNonSharedPart), typeof(ExportWithSharedCreationPolicy), InvalidConfiguration = true)]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportSharedAsNonSharedPart), typeof(ExportWithSharedCreationPolicy), InvalidConfiguration = true)]
         public void ImportSharedAsNonShared(IContainer container)
         {
             container.GetExportedValue<ImportSharedAsNonSharedPart>();
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportSharedAsNonSharedOptionalPart), typeof(ExportWithSharedCreationPolicy))]
+        public void ImportSharedAsNonSharedOptional(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportSharedAsNonSharedOptionalPart>();
+            Assert.Null(part.ImportingProperty);
+        }
+
         [Export, PartCreationPolicy(CreationPolicy.Shared)]
+        [Export(typeof(object))]
         public class ExportWithSharedCreationPolicy { }
 
         [Export, PartCreationPolicy(CreationPolicy.NonShared)]
         public class ImportSharedAsNonSharedPart // Invalid combination test
         {
             [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+            public ExportWithSharedCreationPolicy ImportingProperty { get; set; }
+        }
+
+        [Export, PartCreationPolicy(CreationPolicy.NonShared)]
+        public class ImportSharedAsNonSharedOptionalPart
+        {
+            [Import(AllowDefault = true, RequiredCreationPolicy = CreationPolicy.NonShared)]
             public ExportWithSharedCreationPolicy ImportingProperty { get; set; }
         }
 
@@ -137,10 +152,17 @@
             Assert.NotSame(part1.ImportingProperty, part2.ImportingProperty);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ImportNonSharedAsSharedPart), typeof(ExportWithNonSharedCreationPolicy), InvalidConfiguration = true)]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportNonSharedAsSharedPart), typeof(ExportWithNonSharedCreationPolicy), InvalidConfiguration = true)]
         public void ImportNonSharedAsShared(IContainer container)
         {
             container.GetExportedValue<ImportNonSharedAsSharedPart>();
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportNonSharedAsSharedOptionalPart), typeof(ExportWithNonSharedCreationPolicy))]
+        public void ImportNonSharedAsSharedOptional(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportNonSharedAsSharedOptionalPart>();
+            Assert.Null(part.ImportingProperty);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ImportNonSharedAsNonSharedPart), typeof(ExportWithNonSharedCreationPolicy))]
@@ -152,12 +174,20 @@
         }
 
         [Export, PartCreationPolicy(CreationPolicy.NonShared)]
+        [Export(typeof(object))]
         public class ExportWithNonSharedCreationPolicy { }
 
         [Export, PartCreationPolicy(CreationPolicy.NonShared)]
         public class ImportNonSharedAsSharedPart // Invalid combination test
         {
             [Import(RequiredCreationPolicy = CreationPolicy.Shared)]
+            public ExportWithNonSharedCreationPolicy ImportingProperty { get; set; }
+        }
+
+        [Export, PartCreationPolicy(CreationPolicy.NonShared)]
+        public class ImportNonSharedAsSharedOptionalPart
+        {
+            [Import(AllowDefault = true, RequiredCreationPolicy = CreationPolicy.Shared)]
             public ExportWithNonSharedCreationPolicy ImportingProperty { get; set; }
         }
 
@@ -173,6 +203,43 @@
         {
             [Import(RequiredCreationPolicy = CreationPolicy.Any)]
             public ExportWithNonSharedCreationPolicy ImportingProperty { get; set; }
+        }
+
+        #endregion
+
+        #region Filtering tests
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportExportFactoryWithFilteringExportsPart), typeof(ExportWithSharedCreationPolicy), typeof(ExportWithNonSharedCreationPolicy))]
+        public void CreationPolicyFiltersExportFactory(IContainer container)
+        {
+            var factory = container.GetExportedValue<ImportExportFactoryWithFilteringExportsPart>();
+            var export = factory.Factory.CreateExport();
+            Assert.IsType<ExportWithNonSharedCreationPolicy>(export.Value);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportOneWithFilteringExportsPart), typeof(ExportWithSharedCreationPolicy), typeof(ExportWithNonSharedCreationPolicy))]
+        public void CreationPolicyFiltersImportOne(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportOneWithFilteringExportsPart>();
+            Assert.IsType<ExportWithNonSharedCreationPolicy>(part.NonShared);
+            Assert.IsType<ExportWithSharedCreationPolicy>(part.Shared);
+        }
+
+        [Export, PartCreationPolicy(CreationPolicy.NonShared)]
+        public class ImportExportFactoryWithFilteringExportsPart
+        {
+            [Import]
+            public ExportFactory<object> Factory { get; set; }
+        }
+
+        [Export, PartCreationPolicy(CreationPolicy.NonShared)]
+        public class ImportOneWithFilteringExportsPart
+        {
+            [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
+            public object NonShared { get; set; }
+
+            [Import(RequiredCreationPolicy = CreationPolicy.Shared)]
+            public object Shared { get; set; }
         }
 
         #endregion

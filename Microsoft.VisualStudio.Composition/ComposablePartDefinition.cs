@@ -8,6 +8,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
+    using MefV1 = System.ComponentModel.Composition;
 
     [DebuggerDisplay("{Type.Name}")]
     public class ComposablePartDefinition
@@ -25,6 +26,14 @@
             this.ImportDefinitions = imports;
             this.SharingBoundary = sharingBoundary;
             this.OnImportsSatisfied = onImportsSatisfied;
+
+            this.CreationPolicy = this.IsShared ? MefV1.CreationPolicy.Shared : MefV1.CreationPolicy.NonShared;
+        }
+
+        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, ExportDefinition> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, string sharingBoundary, MethodInfo onImportsSatisfied, MefV1.CreationPolicy partCreationPolicy)
+            : this(partType, exportsOnType, exportsOnMembers, imports, sharingBoundary, onImportsSatisfied)
+        {
+            this.CreationPolicy = partCreationPolicy;
         }
 
         public Type Type { get; private set; }
@@ -35,6 +44,8 @@
         }
 
         public string SharingBoundary { get; private set; }
+
+        public MefV1.CreationPolicy CreationPolicy { get; private set; }
 
         public bool IsShared
         {

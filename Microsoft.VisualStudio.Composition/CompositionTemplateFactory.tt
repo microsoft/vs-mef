@@ -59,7 +59,7 @@ foreach (var part in this.Configuration.Catalog.Parts)
 #>
                 var genericTemplateMethod = typeof(CompiledExportProvider).GetMethod("<#= GetPartFactoryMethodNameNoTypeArgs(part) #>", BindingFlags.Instance | BindingFlags.NonPublic);
                 var genericMethod = genericTemplateMethod.MakeGenericMethod(exportDefinition.Contract.Type.GetGenericArguments());
-                var part = genericMethod.Invoke(this, new object[] { provisionalSharedObjects });
+                var part = genericMethod.Invoke(this, new object[] { provisionalSharedObjects, /* nonSharedInstanceRequired: */ false });
                 return <#=GetPartOrMemberLazy("part", member, partExport)#>;
 <#
                 }
@@ -85,10 +85,10 @@ foreach (var part in this.Configuration.Parts)
 {
 #>
 
-    protected ILazy<<#= GetTypeName(part.Definition.Type) #>> <#= GetPartFactoryMethodName(part.Definition) #>(Dictionary<Type, object> provisionalSharedObjects)
+    protected ILazy<<#= GetTypeName(part.Definition.Type) #>> <#= GetPartFactoryMethodName(part.Definition) #>(Dictionary<Type, object> provisionalSharedObjects, bool nonSharedInstanceRequired = false)
     {
         ILazy<<#= GetTypeName(part.Definition.Type) #>> value;
-        if (TryGetProvisionalSharedExport(provisionalSharedObjects, out value))
+        if (!nonSharedInstanceRequired && TryGetProvisionalSharedExport(provisionalSharedObjects, out value))
         {
             return value;
         }
@@ -98,7 +98,7 @@ foreach (var part in this.Configuration.Parts)
         if (part.Definition.IsShared)
         {
 #>
-        if (!this.TryGetSharedInstanceFactory(out lazyResult))
+        if (nonSharedInstanceRequired || !this.TryGetSharedInstanceFactory(out lazyResult))
         {
             lazyResult = new LazyPart<<#= GetTypeName(part.Definition.Type) #>>(
                 delegate
@@ -110,7 +110,10 @@ foreach (var part in this.Configuration.Parts)
 #>
                 });
 
-            lazyResult = this.GetOrAddSharedInstanceFactory(lazyResult);
+            if (!nonSharedInstanceRequired)
+            {
+                lazyResult = this.GetOrAddSharedInstanceFactory(lazyResult);
+            }
         }
 <#
         }

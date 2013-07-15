@@ -7,6 +7,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
+    using MefV1 = System.ComponentModel.Composition;
 
     [DebuggerDisplay("{Contract.Type.Name,nq} (Lazy: {IsLazy}, {Cardinality})")]
     public class ImportDefinition : IEquatable<ImportDefinition>
@@ -22,9 +23,18 @@
             this.Cardinality = cardinality;
             this.wrapperType = wrapperType;
             this.ExportContraints = additionalConstraints;
+            this.RequiredCreationPolicy = MefV1.CreationPolicy.Any;
+        }
+
+        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, Type wrapperType, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, MefV1.CreationPolicy requiredCreationPolicy)
+            : this(contract, cardinality, wrapperType, additionalConstraints)
+        {
+            this.RequiredCreationPolicy = requiredCreationPolicy;
         }
 
         public ImportCardinality Cardinality { get; private set; }
+
+        public MefV1.CreationPolicy RequiredCreationPolicy { get; private set; }
 
         public bool IsLazy
         {
