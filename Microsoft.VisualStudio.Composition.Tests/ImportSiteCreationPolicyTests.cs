@@ -12,7 +12,7 @@
     {
         #region Import of PartCreationPolicy.Any tests and parts
 
-        [MefFact(CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V1Compat)]
         public void ImportAnyAsAny(IContainer container)
         {
             var part1 = container.GetExportedValue<ImportAnyAsAnyPart>();
@@ -23,7 +23,7 @@
             Assert.Same(part1.ImportDefaultAsDefault, part2.ImportDefaultAsDefault);
         }
 
-        [MefFact(CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V1Compat)]
         public void ImportAnyAsShared(IContainer container)
         {
             var part1 = container.GetExportedValue<ImportAnyAsSharedPart>();
@@ -79,7 +79,7 @@
 
         #region Import of PartCreationPolicy.Shared tests and parts
 
-        [MefFact(CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V1Compat)]
         public void ImportSharedAsAny(IContainer container)
         {
             var part1 = container.GetExportedValue<ImportSharedAsAnyPart>();
@@ -87,7 +87,7 @@
             Assert.Same(part1.ImportingProperty, part2.ImportingProperty);
         }
 
-        [MefFact(CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V1Compat)]
         public void ImportSharedAsShared(IContainer container)
         {
             var part1 = container.GetExportedValue<ImportSharedAsSharedPart>();
@@ -129,7 +129,7 @@
 
         #region Import of PartCreationPolicy.NonShared parts
 
-        [MefFact(CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V1Compat)]
         public void ImportNonSharedAsAny(IContainer container)
         {
             var part1 = container.GetExportedValue<ImportNonSharedAsAnyPart>();
@@ -143,7 +143,7 @@
             container.GetExportedValue<ImportNonSharedAsSharedPart>();
         }
 
-        [MefFact(CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V1Compat)]
         public void ImportNonSharedAsNonShared(IContainer container)
         {
             var part1 = container.GetExportedValue<ImportNonSharedAsNonSharedPart>();
