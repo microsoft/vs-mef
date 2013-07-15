@@ -27,6 +27,7 @@
         {
             if (this.invalidConfiguration)
             {
+                bool exceptionThrown;
                 try
                 {
                     if ((this.engineVersion & (CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2)) != CompositionEngines.Unspecified)
@@ -41,12 +42,14 @@
                             container => this.testMethod.Invoke(testClass, container));
                     }
 
-                    Assert.True(false, "Composition exception expected but not thrown.");
+                    exceptionThrown = false;
                 }
                 catch
                 {
-                    // We expected this.
+                    exceptionThrown = true;
                 }
+
+                Assert.True(exceptionThrown, "Composition exception expected but not thrown.");
             }
             else
             {
