@@ -25,6 +25,14 @@
             Assert.NotNull(explicitImporter.ImportingProperty);
         }
 
+        [Fact(Skip = "Not yet implemented.")]
+        public void InvalidDowncastingExplicitImportType()
+        {
+            // Since this can be statically proven to never succeed, the configuration should be rejected.
+            Assert.Throws<InvalidOperationException>(() =>
+                CompositionConfiguration.Create(typeof(InvalidDowncastingExplicitImporter), typeof(Implementor)));
+        }
+
         [MefFact(CompositionEngines.V1, typeof(LazyUpcastingExplicitImporter), typeof(Implementor))]
         public void LazyUpcastingExplicitImportType(IContainer container)
         {
@@ -121,6 +129,13 @@
         {
             [MefV1.ImportMany(typeof(ISomeType))]
             public IEnumerable<Implementor> ImportingProperty { get; set; }
+        }
+
+        [MefV1.Export]
+        public class InvalidDowncastingExplicitImporter
+        {
+            [MefV1.Import(typeof(ISomeType))]
+            public string ImportingProperty { get; set; }
         }
 
         public interface ISomeType { }
