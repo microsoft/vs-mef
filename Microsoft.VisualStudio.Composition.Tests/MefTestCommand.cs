@@ -30,9 +30,13 @@
                 bool exceptionThrown;
                 try
                 {
-                    if ((this.engineVersion & (CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2)) != CompositionEngines.Unspecified)
+                    if (this.engineVersion == CompositionEngines.V3EmulatingV1)
                     {
-                        CompositionConfiguration.Create(this.parts);
+                        CompositionConfiguration.Create(ComposableCatalog.Create(this.parts, new AttributedPartDiscoveryV1()));
+                    }
+                    else if (this.engineVersion == CompositionEngines.V3EmulatingV2)
+                    {
+                        CompositionConfiguration.Create(ComposableCatalog.Create(this.parts, new AttributedPartDiscovery()));
                     }
                     else
                     {
