@@ -28,6 +28,8 @@
             this.parts = parts;
         }
 
+        public bool InvalidConfiguration { get; set; }
+
         protected override IEnumerable<ITestCommand> EnumerateTestCommands(IMethodInfo method)
         {
             var parts = this.parts ?? method.Class.Type.GetNestedTypes().Where(t => !t.IsAbstract && !t.IsInterface).ToArray();
@@ -35,7 +37,7 @@
             {
                 if (this.compositionVersions.HasFlag(engine))
                 {
-                    yield return new MefTestCommand(method, engine, parts);
+                    yield return new MefTestCommand(method, engine, parts, this.InvalidConfiguration);
                 }
             }
 
