@@ -28,5 +28,22 @@
         /// Gets the member with the ExportAttribute applied. <c>null</c> when the export is on the type itself.
         /// </summary>
         public MemberInfo ExportingMember { get; private set; }
+
+        public Type ExportedValueType {
+            get
+            {
+                if (this.ExportingMember == null)
+                {
+                    return this.PartDefinition.Type;
+                }
+
+                var property = this.ExportingMember as PropertyInfo;
+                var field = this.ExportingMember as FieldInfo;
+
+                return property != null
+                    ? property.PropertyType
+                    : field.FieldType;
+            }
+        }
     }
 }

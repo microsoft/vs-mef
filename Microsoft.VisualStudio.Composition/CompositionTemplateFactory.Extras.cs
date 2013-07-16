@@ -58,7 +58,7 @@
 
         private IDisposable ImportManySatisfyingCollection(ImportDefinition importDefinition, StringWriter writer)
         {
-            writer.Write("new List<{0}> {{", GetTypeName(importDefinition.LazyType ?? importDefinition.ExportFactoryType ?? importDefinition.CoercedValueType));
+            writer.Write("new List<{0}> {{", GetTypeName(PartDiscovery.GetElementTypeFromMany(importDefinition.MemberType)));
             this.PushIndent("    ");
 
             return new DisposableWithAction(delegate

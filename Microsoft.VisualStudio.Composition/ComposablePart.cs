@@ -42,6 +42,23 @@
                         Verify.Operation(pair.Value.Count < 2, "Import of {0} expected 1 or 0 exports but found {1}.", importDefinition.Contract, pair.Value.Count);
                         break;
                 }
+
+                foreach (var export in pair.Value)
+                {
+                    var receivingType = pair.Key.ImportDefinition.ElementType;
+                    if (export.ExportedValueType.IsGenericTypeDefinition && receivingType.IsGenericType)
+                    {
+                        receivingType = receivingType.GetGenericTypeDefinition();
+                    }
+
+                    Verify.Operation(
+                        receivingType.IsAssignableFrom(export.ExportedValueType),
+                        "Exporting MEF part {0} is not assignable to {1}, as required by importing part {2} and member {3}",
+                        export.PartDefinition.Type.Name,
+                        importDefinition.MemberType.Name,
+                        this.Definition.Type.Name,
+                        pair.Key.ImportingMember.Name);
+                }
             }
         }
     }

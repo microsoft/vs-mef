@@ -6,6 +6,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Validation;
 
     public abstract class PartDiscovery
     {
@@ -23,5 +24,38 @@
         /// <param name="assembly">The assembly to search for MEF parts.</param>
         /// <returns>A sequence of generated parts.</returns>
         public abstract IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly);
+
+        protected internal static Type GetElementFromImportingMemberType(Type type, bool importMany)
+        {
+            Requires.NotNull(type, "type");
+
+            if (importMany)
+            {
+                type = GetElementTypeFromMany(type);
+            }
+
+            if (type.IsAnyLazyType() || type.IsExportFactoryTypeV1() || type.IsExportFactoryTypeV2())
+            {
+                return type.GetGenericArguments()[0];
+            }
+
+            return type;
+        }
+
+        protected internal static Type GetElementTypeFromMany(Type type)
+        {
+            Requires.NotNull(type, "type");
+
+            if (type.HasElementType)
+            {
+                type = type.GetElementType(); // T[] -> T
+            }
+            else
+            {
+                type = type.GetGenericArguments()[0]; // IEnumerable<T> -> T
+            }
+
+            return type;
+        }
     }
 }

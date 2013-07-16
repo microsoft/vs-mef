@@ -53,10 +53,8 @@
                 if (importAttribute != null)
                 {
                     Type contractType = member.PropertyType;
-                    Type wrapperType = null;
                     if (contractType.IsAnyLazyType() || contractType.IsExportFactoryTypeV2())
                     {
-                        wrapperType = contractType;
                         contractType = contractType.GetGenericArguments()[0];
                     }
 
@@ -64,17 +62,15 @@
                     var importDefinition = new ImportDefinition(
                         contract,
                         importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
-                        wrapperType,
+                        member.PropertyType,
                         importConstraints.ToImmutable());
                     imports.Add(member, importDefinition);
                 }
                 else if (importManyAttribute != null)
                 {
                     Type contractType = member.PropertyType.GetGenericArguments()[0];
-                    Type wrapperType = null;
                     if (contractType.IsAnyLazyType() || contractType.IsExportFactoryTypeV2())
                     {
-                        wrapperType = contractType;
                         contractType = contractType.GetGenericArguments()[0];
                     }
 
@@ -82,7 +78,7 @@
                     var importDefinition = new ImportDefinition(
                         contract,
                         ImportCardinality.ZeroOrMore,
-                        wrapperType,
+                        member.PropertyType,
                         importConstraints.ToImmutable());
                     imports.Add(member, importDefinition);
                 }

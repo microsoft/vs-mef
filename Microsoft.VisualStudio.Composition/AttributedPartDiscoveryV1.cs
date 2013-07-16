@@ -55,52 +55,32 @@
 
                 if (importAttribute != null)
                 {
-                    requiredCreationPolicy = importAttribute.RequiredCreationPolicy;
-                    Type contractType = propertyOrFieldType;
+                    requiredCreationPolicy = propertyOrFieldType.IsExportFactoryTypeV1()
+                        ? CreationPolicy.NonShared
+                        : importAttribute.RequiredCreationPolicy;
 
-                    if (contractType.IsExportFactoryTypeV1())
-                    {
-                        requiredCreationPolicy = CreationPolicy.NonShared;
-                    }
-                    
-                    Type wrapperType = null;
-                    if (contractType.IsAnyLazyType() || contractType.IsExportFactoryTypeV1())
-                    {
-                        wrapperType = contractType;
-                        contractType = contractType.GetGenericArguments()[0];
-                    }
-
+                    Type contractType = importAttribute.ContractType ?? GetElementFromImportingMemberType(propertyOrFieldType, importMany: false);
                     var contract = new CompositionContract(importAttribute.ContractName, contractType);
                     var importDefinition = new ImportDefinition(
                         contract,
                         importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
-                        wrapperType,
+                        propertyOrFieldType,
                         ImmutableList.Create<IImportSatisfiabilityConstraint>(),
                         requiredCreationPolicy);
                     imports.Add(member, importDefinition);
                 }
                 else if (importManyAttribute != null)
                 {
-                    requiredCreationPolicy = importManyAttribute.RequiredCreationPolicy;
-                    Type contractType = propertyOrFieldType.GetGenericArguments()[0];
+                    requiredCreationPolicy = GetElementTypeFromMany(propertyOrFieldType).IsExportFactoryTypeV1()
+                        ? CreationPolicy.NonShared
+                        : importManyAttribute.RequiredCreationPolicy;
 
-                    if (contractType.IsExportFactoryTypeV1())
-                    {
-                        requiredCreationPolicy = CreationPolicy.NonShared;
-                    }
-                    
-                    Type wrapperType = null;
-                    if (contractType.IsAnyLazyType() || contractType.IsExportFactoryTypeV1())
-                    {
-                        wrapperType = contractType;
-                        contractType = contractType.GetGenericArguments()[0];
-                    }
-
+                    Type contractType = importManyAttribute.ContractType ?? GetElementFromImportingMemberType(propertyOrFieldType, importMany: true);
                     var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
                     var importDefinition = new ImportDefinition(
                         contract,
                         ImportCardinality.ZeroOrMore,
-                        wrapperType,
+                        propertyOrFieldType,
                         ImmutableList.Create<IImportSatisfiabilityConstraint>(),
                         requiredCreationPolicy);
                     imports.Add(member, importDefinition);

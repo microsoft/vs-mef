@@ -11,64 +11,63 @@
 
     public class ExplicitImportIdentityTypeTests
     {
-        [MefFact(CompositionEngines.V1, typeof(UpcastingExplicitImporter), typeof(Implementor))]
+        [MefFact(CompositionEngines.V1Compat, typeof(UpcastingExplicitImporter), typeof(Implementor))]
         public void UpcastingExplicitImportType(IContainer container)
         {
             var explicitImporter = container.GetExportedValue<UpcastingExplicitImporter>();
             Assert.IsType<Implementor>(explicitImporter.ImportingProperty);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(DowncastingExplicitImporter), typeof(Implementor))]
+        [MefFact(CompositionEngines.V1Compat, typeof(DowncastingExplicitImporter), typeof(Implementor))]
         public void DowncastingExplicitImportType(IContainer container)
         {
             var explicitImporter = container.GetExportedValue<DowncastingExplicitImporter>();
             Assert.NotNull(explicitImporter.ImportingProperty);
         }
 
-        [Fact(Skip = "Not yet implemented.")]
-        public void InvalidDowncastingExplicitImportType()
+        [MefFact(CompositionEngines.V1Compat, typeof(InvalidDowncastingExplicitImporter), typeof(Implementor), InvalidConfiguration = true)]
+        public void InvalidDowncastingExplicitImportType(IContainer container)
         {
             // Since this can be statically proven to never succeed, the configuration should be rejected.
-            Assert.Throws<InvalidOperationException>(() =>
-                CompositionConfiguration.Create(typeof(InvalidDowncastingExplicitImporter), typeof(Implementor)));
+            Assert.Throws<InvalidOperationException>(() => container.GetExportedValue<InvalidDowncastingExplicitImporter>());
         }
 
-        [MefFact(CompositionEngines.V1, typeof(LazyUpcastingExplicitImporter), typeof(Implementor))]
+        [MefFact(CompositionEngines.V1Compat, typeof(LazyUpcastingExplicitImporter), typeof(Implementor))]
         public void LazyUpcastingExplicitImportType(IContainer container)
         {
             var explicitImporter = container.GetExportedValue<LazyUpcastingExplicitImporter>();
             Assert.IsType<Implementor>(explicitImporter.ImportingProperty.Value);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(LazyDowncastingExplicitImporter), typeof(Implementor))]
+        [MefFact(CompositionEngines.V1Compat, typeof(LazyDowncastingExplicitImporter), typeof(Implementor))]
         public void LazyDowncastingExplicitImportType(IContainer container)
         {
             var explicitImporter = container.GetExportedValue<LazyDowncastingExplicitImporter>();
             Assert.NotNull(explicitImporter.ImportingProperty.Value);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ImportManyLazyUpcastingExplicitImporter), typeof(Implementor))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportManyLazyUpcastingExplicitImporter), typeof(Implementor))]
         public void ImportManyLazyUpcastingExplicitImportType(IContainer container)
         {
             var explicitImporter = container.GetExportedValue<ImportManyLazyUpcastingExplicitImporter>();
             Assert.IsType<Implementor>(explicitImporter.ImportingProperty.Single().Value);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ImportManyLazyDowncastingExplicitImporter), typeof(Implementor))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportManyLazyDowncastingExplicitImporter), typeof(Implementor))]
         public void ImportManyLazyDowncastingExplicitImportType(IContainer container)
         {
             var explicitImporter = container.GetExportedValue<ImportManyLazyDowncastingExplicitImporter>();
             Assert.NotNull(explicitImporter.ImportingProperty.Single().Value);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ImportManyUpcastingExplicitImporter), typeof(Implementor))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportManyUpcastingExplicitImporter), typeof(Implementor))]
         public void ImportManyUpcastingExplicitImportType(IContainer container)
         {
             var explicitImporter = container.GetExportedValue<ImportManyUpcastingExplicitImporter>();
             Assert.IsType<Implementor>(explicitImporter.ImportingProperty.Single());
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ImportManyDowncastingExplicitImporter), typeof(Implementor))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportManyDowncastingExplicitImporter), typeof(Implementor))]
         public void ImportManyDowncastingExplicitImportType(IContainer container)
         {
             var explicitImporter = container.GetExportedValue<ImportManyDowncastingExplicitImporter>();

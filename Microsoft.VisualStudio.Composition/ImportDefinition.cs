@@ -12,22 +12,21 @@
     [DebuggerDisplay("{Contract.Type.Name,nq} (Lazy: {IsLazy}, {Cardinality})")]
     public class ImportDefinition : IEquatable<ImportDefinition>
     {
-        private readonly Type wrapperType;
-
-        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, Type wrapperType, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints)
+        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, Type memberType, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints)
         {
             Requires.NotNull(contract, "contract");
+            Requires.NotNull(memberType, "memberType");
             Requires.NotNull(additionalConstraints, "additionalConstraints");
 
             this.Contract = contract;
             this.Cardinality = cardinality;
-            this.wrapperType = wrapperType;
+            this.MemberType = memberType;
             this.ExportContraints = additionalConstraints;
             this.RequiredCreationPolicy = MefV1.CreationPolicy.Any;
         }
 
-        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, Type wrapperType, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, MefV1.CreationPolicy requiredCreationPolicy)
-            : this(contract, cardinality, wrapperType, additionalConstraints)
+        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, Type memberType, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, MefV1.CreationPolicy requiredCreationPolicy)
+            : this(contract, cardinality, memberType, additionalConstraints)
         {
             this.RequiredCreationPolicy = requiredCreationPolicy;
         }
@@ -36,29 +35,49 @@
 
         public MefV1.CreationPolicy RequiredCreationPolicy { get; private set; }
 
+        public Type MemberType { get; private set; }
+
+        public Type MemberWithoutManyWrapper
+        {
+            get
+            {
+                return this.Cardinality == ImportCardinality.ZeroOrMore
+                    ? PartDiscovery.GetElementTypeFromMany(this.MemberType)
+                    : this.MemberType;
+            }
+        }
+
+        public Type ElementType
+        {
+            get
+            {
+                return PartDiscovery.GetElementFromImportingMemberType(this.MemberType, this.Cardinality == ImportCardinality.ZeroOrMore);
+            }
+        }
+
         public bool IsLazy
         {
-            get { return this.wrapperType.IsAnyLazyType(); }
+            get { return this.MemberWithoutManyWrapper.IsAnyLazyType(); }
         }
 
         public bool IsLazyConcreteType
         {
-            get { return this.wrapperType.IsConcreteLazyType(); }
+            get { return this.MemberWithoutManyWrapper.IsConcreteLazyType(); }
         }
 
         public Type LazyType
         {
-            get { return this.IsLazy ? this.wrapperType : null; }
+            get { return this.IsLazy ? this.MemberWithoutManyWrapper : null; }
         }
 
         public bool IsExportFactory
         {
-            get { return this.wrapperType.IsExportFactoryTypeV1() || this.wrapperType.IsExportFactoryTypeV2(); }
+            get { return this.MemberWithoutManyWrapper.IsExportFactoryTypeV1() || this.MemberWithoutManyWrapper.IsExportFactoryTypeV2(); }
         }
 
         public Type ExportFactoryType
         {
-            get { return this.IsExportFactory ? this.wrapperType : null; }
+            get { return this.IsExportFactory ? this.MemberWithoutManyWrapper : null; }
         }
 
         public Type MetadataType
@@ -67,7 +86,7 @@
             {
                 if (this.IsLazy || this.IsExportFactory)
                 {
-                    var args = this.wrapperType.GetGenericArguments();
+                    var args = this.MemberWithoutManyWrapper.GetGenericArguments();
                     if (args.Length == 2)
                     {
                         return args[1];
