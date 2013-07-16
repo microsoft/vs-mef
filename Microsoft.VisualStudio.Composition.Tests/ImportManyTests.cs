@@ -149,7 +149,7 @@
 
         #region Custom collection with public constructor tests
 
-        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionWithPublicCtor))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionWithPublicCtor))]
         public void ImportManyCustomCollectionWithPublicCtorWithNone(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableCustomCollectionWithPublicCtor>();
@@ -158,7 +158,7 @@
             Assert.Equal(0, extendable.Extensions.Count);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionWithPublicCtor), typeof(ExtensionOne))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionWithPublicCtor), typeof(ExtensionOne))]
         public void ImportManyCustomCollectionWithPublicCtorWithOne(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableCustomCollectionWithPublicCtor>();
@@ -168,7 +168,7 @@
             Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionWithPublicCtor), typeof(ExtensionOne), typeof(ExtensionTwo))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionWithPublicCtor), typeof(ExtensionOne), typeof(ExtensionTwo))]
         public void ImportManyCustomCollectionWithPublicCtorWithTwo(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableCustomCollectionWithPublicCtor>();
@@ -217,7 +217,7 @@
 
         #region HashSet<T> tests
 
-        [MefFact(CompositionEngines.V1, typeof(ExtendableHashSet))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExtendableHashSet))]
         public void ImportManyHashSetWithNone(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableHashSet>();
@@ -226,7 +226,7 @@
             Assert.Equal(0, extendable.Extensions.Count);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ExtendableHashSet), typeof(ExtensionOne))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExtendableHashSet), typeof(ExtensionOne))]
         public void ImportManyHashSetWithOne(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableHashSet>();
@@ -236,7 +236,7 @@
             Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ExtendableHashSet), typeof(ExtensionOne), typeof(ExtensionTwo))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExtendableHashSet), typeof(ExtensionOne), typeof(ExtensionTwo))]
         public void ImportManyHashSetWithTwo(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableHashSet>();

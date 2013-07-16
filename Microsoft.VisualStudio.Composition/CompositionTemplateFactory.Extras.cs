@@ -63,11 +63,25 @@
 
         private IDisposable ImportManySatisfyingCollection(ImportDefinition importDefinition, StringWriter writer)
         {
-            string collectionType = string.Format(
-                CultureInfo.InvariantCulture,
-                importDefinition.MemberType.IsArray ? "{0}[]" : "List<{0}>",
-                GetTypeName(PartDiscovery.GetElementTypeFromMany(importDefinition.MemberType)));
-            writer.Write("new {0} {{", collectionType);
+            writer.Write("new ");
+            Type elementType = PartDiscovery.GetElementTypeFromMany(importDefinition.MemberType);
+            string elementTypeName = GetTypeName(elementType);
+            Type listType = typeof(List<>).MakeGenericType(elementType);
+            if (importDefinition.MemberType.IsArray)
+            {
+                writer.Write(elementTypeName);
+                writer.Write("[]");
+            }
+            else if (importDefinition.MemberType.IsAssignableFrom(listType))
+            {
+                writer.Write("List<{0}>", elementTypeName);
+            }
+            else
+            {
+                writer.Write(GetTypeName(importDefinition.MemberType));
+            }
+
+            writer.Write(" {");
             this.PushIndent("    ");
 
             return new DisposableWithAction(delegate
