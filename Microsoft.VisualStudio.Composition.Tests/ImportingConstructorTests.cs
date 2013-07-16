@@ -25,6 +25,21 @@
             Assert.NotNull(part);
         }
 
+        [MefFact(CompositionEngines.V1, typeof(PrivateDefaultConstructorPart))]
+        public void PrivateDefaultConstructor(IContainer container)
+        {
+            var part = container.GetExportedValue<PrivateDefaultConstructorPart>();
+            Assert.NotNull(part);
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class PrivateDefaultConstructorPart
+        {
+            private PrivateDefaultConstructorPart()
+            {
+            }
+        }
+    
         [Export]
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class SimpleImportingConstructorPart

@@ -13,12 +13,13 @@
     [DebuggerDisplay("{Type.Name}")]
     public class ComposablePartDefinition
     {
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, ExportDefinition> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, string sharingBoundary, MethodInfo onImportsSatisfied)
+        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, ExportDefinition> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinition> importingConstructor)
         {
             Requires.NotNull(partType, "partType");
             Requires.NotNull(exportsOnType, "exportsOnType");
             Requires.NotNull(exportsOnMembers, "exportsOnMembers");
             Requires.NotNull(imports, "imports");
+            Requires.NotNull(importingConstructor, "importingConstructor");
 
             this.Type = partType;
             this.ExportDefinitionsOnType = exportsOnType;
@@ -26,12 +27,13 @@
             this.ImportDefinitions = imports;
             this.SharingBoundary = sharingBoundary;
             this.OnImportsSatisfied = onImportsSatisfied;
+            this.ImportingConstructor = importingConstructor;
 
             this.CreationPolicy = this.IsShared ? MefV1.CreationPolicy.Shared : MefV1.CreationPolicy.NonShared;
         }
 
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, ExportDefinition> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, string sharingBoundary, MethodInfo onImportsSatisfied, MefV1.CreationPolicy partCreationPolicy)
-            : this(partType, exportsOnType, exportsOnMembers, imports, sharingBoundary, onImportsSatisfied)
+        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, ExportDefinition> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinition> importingConstructor, MefV1.CreationPolicy partCreationPolicy)
+            : this(partType, exportsOnType, exportsOnMembers, imports, sharingBoundary, onImportsSatisfied, importingConstructor)
         {
             this.CreationPolicy = partCreationPolicy;
         }
@@ -75,5 +77,10 @@
         }
 
         public IReadOnlyDictionary<MemberInfo, ImportDefinition> ImportDefinitions { get; private set; }
+
+        /// <summary>
+        /// Gets the list of parameters on the importing constructor.
+        /// </summary>
+        public IReadOnlyList<ImportDefinition> ImportingConstructor { get; private set; }
     }
 }
