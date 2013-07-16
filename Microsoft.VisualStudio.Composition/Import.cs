@@ -10,6 +10,10 @@
 
     public class Import : IEquatable<Import>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Import"/> class
+        /// to represent an importing member.
+        /// </summary>
         public Import(ComposablePartDefinition partDefinition, ImportDefinition importDefinition, MemberInfo importingMember)
         {
             Requires.NotNull(partDefinition, "partDefinition");
@@ -19,6 +23,19 @@
             this.PartDefinition = partDefinition;
             this.ImportDefinition = importDefinition;
             this.ImportingMember = importingMember;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Import"/> class
+        /// to represent a parameter in an importing constructor.
+        /// </summary>
+        public Import(ComposablePartDefinition partDefinition, ImportDefinition importDefinition)
+        {
+            Requires.NotNull(partDefinition, "partDefinition");
+            Requires.NotNull(importDefinition, "importDefinition");
+
+            this.PartDefinition = partDefinition;
+            this.ImportDefinition = importDefinition;
         }
 
         public ImportDefinition ImportDefinition { get; private set; }

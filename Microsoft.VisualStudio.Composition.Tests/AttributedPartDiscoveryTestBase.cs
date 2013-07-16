@@ -19,8 +19,8 @@
         {
             ComposablePartDefinition result = this.DiscoveryService.CreatePart(typeof(NonSharedPart));
             Assert.NotNull(result);
-            Assert.Equal(1, result.ExportDefinitionsOnType.Count);
-            Assert.Equal(0, result.ImportDefinitions.Count);
+            Assert.Equal(1, result.ExportedTypes.Count);
+            Assert.Equal(0, result.ImportingMembers.Count);
             Assert.False(result.IsShared);
         }
 
@@ -29,8 +29,8 @@
         {
             ComposablePartDefinition result = this.DiscoveryService.CreatePart(typeof(SharedPart));
             Assert.NotNull(result);
-            Assert.Equal(1, result.ExportDefinitionsOnType.Count);
-            Assert.Equal(0, result.ImportDefinitions.Count);
+            Assert.Equal(1, result.ExportedTypes.Count);
+            Assert.Equal(0, result.ImportingMembers.Count);
             Assert.True(result.IsShared);
         }
 

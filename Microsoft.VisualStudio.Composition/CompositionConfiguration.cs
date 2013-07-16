@@ -46,7 +46,7 @@
 
             foreach (ComposablePartDefinition part in catalog.Parts)
             {
-                var satisfyingImports = part.ImportDefinitions.ToImmutableDictionary(
+                var satisfyingImports = part.ImportingMembers.ToImmutableDictionary(
                     i => new Import(part, i.Value, i.Key),
                     i => catalog.GetExports(i.Value));
                 var composedPart = new ComposablePart(part, satisfyingImports);

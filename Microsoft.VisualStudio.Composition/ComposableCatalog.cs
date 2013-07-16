@@ -92,13 +92,13 @@
             var parts = this.parts.Add(partDefinition);
             var exportsByContract = this.exportsByContract;
 
-            foreach (var export in partDefinition.ExportDefinitionsOnType)
+            foreach (var export in partDefinition.ExportedTypes)
             {
                 var list = exportsByContract.GetValueOrDefault(export.Contract, ImmutableList.Create<Export>());
                 exportsByContract = exportsByContract.SetItem(export.Contract, list.Add(new Export(export, partDefinition, exportingMember: null)));
             }
 
-            foreach (var exportPair in partDefinition.ExportDefinitionsOnMembers)
+            foreach (var exportPair in partDefinition.ExportingMembers)
             {
                 var member = exportPair.Key;
                 var export = exportPair.Value;
