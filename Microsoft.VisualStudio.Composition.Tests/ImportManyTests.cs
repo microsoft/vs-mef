@@ -28,7 +28,7 @@
             var extendable = container.GetExportedValue<ExtendableArray>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(1, extendable.Extensions.Count());
+            Assert.Equal(1, extendable.Extensions.Length);
             Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
         }
 
@@ -38,7 +38,7 @@
             var extendable = container.GetExportedValue<ExtendableArray>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(2, extendable.Extensions.Count());
+            Assert.Equal(2, extendable.Extensions.Length);
             Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
             Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
         }
@@ -96,7 +96,7 @@
             var extendable = container.GetExportedValue<ExtendableIList>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(1, extendable.Extensions.Count());
+            Assert.Equal(1, extendable.Extensions.Count);
             Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
         }
 
@@ -106,7 +106,7 @@
             var extendable = container.GetExportedValue<ExtendableIList>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(2, extendable.Extensions.Count());
+            Assert.Equal(2, extendable.Extensions.Count);
             Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
             Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
         }
@@ -130,7 +130,7 @@
             var extendable = container.GetExportedValue<ExtendableList>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(1, extendable.Extensions.Count());
+            Assert.Equal(1, extendable.Extensions.Count);
             Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
         }
 
@@ -140,7 +140,109 @@
             var extendable = container.GetExportedValue<ExtendableList>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(2, extendable.Extensions.Count());
+            Assert.Equal(2, extendable.Extensions.Count);
+            Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
+            Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
+        }
+
+        #endregion
+
+        #region Custom collection with public constructor tests
+
+        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionWithPublicCtor))]
+        public void ImportManyCustomCollectionWithPublicCtorWithNone(IContainer container)
+        {
+            var extendable = container.GetExportedValue<ExtendableCustomCollectionWithPublicCtor>();
+            Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
+            Assert.Equal(0, extendable.Extensions.Count);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionWithPublicCtor), typeof(ExtensionOne))]
+        public void ImportManyCustomCollectionWithPublicCtorWithOne(IContainer container)
+        {
+            var extendable = container.GetExportedValue<ExtendableCustomCollectionWithPublicCtor>();
+            Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
+            Assert.Equal(1, extendable.Extensions.Count);
+            Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionWithPublicCtor), typeof(ExtensionOne), typeof(ExtensionTwo))]
+        public void ImportManyCustomCollectionWithPublicCtorWithTwo(IContainer container)
+        {
+            var extendable = container.GetExportedValue<ExtendableCustomCollectionWithPublicCtor>();
+            Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
+            Assert.Equal(2, extendable.Extensions.Count);
+            Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
+            Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
+        }
+
+        #endregion
+
+        #region Custom collection with internal constructor tests
+
+        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionWithInternalCtor))]
+        public void ImportManyCustomCollectionWithInternalCtorWithNone(IContainer container)
+        {
+            var extendable = container.GetExportedValue<ExtendableCustomCollectionWithInternalCtor>();
+            Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
+            Assert.Equal(0, extendable.Extensions.Count);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionWithInternalCtor), typeof(ExtensionOne))]
+        public void ImportManyCustomCollectionWithInternalCtorWithOne(IContainer container)
+        {
+            var extendable = container.GetExportedValue<ExtendableCustomCollectionWithInternalCtor>();
+            Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
+            Assert.Equal(1, extendable.Extensions.Count);
+            Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionWithInternalCtor), typeof(ExtensionOne), typeof(ExtensionTwo))]
+        public void ImportManyCustomCollectionWithInternalCtorWithTwo(IContainer container)
+        {
+            var extendable = container.GetExportedValue<ExtendableCustomCollectionWithInternalCtor>();
+            Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
+            Assert.Equal(2, extendable.Extensions.Count);
+            Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
+            Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
+        }
+
+        #endregion
+
+        #region HashSet<T> tests
+
+        [MefFact(CompositionEngines.V1, typeof(ExtendableHashSet))]
+        public void ImportManyHashSetWithNone(IContainer container)
+        {
+            var extendable = container.GetExportedValue<ExtendableHashSet>();
+            Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
+            Assert.Equal(0, extendable.Extensions.Count);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(ExtendableHashSet), typeof(ExtensionOne))]
+        public void ImportManyHashSetWithOne(IContainer container)
+        {
+            var extendable = container.GetExportedValue<ExtendableHashSet>();
+            Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
+            Assert.Equal(1, extendable.Extensions.Count);
+            Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(ExtendableHashSet), typeof(ExtensionOne), typeof(ExtensionTwo))]
+        public void ImportManyHashSetWithTwo(IContainer container)
+        {
+            var extendable = container.GetExportedValue<ExtendableHashSet>();
+            Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
+            Assert.Equal(2, extendable.Extensions.Count);
             Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
             Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
         }
@@ -191,6 +293,102 @@
             [ImportMany]
             [MefV1.ImportMany]
             public IExtension[] Extensions { get; set; }
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ExtendableHashSet
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            public HashSet<IExtension> Extensions { get; set; }
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ExtendableCustomCollectionWithPublicCtor
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            public CustomCollectionWithPublicCtor<IExtension> Extensions { get; set; }
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ExtendableCustomCollectionWithInternalCtor
+        {
+            public ExtendableCustomCollectionWithInternalCtor()
+            {
+                this.Extensions = new CustomCollectionWithInternalCtor<IExtension>();
+            }
+
+            [ImportMany]
+            [MefV1.ImportMany]
+            public CustomCollectionWithInternalCtor<IExtension> Extensions { get; set; }
+        }
+
+        public class CustomCollectionWithPublicCtor<T> : ICollection<T>
+        {
+            private List<T> inner = new List<T>();
+
+            /// <summary>
+            /// An internal constructor, to suppress the public one.
+            /// </summary>
+            public CustomCollectionWithPublicCtor() {
+
+            }
+
+            public void Add(T item)
+            {
+                this.inner.Add(item);
+            }
+
+            public void Clear()
+            {
+                this.inner.Clear();
+            }
+
+            public bool Contains(T item)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void CopyTo(T[] array, int arrayIndex)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int Count
+            {
+                get { return this.inner.Count; }
+            }
+
+            public bool IsReadOnly
+            {
+                get { return false; }
+            }
+
+            public bool Remove(T item) 
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerator<T> GetEnumerator()
+            {
+                return this.inner.GetEnumerator();
+            }
+
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
+            }
+        }
+
+        public class CustomCollectionWithInternalCtor<T> : CustomCollectionWithPublicCtor<T>
+        {
+            internal CustomCollectionWithInternalCtor()
+            {
+            }
         }
     }
 }
