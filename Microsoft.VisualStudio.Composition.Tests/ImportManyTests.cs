@@ -13,7 +13,7 @@
     {
         #region Array tests
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(ExtendableArray))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExtendableArray))]
         public void ImportManyArrayWithNone(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableArray>();
@@ -22,7 +22,7 @@
             Assert.Equal(0, extendable.Extensions.Length);
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(ExtendableArray), typeof(ExtensionOne))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExtendableArray), typeof(ExtensionOne))]
         public void ImportManyArrayWithOne(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableArray>();
@@ -32,7 +32,7 @@
             Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(ExtendableArray), typeof(ExtensionOne), typeof(ExtensionTwo))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExtendableArray), typeof(ExtensionOne), typeof(ExtensionTwo))]
         public void ImportManyArrayWithTwo(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableArray>();

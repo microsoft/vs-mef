@@ -68,12 +68,7 @@
                 }
                 else if (importManyAttribute != null)
                 {
-                    Type contractType = member.PropertyType.GetGenericArguments()[0];
-                    if (contractType.IsAnyLazyType() || contractType.IsExportFactoryTypeV2())
-                    {
-                        contractType = contractType.GetGenericArguments()[0];
-                    }
-
+                    Type contractType = GetElementFromImportingMemberType(member.PropertyType, importMany: true);
                     var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
                     var importDefinition = new ImportDefinition(
                         contract,
