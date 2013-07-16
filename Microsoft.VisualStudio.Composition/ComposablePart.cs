@@ -28,6 +28,15 @@
 
         public IReadOnlyDictionary<Import, IReadOnlyList<Export>> SatisfyingExports { get; private set; }
 
+        public IEnumerable<KeyValuePair<Import, IReadOnlyList<Export>>> GetImportingConstructorImports()
+        {
+            foreach (var importDefinition in this.Definition.ImportingConstructor)
+            {
+                var key = this.SatisfyingExports.Keys.Single(k => k.ImportDefinition == importDefinition);
+                yield return new KeyValuePair<Import, IReadOnlyList<Export>>(key, this.SatisfyingExports[key]);
+            }
+        }
+
         public void Validate()
         {
             foreach (var pair in this.SatisfyingExports)
@@ -53,11 +62,11 @@
 
                     Verify.Operation(
                         receivingType.IsAssignableFrom(export.ExportedValueType),
-                        "Exporting MEF part {0} is not assignable to {1}, as required by importing part {2} and member {3}",
+                        "Exporting MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
                         export.PartDefinition.Type.Name,
                         importDefinition.MemberType.Name,
                         this.Definition.Type.Name,
-                        pair.Key.ImportingMember.Name);
+                        pair.Key.ImportingMember != null ? pair.Key.ImportingMember.Name : "ctor");
                 }
             }
         }

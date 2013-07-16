@@ -20,6 +20,7 @@
 
         private void EmitImportSatisfyingAssignment(KeyValuePair<Import, IReadOnlyList<Export>> satisfyingExport)
         {
+            Requires.Argument(satisfyingExport.Key.ImportingMember != null, "satisfyingExport", "No member to satisfy.");
             var import = satisfyingExport.Key;
             var importingMember = satisfyingExport.Key.ImportingMember;
             var importDefinition = satisfyingExport.Key.ImportDefinition;
@@ -27,24 +28,7 @@
             var exports = satisfyingExport.Value;
 
             var right = new StringWriter();
-            if (importDefinition.Cardinality == ImportCardinality.ZeroOrMore)
-            {
-                using (this.ImportManySatisfyingCollection(importDefinition, right))
-                {
-                    foreach (var export in exports)
-                    {
-                        right.WriteLine();
-                        right.Write(this.CurrentIndent);
-                        this.EmitValueFactory(import, export, right);
-                        right.Write(",");
-                    }
-                }
-            }
-            else if (exports.Any())
-            {
-                this.EmitValueFactory(import, exports.Single(), right);
-            }
-
+            EmitImportSatisfyingExpression(import, exports, right);
             string rightString = right.ToString();
             if (rightString.Length > 0)
             {
@@ -53,6 +37,27 @@
                 this.Write(" = ");
                 this.Write(rightString);
                 this.WriteLine(";");
+            }
+        }
+
+        private void EmitImportSatisfyingExpression(Import import, IReadOnlyList<Export> exports, StringWriter writer)
+        {
+            if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
+            {
+                using (this.ImportManySatisfyingCollection(import.ImportDefinition, writer))
+                {
+                    foreach (var export in exports)
+                    {
+                        writer.WriteLine();
+                        writer.Write(this.CurrentIndent);
+                        this.EmitValueFactory(import, export, writer);
+                        writer.Write(",");
+                    }
+                }
+            }
+            else if (exports.Any())
+            {
+                this.EmitValueFactory(import, exports.Single(), writer);
             }
         }
 
@@ -109,7 +114,30 @@
         private void EmitInstantiatePart(ComposablePart part)
         {
             this.Write(this.CurrentIndent);
-            this.WriteLine("var {0} = new {1}();", InstantiatedPartLocalVarName, GetTypeName(part.Definition.Type));
+            this.Write("var {0} = new {1}(", InstantiatedPartLocalVarName, GetTypeName(part.Definition.Type));
+            if (part.Definition.ImportingConstructor.Count > 0)
+            {
+                this.PushIndent("    ");
+                this.WriteLine(string.Empty);
+                bool first = true;
+                foreach (var import in part.GetImportingConstructorImports())
+                {
+                    if (!first)
+                    {
+                        this.WriteLine(",");
+                    }
+
+                    this.Write(this.CurrentIndent);
+                    var expressionWriter = new StringWriter();
+                    this.EmitImportSatisfyingExpression(import.Key, import.Value, expressionWriter);
+                    this.Write(expressionWriter.ToString());
+                    first = false;
+                }
+
+                this.PopIndent();
+            }
+
+            this.WriteLine(");");
             if (typeof(IDisposable).IsAssignableFrom(part.Definition.Type))
             {
                 this.Write(this.CurrentIndent);
@@ -119,7 +147,7 @@
             this.Write(this.CurrentIndent);
             this.WriteLine("provisionalSharedObjects.Add(typeof({0}), {1});", GetTypeName(part.Definition.Type), InstantiatedPartLocalVarName);
 
-            foreach (var satisfyingExport in part.SatisfyingExports)
+            foreach (var satisfyingExport in part.SatisfyingExports.Where(i => i.Key.ImportingMember != null))
             {
                 this.EmitImportSatisfyingAssignment(satisfyingExport);
             }

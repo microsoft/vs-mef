@@ -42,6 +42,9 @@
 
         public ComposablePartDefinition PartDefinition { get; private set; }
 
+        /// <summary>
+        /// Gets the members this import is found on. Null for importing constructors.
+        /// </summary>
         public MemberInfo ImportingMember { get; private set; }
 
         public override int GetHashCode()
@@ -56,9 +59,14 @@
 
         public bool Equals(Import other)
         {
+            if (other == null)
+            {
+                return false;
+            }
+
             return this.ImportDefinition.Equals(other.ImportDefinition)
                 && this.PartDefinition.Equals(other.PartDefinition)
-                && this.ImportingMember.Equals(other.ImportingMember);
+                && EqualityComparer<MemberInfo>.Default.Equals(this.ImportingMember, other.ImportingMember);
         }
     }
 }

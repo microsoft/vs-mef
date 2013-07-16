@@ -11,14 +11,21 @@
 
     public class ImportingConstructorTests
     {
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(SimpleImportingConstructorPart), typeof(RandomExport))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(SimpleImportingConstructorPart), typeof(RandomExport))]
         public void SimpleImportingConstructor(IContainer container)
         {
             var part = container.GetExportedValue<SimpleImportingConstructorPart>();
             Assert.NotNull(part);
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(SpecialImportingConstructorPart), typeof(RandomExportWithContractName), typeof(RandomExport))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(LazyImportingConstructorPart), typeof(RandomExport))]
+        public void LazyImportingConstructor(IContainer container)
+        {
+            var part = container.GetExportedValue<LazyImportingConstructorPart>();
+            Assert.NotNull(part);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(SpecialImportingConstructorPart), typeof(RandomExportWithContractName), typeof(RandomExport))]
         public void SpecialImportingConstructor(IContainer container)
         {
             var part = container.GetExportedValue<SpecialImportingConstructorPart>();
@@ -49,6 +56,19 @@
             public SimpleImportingConstructorPart(RandomExport export)
             {
                 Assert.NotNull(export);
+            }
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class LazyImportingConstructorPart
+        {
+            [ImportingConstructor]
+            [MefV1.ImportingConstructor]
+            public LazyImportingConstructorPart(Lazy<RandomExport> export)
+            {
+                Assert.NotNull(export);
+                Assert.NotNull(export.Value);
             }
         }
 
