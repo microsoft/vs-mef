@@ -87,6 +87,7 @@
     <Compile Include="ExplicitImportIdentityTypeTests.cs" />
     <Compile Include="ExportFactoryTests.cs" />
     <Compile Include="ExportingMembersTests.cs" />
+    <Compile Include="ImportingConstructorTests.cs" />
     <Compile Include="ImportSiteCreationPolicyTests.cs" />
     <Compile Include="MultipleExportsOnPartTests.cs" />
     <Compile Include="NameAndAgeV1Attribute.cs" />
