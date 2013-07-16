@@ -153,7 +153,7 @@
 
         #region Invalid configuration tests
 
-        [MefFact(CompositionEngines.V1, typeof(ExportWithSharedCreationPolicy), typeof(ExportFactoryOfSharedPartV1Part))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportWithSharedCreationPolicy), typeof(ExportFactoryOfSharedPartV1Part), InvalidConfiguration = true)]
         public void ExportFactoryOfSharedPartV1(IContainer container)
         {
             container.GetExportedValue<ExportFactoryOfSharedPartV1Part>();
@@ -162,10 +162,14 @@
         [MefFact(CompositionEngines.V2, typeof(ExportWithSharedCreationPolicy), typeof(ExportFactoryOfSharedPartV2Part))]
         public void ExportFactoryOfSharedPartV2(IContainer container)
         {
-            container.GetExportedValue<ExportFactoryOfSharedPartV2Part>();
+            // In V2, ExportFactory around a shared part is actually legal (oddly), and produces the *same* shared value repeatedly.
+            var factory = container.GetExportedValue<ExportFactoryOfSharedPartV2Part>();
+            var value1 = factory.Factory.CreateExport().Value;
+            var value2 = factory.Factory.CreateExport().Value;
+            Assert.Same(value1, value2);
         }
 
-        [MefV1.Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.Shared)]
         [Export, Shared]
         public class ExportWithSharedCreationPolicy { }
 
