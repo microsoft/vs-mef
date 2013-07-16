@@ -159,7 +159,7 @@
             container.GetExportedValue<ExportFactoryOfSharedPartV1Part>();
         }
 
-        [MefFact(CompositionEngines.V2, typeof(ExportWithSharedCreationPolicy), typeof(ExportFactoryOfSharedPartV2Part))]
+        [MefFact(CompositionEngines.V2, typeof(ExportWithSharedCreationPolicy), typeof(ExportFactoryOfSharedPartV2Part), NoCompatGoal = true)]
         public void ExportFactoryOfSharedPartV2(IContainer container)
         {
             // In V2, ExportFactory around a shared part is actually legal (oddly), and produces the *same* shared value repeatedly.

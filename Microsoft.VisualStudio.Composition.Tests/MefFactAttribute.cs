@@ -30,6 +30,11 @@
 
         public bool InvalidConfiguration { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether to suppress claiming the test is skipped before it includes V3 runs.
+        /// </summary>
+        public bool NoCompatGoal { get; set; }
+
         protected override IEnumerable<ITestCommand> EnumerateTestCommands(IMethodInfo method)
         {
             var parts = this.parts ?? method.Class.Type.GetNestedTypes().Where(t => !t.IsAbstract && !t.IsInterface).ToArray();
@@ -41,10 +46,13 @@
                 }
             }
 
-            // Call out that we're *not* testing V3 functionality for this test.
-            if ((this.compositionVersions & (CompositionEngines.V3EmulatingV2 | CompositionEngines.V3EmulatingV1)) == CompositionEngines.Unspecified)
+            if (!this.NoCompatGoal)
             {
-                yield return new SkipCommand(method, MethodUtility.GetDisplayName(method) + "V3", "Test does not include V3 test.");
+                // Call out that we're *not* testing V3 functionality for this test.
+                if ((this.compositionVersions & (CompositionEngines.V3EmulatingV2 | CompositionEngines.V3EmulatingV1)) == CompositionEngines.Unspecified)
+                {
+                    yield return new SkipCommand(method, MethodUtility.GetDisplayName(method) + "V3", "Test does not include V3 test.");
+                }
             }
         }
     }
