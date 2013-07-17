@@ -179,6 +179,20 @@
             Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
         }
 
+        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionWithPreInitializedPublicCtor), typeof(ExtensionOne), typeof(ExtensionTwo))]
+        public void ImportManyCustomCollectionWithPreInitializedPublicCtor(IContainer container)
+        {
+            var extendable = container.GetExportedValue<ExtendableCustomCollectionWithPreInitializedPublicCtor>();
+            Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
+
+            Assert.NotNull(extendable.Extensions.ConstructorArg); // non-null indicates MEF didn't recreate the collection.
+            Assert.True(extendable.Extensions.Cleared); // true indicates MEF did call Clear() before initializing.
+            Assert.Equal(2, extendable.Extensions.Count);
+            Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
+            Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
+        }
+
         #endregion
 
         #region Custom collection with internal constructor tests
@@ -315,6 +329,20 @@
 
         [Export]
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ExtendableCustomCollectionWithPreInitializedPublicCtor
+        {
+            public ExtendableCustomCollectionWithPreInitializedPublicCtor()
+            {
+                this.Extensions = new CustomCollectionWithPublicCtor<IExtension>(new object());
+            }
+
+            [ImportMany]
+            [MefV1.ImportMany]
+            public CustomCollectionWithPublicCtor<IExtension> Extensions { get; set; }
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class ExtendableCustomCollectionWithInternalCtor
         {
             public ExtendableCustomCollectionWithInternalCtor()
@@ -334,9 +362,18 @@
             /// <summary>
             /// An internal constructor, to suppress the public one.
             /// </summary>
-            public CustomCollectionWithPublicCtor() {
-
+            public CustomCollectionWithPublicCtor()
+            {
             }
+
+            public CustomCollectionWithPublicCtor(object arg)
+            {
+                this.ConstructorArg = arg;
+            }
+
+            public object ConstructorArg { get; private set; }
+
+            public bool Cleared { get; set; }
 
             public void Add(T item)
             {
@@ -346,6 +383,7 @@
             public void Clear()
             {
                 this.inner.Clear();
+                this.Cleared = true;
             }
 
             public bool Contains(T item)
@@ -368,7 +406,7 @@
                 get { return false; }
             }
 
-            public bool Remove(T item) 
+            public bool Remove(T item)
             {
                 throw new NotImplementedException();
             }
