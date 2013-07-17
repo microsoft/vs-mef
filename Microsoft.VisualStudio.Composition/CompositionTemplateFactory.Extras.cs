@@ -44,28 +44,14 @@
         {
             if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
             {
-                if (PartDiscovery.IsImportManyCollectionTypeCreateable(import.ImportDefinition))
+                Type enumerableOfTType = typeof(IEnumerable<>).MakeGenericType(import.ImportDefinition.MemberWithoutManyWrapper);
+                if (import.ImportDefinition.MemberType.IsArray || import.ImportDefinition.MemberType.IsEquivalentTo(enumerableOfTType))
                 {
-                    using (this.ImportManySatisfyingCollection(import.ImportDefinition, writer))
-                    {
-                        foreach (var export in exports)
-                        {
-                            writer.WriteLine();
-                            writer.Write(this.CurrentIndent);
-                            this.EmitValueFactory(import, export, writer);
-                            writer.Write(",");
-                        }
-                    }
+                    this.EmitSatisfyImportManyArrayOrEnumerable(import, exports);
                 }
                 else
                 {
-                    foreach (var export in exports)
-                    {
-                        this.Write(this.CurrentIndent);
-                        var valueWriter = new StringWriter();
-                        EmitValueFactory(import, export, valueWriter);
-                        this.WriteLine("{0}.{1}.Add({2});", InstantiatedPartLocalVarName, import.ImportingMember.Name, valueWriter);
-                    }
+                    this.EmitSatisfyImportManyCollection(import, exports);
                 }
             }
             else if (exports.Any())
@@ -74,36 +60,85 @@
             }
         }
 
-        private IDisposable ImportManySatisfyingCollection(ImportDefinition importDefinition, StringWriter writer)
+        private void EmitSatisfyImportManyArrayOrEnumerable(Import import, IReadOnlyList<Export> exports)
         {
-            writer.Write("new ");
-            Type elementType = PartDiscovery.GetElementTypeFromMany(importDefinition.MemberType);
-            string elementTypeName = GetTypeName(elementType);
-            Type listType = typeof(List<>).MakeGenericType(elementType);
-            if (importDefinition.MemberType.IsArray)
+            Requires.NotNull(import, "import");
+            Requires.NotNull(exports, "exports");
+
+            this.Write("{0}.{1} = new ", InstantiatedPartLocalVarName, import.ImportingMember.Name);
+            if (import.ImportDefinition.MemberType.IsArray)
             {
-                writer.Write(elementTypeName);
-                writer.Write("[]");
-            }
-            else if (importDefinition.MemberType.IsAssignableFrom(listType))
-            {
-                writer.Write("List<{0}>", elementTypeName);
+                this.WriteLine("{0}[]", GetTypeName(import.ImportDefinition.MemberWithoutManyWrapper));
             }
             else
             {
-                writer.Write(GetTypeName(importDefinition.MemberType));
+                this.WriteLine("List<{0}>", GetTypeName(import.ImportDefinition.MemberWithoutManyWrapper));
             }
 
-            writer.Write(" {");
+            this.WriteLine("{");
             this.PushIndent("    ");
 
-            return new DisposableWithAction(delegate
+            foreach (var export in exports)
             {
-                this.PopIndent();
-                writer.Write(Environment.NewLine);
-                writer.Write(this.CurrentIndent);
-                writer.Write("}");
-            });
+                var valueWriter = new StringWriter();
+                EmitValueFactory(import, export, valueWriter);
+                this.WriteLine("{0},", valueWriter);
+            }
+
+            this.PopIndent();
+            this.WriteLine("};");
+        }
+
+        private void EmitSatisfyImportManyCollection(Import import, IReadOnlyList<Export> exports)
+        {
+            Requires.NotNull(import, "import");
+            var importDefinition = import.ImportDefinition;
+            Type elementType = PartDiscovery.GetElementTypeFromMany(importDefinition.MemberType);
+            string elementTypeName = GetTypeName(elementType);
+            Type listType = typeof(List<>).MakeGenericType(elementType);
+
+            this.WriteLine("if ({0}.{1} == null)", InstantiatedPartLocalVarName, import.ImportingMember.Name);
+            this.WriteLine("{");
+            this.PushIndent("    ");
+            if (PartDiscovery.IsImportManyCollectionTypeCreateable(importDefinition))
+            {
+                this.Write("{0}.{1} = new ", InstantiatedPartLocalVarName, import.ImportingMember.Name);
+                if (importDefinition.MemberType.IsAssignableFrom(listType))
+                {
+                    this.Write("List<{0}>", elementTypeName);
+                }
+                else
+                {
+                    this.Write(GetTypeName(importDefinition.MemberType));
+                }
+
+                this.WriteLine("();");
+            }
+            else
+            {
+                this.WriteLine(
+                    "throw new InvalidOperationException(\"The {0}.{1} collection must be instantiated by the importing constructor.\");",
+                    import.PartDefinition.Type.Name,
+                    import.ImportingMember.Name);
+            }
+
+            this.PopIndent();
+            this.WriteLine("}");
+            this.WriteLine("else");
+            this.WriteLine("{");
+            this.PushIndent("    ");
+            this.WriteLine("{0}.{1}.Clear();", InstantiatedPartLocalVarName, import.ImportingMember.Name);
+            this.PopIndent();
+            this.WriteLine("}");
+            this.WriteLine(string.Empty);
+
+            foreach (var export in exports)
+            {
+                this.Write(this.CurrentIndent);
+                var valueWriter = new StringWriter();
+                EmitValueFactory(import, export, valueWriter);
+                this.WriteLine("{0}.{1}.Add({2});", InstantiatedPartLocalVarName, import.ImportingMember.Name, valueWriter);
+            }
         }
 
         private void EmitValueFactory(Import import, Export export, StringWriter writer)

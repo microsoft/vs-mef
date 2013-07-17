@@ -179,7 +179,7 @@
             Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionWithPreInitializedPublicCtor), typeof(ExtensionOne), typeof(ExtensionTwo))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionWithPreInitializedPublicCtor), typeof(ExtensionOne), typeof(ExtensionTwo))]
         public void ImportManyCustomCollectionWithPreInitializedPublicCtor(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableCustomCollectionWithPreInitializedPublicCtor>();
