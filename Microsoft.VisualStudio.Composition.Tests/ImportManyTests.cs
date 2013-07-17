@@ -183,7 +183,7 @@
 
         #region Custom collection with internal constructor tests
 
-        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionWithInternalCtor))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionWithInternalCtor))]
         public void ImportManyCustomCollectionWithInternalCtorWithNone(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableCustomCollectionWithInternalCtor>();
@@ -192,7 +192,7 @@
             Assert.Equal(0, extendable.Extensions.Count);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionWithInternalCtor), typeof(ExtensionOne))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionWithInternalCtor), typeof(ExtensionOne))]
         public void ImportManyCustomCollectionWithInternalCtorWithOne(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableCustomCollectionWithInternalCtor>();
@@ -202,7 +202,7 @@
             Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionWithInternalCtor), typeof(ExtensionOne), typeof(ExtensionTwo))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionWithInternalCtor), typeof(ExtensionOne), typeof(ExtensionTwo))]
         public void ImportManyCustomCollectionWithInternalCtorWithTwo(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableCustomCollectionWithInternalCtor>();

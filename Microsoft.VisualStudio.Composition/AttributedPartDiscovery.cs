@@ -76,11 +76,16 @@
                 var importingCtor = GetImportingConstructor(partType, typeof(ImportingConstructorAttribute));
                 foreach (var parameter in importingCtor.GetParameters())
                 {
-                    importingConstructorParameters.Add(
-                        CreateImportDefinition(
+                    var importDefinition = CreateImportDefinition(
                             parameter.ParameterType,
                             parameter.GetCustomAttributes(),
-                            GetImportConstraints(parameter.GetCustomAttributes())));
+                            GetImportConstraints(parameter.GetCustomAttributes()));
+                    if (importDefinition.Cardinality == ImportCardinality.ZeroOrMore)
+                    {
+                        Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(importDefinition), "Collection must be public with a public constructor when used with an [ImportingConstructor].");
+                    }
+
+                    importingConstructorParameters.Add(importDefinition);
                 }
 
                 return new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary, onImportsSatisfied, importingConstructorParameters.ToImmutable());

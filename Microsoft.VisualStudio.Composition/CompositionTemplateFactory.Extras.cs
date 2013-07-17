@@ -44,14 +44,27 @@
         {
             if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
             {
-                using (this.ImportManySatisfyingCollection(import.ImportDefinition, writer))
+                if (PartDiscovery.IsImportManyCollectionTypeCreateable(import.ImportDefinition))
+                {
+                    using (this.ImportManySatisfyingCollection(import.ImportDefinition, writer))
+                    {
+                        foreach (var export in exports)
+                        {
+                            writer.WriteLine();
+                            writer.Write(this.CurrentIndent);
+                            this.EmitValueFactory(import, export, writer);
+                            writer.Write(",");
+                        }
+                    }
+                }
+                else
                 {
                     foreach (var export in exports)
                     {
-                        writer.WriteLine();
-                        writer.Write(this.CurrentIndent);
-                        this.EmitValueFactory(import, export, writer);
-                        writer.Write(",");
+                        this.Write(this.CurrentIndent);
+                        var valueWriter = new StringWriter();
+                        EmitValueFactory(import, export, valueWriter);
+                        this.WriteLine("{0}.{1}.Add({2});", InstantiatedPartLocalVarName, import.ImportingMember.Name, valueWriter);
                     }
                 }
             }
@@ -91,7 +104,6 @@
                 writer.Write(this.CurrentIndent);
                 writer.Write("}");
             });
-
         }
 
         private void EmitValueFactory(Import import, Export export, StringWriter writer)

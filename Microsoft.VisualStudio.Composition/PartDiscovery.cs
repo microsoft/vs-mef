@@ -70,5 +70,31 @@
             Verify.Operation(importingCtor != null, "No importing constructor found.");
             return importingCtor;
         }
+
+        internal static bool IsImportManyCollectionTypeCreateable(ImportDefinition importDefinition)
+        {
+            Requires.NotNull(importDefinition, "importDefinition");
+
+            var collectionType = importDefinition.MemberType;
+            var elementType = importDefinition.MemberWithoutManyWrapper;
+            var icollectionOfT = typeof(ICollection<>).MakeGenericType(elementType);
+            var ienumerableOfT = typeof(IEnumerable<>).MakeGenericType(elementType);
+            var ilistOfT = typeof(IList<>).MakeGenericType(elementType);
+
+            if (collectionType.IsArray || collectionType.IsEquivalentTo(ienumerableOfT) || collectionType.IsEquivalentTo(ilistOfT) || collectionType.IsEquivalentTo(icollectionOfT))
+            {
+                return true;
+            }
+
+            Verify.Operation(icollectionOfT.IsAssignableFrom(collectionType), "Collection type must derive from ICollection<T>");
+
+            var defaultCtor = collectionType.GetConstructor(new Type[0]);
+            if (defaultCtor != null && defaultCtor.IsPublic)
+            {
+                return true;
+            }
+
+            return false;
+        }
     }
 }
