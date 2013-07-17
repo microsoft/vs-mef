@@ -32,7 +32,6 @@
             string rightString = right.ToString();
             if (rightString.Length > 0)
             {
-                this.Write(this.CurrentIndent);
                 this.Write("{0}.{1}", InstantiatedPartLocalVarName, importingMember.Name);
                 this.Write(" = ");
                 this.Write(rightString);
@@ -76,16 +75,16 @@
             }
 
             this.WriteLine("{");
-            this.PushIndent("    ");
-
-            foreach (var export in exports)
+            using (Indent())
             {
-                var valueWriter = new StringWriter();
-                EmitValueFactory(import, export, valueWriter);
-                this.WriteLine("{0},", valueWriter);
+                foreach (var export in exports)
+                {
+                    var valueWriter = new StringWriter();
+                    EmitValueFactory(import, export, valueWriter);
+                    this.WriteLine("{0},", valueWriter);
+                }
             }
 
-            this.PopIndent();
             this.WriteLine("};");
         }
 
@@ -98,43 +97,41 @@
             Type listType = typeof(List<>).MakeGenericType(elementType);
 
             this.WriteLine("if ({0}.{1} == null)", InstantiatedPartLocalVarName, import.ImportingMember.Name);
-            this.WriteLine("{");
-            this.PushIndent("    ");
-            if (PartDiscovery.IsImportManyCollectionTypeCreateable(importDefinition))
+            using (Indent(withBraces:true))
             {
-                this.Write("{0}.{1} = new ", InstantiatedPartLocalVarName, import.ImportingMember.Name);
-                if (importDefinition.MemberType.IsAssignableFrom(listType))
+                if (PartDiscovery.IsImportManyCollectionTypeCreateable(importDefinition))
                 {
-                    this.Write("List<{0}>", elementTypeName);
+                    this.Write("{0}.{1} = new ", InstantiatedPartLocalVarName, import.ImportingMember.Name);
+                    if (importDefinition.MemberType.IsAssignableFrom(listType))
+                    {
+                        this.Write("List<{0}>", elementTypeName);
+                    }
+                    else
+                    {
+                        this.Write(GetTypeName(importDefinition.MemberType));
+                    }
+
+                    this.WriteLine("();");
                 }
                 else
                 {
-                    this.Write(GetTypeName(importDefinition.MemberType));
+                    this.WriteLine(
+                        "throw new InvalidOperationException(\"The {0}.{1} collection must be instantiated by the importing constructor.\");",
+                        import.PartDefinition.Type.Name,
+                        import.ImportingMember.Name);
                 }
-
-                this.WriteLine("();");
-            }
-            else
-            {
-                this.WriteLine(
-                    "throw new InvalidOperationException(\"The {0}.{1} collection must be instantiated by the importing constructor.\");",
-                    import.PartDefinition.Type.Name,
-                    import.ImportingMember.Name);
             }
 
-            this.PopIndent();
-            this.WriteLine("}");
             this.WriteLine("else");
-            this.WriteLine("{");
-            this.PushIndent("    ");
-            this.WriteLine("{0}.{1}.Clear();", InstantiatedPartLocalVarName, import.ImportingMember.Name);
-            this.PopIndent();
-            this.WriteLine("}");
+            using (Indent(withBraces: true))
+            {
+                this.WriteLine("{0}.{1}.Clear();", InstantiatedPartLocalVarName, import.ImportingMember.Name);
+            }
+            
             this.WriteLine(string.Empty);
 
             foreach (var export in exports)
             {
-                this.Write(this.CurrentIndent);
                 var valueWriter = new StringWriter();
                 EmitValueFactory(import, export, valueWriter);
                 this.WriteLine("{0}.{1}.Add({2});", InstantiatedPartLocalVarName, import.ImportingMember.Name, valueWriter);
@@ -174,38 +171,34 @@
 
         private void EmitInstantiatePart(ComposablePart part)
         {
-            this.Write(this.CurrentIndent);
             this.Write("var {0} = new {1}(", InstantiatedPartLocalVarName, GetTypeName(part.Definition.Type));
             if (part.Definition.ImportingConstructor.Count > 0)
             {
-                this.PushIndent("    ");
-                this.WriteLine(string.Empty);
-                bool first = true;
-                foreach (var import in part.GetImportingConstructorImports())
+                using (Indent())
                 {
-                    if (!first)
+                    this.WriteLine(string.Empty);
+                    bool first = true;
+                    foreach (var import in part.GetImportingConstructorImports())
                     {
-                        this.WriteLine(",");
+                        if (!first)
+                        {
+                            this.WriteLine(",");
+                        }
+
+                        var expressionWriter = new StringWriter();
+                        this.EmitImportSatisfyingExpression(import.Key, import.Value, expressionWriter);
+                        this.Write(expressionWriter.ToString());
+                        first = false;
                     }
-
-                    this.Write(this.CurrentIndent);
-                    var expressionWriter = new StringWriter();
-                    this.EmitImportSatisfyingExpression(import.Key, import.Value, expressionWriter);
-                    this.Write(expressionWriter.ToString());
-                    first = false;
                 }
-
-                this.PopIndent();
             }
 
             this.WriteLine(");");
             if (typeof(IDisposable).IsAssignableFrom(part.Definition.Type))
             {
-                this.Write(this.CurrentIndent);
                 this.WriteLine("this.TrackDisposableValue({0});", InstantiatedPartLocalVarName);
             }
 
-            this.Write(this.CurrentIndent);
             this.WriteLine("provisionalSharedObjects.Add(typeof({0}), {1});", GetTypeName(part.Definition.Type), InstantiatedPartLocalVarName);
 
             foreach (var satisfyingExport in part.SatisfyingExports.Where(i => i.Key.ImportingMember != null))
@@ -217,19 +210,15 @@
             {
                 if (part.Definition.OnImportsSatisfied.DeclaringType.IsInterface)
                 {
-                    this.Write(this.CurrentIndent);
                     this.WriteLine("{0} onImportsSatisfiedInterface = {1};", part.Definition.OnImportsSatisfied.DeclaringType.FullName, InstantiatedPartLocalVarName);
-                    this.Write(this.CurrentIndent);
                     this.WriteLine("onImportsSatisfiedInterface.{0}();", part.Definition.OnImportsSatisfied.Name);
                 }
                 else
                 {
-                    this.Write(this.CurrentIndent);
                     this.WriteLine("{0}.{1}();", InstantiatedPartLocalVarName, part.Definition.OnImportsSatisfied.Name);
                 }
             }
 
-            this.Write(this.CurrentIndent);
             this.WriteLine("return {0};", InstantiatedPartLocalVarName);
         }
 
@@ -515,6 +504,25 @@
                 default:
                     throw new NotSupportedException();
             }
+        }
+
+        private IDisposable Indent(int count = 1, bool withBraces = false)
+        {
+            if (withBraces)
+            {
+                this.WriteLine("{");
+            }
+
+            this.PushIndent(new string(' ', count * 4));
+
+            return new DisposableWithAction(delegate
+            {
+                this.PopIndent();
+                if (withBraces)
+                {
+                    this.WriteLine("}");
+                }
+            });
         }
     }
 }

@@ -104,9 +104,10 @@ foreach (var part in this.Configuration.Parts)
                 delegate
                 {
 <#
-                this.PushIndent("            ");
-                EmitInstantiatePart(part);
-                this.PopIndent();
+                using(Indent(4))
+                {
+                    EmitInstantiatePart(part);
+                }
 #>
                 });
 
@@ -124,9 +125,10 @@ foreach (var part in this.Configuration.Parts)
             delegate
             {
 <#
-                this.PushIndent("        ");
-                EmitInstantiatePart(part);
-                this.PopIndent();
+                using(Indent(4))
+                {
+                    EmitInstantiatePart(part);
+                }
 #>
             });
 <#
