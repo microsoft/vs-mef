@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Composition;
+    using System.Composition.Hosting;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -86,7 +87,7 @@
                 Assert.False(true, "Expected exception not thrown.");
             }
             catch (MefV1.ImportCardinalityMismatchException) { }
-            catch (ArgumentException) { } // V3
+            catch (CompositionFailedException) { } // V2/V3
         }
 
         public class ExportingMembersClass
