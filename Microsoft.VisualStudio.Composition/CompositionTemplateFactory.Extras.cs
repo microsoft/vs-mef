@@ -318,6 +318,16 @@
             }
         }
 
+        private IEnumerable<ComposablePartDefinition> RootPartDefinitions
+        {
+            get
+            {
+                return from part in this.Configuration.Catalog.Parts
+                       where string.IsNullOrEmpty(part.SharingBoundary)
+                       select part;
+            }
+        }
+
         private static string GetTypeName(Type type)
         {
             return GetTypeName(type, genericTypeDefinition: false);

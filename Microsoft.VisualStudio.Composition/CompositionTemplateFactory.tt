@@ -29,7 +29,7 @@ internal class CompiledExportProvider : ExportProvider
     {
         var provisionalSharedObjects = new Dictionary<Type, object>();
         Type exportTypeDefinition = exportDefinition.Contract.Type.IsGenericType ? exportDefinition.Contract.Type.GetGenericTypeDefinition() : exportDefinition.Contract.Type;<#
-foreach (var part in this.Configuration.Catalog.Parts)
+foreach (var part in this.RootPartDefinitions)
 {
     foreach (var partExportPair in part.ExportDefinitions)
     {

@@ -111,8 +111,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="CompositionTemplateFactory.tt">
-      <LastGenOutput>CompositionTemplateFactory.cs</LastGenOutput>
       <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>CompositionTemplateFactory.cs</LastGenOutput>
     </None>
     <None Include="packages.config" />
   </ItemGroup>

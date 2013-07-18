@@ -17,6 +17,12 @@
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<NonSharedPartThatImportsBoundaryPart>());
         }
 
+        [MefFact(CompositionEngines.V2Compat)]
+        public void BoundaryPartNotAvailableFromRoot(IContainer container)
+        {
+            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<BoundaryPart>());
+        }
+
         [MefFact(CompositionEngines.V2)]
         public void NonSharedPartOptionallyImportsPartFromSharingBoundary(IContainer container)
         {

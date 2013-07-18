@@ -57,7 +57,7 @@ internal class CompiledExportProvider : ExportProvider
             
             #line 31 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
-foreach (var part in this.Configuration.Catalog.Parts)
+foreach (var part in this.RootPartDefinitions)
 {
     foreach (var partExportPair in part.ExportDefinitions)
     {

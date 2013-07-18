@@ -29,7 +29,7 @@
             Assert.Same(project.Value.ActiveConfiguration.Project, project.Value);
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void ProjectScopeExportsNotAvailableAtRoot(IContainer container)
         {
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<ProjectActiveConfiguration>());
