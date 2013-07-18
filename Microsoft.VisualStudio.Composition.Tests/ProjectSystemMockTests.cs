@@ -54,6 +54,20 @@
             Assert.NotSame(projectConfiguration1a.Value.SubscriptionService, projectConfiguration1b.Value.SubscriptionService);
         }
 
+        [MefFact(CompositionEngines.V2)]
+        public void CapabilityFiltering(IContainer container)
+        {
+            var projectService = container.GetExportedValue<ProjectService>();
+
+            var project1 = projectService.CreateProject("Capability1");
+            Assert.Equal(1, project1.Value.GetApplicableExtensions().Length);
+            Assert.IsType<ProjectPartA>(project1.Value.GetApplicableExtensions().Single().Value);
+
+            var project2 = projectService.CreateProject("Capability2");
+            Assert.Equal(1, project2.Value.GetApplicableExtensions().Length);
+            Assert.IsType<ProjectPartB>(project2.Value.GetApplicableExtensions().Single().Value);
+        }
+
         #region MEF parts
 
         [Export, Shared]
@@ -122,6 +136,16 @@
 
         [Export, Shared("ConfiguredProject")]
         public class ProjectSubscriptionService
+        {
+        }
+
+        [Export("ProjectExtension", typeof(object))]
+        [ExportMetadata("ProjectCapabilityRequires", "Capability1")]
+        public class ProjectPartA { }
+
+        [Export("ProjectExtension", typeof(object))]
+        [ExportMetadata("ProjectCapabilityRequires", "Capability2")]
+        public class ProjectPartB
         {
         }
 
