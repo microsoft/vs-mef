@@ -11,14 +11,14 @@
 
     public class ProjectSystemMockTests
     {
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void GetProjectService(IContainer container)
         {
             var projectService = container.GetExportedValue<ProjectService>();
             Assert.NotNull(projectService);
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void ProjectFactory(IContainer container)
         {
             var projectService = container.GetExportedValue<ProjectService>();
@@ -54,7 +54,7 @@
             Assert.NotSame(projectConfiguration1a.Value.SubscriptionService, projectConfiguration1b.Value.SubscriptionService);
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void CapabilityFiltering(IContainer container)
         {
             var projectService = container.GetExportedValue<ProjectService>();
