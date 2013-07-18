@@ -108,6 +108,7 @@
     <Compile Include="OnImportsSatisfiedTests.cs" />
     <Compile Include="OpenGenericExportTests.cs" />
     <Compile Include="NamedTypedExportTests.cs" />
+    <Compile Include="ProjectSystemMockTests.cs" />
     <Compile Include="SharedNoBoundaryExportsTests.cs" />
     <Compile Include="SharingBoundaryTests.cs" />
     <Compile Include="SimpleImportExportTests.cs" />
