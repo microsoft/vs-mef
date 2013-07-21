@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Linq;
     using System.Text;
@@ -12,21 +13,31 @@
     [DebuggerDisplay("{Contract.Type.Name,nq} (Lazy: {IsLazy}, {Cardinality})")]
     public class ImportDefinition : IEquatable<ImportDefinition>
     {
-        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, Type memberType, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ImportDefinition"/> class
+        /// based on MEF v2 attributes.
+        /// </summary>
+        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, Type memberType, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, IReadOnlyCollection<string> exportFactorySharingBoundaries)
         {
             Requires.NotNull(contract, "contract");
             Requires.NotNull(memberType, "memberType");
             Requires.NotNull(additionalConstraints, "additionalConstraints");
+            Requires.NotNull(exportFactorySharingBoundaries, "exportFactorySharingBoundaries");
 
             this.Contract = contract;
             this.Cardinality = cardinality;
             this.MemberType = memberType;
             this.ExportContraints = additionalConstraints;
             this.RequiredCreationPolicy = MefV1.CreationPolicy.Any;
+            this.ExportFactorySharingBoundaries = exportFactorySharingBoundaries;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ImportDefinition"/> class
+        /// based on MEF v1 attributes.
+        /// </summary>
         public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, Type memberType, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, MefV1.CreationPolicy requiredCreationPolicy)
-            : this(contract, cardinality, memberType, additionalConstraints)
+            : this(contract, cardinality, memberType, additionalConstraints, ImmutableHashSet.Create<string>())
         {
             this.RequiredCreationPolicy = requiredCreationPolicy;
         }
@@ -79,6 +90,11 @@
         {
             get { return this.IsExportFactory ? this.MemberWithoutManyWrapper : null; }
         }
+
+        /// <summary>
+        /// Gets the sharing boundaries created when the export factory is used.
+        /// </summary>
+        public IReadOnlyCollection<string> ExportFactorySharingBoundaries { get; private set; }
 
         public Type MetadataType
         {

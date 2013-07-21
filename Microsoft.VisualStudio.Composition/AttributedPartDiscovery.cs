@@ -127,6 +127,14 @@
 
             var importAttribute = attributes.OfType<ImportAttribute>().SingleOrDefault();
             var importManyAttribute = attributes.OfType<ImportManyAttribute>().SingleOrDefault();
+            var sharingBoundaryAttribute = attributes.OfType<SharingBoundaryAttribute>().SingleOrDefault();
+
+            var sharingBoundaries = ImmutableHashSet.Create<string>();
+            if (sharingBoundaryAttribute != null)
+            {
+                Verify.Operation(propertyOrFieldType.IsExportFactoryTypeV2(), "{0} is expected only on imports of ExportFactory<T>", typeof(SharingBoundaryAttribute).Name);
+                sharingBoundaries = sharingBoundaries.Union(sharingBoundaryAttribute.SharingBoundaryNames);
+            }
 
             if (importAttribute != null)
             {
@@ -141,7 +149,8 @@
                     contract,
                     importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
                     propertyOrFieldType,
-                    importConstraints);
+                    importConstraints,
+                    sharingBoundaries);
                 return true;
             }
             else if (importManyAttribute != null)
@@ -152,7 +161,8 @@
                    contract,
                    ImportCardinality.ZeroOrMore,
                    propertyOrFieldType,
-                   importConstraints);
+                   importConstraints,
+                   sharingBoundaries);
                 return true;
             }
             else
