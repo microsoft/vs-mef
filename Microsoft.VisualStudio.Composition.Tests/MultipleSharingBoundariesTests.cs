@@ -11,19 +11,19 @@
 
     public class MultipleSharingBoundariesTests
     {
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void DualBoundaryPartAccessibleViaOneBoundaryAtATime(IContainer container)
         {
             BoundaryFactory root = container.GetExportedValue<BoundaryFactory>();
             Boundary1Part boundary1Part = root.Boundary1Factory.CreateExport().Value;
             Boundary2Part boundary2Part = boundary1Part.Boundary2Factory.CreateExport().Value;
             PartImportingFromBothBoundaries dualBoundaryPart = boundary2Part.DualBoundaryPart;
-            Assert.NotNull(dualBoundaryPart );
+            Assert.NotNull(dualBoundaryPart);
             Assert.Same(boundary2Part, dualBoundaryPart.Boundary2Value);
             Assert.Same(boundary1Part, dualBoundaryPart.Boundary1Value);
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void DualBoundaryPartAccessibleViaTwoBoundariesAtOnce(IContainer container)
         {
             BoundaryFactory root = container.GetExportedValue<BoundaryFactory>();
