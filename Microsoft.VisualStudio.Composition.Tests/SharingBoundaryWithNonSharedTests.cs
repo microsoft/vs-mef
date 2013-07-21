@@ -9,7 +9,7 @@
     using System.Threading.Tasks;
     using Xunit;
 
-    public class SharingBoundaryTests
+    public class SharingBoundaryWithNonSharedTests
     {
         [MefFact(CompositionEngines.V2Compat)]
         public void NonSharedPartImportsPartFromSharingBoundary(IContainer container)
@@ -47,7 +47,7 @@
         public void ScopedNonSharedPartsIsolatedToSharingBoundaryPart(IContainer container)
         {
             var root = container.GetExportedValue<RootPart>();
-            
+
             var subscope1 = root.Factory.CreateExport().Value;
             var subscope2 = root.Factory.CreateExport().Value;
 
@@ -84,6 +84,9 @@
         {
             [ImportMany("NonSharedWithinBoundaryParts")]
             public IList<object> BoundaryScopedNonSharedParts { get; set; }
+
+            [Import]
+            public PartWithImportManyOfScopedExports ImportManyPart { get; set; }
         }
 
         [Export, Export("NonSharedWithinBoundaryParts", typeof(object))]
