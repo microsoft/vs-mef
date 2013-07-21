@@ -253,7 +253,7 @@ foreach (var part in this.Configuration.Parts)
             
             #line 107 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
-                using(Indent(4))
+                using(Indent(5))
                 {
                     EmitInstantiatePart(part);
                 }
