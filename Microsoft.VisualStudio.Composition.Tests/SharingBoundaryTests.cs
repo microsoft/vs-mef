@@ -11,7 +11,7 @@
 
     public class SharingBoundaryTests
     {
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void NonSharedPartImportsPartFromSharingBoundary(IContainer container)
         {
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<NonSharedPartThatImportsBoundaryPart>());
@@ -23,13 +23,13 @@
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<BoundaryPart>());
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void NonSharedPartOptionallyImportsPartFromSharingBoundary(IContainer container)
         {
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<NonSharedPartThatOptionallyImportsBoundaryPart>());
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void NonSharedPartIndirectlyImportsPartFromSharingBoundary(IContainer container)
         {
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<NonSharedPartThatIndirectlyImportsBoundaryPart>());
@@ -59,7 +59,7 @@
             }
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void ImportManyPullsPartIntoSharedBoundary(IContainer container)
         {
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<PartWithImportManyOfScopedExports>());

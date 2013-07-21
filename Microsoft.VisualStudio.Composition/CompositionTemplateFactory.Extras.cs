@@ -322,9 +322,9 @@
         {
             get
             {
-                return from part in this.Configuration.Catalog.Parts
-                       where string.IsNullOrEmpty(part.SharingBoundary)
-                       select part;
+                return from part in this.Configuration.Parts
+                       where part.RequiredSharingBoundaries.Count == 0
+                       select part.Definition;
             }
         }
 

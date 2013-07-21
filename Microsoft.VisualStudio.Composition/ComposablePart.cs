@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Linq;
     using System.Text;
@@ -11,10 +12,11 @@
     [DebuggerDisplay("{Definition.Type.Name}")]
     public class ComposablePart
     {
-        public ComposablePart(ComposablePartDefinition definition, IReadOnlyDictionary<Import, IReadOnlyList<Export>> satisfyingExports)
+        public ComposablePart(ComposablePartDefinition definition, IReadOnlyDictionary<Import, IReadOnlyList<Export>> satisfyingExports, IImmutableSet<string> requiredSharingBoundaries)
         {
             Requires.NotNull(definition, "definition");
             Requires.NotNull(satisfyingExports, "satisfyingExports");
+            Requires.NotNull(requiredSharingBoundaries, "requiredSharingBoundaries");
 
             // Make sure we have entries for every import.
             Requires.Argument(satisfyingExports.Count == definition.ImportDefinitions.Count() && definition.ImportDefinitions.All(d => satisfyingExports.Keys.Any(e => e.ImportDefinition.Equals(d))), "satisfyingExports", "There should be exactly one entry for every import.");
@@ -22,11 +24,17 @@
 
             this.Definition = definition;
             this.SatisfyingExports = satisfyingExports;
+            this.RequiredSharingBoundaries = requiredSharingBoundaries;
         }
 
         public ComposablePartDefinition Definition { get; private set; }
 
         public IReadOnlyDictionary<Import, IReadOnlyList<Export>> SatisfyingExports { get; private set; }
+
+        /// <summary>
+        /// Gets the set of sharing boundaries that this part must be instantiated within.
+        /// </summary>
+        public IImmutableSet<string> RequiredSharingBoundaries { get; private set; }
 
         public IEnumerable<KeyValuePair<Import, IReadOnlyList<Export>>> GetImportingConstructorImports()
         {

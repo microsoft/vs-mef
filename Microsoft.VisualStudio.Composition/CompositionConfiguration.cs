@@ -5,6 +5,7 @@
     using System.CodeDom.Compiler;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Linq.Expressions;
@@ -42,16 +43,43 @@
         {
             Requires.NotNull(catalog, "catalog");
 
-            var partsBuilder = ImmutableHashSet.CreateBuilder<ComposablePart>();
-
-            foreach (ComposablePartDefinition part in catalog.Parts)
+            // Construct up our part builders, initialized with all their imports satisfied.
+            var partBuilders = new Dictionary<ComposablePartDefinition, PartBuilder>();
+            foreach (ComposablePartDefinition partDefinition in catalog.Parts)
             {
                 var imports =
-                    part.ImportingMembers.Select(i => new Import(part, i.Value, i.Key))
-                    .Concat(part.ImportingConstructor.Select(i => new Import(part, i)));
-
+                    partDefinition.ImportingMembers.Select(i => new Import(partDefinition, i.Value, i.Key))
+                    .Concat(partDefinition.ImportingConstructor.Select(i => new Import(partDefinition, i)));
                 var satisfyingImports = imports.ToImmutableDictionary(i => i, i => catalog.GetExports(i.ImportDefinition));
-                var composedPart = new ComposablePart(part, satisfyingImports);
+                partBuilders.Add(partDefinition, new PartBuilder(partDefinition, satisfyingImports));
+            }
+
+            // Create a lookup table that gets all immediate importers for each part.
+            foreach (PartBuilder partBuilder in partBuilders.Values)
+            {
+                var importedPartsExcludingFactories =
+                    (from entry in partBuilder.SatisfyingExports
+                     where !entry.Key.ImportDefinition.IsExportFactory
+                     from export in entry.Value
+                     select export.PartDefinition).Distinct();
+                foreach (var importedPartDefinition in importedPartsExcludingFactories)
+                {
+                    var importedPartBuilder = partBuilders[importedPartDefinition];
+                    importedPartBuilder.ReportImportingPart(partBuilder);
+                }
+            }
+
+            // Propagate sharing boundaries defined on parts to all importers (transitive closure).
+            foreach (PartBuilder partBuilder in partBuilders.Values)
+            {
+                partBuilder.ApplySharingBoundary();
+            }
+
+            // Build up our set of composed parts.
+            var partsBuilder = ImmutableHashSet.CreateBuilder<ComposablePart>();
+            foreach (var partBuilder in partBuilders.Values)
+            {
+                var composedPart = new ComposablePart(partBuilder.PartDefinition, partBuilder.SatisfyingExports, partBuilder.EffectiveSharingBoundaries.ToImmutableHashSet());
                 partsBuilder.Add(composedPart);
             }
 
@@ -299,6 +327,66 @@
             public CompositionContainer CreateContainer()
             {
                 return new CompositionContainer(this.createFactory());
+            }
+        }
+
+        [DebuggerDisplay("{PartDefinition.Type.Name}")]
+        private class PartBuilder
+        {
+            internal PartBuilder(ComposablePartDefinition partDefinition, IReadOnlyDictionary<Import, IReadOnlyList<Export>> importedParts)
+            {
+                Requires.NotNull(partDefinition, "partDefinition");
+                Requires.NotNull(importedParts, "importedParts");
+
+                this.PartDefinition = partDefinition;
+                this.EffectiveSharingBoundaries = ImmutableHashSet.CreateBuilder<string>();
+                this.SatisfyingExports = importedParts;
+                this.ImportingParts = new HashSet<PartBuilder>();
+            }
+
+            /// <summary>
+            /// Gets the part definition tracked by this instance.
+            /// </summary>
+            public ComposablePartDefinition PartDefinition { get; private set; }
+
+            /// <summary>
+            /// Gets the sharing boundaries applied to this part.
+            /// </summary>
+            public ISet<string> EffectiveSharingBoundaries { get; private set; }
+
+            /// <summary>
+            /// Gets the set of parts that import this one.
+            /// </summary>
+            public HashSet<PartBuilder> ImportingParts { get; private set; }
+
+            /// <summary>
+            /// Gets the set of parts imported by this one.
+            /// </summary>
+            public IReadOnlyDictionary<Import, IReadOnlyList<Export>> SatisfyingExports { get; private set; }
+
+            public void ApplySharingBoundary()
+            {
+                this.ApplySharingBoundary(this.PartDefinition.SharingBoundary);
+            }
+
+            private void ApplySharingBoundary(string sharingBoundary)
+            {
+                if (!string.IsNullOrEmpty(sharingBoundary))
+                {
+                    if (this.EffectiveSharingBoundaries.Add(sharingBoundary))
+                    {
+                        // Since this is new to us, be sure that all our importers belong to this sharing boundary as well.
+                        foreach (var importingPart in this.ImportingParts)
+                        {
+                            importingPart.ApplySharingBoundary(sharingBoundary);
+                        }
+                    }
+                }
+            }
+
+            public void ReportImportingPart(PartBuilder part)
+            {
+                this.ImportingParts.Add(part);
             }
         }
     }
