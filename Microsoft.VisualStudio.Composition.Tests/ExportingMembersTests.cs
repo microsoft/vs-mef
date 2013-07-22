@@ -27,6 +27,7 @@
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [Trait("GenericExports", "Closed")]
         public void ExportedPropertyGenericType(IContainer container)
         {
             var actual = container.GetExportedValue<Comparer<int>>("PropertyGenericType");
@@ -34,6 +35,7 @@
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [Trait("GenericExports", "Closed")]
         public void ExportedPropertyGenericTypeWrongTypeArgs(IContainer container)
         {
             try

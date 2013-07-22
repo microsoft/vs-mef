@@ -9,6 +9,7 @@
     using System.Threading.Tasks;
     using Xunit;
 
+    [Trait("GenericExports", "Open")]
     public class OpenGenericExportTests
     {
         [MefFact(CompositionEngines.V2Compat)]
