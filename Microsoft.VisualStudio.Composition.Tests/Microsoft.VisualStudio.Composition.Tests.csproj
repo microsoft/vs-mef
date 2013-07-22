@@ -85,6 +85,7 @@
     <Compile Include="CompositionServiceTests.cs" />
     <Compile Include="CustomMetadataTests.cs" />
     <Compile Include="ExplicitImportIdentityTypeTests.cs" />
+    <Compile Include="ExportFactoryOfNonSharedImportingSharingBoundaryTests.cs" />
     <Compile Include="ExportFactoryTests.cs" />
     <Compile Include="ExportingMembersTests.cs" />
     <Compile Include="ImportingConstructorTests.cs" />
@@ -111,6 +112,7 @@
     <Compile Include="NamedTypedExportTests.cs" />
     <Compile Include="ProjectSystemMockTests.cs" />
     <Compile Include="SharedNoBoundaryExportsTests.cs" />
+    <Compile Include="SharingBoundaryTwoPathsToPartTests.cs" />
     <Compile Include="SharingBoundaryWithNonSharedTests.cs" />
     <Compile Include="SharingBoundaryWithSharedTests.cs" />
     <Compile Include="SimpleImportExportTests.cs" />
