@@ -8,6 +8,7 @@
     using System.Threading.Tasks;
     using Xunit;
 
+    [Trait("SharingBoundary", "")]
     public class ExportFactoryOfNonSharedImportingSharingBoundaryTests
     {
         [MefFact(CompositionEngines.V2)]

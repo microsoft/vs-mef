@@ -9,6 +9,7 @@
     using System.Threading.Tasks;
     using Xunit;
 
+    [Trait("SharingBoundary", "")]
     public class MultipleSharingBoundariesTests
     {
         [MefFact(CompositionEngines.V2Compat)]
