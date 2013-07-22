@@ -9,6 +9,7 @@
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
+    [Trait("ExportFactory", "")]
     public class ExportFactoryTests
     {
         public ExportFactoryTests()

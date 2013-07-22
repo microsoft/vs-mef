@@ -210,6 +210,7 @@
         #region Filtering tests
 
         [MefFact(CompositionEngines.V1Compat, typeof(ImportExportFactoryWithFilteringExportsPart), typeof(ExportWithSharedCreationPolicy), typeof(ExportWithNonSharedCreationPolicy))]
+        [Trait("ExportFactory", "")]
         public void CreationPolicyFiltersExportFactory(IContainer container)
         {
             var factory = container.GetExportedValue<ImportExportFactoryWithFilteringExportsPart>();

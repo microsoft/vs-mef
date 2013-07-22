@@ -9,6 +9,7 @@
     using Xunit;
 
     [Trait("SharingBoundary", "")]
+    [Trait("ExportFactory", "")]
     public class ExportFactoryOfNonSharedImportingSharingBoundaryTests
     {
         [MefFact(CompositionEngines.V2)]
