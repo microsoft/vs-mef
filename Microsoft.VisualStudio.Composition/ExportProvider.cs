@@ -14,14 +14,35 @@
         private readonly object syncObject = new object();
 
         /// <summary>
-        /// A dictionary of types to their Lazy{T} factories.
+        /// A map of shared boundary names to their shared instances.
+        /// The value is a dictionary of types to their Lazy{T} factories.
         /// </summary>
-        private readonly Dictionary<Type, object> sharedInstantiatedExports = new Dictionary<Type, object>();
+        private readonly ImmutableDictionary<string, Dictionary<Type, object>> sharedInstantiatedExports = ImmutableDictionary.Create<string, Dictionary<Type, object>>();
 
         /// <summary>
         /// The disposable objects whose lifetimes are controlled by this instance.
         /// </summary>
         private readonly HashSet<IDisposable> disposableInstantiatedParts = new HashSet<IDisposable>();
+
+        protected ExportProvider(ExportProvider parent, string[] freshSharingBoundaries)
+        {
+            if (parent == null)
+            {
+                this.sharedInstantiatedExports = this.sharedInstantiatedExports.Add(string.Empty, new Dictionary<Type, object>());
+            }
+            else
+            {
+                this.sharedInstantiatedExports = parent.sharedInstantiatedExports;
+            }
+
+            if (freshSharingBoundaries != null)
+            {
+                foreach (string freshSharingBoundary in freshSharingBoundaries)
+                {
+                    this.sharedInstantiatedExports = this.sharedInstantiatedExports.SetItem(freshSharingBoundary, new Dictionary<Type, object>());
+                }
+            }
+        }
 
         public ILazy<T> GetExport<T>()
         {
@@ -68,30 +89,32 @@
         /// </summary>
         protected abstract object GetExport(ExportDefinition exportDefinition);
 
-        protected bool TryGetSharedInstanceFactory<T>(out ILazy<T> value)
+        protected bool TryGetSharedInstanceFactory<T>(string partSharingBoundary, out ILazy<T> value)
         {
             lock (this.syncObject)
             {
+                var sharingBoundary = AcquireSharingBoundaryInstances(partSharingBoundary);
                 object valueObject;
-                bool result = this.sharedInstantiatedExports.TryGetValue(typeof(T), out valueObject);
+                bool result = sharingBoundary.TryGetValue(typeof(T), out valueObject);
                 value = (ILazy<T>)valueObject;
                 return result;
             }
         }
 
-        protected ILazy<T> GetOrAddSharedInstanceFactory<T>(ILazy<T> value)
+        protected ILazy<T> GetOrAddSharedInstanceFactory<T>(string partSharingBoundary, ILazy<T> value)
         {
             Requires.NotNull(value, "value");
 
             lock (this.syncObject)
             {
+                var sharingBoundary = AcquireSharingBoundaryInstances(partSharingBoundary);
                 object priorValue;
-                if (this.sharedInstantiatedExports.TryGetValue(typeof(T), out priorValue))
+                if (sharingBoundary.TryGetValue(typeof(T), out priorValue))
                 {
                     return (ILazy<T>)priorValue;
                 }
 
-                this.sharedInstantiatedExports.Add(typeof(T), value);
+                sharingBoundary.Add(typeof(T), value);
                 return value;
             }
         }
@@ -104,6 +127,16 @@
             {
                 this.disposableInstantiatedParts.Add(value);
             }
+        }
+
+        private Dictionary<Type, object> AcquireSharingBoundaryInstances(string sharingBoundaryName)
+        {
+            Requires.NotNull(sharingBoundaryName, "sharingBoundaryName");
+
+            // If this throws an IndexOutOfRangeException, it means someone is trying to create a part
+            // that belongs to a sharing boundary that has not yet been created.
+            var sharingBoundary = this.sharedInstantiatedExports[sharingBoundaryName];
+            return sharingBoundary;
         }
     }
 }

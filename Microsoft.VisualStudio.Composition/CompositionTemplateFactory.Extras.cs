@@ -97,7 +97,7 @@
             Type listType = typeof(List<>).MakeGenericType(elementType);
 
             this.WriteLine("if ({0}.{1} == null)", InstantiatedPartLocalVarName, import.ImportingMember.Name);
-            using (Indent(withBraces:true))
+            using (Indent(withBraces: true))
             {
                 if (PartDiscovery.IsImportManyCollectionTypeCreateable(importDefinition))
                 {
@@ -127,7 +127,7 @@
             {
                 this.WriteLine("{0}.{1}.Clear();", InstantiatedPartLocalVarName, import.ImportingMember.Name);
             }
-            
+
             this.WriteLine(string.Empty);
 
             foreach (var export in exports)
@@ -149,9 +149,17 @@
                 }
                 else
                 {
-                    writer.Write(
-                        "this.{0}(provisionalSharedObjects{1})",
-                        GetPartFactoryMethodName(export.PartDefinition, import.ImportDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()),
+                    writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, import.ImportDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
+                    if (import.ImportDefinition.IsExportFactory)
+                    {
+                        writer.Write("new Dictionary<Type, object>()");
+                    }
+                    else
+                    {
+                        writer.Write("provisionalSharedObjects");
+                    }
+
+                    writer.Write("{0})",
                         import.ImportDefinition.RequiredCreationPolicy == MefV1.CreationPolicy.NonShared ? ", nonSharedInstanceRequired: true" : string.Empty);
                 }
             }
@@ -258,6 +266,14 @@
                 writer.Write(
                     "new {0}(() => {{ var temp = ",
                     GetTypeName(importDefinition.ExportFactoryType));
+
+                if (importDefinition.ExportFactorySharingBoundaries.Count > 0)
+                {
+                    writer.Write("new CompiledExportProvider(this, new [] { ");
+                    writer.Write(string.Join(", ", importDefinition.ExportFactorySharingBoundaries.Select(Quote)));
+                    writer.Write(" }).");
+                }
+
                 return new DisposableWithAction(delegate
                 {
                     writer.Write(".Value; return Tuple.Create<{0}, Action>(temp, () => {{ ", GetTypeName(importDefinition.CoercedValueType));
@@ -514,6 +530,11 @@
                 default:
                     throw new NotSupportedException();
             }
+        }
+
+        private static string Quote(string value)
+        {
+            return "@\"" + value.Replace("\"", "\"\"") + "\"";
         }
 
         private IDisposable Indent(int count = 1, bool withBraces = false)

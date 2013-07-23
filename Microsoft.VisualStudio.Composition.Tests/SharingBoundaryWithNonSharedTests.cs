@@ -44,7 +44,7 @@
             Assert.Equal(3, subscope.BoundaryScopedNonSharedParts.Count);
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void ScopedNonSharedPartsIsolatedToSharingBoundaryPart(IContainer container)
         {
             var root = container.GetExportedValue<RootPart>();

@@ -25,6 +25,16 @@ using Microsoft.VisualStudio.Composition;
 
 internal class CompiledExportProvider : ExportProvider
 {
+    public CompiledExportProvider()
+        : this(null, null)
+    {
+    }
+
+    public CompiledExportProvider(ExportProvider parent, string[] freshSharingBoundaries)
+        : base(parent, freshSharingBoundaries)
+    {
+    }
+
     protected override object GetExport(ExportDefinition exportDefinition)
     {
         var provisionalSharedObjects = new Dictionary<Type, object>();
@@ -99,7 +109,7 @@ foreach (var part in this.Configuration.Parts)
         if (part.Definition.IsShared)
         {
 #>
-        if (nonSharedInstanceRequired || !this.TryGetSharedInstanceFactory(out lazyResult))
+        if (nonSharedInstanceRequired || !this.TryGetSharedInstanceFactory(@"<#= part.Definition.SharingBoundary #>", out lazyResult))
         {
             lazyResult = new LazyPart<<#= GetTypeName(part.Definition.Type) #>>(
                 delegate
@@ -114,7 +124,7 @@ foreach (var part in this.Configuration.Parts)
 
             if (!nonSharedInstanceRequired)
             {
-                lazyResult = this.GetOrAddSharedInstanceFactory(lazyResult);
+                lazyResult = this.GetOrAddSharedInstanceFactory(@"<#= part.Definition.SharingBoundary #>", lazyResult);
             }
         }
 <#
@@ -142,7 +152,7 @@ foreach (var part in this.Configuration.Parts)
 }
 #>
 
-    private static bool TryGetProvisionalSharedExport<T>(Dictionary<Type, object> provisionalSharedObjects, out ILazy<T> value)
+    private static bool TryGetProvisionalSharedExport<T>(IReadOnlyDictionary<Type, object> provisionalSharedObjects, out ILazy<T> value)
     {
         object valueObject;
         if (provisionalSharedObjects.TryGetValue(typeof(T), out valueObject))
