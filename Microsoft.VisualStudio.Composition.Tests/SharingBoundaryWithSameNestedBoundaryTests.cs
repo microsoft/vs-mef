@@ -55,6 +55,6 @@
         }
 
         [Export, Shared("A")]
-        public class AnotherSharedPartInBoundaryA{}
+        public class AnotherSharedPartInBoundaryA { }
     }
 }
