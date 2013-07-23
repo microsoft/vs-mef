@@ -12,7 +12,7 @@
     [Trait("ExportFactory", "")]
     public class ExportFactoryOfNonSharedImportingSharingBoundaryTests
     {
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void ExportFactoryOfNonSharedImportingSharingBoundary(IContainer container)
         {
             var factoryPart = container.GetExportedValue<RootPart>();

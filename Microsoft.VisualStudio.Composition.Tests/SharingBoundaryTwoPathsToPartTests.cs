@@ -11,7 +11,7 @@
     [Trait("SharingBoundary", "")]
     public class SharingBoundaryTwoPathsToPartTests
     {
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void SharingBoundaryTwoPathsToPart(IContainer container)
         {
             var root = container.GetExportedValue<Root>();
