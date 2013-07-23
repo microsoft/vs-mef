@@ -114,6 +114,7 @@
     <Compile Include="SharedNoBoundaryExportsTests.cs" />
     <Compile Include="SharingBoundaryTwoPathsToPartTests.cs" />
     <Compile Include="SharingBoundaryWithNonSharedTests.cs" />
+    <Compile Include="SharingBoundaryWithSameNestedBoundaryTests.cs" />
     <Compile Include="SharingBoundaryWithSharedTests.cs" />
     <Compile Include="SimpleImportExportTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
