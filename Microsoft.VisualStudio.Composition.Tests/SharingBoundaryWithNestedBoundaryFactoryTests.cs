@@ -10,7 +10,7 @@
     using Xunit;
 
     [Trait("SharingBoundary", "")]
-    public class SharingBoundaryWithSameNestedBoundaryTests
+    public class SharingBoundaryWithNestedBoundaryFactoryTests
     {
         [MefFact(CompositionEngines.V2)]
         public void SharingBoundaryWithSameNestedBoundary(IContainer container)
@@ -25,18 +25,6 @@
             Assert.Same(boundaryPartNested, boundaryPartNested.AnotherSharedValue.FirstSharedPart);
         }
 
-        [MefFact(CompositionEngines.V2)]
-        public void SharingBoundaryWithNonBoundaryFactory(IContainer container)
-        {
-            var root = container.GetExportedValue<Root>();
-            var boundaryPart = root.SelfFactory.CreateExport().Value;
-            var boundaryPartNested = boundaryPart.SelfFactoryWithoutSharingBoundary.CreateExport().Value;
-
-            Assert.Same(boundaryPart, boundaryPartNested);
-            Assert.Same(boundaryPart.AnotherSharedValue, boundaryPartNested.AnotherSharedValue);
-            Assert.Same(boundaryPart, boundaryPart.AnotherSharedValue.FirstSharedPart);
-        }
-
         [Export]
         public class Root
         {
@@ -49,9 +37,6 @@
         {
             [Import, SharingBoundary("A")]
             public ExportFactory<SharingBoundaryPart> SelfFactoryWithSharingBoundary { get; set; }
-
-            [Import]
-            public ExportFactory<SharingBoundaryPart> SelfFactoryWithoutSharingBoundary { get; set; }
 
             [Import]
             public AnotherSharedPartInBoundaryA AnotherSharedValue { get; set; }
