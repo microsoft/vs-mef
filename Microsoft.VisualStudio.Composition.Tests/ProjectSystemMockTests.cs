@@ -35,7 +35,7 @@
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<ProjectActiveConfiguration>());
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void ScopedCompositionTree(IContainer container)
         {
             var projectService = container.GetExportedValue<ProjectService>();
