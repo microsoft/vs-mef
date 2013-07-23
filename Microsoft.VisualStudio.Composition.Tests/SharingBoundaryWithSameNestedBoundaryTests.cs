@@ -21,6 +21,8 @@
 
             Assert.NotSame(boundaryPart, boundaryPartNested);
             Assert.NotSame(boundaryPart.AnotherSharedValue, boundaryPartNested.AnotherSharedValue);
+            Assert.Same(boundaryPart, boundaryPart.AnotherSharedValue.FirstSharedPart);
+            Assert.Same(boundaryPartNested, boundaryPartNested.AnotherSharedValue.FirstSharedPart);
         }
 
         [MefFact(CompositionEngines.V2)]
@@ -32,6 +34,7 @@
 
             Assert.Same(boundaryPart, boundaryPartNested);
             Assert.Same(boundaryPart.AnotherSharedValue, boundaryPartNested.AnotherSharedValue);
+            Assert.Same(boundaryPart, boundaryPart.AnotherSharedValue.FirstSharedPart);
         }
 
         [Export]
@@ -55,6 +58,10 @@
         }
 
         [Export, Shared("A")]
-        public class AnotherSharedPartInBoundaryA { }
+        public class AnotherSharedPartInBoundaryA
+        {
+            [Import]
+            public SharingBoundaryPart FirstSharedPart { get; set; }
+        }
     }
 }
