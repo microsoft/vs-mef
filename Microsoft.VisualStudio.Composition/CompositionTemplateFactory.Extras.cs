@@ -177,32 +177,49 @@
             return builder.ToString();
         }
 
-        private void EmitInstantiatePart(ComposablePart part)
+        private IDisposable EmitConstructorInvocation(ComposablePartDefinition partDefinition)
         {
-            var ctor = part.Definition.ImportingConstructorInfo;
-            bool publicCtor = !part.Definition.Type.IsNotPublic && ctor.IsPublic;
+            var ctor = partDefinition.ImportingConstructorInfo;
+            bool publicCtor = !partDefinition.Type.IsNotPublic && ctor.IsPublic;
             if (publicCtor)
             {
-                this.Write("var {0} = new {1}(", InstantiatedPartLocalVarName, GetTypeName(part.Definition.Type));
+                this.Write("var {0} = new {1}(", InstantiatedPartLocalVarName, GetTypeName(partDefinition.Type));
             }
             else
             {
-                this.WriteLine("var assembly = Assembly.Load({0});", Quote(part.Definition.Type.Assembly.FullName));
-                if (part.Definition.Type.IsGenericTypeDefinition)
+                this.WriteLine("var assembly = Assembly.Load({0});", Quote(partDefinition.Type.Assembly.FullName));
+                if (partDefinition.Type.IsGenericTypeDefinition)
                 {
-                    this.WriteLine("var ctor = (ConstructorInfo)MethodInfo.GetMethodFromHandle(assembly.ManifestModule.ResolveMethod({0}).MethodHandle, assembly.ManifestModule.ResolveType({1}).MakeGenericType({2}).TypeHandle);", ctor.MetadataToken, part.Definition.Type.MetadataToken, string.Join(", ", part.Definition.Type.GetGenericArguments().Select(t => "typeof(" + GetTypeName(t) + ")")));
+                    this.WriteLine("var ctor = (ConstructorInfo)MethodInfo.GetMethodFromHandle(assembly.ManifestModule.ResolveMethod({0}).MethodHandle, assembly.ManifestModule.ResolveType({1}).MakeGenericType({2}).TypeHandle);", ctor.MetadataToken, partDefinition.Type.MetadataToken, string.Join(", ", partDefinition.Type.GetGenericArguments().Select(t => "typeof(" + GetTypeName(t) + ")")));
                 }
                 else
                 {
                     this.WriteLine("var ctor = (ConstructorInfo)assembly.ManifestModule.ResolveMethod({0});", ctor.MetadataToken);
                 }
 
-                this.Write("var {0} = ({1})ctor.Invoke(new object[] {{", InstantiatedPartLocalVarName, GetTypeName(part.Definition.Type));
+                this.Write("var {0} = ({1})ctor.Invoke(new object[] {{", InstantiatedPartLocalVarName, GetTypeName(partDefinition.Type));
             }
+            var indent = this.Indent();
 
-            if (part.Definition.ImportingConstructor.Count > 0)
+            return new DisposableWithAction(delegate
             {
-                using (Indent())
+                indent.Dispose();
+                if (publicCtor)
+                {
+                    this.WriteLine(");");
+                }
+                else
+                {
+                    this.WriteLine(" });");
+                }
+            });
+        }
+
+        private void EmitInstantiatePart(ComposablePart part)
+        {
+            using (this.EmitConstructorInvocation(part.Definition))
+            {
+                if (part.Definition.ImportingConstructor.Count > 0)
                 {
                     this.WriteLine(string.Empty);
                     bool first = true;
@@ -219,15 +236,6 @@
                         first = false;
                     }
                 }
-            }
-
-            if (publicCtor)
-            {
-                this.WriteLine(");");
-            }
-            else
-            {
-                this.WriteLine(" });");
             }
 
             if (typeof(IDisposable).IsAssignableFrom(part.Definition.Type))
