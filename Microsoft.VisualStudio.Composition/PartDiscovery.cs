@@ -58,12 +58,18 @@
             return type;
         }
 
-        protected static ConstructorInfo GetImportingConstructor(Type type, Type importingConstructorAttributeType)
+        protected static ConstructorInfo GetImportingConstructor(Type type, Type importingConstructorAttributeType, bool publicOnly)
         {
             Requires.NotNull(type, "type");
             Requires.NotNull(importingConstructorAttributeType, "importingConstructorAttributeType");
 
-            var ctors = type.GetConstructors(BindingFlags.Public | BindingFlags.Instance);
+            var flags = BindingFlags.Instance|BindingFlags.Public ;
+            if (!publicOnly)
+            {
+                flags |= BindingFlags.NonPublic;
+            }
+
+            var ctors = type.GetConstructors(flags);
             var taggedCtor = ctors.SingleOrDefault(ctor => ctor.GetCustomAttribute(importingConstructorAttributeType) != null);
             var defaultCtor = ctors.SingleOrDefault(ctor => ctor.GetParameters().Length == 0);
             var importingCtor = taggedCtor ?? defaultCtor;

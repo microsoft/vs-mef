@@ -92,6 +92,10 @@
         /// </summary>
         public IReadOnlyList<ImportDefinition> ImportingConstructor { get; private set; }
 
+        public ConstructorInfo ImportingConstructorInfo {
+            get { return this.Type.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, this.ImportingConstructor.Select(i => i.MemberType).ToArray(), null); }
+        }
+
         /// <summary>
         /// Gets a sequence of all imports found on this part (both members and importing constructor).
         /// </summary>

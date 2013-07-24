@@ -32,7 +32,8 @@
             Assert.NotNull(part);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PrivateDefaultConstructorPart))]
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V1Compat, typeof(PrivateDefaultConstructorPart))]
         public void PrivateDefaultConstructor(IContainer container)
         {
             var part = container.GetExportedValue<PrivateDefaultConstructorPart>();

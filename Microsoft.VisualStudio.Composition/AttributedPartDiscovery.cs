@@ -73,7 +73,7 @@
             if (exportsOnMembers.Count > 0 || exportsOnType.Count > 0)
             {
                 var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinition>();
-                var importingCtor = GetImportingConstructor(partType, typeof(ImportingConstructorAttribute));
+                var importingCtor = GetImportingConstructor(partType, typeof(ImportingConstructorAttribute), publicOnly: true);
                 foreach (var parameter in importingCtor.GetParameters())
                 {
                     var importDefinition = CreateImportDefinition(

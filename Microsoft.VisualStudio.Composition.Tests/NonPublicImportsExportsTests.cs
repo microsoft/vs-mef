@@ -8,6 +8,7 @@
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
+    [Trait("Access", "NonPublic")]
     public class NonPublicImportsExportsTests
     {
         [MefFact(CompositionEngines.V1, typeof(InternalExport))]

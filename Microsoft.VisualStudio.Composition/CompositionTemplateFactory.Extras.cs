@@ -179,7 +179,19 @@
 
         private void EmitInstantiatePart(ComposablePart part)
         {
-            this.Write("var {0} = new {1}(", InstantiatedPartLocalVarName, GetTypeName(part.Definition.Type));
+            var ctor = part.Definition.ImportingConstructorInfo;
+            bool publicCtor = (part.Definition.Type.IsPublic || part.Definition.Type.IsNestedPublic) && ctor.IsPublic;
+            if (publicCtor)
+            {
+                this.Write("var {0} = new {1}(", InstantiatedPartLocalVarName, GetTypeName(part.Definition.Type));
+            }
+            else
+            {
+                this.WriteLine("var assembly = Assembly.Load({0});", Quote(part.Definition.Type.Assembly.FullName));
+                this.WriteLine("var ctor = (ConstructorInfo)assembly.ManifestModule.ResolveMethod({0});", ctor.MetadataToken);
+                this.Write("var {0} = ({1})ctor.Invoke(new object[] {{", InstantiatedPartLocalVarName, GetTypeName(part.Definition.Type));
+            }
+
             if (part.Definition.ImportingConstructor.Count > 0)
             {
                 using (Indent())
@@ -201,7 +213,15 @@
                 }
             }
 
-            this.WriteLine(");");
+            if (publicCtor)
+            {
+                this.WriteLine(");");
+            }
+            else
+            {
+                this.WriteLine(" });");
+            }
+
             if (typeof(IDisposable).IsAssignableFrom(part.Definition.Type))
             {
                 this.WriteLine("this.TrackDisposableValue({0});", InstantiatedPartLocalVarName);
