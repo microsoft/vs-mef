@@ -46,6 +46,13 @@
             Assert.NotNull(result.InternalAccessor);
         }
 
+        [MefFact(CompositionEngines.V1, typeof(PartWithPrivateExportingProperty))]
+        public void PrivateExportingProperty(IContainer container)
+        {
+            string result = container.GetExportedValue<string>();
+            Assert.Equal("Success", result);
+        }
+
         internal interface IInternalInterface { }
 
         [MefV1.Export]
@@ -76,6 +83,15 @@
             internal PublicExport InternalAccessor
             {
                 get { return this.ImportingProperty; }
+            }
+        }
+
+        public class PartWithPrivateExportingProperty
+        {
+            [MefV1.Export]
+            private string ExportingProperty
+            {
+                get { return "Success"; }
             }
         }
     }
