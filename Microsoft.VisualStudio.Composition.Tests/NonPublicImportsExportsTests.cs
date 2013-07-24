@@ -32,17 +32,17 @@
             Assert.NotNull(result);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PublicExport), typeof(ExportWithInternalImportingProperty))]
-        public void InternalImportingProperty(IContainer container)
-        {
-            var result = container.GetExportedValue<ExportWithInternalImportingProperty>();
-            Assert.NotNull(result.ImportingProperty);
-        }
-
         [MefFact(CompositionEngines.V1, typeof(PublicExport), typeof(ExportWithPrivateImportingProperty))]
         public void PrivateImportingProperty(IContainer container)
         {
             var result = container.GetExportedValue<ExportWithPrivateImportingProperty>();
+            Assert.NotNull(result.InternalAccessor);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(PublicExport), typeof(ExportWithPrivateImportingField))]
+        public void PrivateImportingField(IContainer container)
+        {
+            var result = container.GetExportedValue<ExportWithPrivateImportingField>();
             Assert.NotNull(result.InternalAccessor);
         }
 
@@ -51,6 +51,20 @@
         {
             string result = container.GetExportedValue<string>();
             Assert.Equal("Success", result);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(PartWithPrivateExportingField))]
+        public void PrivateExportingField(IContainer container)
+        {
+            string result = container.GetExportedValue<string>();
+            Assert.Equal("Success", result);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(PartWithPrivateExportedMethod))]
+        public void PrivateExportedMethod(IContainer container)
+        {
+            Func<string> result = container.GetExportedValue<Func<string>>();
+            Assert.Equal("Success", result());
         }
 
         internal interface IInternalInterface { }
@@ -68,13 +82,6 @@
         public class PublicExport { }
 
         [MefV1.Export]
-        public class ExportWithInternalImportingProperty
-        {
-            [MefV1.Import]
-            internal PublicExport ImportingProperty { get; set; }
-        }
-
-        [MefV1.Export]
         public class ExportWithPrivateImportingProperty
         {
             [MefV1.Import]
@@ -86,12 +93,39 @@
             }
         }
 
+        [MefV1.Export]
+        public class ExportWithPrivateImportingField
+        {
+            [MefV1.Import]
+            private PublicExport importingField;
+
+            internal PublicExport InternalAccessor
+            {
+                get { return this.importingField; }
+            }
+        }
+
         public class PartWithPrivateExportingProperty
         {
             [MefV1.Export]
             private string ExportingProperty
             {
                 get { return "Success"; }
+            }
+        }
+
+        public class PartWithPrivateExportingField
+        {
+            [MefV1.Export]
+            private string ExportingField = "Success";
+        }
+
+        public class PartWithPrivateExportedMethod
+        {
+            [MefV1.Export]
+            private string GetValue()
+            {
+                return "Success";
             }
         }
     }
