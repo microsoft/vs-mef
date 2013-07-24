@@ -40,6 +40,22 @@
             Assert.NotNull(part);
         }
 
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V1Compat, typeof(PrivateImportingConstructorPart), typeof(RandomExport))]
+        public void PrivateImportingConstructor(IContainer container)
+        {
+            var part = container.GetExportedValue<PrivateImportingConstructorPart>();
+            Assert.NotNull(part);
+        }
+
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V1Compat, typeof(PrivateImportingConstructorOpenGenericPart<,>), typeof(RandomExport))]
+        public void PrivateImportingConstructorOpenGeneric(IContainer container)
+        {
+            var part = container.GetExportedValue<PrivateImportingConstructorOpenGenericPart<int, string>>();
+            Assert.NotNull(part);
+        }
+
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class PrivateDefaultConstructorPart
         {
@@ -47,7 +63,27 @@
             {
             }
         }
-    
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class PrivateImportingConstructorPart
+        {
+            [MefV1.ImportingConstructor]
+            private PrivateImportingConstructorPart(RandomExport export)
+            {
+                Assert.NotNull(export);
+            }
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class PrivateImportingConstructorOpenGenericPart<T1, T2>
+        {
+            [MefV1.ImportingConstructor]
+            private PrivateImportingConstructorOpenGenericPart(RandomExport export)
+            {
+                Assert.NotNull(export);
+            }
+        }
+
         [Export]
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class SimpleImportingConstructorPart
