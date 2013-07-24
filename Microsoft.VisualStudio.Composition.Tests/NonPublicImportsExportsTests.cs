@@ -67,11 +67,23 @@
             Assert.Equal("Success", result);
         }
 
+        [MefFact(CompositionEngines.V1, typeof(OpenGenericPartWithPrivateExportingProperty<>), InvalidConfiguration = true)]
+        public void PrivateExportingPropertyOnOpenGenericPart(IContainer container)
+        {
+            string result = container.GetExportedValue<string>();
+        }
+
         [MefFact(CompositionEngines.V1, typeof(PartWithPrivateExportingField))]
         public void PrivateExportingField(IContainer container)
         {
             string result = container.GetExportedValue<string>();
             Assert.Equal("Success", result);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(OpenGenericPartWithPrivateExportingField<>), InvalidConfiguration = true)]
+        public void PrivateExportingFieldOnOpenGenericPart(IContainer container)
+        {
+            string result = container.GetExportedValue<string>();
         }
 
         [MefFact(CompositionEngines.V1, typeof(PartWithPrivateExportedMethod))]
@@ -152,7 +164,22 @@
             }
         }
 
+        public class OpenGenericPartWithPrivateExportingProperty<T>
+        {
+            [MefV1.Export]
+            private string ExportingProperty
+            {
+                get { return "Success"; }
+            }
+        }
+
         public class PartWithPrivateExportingField
+        {
+            [MefV1.Export]
+            private string ExportingField = "Success";
+        }
+
+        public class OpenGenericPartWithPrivateExportingField<T>
         {
             [MefV1.Export]
             private string ExportingField = "Success";
