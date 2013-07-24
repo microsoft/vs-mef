@@ -32,14 +32,14 @@
             Assert.NotNull(result);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PublicExport), typeof(ExportWithPrivateImportingProperty))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PublicExport), typeof(ExportWithPrivateImportingProperty))]
         public void PrivateImportingProperty(IContainer container)
         {
             var result = container.GetExportedValue<ExportWithPrivateImportingProperty>();
             Assert.NotNull(result.InternalAccessor);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PublicExport), typeof(ExportWithPrivateImportingField))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PublicExport), typeof(ExportWithPrivateImportingField))]
         public void PrivateImportingField(IContainer container)
         {
             var result = container.GetExportedValue<ExportWithPrivateImportingField>();

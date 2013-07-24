@@ -41,7 +41,8 @@
                 }
             }
 
-            foreach (var member in Enumerable.Concat<MemberInfo>(partType.GetProperties(BindingFlags.Instance | BindingFlags.Public), partType.GetFields(BindingFlags.Instance | BindingFlags.Public)))
+            var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            foreach (var member in Enumerable.Concat<MemberInfo>(partType.GetProperties(flags), partType.GetFields(flags)))
             {
                 var property = member as PropertyInfo;
                 var field = member as FieldInfo;

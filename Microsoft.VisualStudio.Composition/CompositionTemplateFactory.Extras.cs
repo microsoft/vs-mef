@@ -17,14 +17,69 @@
         private const string InstantiatedPartLocalVarName = "result";
 
         public CompositionConfiguration Configuration { get; set; }
+        private IDisposable EmitMemberAssignment(Import import)
+        {
+            Requires.NotNull(import, "import");
+
+            var importingField = import.ImportingMember as FieldInfo;
+            var importingProperty = import.ImportingMember as PropertyInfo;
+            Assumes.True(importingField != null || importingProperty != null);
+            bool isPublic = importingField != null ? importingField.IsPublic : importingProperty.GetSetMethod(true).IsPublic;
+
+            string tail;
+            if (isPublic)
+            {
+                this.Write("{0}.{1} = ", InstantiatedPartLocalVarName, import.ImportingMember.Name);
+                tail = ";";
+            }
+            else
+            {
+                if (import.PartDefinition.Type.IsGenericTypeDefinition)
+                {
+                    // TODO: code here
+                    throw new NotImplementedException();
+                }
+                else
+                {
+                    if (importingField != null)
+                    {
+                        this.Write(
+                            "{0}.ManifestModule.ResolveField({1}).SetValue({2}, ",
+                            this.GetAssemblyExpression(import.PartDefinition.Type.Assembly),
+                            import.ImportingMember.MetadataToken,
+                            InstantiatedPartLocalVarName);
+                        tail = ");";
+                    }
+                    else // property
+                    {
+                        this.Write(
+                            "{0}.ManifestModule.ResolveMethod({1}).Invoke({2}, new object[] {{ ",
+                            this.GetAssemblyExpression(import.PartDefinition.Type.Assembly),
+                            importingProperty.GetSetMethod(true).MetadataToken,
+                            InstantiatedPartLocalVarName);
+                        tail = " });";
+                    }
+                }
+            }
+
+            return new DisposableWithAction(delegate
+            {
+                this.WriteLine(tail);
+            });
+        }
+
+        private string GetAssemblyExpression(Assembly assembly)
+        {
+            Requires.NotNull(assembly, "assembly");
+
+            return string.Format(CultureInfo.InvariantCulture, "Assembly.Load({0})", Quote(assembly.FullName));
+        }
 
         private void EmitImportSatisfyingAssignment(KeyValuePair<Import, IReadOnlyList<Export>> satisfyingExport)
         {
             Requires.Argument(satisfyingExport.Key.ImportingMember != null, "satisfyingExport", "No member to satisfy.");
             var import = satisfyingExport.Key;
             var importingMember = satisfyingExport.Key.ImportingMember;
-            var importDefinition = satisfyingExport.Key.ImportDefinition;
-            var importingPartDefinition = satisfyingExport.Key.PartDefinition;
             var exports = satisfyingExport.Value;
 
             var right = new StringWriter();
@@ -32,10 +87,10 @@
             string rightString = right.ToString();
             if (rightString.Length > 0)
             {
-                this.Write("{0}.{1}", InstantiatedPartLocalVarName, importingMember.Name);
-                this.Write(" = ");
-                this.Write(rightString);
-                this.WriteLine(";");
+                using (this.EmitMemberAssignment(import))
+                {
+                    this.Write(rightString);
+                }
             }
         }
 
@@ -187,7 +242,7 @@
             }
             else
             {
-                this.WriteLine("var assembly = Assembly.Load({0});", Quote(partDefinition.Type.Assembly.FullName));
+                this.WriteLine("var assembly = {0};", GetAssemblyExpression(partDefinition.Type.Assembly));
                 if (partDefinition.Type.IsGenericTypeDefinition)
                 {
                     this.WriteLine("var ctor = (ConstructorInfo)MethodInfo.GetMethodFromHandle(assembly.ManifestModule.ResolveMethod({0}).MethodHandle, assembly.ManifestModule.ResolveType({1}).MakeGenericType({2}).TypeHandle);", ctor.MetadataToken, partDefinition.Type.MetadataToken, string.Join(", ", partDefinition.Type.GetGenericArguments().Select(t => "typeof(" + GetTypeName(t) + ")")));

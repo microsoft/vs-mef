@@ -38,8 +38,14 @@
             this.ImportDefinition = importDefinition;
         }
 
+        /// <summary>
+        /// Gets the definition for this import.
+        /// </summary>
         public ImportDefinition ImportDefinition { get; private set; }
 
+        /// <summary>
+        /// Gets the part definition on which this import is found.
+        /// </summary>
         public ComposablePartDefinition PartDefinition { get; private set; }
 
         /// <summary>
