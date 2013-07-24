@@ -39,10 +39,24 @@
             Assert.NotNull(result.InternalAccessor);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(PublicExport), typeof(OpenGenericPartWithPrivateImportingProperty<>))]
+        public void PrivateImportingPropertyOnOpenGenericPart(IContainer container)
+        {
+            var result = container.GetExportedValue<OpenGenericPartWithPrivateImportingProperty<int>>();
+            Assert.NotNull(result.InternalAccessor);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(PublicExport), typeof(ExportWithPrivateImportingField))]
         public void PrivateImportingField(IContainer container)
         {
             var result = container.GetExportedValue<ExportWithPrivateImportingField>();
+            Assert.NotNull(result.InternalAccessor);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PublicExport), typeof(OpenGenericPartWithPrivateImportingField<>))]
+        public void PrivateImportingFieldOnOpenGenericPart(IContainer container)
+        {
+            var result = container.GetExportedValue<OpenGenericPartWithPrivateImportingField<int>>();
             Assert.NotNull(result.InternalAccessor);
         }
 
@@ -94,7 +108,31 @@
         }
 
         [MefV1.Export]
+        public class OpenGenericPartWithPrivateImportingProperty<T>
+        {
+            [MefV1.Import]
+            private PublicExport ImportingProperty { get; set; }
+
+            internal PublicExport InternalAccessor
+            {
+                get { return this.ImportingProperty; }
+            }
+        }
+
+        [MefV1.Export]
         public class ExportWithPrivateImportingField
+        {
+            [MefV1.Import]
+            private PublicExport importingField;
+
+            internal PublicExport InternalAccessor
+            {
+                get { return this.importingField; }
+            }
+        }
+
+        [MefV1.Export]
+        public class OpenGenericPartWithPrivateImportingField<T>
         {
             [MefV1.Import]
             private PublicExport importingField;

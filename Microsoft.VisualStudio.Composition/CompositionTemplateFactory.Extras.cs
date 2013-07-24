@@ -36,8 +36,25 @@
             {
                 if (import.PartDefinition.Type.IsGenericTypeDefinition)
                 {
-                    // TODO: code here
-                    throw new NotImplementedException();
+                    if (importingField != null)
+                    {
+                        this.Write(
+                            "{0}.GetField({1}, BindingFlags.Instance | BindingFlags.NonPublic).SetValue({2}, ",
+                            this.GetClosedGenericTypeExpression(import.PartDefinition.Type),
+                            Quote(import.ImportingMember.Name),
+                            InstantiatedPartLocalVarName);
+                        tail = ");";
+                    }
+                    else // property
+                    {
+                        this.Write(
+                            "MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}).MethodHandle, {2}).Invoke({3}, new object[] {{ ",
+                            this.GetAssemblyExpression(import.PartDefinition.Type.Assembly),
+                            importingProperty.GetSetMethod(true).MetadataToken,
+                            this.GetClosedGenericTypeHandleExpression(import.PartDefinition.Type),
+                            InstantiatedPartLocalVarName);
+                        tail = " });";
+                    }
                 }
                 else
                 {
@@ -66,6 +83,23 @@
             {
                 this.WriteLine(tail);
             });
+        }
+
+        private string GetClosedGenericTypeExpression(Type type)
+        {
+            Requires.NotNull(type, "type");
+            Requires.Argument(type.IsGenericTypeDefinition, "type", "GenericTypeDefinition required.");
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                "{0}.ManifestModule.ResolveType({1}).MakeGenericType({2})",
+                this.GetAssemblyExpression(type.Assembly),
+                type.MetadataToken,
+                string.Join(", ", type.GetGenericArguments().Select(t => "typeof(" + GetTypeName(t) + ")")));
+        }
+
+        private string GetClosedGenericTypeHandleExpression(Type type)
+        {
+            return GetClosedGenericTypeExpression(type) + ".TypeHandle";
         }
 
         private string GetAssemblyExpression(Assembly assembly)
@@ -245,7 +279,10 @@
                 this.WriteLine("var assembly = {0};", GetAssemblyExpression(partDefinition.Type.Assembly));
                 if (partDefinition.Type.IsGenericTypeDefinition)
                 {
-                    this.WriteLine("var ctor = (ConstructorInfo)MethodInfo.GetMethodFromHandle(assembly.ManifestModule.ResolveMethod({0}).MethodHandle, assembly.ManifestModule.ResolveType({1}).MakeGenericType({2}).TypeHandle);", ctor.MetadataToken, partDefinition.Type.MetadataToken, string.Join(", ", partDefinition.Type.GetGenericArguments().Select(t => "typeof(" + GetTypeName(t) + ")")));
+                    this.WriteLine(
+                        "var ctor = (ConstructorInfo)MethodInfo.GetMethodFromHandle(assembly.ManifestModule.ResolveMethod({0}).MethodHandle, {1});",
+                        ctor.MetadataToken,
+                        this.GetClosedGenericTypeHandleExpression(partDefinition.Type));
                 }
                 else
                 {
