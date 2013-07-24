@@ -52,6 +52,7 @@
                 }
                 else if (exportAttribute != null)
                 {
+                    Verify.Operation(!partType.IsGenericTypeDefinition, "Exports on members not allowed when the declaring type is generic.");
                     var exportMetadataOnMember = GetExportMetadata(member.GetCustomAttributes());
                     var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? member.PropertyType);
                     var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
