@@ -88,7 +88,7 @@
             Assert.Equal("Success", importer.Value);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithPrivateExportedMethod))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithPrivateExportedMethod))]
         public void PrivateExportedMethod(IContainer container)
         {
             Func<string> result = container.GetExportedValue<Func<string>>();

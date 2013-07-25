@@ -68,7 +68,7 @@
                 }
             }
 
-            foreach (var method in partType.GetMethods(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var method in partType.GetMethods(flags))
             {
                 var exportAttribute = method.GetCustomAttribute<ExportAttribute>();
                 if (exportAttribute != null)

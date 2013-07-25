@@ -89,7 +89,7 @@
             {
                 return string.Format(
                     CultureInfo.InvariantCulture,
-                    "MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}).MethodHandle, {2})",
+                    "((MethodInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}).MethodHandle, {2}))",
                     this.GetAssemblyExpression(methodInfo.DeclaringType.Assembly),
                     methodInfo.MetadataToken,
                     this.GetClosedGenericTypeHandleExpression(methodInfo.DeclaringType));
@@ -98,7 +98,7 @@
             {
                 return string.Format(
                     CultureInfo.InvariantCulture,
-                    "{0}.ManifestModule.ResolveMethod({1})",
+                    "((MethodInfo){0}.ManifestModule.ResolveMethod({1}))",
                     this.GetAssemblyExpression(methodInfo.DeclaringType.Assembly),
                     methodInfo.MetadataToken);
             }
@@ -687,9 +687,18 @@
                 switch (member.MemberType)
                 {
                     case MemberTypes.Method:
-                        //MethodInfo mi;
-                        //(Func<int>)mi.CreateDelegate(typeof(Func<int>), partLocalVariableName)
-                        throw new NotImplementedException();
+                        valueFactoryExpression = string.Format(
+                            CultureInfo.InvariantCulture,
+                            "({0}){1}.CreateDelegate(typeof({0}), {2}.Value)",
+                            GetTypeName(exportDefinition.Contract.Type),
+                            GetMethodInfoExpression((MethodInfo)member),
+                            partLocalVariableName);
+                        //valueFactoryExpression = string.Format(
+                        //    CultureInfo.InvariantCulture,
+                        //    "new {0}({1})",
+                        //    GetTypeName(exportDefinition.Contract.Type),
+                        //    GetMethodInfoExpression((MethodInfo)member));
+                        break;
                     case MemberTypes.Field:
                         valueFactoryExpression = string.Format(
                             CultureInfo.InvariantCulture,
