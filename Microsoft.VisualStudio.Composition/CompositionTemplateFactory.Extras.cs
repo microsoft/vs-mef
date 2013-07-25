@@ -442,16 +442,19 @@
                     case MemberTypes.Field:
                         writer.Write(
                             "({0}){1}.GetValue(",
-                            import.ImportDefinition.MemberType,
+                            GetTypeName(import.ImportDefinition.MemberType),
                             GetFieldInfoExpression((FieldInfo)export.ExportingMember));
                         break;
                     case MemberTypes.Method:
-                        throw new NotImplementedException();
-                        //break;
+                        writer.Write(
+                            "({0}){1}.CreateDelegate(typeof({0}), ",
+                            GetTypeName(import.ImportDefinition.MemberType),
+                            GetMethodInfoExpression((MethodInfo)export.ExportingMember));
+                        break;
                     case MemberTypes.Property:
                         writer.Write(
                             "({0}){1}.Invoke(",
-                            import.ImportDefinition.MemberType,
+                            GetTypeName(import.ImportDefinition.MemberType),
                             GetMethodInfoExpression(((PropertyInfo)export.ExportingMember).GetGetMethod(true)));
                         break;
                     default:
@@ -470,12 +473,18 @@
                     }
                     else
                     {
-                        if (export.ExportingMember.MemberType != MemberTypes.Field)
+                        switch (export.ExportingMember.MemberType)
                         {
-                            memberModifier = ", new object[0]";
+                            case MemberTypes.Field:
+                                memberModifier = ")";
+                                break;
+                            case MemberTypes.Property:
+                                memberModifier = ", new object[0])";
+                                break;
+                            case MemberTypes.Method:
+                                memberModifier = ")";
+                                break;
                         }
-
-                        memberModifier += ")";
                     }
                 }
 
