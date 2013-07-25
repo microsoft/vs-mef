@@ -693,11 +693,6 @@
                             GetTypeName(exportDefinition.Contract.Type),
                             GetMethodInfoExpression((MethodInfo)member),
                             partLocalVariableName);
-                        //valueFactoryExpression = string.Format(
-                        //    CultureInfo.InvariantCulture,
-                        //    "new {0}({1})",
-                        //    GetTypeName(exportDefinition.Contract.Type),
-                        //    GetMethodInfoExpression((MethodInfo)member));
                         break;
                     case MemberTypes.Field:
                         valueFactoryExpression = string.Format(
