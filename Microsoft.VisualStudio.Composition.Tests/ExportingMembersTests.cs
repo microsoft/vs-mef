@@ -60,6 +60,7 @@
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass))]
+        [Trait("GenericExports", "Closed")]
         public void ExportedMethodActionOf2(IContainer container)
         {
             var actual = container.GetExportedValue<Action<int, string>>("Method");
@@ -67,6 +68,7 @@
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass))]
+        [Trait("GenericExports", "Closed")]
         public void ExportedMethodFunc(IContainer container)
         {
             var actual = container.GetExportedValue<Func<bool>>("Method");
@@ -74,6 +76,7 @@
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass))]
+        [Trait("GenericExports", "Closed")]
         public void ExportedMethodFuncOf2(IContainer container)
         {
             var actual = container.GetExportedValue<Func<int, string, bool>>("Method");
@@ -81,6 +84,7 @@
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass))]
+        [Trait("GenericExports", "Closed")]
         public void ExportedMethodFuncOf2WrongTypeArgs(IContainer container)
         {
             try
@@ -93,6 +97,7 @@
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass), typeof(ImportingClass))]
+        [Trait("GenericExports", "Closed")]
         public void ImportOfExportedMethodFuncOf2(IContainer container)
         {
             var importer = container.GetExportedValue<ImportingClass>();
@@ -100,6 +105,7 @@
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass), typeof(ImportingClass))]
+        [Trait("GenericExports", "Closed")]
         public void ImportOfExportedMethodFuncOf2WrongTypeArgs(IContainer container)
         {
             var importer = container.GetExportedValue<ImportingClass>();
