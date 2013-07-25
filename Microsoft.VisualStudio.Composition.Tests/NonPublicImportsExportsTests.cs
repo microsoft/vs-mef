@@ -67,7 +67,7 @@
             Assert.Equal("Success", result);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithPrivateExportingProperty), typeof(PartThatImportsPrivateExportingProperty))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithPrivateExportingProperty), typeof(PartThatImportsPrivateExportingProperty))]
         public void ImportOfPrivateExportingProperty(IContainer container)
         {
             var importer = container.GetExportedValue<PartThatImportsPrivateExportingProperty>();
@@ -81,7 +81,7 @@
             Assert.Equal("Success", result);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithPrivateExportingField), typeof(PartThatImportsPrivateExportingField))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithPrivateExportingField), typeof(PartThatImportsPrivateExportingField))]
         public void ImportOfPrivateExportingField(IContainer container)
         {
             var importer = container.GetExportedValue<PartThatImportsPrivateExportingField>();

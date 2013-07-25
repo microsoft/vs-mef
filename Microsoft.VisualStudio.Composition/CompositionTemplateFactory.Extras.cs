@@ -435,9 +435,50 @@
                 });
             }
 
+            if (export.ExportingMember != null && !IsPublic(export.ExportingMember))
+            {
+                switch (export.ExportingMember.MemberType)
+                {
+                    case MemberTypes.Field:
+                        writer.Write(
+                            "({0}){1}.GetValue(",
+                            import.ImportDefinition.MemberType,
+                            GetFieldInfoExpression((FieldInfo)export.ExportingMember));
+                        break;
+                    case MemberTypes.Method:
+                        throw new NotImplementedException();
+                        //break;
+                    case MemberTypes.Property:
+                        writer.Write(
+                            "({0}){1}.Invoke(",
+                            import.ImportDefinition.MemberType,
+                            GetMethodInfoExpression(((PropertyInfo)export.ExportingMember).GetGetMethod(true)));
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+
             return new DisposableWithAction(() =>
             {
-                string memberModifier = export.ExportingMember == null ? string.Empty : "." + export.ExportingMember.Name;
+                string memberModifier = string.Empty;
+                if (export.ExportingMember != null)
+                {
+                    if (IsPublic(export.ExportingMember))
+                    {
+                        memberModifier = "." + export.ExportingMember.Name;
+                    }
+                    else
+                    {
+                        if (export.ExportingMember.MemberType != MemberTypes.Field)
+                        {
+                            memberModifier = ", new object[0]";
+                        }
+
+                        memberModifier += ")";
+                    }
+                }
+
                 string memberAccessor = ".Value" + memberModifier;
                 if (importDefinition.IsLazy)
                 {

@@ -46,6 +46,9 @@
 
         public MefV1.CreationPolicy RequiredCreationPolicy { get; private set; }
 
+        /// <summary>
+        /// Gets the literal declared type of this member.
+        /// </summary>
         public Type MemberType { get; private set; }
 
         public Type MemberWithoutManyWrapper
