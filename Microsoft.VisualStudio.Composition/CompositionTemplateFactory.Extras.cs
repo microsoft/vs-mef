@@ -17,6 +17,7 @@
         private const string InstantiatedPartLocalVarName = "result";
 
         public CompositionConfiguration Configuration { get; set; }
+
         private IDisposable EmitMemberAssignment(Import import)
         {
             Requires.NotNull(import, "import");
@@ -34,48 +35,21 @@
             }
             else
             {
-                if (import.PartDefinition.Type.IsGenericTypeDefinition)
+                if (importingField != null)
                 {
-                    if (importingField != null)
-                    {
-                        this.Write(
-                            "{0}.GetField({1}, BindingFlags.Instance | BindingFlags.NonPublic).SetValue({2}, ",
-                            this.GetClosedGenericTypeExpression(import.PartDefinition.Type),
-                            Quote(import.ImportingMember.Name),
-                            InstantiatedPartLocalVarName);
-                        tail = ");";
-                    }
-                    else // property
-                    {
-                        this.Write(
-                            "MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}).MethodHandle, {2}).Invoke({3}, new object[] {{ ",
-                            this.GetAssemblyExpression(import.PartDefinition.Type.Assembly),
-                            importingProperty.GetSetMethod(true).MetadataToken,
-                            this.GetClosedGenericTypeHandleExpression(import.PartDefinition.Type),
-                            InstantiatedPartLocalVarName);
-                        tail = " });";
-                    }
+                    this.Write(
+                        "{0}.SetValue({1}, ",
+                        this.GetFieldInfoExpression(importingField),
+                        InstantiatedPartLocalVarName);
+                    tail = ");";
                 }
-                else
+                else // property
                 {
-                    if (importingField != null)
-                    {
-                        this.Write(
-                            "{0}.ManifestModule.ResolveField({1}).SetValue({2}, ",
-                            this.GetAssemblyExpression(import.PartDefinition.Type.Assembly),
-                            import.ImportingMember.MetadataToken,
-                            InstantiatedPartLocalVarName);
-                        tail = ");";
-                    }
-                    else // property
-                    {
-                        this.Write(
-                            "{0}.ManifestModule.ResolveMethod({1}).Invoke({2}, new object[] {{ ",
-                            this.GetAssemblyExpression(import.PartDefinition.Type.Assembly),
-                            importingProperty.GetSetMethod(true).MetadataToken,
-                            InstantiatedPartLocalVarName);
-                        tail = " });";
-                    }
+                    this.Write(
+                        "{0}.Invoke({1}, new object[] {{ ",
+                        this.GetMethodInfoExpression(importingProperty.GetSetMethod(true)),
+                        InstantiatedPartLocalVarName);
+                    tail = " });";
                 }
             }
 
@@ -83,6 +57,51 @@
             {
                 this.WriteLine(tail);
             });
+        }
+
+        private string GetFieldInfoExpression(FieldInfo fieldInfo)
+        {
+            Requires.NotNull(fieldInfo, "fieldInfo");
+
+            if (fieldInfo.DeclaringType.IsGenericType)
+            {
+                return string.Format(
+                    CultureInfo.InvariantCulture,
+                    "{0}.GetField({1}, BindingFlags.Instance | BindingFlags.NonPublic)",
+                    this.GetClosedGenericTypeExpression(fieldInfo.DeclaringType),
+                    Quote(fieldInfo.Name));
+            }
+            else
+            {
+                return string.Format(
+                    CultureInfo.InvariantCulture,
+                    "{0}.ManifestModule.ResolveField({1})",
+                    this.GetAssemblyExpression(fieldInfo.DeclaringType.Assembly),
+                    fieldInfo.MetadataToken);
+            }
+        }
+
+        private string GetMethodInfoExpression(MethodInfo methodInfo)
+        {
+            Requires.NotNull(methodInfo, "methodInfo");
+
+            if (methodInfo.DeclaringType.IsGenericType)
+            {
+                return string.Format(
+                    CultureInfo.InvariantCulture,
+                    "MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}).MethodHandle, {2})",
+                    this.GetAssemblyExpression(methodInfo.DeclaringType.Assembly),
+                    methodInfo.MetadataToken,
+                    this.GetClosedGenericTypeHandleExpression(methodInfo.DeclaringType));
+            }
+            else
+            {
+                return string.Format(
+                    CultureInfo.InvariantCulture,
+                    "{0}.ManifestModule.ResolveMethod({1})",
+                    this.GetAssemblyExpression(methodInfo.DeclaringType.Assembly),
+                    methodInfo.MetadataToken);
+            }
         }
 
         private string GetClosedGenericTypeExpression(Type type)
@@ -628,7 +647,7 @@
             return name;
         }
 
-        private static string GetPartOrMemberLazy(string partLocalVariableName, MemberInfo member, ExportDefinition exportDefinition)
+        private string GetPartOrMemberLazy(string partLocalVariableName, MemberInfo member, ExportDefinition exportDefinition)
         {
             Requires.NotNullOrEmpty(partLocalVariableName, "partLocalVariableName");
             Requires.NotNull(exportDefinition, "exportDefinition");
@@ -638,31 +657,90 @@
                 return partLocalVariableName;
             }
 
-            switch (member.MemberType)
+            string valueFactoryExpression;
+            if (IsPublic(member))
             {
-                case MemberTypes.Method:
-                    return string.Format(
-                        CultureInfo.InvariantCulture,
-                        "new LazyPart<{0}>(() => new {0}({1}.Value.{2}))",
-                        GetTypeName(exportDefinition.Contract.Type),
-                        partLocalVariableName,
-                        member.Name);
-                case MemberTypes.Field:
-                case MemberTypes.Property:
-                    return string.Format(
-                        CultureInfo.InvariantCulture,
-                        "new LazyPart<{0}>(() => {1}.Value.{2})",
-                        GetTypeName(exportDefinition.Contract.Type),
-                        partLocalVariableName,
-                        member.Name);
-                default:
-                    throw new NotSupportedException();
+                string memberExpression = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "{0}.Value.{1}",
+                    partLocalVariableName,
+                    member.Name);
+                switch (member.MemberType)
+                {
+                    case MemberTypes.Method:
+                        valueFactoryExpression = string.Format(
+                            CultureInfo.InvariantCulture,
+                            "new {0}({1})",
+                            GetTypeName(exportDefinition.Contract.Type),
+                            memberExpression);
+                        break;
+                    case MemberTypes.Field:
+                    case MemberTypes.Property:
+                        valueFactoryExpression = memberExpression;
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
             }
+            else
+            {
+                switch (member.MemberType)
+                {
+                    case MemberTypes.Method:
+                        //MethodInfo mi;
+                        //(Func<int>)mi.CreateDelegate(typeof(Func<int>), partLocalVariableName)
+                        throw new NotImplementedException();
+                    case MemberTypes.Field:
+                        valueFactoryExpression = string.Format(
+                            CultureInfo.InvariantCulture,
+                            "({0}){1}.GetValue({2}.Value)",
+                            GetTypeName(((FieldInfo)member).FieldType),
+                            GetFieldInfoExpression((FieldInfo)member),
+                            partLocalVariableName);
+                        break;
+                    case MemberTypes.Property:
+                        valueFactoryExpression = string.Format(
+                            CultureInfo.InvariantCulture,
+                            "({0}){1}.Invoke({2}.Value, new object[0])",
+                            GetTypeName(((PropertyInfo)member).PropertyType),
+                            GetMethodInfoExpression(((PropertyInfo)member).GetGetMethod(true)),
+                            partLocalVariableName);
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                "new LazyPart<{0}>(() => {1})",
+                GetTypeName(exportDefinition.Contract.Type),
+                valueFactoryExpression);
         }
 
         private static string Quote(string value)
         {
             return "@\"" + value.Replace("\"", "\"\"") + "\"";
+        }
+
+        private static bool IsPublic(MemberInfo memberInfo, bool setter = false)
+        {
+            Requires.NotNull(memberInfo, "memberInfo");
+            switch (memberInfo.MemberType)
+            {
+                case MemberTypes.Constructor:
+                    return ((ConstructorInfo)memberInfo).IsPublic;
+                case MemberTypes.Field:
+                    return ((FieldInfo)memberInfo).IsPublic;
+                case MemberTypes.Method:
+                    return ((MethodInfo)memberInfo).IsPublic;
+                case MemberTypes.Property:
+                    var property = (PropertyInfo)memberInfo;
+                    var method = setter ? property.GetSetMethod(true) : property.GetGetMethod(true);
+                    return IsPublic(method);
+                default:
+                    throw new NotSupportedException();
+            }
         }
 
         private IDisposable Indent(int count = 1, bool withBraces = false)

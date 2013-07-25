@@ -60,18 +60,32 @@
             Assert.NotNull(result.InternalAccessor);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithPrivateExportingProperty))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithPrivateExportingProperty))]
         public void PrivateExportingProperty(IContainer container)
         {
             string result = container.GetExportedValue<string>();
             Assert.Equal("Success", result);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithPrivateExportingField))]
+        [MefFact(CompositionEngines.V1, typeof(PartWithPrivateExportingProperty), typeof(PartThatImportsPrivateExportingProperty))]
+        public void ImportOfPrivateExportingProperty(IContainer container)
+        {
+            var importer = container.GetExportedValue<PartThatImportsPrivateExportingProperty>();
+            Assert.Equal("Success", importer.Value);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithPrivateExportingField))]
         public void PrivateExportingField(IContainer container)
         {
             string result = container.GetExportedValue<string>();
             Assert.Equal("Success", result);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(PartWithPrivateExportingField), typeof(PartThatImportsPrivateExportingField))]
+        public void ImportOfPrivateExportingField(IContainer container)
+        {
+            var importer = container.GetExportedValue<PartThatImportsPrivateExportingField>();
+            Assert.Equal("Success", importer.Value);
         }
 
         [MefFact(CompositionEngines.V1, typeof(PartWithPrivateExportedMethod))]
@@ -79,6 +93,13 @@
         {
             Func<string> result = container.GetExportedValue<Func<string>>();
             Assert.Equal("Success", result());
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(PartWithPrivateExportedMethod), typeof(PartWithImportOfPrivateExportedMethod))]
+        public void ImportOfPrivateExportedMethod(IContainer container)
+        {
+            var importer = container.GetExportedValue<PartWithImportOfPrivateExportedMethod>();
+            Assert.Equal("Success", importer.Value());
         }
 
         internal interface IInternalInterface { }
@@ -152,10 +173,24 @@
             }
         }
 
+        [MefV1.Export]
+        public class PartThatImportsPrivateExportingProperty
+        {
+            [MefV1.Import]
+            public string Value { get; set; }
+        }
+
         public class PartWithPrivateExportingField
         {
             [MefV1.Export]
             private string ExportingField = "Success";
+        }
+
+        [MefV1.Export]
+        public class PartThatImportsPrivateExportingField
+        {
+            [MefV1.Import]
+            public string Value { get; set; }
         }
 
         public class PartWithPrivateExportedMethod
@@ -165,6 +200,13 @@
             {
                 return "Success";
             }
+        }
+
+        [MefV1.Export]
+        public class PartWithImportOfPrivateExportedMethod
+        {
+            [MefV1.Import]
+            public Func<string> Value { get; set; }
         }
     }
 }
