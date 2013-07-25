@@ -12,21 +12,21 @@
 
     public class ExportingMembersTests
     {
-        [MefFact(CompositionEngines.V1Compat)]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass))]
         public void ExportedField(IContainer container)
         {
             string actual = container.GetExportedValue<string>("Field");
             Assert.Equal("Andrew", actual);
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportingMembersClass))]
         public void ExportedProperty(IContainer container)
         {
             string actual = container.GetExportedValue<string>("Property");
             Assert.Equal("Andrew", actual);
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportingMembersClass))]
         [Trait("GenericExports", "Closed")]
         public void ExportedPropertyGenericType(IContainer container)
         {
@@ -34,7 +34,7 @@
             Assert.NotNull(actual);
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportingMembersClass))]
         [Trait("GenericExports", "Closed")]
         public void ExportedPropertyGenericTypeWrongTypeArgs(IContainer container)
         {
@@ -52,35 +52,35 @@
             }
         }
 
-        [MefFact(CompositionEngines.V1Compat)]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass))]
         public void ExportedMethodAction(IContainer container)
         {
             var actual = container.GetExportedValue<Action>("Method");
             Assert.NotNull(actual);
         }
 
-        [MefFact(CompositionEngines.V1Compat)]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass))]
         public void ExportedMethodActionOf2(IContainer container)
         {
             var actual = container.GetExportedValue<Action<int, string>>("Method");
             Assert.NotNull(actual);
         }
 
-        [MefFact(CompositionEngines.V1Compat)]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass))]
         public void ExportedMethodFunc(IContainer container)
         {
             var actual = container.GetExportedValue<Func<bool>>("Method");
             Assert.NotNull(actual);
         }
 
-        [MefFact(CompositionEngines.V1Compat)]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass))]
         public void ExportedMethodFuncOf2(IContainer container)
         {
             var actual = container.GetExportedValue<Func<int, string, bool>>("Method");
             Assert.NotNull(actual);
         }
 
-        [MefFact(CompositionEngines.V1Compat)]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass))]
         public void ExportedMethodFuncOf2WrongTypeArgs(IContainer container)
         {
             try
@@ -90,6 +90,30 @@
             }
             catch (MefV1.ImportCardinalityMismatchException) { }
             catch (CompositionFailedException) { } // V2/V3
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass), typeof(ImportingClass))]
+        public void ImportOfExportedMethodFuncOf2(IContainer container)
+        {
+            var importer = container.GetExportedValue<ImportingClass>();
+            Assert.NotNull(importer.FuncOf2);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass), typeof(ImportingClass))]
+        public void ImportOfExportedMethodFuncOf2WrongTypeArgs(IContainer container)
+        {
+            var importer = container.GetExportedValue<ImportingClass>();
+            Assert.Null(importer.FuncOf2WrongTypeArgs);
+        }
+
+        [MefV1.Export]
+        public class ImportingClass
+        {
+            [MefV1.Import("Method")]
+            public Func<int, string, bool> FuncOf2 { get; set; }
+
+            [MefV1.Import("Method", AllowDefault = true)]
+            public Func<string, string, bool> FuncOf2WrongTypeArgs { get; set; }
         }
 
         public class ExportingMembersClass

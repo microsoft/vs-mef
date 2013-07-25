@@ -34,9 +34,14 @@
         {
             Requires.NotNull(import, "import");
 
-            var exports = this.exportsByContract.GetValueOrDefault(
-                import.Contract.GetContractToMatchExports(),
-                ImmutableList.Create<Export>());
+            var exports = this.exportsByContract.GetValueOrDefault(import.Contract, ImmutableList.Create<Export>());
+
+            if (import.Contract.Type.IsGenericType && !import.Contract.Type.IsGenericTypeDefinition)
+            {
+                var typeDefinitionContract = new CompositionContract(import.Contract.ContractName, import.Contract.Type.GetGenericTypeDefinition());
+                exports = exports.AddRange(this.exportsByContract.GetValueOrDefault(typeDefinitionContract, ImmutableList.Create<Export>()));
+            }
+
 
             var filteredExports = from export in exports
                                   where HasCompatibleCreationPolicies(export.PartDefinition, import)

@@ -37,13 +37,42 @@
                     return this.PartDefinition.Type;
                 }
 
-                var property = this.ExportingMember as PropertyInfo;
-                var field = this.ExportingMember as FieldInfo;
-
-                return property != null
-                    ? property.PropertyType
-                    : field.FieldType;
+                switch (this.ExportingMember.MemberType)
+                {
+                    case MemberTypes.Field:
+                        return ((FieldInfo)this.ExportingMember).FieldType;
+                    case MemberTypes.Property:
+                        return ((PropertyInfo)this.ExportingMember).PropertyType;
+                    case MemberTypes.Method:
+                        return GetContractTypeForDelegate((MethodInfo)this.ExportingMember);
+                    default:
+                        throw new NotSupportedException();
+                }
             }
+        }
+
+        internal static Type GetContractTypeForDelegate(MethodInfo method)
+        {
+            Type genericTypeDefinition;
+            int parametersCount = method.GetParameters().Length;
+            var typeArguments = method.GetParameters().Select(p => p.ParameterType).ToList();
+            var voidResult = method.ReturnType.IsEquivalentTo(typeof(void));
+            if (voidResult)
+            {
+                if (typeArguments.Count == 0)
+                {
+                    return typeof(Action);
+                }
+
+                genericTypeDefinition = Type.GetType("System.Action`" + typeArguments.Count);
+            }
+            else
+            {
+                typeArguments.Add(method.ReturnType);
+                genericTypeDefinition = Type.GetType("System.Func`" + typeArguments.Count);
+            }
+
+            return genericTypeDefinition.MakeGenericType(typeArguments.ToArray());
         }
     }
 }

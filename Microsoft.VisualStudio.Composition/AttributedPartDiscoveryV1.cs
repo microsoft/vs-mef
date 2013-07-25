@@ -74,7 +74,7 @@
                 if (exportAttribute != null)
                 {
                     var exportMetadataOnMember = GetExportMetadata(method.GetCustomAttributes());
-                    Type contractType = exportAttribute.ContractType ?? GetContractTypeForDelegate(method);
+                    Type contractType = exportAttribute.ContractType ?? Export.GetContractTypeForDelegate(method);
                     var contract = new CompositionContract(exportAttribute.ContractName, contractType);
                     var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
                     exportsOnMembers.Add(method, exportDefinition);
@@ -190,30 +190,6 @@
             }
 
             return result.ToImmutable();
-        }
-
-        private static Type GetContractTypeForDelegate(MethodInfo method)
-        {
-            Type genericTypeDefinition;
-            int parametersCount = method.GetParameters().Length;
-            var typeArguments = method.GetParameters().Select(p => p.ParameterType).ToList();
-            var voidResult = method.ReturnType.IsEquivalentTo(typeof(void));
-            if (voidResult)
-            {
-                if (typeArguments.Count == 0)
-                {
-                    return typeof(Action);
-                }
-
-                genericTypeDefinition = Type.GetType("System.Action`" + typeArguments.Count);
-            }
-            else
-            {
-                typeArguments.Add(method.ReturnType);
-                genericTypeDefinition = Type.GetType("System.Func`" + typeArguments.Count);
-            }
-
-            return genericTypeDefinition.MakeGenericType(typeArguments.ToArray());
         }
 
         public override IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly)
