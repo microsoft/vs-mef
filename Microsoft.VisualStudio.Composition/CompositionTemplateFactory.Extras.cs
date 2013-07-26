@@ -250,7 +250,7 @@
         {
             using (this.ValueFactoryWrapper(import, export, writer))
             {
-                if (export.PartDefinition == import.PartDefinition)
+                if (export.PartDefinition == import.PartDefinition && !import.ImportDefinition.IsExportFactory)
                 {
                     // The part is importing itself. So just assign it directly.
                     writer.Write(InstantiatedPartLocalVarName);

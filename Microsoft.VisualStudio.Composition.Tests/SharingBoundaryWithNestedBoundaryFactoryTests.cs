@@ -12,7 +12,7 @@
     [Trait("SharingBoundary", "")]
     public class SharingBoundaryWithNestedBoundaryFactoryTests
     {
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void SharingBoundaryWithSameNestedBoundary(IContainer container)
         {
             var root = container.GetExportedValue<Root>();
