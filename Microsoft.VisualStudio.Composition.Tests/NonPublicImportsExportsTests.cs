@@ -11,14 +11,14 @@
     [Trait("Access", "NonPublic")]
     public class NonPublicImportsExportsTests
     {
-        [MefFact(CompositionEngines.V1, typeof(InternalExport))]
+        [MefFact(CompositionEngines.V1Compat, typeof(InternalExport))]
         public void InternalExportedType(IContainer container)
         {
             var result = container.GetExportedValue<InternalExport>();
             Assert.NotNull(result);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PublicExportOfInternalInterface))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PublicExportOfInternalInterface))]
         public void PublicExportOfInternalType(IContainer container)
         {
             var result = container.GetExportedValue<IInternalInterface>();

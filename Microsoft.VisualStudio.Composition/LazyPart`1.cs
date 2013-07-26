@@ -12,5 +12,10 @@
             : base(valueFactory, true)
         {
         }
+
+        public LazyPart(Func<object> valueFactory)
+            : this(() => (T)valueFactory())
+        {
+        }
     }
 }

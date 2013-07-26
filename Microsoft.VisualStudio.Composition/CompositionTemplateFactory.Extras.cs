@@ -107,12 +107,11 @@
         private string GetClosedGenericTypeExpression(Type type)
         {
             Requires.NotNull(type, "type");
-            Requires.Argument(type.IsGenericTypeDefinition, "type", "GenericTypeDefinition required.");
             return string.Format(
                 CultureInfo.InvariantCulture,
                 "{0}.ManifestModule.ResolveType({1}).MakeGenericType({2})",
                 this.GetAssemblyExpression(type.Assembly),
-                type.MetadataToken,
+                type.GetGenericTypeDefinition().MetadataToken,
                 string.Join(", ", type.GetGenericArguments().Select(t => GetTypeExpression(t))));
         }
 
@@ -288,7 +287,7 @@
         private IDisposable EmitConstructorInvocation(ComposablePartDefinition partDefinition)
         {
             var ctor = partDefinition.ImportingConstructorInfo;
-            bool publicCtor = !partDefinition.Type.IsNotPublic && ctor.IsPublic;
+            bool publicCtor = IsPublic(partDefinition.Type) && IsPublic(ctor);
             if (publicCtor)
             {
                 this.Write("var {0} = new {1}(", InstantiatedPartLocalVarName, GetTypeName(partDefinition.Type));
@@ -554,6 +553,11 @@
                 return type.Name;
             }
 
+            if (!IsPublic(type) && !evenNonPublic)
+            {
+                return "object";
+            }
+
             string result = string.Empty;
             if (type.DeclaringType != null)
             {
@@ -589,7 +593,11 @@
             }
             else
             {
-                throw new NotSupportedException();
+                var targetType = (genericTypeDefinition && type.IsGenericType) ? type.GetGenericTypeDefinition() : type;
+                return string.Format(
+                    CultureInfo.InvariantCulture,
+                    "Type.GetType({0})",
+                    Quote(targetType.AssemblyQualifiedName));
             }
         }
 
@@ -833,6 +841,33 @@
                     return IsPublic(method);
                 default:
                     throw new NotSupportedException();
+            }
+        }
+
+        private IDisposable EmitLazyConstruction(Type valueType)
+        {
+            if (IsPublic(valueType))
+            {
+                this.Write("new LazyPart<{0}>(", GetTypeName(valueType));
+                return new DisposableWithAction(delegate
+                {
+                    this.Write(")");
+                });
+            }
+            else
+            {
+                var ctor = typeof(LazyPart<>).GetConstructor(new Type[] { typeof(Func<object>) });
+                this.WriteLine(
+                    "((ILazy<object>)((ConstructorInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}).MethodHandle, {2})).Invoke(new object[] {{ ",
+                    GetAssemblyExpression(typeof(LazyPart<>).Assembly),
+                    ctor.MetadataToken,
+                    this.GetClosedGenericTypeHandleExpression(typeof(LazyPart<>).MakeGenericType(valueType)));
+                var indent = Indent();
+                return new DisposableWithAction(delegate
+                {
+                    indent.Dispose();
+                    this.Write(" }))");
+                });
             }
         }
 
