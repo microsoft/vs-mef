@@ -40,6 +40,21 @@
             Assert.NotNull(cast.PublicImportingProperty);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(InternalTypeWithExportingMember))]
+        public void GetExportsFromInternalTypeWithExportingMembers(IContainer container)
+        {
+            Assert.Equal(3, container.GetExportedValue<int>());
+            Assert.Equal("Hi", container.GetExportedValue<string>());
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(InternalTypeWithExportingMember), typeof(PartThatImportsInternalMemberExports))]
+        public void ImportFromInternalTypeWithExportingMembers(IContainer container)
+        {
+            var importer = container.GetExportedValue<PartThatImportsInternalMemberExports>();
+            Assert.Equal(3, importer.ImportedInt);
+            Assert.Equal("Hi", importer.ImportedString);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(PublicExport), typeof(ExportWithPrivateImportingProperty))]
         public void PrivateImportingProperty(IContainer container)
         {
@@ -140,6 +155,31 @@
 
             [MefV1.Import]
             internal PublicExport InternalImportingProperty { get; set; }
+        }
+
+        internal class InternalTypeWithExportingMember
+        {
+            [MefV1.Export]
+            internal int InternalExportingInt
+            {
+                get { return 3; }
+            }
+
+            [MefV1.Export]
+            public string PublicExportingString
+            {
+                get { return "Hi"; }
+            }
+        }
+
+        [MefV1.Export]
+        public class PartThatImportsInternalMemberExports
+        {
+            [MefV1.Import]
+            public int ImportedInt { get; set; }
+
+            [MefV1.Import]
+            public string ImportedString { get; set; }
         }
 
         [MefV1.Export]
