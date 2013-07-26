@@ -55,6 +55,7 @@ using Xunit;
         /// Verifies that the Lazy{T} instance itself is shared across all importers.
         /// </summary>
         [MefFact(CompositionEngines.Unspecified, typeof(ExportWithLazyImportOfSharedExport), typeof(SharedExport))]
+        [Trait("Efficiency", "InstanceReuse")]
         public void LazyImportOfSharedExportHasSharedLazy(IContainer container)
         {
             var firstInstance = container.GetExportedValue<ExportWithLazyImportOfSharedExport>();

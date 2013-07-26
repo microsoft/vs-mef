@@ -10,6 +10,7 @@
     using Microsoft.VisualStudio.Composition.AppDomainTests2;
     using Xunit;
 
+    [Trait("Efficiency", "LazyLoad")]
     public class AssembliesLazyLoadedTests
     {
         /// <summary>

@@ -23,6 +23,7 @@
         }
 
         [MefFact(CompositionEngines.V2 | CompositionEngines.V1, typeof(ImportingPartWithMetadataDictionary), typeof(PartWithExportMetadata))]
+        [Trait("Efficiency", "InstanceReuse")]
         public void MetadataDictionaryInstanceSharedAcrossImports(IContainer container)
         {
             var importingPart1 = container.GetExportedValue<ImportingPartWithMetadataDictionary>();
@@ -94,6 +95,7 @@
         }
 
         [MefFact(CompositionEngines.Unspecified, typeof(ImportingPartWithMetadataInterface), typeof(PartWithExportMetadata))]
+        [Trait("Efficiency", "InstanceReuse")]
         public void MetadataViewInterfaceInstanceSharedAcrossImports(IContainer container)
         {
             var importingPart1 = container.GetExportedValue<ImportingPartWithMetadataInterface>();
