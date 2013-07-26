@@ -47,7 +47,7 @@ foreach (var part in this.RootPartDefinitions)
         var partExport = partExportPair.Value;
 #>
 
-        if (<#= partExport.Contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type" #>.IsEquivalentTo(typeof(<#= GetTypeName(partExport.Contract.Type, partExport.Contract.Type.IsGenericTypeDefinition) #>)))
+        if (<#= partExport.Contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type" #>.IsEquivalentTo(<#= GetTypeExpression(partExport.Contract.Type, partExport.Contract.Type.IsGenericTypeDefinition) #>))
         {
 <#
             if (partExport.Contract.ContractName == null)

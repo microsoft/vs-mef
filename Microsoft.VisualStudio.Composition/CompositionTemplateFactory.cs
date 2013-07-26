@@ -84,14 +84,14 @@ foreach (var part in this.RootPartDefinitions)
             
             #line default
             #line hidden
-            this.Write(".IsEquivalentTo(typeof(");
+            this.Write(".IsEquivalentTo(");
             
             #line 50 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(partExport.Contract.Type, partExport.Contract.Type.IsGenericTypeDefinition)));
+            this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeExpression(partExport.Contract.Type, partExport.Contract.Type.IsGenericTypeDefinition)));
             
             #line default
             #line hidden
-            this.Write(")))\r\n        {\r\n");
+            this.Write("))\r\n        {\r\n");
             
             #line 52 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 

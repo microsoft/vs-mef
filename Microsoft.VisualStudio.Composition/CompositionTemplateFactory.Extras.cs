@@ -113,7 +113,7 @@
                 "{0}.ManifestModule.ResolveType({1}).MakeGenericType({2})",
                 this.GetAssemblyExpression(type.Assembly),
                 type.MetadataToken,
-                string.Join(", ", type.GetGenericArguments().Select(t => "typeof(" + GetTypeName(t) + ")")));
+                string.Join(", ", type.GetGenericArguments().Select(t => GetTypeExpression(t))));
         }
 
         private string GetClosedGenericTypeHandleExpression(Type type)
@@ -354,7 +354,7 @@
                 this.WriteLine("this.TrackDisposableValue({0});", InstantiatedPartLocalVarName);
             }
 
-            this.WriteLine("provisionalSharedObjects.Add(typeof({0}), {1});", GetTypeName(part.Definition.Type), InstantiatedPartLocalVarName);
+            this.WriteLine("provisionalSharedObjects.Add({0}, {1});", GetTypeExpression(part.Definition.Type), InstantiatedPartLocalVarName);
 
             foreach (var satisfyingExport in part.SatisfyingExports.Where(i => i.Key.ImportingMember != null))
             {
@@ -447,9 +447,10 @@
                         break;
                     case MemberTypes.Method:
                         writer.Write(
-                            "({0}){1}.CreateDelegate(typeof({0}), ",
+                            "({0}){1}.CreateDelegate({2}, ",
                             GetTypeName(import.ImportDefinition.MemberType),
-                            GetMethodInfoExpression((MethodInfo)export.ExportingMember));
+                            GetMethodInfoExpression((MethodInfo)export.ExportingMember),
+                            GetTypeExpression(import.ImportDefinition.MemberType));
                         break;
                     case MemberTypes.Property:
                         writer.Write(
@@ -546,7 +547,7 @@
             return GetTypeName(type, genericTypeDefinition: false);
         }
 
-        private static string GetTypeName(Type type, bool genericTypeDefinition)
+        private static string GetTypeName(Type type, bool genericTypeDefinition = false, bool evenNonPublic = false)
         {
             if (type.IsGenericParameter)
             {
@@ -570,6 +571,43 @@
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Gets a C# expression that evaluates to a System.Type instance for the specified type.
+        /// </summary>
+        private static string GetTypeExpression(Type type, bool genericTypeDefinition = false)
+        {
+            Requires.NotNull(type, "type");
+
+            if (IsPublic(type))
+            {
+                return string.Format(
+                    CultureInfo.InvariantCulture,
+                    "typeof({0})",
+                    GetTypeName(type, genericTypeDefinition));
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        private static bool IsPublic(Type type)
+        {
+            Requires.NotNull(type, "type");
+
+            if (type.IsNotPublic)
+            {
+                return false;
+            }
+
+            if (type.IsPublic || type.IsNestedPublic)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static string GetClassNameForMetadataView(Type metadataView)
@@ -739,10 +777,11 @@
                     case MemberTypes.Method:
                         valueFactoryExpression = string.Format(
                             CultureInfo.InvariantCulture,
-                            "({0}){1}.CreateDelegate(typeof({0}), {2}.Value)",
+                            "({0}){1}.CreateDelegate({3}, {2}.Value)",
                             GetTypeName(exportDefinition.Contract.Type),
                             GetMethodInfoExpression((MethodInfo)member),
-                            partLocalVariableName);
+                            partLocalVariableName,
+                            GetTypeExpression(exportDefinition.Contract.Type));
                         break;
                     case MemberTypes.Field:
                         valueFactoryExpression = string.Format(
