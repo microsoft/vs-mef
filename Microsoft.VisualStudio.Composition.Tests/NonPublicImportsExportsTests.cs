@@ -11,18 +11,33 @@
     [Trait("Access", "NonPublic")]
     public class NonPublicImportsExportsTests
     {
-        [MefFact(CompositionEngines.V1Compat, typeof(InternalExport))]
+        [MefFact(CompositionEngines.V1Compat, typeof(InternalExport), typeof(PublicExport))]
         public void InternalExportedType(IContainer container)
         {
             var result = container.GetExportedValue<InternalExport>();
             Assert.NotNull(result);
+            Assert.NotNull(result.InternalImportingProperty);
+            Assert.NotNull(result.PublicImportingProperty);
         }
 
-        [MefFact(CompositionEngines.V1Compat, typeof(PublicExportOfInternalInterface))]
+        [MefFact(CompositionEngines.V1Compat, typeof(InternalGenericExport<>), typeof(PublicExport))]
+        public void InternalGenericExportedType(IContainer container)
+        {
+            var result = container.GetExportedValue<InternalGenericExport<IInternalInterface>>();
+            Assert.NotNull(result);
+            Assert.NotNull(result.InternalImportingProperty);
+            Assert.NotNull(result.PublicImportingProperty);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PublicExportOfInternalInterface), typeof(PublicExport))]
         public void PublicExportOfInternalType(IContainer container)
         {
             var result = container.GetExportedValue<IInternalInterface>();
             Assert.NotNull(result);
+            Assert.IsType<PublicExportOfInternalInterface>(result);
+            var cast = (PublicExportOfInternalInterface)result;
+            Assert.NotNull(cast.InternalImportingProperty);
+            Assert.NotNull(cast.PublicImportingProperty);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(PublicExport), typeof(ExportWithPrivateImportingProperty))]
@@ -98,10 +113,34 @@
         internal interface IInternalInterface { }
 
         [MefV1.Export]
-        internal class InternalExport { }
+        internal class InternalExport
+        {
+            [MefV1.Import]
+            public PublicExport PublicImportingProperty { get; set; }
+
+            [MefV1.Import]
+            internal PublicExport InternalImportingProperty { get; set; }
+        }
+
+        [MefV1.Export]
+        internal class InternalGenericExport<T>
+        {
+            [MefV1.Import]
+            public PublicExport PublicImportingProperty { get; set; }
+
+            [MefV1.Import]
+            internal PublicExport InternalImportingProperty { get; set; }
+        }
 
         [MefV1.Export(typeof(IInternalInterface))]
-        public class PublicExportOfInternalInterface : IInternalInterface { }
+        public class PublicExportOfInternalInterface : IInternalInterface
+        {
+            [MefV1.Import]
+            public PublicExport PublicImportingProperty { get; set; }
+
+            [MefV1.Import]
+            internal PublicExport InternalImportingProperty { get; set; }
+        }
 
         [MefV1.Export]
         public class PublicExport { }

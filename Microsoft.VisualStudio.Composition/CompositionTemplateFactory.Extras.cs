@@ -25,10 +25,9 @@
             var importingField = import.ImportingMember as FieldInfo;
             var importingProperty = import.ImportingMember as PropertyInfo;
             Assumes.True(importingField != null || importingProperty != null);
-            bool isPublic = importingField != null ? importingField.IsPublic : importingProperty.GetSetMethod(true).IsPublic;
 
             string tail;
-            if (isPublic)
+            if (IsPublic(import.ImportingMember, setter: true))
             {
                 this.Write("{0}.{1} = ", InstantiatedPartLocalVarName, import.ImportingMember.Name);
                 tail = ";";
@@ -112,7 +111,7 @@
                 "{0}.ManifestModule.ResolveType({1}).MakeGenericType({2})",
                 this.GetAssemblyExpression(type.Assembly),
                 type.GetGenericTypeDefinition().MetadataToken,
-                string.Join(", ", type.GetGenericArguments().Select(t => GetTypeExpression(t))));
+                string.Join(", ", type.GetGenericArguments().Select(t => t.IsGenericType && t.ContainsGenericParameters ? GetClosedGenericTypeExpression(t) : GetTypeExpression(t))));
         }
 
         private string GetClosedGenericTypeHandleExpression(Type type)
@@ -827,6 +826,12 @@
         private static bool IsPublic(MemberInfo memberInfo, bool setter = false)
         {
             Requires.NotNull(memberInfo, "memberInfo");
+
+            if (!IsPublic(memberInfo.DeclaringType))
+            {
+                return false;
+            }
+
             switch (memberInfo.MemberType)
             {
                 case MemberTypes.Constructor:
