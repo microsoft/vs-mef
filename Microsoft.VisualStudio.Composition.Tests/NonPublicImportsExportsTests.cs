@@ -18,13 +18,6 @@
             Assert.NotNull(result);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PrivateExport))]
-        public void PrivateExportedType(IContainer container)
-        {
-            var result = container.GetExportedValue<PrivateExport>();
-            Assert.NotNull(result);
-        }
-
         [MefFact(CompositionEngines.V1, typeof(PublicExportOfInternalInterface))]
         public void PublicExportOfInternalType(IContainer container)
         {
@@ -107,9 +100,6 @@
         [MefV1.Export]
         internal class InternalExport { }
 
-        [MefV1.Export]
-        private class PrivateExport { }
-
         [MefV1.Export(typeof(IInternalInterface))]
         public class PublicExportOfInternalInterface : IInternalInterface { }
 
@@ -144,7 +134,7 @@
         public class ExportWithPrivateImportingField
         {
             [MefV1.Import]
-            private PublicExport importingField;
+            private PublicExport importingField = null;
 
             internal PublicExport InternalAccessor
             {
@@ -156,7 +146,7 @@
         public class OpenGenericPartWithPrivateImportingField<T>
         {
             [MefV1.Import]
-            private PublicExport importingField;
+            private PublicExport importingField = null;
 
             internal PublicExport InternalAccessor
             {
@@ -184,6 +174,11 @@
         {
             [MefV1.Export]
             private string ExportingField = "Success";
+
+            public string FieldAccessor
+            {
+                get { return this.ExportingField; }
+            }
         }
 
         [MefV1.Export]
