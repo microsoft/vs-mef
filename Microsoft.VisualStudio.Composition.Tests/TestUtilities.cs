@@ -31,16 +31,20 @@
             return CreateContainerV1(catalog);
         }
 
-        internal static IContainer CreateContainerV1(ImmutableArray<Assembly> assemblies)
+        internal static IContainer CreateContainerV1(ImmutableArray<Assembly> assemblies, Type[] parts)
         {
-            var catalog = new MefV1.Hosting.AggregateCatalog(assemblies.Select(a => new MefV1.Hosting.AssemblyCatalog(a)));
+            Requires.NotNull(parts, "parts");
+            var catalogs = assemblies.Select(a => new MefV1.Hosting.AssemblyCatalog(a))
+                .Concat<MefV1.Primitives.ComposablePartCatalog>(new[] { new MefV1.Hosting.TypeCatalog(parts) });
+            var catalog = new MefV1.Hosting.AggregateCatalog(catalogs);
+            
             return CreateContainerV1(catalog);
         }
 
         private static IContainer CreateContainerV1(MefV1.Primitives.ComposablePartCatalog catalog)
         {
             Requires.NotNull(catalog, "catalog");
-            var container = new MefV1.Hosting.CompositionContainer(catalog, MefV1.Hosting.CompositionOptions.ExportCompositionService);
+            var container = new DebuggableCompositionContainer(catalog, MefV1.Hosting.CompositionOptions.ExportCompositionService);
             return new V1ContainerWrapper(container);
         }
 
@@ -50,9 +54,9 @@
             return CreateContainerV2(configuration);
         }
 
-        internal static IContainer CreateContainerV2(ImmutableArray<Assembly> assemblies)
+        internal static IContainer CreateContainerV2(ImmutableArray<Assembly> assemblies, Type[] types)
         {
-            var configuration = new ContainerConfiguration().WithAssemblies(assemblies);
+            var configuration = new ContainerConfiguration().WithAssemblies(assemblies).WithParts(types);
             return CreateContainerV2(configuration);
         }
 
@@ -74,16 +78,19 @@
 
         internal static IContainer CreateContainerV3(Type[] parts, CompositionEngines attributesDiscovery)
         {
-            PartDiscovery discovery = GetDiscoveryService(attributesDiscovery);
-            var catalog = ComposableCatalog.Create(parts, discovery);
-            return CreateContainerV3(catalog);
+            return CreateContainerV3(default(ImmutableArray<Assembly>), attributesDiscovery, parts);
         }
-
-        internal static IContainer CreateContainerV3(ImmutableArray<Assembly> assemblies, CompositionEngines attributesDiscovery)
+        
+        internal static IContainer CreateContainerV3(ImmutableArray<Assembly> assemblies, CompositionEngines attributesDiscovery, Type[] parts = null)
         {
             PartDiscovery discovery = GetDiscoveryService(attributesDiscovery);
-            var parts = discovery.CreateParts(assemblies);
-            var catalog = ComposableCatalog.Create(parts);
+            var assemblyParts = discovery.CreateParts(assemblies);
+            var catalog = ComposableCatalog.Create(assemblyParts);
+            if (parts != null && parts.Length != 0)
+            {
+                var typeCatalog = ComposableCatalog.Create(parts, discovery);
+                catalog = ComposableCatalog.Create(catalog.Parts.Concat(typeCatalog.Parts));
+            }
             return CreateContainerV3(catalog);
         }
 
@@ -131,34 +138,58 @@
             }
         }
 
-        internal static void RunMultiEngineTest(CompositionEngines attributesVersion, ImmutableArray<Assembly> assemblies, Action<IContainer> test)
+        internal static void RunMultiEngineTest(CompositionEngines attributesVersion, ImmutableArray<Assembly> assemblies, Type[] parts, Action<IContainer> test)
         {
             if (attributesVersion.HasFlag(CompositionEngines.V1))
             {
-                test(CreateContainerV1(assemblies));
+                test(CreateContainerV1(assemblies, parts));
             }
 
             if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1))
             {
-                test(CreateContainerV3(assemblies, CompositionEngines.V1));
+                test(CreateContainerV3(assemblies, CompositionEngines.V1, parts));
             }
 
             if (attributesVersion.HasFlag(CompositionEngines.V2))
             {
-                test(CreateContainerV2(assemblies));
+                test(CreateContainerV2(assemblies, parts));
             }
 
             if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV2))
             {
-                test(CreateContainerV3(assemblies, CompositionEngines.V2));
+                test(CreateContainerV3(assemblies, CompositionEngines.V2, parts));
+            }
+        }
+
+        private class DebuggableCompositionContainer : MefV1.Hosting.CompositionContainer
+        {
+            protected override IEnumerable<MefV1.Primitives.Export> GetExportsCore(MefV1.Primitives.ImportDefinition definition, MefV1.Hosting.AtomicComposition atomicComposition)
+            {
+                var result = base.GetExportsCore(definition, atomicComposition);
+                if (definition.Cardinality == MefV1.Primitives.ImportCardinality.ExactlyOne && result.SingleOrDefault() == null ||
+                    definition.Cardinality == MefV1.Primitives.ImportCardinality.ZeroOrOne && result.Take(2).Count() == 2)
+                {
+                    // Set breakpoint here
+                }
+                return result;
+            }
+
+            public DebuggableCompositionContainer(MefV1.Primitives.ComposablePartCatalog catalog, MefV1.Hosting.CompositionOptions compositionOptions)
+                : base(catalog, compositionOptions)
+            {
             }
         }
 
         private class V1ContainerWrapper : IContainer
         {
-            private readonly MefV1.Hosting.CompositionContainer container;
+            private readonly DebuggableCompositionContainer container;
 
-            internal V1ContainerWrapper(MefV1.Hosting.CompositionContainer container)
+            public DebuggableCompositionContainer Container
+            {
+                get { return container; }
+            }
+
+            internal V1ContainerWrapper(DebuggableCompositionContainer container)
             {
                 Requires.NotNull(container, "container");
                 this.container = container;

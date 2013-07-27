@@ -30,8 +30,8 @@
             this.parts = parts;
         }
 
-        public MefFactAttribute(CompositionEngines compositionVersions, string newLineSeparatedAssemblyNames)
-            : this(compositionVersions)
+        public MefFactAttribute(CompositionEngines compositionVersions, string newLineSeparatedAssemblyNames, params Type[] parts)
+            : this(compositionVersions, parts)
         {
             Requires.NotNullOrEmpty(newLineSeparatedAssemblyNames, "newLineSeparatedAssemblyNames");
             this.assemblies = newLineSeparatedAssemblyNames

@@ -10,6 +10,8 @@
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Text.Editor;
     using Xunit;
+    using Microsoft.VisualStudio.Language.Intellisense;
+    using MefV1 = System.ComponentModel.Composition;
 
     public class EditorHostTests
     {
@@ -19,12 +21,26 @@
             Microsoft.VisualStudio.Text.UI, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
             Microsoft.VisualStudio.Text.UI.Wpf, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
             Microsoft.VisualStudio.Language.StandardClassification, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+            StandaloneUndo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9578fa20308cb27d
         ";
 
-        [MefFact(CompositionEngines.V1, EditorAssemblyNames, Skip = "Not yet passing")]
+        [MefFact(CompositionEngines.V1, EditorAssemblyNames, typeof(DummyKeyboardTrackingService))]
         public void ComposeEditor(IContainer container)
         {
             var editorFactory = container.GetExportedValue<ITextEditorFactoryService>();
         }
+
+        [MefV1.Export(typeof(IWpfKeyboardTrackingService))]
+        public class DummyKeyboardTrackingService : IWpfKeyboardTrackingService
+        {
+            public void BeginTrackingKeyboard(IntPtr handle, IList<uint> messagesToCapture)
+            {
+            }
+
+            public void EndTrackingKeyboard()
+            {
+            }
+        }
+
     }
 }

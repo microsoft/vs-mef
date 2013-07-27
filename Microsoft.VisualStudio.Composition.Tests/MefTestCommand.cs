@@ -77,15 +77,9 @@
 
         private static void RunMultiEngineTest(CompositionEngines attributesVersion, Type[] parts, ImmutableArray<string> assemblies, Action<IContainer> test)
         {
-            if (parts != null)
-            {
-                TestUtilities.RunMultiEngineTest(attributesVersion, parts, test);
-            }
-            else
-            {
-                var loadedAssemblies = assemblies.Select(Assembly.Load).ToImmutableArray();
-                TestUtilities.RunMultiEngineTest(attributesVersion, loadedAssemblies, test);
-            }
+            parts = parts ?? new Type[0];
+            var loadedAssemblies = assemblies.Select(Assembly.Load).ToImmutableArray();
+            TestUtilities.RunMultiEngineTest(attributesVersion, loadedAssemblies, parts, test);
         }
     }
 }
