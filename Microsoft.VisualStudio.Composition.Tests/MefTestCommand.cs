@@ -2,9 +2,12 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Validation;
     using Xunit;
     using Xunit.Sdk;
 
@@ -12,13 +15,17 @@
     {
         private readonly CompositionEngines engineVersion;
         private readonly Type[] parts;
+        private readonly ImmutableArray<string> assemblies;
         private readonly bool invalidConfiguration;
 
-        public MefTestCommand(IMethodInfo method, CompositionEngines engineVersion, Type[] parts, bool invalidConfiguration)
+        public MefTestCommand(IMethodInfo method, CompositionEngines engineVersion, Type[] parts, ImmutableArray<string> assemblies, bool invalidConfiguration)
             : base(method)
         {
+            Requires.Argument(parts != null || !assemblies.IsDefault, "parts ?? assemblies", "Either parameter must be non-null.");
+
             this.engineVersion = engineVersion;
             this.parts = parts;
+            this.assemblies = assemblies;
             this.DisplayName += " " + engineVersion;
             this.invalidConfiguration = invalidConfiguration;
         }
@@ -40,9 +47,10 @@
                     }
                     else
                     {
-                        TestUtilities.RunMultiEngineTest(
+                        RunMultiEngineTest(
                             this.engineVersion,
                             this.parts,
+                            this.assemblies,
                             container => this.testMethod.Invoke(testClass, container));
                     }
 
@@ -57,13 +65,27 @@
             }
             else
             {
-                TestUtilities.RunMultiEngineTest(
+                RunMultiEngineTest(
                     this.engineVersion,
                     this.parts,
+                    this.assemblies,
                     container => this.testMethod.Invoke(testClass, container));
             }
 
             return new PassedResult(this.testMethod, this.DisplayName);
+        }
+
+        private static void RunMultiEngineTest(CompositionEngines attributesVersion, Type[] parts, ImmutableArray<string> assemblies, Action<IContainer> test)
+        {
+            if (parts != null)
+            {
+                TestUtilities.RunMultiEngineTest(attributesVersion, parts, test);
+            }
+            else
+            {
+                var loadedAssemblies = assemblies.Select(Assembly.Load).ToImmutableArray();
+                TestUtilities.RunMultiEngineTest(attributesVersion, loadedAssemblies, test);
+            }
         }
     }
 }

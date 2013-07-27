@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -22,8 +23,26 @@
         /// Reflects over an assembly and produces MEF parts for every applicable type.
         /// </summary>
         /// <param name="assembly">The assembly to search for MEF parts.</param>
-        /// <returns>A sequence of generated parts.</returns>
+        /// <returns>A set of generated parts.</returns>
         public abstract IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly);
+
+        /// <summary>
+        /// Reflects over a set of assemblies and produces MEF parts for every applicable type.
+        /// </summary>
+        /// <param name="assemblies">The assemblies to search for MEF parts.</param>
+        /// <returns>A set of generated parts.</returns>
+        public IReadOnlyCollection<ComposablePartDefinition> CreateParts(IEnumerable<Assembly> assemblies)
+        {
+            Requires.NotNull(assemblies, "assemblies");
+
+            var parts = ImmutableHashSet.CreateBuilder<ComposablePartDefinition>();
+            foreach (var assembly in assemblies)
+            {
+                parts.Union(this.CreateParts(assembly));
+            }
+
+            return parts.ToImmutable();
+        }
 
         protected internal static Type GetElementFromImportingMemberType(Type type, bool importMany)
         {

@@ -2,8 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Composition.Hosting;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
@@ -24,7 +26,20 @@
 
         internal static IContainer CreateContainerV1(params Type[] parts)
         {
+            Requires.NotNull(parts, "parts");
             var catalog = new MefV1.Hosting.TypeCatalog(parts);
+            return CreateContainerV1(catalog);
+        }
+
+        internal static IContainer CreateContainerV1(ImmutableArray<Assembly> assemblies)
+        {
+            var catalog = new MefV1.Hosting.AggregateCatalog(assemblies.Select(a => new MefV1.Hosting.AssemblyCatalog(a)));
+            return CreateContainerV1(catalog);
+        }
+
+        private static IContainer CreateContainerV1(MefV1.Primitives.ComposablePartCatalog catalog)
+        {
+            Requires.NotNull(catalog, "catalog");
             var container = new MefV1.Hosting.CompositionContainer(catalog, MefV1.Hosting.CompositionOptions.ExportCompositionService);
             return new V1ContainerWrapper(container);
         }
@@ -32,6 +47,17 @@
         internal static IContainer CreateContainerV2(params Type[] parts)
         {
             var configuration = new ContainerConfiguration().WithParts(parts);
+            return CreateContainerV2(configuration);
+        }
+
+        internal static IContainer CreateContainerV2(ImmutableArray<Assembly> assemblies)
+        {
+            var configuration = new ContainerConfiguration().WithAssemblies(assemblies);
+            return CreateContainerV2(configuration);
+        }
+
+        private static IContainer CreateContainerV2(ContainerConfiguration configuration)
+        {
             var container = configuration.CreateContainer();
             return new V2ContainerWrapper(container);
         }
@@ -41,7 +67,27 @@
             return CreateContainerV3(parts, CompositionEngines.Unspecified);
         }
 
+        internal static IContainer CreateContainerV3(ImmutableArray<Assembly> assemblies)
+        {
+            return CreateContainerV3(assemblies, CompositionEngines.Unspecified);
+        }
+
         internal static IContainer CreateContainerV3(Type[] parts, CompositionEngines attributesDiscovery)
+        {
+            PartDiscovery discovery = GetDiscoveryService(attributesDiscovery);
+            var catalog = ComposableCatalog.Create(parts, discovery);
+            return CreateContainerV3(catalog);
+        }
+
+        internal static IContainer CreateContainerV3(ImmutableArray<Assembly> assemblies, CompositionEngines attributesDiscovery)
+        {
+            PartDiscovery discovery = GetDiscoveryService(attributesDiscovery);
+            var parts = discovery.CreateParts(assemblies);
+            var catalog = ComposableCatalog.Create(parts);
+            return CreateContainerV3(catalog);
+        }
+
+        private static PartDiscovery GetDiscoveryService(CompositionEngines attributesDiscovery)
         {
             PartDiscovery discovery = null;
             if (attributesDiscovery.HasFlag(CompositionEngines.V1))
@@ -52,8 +98,11 @@
             {
                 discovery = new AttributedPartDiscovery();
             }
+            return discovery;
+        }
 
-            var catalog = ComposableCatalog.Create(parts, discovery);
+        private static IContainer CreateContainerV3(ComposableCatalog catalog)
+        {
             var configuration = CompositionConfiguration.Create(catalog);
             var container = configuration.CreateContainer();
             return new V3ContainerWrapper(container);
@@ -80,7 +129,29 @@
             {
                 test(CreateContainerV3(parts, CompositionEngines.V2));
             }
+        }
 
+        internal static void RunMultiEngineTest(CompositionEngines attributesVersion, ImmutableArray<Assembly> assemblies, Action<IContainer> test)
+        {
+            if (attributesVersion.HasFlag(CompositionEngines.V1))
+            {
+                test(CreateContainerV1(assemblies));
+            }
+
+            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1))
+            {
+                test(CreateContainerV3(assemblies, CompositionEngines.V1));
+            }
+
+            if (attributesVersion.HasFlag(CompositionEngines.V2))
+            {
+                test(CreateContainerV2(assemblies));
+            }
+
+            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV2))
+            {
+                test(CreateContainerV3(assemblies, CompositionEngines.V2));
+            }
         }
 
         private class V1ContainerWrapper : IContainer
