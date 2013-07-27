@@ -8,9 +8,9 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Language.Intellisense;
     using Microsoft.VisualStudio.Text.Editor;
     using Xunit;
-    using Microsoft.VisualStudio.Language.Intellisense;
     using MefV1 = System.ComponentModel.Composition;
 
     public class EditorHostTests
@@ -41,6 +41,5 @@
             {
             }
         }
-
     }
 }
