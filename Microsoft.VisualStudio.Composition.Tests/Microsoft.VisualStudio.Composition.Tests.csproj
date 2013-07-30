@@ -93,12 +93,13 @@
     <Compile Include="ExportFactoryOfNonSharedImportingSharingBoundaryTests.cs" />
     <Compile Include="ExportFactoryTests.cs" />
     <Compile Include="ExportingMembersTests.cs" />
+    <Compile Include="ExportMetadataNonStringValuesTests.cs" />
     <Compile Include="ImportingConstructorTests.cs" />
+    <Compile Include="ExportMetadataMultipleTests.cs" />
     <Compile Include="ImportSiteCreationPolicyTests.cs" />
     <Compile Include="MultipleExportsOnPartTests.cs" />
     <Compile Include="MultipleSharingBoundariesTests.cs" />
-    <Compile Include="NameAndAgeV1Attribute.cs" />
-    <Compile Include="NameAndAgeV2Attribute.cs" />
+    <Compile Include="NameAndAgeAttribute.cs" />
     <Compile Include="ImportMetadataConstraintTests.cs" />
     <Compile Include="ImportMetadataTests.cs" />
     <Compile Include="MefTestCommand.cs" />

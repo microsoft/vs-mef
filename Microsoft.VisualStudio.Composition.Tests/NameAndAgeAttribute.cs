@@ -6,10 +6,12 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using MefV1 = System.ComponentModel.Composition;
 
     [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property , AllowMultiple = false, Inherited = true)]
-    public class NameAndAgeV2Attribute : Attribute
+    [MefV1.MetadataAttribute]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+    public class NameAndAgeAttribute : Attribute
     {
         public string Name { get; set; }
   

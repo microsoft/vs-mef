@@ -10,6 +10,7 @@
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
+    [Trait("Metadata", "")]
     public class ImportMetadataTests
     {
         [MefFact(CompositionEngines.V2Compat | CompositionEngines.V1Compat, typeof(ImportingPartWithMetadataDictionary), typeof(PartWithExportMetadata))]

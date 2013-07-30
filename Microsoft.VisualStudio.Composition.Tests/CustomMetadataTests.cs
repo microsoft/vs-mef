@@ -44,14 +44,16 @@
             public Lazy<string, IDictionary<string, object>> ImportOfProperty { get; set; }
         }
 
-        [MefV1.Export, NameAndAgeV1(Name = "Andrew", Age = "4")]
-        [Export, NameAndAgeV2(Name = "Andrew", Age = "4")]
+        [MefV1.Export]
+        [Export]
+        [NameAndAge(Name = "Andrew", Age = "4")]
         public class ExportedTypeWithMetadata { }
 
         public class TypeWithExportingMemberAndMetadata
         {
-            [MefV1.Export, NameAndAgeV1(Name = "Andrew", Age = "4")]
-            [Export, NameAndAgeV2(Name = "Andrew", Age = "4")]
+            [MefV1.Export]
+            [Export]
+            [NameAndAge(Name = "Andrew", Age = "4")]
             public string SomeValue
             {
                 get { return "Foo"; }
