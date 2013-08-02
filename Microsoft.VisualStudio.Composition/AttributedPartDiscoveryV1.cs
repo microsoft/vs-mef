@@ -177,14 +177,29 @@
                 var exportMetadataAttribute = attribute as ExportMetadataAttribute;
                 if (exportMetadataAttribute != null)
                 {
-                    result.Add(exportMetadataAttribute.Name, exportMetadataAttribute.Value);
+                    if (exportMetadataAttribute.IsMultiple)
+                    {
+                        result[exportMetadataAttribute.Name] = AddElement(result.GetValueOrDefault(exportMetadataAttribute.Name) as Array, exportMetadataAttribute.Value);
+                    }
+                    else
+                    {
+                        result.Add(exportMetadataAttribute.Name, exportMetadataAttribute.Value);
+                    }
                 }
                 else if (attribute.GetType().GetCustomAttribute<MetadataAttributeAttribute>() != null)
                 {
+                    var usage = attribute.GetType().GetCustomAttribute<AttributeUsageAttribute>();
                     var properties = attribute.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
                     foreach (var property in properties.Where(p => p.DeclaringType != typeof(Attribute)))
                     {
-                        result.Add(property.Name, property.GetValue(attribute));
+                        if (usage != null && usage.AllowMultiple)
+                        {
+                            result[property.Name] = AddElement(result.GetValueOrDefault(property.Name) as Array, property.GetValue(attribute));
+                        }
+                        else
+                        {
+                            result.Add(property.Name, property.GetValue(attribute));
+                        }
                     }
                 }
             }

@@ -9,7 +9,7 @@
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
-    public class CustomMetadataTests
+    public class CustomMetadataAttributeTests
     {
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void CustomMetadataOnExportedType(IContainer container)

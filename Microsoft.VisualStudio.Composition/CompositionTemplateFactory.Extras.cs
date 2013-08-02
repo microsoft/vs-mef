@@ -277,10 +277,53 @@
             builder.Append("new Dictionary<string, object> {");
             foreach (var metadatum in export.ExportDefinition.Metadata)
             {
-                builder.AppendFormat(" {{ \"{0}\", \"{1}\" }}, ", metadatum.Key, (string)metadatum.Value);
+                builder.AppendFormat(" {{ \"{0}\", {1} }}, ", metadatum.Key, GetExportMetadataValueExpression(metadatum.Value));
             }
             builder.Append("}.ToImmutableDictionary()");
             return builder.ToString();
+        }
+
+        private string GetExportMetadataValueExpression(object value)
+        {
+            if (value == null)
+            {
+                return "null";
+            }
+
+            Type valueType = value.GetType();
+            if (value is string)
+            {
+                return "\"" + value + "\"";
+            }
+            else if (valueType.IsPrimitive)
+            {
+                return string.Format(CultureInfo.InvariantCulture, "({0}){1}", GetTypeName(valueType), value);
+            }
+            else if (valueType.IsEquivalentTo(typeof(Guid)))
+            {
+                return string.Format(CultureInfo.InvariantCulture, "Guid.Parse(\"{0}\")", value);
+            }
+            else if (valueType.IsArray)
+            {
+                var builder = new StringBuilder();
+                builder.AppendFormat("new {0}[] {{ ", GetTypeName(valueType.GetElementType()));
+                bool firstValue = true;
+                foreach (object element in (Array)value)
+                {
+                    if (!firstValue)
+                    {
+                        builder.Append(", ");
+                    }
+
+                    builder.Append(GetExportMetadataValueExpression(element));
+                    firstValue = false;
+                }
+
+                builder.Append("}");
+                return builder.ToString();
+            }
+
+            throw new NotSupportedException();
         }
 
         private IDisposable EmitConstructorInvocation(ComposablePartDefinition partDefinition)

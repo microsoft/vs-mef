@@ -12,7 +12,7 @@
     [Trait("Metadata", "Multiple")]
     public class ExportMetadataMultipleTests
     {
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ImportingPart), typeof(PartWithMultipleMetadata))]
         public void MultipleExportMetadataValuesForOneKey(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPart>();
@@ -23,7 +23,7 @@
             Assert.Contains("c", (string[])metadataValue);
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ImportingPart), typeof(PartWithMultipleCustomMetadata))]
         public void MultipleCustomExportMetadataValuesForOneKey(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPart>();
@@ -32,6 +32,24 @@
             Assert.Equal(2, ((string[])metadataValue).Length);
             Assert.Contains("b", (string[])metadataValue);
             Assert.Contains("c", (string[])metadataValue);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportingPart), typeof(PartWithSingleCustomMetadata))]
+        public void SingleCustomExportMetadataValuesForOneKeyV1(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<ImportingPart>();
+            object metadataValue = importingPart.SingleCustomMetadataImport.Metadata["SomeName"];
+            Assert.IsType<string[]>(metadataValue);
+            Assert.Equal(1, ((string[])metadataValue).Length);
+            Assert.Contains("b", (string[])metadataValue);
+        }
+
+        [MefFact(CompositionEngines.V2Compat, typeof(ImportingPart), typeof(PartWithSingleCustomMetadata))]
+        public void SingleCustomExportMetadataValuesForOneKeyV2(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<ImportingPart>();
+            object metadataValue = importingPart.SingleCustomMetadataImport.Metadata["SomeName"];
+            Assert.Equal("b", metadataValue);
         }
 
         [Export]
@@ -45,6 +63,11 @@
         [Export]
         [MefV1.Export]
         [CustomMetadata(SomeName = "b")]
+        public class PartWithSingleCustomMetadata { }
+
+        [Export]
+        [MefV1.Export]
+        [CustomMetadata(SomeName = "b")]
         [CustomMetadata(SomeName = "c")]
         public class PartWithMultipleCustomMetadata { }
 
@@ -52,13 +75,17 @@
         [MefV1.Export]
         public class ImportingPart
         {
-            [Import]
-            [MefV1.Import]
+            [Import(AllowDefault = true)]
+            [MefV1.Import(AllowDefault = true)]
             public Lazy<PartWithMultipleMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
 
-            [Import]
-            [MefV1.Import]
+            [Import(AllowDefault = true)]
+            [MefV1.Import(AllowDefault = true)]
             public Lazy<PartWithMultipleCustomMetadata, IDictionary<string, object>> CustomMetadataImport { get; set; }
+
+            [Import(AllowDefault = true)]
+            [MefV1.Import(AllowDefault = true)]
+            public Lazy<PartWithSingleCustomMetadata, IDictionary<string, object>> SingleCustomMetadataImport { get; set; }
         }
 
         [MetadataAttribute, MefV1.MetadataAttribute]

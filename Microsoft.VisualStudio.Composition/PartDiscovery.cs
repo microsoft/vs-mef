@@ -96,6 +96,24 @@
             return importingCtor;
         }
 
+        protected static Array AddElement(Array priorArray, object value)
+        {
+            Type valueType = value != null ? value.GetType() : typeof(object);
+            Array newValue;
+            if (priorArray != null)
+            {
+                newValue = Array.CreateInstance(valueType, priorArray.Length + 1);
+                Array.Copy(priorArray, newValue, priorArray.Length);
+            }
+            else
+            {
+                newValue = Array.CreateInstance(valueType, 1);
+            }
+
+            newValue.SetValue(value, newValue.Length - 1);
+            return newValue;
+        }
+
         internal static bool IsImportManyCollectionTypeCreateable(ImportDefinition importDefinition)
         {
             Requires.NotNull(importDefinition, "importDefinition");

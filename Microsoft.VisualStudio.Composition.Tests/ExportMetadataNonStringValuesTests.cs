@@ -12,7 +12,7 @@
     [Trait("Metadata", "NonStringValues")]
     public class ExportMetadataNonStringValuesTests
     {
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void ExportMetadataWithIntValues(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPart>();

@@ -87,7 +87,8 @@
     <Compile Include="CircularDependencyTests.cs" />
     <Compile Include="CompositionCatalogTests.cs" />
     <Compile Include="CompositionServiceTests.cs" />
-    <Compile Include="CustomMetadataTests.cs" />
+    <Compile Include="CustomMetadataAttributeTests.cs" />
+    <Compile Include="CustomMetadataValueTests.cs" />
     <Compile Include="EditorHostTests.cs" />
     <Compile Include="ExplicitImportIdentityTypeTests.cs" />
     <Compile Include="ExportFactoryOfNonSharedImportingSharingBoundaryTests.cs" />

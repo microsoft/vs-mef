@@ -102,24 +102,45 @@
             Requires.NotNull(attributes, "attributes");
 
             var result = ImmutableDictionary.CreateBuilder<string, object>();
+            var namesOfMetadataWithMultipleValues = new HashSet<string>(StringComparer.Ordinal);
             foreach (var attribute in attributes)
             {
                 var exportMetadataAttribute = attribute as ExportMetadataAttribute;
                 if (exportMetadataAttribute != null)
                 {
-                    result.Add(exportMetadataAttribute.Name, exportMetadataAttribute.Value);
+                    UpdateMetadataDictionary(result, namesOfMetadataWithMultipleValues, exportMetadataAttribute.Name, exportMetadataAttribute.Value);
                 }
                 else if (attribute.GetType().GetCustomAttribute<MetadataAttributeAttribute>() != null)
                 {
                     var properties = attribute.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
                     foreach (var property in properties.Where(p => p.DeclaringType != typeof(Attribute)))
                     {
-                        result.Add(property.Name, property.GetValue(attribute));
+                        UpdateMetadataDictionary(result, namesOfMetadataWithMultipleValues, property.Name, property.GetValue(attribute));
                     }
                 }
             }
 
             return result.ToImmutable();
+        }
+
+        private static void UpdateMetadataDictionary(IDictionary<string, object> result, HashSet<string> namesOfMetadataWithMultipleValues, string name, object value)
+        {
+            object priorValue;
+            if (result.TryGetValue(name, out priorValue))
+            {
+                if (namesOfMetadataWithMultipleValues.Add(name))
+                {
+                    // This is exactly the second metadatum we've observed with this name.
+                    // Convert the first value to an element in an array.
+                    priorValue = AddElement(null, priorValue);
+                }
+
+                result[name] = AddElement((Array)priorValue, value);
+            }
+            else
+            {
+                result.Add(name, value);
+            }
         }
 
         private static bool TryCreateImportDefinition(Type propertyOrFieldType, IEnumerable<Attribute> attributes, IReadOnlyCollection<IImportSatisfiabilityConstraint> importConstraints, out ImportDefinition importDefinition)
