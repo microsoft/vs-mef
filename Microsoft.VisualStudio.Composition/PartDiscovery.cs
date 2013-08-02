@@ -38,7 +38,7 @@
             var parts = ImmutableHashSet.CreateBuilder<ComposablePartDefinition>();
             foreach (var assembly in assemblies)
             {
-                parts.Union(this.CreateParts(assembly));
+                parts.UnionWith(this.CreateParts(assembly));
             }
 
             return parts.ToImmutable();
