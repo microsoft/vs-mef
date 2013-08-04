@@ -303,6 +303,14 @@
             {
                 return string.Format(CultureInfo.InvariantCulture, "Guid.Parse(\"{0}\")", value);
             }
+            else if (valueType.IsEnum)
+            {
+                return string.Format(
+                    CultureInfo.InvariantCulture,
+                    "({0}){1}",
+                    GetTypeName(valueType),
+                    Convert.ChangeType(value, Enum.GetUnderlyingType(valueType)));
+            }
             else if (valueType.IsArray)
             {
                 var builder = new StringBuilder();
