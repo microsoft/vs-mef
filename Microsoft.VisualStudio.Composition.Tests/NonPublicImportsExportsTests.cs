@@ -62,6 +62,13 @@
             Assert.NotNull(result.InternalAccessor);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(PublicExport), typeof(ExportWithPrivateImportingPropertySetter))]
+        public void PrivateImportingPropertySetter(IContainer container)
+        {
+            var result = container.GetExportedValue<ExportWithPrivateImportingPropertySetter>();
+            Assert.NotNull(result.ImportingProperty);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(PublicExport), typeof(OpenGenericPartWithPrivateImportingProperty<>))]
         public void PrivateImportingPropertyOnOpenGenericPart(IContainer container)
         {
@@ -195,6 +202,17 @@
             {
                 get { return this.ImportingProperty; }
             }
+        }
+
+        public class ExportWithPrivateImportingPropertySetterBase
+        {
+            [MefV1.Import]
+            public PublicExport ImportingProperty { get; private set; }
+        }
+
+        [MefV1.Export]
+        public class ExportWithPrivateImportingPropertySetter : ExportWithPrivateImportingPropertySetterBase
+        {
         }
 
         [MefV1.Export]

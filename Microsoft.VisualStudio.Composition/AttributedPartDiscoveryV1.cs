@@ -42,7 +42,7 @@
             }
 
             var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            foreach (var member in Enumerable.Concat<MemberInfo>(partType.GetProperties(flags), partType.GetFields(flags)))
+            foreach (var member in Enumerable.Concat<MemberInfo>(EnumProperties(partType, flags), partType.GetFields(flags)))
             {
                 var property = member as PropertyInfo;
                 var field = member as FieldInfo;
@@ -205,6 +205,24 @@
             }
 
             return result.ToImmutable();
+        }
+
+        private static IEnumerable<PropertyInfo> EnumProperties(Type type, BindingFlags flags)
+        {
+            Requires.NotNull(type, "type");
+
+            // We look at each type in the hierarchy for their individual properties.
+            // This allows us to find private property setters defined on base classes,
+            // which otherwise we are unable to see.
+            while (type != null)
+            {
+                foreach (var property in type.GetProperties(flags | BindingFlags.DeclaredOnly))
+                {
+                    yield return property;
+                }
+
+                type = type.BaseType;
+            }
         }
 
         public override IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly)
