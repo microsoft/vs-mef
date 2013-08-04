@@ -102,7 +102,7 @@
     <Compile Include="MultipleSharingBoundariesTests.cs" />
     <Compile Include="NameAndAgeAttribute.cs" />
     <Compile Include="ImportMetadataConstraintTests.cs" />
-    <Compile Include="ImportMetadataTests.cs" />
+    <Compile Include="ExportMetadataTests.cs" />
     <Compile Include="MefTestCommand.cs" />
     <Compile Include="MefFactAttribute.cs" />
     <Compile Include="ContainerIsolationTests.cs" />

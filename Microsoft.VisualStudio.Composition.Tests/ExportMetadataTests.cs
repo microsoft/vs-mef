@@ -11,7 +11,7 @@
     using MefV1 = System.ComponentModel.Composition;
 
     [Trait("Metadata", "")]
-    public class ImportMetadataTests
+    public class ExportMetadataTests
     {
         [MefFact(CompositionEngines.V2Compat | CompositionEngines.V1Compat, typeof(ImportingPartWithMetadataDictionary), typeof(PartWithExportMetadata))]
         public void ImportWithMetadataDictionary(IContainer container)
