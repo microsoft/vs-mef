@@ -152,7 +152,7 @@
                 Type enumerableOfTType = typeof(IEnumerable<>).MakeGenericType(import.ImportDefinition.MemberWithoutManyWrapper);
                 if (import.ImportDefinition.MemberType.IsArray || import.ImportDefinition.MemberType.IsEquivalentTo(enumerableOfTType))
                 {
-                    this.EmitSatisfyImportManyArrayOrEnumerable(import, exports);
+                    this.EmitSatisfyImportManyArrayOrEnumerable(import, exports, writer);
                 }
                 else
                 {
@@ -165,12 +165,33 @@
             }
         }
 
-        private void EmitSatisfyImportManyArrayOrEnumerable(Import import, IReadOnlyList<Export> exports)
+        private void EmitSatisfyImportManyArrayOrEnumerable(Import import, IReadOnlyList<Export> exports, StringWriter writer)
         {
             Requires.NotNull(import, "import");
             Requires.NotNull(exports, "exports");
 
-            this.Write("{0}.{1} = new ", InstantiatedPartLocalVarName, import.ImportingMember.Name);
+            if (import.ImportingMember != null)
+            {
+                this.Write(
+                    "{0}.{1} = ",
+                    InstantiatedPartLocalVarName,
+                    import.ImportingMember.Name);
+            }
+
+            this.EmitSatisfyImportManyArrayOrEnumerableExpression(import, exports, writer);
+
+            if (import.ImportingMember != null)
+            {
+                this.Write(";");
+            }
+        }
+
+        private void EmitSatisfyImportManyArrayOrEnumerableExpression(Import import, IReadOnlyList<Export> exports, StringWriter writer)
+        {
+            Requires.NotNull(import, "import");
+            Requires.NotNull(exports, "exports");
+
+            this.Write("new ");
             if (import.ImportDefinition.MemberType.IsArray)
             {
                 this.WriteLine("{0}[]", GetTypeName(import.ImportDefinition.MemberWithoutManyWrapper));
@@ -191,7 +212,7 @@
                 }
             }
 
-            this.WriteLine("};");
+            this.WriteLine("}");
         }
 
         private void EmitSatisfyImportManyCollection(Import import, IReadOnlyList<Export> exports)

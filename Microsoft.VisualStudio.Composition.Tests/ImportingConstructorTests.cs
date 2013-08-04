@@ -56,7 +56,7 @@
             Assert.NotNull(part);
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(ImportingConstructorWithImportManyPart), typeof(RandomExport))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ImportingConstructorWithImportManyPart), typeof(RandomExport))]
         public void ImportingConstructorWithImportMany(IContainer container)
         {
             var part = container.GetExportedValue<ImportingConstructorWithImportManyPart>();
