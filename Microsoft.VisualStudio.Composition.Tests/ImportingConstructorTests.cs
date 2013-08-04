@@ -56,6 +56,14 @@
             Assert.NotNull(part);
         }
 
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(ImportingConstructorWithImportManyPart), typeof(RandomExport))]
+        public void ImportingConstructorWithImportMany(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportingConstructorWithImportManyPart>();
+            Assert.Equal(1, part.ConstructorImports.Length);
+            Assert.IsType<RandomExport>(part.ConstructorImports[0]);
+        }
+
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class PrivateDefaultConstructorPart
         {
@@ -120,6 +128,21 @@
                 Assert.NotNull(specialExport);
                 Assert.NotNull(randomExport);
             }
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ImportingConstructorWithImportManyPart
+        {
+            [ImportingConstructor]
+            [MefV1.ImportingConstructor]
+            public ImportingConstructorWithImportManyPart([ImportMany, MefV1.ImportMany] RandomExport[] exports)
+            {
+                Assert.NotNull(exports);
+                this.ConstructorImports = exports;
+            }
+
+            public RandomExport[] ConstructorImports { get; private set; }
         }
 
         [Export]
