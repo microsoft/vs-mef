@@ -332,6 +332,13 @@
                     GetTypeName(valueType),
                     Convert.ChangeType(value, Enum.GetUnderlyingType(valueType)));
             }
+            else if (typeof(Type).IsAssignableFrom(valueType))
+            {
+                return string.Format(
+                    CultureInfo.InvariantCulture,
+                    "typeof({0})",
+                    GetTypeName((Type)value));
+            }
             else if (valueType.IsArray)
             {
                 var builder = new StringBuilder();

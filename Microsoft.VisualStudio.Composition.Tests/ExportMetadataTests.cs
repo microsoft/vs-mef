@@ -116,6 +116,14 @@
             Assert.IsType<MetadataEnum>(metadataValue);
         }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportWithTypeMetadata), typeof(PartThatImportsTypeMetadata))]
+        public void MetadataTypeValue(IContainer container)
+        {
+            var importer = container.GetExportedValue<PartThatImportsTypeMetadata>();
+            object metadataValue = importer.ImportingProperty.Metadata["SomeName"];
+            Assert.Equal(typeof(int), metadataValue);
+        }
+
         #region Metaview filtering tests
 
         [MefFact(CompositionEngines.V1Compat, typeof(ImportingPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB))]
@@ -263,6 +271,21 @@
             [Import]
             [MefV1.Import]
             public Lazy<ExportWithEnumMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+        }
+
+        [Export]
+        [MefV1.Export]
+        [ExportMetadata("SomeName", typeof(int))]
+        [MefV1.ExportMetadata("SomeName", typeof(int))]
+        public class ExportWithTypeMetadata { }
+
+        [Export]
+        [MefV1.Export]
+        public class PartThatImportsTypeMetadata
+        {
+            [Import]
+            [MefV1.Import]
+            public Lazy<ExportWithTypeMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
         }
     }
 }
