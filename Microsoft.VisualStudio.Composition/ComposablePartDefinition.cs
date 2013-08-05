@@ -42,7 +42,7 @@
 
         public string Id
         {
-            get { return this.Type.Name; }
+            get { return this.Type.FullName.Replace('.', '_').Replace('+', '_'); }
         }
 
         public string SharingBoundary { get; private set; }

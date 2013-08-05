@@ -776,7 +776,7 @@
                 typeArguments = part.Type.GetGenericArguments().Select(t => t.Name).ToArray();
             }
 
-            string name = "GetOrCreate" + ReplaceBackTickWithTypeArgs(part.Type.Name, typeArguments);
+            string name = "GetOrCreate" + ReplaceBackTickWithTypeArgs(part.Id, typeArguments);
             return name;
         }
 

@@ -78,6 +78,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AmbiguityTests.cs" />
     <Compile Include="AssembliesLazyLoadedTests.cs" />
     <Compile Include="AttributedPartDiscoveryTestBase.cs" />
     <Compile Include="AttributedPartDiscoveryTests.cs" />
