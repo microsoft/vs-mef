@@ -124,6 +124,16 @@
             Assert.Equal(typeof(int), metadataValue);
         }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportWithCharMetadata), typeof(PartThatImportsCharMetadata))]
+        public void MetadataCharValue(IContainer container)
+        {
+            var importer = container.GetExportedValue<PartThatImportsCharMetadata>();
+            object metadataValue = importer.ImportingProperty.Metadata["SomeName"];
+            Assert.Equal('a', metadataValue);
+            Assert.IsType<char>(metadataValue);
+            Assert.Equal('\'', importer.ImportingProperty.Metadata["Apostrophe"]);
+        }
+
         #region Metaview filtering tests
 
         [MefFact(CompositionEngines.V1Compat, typeof(ImportingPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB))]
@@ -286,6 +296,23 @@
             [Import]
             [MefV1.Import]
             public Lazy<ExportWithTypeMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+        }
+
+        [Export]
+        [MefV1.Export]
+        [ExportMetadata("SomeName", 'a')]
+        [ExportMetadata("Apostrophe", '\'')]
+        [MefV1.ExportMetadata("SomeName", 'a')]
+        [MefV1.ExportMetadata("Apostrophe", '\'')]
+        public class ExportWithCharMetadata { }
+
+        [Export]
+        [MefV1.Export]
+        public class PartThatImportsCharMetadata
+        {
+            [Import]
+            [MefV1.Import]
+            public Lazy<ExportWithCharMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
         }
     }
 }

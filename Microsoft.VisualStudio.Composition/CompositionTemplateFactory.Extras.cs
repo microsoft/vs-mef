@@ -316,6 +316,13 @@
             {
                 return "\"" + value + "\"";
             }
+            else if (typeof(char).IsEquivalentTo(valueType))
+            {
+                return string.Format(
+                    CultureInfo.InvariantCulture,
+                    "'{0}'",
+                    (char)value == '\'' ? "\\'" : value);
+            }
             else if (valueType.IsPrimitive)
             {
                 return string.Format(CultureInfo.InvariantCulture, "({0}){1}", GetTypeName(valueType), value);
