@@ -78,7 +78,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AmbiguityTests.cs" />
+    <Compile Include="AmbiguousPartNamesTests.cs" />
     <Compile Include="AssembliesLazyLoadedTests.cs" />
     <Compile Include="AttributedPartDiscoveryTestBase.cs" />
     <Compile Include="AttributedPartDiscoveryTests.cs" />
@@ -96,6 +96,7 @@
     <Compile Include="ExportFactoryTests.cs" />
     <Compile Include="ExportingMembersTests.cs" />
     <Compile Include="ExportMetadataNonStringValuesTests.cs" />
+    <Compile Include="ExportMetadataViewNameCollisionTests.cs" />
     <Compile Include="ImportingConstructorTests.cs" />
     <Compile Include="ExportMetadataMultipleTests.cs" />
     <Compile Include="ImportSiteCreationPolicyTests.cs" />

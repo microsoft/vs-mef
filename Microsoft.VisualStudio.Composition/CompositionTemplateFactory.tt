@@ -173,10 +173,19 @@ foreach (var part in this.Configuration.Parts)
 
     private class <#= className #> : <#= GetTypeName(interfaceType) #>
     {
+<#
+        foreach (var member in interfaceType.EnumProperties(BindingFlags.Instance | BindingFlags.Public).Distinct(UniquePropertyNameComparer.Default))
+        {
+#>
+        private readonly <#= GetTypeName(member.PropertyType) #> <#= member.Name #>;
+<#
+        }
+#>
+
         internal <#= className #>(IReadOnlyDictionary<string, object> source)
         {
 <#
-        foreach (var member in interfaceType.EnumProperties(BindingFlags.Instance | BindingFlags.Public))
+        foreach (var member in interfaceType.EnumProperties(BindingFlags.Instance | BindingFlags.Public).Distinct(UniquePropertyNameComparer.Default))
         {
 #>
             this.<#= member.Name #> = <#= GetValueOrDefaultForMetadataView(member, "source") #>;
@@ -189,7 +198,10 @@ foreach (var part in this.Configuration.Parts)
         {
 #>
 
-        public <#= GetTypeName(member.PropertyType) #> <#= member.Name #> { get; private set; }
+        <#= GetTypeName(member.PropertyType) #> <#= GetTypeName(member.DeclaringType) #>.<#= member.Name #>
+        {
+            get { return this.<#= member.Name #>; }
+        }
 <#
         }
 #>

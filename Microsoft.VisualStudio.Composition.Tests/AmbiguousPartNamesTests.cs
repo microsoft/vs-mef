@@ -10,7 +10,7 @@
     using MefV1 = System.ComponentModel.Composition;
 
     [Trait("Ambiguous", "PartName")]
-    public class AmbiguityTests
+    public class AmbiguousPartNamesTests
     {
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Namespace1.SomePart), typeof(Namespace2.SomePart))]
         public void NonUniquePartTypeNames(IContainer container)
