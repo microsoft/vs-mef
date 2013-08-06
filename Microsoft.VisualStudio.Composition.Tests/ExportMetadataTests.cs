@@ -239,10 +239,13 @@
             public IEnumerable<Lazy<PartWithExportMetadata, MetadataClass>> ImportingProperty { get; set; }
         }
 
-        public interface IMetadata
+        public interface IMetadataBase
         {
             string a { get; }
+        }
 
+        public interface IMetadata : IMetadataBase
+        {
             [DefaultValue("someDefault")]
             string B { get; }
         }

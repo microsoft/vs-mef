@@ -176,7 +176,7 @@ foreach (var part in this.Configuration.Parts)
         internal <#= className #>(IReadOnlyDictionary<string, object> source)
         {
 <#
-        foreach (var member in interfaceType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        foreach (var member in interfaceType.EnumProperties(BindingFlags.Instance | BindingFlags.Public))
         {
 #>
             this.<#= member.Name #> = <#= GetValueOrDefaultForMetadataView(member, "source") #>;
@@ -185,7 +185,7 @@ foreach (var part in this.Configuration.Parts)
 #>
         }
 <#
-        foreach (var member in interfaceType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        foreach (var member in interfaceType.EnumProperties(BindingFlags.Instance | BindingFlags.Public))
         {
 #>
 

@@ -397,7 +397,7 @@ foreach (var part in this.Configuration.Parts)
             
             #line 178 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
-        foreach (var member in interfaceType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        foreach (var member in interfaceType.EnumProperties(BindingFlags.Instance | BindingFlags.Public))
         {
 
             
@@ -430,7 +430,7 @@ foreach (var part in this.Configuration.Parts)
             
             #line 187 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
-        foreach (var member in interfaceType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        foreach (var member in interfaceType.EnumProperties(BindingFlags.Instance | BindingFlags.Public))
         {
 
             

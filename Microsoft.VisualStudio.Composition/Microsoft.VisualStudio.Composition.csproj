@@ -108,6 +108,7 @@
     <Compile Include="ExportProvider.cs" />
     <Compile Include="ImportDefinition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReflectionHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CompositionTemplateFactory.tt">
