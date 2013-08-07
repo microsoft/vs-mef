@@ -80,6 +80,7 @@
   <ItemGroup>
     <Compile Include="AmbiguousPartNamesTests.cs" />
     <Compile Include="AssembliesLazyLoadedTests.cs" />
+    <Compile Include="AssemblyReferencingTests.cs" />
     <Compile Include="AttributedPartDiscoveryTestBase.cs" />
     <Compile Include="AttributedPartDiscoveryTests.cs" />
     <Compile Include="AttributedPartDiscoveryV1Tests.cs" />

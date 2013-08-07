@@ -16,7 +16,17 @@
     {
         private const string InstantiatedPartLocalVarName = "result";
 
+        private readonly HashSet<Assembly> relevantAssemblies = new HashSet<Assembly>();
+
         public CompositionConfiguration Configuration { get; set; }
+
+        /// <summary>
+        /// Gets the relevant assemblies that must be referenced when compiling the generated code.
+        /// </summary>
+        public ISet<Assembly> RelevantAssemblies
+        {
+            get { return this.relevantAssemblies; }
+        }
 
         private IDisposable EmitMemberAssignment(Import import)
         {
@@ -626,13 +636,15 @@
             }
         }
 
-        private static string GetTypeName(Type type)
+        private string GetTypeName(Type type)
         {
-            return GetTypeName(type, genericTypeDefinition: false);
+            return this.GetTypeName(type, genericTypeDefinition: false);
         }
 
-        private static string GetTypeName(Type type, bool genericTypeDefinition = false, bool evenNonPublic = false)
+        private string GetTypeName(Type type, bool genericTypeDefinition = false, bool evenNonPublic = false)
         {
+            this.relevantAssemblies.Add(type.Assembly);
+
             if (type.IsGenericParameter)
             {
                 return type.Name;
@@ -665,7 +677,7 @@
         /// <summary>
         /// Gets a C# expression that evaluates to a System.Type instance for the specified type.
         /// </summary>
-        private static string GetTypeExpression(Type type, bool genericTypeDefinition = false)
+        private string GetTypeExpression(Type type, bool genericTypeDefinition = false)
         {
             Requires.NotNull(type, "type");
 
@@ -674,7 +686,7 @@
                 return string.Format(
                     CultureInfo.InvariantCulture,
                     "typeof({0})",
-                    GetTypeName(type, genericTypeDefinition));
+                    this.GetTypeName(type, genericTypeDefinition));
             }
             else
             {
@@ -703,7 +715,7 @@
             return false;
         }
 
-        private static string GetClassNameForMetadataView(Type metadataView)
+        private string GetClassNameForMetadataView(Type metadataView)
         {
             Requires.NotNull(metadataView, "metadataView");
 
@@ -712,10 +724,10 @@
                 return "ClassFor" + metadataView.Name;
             }
 
-            return GetTypeName(metadataView);
+            return this.GetTypeName(metadataView);
         }
 
-        private static string GetValueOrDefaultForMetadataView(PropertyInfo property, string sourceVarName)
+        private string GetValueOrDefaultForMetadataView(PropertyInfo property, string sourceVarName)
         {
             var defaultValueAttribute = property.GetCustomAttribute<DefaultValueAttribute>();
             if (defaultValueAttribute != null)
@@ -723,7 +735,7 @@
                 return String.Format(
                     CultureInfo.InvariantCulture,
                     @"({0})({1}.ContainsKey(""{2}"") ? {1}[""{2}""] : ""{3}"")",
-                    GetTypeName(property.PropertyType),
+                    this.GetTypeName(property.PropertyType),
                     sourceVarName,
                     property.Name,
                     defaultValueAttribute.Value);
@@ -733,7 +745,7 @@
                 return String.Format(
                     CultureInfo.InvariantCulture,
                     @"({0}){1}[""{2}""]",
-                    GetTypeName(property.PropertyType),
+                    this.GetTypeName(property.PropertyType),
                     sourceVarName,
                     property.Name);
             }

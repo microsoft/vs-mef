@@ -130,8 +130,8 @@
         {
             Requires.NotNullOrEmpty(assemblyPath, "assemblyPath");
 
-            var sourceFilePath = this.CreateCompositionSourceFile();
-            await this.CompileAsync(sourceFilePath, assemblyPath);
+            var sourceFilePathAndAssemblies = this.CreateCompositionSourceFile();
+            await this.CompileAsync(sourceFilePathAndAssemblies.Item1, sourceFilePathAndAssemblies.Item2, assemblyPath);
         }
 
         public async Task<ICompositionContainerFactory> CreateContainerFactoryAsync()
@@ -209,7 +209,7 @@
             return false;
         }
 
-        private string CreateCompositionSourceFile()
+        private Tuple<string, ISet<Assembly>> CreateCompositionSourceFile()
         {
             var templateFactory = new CompositionTemplateFactory();
             templateFactory.Configuration = this;
@@ -217,10 +217,10 @@
             var sourceFilePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".cs");
             File.WriteAllText(sourceFilePath, source);
             WriteWithLineNumbers(Console.Out, source);
-            return sourceFilePath;
+            return Tuple.Create(sourceFilePath, templateFactory.RelevantAssemblies);
         }
 
-        private async Task CompileAsync(string sourceFilePath, string targetPath)
+        private async Task CompileAsync(string sourceFilePath, ISet<Assembly> assemblies, string targetPath)
         {
             var pc = new ProjectCollection();
             ProjectRootElement pre;
@@ -242,11 +242,9 @@
             project.AddItem("Reference", ProjectCollection.Escape(Assembly.GetExecutingAssembly().Location));
             project.AddItem("Reference", ProjectCollection.Escape(typeof(System.Composition.ExportFactory<>).Assembly.Location));
             project.AddItem("Reference", ProjectCollection.Escape(typeof(System.Collections.Immutable.ImmutableDictionary).Assembly.Location));
-
-            // TODO: we must reference all assemblies that define the types we touch, or that define types implemented by the types we touch.
-            foreach (string catalogAssembly in this.Catalog.Assemblies.Select(a => a.Location).Distinct())
+            foreach (var assembly in assemblies)
             {
-                project.AddItem("Reference", ProjectCollection.Escape(catalogAssembly));
+                project.AddItem("Reference", ProjectCollection.Escape(assembly.Location));
             }
 
             string projectPath = Path.GetTempFileName();

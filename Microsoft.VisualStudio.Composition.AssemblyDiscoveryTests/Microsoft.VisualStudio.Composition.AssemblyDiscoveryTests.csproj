@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="DiscoverablePart1.cs" />
     <Compile Include="DiscoverablePart2.cs" />
+    <Compile Include="ISomeInterface.cs" />
     <Compile Include="NestedPart.cs" />
     <Compile Include="NonDiscoverablePart.cs" />
     <Compile Include="NonPart.cs" />
