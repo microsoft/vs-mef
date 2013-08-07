@@ -139,7 +139,7 @@
             {
                 if (importDefinition.MetadataType.IsInterface && !importDefinition.MetadataType.IsEquivalentTo(typeof(IDictionary<string, object>)))
                 {
-                    foreach (var property in importDefinition.MetadataType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                    foreach (var property in importDefinition.MetadataType.EnumProperties(BindingFlags.Instance | BindingFlags.Public))
                     {
                         if (property.GetCustomAttribute<DefaultValueAttribute>() == null)
                         {
