@@ -148,6 +148,22 @@
             Assert.NotNull(part.ImportManyPropertyAccessor[0]);
         }
 
+        [MefFact(CompositionEngines.V1, typeof(PartWithPrivateImportManyFieldPrivateCollection), typeof(PublicExport))]
+        public void PrivateImportManyFieldPrivateCollection(IContainer container)
+        {
+            var part = container.GetExportedValue<PartWithPrivateImportManyFieldPrivateCollection>();
+            Assert.Equal(1, part.ImportManyFieldAccessor.Count);
+            Assert.NotNull(part.ImportManyFieldAccessor.Single());
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(PartWithPrivateImportManyPropertyPrivateCollection), typeof(PublicExport))]
+        public void PrivateImportManyPropertyPrivateCollection(IContainer container)
+        {
+            var part = container.GetExportedValue<PartWithPrivateImportManyPropertyPrivateCollection>();
+            Assert.Equal(1, part.ImportManyPropertyAccessor.Count);
+            Assert.NotNull(part.ImportManyPropertyAccessor.Single());
+        }
+
         internal interface IInternalInterface { }
 
         [MefV1.Export]
@@ -338,6 +354,94 @@
             internal List<PublicExport> ImportManyPropertyAccessor
             {
                 get { return this.ImportManyProperty; }
+            }
+        }
+
+        [MefV1.Export]
+        public class PartWithPrivateImportManyFieldPrivateCollection
+        {
+            [MefV1.ImportMany]
+            private CustomCollection<PublicExport> ImportManyField = null;
+
+            internal CustomCollection<PublicExport> ImportManyFieldAccessor
+            {
+                get { return this.ImportManyField; }
+            }
+        }
+
+        [MefV1.Export]
+        public class PartWithPrivateImportManyPropertyPrivateCollection
+        {
+            [MefV1.ImportMany]
+            private CustomCollection<PublicExport> ImportManyProperty { get; set; }
+
+            internal CustomCollection<PublicExport> ImportManyPropertyAccessor
+            {
+                get { return this.ImportManyProperty; }
+            }
+        }
+
+        internal class CustomCollection<T> : ICollection<T>
+        {
+            private List<T> inner = new List<T>();
+
+            public CustomCollection()
+            {
+            }
+
+            internal CustomCollection(object arg)
+            {
+                this.ConstructorArg = arg;
+            }
+
+            public object ConstructorArg { get; private set; }
+
+            public bool Cleared { get; set; }
+
+            public void Add(T item)
+            {
+                this.inner.Add(item);
+            }
+
+            public void Clear()
+            {
+                this.inner.Clear();
+                this.Cleared = true;
+            }
+
+            public bool Contains(T item)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void CopyTo(T[] array, int arrayIndex)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int Count
+            {
+                get { return this.inner.Count; }
+            }
+
+            public bool IsReadOnly
+            {
+                get { return false; }
+            }
+
+            public bool Remove(T item)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerator<T> GetEnumerator()
+            {
+                return this.inner.GetEnumerator();
+            }
+
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
             }
         }
     }
