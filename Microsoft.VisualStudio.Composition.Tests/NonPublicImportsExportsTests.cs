@@ -132,6 +132,22 @@
             Assert.Equal("Success", importer.Value());
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithPrivateImportManyFieldSpecialCollection), typeof(PublicExport))]
+        public void PrivateImportManyFieldSpecialCollection(IContainer container)
+        {
+            var part = container.GetExportedValue<PartWithPrivateImportManyFieldSpecialCollection>();
+            Assert.Equal(1, part.ImportManyFieldAccessor.Count);
+            Assert.NotNull(part.ImportManyFieldAccessor[0]);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithPrivateImportManyPropertySpecialCollection), typeof(PublicExport))]
+        public void PrivateImportManyPropertySpecialCollection(IContainer container)
+        {
+            var part = container.GetExportedValue<PartWithPrivateImportManyPropertySpecialCollection>();
+            Assert.Equal(1, part.ImportManyPropertyAccessor.Count);
+            Assert.NotNull(part.ImportManyPropertyAccessor[0]);
+        }
+
         internal interface IInternalInterface { }
 
         [MefV1.Export]
@@ -299,6 +315,30 @@
         {
             [MefV1.Import]
             public Func<string> Value { get; set; }
+        }
+
+        [MefV1.Export]
+        public class PartWithPrivateImportManyFieldSpecialCollection
+        {
+            [MefV1.ImportMany]
+            private List<PublicExport> ImportManyField = null;
+
+            internal List<PublicExport> ImportManyFieldAccessor
+            {
+                get { return this.ImportManyField; }
+            }
+        }
+
+        [MefV1.Export]
+        public class PartWithPrivateImportManyPropertySpecialCollection
+        {
+            [MefV1.ImportMany]
+            private List<PublicExport> ImportManyProperty { get; set; }
+
+            internal List<PublicExport> ImportManyPropertyAccessor
+            {
+                get { return this.ImportManyProperty; }
+            }
         }
     }
 }

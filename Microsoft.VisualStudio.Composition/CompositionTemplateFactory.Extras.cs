@@ -233,12 +233,21 @@
             string elementTypeName = GetTypeName(elementType);
             Type listType = typeof(List<>).MakeGenericType(elementType);
 
-            this.WriteLine("if ({0}.{1} == null)", InstantiatedPartLocalVarName, import.ImportingMember.Name);
+            if (import.ImportingMember is FieldInfo)
+            {
+                this.WriteLine("var {0} = ({3}){1}.GetValue({2});", import.ImportingMember.Name, GetFieldInfoExpression((FieldInfo)import.ImportingMember), InstantiatedPartLocalVarName, GetTypeName(import.ImportDefinition.MemberType));
+            }
+            else
+            {
+                this.WriteLine("var {0} = ({3}){1}.Invoke({2}, new object[0]);", import.ImportingMember.Name, GetMethodInfoExpression(((PropertyInfo)import.ImportingMember).GetGetMethod(true)), InstantiatedPartLocalVarName, GetTypeName(import.ImportDefinition.MemberType));
+            }
+
+            this.WriteLine("if ({0} == null)", import.ImportingMember.Name);
             using (Indent(withBraces: true))
             {
                 if (PartDiscovery.IsImportManyCollectionTypeCreateable(importDefinition))
                 {
-                    this.Write("{0}.{1} = new ", InstantiatedPartLocalVarName, import.ImportingMember.Name);
+                    this.Write("{0} = new ", import.ImportingMember.Name);
                     if (importDefinition.MemberType.IsAssignableFrom(listType))
                     {
                         this.Write("List<{0}>", elementTypeName);
@@ -249,6 +258,14 @@
                     }
 
                     this.WriteLine("();");
+                    if (import.ImportingMember is FieldInfo)
+                    {
+                        this.WriteLine("{0}.SetValue({1}, {2});", GetFieldInfoExpression((FieldInfo)import.ImportingMember), InstantiatedPartLocalVarName, import.ImportingMember.Name);
+                    }
+                    else
+                    {
+                        this.WriteLine("{0}.Invoke({1}, new object[] {{ {2} }});", GetMethodInfoExpression(((PropertyInfo)import.ImportingMember).GetSetMethod(true)), InstantiatedPartLocalVarName, import.ImportingMember.Name);
+                    }
                 }
                 else
                 {
@@ -262,7 +279,7 @@
             this.WriteLine("else");
             using (Indent(withBraces: true))
             {
-                this.WriteLine("{0}.{1}.Clear();", InstantiatedPartLocalVarName, import.ImportingMember.Name);
+                this.WriteLine("{0}.Clear();", import.ImportingMember.Name);
             }
 
             this.WriteLine(string.Empty);
@@ -271,7 +288,7 @@
             {
                 var valueWriter = new StringWriter();
                 EmitValueFactory(import, export, valueWriter);
-                this.WriteLine("{0}.{1}.Add({2});", InstantiatedPartLocalVarName, import.ImportingMember.Name, valueWriter);
+                this.WriteLine("{0}.Add({1});", import.ImportingMember.Name, valueWriter);
             }
         }
 
