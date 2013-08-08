@@ -233,13 +233,17 @@
             string elementTypeName = GetTypeName(elementType);
             Type listType = typeof(List<>).MakeGenericType(elementType);
 
+            // Casting the collection to ICollection<T> instead of the concrete type guarantees
+            // that we'll be able to call Add(T) and Clear() on it even if the type is NonPublic
+            // or its methods are explicit interface implementations.
+            string importManyLocalVarTypeName = GetTypeName(typeof(ICollection<>).MakeGenericType(import.ImportDefinition.MemberWithoutManyWrapper));
             if (import.ImportingMember is FieldInfo)
             {
-                this.WriteLine("var {0} = ({3}){1}.GetValue({2});", import.ImportingMember.Name, GetFieldInfoExpression((FieldInfo)import.ImportingMember), InstantiatedPartLocalVarName, GetTypeName(import.ImportDefinition.MemberType));
+                this.WriteLine("var {0} = ({3}){1}.GetValue({2});", import.ImportingMember.Name, GetFieldInfoExpression((FieldInfo)import.ImportingMember), InstantiatedPartLocalVarName, importManyLocalVarTypeName);
             }
             else
             {
-                this.WriteLine("var {0} = ({3}){1}.Invoke({2}, new object[0]);", import.ImportingMember.Name, GetMethodInfoExpression(((PropertyInfo)import.ImportingMember).GetGetMethod(true)), InstantiatedPartLocalVarName, GetTypeName(import.ImportDefinition.MemberType));
+                this.WriteLine("var {0} = ({3}){1}.Invoke({2}, new object[0]);", import.ImportingMember.Name, GetMethodInfoExpression(((PropertyInfo)import.ImportingMember).GetGetMethod(true)), InstantiatedPartLocalVarName, importManyLocalVarTypeName);
             }
 
             this.WriteLine("if ({0} == null)", import.ImportingMember.Name);
@@ -247,17 +251,21 @@
             {
                 if (PartDiscovery.IsImportManyCollectionTypeCreateable(importDefinition))
                 {
-                    this.Write("{0} = new ", import.ImportingMember.Name);
                     if (importDefinition.MemberType.IsAssignableFrom(listType))
                     {
-                        this.Write("List<{0}>", elementTypeName);
+                        this.WriteLine("{0} = new List<{1}>();", import.ImportingMember.Name, elementTypeName);
                     }
                     else
                     {
-                        this.Write(GetTypeName(importDefinition.MemberType));
+                        this.Write("{0} = ({1})(", import.ImportingMember.Name, importManyLocalVarTypeName);
+                        using (this.EmitConstructorInvocationExpression(importDefinition.MemberType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null)))
+                        {
+                            // no arguments to constructor
+                        }
+
+                        this.WriteLine(");");
                     }
 
-                    this.WriteLine("();");
                     if (import.ImportingMember is FieldInfo)
                     {
                         this.WriteLine("{0}.SetValue({1}, {2});", GetFieldInfoExpression((FieldInfo)import.ImportingMember), InstantiatedPartLocalVarName, import.ImportingMember.Name);
@@ -396,30 +404,44 @@
             throw new NotSupportedException();
         }
 
-        private IDisposable EmitConstructorInvocation(ComposablePartDefinition partDefinition)
+        private IDisposable EmitConstructorInvocationExpression(ComposablePartDefinition partDefinition)
         {
-            var ctor = partDefinition.ImportingConstructorInfo;
-            bool publicCtor = IsPublic(partDefinition.Type) && IsPublic(ctor);
+            Requires.NotNull(partDefinition, "partDefinition");
+            return this.EmitConstructorInvocationExpression(partDefinition.ImportingConstructorInfo);
+        }
+
+        private IDisposable EmitConstructorInvocationExpression(ConstructorInfo ctor)
+        {
+            Requires.NotNull(ctor, "ctor");
+
+            bool publicCtor = IsPublic(ctor);
             if (publicCtor)
             {
-                this.Write("var {0} = new {1}(", InstantiatedPartLocalVarName, GetTypeName(partDefinition.Type));
+                this.Write("new {0}(", GetTypeName(ctor.DeclaringType));
             }
             else
             {
-                this.WriteLine("var assembly = {0};", GetAssemblyExpression(partDefinition.Type.Assembly));
-                if (partDefinition.Type.IsGenericTypeDefinition)
+                string assemblyExpression = GetAssemblyExpression(ctor.DeclaringType.Assembly);
+                string ctorExpression;
+                if (ctor.DeclaringType.IsGenericType)
                 {
-                    this.WriteLine(
-                        "var ctor = (ConstructorInfo)MethodInfo.GetMethodFromHandle(assembly.ManifestModule.ResolveMethod({0}).MethodHandle, {1});",
+                    ctorExpression = string.Format(
+                        CultureInfo.InvariantCulture,
+                        "(ConstructorInfo)MethodInfo.GetMethodFromHandle({2}.ManifestModule.ResolveMethod({0}).MethodHandle, {1})",
                         ctor.MetadataToken,
-                        this.GetClosedGenericTypeHandleExpression(partDefinition.Type));
+                        this.GetClosedGenericTypeHandleExpression(ctor.DeclaringType),
+                        GetAssemblyExpression(ctor.DeclaringType.Assembly));
                 }
                 else
                 {
-                    this.WriteLine("var ctor = (ConstructorInfo)assembly.ManifestModule.ResolveMethod({0});", ctor.MetadataToken);
+                    ctorExpression = string.Format(
+                        CultureInfo.InvariantCulture,
+                        "(ConstructorInfo){0}.ManifestModule.ResolveMethod({1})",
+                        GetAssemblyExpression(ctor.DeclaringType.Assembly),
+                        ctor.MetadataToken);
                 }
 
-                this.Write("var {0} = ({1})ctor.Invoke(new object[] {{", InstantiatedPartLocalVarName, GetTypeName(partDefinition.Type));
+                this.Write("({0})({1}).Invoke(new object[] {{", GetTypeName(ctor.DeclaringType), ctorExpression);
             }
             var indent = this.Indent();
 
@@ -428,18 +450,19 @@
                 indent.Dispose();
                 if (publicCtor)
                 {
-                    this.WriteLine(");");
+                    this.Write(")");
                 }
                 else
                 {
-                    this.WriteLine(" });");
+                    this.Write(" })");
                 }
             });
         }
 
         private void EmitInstantiatePart(ComposablePart part)
         {
-            using (this.EmitConstructorInvocation(part.Definition))
+            this.Write("var {0} = ", InstantiatedPartLocalVarName);
+            using (this.EmitConstructorInvocationExpression(part.Definition))
             {
                 if (part.Definition.ImportingConstructor.Count > 0)
                 {
@@ -460,6 +483,7 @@
                 }
             }
 
+            this.WriteLine(";");
             if (typeof(IDisposable).IsAssignableFrom(part.Definition.Type))
             {
                 this.WriteLine("this.TrackDisposableValue({0});", InstantiatedPartLocalVarName);

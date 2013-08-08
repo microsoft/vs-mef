@@ -148,7 +148,7 @@
             Assert.NotNull(part.ImportManyPropertyAccessor[0]);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithPrivateImportManyFieldPrivateCollection), typeof(PublicExport))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithPrivateImportManyFieldPrivateCollection), typeof(PublicExport))]
         public void PrivateImportManyFieldPrivateCollection(IContainer container)
         {
             var part = container.GetExportedValue<PartWithPrivateImportManyFieldPrivateCollection>();
@@ -156,7 +156,7 @@
             Assert.NotNull(part.ImportManyFieldAccessor.Single());
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithPrivateImportManyPropertyPrivateCollection), typeof(PublicExport))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithPrivateImportManyPropertyPrivateCollection), typeof(PublicExport))]
         public void PrivateImportManyPropertyPrivateCollection(IContainer container)
         {
             var part = container.GetExportedValue<PartWithPrivateImportManyPropertyPrivateCollection>();
