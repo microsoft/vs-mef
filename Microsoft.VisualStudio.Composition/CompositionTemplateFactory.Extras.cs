@@ -356,6 +356,10 @@
                     "'{0}'",
                     (char)value == '\'' ? "\\'" : value);
             }
+            else if (typeof(bool).IsEquivalentTo(valueType))
+            {
+                return (bool)value ? "true" : "false";
+            }
             else if (valueType.IsPrimitive)
             {
                 return string.Format(CultureInfo.InvariantCulture, "({0}){1}", GetTypeName(valueType), value);

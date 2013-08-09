@@ -134,6 +134,15 @@
             Assert.Equal('\'', importer.ImportingProperty.Metadata["Apostrophe"]);
         }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportWithBoolMetadata), typeof(PartThatImportsBoolMetadata))]
+        public void MetadataBoolValue(IContainer container)
+        {
+            var importer = container.GetExportedValue<PartThatImportsBoolMetadata>();
+            object metadataValue = importer.ImportingProperty.Metadata["SomeName"];
+            Assert.Equal(true, metadataValue);
+            Assert.IsType<bool>(metadataValue);
+        }
+
         #region Metaview filtering tests
 
         [MefFact(CompositionEngines.V1Compat, typeof(ImportingPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB))]
@@ -316,6 +325,21 @@
             [Import]
             [MefV1.Import]
             public Lazy<ExportWithCharMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+        }
+
+        [Export]
+        [MefV1.Export]
+        [ExportMetadata("SomeName", true)]
+        [MefV1.ExportMetadata("SomeName", true)]
+        public class ExportWithBoolMetadata { }
+
+        [Export]
+        [MefV1.Export]
+        public class PartThatImportsBoolMetadata
+        {
+            [Import]
+            [MefV1.Import]
+            public Lazy<ExportWithBoolMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
         }
     }
 }
