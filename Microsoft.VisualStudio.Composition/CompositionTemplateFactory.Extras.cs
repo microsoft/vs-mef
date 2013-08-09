@@ -180,19 +180,17 @@
             Requires.NotNull(import, "import");
             Requires.NotNull(exports, "exports");
 
+            IDisposable memberAssignment = null;
             if (import.ImportingMember != null)
             {
-                this.Write(
-                    "{0}.{1} = ",
-                    InstantiatedPartLocalVarName,
-                    import.ImportingMember.Name);
+                memberAssignment = this.EmitMemberAssignment(import);
             }
 
             this.EmitSatisfyImportManyArrayOrEnumerableExpression(import, exports, writer);
 
-            if (import.ImportingMember != null)
+            if (memberAssignment != null)
             {
-                this.Write(";");
+                memberAssignment.Dispose();
             }
         }
 

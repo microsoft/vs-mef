@@ -132,6 +132,14 @@
             Assert.Equal("Success", importer.Value());
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithPrivateImportManyFieldArray), typeof(PublicExport))]
+        public void PrivateImportManyFieldArray(IContainer container)
+        {
+            var part = container.GetExportedValue<PartWithPrivateImportManyFieldArray>();
+            Assert.Equal(1, part.ImportManyFieldAccessor.Length);
+            Assert.NotNull(part.ImportManyFieldAccessor[0]);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(PartWithPrivateImportManyFieldSpecialCollection), typeof(PublicExport))]
         public void PrivateImportManyFieldSpecialCollection(IContainer container)
         {
@@ -331,6 +339,18 @@
         {
             [MefV1.Import]
             public Func<string> Value { get; set; }
+        }
+
+        [MefV1.Export]
+        public class PartWithPrivateImportManyFieldArray
+        {
+            [MefV1.ImportMany]
+            private PublicExport[] ImportManyField = null;
+
+            internal PublicExport[] ImportManyFieldAccessor
+            {
+                get { return this.ImportManyField; }
+            }
         }
 
         [MefV1.Export]
