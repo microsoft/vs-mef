@@ -199,6 +199,24 @@
             Assert.NotNull(importingPart.ImportingProperty.Value);
         }
 
+        [MefFact(CompositionEngines.V1, typeof(PartWithLazyImportMetadataOfInternalPartViaPublicInterface), typeof(InternalPartWithPublicExport))]
+        public void LazyImportMetadataOfInternalPartViaPublicInterface(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<PartWithLazyImportMetadataOfInternalPartViaPublicInterface>();
+            Assert.NotNull(importingPart.ImportingProperty);
+            Assert.NotNull(importingPart.ImportingProperty.Metadata);
+            Assert.NotNull(importingPart.ImportingProperty.Value);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(PartWithLazyImportMetadataOfInternalPartViaInternalInterface), typeof(InternalPartWithPublicExport))]
+        public void LazyImportMetadataOfInternalPartViaInternalInterface(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<PartWithLazyImportMetadataOfInternalPartViaInternalInterface>();
+            Assert.NotNull(importingPart.ImportingProperty);
+            Assert.NotNull(importingPart.ImportingProperty.Metadata);
+            Assert.NotNull(importingPart.ImportingProperty.Value);
+        }
+
         public interface IPublicInterface { }
 
         [MefV1.Export(typeof(IPublicInterface))]
@@ -217,6 +235,20 @@
         {
             [MefV1.Import]
             internal Lazy<IInternalInterface> ImportingProperty { get; set; }
+        }
+
+        [MefV1.Export]
+        public class PartWithLazyImportMetadataOfInternalPartViaPublicInterface
+        {
+            [MefV1.Import]
+            public Lazy<IPublicInterface, IDictionary<string, object>> ImportingProperty { get; set; }
+        }
+
+        [MefV1.Export]
+        internal class PartWithLazyImportMetadataOfInternalPartViaInternalInterface
+        {
+            [MefV1.Import]
+            internal Lazy<IInternalInterface, IDictionary<string, object>> ImportingProperty { get; set; }
         }
 
         internal interface IInternalInterface { }
