@@ -84,9 +84,10 @@
             {
                 return string.Format(
                     CultureInfo.InvariantCulture,
-                    "{0}.ManifestModule.ResolveField({1})",
+                    "{0}.ManifestModule.ResolveField({1}/*{2}*/)",
                     this.GetAssemblyExpression(fieldInfo.DeclaringType.Assembly),
-                    fieldInfo.MetadataToken);
+                    fieldInfo.MetadataToken,
+                    fieldInfo.DeclaringType.Name + "." + fieldInfo.Name);
             }
         }
 
@@ -98,18 +99,20 @@
             {
                 return string.Format(
                     CultureInfo.InvariantCulture,
-                    "((MethodInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}).MethodHandle, {2}))",
+                    "((MethodInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}/*{3}*/).MethodHandle, {2}))",
                     this.GetAssemblyExpression(methodInfo.DeclaringType.Assembly),
                     methodInfo.MetadataToken,
-                    this.GetClosedGenericTypeHandleExpression(methodInfo.DeclaringType));
+                    this.GetClosedGenericTypeHandleExpression(methodInfo.DeclaringType),
+                    methodInfo.DeclaringType + "." + methodInfo.Name);
             }
             else
             {
                 return string.Format(
                     CultureInfo.InvariantCulture,
-                    "((MethodInfo){0}.ManifestModule.ResolveMethod({1}))",
+                    "((MethodInfo){0}.ManifestModule.ResolveMethod({1}/*{2}*/))",
                     this.GetAssemblyExpression(methodInfo.DeclaringType.Assembly),
-                    methodInfo.MetadataToken);
+                    methodInfo.MetadataToken,
+                    methodInfo.DeclaringType + "." + methodInfo.Name);
             }
         }
 
@@ -118,10 +121,11 @@
             Requires.NotNull(type, "type");
             return string.Format(
                 CultureInfo.InvariantCulture,
-                "{0}.ManifestModule.ResolveType({1}).MakeGenericType({2})",
+                "{0}.ManifestModule.ResolveType({1}/*{3}*/).MakeGenericType({2})",
                 this.GetAssemblyExpression(type.Assembly),
                 type.GetGenericTypeDefinition().MetadataToken,
-                string.Join(", ", type.GetGenericArguments().Select(t => t.IsGenericType && t.ContainsGenericParameters ? GetClosedGenericTypeExpression(t) : GetTypeExpression(t))));
+                string.Join(", ", type.GetGenericArguments().Select(t => t.IsGenericType && t.ContainsGenericParameters ? GetClosedGenericTypeExpression(t) : GetTypeExpression(t))),
+                type.ContainsGenericParameters ? "incomplete" : GetTypeName(type, evenNonPublic: true));
         }
 
         private string GetClosedGenericTypeHandleExpression(Type type)
@@ -429,18 +433,20 @@
                 {
                     ctorExpression = string.Format(
                         CultureInfo.InvariantCulture,
-                        "(ConstructorInfo)MethodInfo.GetMethodFromHandle({2}.ManifestModule.ResolveMethod({0}).MethodHandle, {1})",
+                        "(ConstructorInfo)MethodInfo.GetMethodFromHandle({2}.ManifestModule.ResolveMethod({0}/*{3}*/).MethodHandle, {1})",
                         ctor.MetadataToken,
                         this.GetClosedGenericTypeHandleExpression(ctor.DeclaringType),
-                        GetAssemblyExpression(ctor.DeclaringType.Assembly));
+                        GetAssemblyExpression(ctor.DeclaringType.Assembly),
+                        ctor.DeclaringType.Name + "." + ctor.Name);
                 }
                 else
                 {
                     ctorExpression = string.Format(
                         CultureInfo.InvariantCulture,
-                        "(ConstructorInfo){0}.ManifestModule.ResolveMethod({1})",
+                        "(ConstructorInfo){0}.ManifestModule.ResolveMethod({1}/*{2}*/)",
                         GetAssemblyExpression(ctor.DeclaringType.Assembly),
-                        ctor.MetadataToken);
+                        ctor.MetadataToken,
+                        ctor.DeclaringType.Name + "." + ctor.Name);
                 }
 
                 this.Write("({0})({1}).Invoke(new object[] {{", GetTypeName(ctor.DeclaringType), ctorExpression);
@@ -533,16 +539,26 @@
         {
             var importDefinition = import.ImportDefinition;
 
+            IDisposable closeLazy = null;
+            bool closeParenthesis = false;
             if (importDefinition.IsLazyConcreteType)
             {
-                string fullTypeNameWithPerhapsLazy = GetTypeName(importDefinition.LazyType ?? importDefinition.CoercedValueType);
-                if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type) && import.PartDefinition != export.PartDefinition)
+                string fullTypeNameWithPerhapsLazy = GetTypeName(importDefinition.LazyType ?? importDefinition.CoercedValueType, evenNonPublic: true);
+                if (IsPublic(importDefinition.CoercedValueType))
                 {
-                    writer.Write("({0})", fullTypeNameWithPerhapsLazy);
+                    if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type) && import.PartDefinition != export.PartDefinition)
+                    {
+                        writer.Write("({0})", fullTypeNameWithPerhapsLazy);
+                    }
+                    else
+                    {
+                        writer.Write("new {0}(() => ", fullTypeNameWithPerhapsLazy);
+                        closeParenthesis = true;
+                    }
                 }
                 else
                 {
-                    writer.Write("new {0}(() => ", fullTypeNameWithPerhapsLazy);
+                    closeLazy = this.EmitLazyConstruction(importDefinition.CoercedValueType, writer);
                 }
             }
             else if (importDefinition.IsExportFactory)
@@ -574,6 +590,7 @@
 
             if (export.ExportingMember != null && !IsPublic(export.ExportingMember))
             {
+                closeParenthesis = true;
                 switch (export.ExportingMember.MemberType)
                 {
                     case MemberTypes.Field:
@@ -633,15 +650,25 @@
                     {
                         writer.Write("{0}", memberAccessor);
                         this.WriteExportMetadataReference(export, importDefinition, writer);
-                        writer.Write(", true)");
+                        writer.Write(", true");
                     }
                     else if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
                     {
-                        writer.Write("{0}, true)", memberAccessor);
+                        writer.Write("{0}, true", memberAccessor);
                     }
                     else if (import.PartDefinition == export.PartDefinition)
                     {
-                        writer.Write(", true)");
+                        writer.Write(", true");
+                    }
+
+                    if (closeLazy != null)
+                    {
+                        writer.Write("{0}", memberAccessor);
+                        closeLazy.Dispose();
+                    }
+                    else if (closeParenthesis)
+                    {
+                        writer.Write(")");
                     }
                 }
                 else if (import.PartDefinition != export.PartDefinition)
@@ -990,29 +1017,31 @@
             }
         }
 
-        private IDisposable EmitLazyConstruction(Type valueType)
+        private IDisposable EmitLazyConstruction(Type valueType, TextWriter writer = null)
         {
+            writer = writer ?? new SelfTextWriter(this);
             if (IsPublic(valueType))
             {
-                this.Write("new LazyPart<{0}>(", GetTypeName(valueType));
+                writer.Write("new LazyPart<{0}>(() => ", GetTypeName(valueType));
                 return new DisposableWithAction(delegate
                 {
-                    this.Write(")");
+                    writer.Write(")");
                 });
             }
             else
             {
                 var ctor = typeof(LazyPart<>).GetConstructor(new Type[] { typeof(Func<object>) });
-                this.WriteLine(
-                    "((ILazy<object>)((ConstructorInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}).MethodHandle, {2})).Invoke(new object[] {{ ",
+                writer.WriteLine(
+                    "((ILazy<object>)((ConstructorInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}/*{3}*/).MethodHandle, {2})).Invoke(new object[] {{ (Func<object>)(() => ",
                     GetAssemblyExpression(typeof(LazyPart<>).Assembly),
                     ctor.MetadataToken,
-                    this.GetClosedGenericTypeHandleExpression(typeof(LazyPart<>).MakeGenericType(valueType)));
+                    this.GetClosedGenericTypeHandleExpression(typeof(LazyPart<>).MakeGenericType(valueType)),
+                    ctor.DeclaringType.Name + "." + ctor.Name);
                 var indent = Indent();
                 return new DisposableWithAction(delegate
                 {
                     indent.Dispose();
-                    this.Write(" }))");
+                    writer.Write(" ) }))");
                 });
             }
         }
@@ -1034,6 +1063,31 @@
                     this.WriteLine("}");
                 }
             });
+        }
+
+        private class SelfTextWriter : TextWriter
+        {
+            private CompositionTemplateFactory factory;
+
+            internal SelfTextWriter(CompositionTemplateFactory factory)
+            {
+                this.factory = factory;
+            }
+
+            public override Encoding Encoding
+            {
+                get { return Encoding.Default; }
+            }
+
+            public override void Write(char value)
+            {
+                this.factory.Write(value.ToString());
+            }
+
+            public override void Write(string value)
+            {
+                this.factory.Write(value);
+            }
         }
     }
 }

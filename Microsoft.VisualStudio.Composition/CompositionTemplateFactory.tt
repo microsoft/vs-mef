@@ -109,10 +109,10 @@ foreach (var part in this.Configuration.Parts)
         if (part.Definition.IsShared)
         {
 #>
-        if (nonSharedInstanceRequired || !this.TryGetSharedInstanceFactory(@"<#= part.Definition.SharingBoundary #>", out lazyResult))
+        Type partType = <#= this.GetTypeExpression(part.Definition.Type) #>;
+        if (nonSharedInstanceRequired || !this.TryGetSharedInstanceFactory(@"<#= part.Definition.SharingBoundary #>", partType, out lazyResult))
         {
             lazyResult = <# using (EmitLazyConstruction(part.Definition.Type)) { #>
-                (Func<<#= GetTypeName(part.Definition.Type) #>>)delegate
                 {
 <#
                 using(Indent(5))
@@ -124,7 +124,7 @@ foreach (var part in this.Configuration.Parts)
 
             if (!nonSharedInstanceRequired)
             {
-                lazyResult = this.GetOrAddSharedInstanceFactory(@"<#= part.Definition.SharingBoundary #>", lazyResult);
+                lazyResult = this.GetOrAddSharedInstanceFactory(@"<#= part.Definition.SharingBoundary #>", partType, lazyResult);
             }
         }
 <#

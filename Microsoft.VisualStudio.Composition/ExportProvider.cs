@@ -89,32 +89,37 @@
         /// </summary>
         protected abstract object GetExport(ExportDefinition exportDefinition);
 
-        protected bool TryGetSharedInstanceFactory<T>(string partSharingBoundary, out ILazy<T> value)
+        protected bool TryGetSharedInstanceFactory<T>(string partSharingBoundary, Type type, out ILazy<T> value)
         {
+            Requires.NotNull(type, "type");
+            Assumes.True(typeof(T).IsAssignableFrom(type));
+
             lock (this.syncObject)
             {
                 var sharingBoundary = AcquireSharingBoundaryInstances(partSharingBoundary);
                 object valueObject;
-                bool result = sharingBoundary.TryGetValue(typeof(T), out valueObject);
+                bool result = sharingBoundary.TryGetValue(type, out valueObject);
                 value = (ILazy<T>)valueObject;
                 return result;
             }
         }
 
-        protected ILazy<T> GetOrAddSharedInstanceFactory<T>(string partSharingBoundary, ILazy<T> value)
+        protected ILazy<T> GetOrAddSharedInstanceFactory<T>(string partSharingBoundary, Type type, ILazy<T> value)
         {
+            Requires.NotNull(type, "type");
             Requires.NotNull(value, "value");
+            Assumes.True(typeof(T).IsAssignableFrom(type));
 
             lock (this.syncObject)
             {
                 var sharingBoundary = AcquireSharingBoundaryInstances(partSharingBoundary);
                 object priorValue;
-                if (sharingBoundary.TryGetValue(typeof(T), out priorValue))
+                if (sharingBoundary.TryGetValue(type, out priorValue))
                 {
                     return (ILazy<T>)priorValue;
                 }
 
-                sharingBoundary.Add(typeof(T), value);
+                sharingBoundary.Add(type, value);
                 return value;
             }
         }
