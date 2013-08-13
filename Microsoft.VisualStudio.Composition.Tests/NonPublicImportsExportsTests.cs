@@ -191,16 +191,32 @@
             Assert.NotNull(importingPart.ImportingProperty.Value);
         }
 
+        [MefFact(CompositionEngines.V1, typeof(PartWithLazyImportOfInternalPartViaInternalInterface), typeof(InternalPartWithPublicExport))]
+        public void LazyImportOfInternalPartViaInternalInterface(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<PartWithLazyImportOfInternalPartViaInternalInterface>();
+            Assert.NotNull(importingPart.ImportingProperty);
+            Assert.NotNull(importingPart.ImportingProperty.Value);
+        }
+
         public interface IPublicInterface { }
 
         [MefV1.Export(typeof(IPublicInterface))]
-        internal class InternalPartWithPublicExport : IPublicInterface { }
+        [MefV1.Export(typeof(IInternalInterface))]
+        internal class InternalPartWithPublicExport : IPublicInterface, IInternalInterface { }
 
         [MefV1.Export]
         public class PartWithLazyImportOfInternalPartViaPublicInterface
         {
             [MefV1.Import]
             public Lazy<IPublicInterface> ImportingProperty { get; set; }
+        }
+
+        [MefV1.Export]
+        internal class PartWithLazyImportOfInternalPartViaInternalInterface
+        {
+            [MefV1.Import]
+            internal Lazy<IInternalInterface> ImportingProperty { get; set; }
         }
 
         internal interface IInternalInterface { }
