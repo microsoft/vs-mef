@@ -65,5 +65,21 @@
             return typeDefinition.IsEquivalentTo(typeof(Lazy<>))
                 || typeDefinition.IsEquivalentTo(typeof(Lazy<,>));
         }
+
+        internal static Type FromLazy(Type type)
+        {
+            Requires.NotNull(type, "type");
+
+            if (type.GetGenericTypeDefinition().IsEquivalentTo(typeof(Lazy<>)))
+            {
+                return typeof(LazyPart<>).MakeGenericType(type.GenericTypeArguments);
+            }
+            else if (type.GetGenericTypeDefinition().IsEquivalentTo(typeof(Lazy<,>)))
+            {
+                return typeof(LazyPart<,>).MakeGenericType(type.GenericTypeArguments);
+            }
+
+            throw new ArgumentException();
+        }
     }
 }

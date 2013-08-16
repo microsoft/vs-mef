@@ -543,16 +543,16 @@
             bool closeParenthesis = false;
             if (importDefinition.IsLazyConcreteType)
             {
-                string fullTypeNameWithPerhapsLazy = GetTypeName(importDefinition.LazyType ?? importDefinition.CoercedValueType, evenNonPublic: true);
                 if (IsPublic(importDefinition.CoercedValueType))
                 {
+                    string lazyTypeName = GetTypeName(LazyPart.FromLazy(importDefinition.MemberWithoutManyWrapper));
                     if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type) && import.PartDefinition != export.PartDefinition)
                     {
-                        writer.Write("({0})", fullTypeNameWithPerhapsLazy);
+                        writer.Write("({0})", lazyTypeName);
                     }
                     else
                     {
-                        writer.Write("new {0}(() => ", fullTypeNameWithPerhapsLazy);
+                        writer.Write("new {0}(() => ", lazyTypeName);
                         closeParenthesis = true;
                     }
                 }
@@ -650,15 +650,10 @@
                     {
                         writer.Write("{0}", memberAccessor);
                         this.WriteExportMetadataReference(export, importDefinition, writer);
-                        writer.Write(", true");
                     }
                     else if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
                     {
-                        writer.Write("{0}, true", memberAccessor);
-                    }
-                    else if (import.PartDefinition == export.PartDefinition)
-                    {
-                        writer.Write(", true");
+                        writer.Write("{0}", memberAccessor);
                     }
 
                     if (closeLazy != null)

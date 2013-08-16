@@ -183,7 +183,7 @@
             Assert.NotNull(part.ImportManyPropertyAccessor.Single());
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithLazyImportOfInternalPartViaPublicInterface), typeof(InternalPartWithPublicExport))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithLazyImportOfInternalPartViaPublicInterface), typeof(InternalPartWithPublicExport))]
         public void LazyImportOfInternalPartViaPublicInterface(IContainer container)
         {
             var importingPart = container.GetExportedValue<PartWithLazyImportOfInternalPartViaPublicInterface>();
