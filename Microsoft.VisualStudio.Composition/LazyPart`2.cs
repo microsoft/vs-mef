@@ -12,5 +12,10 @@
             : base(valueFactory, metadata, true)
         {
         }
+
+        public LazyPart(Func<object> valueFactory, TMetadata metadata)
+            : base(() => (T)valueFactory(), metadata, true)
+        {
+        }
     }
 }
