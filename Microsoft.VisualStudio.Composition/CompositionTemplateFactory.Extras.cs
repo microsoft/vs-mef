@@ -655,10 +655,13 @@
                     {
                         writer.Write("{0}", memberAccessor);
                     }
+                    else if (closeLazy != null)
+                    {
+                        writer.Write("{0}", memberAccessor);
+                    }
 
                     if (closeLazy != null)
                     {
-                        writer.Write("{0}", memberAccessor);
                         closeLazy.Dispose();
                     }
                     else if (closeParenthesis)
