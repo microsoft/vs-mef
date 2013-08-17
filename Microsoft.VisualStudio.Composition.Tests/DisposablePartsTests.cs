@@ -101,5 +101,30 @@
         }
 
         #endregion
+
+        #region Internal Dispoable part test
+
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V1Compat, typeof(InternalDisposablePart))]
+        public void InternalDisposablePartDisposedWithContainer(IContainer container)
+        {
+            var part = container.GetExportedValue<InternalDisposablePart>();
+            Assert.False(part.IsDisposed);
+            container.Dispose();
+            Assert.True(part.IsDisposed);
+        }
+
+        [MefV3.Export]
+        internal class InternalDisposablePart : IDisposable
+        {
+            public bool IsDisposed { get; private set; }
+
+            public void Dispose()
+            {
+                this.IsDisposed = true;
+            }
+        }
+
+        #endregion
     }
 }

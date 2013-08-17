@@ -494,7 +494,7 @@
             this.WriteLine(";");
             if (typeof(IDisposable).IsAssignableFrom(part.Definition.Type))
             {
-                this.WriteLine("this.TrackDisposableValue({0});", InstantiatedPartLocalVarName);
+                this.WriteLine("this.TrackDisposableValue((IDisposable){0});", InstantiatedPartLocalVarName);
             }
 
             this.WriteLine("provisionalSharedObjects.Add({0}, {1});", GetTypeExpression(part.Definition.Type), InstantiatedPartLocalVarName);
