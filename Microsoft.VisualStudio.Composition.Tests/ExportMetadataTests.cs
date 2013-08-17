@@ -194,6 +194,34 @@
 
         #endregion
 
+        #region MetadataViewWithMultipleValues test
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportWithMultipleMetadata), typeof(ImportOfMultipleMetadata))]
+        public void MetadataViewWithMultipleValues(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportOfMultipleMetadata>();
+            Assert.Equal(new Type[] { typeof(int), typeof(string) }, part.ImportingProperty.Metadata.Name);
+        }
+
+        public interface IMetadataViewForMultipleValues
+        {
+            IEnumerable<Type> Name { get; }
+        }
+
+        [MefV1.Export]
+        [MefV1.ExportMetadata("Name", typeof(int), IsMultiple = true)]
+        [MefV1.ExportMetadata("Name", typeof(string), IsMultiple = true)]
+        public class ExportWithMultipleMetadata { }
+
+        [MefV1.Export]
+        public class ImportOfMultipleMetadata
+        {
+            [MefV1.Import]
+            public Lazy<ExportWithMultipleMetadata, IMetadataViewForMultipleValues> ImportingProperty { get; set; }
+        }
+
+        #endregion
+
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [MefV1.ExportMetadata("a", "b")]
         [Export]

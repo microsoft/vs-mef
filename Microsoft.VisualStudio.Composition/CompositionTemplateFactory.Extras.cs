@@ -384,8 +384,9 @@
             {
                 return string.Format(
                     CultureInfo.InvariantCulture,
-                    "typeof({0})",
-                    GetTypeName((Type)value));
+                    "({1})typeof({0})",
+                    GetTypeName((Type)value),
+                    GetTypeName(valueType));
             }
             else if (valueType.IsArray)
             {
@@ -725,7 +726,7 @@
 
             if (!IsPublic(type) && !evenNonPublic)
             {
-                return "object";
+                return this.GetTypeName(type.BaseType ?? typeof(object), genericTypeDefinition, evenNonPublic);
             }
 
             string result = string.Empty;
@@ -1038,11 +1039,12 @@
             {
                 var ctor = typeof(LazyPart<>).GetConstructor(new Type[] { typeof(Func<object>) });
                 writer.WriteLine(
-                    "((ILazy<object>)((ConstructorInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}/*{3}*/).MethodHandle, {2})).Invoke(new object[] {{ (Func<object>)(() => ",
+                    "((ILazy<{4}>)((ConstructorInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}/*{3}*/).MethodHandle, {2})).Invoke(new object[] {{ (Func<object>)(() => ",
                     GetAssemblyExpression(typeof(LazyPart<>).Assembly),
                     ctor.MetadataToken,
                     this.GetClosedGenericTypeHandleExpression(typeof(LazyPart<>).MakeGenericType(valueType)),
-                    ctor.DeclaringType.Name + "." + ctor.Name);
+                    ctor.DeclaringType.Name + "." + ctor.Name,
+                    GetTypeName(valueType));
                 var indent = Indent();
                 return new DisposableWithAction(delegate
                 {
