@@ -152,6 +152,8 @@
 
             // metadata "a" is mandatory per the interface, whereas "B" is optional.
             Assert.IsType<PartWithExportMetadataA>(importer.ImportingProperty.Value);
+            Assert.Equal(null, importer.ImportingProperty.Metadata.SomeStringEnum);
+            Assert.Equal(4, importer.ImportingProperty.Metadata.SomeInt);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ImportManyPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB), typeof(PartWithExportMetadataAB))]
@@ -285,6 +287,12 @@
         {
             [DefaultValue("someDefault")]
             string B { get; }
+
+            [DefaultValue(null)]
+            IEnumerable<string> SomeStringEnum { get; }
+
+            [DefaultValue(4)]
+            int SomeInt { get; }
         }
 
         public class MetadataClass
