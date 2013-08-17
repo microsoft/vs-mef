@@ -643,7 +643,12 @@
                     }
                 }
 
-                string memberAccessor = ".Value" + memberModifier;
+                string memberAccessor = memberModifier;
+                if (export.PartDefinition != import.PartDefinition || import.ImportDefinition.IsExportFactory)
+                {
+                    memberAccessor = ".Value" + memberAccessor;
+                }
+
                 if (importDefinition.IsLazy)
                 {
                     if (importDefinition.MetadataType != null)

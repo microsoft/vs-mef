@@ -165,6 +165,13 @@
             var value = container.GetExportedValue<SelfImportingSharedPart>();
             Assert.Same(value, value.Self);
             Assert.Same(value, value.LazySelf.Value);
+            Assert.Same(value, value.LazySelfMetadata.Value);
+            Assert.Equal(1, value.SelfMany.Length);
+            Assert.Same(value, value.SelfMany[0]);
+            Assert.Equal(1, value.LazySelfMany.Length);
+            Assert.Same(value, value.LazySelfMany[0].Value);
+            Assert.Equal(1, value.LazySelfManyMetadata.Length);
+            Assert.Same(value, value.LazySelfManyMetadata[0].Value);
         }
 
         [Export]
@@ -187,6 +194,22 @@
             [Import]
             [MefV1.Import]
             public Lazy<SelfImportingSharedPart> LazySelf { get; set; }
+
+            [Import]
+            [MefV1.Import]
+            public Lazy<SelfImportingSharedPart, IDictionary<string, object>> LazySelfMetadata { get; set; }
+
+            [ImportMany]
+            [MefV1.ImportMany]
+            public SelfImportingSharedPart[] SelfMany { get; set; }
+
+            [ImportMany]
+            [MefV1.ImportMany]
+            public Lazy<SelfImportingSharedPart>[] LazySelfMany { get; set; }
+
+            [ImportMany]
+            [MefV1.ImportMany]
+            public Lazy<SelfImportingSharedPart, IDictionary<string, object>>[] LazySelfManyMetadata { get; set; }
         }
 
         #endregion
