@@ -132,8 +132,7 @@ foreach (var part in this.Configuration.Parts)
         else
         {
 #>
-        lazyResult = new LazyPart<<#= GetTypeName(part.Definition.Type) #>>(
-            delegate
+        lazyResult = <# using (EmitLazyConstruction(part.Definition.Type)) { #>
             {
 <#
                 using(Indent(4))
@@ -141,7 +140,7 @@ foreach (var part in this.Configuration.Parts)
                     EmitInstantiatePart(part);
                 }
 #>
-            });
+            }<# } #>;
 <#
         }
 #>

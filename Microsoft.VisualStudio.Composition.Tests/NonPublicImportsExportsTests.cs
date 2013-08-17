@@ -20,6 +20,15 @@
             Assert.NotNull(result.PublicImportingProperty);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(InternalExportNonShared), typeof(PublicExport))]
+        public void InternalExportedTypeNonShared(IContainer container)
+        {
+            var result = container.GetExportedValue<InternalExportNonShared>();
+            Assert.NotNull(result);
+            Assert.NotNull(result.InternalImportingProperty);
+            Assert.NotNull(result.PublicImportingProperty);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(InternalExport), typeof(PublicExport), typeof(InternalPartImportingInternalPart))]
         public void InternalLazyImportOfInternalExport(IContainer container)
         {
@@ -262,6 +271,16 @@
 
         [MefV1.Export]
         internal class InternalExport
+        {
+            [MefV1.Import]
+            public PublicExport PublicImportingProperty { get; set; }
+
+            [MefV1.Import]
+            internal PublicExport InternalImportingProperty { get; set; }
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        internal class InternalExportNonShared
         {
             [MefV1.Import]
             public PublicExport PublicImportingProperty { get; set; }
