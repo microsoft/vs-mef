@@ -71,14 +71,14 @@ foreach (var part in this.RootPartDefinitions)
                 var genericTemplateMethod = typeof(CompiledExportProvider).GetMethod("<#= GetPartFactoryMethodNameNoTypeArgs(part) #>", BindingFlags.Instance | BindingFlags.NonPublic);
                 var genericMethod = genericTemplateMethod.MakeGenericMethod(exportDefinition.Contract.Type.GetGenericArguments());
                 var part = genericMethod.Invoke(this, new object[] { provisionalSharedObjects, /* nonSharedInstanceRequired: */ false });
-                return <#=GetPartOrMemberLazy("part", member, partExport)#>;
+                return <#=GetPartOrMemberLazy("part", member, partExport, part)#>;
 <#
                 }
                 else
                 {
 #>
                 var part = this.<#= GetPartFactoryMethodName(part) #>(provisionalSharedObjects);
-                return <#=GetPartOrMemberLazy("part", member, partExport)#>;
+                return <#=GetPartOrMemberLazy("part", member, partExport, part)#>;
 <#
                 }
 #>

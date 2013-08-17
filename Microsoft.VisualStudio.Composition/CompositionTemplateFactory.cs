@@ -152,7 +152,7 @@ foreach (var part in this.RootPartDefinitions)
                 return ");
             
             #line 74 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(GetPartOrMemberLazy("part", member, partExport)));
+            this.Write(this.ToStringHelper.ToStringWithCulture(GetPartOrMemberLazy("part", member, partExport, part)));
             
             #line default
             #line hidden
@@ -177,7 +177,7 @@ foreach (var part in this.RootPartDefinitions)
             this.Write("(provisionalSharedObjects);\r\n                return ");
             
             #line 81 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(GetPartOrMemberLazy("part", member, partExport)));
+            this.Write(this.ToStringHelper.ToStringWithCulture(GetPartOrMemberLazy("part", member, partExport, part)));
             
             #line default
             #line hidden

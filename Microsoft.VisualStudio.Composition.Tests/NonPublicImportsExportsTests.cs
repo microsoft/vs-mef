@@ -217,6 +217,13 @@
             Assert.NotNull(importingPart.ImportingProperty.Value);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(InternalPartDerivingFromPublicClass), typeof(PublicExport))]
+        public void InternalPartDerivesFromPublicBaseClassWithImports(IContainer container)
+        {
+            var part = container.GetExportedValue<InternalPartDerivingFromPublicClass>();
+            Assert.NotNull(part.ImportingProperty);
+        }
+
         public interface IPublicInterface { }
 
         [MefV1.Export(typeof(IPublicInterface))]
@@ -426,6 +433,15 @@
             [MefV1.Import]
             public Func<string> Value { get; set; }
         }
+
+        public class PublicBaseClassWithImports
+        {
+            [MefV1.Import]
+            public PublicExport ImportingProperty { get; set; }
+        }
+
+        [MefV1.Export]
+        internal class InternalPartDerivingFromPublicClass : PublicBaseClassWithImports { }
 
         [MefV1.Export]
         public class PartWithPrivateImportManyFieldArray

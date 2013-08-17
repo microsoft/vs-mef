@@ -37,7 +37,7 @@
             Assumes.True(importingField != null || importingProperty != null);
 
             string tail;
-            if (IsPublic(import.ImportingMember, setter: true))
+            if (IsPublic(import.ImportingMember, import.PartDefinition.Type, setter: true))
             {
                 this.Write("{0}.{1} = ", InstantiatedPartLocalVarName, import.ImportingMember.Name);
                 tail = ";";
@@ -420,7 +420,7 @@
         {
             Requires.NotNull(ctor, "ctor");
 
-            bool publicCtor = IsPublic(ctor);
+            bool publicCtor = IsPublic(ctor, ctor.DeclaringType);
             if (publicCtor)
             {
                 this.Write("new {0}(", GetTypeName(ctor.DeclaringType));
@@ -588,7 +588,7 @@
                 });
             }
 
-            if (export.ExportingMember != null && !IsPublic(export.ExportingMember))
+            if (export.ExportingMember != null && !IsPublic(export.ExportingMember, export.PartDefinition.Type))
             {
                 closeParenthesis = true;
                 switch (export.ExportingMember.MemberType)
@@ -622,7 +622,7 @@
                 string memberModifier = string.Empty;
                 if (export.ExportingMember != null)
                 {
-                    if (IsPublic(export.ExportingMember))
+                    if (IsPublic(export.ExportingMember, export.PartDefinition.Type))
                     {
                         memberModifier = "." + export.ExportingMember.Name;
                     }
@@ -908,10 +908,11 @@
             return name;
         }
 
-        private string GetPartOrMemberLazy(string partLocalVariableName, MemberInfo member, ExportDefinition exportDefinition)
+        private string GetPartOrMemberLazy(string partLocalVariableName, MemberInfo member, ExportDefinition exportDefinition, ComposablePartDefinition part)
         {
             Requires.NotNullOrEmpty(partLocalVariableName, "partLocalVariableName");
             Requires.NotNull(exportDefinition, "exportDefinition");
+            Requires.NotNull(part, "part");
 
             if (member == null)
             {
@@ -919,7 +920,7 @@
             }
 
             string valueFactoryExpression;
-            if (IsPublic(member))
+            if (IsPublic(member, part.Type))
             {
                 string memberExpression = string.Format(
                     CultureInfo.InvariantCulture,
@@ -989,11 +990,13 @@
             return "@\"" + value.Replace("\"", "\"\"") + "\"";
         }
 
-        private static bool IsPublic(MemberInfo memberInfo, bool setter = false)
+        private static bool IsPublic(MemberInfo memberInfo, Type reflectedType, bool setter = false)
         {
             Requires.NotNull(memberInfo, "memberInfo");
+            Requires.NotNull(reflectedType, "reflectedType");
+            Requires.Argument(memberInfo.ReflectedType.IsAssignableFrom(reflectedType), "reflectedType", "Type must be the one that defines memberInfo or a derived type.");
 
-            if (!IsPublic(memberInfo.DeclaringType))
+            if (!IsPublic(reflectedType))
             {
                 return false;
             }
@@ -1009,7 +1012,7 @@
                 case MemberTypes.Property:
                     var property = (PropertyInfo)memberInfo;
                     var method = setter ? property.GetSetMethod(true) : property.GetGetMethod(true);
-                    return IsPublic(method);
+                    return IsPublic(method, reflectedType);
                 default:
                     throw new NotSupportedException();
             }
