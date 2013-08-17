@@ -99,7 +99,8 @@ foreach (var part in this.Configuration.Parts)
     protected ILazy<<#= GetTypeName(part.Definition.Type) #>> <#= GetPartFactoryMethodName(part.Definition) #>(Dictionary<Type, object> provisionalSharedObjects, bool nonSharedInstanceRequired = false)
     {
         ILazy<<#= GetTypeName(part.Definition.Type) #>> value;
-        if (!nonSharedInstanceRequired && TryGetProvisionalSharedExport(provisionalSharedObjects, out value))
+        Type partType = <#= this.GetTypeExpression(part.Definition.Type) #>;
+        if (!nonSharedInstanceRequired && TryGetProvisionalSharedExport(provisionalSharedObjects, partType, out value))
         {
             return value;
         }
@@ -109,7 +110,6 @@ foreach (var part in this.Configuration.Parts)
         if (part.Definition.IsShared)
         {
 #>
-        Type partType = <#= this.GetTypeExpression(part.Definition.Type) #>;
         if (nonSharedInstanceRequired || !this.TryGetSharedInstanceFactory(@"<#= part.Definition.SharingBoundary #>", partType, out lazyResult))
         {
             lazyResult = <# using (EmitLazyConstruction(part.Definition.Type)) { #>
@@ -151,10 +151,10 @@ foreach (var part in this.Configuration.Parts)
 }
 #>
 
-    private static bool TryGetProvisionalSharedExport<T>(IReadOnlyDictionary<Type, object> provisionalSharedObjects, out ILazy<T> value)
+    private static bool TryGetProvisionalSharedExport<T>(IReadOnlyDictionary<Type, object> provisionalSharedObjects, Type type, out ILazy<T> value)
     {
         object valueObject;
-        if (provisionalSharedObjects.TryGetValue(typeof(T), out valueObject))
+        if (provisionalSharedObjects.TryGetValue(type, out valueObject))
         {
             value = LazyPart.Wrap((T)valueObject);
             return true;

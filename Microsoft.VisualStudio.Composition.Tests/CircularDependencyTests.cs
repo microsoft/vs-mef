@@ -38,6 +38,33 @@
 
         #endregion
 
+        #region Tight loop of all shared (internal) exports
+
+        [MefFact(CompositionEngines.V1Compat, typeof(InternalSharedExport1), typeof(InternalSharedExport2))]
+        public void CircularDependenciesInternalSharedExports(IContainer container)
+        {
+            var export1 = container.GetExportedValue<InternalSharedExport1>();
+            var export2 = container.GetExportedValue<InternalSharedExport2>();
+            Assert.Same(export1.Export2, export2);
+            Assert.Same(export2.Export1, export1);
+        }
+
+        [MefV1.Export]
+        internal class InternalSharedExport1
+        {
+            [MefV1.Import]
+            public InternalSharedExport2 Export2 { get; set; }
+        }
+
+        [MefV1.Export]
+        internal class InternalSharedExport2
+        {
+            [MefV1.Import]
+            public InternalSharedExport1 Export1 { get; set; }
+        }
+
+        #endregion
+
         #region Tight loop of all shared lazy exports
 
         [MefFact(CompositionEngines.V2Compat, typeof(LazySharedExport1), typeof(LazySharedExport2))]

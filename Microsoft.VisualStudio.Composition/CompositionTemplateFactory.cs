@@ -232,18 +232,25 @@ foreach (var part in this.Configuration.Parts)
             
             #line default
             #line hidden
-            this.Write("> value;\r\n        if (!nonSharedInstanceRequired && TryGetProvisionalSharedExport" +
-                    "(provisionalSharedObjects, out value))\r\n        {\r\n            return value;\r\n  " +
-                    "      }\r\n\r\n        ILazy<");
+            this.Write("> value;\r\n        Type partType = ");
             
-            #line 107 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 102 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(this.GetTypeExpression(part.Definition.Type)));
+            
+            #line default
+            #line hidden
+            this.Write(";\r\n        if (!nonSharedInstanceRequired && TryGetProvisionalSharedExport(provis" +
+                    "ionalSharedObjects, partType, out value))\r\n        {\r\n            return value;\r" +
+                    "\n        }\r\n\r\n        ILazy<");
+            
+            #line 108 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(part.Definition.Type)));
             
             #line default
             #line hidden
             this.Write("> lazyResult;\r\n");
             
-            #line 108 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 109 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
         if (part.Definition.IsShared)
         {
@@ -251,14 +258,7 @@ foreach (var part in this.Configuration.Parts)
             
             #line default
             #line hidden
-            this.Write("        Type partType = ");
-            
-            #line 112 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(this.GetTypeExpression(part.Definition.Type)));
-            
-            #line default
-            #line hidden
-            this.Write(";\r\n        if (nonSharedInstanceRequired || !this.TryGetSharedInstanceFactory(@\"");
+            this.Write("        if (nonSharedInstanceRequired || !this.TryGetSharedInstanceFactory(@\"");
             
             #line 113 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(part.Definition.SharingBoundary));
@@ -355,10 +355,10 @@ foreach (var part in this.Configuration.Parts)
             #line default
             #line hidden
             this.Write(@"
-    private static bool TryGetProvisionalSharedExport<T>(IReadOnlyDictionary<Type, object> provisionalSharedObjects, out ILazy<T> value)
+    private static bool TryGetProvisionalSharedExport<T>(IReadOnlyDictionary<Type, object> provisionalSharedObjects, Type type, out ILazy<T> value)
     {
         object valueObject;
-        if (provisionalSharedObjects.TryGetValue(typeof(T), out valueObject))
+        if (provisionalSharedObjects.TryGetValue(type, out valueObject))
         {
             value = LazyPart.Wrap((T)valueObject);
             return true;
