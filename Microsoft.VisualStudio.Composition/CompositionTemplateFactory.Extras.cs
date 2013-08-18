@@ -808,11 +808,12 @@
             {
                 return String.Format(
                     CultureInfo.InvariantCulture,
-                    @"({0})({1}.ContainsKey(""{2}"") ? {1}[""{2}""] as {0} : {3})",
+                    @"({0})({1}.ContainsKey(""{2}"") ? {1}[""{2}""]{4} : {3})",
                     this.GetTypeName(property.PropertyType),
                     sourceVarName,
                     property.Name,
-                    GetExportMetadataValueExpression(defaultValueAttribute.Value));
+                    GetExportMetadataValueExpression(defaultValueAttribute.Value),
+                    property.PropertyType.IsValueType ? string.Empty : (" as " + this.GetTypeName(property.PropertyType)));
             }
             else
             {
