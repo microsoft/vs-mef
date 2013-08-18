@@ -251,6 +251,43 @@
 
         #endregion
 
+        #region MultipleExportMetadataWithOnlyNullTyped test
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartImportingExportsWithMultipleNullMetadata), typeof(PartWithMultipleNullMetadata))]
+        public void MultipleExportMetadataWithOnlyNullTyped(IContainer container)
+        {
+            var part = container.GetExportedValue<PartImportingExportsWithMultipleNullMetadata>();
+            object dictionaryValue = part.ImportingPropertyWithDictionary.Metadata["Names"];
+            IEnumerable<string> interfaceValue = part.ImportingPropertyWithInterface.Metadata.Names;
+            Assert.Null(interfaceValue);
+            Assert.Equal(new object[] { null, null }, dictionaryValue);
+        }
+
+        [Export, ExportMetadata("Names", null), ExportMetadata("Names", null)]
+        [MefV1.Export, MefV1.ExportMetadata("Names", null, IsMultiple = true), MefV1.ExportMetadata("Names", null, IsMultiple = true)]
+        public class PartWithMultipleNullMetadata { }
+
+        public interface INamedMetadata
+        {
+            [DefaultValue(null)]
+            IEnumerable<string> Names { get; }
+        }
+
+        [Export]
+        [MefV1.Export]
+        public class PartImportingExportsWithMultipleNullMetadata
+        {
+            [Import]
+            [MefV1.Import]
+            public Lazy<PartWithMultipleNullMetadata, INamedMetadata> ImportingPropertyWithInterface { get; set; }
+
+            [Import]
+            [MefV1.Import]
+            public Lazy<PartWithMultipleNullMetadata, IDictionary<string, object>> ImportingPropertyWithDictionary { get; set; }
+        }
+
+        #endregion
+
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [MefV1.ExportMetadata("a", "b")]
         [Export]

@@ -808,7 +808,7 @@
             {
                 return String.Format(
                     CultureInfo.InvariantCulture,
-                    @"({0})({1}.ContainsKey(""{2}"") ? {1}[""{2}""] : {3})",
+                    @"({0})({1}.ContainsKey(""{2}"") ? {1}[""{2}""] as {0} : {3})",
                     this.GetTypeName(property.PropertyType),
                     sourceVarName,
                     property.Name,
