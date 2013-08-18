@@ -24,7 +24,7 @@
             StandaloneUndo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9578fa20308cb27d
         ";
 
-        [MefFact(CompositionEngines.V1, EditorAssemblyNames, typeof(DummyKeyboardTrackingService))]
+        [MefFact(CompositionEngines.V1Compat, EditorAssemblyNames, typeof(DummyKeyboardTrackingService))]
         public void ComposeEditor(IContainer container)
         {
             var editorFactory = container.GetExportedValue<ITextEditorFactoryService>();

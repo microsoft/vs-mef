@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.ComponentModel.Composition;
+    using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -16,97 +17,117 @@
         {
             Requires.NotNull(partType, "partType");
 
-            var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
-            var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, ExportDefinition>();
-            var imports = ImmutableDictionary.CreateBuilder<MemberInfo, ImportDefinition>();
-            var exportMetadataOnType = GetExportMetadata(partType.GetCustomAttributes());
-            var partCreationPolicy = CreationPolicy.Any;
-
-            foreach (var exportAttribute in partType.GetCustomAttributes<ExportAttribute>())
+            try
             {
-                var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
-                var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? partType);
-                var exportDefinition = new ExportDefinition(contract, exportMetadataOnType);
-                exportsOnType.Add(exportDefinition);
-            }
+                var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
+                var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, ExportDefinition>();
+                var imports = ImmutableDictionary.CreateBuilder<MemberInfo, ImportDefinition>();
+                var exportMetadataOnType = GetExportMetadata(partType.GetCustomAttributes());
+                var partCreationPolicy = CreationPolicy.Any;
 
-            var partCreationPolicyAttribute = partType.GetCustomAttribute<PartCreationPolicyAttribute>();
-            string sharingBoundary = string.Empty;
-            if (partCreationPolicyAttribute != null)
-            {
-                partCreationPolicy = partCreationPolicyAttribute.CreationPolicy;
-                if (partCreationPolicyAttribute.CreationPolicy == CreationPolicy.NonShared)
+                foreach (var exportAttribute in partType.GetCustomAttributes<ExportAttribute>())
                 {
-                    sharingBoundary = null;
+                    var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
+                    var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? partType);
+                    var exportDefinition = new ExportDefinition(contract, exportMetadataOnType);
+                    exportsOnType.Add(exportDefinition);
                 }
-            }
 
-            var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            foreach (var member in Enumerable.Concat<MemberInfo>(partType.EnumProperties(flags), partType.GetFields(flags)))
-            {
-                var property = member as PropertyInfo;
-                var field = member as FieldInfo;
-                var propertyOrFieldType = property != null ? property.PropertyType : field.FieldType;
-                var importAttribute = member.GetCustomAttribute<ImportAttribute>();
-                var importManyAttribute = member.GetCustomAttribute<ImportManyAttribute>();
-                var exportAttribute = member.GetCustomAttribute<ExportAttribute>();
-                Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", "Member \"{0}\" contains both ImportAttribute and ImportManyAttribute.", member.Name);
-                Requires.Argument(!(exportAttribute != null && (importAttribute != null || importManyAttribute != null)), "partType", "Member \"{0}\" contains both import and export attributes.", member.Name);
-
-                ImportDefinition importDefinition;
-                if (TryCreateImportDefinition(propertyOrFieldType, member.GetCustomAttributes(), out importDefinition))
+                var partCreationPolicyAttribute = partType.GetCustomAttribute<PartCreationPolicyAttribute>();
+                string sharingBoundary = string.Empty;
+                if (partCreationPolicyAttribute != null)
                 {
-                    imports.Add(member, importDefinition);
-                }
-                else if (exportAttribute != null)
-                {
-                    Verify.Operation(!partType.IsGenericTypeDefinition, "Exports on members not allowed when the declaring type is generic.");
-                    var exportMetadataOnMember = GetExportMetadata(member.GetCustomAttributes());
-                    var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? propertyOrFieldType);
-                    var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
-                    exportsOnMembers.Add(member, exportDefinition);
-                }
-            }
-
-            foreach (var method in partType.GetMethods(flags))
-            {
-                var exportAttribute = method.GetCustomAttribute<ExportAttribute>();
-                if (exportAttribute != null)
-                {
-                    var exportMetadataOnMember = GetExportMetadata(method.GetCustomAttributes());
-                    Type contractType = exportAttribute.ContractType ?? Export.GetContractTypeForDelegate(method);
-                    var contract = new CompositionContract(exportAttribute.ContractName, contractType);
-                    var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
-                    exportsOnMembers.Add(method, exportDefinition);
-                }
-            }
-
-            MethodInfo onImportsSatisfied = null;
-            if (typeof(IPartImportsSatisfiedNotification).IsAssignableFrom(partType))
-            {
-                onImportsSatisfied = typeof(IPartImportsSatisfiedNotification).GetMethod("OnImportsSatisfied", BindingFlags.Public | BindingFlags.Instance);
-            }
-
-            if (exportsOnMembers.Count > 0 || exportsOnType.Count > 0)
-            {
-                var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinition>();
-                var importingCtor = GetImportingConstructor(partType, typeof(ImportingConstructorAttribute), publicOnly: false);
-                foreach (var parameter in importingCtor.GetParameters())
-                {
-                    var importDefinition = CreateImportDefinition(parameter.ParameterType, parameter.GetCustomAttributes());
-                    if (importDefinition.Cardinality == ImportCardinality.ZeroOrMore)
+                    partCreationPolicy = partCreationPolicyAttribute.CreationPolicy;
+                    if (partCreationPolicyAttribute.CreationPolicy == CreationPolicy.NonShared)
                     {
-                        Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(importDefinition), "Collection must be public with a public constructor when used with an [ImportingConstructor].");
+                        sharingBoundary = null;
+                    }
+                }
+
+                var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+                foreach (var member in Enumerable.Concat<MemberInfo>(partType.EnumProperties(flags), partType.GetFields(flags)))
+                {
+                    var property = member as PropertyInfo;
+                    var field = member as FieldInfo;
+                    var propertyOrFieldType = property != null ? property.PropertyType : field.FieldType;
+                    var importAttribute = member.GetCustomAttribute<ImportAttribute>();
+                    var importManyAttribute = member.GetCustomAttribute<ImportManyAttribute>();
+                    var exportAttribute = member.GetCustomAttribute<ExportAttribute>();
+                    Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", "Member \"{0}\" contains both ImportAttribute and ImportManyAttribute.", member.Name);
+                    Requires.Argument(!(exportAttribute != null && (importAttribute != null || importManyAttribute != null)), "partType", "Member \"{0}\" contains both import and export attributes.", member.Name);
+
+                    ImportDefinition importDefinition;
+                    if (TryCreateImportDefinition(propertyOrFieldType, member.GetCustomAttributes(), out importDefinition))
+                    {
+                        imports.Add(member, importDefinition);
+                    }
+                    else if (exportAttribute != null)
+                    {
+                        Verify.Operation(!partType.IsGenericTypeDefinition, "Exports on members not allowed when the declaring type is generic.");
+                        var exportMetadataOnMember = GetExportMetadata(member.GetCustomAttributes());
+                        var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? propertyOrFieldType);
+                        var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
+                        exportsOnMembers.Add(member, exportDefinition);
+                    }
+                }
+
+                foreach (var method in partType.GetMethods(flags))
+                {
+                    var exportAttribute = method.GetCustomAttribute<ExportAttribute>();
+                    if (exportAttribute != null)
+                    {
+                        var exportMetadataOnMember = GetExportMetadata(method.GetCustomAttributes());
+                        Type contractType = exportAttribute.ContractType ?? Export.GetContractTypeForDelegate(method);
+                        var contract = new CompositionContract(exportAttribute.ContractName, contractType);
+                        var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
+                        exportsOnMembers.Add(method, exportDefinition);
+                    }
+                }
+
+                MethodInfo onImportsSatisfied = null;
+                if (typeof(IPartImportsSatisfiedNotification).IsAssignableFrom(partType))
+                {
+                    onImportsSatisfied = typeof(IPartImportsSatisfiedNotification).GetMethod("OnImportsSatisfied", BindingFlags.Public | BindingFlags.Instance);
+                }
+
+                if (exportsOnMembers.Count > 0 || exportsOnType.Count > 0)
+                {
+                    var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinition>();
+                    var importingCtor = GetImportingConstructor(partType, typeof(ImportingConstructorAttribute), publicOnly: false);
+                    foreach (var parameter in importingCtor.GetParameters())
+                    {
+                        var importDefinition = CreateImportDefinition(parameter.ParameterType, parameter.GetCustomAttributes());
+                        if (importDefinition.Cardinality == ImportCardinality.ZeroOrMore)
+                        {
+                            Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(importDefinition), "Collection must be public with a public constructor when used with an [ImportingConstructor].");
+                        }
+
+                        importingConstructorParameters.Add(importDefinition);
                     }
 
-                    importingConstructorParameters.Add(importDefinition);
+                    return new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary, onImportsSatisfied, importingConstructorParameters.ToImmutable(), partCreationPolicy);
                 }
-
-                return new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary, onImportsSatisfied, importingConstructorParameters.ToImmutable(), partCreationPolicy);
+                else
+                {
+                    return null;
+                }
             }
-            else
+            catch (InvalidOperationException ex)
             {
-                return null;
+                if (partType.FullName == "Microsoft.VisualStudio.Text.Editor.Implementation.WpfTextView")
+                {
+                    // This is necessary to ignore (for now) because the Editor
+                    // part Microsoft.VisualStudio.Text.Editor.Implementation.WpfTextView
+                    // has no importing constructor.
+                    // I'm guessing MEF v1 just skips over it, but we'd rather throw to let
+                    // the code author know they've done something invalid.
+                    Trace.TraceError("Exception while discovering part {0}: {1}", partType.FullName, ex);
+                    return null;
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
 
