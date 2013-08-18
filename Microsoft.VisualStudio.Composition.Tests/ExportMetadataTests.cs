@@ -224,6 +224,33 @@
 
         #endregion
 
+        #region MultipleExportMetadataTypedAppropriately test
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(PartImportingExportsWithMultipleTypedMetadata), typeof(PartWithMultipleTypedMetadata))]
+        public void MultipleExportMetadataTypedAppropriately(IContainer container)
+        {
+            var part = container.GetExportedValue<PartImportingExportsWithMultipleTypedMetadata>();
+            object metadataValue = part.ImportingProperty.Metadata["Name"];
+            Assert.IsType<string[]>(metadataValue);
+            var array = (string[])metadataValue;
+            Assert.Equal(new string[] { null, "hi", null }, array);
+        }
+
+        [Export, ExportMetadata("Name", null), ExportMetadata("Name", "hi"), ExportMetadata("Name", null)]
+        [MefV1.Export, MefV1.ExportMetadata("Name", null, IsMultiple = true), MefV1.ExportMetadata("Name", "hi", IsMultiple = true), MefV1.ExportMetadata("Name", null, IsMultiple = true)]
+        public class PartWithMultipleTypedMetadata { }
+
+        [Export]
+        [MefV1.Export]
+        public class PartImportingExportsWithMultipleTypedMetadata
+        {
+            [Import]
+            [MefV1.Import]
+            public Lazy<PartWithMultipleTypedMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+        }
+
+        #endregion
+
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [MefV1.ExportMetadata("a", "b")]
         [Export]

@@ -82,7 +82,7 @@
             Requires.NotNull(type, "type");
             Requires.NotNull(importingConstructorAttributeType, "importingConstructorAttributeType");
 
-            var flags = BindingFlags.Instance|BindingFlags.Public ;
+            var flags = BindingFlags.Instance | BindingFlags.Public;
             if (!publicOnly)
             {
                 flags |= BindingFlags.NonPublic;
@@ -98,15 +98,18 @@
 
         protected static Array AddElement(Array priorArray, object value)
         {
-            Type valueType = value != null ? value.GetType() : typeof(object);
+            Type valueType;
             Array newValue;
             if (priorArray != null)
             {
+                Type priorArrayElementType = priorArray.GetType().GetElementType();
+                valueType = priorArrayElementType == typeof(object) && value != null ? value.GetType() : priorArrayElementType;
                 newValue = Array.CreateInstance(valueType, priorArray.Length + 1);
                 Array.Copy(priorArray, newValue, priorArray.Length);
             }
             else
             {
+                valueType = value != null ? value.GetType() : typeof(object);
                 newValue = Array.CreateInstance(valueType, 1);
             }
 
