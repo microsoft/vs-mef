@@ -28,6 +28,21 @@
             get { return this.relevantAssemblies; }
         }
 
+        private static IEnumerable<Type> GetAllBaseTypesAndInterfaces(Type type)
+        {
+            Requires.NotNull(type, "type");
+
+            for (Type baseType = type.BaseType; baseType != null; baseType = baseType.BaseType)
+            {
+                yield return baseType;
+            }
+
+            foreach (var iface in type.GetInterfaces())
+            {
+                yield return iface;
+            }
+        }
+
         private IDisposable EmitMemberAssignment(Import import)
         {
             Requires.NotNull(import, "import");
@@ -718,6 +733,7 @@
         private string GetTypeName(Type type, bool genericTypeDefinition = false, bool evenNonPublic = false)
         {
             this.relevantAssemblies.Add(type.Assembly);
+            this.relevantAssemblies.UnionWith(GetAllBaseTypesAndInterfaces(type).Select(t => t.Assembly));
 
             if (type.IsGenericParameter)
             {
