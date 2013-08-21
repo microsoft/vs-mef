@@ -233,6 +233,44 @@
             Assert.NotNull(part.ImportingProperty);
         }
 
+        #region PrivateExportedDelegate
+
+        [MefFact(CompositionEngines.V1Compat, typeof(DelegateExportingPart), typeof(DelegateImportingPart))]
+        public void PrivateExportedDelegate(IContainer container)
+        {
+            var part = container.GetExportedValue<DelegateImportingPart>();
+            Assert.NotNull(part.SomeMethod);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(DelegateExportingPart), typeof(LazyDelegateImportingPart))]
+        public void PrivateExportedDelegateLazy(IContainer container)
+        {
+            var part = container.GetExportedValue<LazyDelegateImportingPart>();
+            Assert.NotNull(part.SomeMethod);
+        }
+
+        public class DelegateExportingPart
+        {
+            [MefV1.Export]
+            private void SomeMethod() { }
+        }
+
+        [MefV1.Export]
+        public class DelegateImportingPart
+        {
+            [MefV1.Import]
+            public Action SomeMethod { get; set; }
+        }
+
+        [MefV1.Export]
+        public class LazyDelegateImportingPart
+        {
+            [MefV1.Import]
+            public Lazy<Action> SomeMethod { get; set; }
+        }
+
+        #endregion
+
         public interface IPublicInterface { }
 
         [MefV1.Export(typeof(IPublicInterface))]
