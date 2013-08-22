@@ -618,9 +618,9 @@
                     case MemberTypes.Method:
                         writer.Write(
                             "({0}){1}.CreateDelegate({2}, ",
-                            GetTypeName(import.ImportDefinition.MemberType),
+                            GetTypeName(import.ImportDefinition.ElementType),
                             GetMethodInfoExpression((MethodInfo)export.ExportingMember),
-                            GetTypeExpression(import.ImportDefinition.MemberType));
+                            GetTypeExpression(import.ImportDefinition.ElementType));
                         break;
                     case MemberTypes.Property:
                         writer.Write(

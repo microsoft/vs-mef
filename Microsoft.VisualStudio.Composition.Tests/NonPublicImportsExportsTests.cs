@@ -242,11 +242,19 @@
             Assert.NotNull(part.SomeMethod);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(DelegateExportingPart), typeof(LazyDelegateImportingPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(DelegateExportingPart), typeof(LazyDelegateImportingPart))]
         public void PrivateExportedDelegateLazy(IContainer container)
         {
             var part = container.GetExportedValue<LazyDelegateImportingPart>();
             Assert.NotNull(part.SomeMethod);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(DelegateExportingPart), typeof(ManyLazyDelegateImportingPart))]
+        public void PrivateExportedDelegateManyLazy(IContainer container)
+        {
+            var part = container.GetExportedValue<ManyLazyDelegateImportingPart>();
+            Assert.Equal(1, part.SomeMethod.Count);
+            Assert.NotNull(part.SomeMethod[0].Value);
         }
 
         public class DelegateExportingPart
@@ -267,6 +275,13 @@
         {
             [MefV1.Import]
             public Lazy<Action> SomeMethod { get; set; }
+        }
+
+        [MefV1.Export]
+        public class ManyLazyDelegateImportingPart
+        {
+            [MefV1.ImportMany]
+            public List<Lazy<Action>> SomeMethod { get; set; }
         }
 
         #endregion
