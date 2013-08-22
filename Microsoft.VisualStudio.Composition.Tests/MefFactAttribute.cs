@@ -61,7 +61,7 @@
             var parts = this.parts;
             if (parts == null && this.assemblies == null)
             {
-                parts = method.Class.Type.GetNestedTypes().Where(t => !t.IsAbstract && !t.IsInterface).ToArray();
+                parts = method.Class.Type.GetNestedTypes().Where(t => (!t.IsAbstract || t.IsSealed) && !t.IsInterface).ToArray();
             }
 
             foreach (var engine in new[] { CompositionEngines.V1, CompositionEngines.V2, CompositionEngines.V3EmulatingV1, CompositionEngines.V3EmulatingV2 })
