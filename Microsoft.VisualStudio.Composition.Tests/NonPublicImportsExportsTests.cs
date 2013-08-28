@@ -207,6 +207,14 @@
             Assert.NotNull(importingPart.ImportingProperty);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithImportManyOfInternalPartViaPublicInterface), typeof(InternalPartWithPublicExport))]
+        public void ImportManyOfInternalPartViaPublicInterface(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<PartWithImportManyOfInternalPartViaPublicInterface>();
+            Assert.NotNull(importingPart.ImportingProperty);
+            Assert.Equal(1, importingPart.ImportingProperty.Count);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(PartWithLazyImportOfInternalPartViaInternalInterface), typeof(InternalPartWithPublicExport))]
         public void LazyImportOfInternalPartViaInternalInterface(IContainer container)
         {
@@ -311,6 +319,13 @@
         {
             [MefV1.Import]
             public IPublicInterface ImportingProperty { get; set; }
+        }
+
+        [MefV1.Export]
+        public class PartWithImportManyOfInternalPartViaPublicInterface
+        {
+            [MefV1.ImportMany]
+            public List<IPublicInterface> ImportingProperty { get; set; }
         }
 
         [MefV1.Export]
