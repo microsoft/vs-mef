@@ -603,6 +603,10 @@
                     writer.Write(")");
                 });
             }
+            else if (!IsPublic(export.PartDefinition.Type))
+            {
+                writer.Write("({0})", GetTypeName(import.ImportDefinition.MemberType));
+            }
 
             if (export.ExportingMember != null && !IsPublic(export.ExportingMember, export.PartDefinition.Type))
             {
