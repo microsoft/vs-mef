@@ -13,13 +13,22 @@
     [DebuggerDisplay("{Type.Name}")]
     public class ComposablePartDefinition
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ComposablePartDefinition"/> class.
+        /// </summary>
+        /// <param name="partType">Type of the part.</param>
+        /// <param name="exportedTypes">The exported types.</param>
+        /// <param name="exportingMembers">The exporting members.</param>
+        /// <param name="importingMembers">The importing members.</param>
+        /// <param name="sharingBoundary">The sharing boundary that this part is shared within.</param>
+        /// <param name="onImportsSatisfied">The method to invoke after satisfying imports, if any.</param>
+        /// <param name="importingConstructor">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
         public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberInfo, ExportDefinition> exportingMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> importingMembers, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinition> importingConstructor)
         {
             Requires.NotNull(partType, "partType");
             Requires.NotNull(exportedTypes, "exportedTypes");
             Requires.NotNull(exportingMembers, "exportingMembers");
             Requires.NotNull(importingMembers, "importingMembers");
-            Requires.NotNull(importingConstructor, "importingConstructor");
 
             this.Type = partType;
             this.ExportedTypes = exportedTypes;
@@ -92,8 +101,20 @@
         /// </summary>
         public IReadOnlyList<ImportDefinition> ImportingConstructor { get; private set; }
 
-        public ConstructorInfo ImportingConstructorInfo {
-            get { return this.Type.GetConstructor(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, this.ImportingConstructor.Select(i => i.MemberType).ToArray(), null); }
+        public bool IsInstantiable
+        {
+            get { return this.ImportingConstructor != null; }
+        }
+
+        public ConstructorInfo ImportingConstructorInfo
+        {
+            get
+            {
+                const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
+                return this.ImportingConstructor != null
+                    ? this.Type.GetConstructor(flags, null, this.ImportingConstructor.Select(i => i.MemberType).ToArray(), null)
+                    : null;
+            }
         }
 
         /// <summary>
@@ -101,7 +122,12 @@
         /// </summary>
         public IEnumerable<ImportDefinition> ImportDefinitions
         {
-            get { return this.ImportingMembers.Values.Concat(this.ImportingConstructor); }
+            get
+            {
+                return this.ImportingConstructor != null
+                    ? this.ImportingMembers.Values.Concat(this.ImportingConstructor)
+                    : this.ImportingMembers.Values;
+            }
         }
     }
 }

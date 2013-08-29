@@ -62,5 +62,25 @@
 
             return types.SelectMany(t => t.GetFields(flags | BindingFlags.DeclaredOnly));
         }
+
+        internal static bool IsStaticExport(this MemberInfo exportingMember)
+        {
+            if (exportingMember == null)
+            {
+                return false;
+            }
+
+            switch (exportingMember.MemberType)
+            {
+                case MemberTypes.Field:
+                    return ((FieldInfo)exportingMember).IsStatic;
+                case MemberTypes.Method:
+                    return ((MethodInfo)exportingMember).IsStatic;
+                case MemberTypes.Property:
+                    return ((PropertyInfo)exportingMember).GetGetMethod(true).IsStatic;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
     }
 }

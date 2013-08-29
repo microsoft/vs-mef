@@ -29,7 +29,16 @@
         /// </summary>
         public MemberInfo ExportingMember { get; private set; }
 
-        public Type ExportedValueType {
+        /// <summary>
+        /// Gets a value indicating whether the exporting member is static.
+        /// </summary>
+        public bool IsStaticExport
+        {
+            get { return this.ExportingMember.IsStaticExport(); }
+        }
+
+        public Type ExportedValueType
+        {
             get
             {
                 if (this.ExportingMember == null)

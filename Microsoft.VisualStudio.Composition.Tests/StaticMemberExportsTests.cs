@@ -35,8 +35,34 @@
             Assert.Equal(PartWithStaticExports.ExportingProperty, part.ImportingMember[0].Value);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(UninstantiablePartWithMetadataOnExports), typeof(PartImportingNonInstantiablePartExports))]
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(UninstantiablePartWithMetadataOnExports), typeof(PartImportingNonInstantiablePartExports))]
         public void NonInstantiablePartStillHasExportMetadata(IContainer container)
+        {
+            var part = container.GetExportedValue<PartImportingNonInstantiablePartExports>();
+            Assert.Equal("SomeValue", part.FieldImportingMember.Metadata["SomeName"]);
+            Assert.Equal("SomeValue", part.PropertyImportingMember.Metadata["SomeName"]);
+
+            Assert.Equal("Hello", part.FieldImportingMember.Value);
+
+            // Instance member requires an importing constructor on the exporting part.
+            Assert.Throws<MefV1.CompositionException>(() => part.PropertyImportingMember.Value);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(InternalUninstantiablePartWithMetadataOnExports), typeof(PartImportingNonInstantiablePartExports))]
+        public void InternalNonInstantiablePartStillHasExportMetadata(IContainer container)
+        {
+            var part = container.GetExportedValue<PartImportingNonInstantiablePartExports>();
+            Assert.Equal("SomeValue", part.FieldImportingMember.Metadata["SomeName"]);
+            Assert.Equal("SomeValue", part.PropertyImportingMember.Metadata["SomeName"]);
+
+            Assert.Equal("Hello", part.FieldImportingMember.Value);
+
+            // Instance member requires an importing constructor on the exporting part.
+            Assert.Throws<MefV1.CompositionException>(() => part.PropertyImportingMember.Value);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(UninstantiablePartWithMetadataOnExports), typeof(PartImportingNonInstantiablePartExports), NoCompatGoal = true)]
+        public void NonInstantiablePartStillHasExportMetadataV1(IContainer container)
         {
             var part = container.GetExportedValue<PartImportingNonInstantiablePartExports>();
             Assert.Equal("SomeValue", part.FieldImportingMember.Metadata["SomeName"]);
@@ -82,16 +108,38 @@
         {
             [MefV1.Export("Field")]
             [MefV1.ExportMetadata("SomeName", "SomeValue")]
-            public static string ExportingField = "Hello";
+            public static string StaticExportingField = "Hello";
 
             [MefV1.Export("Property")]
             [MefV1.ExportMetadata("SomeName", "SomeValue")]
-            public string ExportingProperty
+            public string InstanceExportingProperty
             {
                 get { return "Hello"; }
             }
 
             public UninstantiablePartWithMetadataOnExports(object someValue)
+            {
+                // This constructor suppresses the construction of the default constructor.
+                // It is deliberately *not* an ImportingConstructor because this class
+                // is for a test that metadata on exports is still available even when
+                // the exported value itself cannot be obtained (for instance exports).
+            }
+        }
+
+        internal class InternalUninstantiablePartWithMetadataOnExports
+        {
+            [MefV1.Export("Field")]
+            [MefV1.ExportMetadata("SomeName", "SomeValue")]
+            public static string StaticExportingField = "Hello";
+
+            [MefV1.Export("Property")]
+            [MefV1.ExportMetadata("SomeName", "SomeValue")]
+            public string InstanceExportingProperty
+            {
+                get { return "Hello"; }
+            }
+
+            public InternalUninstantiablePartWithMetadataOnExports(object someValue)
             {
                 // This constructor suppresses the construction of the default constructor.
                 // It is deliberately *not* an ImportingConstructor because this class

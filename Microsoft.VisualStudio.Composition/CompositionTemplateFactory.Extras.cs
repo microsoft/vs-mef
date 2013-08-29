@@ -326,6 +326,18 @@
                     // The part is importing itself. So just assign it directly.
                     writer.Write(InstantiatedPartLocalVarName);
                 }
+                else if (export.IsStaticExport)
+                {
+                    if (IsPublic(export.ExportingMember, export.PartDefinition.Type))
+                    {
+                        writer.Write(GetTypeName(export.PartDefinition.Type));
+                    }
+                    else
+                    {
+                        // What we write here will be emitted as the argument to a reflection GetValue method call.
+                        writer.Write("null");
+                    }
+                }
                 else
                 {
                     writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, import.ImportDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
@@ -485,6 +497,12 @@
 
         private void EmitInstantiatePart(ComposablePart part)
         {
+            if (part.Definition.ImportingConstructor == null)
+            {
+                this.Write("throw new InvalidOperationException(\"Cannot instantiate this part.\");");
+                return;
+            }
+
             this.Write("var {0} = ", InstantiatedPartLocalVarName);
             using (this.EmitConstructorInvocationExpression(part.Definition))
             {
@@ -611,12 +629,13 @@
             if (export.ExportingMember != null && !IsPublic(export.ExportingMember, export.PartDefinition.Type))
             {
                 closeParenthesis = true;
+
                 switch (export.ExportingMember.MemberType)
                 {
                     case MemberTypes.Field:
                         writer.Write(
                             "({0}){1}.GetValue(",
-                            GetTypeName(import.ImportDefinition.MemberType),
+                            GetTypeName(import.ImportDefinition.ElementType),
                             GetFieldInfoExpression((FieldInfo)export.ExportingMember));
                         break;
                     case MemberTypes.Method:
@@ -629,7 +648,7 @@
                     case MemberTypes.Property:
                         writer.Write(
                             "({0}){1}.Invoke(",
-                            GetTypeName(import.ImportDefinition.MemberType),
+                            GetTypeName(import.ImportDefinition.ElementType),
                             GetMethodInfoExpression(((PropertyInfo)export.ExportingMember).GetGetMethod(true)));
                         break;
                     default:
@@ -664,7 +683,7 @@
                 }
 
                 string memberAccessor = memberModifier;
-                if (export.PartDefinition != import.PartDefinition || import.ImportDefinition.IsExportFactory)
+                if ((export.PartDefinition != import.PartDefinition || import.ImportDefinition.IsExportFactory) && !export.IsStaticExport)
                 {
                     memberAccessor = ".Value" + memberAccessor;
                 }
@@ -723,9 +742,11 @@
         {
             get
             {
-                return from part in this.Configuration.Parts
-                       where part.RequiredSharingBoundaries.Count == 0
-                       select part.Definition;
+                return
+                from part in this.Configuration.Parts
+                where part.RequiredSharingBoundaries.Count == 0
+                where part.Definition.IsInstantiable
+                select part.Definition;
             }
         }
 

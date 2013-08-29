@@ -47,9 +47,12 @@
             var partBuilders = new Dictionary<ComposablePartDefinition, PartBuilder>();
             foreach (ComposablePartDefinition partDefinition in catalog.Parts)
             {
-                var imports =
-                    partDefinition.ImportingMembers.Select(i => new Import(partDefinition, i.Value, i.Key))
-                    .Concat(partDefinition.ImportingConstructor.Select(i => new Import(partDefinition, i)));
+                var imports = partDefinition.ImportingMembers.Select(i => new Import(partDefinition, i.Value, i.Key));
+                if (partDefinition.ImportingConstructor != null)
+                {
+                    imports = imports.Concat(partDefinition.ImportingConstructor.Select(i => new Import(partDefinition, i)));
+                }
+
                 var satisfyingImports = imports.ToImmutableDictionary(i => i, i => catalog.GetExports(i.ImportDefinition));
                 partBuilders.Add(partDefinition, new PartBuilder(partDefinition, satisfyingImports));
             }

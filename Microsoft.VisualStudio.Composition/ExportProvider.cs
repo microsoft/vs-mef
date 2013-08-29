@@ -83,6 +83,11 @@
             }
         }
 
+        protected static object CannotInstantiatePartWithNoImportingConstructor()
+        {
+            throw new System.ComponentModel.Composition.CompositionException("No importing constructor");
+        }
+
         /// <summary>
         /// When implemented by a derived class, returns an <see cref="ILazy&lt;T&gt;"/> value that
         /// satisfies the specified <see cref="ExportDefinition"/>.

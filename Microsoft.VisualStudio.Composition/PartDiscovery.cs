@@ -92,7 +92,6 @@
             var taggedCtor = ctors.SingleOrDefault(ctor => ctor.GetCustomAttribute(importingConstructorAttributeType) != null);
             var defaultCtor = ctors.SingleOrDefault(ctor => ctor.GetParameters().Length == 0);
             var importingCtor = taggedCtor ?? defaultCtor;
-            Verify.Operation(importingCtor != null, "No importing constructor found.");
             return importingCtor;
         }
 

@@ -75,6 +75,7 @@
             {
                 var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinition>();
                 var importingCtor = GetImportingConstructor(partType, typeof(ImportingConstructorAttribute), publicOnly: true);
+                Verify.Operation(importingCtor != null, "No importing constructor found.");
                 foreach (var parameter in importingCtor.GetParameters())
                 {
                     var importDefinition = CreateImportDefinition(

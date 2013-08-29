@@ -76,10 +76,19 @@ foreach (var part in this.RootPartDefinitions)
                 }
                 else
                 {
+                    if (member.IsStaticExport())
+                    {
+#>
+                throw new InvalidOperationException("Static exports not supported.");
+<#
+                    }
+                    else
+                    {
 #>
                 var part = this.<#= GetPartFactoryMethodName(part) #>(provisionalSharedObjects);
                 return <#=GetPartOrMemberLazy("part", member, partExport, part)#>;
 <#
+                    }
                 }
 #>
             }
@@ -115,9 +124,18 @@ foreach (var part in this.Configuration.Parts)
             lazyResult = <# using (EmitLazyConstruction(part.Definition.Type)) { #>
                 {
 <#
-                using(Indent(5))
+                if (part.Definition.IsInstantiable)
                 {
-                    EmitInstantiatePart(part);
+                    using(Indent(5))
+                    {
+                        EmitInstantiatePart(part);
+                    }
+                }
+                else
+                {
+#>
+                    return CannotInstantiatePartWithNoImportingConstructor();
+<#
                 }
 #>
                 }<# } #>;
@@ -137,7 +155,16 @@ foreach (var part in this.Configuration.Parts)
 <#
                 using(Indent(4))
                 {
-                    EmitInstantiatePart(part);
+                    if (part.Definition.IsInstantiable)
+                    {
+                        EmitInstantiatePart(part);
+                    }
+                    else
+                    {
+#>
+                return CannotInstantiatePartWithNoImportingConstructor();
+<#
+                    }
                 }
 #>
             }<# } #>;
