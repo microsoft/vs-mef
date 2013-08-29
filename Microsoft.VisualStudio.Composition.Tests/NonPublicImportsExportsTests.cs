@@ -272,6 +272,31 @@
             Assert.NotNull(part.SomeMethod[0].Value);
         }
 
+        #region PartWithBaseClassHavingPrivateImportingField
+
+        [MefFact(CompositionEngines.V1Compat, typeof(DerivedFromPartWithPrivateImportingField), typeof(PublicExport))]
+        public void PartWithBaseClassHavingPrivateImportingField(IContainer container)
+        {
+            var part = container.GetExportedValue<DerivedFromPartWithPrivateImportingField>();
+            Assert.NotNull(part.ImportingFieldAccessor);
+        }
+
+        public class PartWithPrivateImportingField
+        {
+            [MefV1.Import]
+            private PublicExport importingField = null;
+
+            public PublicExport ImportingFieldAccessor
+            {
+                get { return this.importingField; }
+            }
+        }
+
+        [MefV1.Export]
+        public class DerivedFromPartWithPrivateImportingField : PartWithPrivateImportingField { }
+
+        #endregion
+
         public class DelegateExportingPart
         {
             [MefV1.Export]

@@ -45,7 +45,7 @@
                 }
 
                 var flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-                foreach (var member in Enumerable.Concat<MemberInfo>(partType.EnumProperties(flags), partType.GetFields(flags)))
+                foreach (var member in Enumerable.Concat<MemberInfo>(partType.EnumProperties(flags), partType.EnumFields(flags)))
                 {
                     var property = member as PropertyInfo;
                     var field = member as FieldInfo;
