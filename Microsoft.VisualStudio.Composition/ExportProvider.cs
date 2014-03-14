@@ -139,11 +139,7 @@
         /// When implemented by a derived class, returns an <see cref="IEnumerable&lt;ILazy&lt;T&gt;&gt;"/> value that
         /// satisfies the specified <see cref="ExportDefinition"/>.
         /// </summary>
-        protected virtual IEnumerable<object> GetExports(ExportDefinition exportDefinition)
-        {
-            // TODO: make this method abstract.
-            throw new NotImplementedException();
-        }
+        protected abstract IEnumerable<object> GetExports(ExportDefinition exportDefinition);
 
         protected bool TryGetSharedInstanceFactory<T>(string partSharingBoundary, Type type, out ILazy<T> value)
         {

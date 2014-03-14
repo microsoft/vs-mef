@@ -100,6 +100,11 @@ foreach (var part in this.RootPartDefinitions)
 
         throw new CompositionFailedException();
     }
+
+    protected override IEnumerable<object> GetExports(ExportDefinition exportDefinition)
+    {
+        throw new NotImplementedException();
+    }
 <#
 foreach (var part in this.Configuration.Parts) 
 {
