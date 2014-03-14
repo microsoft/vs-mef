@@ -288,6 +288,64 @@
 
         #endregion
 
+        #region GetExports (plural) tests
+
+        [MefFact(CompositionEngines.V1)]
+        public void GetNamedExportsTMetadataEmpty(IContainer container)
+        {
+            IEnumerable<ILazy<object, IDictionary<string, object>>> result =
+                container.GetExports<object, IDictionary<string, object>>("NoOneExportsThis");
+            Assert.Equal(0, result.Count());
+        }
+
+        [MefFact(CompositionEngines.V1)]
+        public void GetNamedExportsTMetadata(IContainer container)
+        {
+            IEnumerable<ILazy<object, IDictionary<string, object>>> result =
+                container.GetExports<object, IDictionary<string, object>>("ExportWithMetadata");
+            Assert.Equal(3, result.Count());
+            var a = result.Single(e => !e.Metadata.ContainsKey("B") && e.Metadata.ContainsKey("a") && "b".Equals(e.Metadata["a"]));
+            var b = result.Single(e => !e.Metadata.ContainsKey("a") && e.Metadata.ContainsKey("B") && "c".Equals(e.Metadata["B"]));
+            var ab = result.Single(e => e.Metadata.ContainsKey("a") && "b".Equals(e.Metadata["a"]) && e.Metadata.ContainsKey("B") && "c".Equals(e.Metadata["B"]));
+            Assert.IsType<PartWithExportMetadataA>(a.Value);
+            Assert.IsType<PartWithExportMetadataB>(b.Value);
+            Assert.IsType<PartWithExportMetadataAB>(ab.Value);
+        }
+
+        [MefFact(CompositionEngines.V1)]
+        public void GetExportsTMetadataEmpty(IContainer container)
+        {
+            IEnumerable<ILazy<object, IDictionary<string, object>>> result =
+                container.GetExports<object, IDictionary<string, object>>();
+            Assert.Equal(0, result.Count());
+        }
+
+        [MefFact(CompositionEngines.V1)]
+        public void GetExportsTMetadata(IContainer container)
+        {
+            IEnumerable<ILazy<IFoo, IMetadataBase>> result =
+                container.GetExports<IFoo, IMetadataBase>();
+            Assert.Equal(2, result.Count());
+
+            var a = result.Single(e => e.Metadata.a == "1");
+            var b = result.Single(e => e.Metadata.a == "2");
+
+            Assert.IsType<FooExport1>(a.Value);
+            Assert.IsType<FooExport2>(b.Value);
+        }
+
+        public interface IFoo { }
+
+        [MefV1.Export(typeof(IFoo))]
+        [MefV1.ExportMetadata("a", "1")]
+        public class FooExport1 : IFoo { }
+
+        [MefV1.Export(typeof(IFoo))]
+        [MefV1.ExportMetadata("a", "2")]
+        public class FooExport2 : IFoo { }
+
+        #endregion
+
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [MefV1.ExportMetadata("a", "b")]
         [Export]

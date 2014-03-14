@@ -37,7 +37,7 @@
             var catalogs = assemblies.Select(a => new MefV1.Hosting.AssemblyCatalog(a))
                 .Concat<MefV1.Primitives.ComposablePartCatalog>(new[] { new MefV1.Hosting.TypeCatalog(parts) });
             var catalog = new MefV1.Hosting.AggregateCatalog(catalogs);
-            
+
             return CreateContainerV1(catalog);
         }
 
@@ -80,7 +80,7 @@
         {
             return CreateContainerV3(default(ImmutableArray<Assembly>), attributesDiscovery, parts);
         }
-        
+
         internal static IContainer CreateContainerV3(ImmutableArray<Assembly> assemblies, CompositionEngines attributesDiscovery, Type[] parts = null)
         {
             PartDiscovery discovery = GetDiscoveryService(attributesDiscovery);
@@ -205,6 +205,26 @@
                 return new LazyWrapper<T>(this.container.GetExport<T>(contractName));
             }
 
+            public IEnumerable<ILazy<T>> GetExports<T>()
+            {
+                return this.container.GetExports<T>().Select(l => new LazyWrapper<T>(l));
+            }
+
+            public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
+            {
+                return this.container.GetExports<T>(contractName).Select(l => new LazyWrapper<T>(l));
+            }
+
+            public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
+            {
+                return this.container.GetExports<T, TMetadataView>().Select(l => (ILazy<T, TMetadataView>)new LazyWrapper<T, TMetadataView>(l));
+            }
+
+            public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
+            {
+                return this.container.GetExports<T, TMetadataView>(contractName).Select(l => (ILazy<T, TMetadataView>)new LazyWrapper<T, TMetadataView>(l));
+            }
+
             public T GetExportedValue<T>()
             {
                 return this.container.GetExportedValue<T>();
@@ -215,12 +235,21 @@
                 return this.container.GetExportedValue<T>(contractName);
             }
 
+            public IEnumerable<T> GetExportedValues<T>()
+            {
+                return this.container.GetExportedValues<T>();
+            }
+
+            public IEnumerable<T> GetExportedValues<T>(string contractName)
+            {
+                return this.container.GetExportedValues<T>(contractName);
+            }
+
             public void Dispose()
             {
                 this.container.Dispose();
             }
         }
-
 
         private class V2ContainerWrapper : IContainer
         {
@@ -252,6 +281,36 @@
             public T GetExportedValue<T>(string contractName)
             {
                 return this.container.GetExport<T>(contractName);
+            }
+
+            public IEnumerable<ILazy<T>> GetExports<T>()
+            {
+                return this.container.GetExports<T>().Select(v => LazyPart.Wrap(v));
+            }
+
+            public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
+            {
+                return this.container.GetExports<T>(contractName).Select(v => LazyPart.Wrap(v));
+            }
+
+            public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
+            {
+                throw new NotSupportedException();
+            }
+
+            public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
+            {
+                throw new NotSupportedException();
+            }
+
+            public IEnumerable<T> GetExportedValues<T>()
+            {
+                return this.container.GetExports<T>();
+            }
+
+            public IEnumerable<T> GetExportedValues<T>(string contractName)
+            {
+                return this.container.GetExports<T>(contractName);
             }
 
             public void Dispose()
@@ -290,6 +349,36 @@
                 return this.container.GetExportedValue<T>(contractName);
             }
 
+            public IEnumerable<ILazy<T>> GetExports<T>()
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerable<T> GetExportedValues<T>()
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerable<T> GetExportedValues<T>(string contractName)
+            {
+                throw new NotImplementedException();
+            }
+
             public void Dispose()
             {
                 this.container.Dispose();
@@ -309,6 +398,32 @@
             public bool IsValueCreated
             {
                 get { return this.inner.IsValueCreated; }
+            }
+
+            public T Value
+            {
+                get { return this.inner.Value; }
+            }
+        }
+
+        private class LazyWrapper<T, TMetadata> : ILazy<T, TMetadata>, ILazy<T>
+        {
+            private readonly Lazy<T, TMetadata> inner;
+
+            internal LazyWrapper(Lazy<T, TMetadata> lazy)
+            {
+                Requires.NotNull(lazy, "lazy");
+                this.inner = lazy;
+            }
+
+            public bool IsValueCreated
+            {
+                get { return this.inner.IsValueCreated; }
+            }
+
+            public TMetadata Metadata
+            {
+                get { return this.inner.Metadata; }
             }
 
             public T Value

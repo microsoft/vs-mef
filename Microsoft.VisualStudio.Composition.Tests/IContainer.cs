@@ -12,8 +12,20 @@
 
         T GetExportedValue<T>(string contractName);
 
+        IEnumerable<T> GetExportedValues<T>();
+
+        IEnumerable<T> GetExportedValues<T>(string contractName);
+
         ILazy<T> GetExport<T>();
 
         ILazy<T> GetExport<T>(string contractName);
+
+        IEnumerable<ILazy<T>> GetExports<T>();
+
+        IEnumerable<ILazy<T>> GetExports<T>(string contractName);
+
+        IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>();
+
+        IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName);
     }
 }

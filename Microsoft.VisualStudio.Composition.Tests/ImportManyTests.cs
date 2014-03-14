@@ -263,6 +263,50 @@
 
         #endregion
 
+        #region GetExportedValues tests
+
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        public void GetExportedValuesEmpty(IContainer container)
+        {
+            IEnumerable<ICustomFormatter> results = container.GetExportedValues<ICustomFormatter>();
+            Assert.Equal(0, results.Count());
+        }
+
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        public void GetExportedValues(IContainer container)
+        {
+            IEnumerable<IExtension> results = container.GetExportedValues<IExtension>();
+            Assert.Equal(2, results.Count());
+            Assert.Equal(1, results.OfType<ExtensionOne>().Count());
+            Assert.Equal(1, results.OfType<ExtensionTwo>().Count());
+        }
+
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        public void GetExportedValuesNamedEmpty(IContainer container)
+        {
+            IEnumerable<IExtension> results = container.GetExportedValues<IExtension>("BadName");
+            Assert.Equal(0, results.Count());
+        }
+
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        public void GetExportedValuesNamed(IContainer container)
+        {
+            IEnumerable<IExtension> results = container.GetExportedValues<IExtension>("Named");
+            Assert.Equal(2, results.Count());
+            Assert.Equal(1, results.OfType<NamedExtensionOne>().Count());
+            Assert.Equal(1, results.OfType<NamedExtensionTwo>().Count());
+        }
+
+        [Export("Named", typeof(IExtension))]
+        [MefV1.Export("Named", typeof(IExtension)), MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class NamedExtensionOne : IExtension { }
+
+        [Export("Named", typeof(IExtension))]
+        [MefV1.Export("Named", typeof(IExtension)), MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class NamedExtensionTwo : IExtension { }
+
+        #endregion
+
         public interface IExtension { }
 
         [Export(typeof(IExtension))]

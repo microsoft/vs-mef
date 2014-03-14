@@ -24,6 +24,21 @@
             Assert.NotNull(apple);
         }
 
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        public void AcquireSingleExportViaGetExportedValues(IContainer container)
+        {
+            Apple apple = container.GetExportedValues<Apple>().Single();
+            Assert.NotNull(apple);
+        }
+
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        public void AcquireSingleExportViaGetExports(IContainer container)
+        {
+            ILazy<Apple> apple = container.GetExports<Apple>().Single();
+            Assert.NotNull(apple);
+            Assert.NotNull(apple.Value);
+        }
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void AcquireSingleLazyExport(IContainer container)
         {
