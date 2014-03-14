@@ -25,6 +25,7 @@
         }
 
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [Trait("Container.GetExport", "Plural")]
         public void AcquireSingleExportViaGetExportedValues(IContainer container)
         {
             Apple apple = container.GetExportedValues<Apple>().Single();
@@ -32,6 +33,7 @@
         }
 
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [Trait("Container.GetExport", "Plural")]
         public void AcquireSingleExportViaGetExports(IContainer container)
         {
             ILazy<Apple> apple = container.GetExports<Apple>().Single();

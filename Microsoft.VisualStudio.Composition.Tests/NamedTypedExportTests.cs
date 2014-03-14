@@ -30,6 +30,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [Trait("Container.GetExport", "Plural")]
         public void GetExportsNamed(IContainer container)
         {
             IEnumerable<ILazy<Fruit>> result = container.GetExports<Fruit>("Pear");

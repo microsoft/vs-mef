@@ -291,6 +291,7 @@
         #region GetExports (plural) tests
 
         [MefFact(CompositionEngines.V1)]
+        [Trait("Container.GetExport", "Plural")]
         public void GetNamedExportsTMetadataEmpty(IContainer container)
         {
             IEnumerable<ILazy<object, IDictionary<string, object>>> result =
@@ -299,6 +300,7 @@
         }
 
         [MefFact(CompositionEngines.V1)]
+        [Trait("Container.GetExport", "Plural")]
         public void GetNamedExportsTMetadata(IContainer container)
         {
             IEnumerable<ILazy<object, IDictionary<string, object>>> result =
@@ -313,6 +315,7 @@
         }
 
         [MefFact(CompositionEngines.V1)]
+        [Trait("Container.GetExport", "Plural")]
         public void GetExportsTMetadataEmpty(IContainer container)
         {
             IEnumerable<ILazy<object, IDictionary<string, object>>> result =
@@ -321,6 +324,7 @@
         }
 
         [MefFact(CompositionEngines.V1)]
+        [Trait("Container.GetExport", "Plural")]
         public void GetExportsTMetadata(IContainer container)
         {
             IEnumerable<ILazy<IFoo, IMetadataBase>> result =

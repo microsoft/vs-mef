@@ -266,6 +266,7 @@
         #region GetExportedValues tests
 
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [Trait("Container.GetExport", "Plural")]
         public void GetExportedValuesEmpty(IContainer container)
         {
             IEnumerable<ICustomFormatter> results = container.GetExportedValues<ICustomFormatter>();
@@ -273,6 +274,7 @@
         }
 
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [Trait("Container.GetExport", "Plural")]
         public void GetExportedValues(IContainer container)
         {
             IEnumerable<IExtension> results = container.GetExportedValues<IExtension>();
@@ -282,6 +284,7 @@
         }
 
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [Trait("Container.GetExport", "Plural")]
         public void GetExportedValuesNamedEmpty(IContainer container)
         {
             IEnumerable<IExtension> results = container.GetExportedValues<IExtension>("BadName");
@@ -289,6 +292,7 @@
         }
 
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [Trait("Container.GetExport", "Plural")]
         public void GetExportedValuesNamed(IContainer container)
         {
             IEnumerable<IExtension> results = container.GetExportedValues<IExtension>("Named");
@@ -308,6 +312,7 @@
         #endregion
 
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [Trait("Container.GetExport", "CardinalityMismatch")]
         public void GetExportOneForManyThrowsException(IContainer container)
         {
             try
@@ -330,6 +335,7 @@
         }
 
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [Trait("Container.GetExport", "CardinalityMismatch")]
         public void GetExportedValueOneForManyThrowsException(IContainer container)
         {
             try
