@@ -65,6 +65,36 @@
             return this.GetExport<T>(contractName).Value;
         }
 
+        public IEnumerable<ILazy<T>> GetExports<T>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<T> GetExportedValues<T>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<T> GetExportedValues<T>(string contractName)
+        {
+            throw new NotImplementedException();
+        }
+
         public void Dispose()
         {
             // Snapshot the contents of the collection within the lock,
