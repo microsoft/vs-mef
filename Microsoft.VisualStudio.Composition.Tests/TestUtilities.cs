@@ -205,6 +205,16 @@
                 return new LazyWrapper<T>(this.container.GetExport<T>(contractName));
             }
 
+            public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
+            {
+                return new LazyWrapper<T, TMetadataView>(this.container.GetExport<T, TMetadataView>());
+            }
+
+            public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
+            {
+                return new LazyWrapper<T, TMetadataView>(this.container.GetExport<T, TMetadataView>(contractName));
+            }
+
             public IEnumerable<ILazy<T>> GetExports<T>()
             {
                 return this.container.GetExports<T>().Select(l => new LazyWrapper<T>(l));
@@ -273,6 +283,16 @@
                 return new LazyPart<T>(() => this.container.GetExport<T>(contractName));
             }
 
+            public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
+            {
+                throw new NotImplementedException();
+            }
+
+            public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
+            {
+                throw new NotImplementedException();
+            }
+
             public T GetExportedValue<T>()
             {
                 return this.container.GetExport<T>();
@@ -337,6 +357,16 @@
             public ILazy<T> GetExport<T>(string contractName)
             {
                 return this.container.GetExport<T>(contractName);
+            }
+
+            public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
+            {
+                return this.container.GetExport<T, TMetadataView>();
+            }
+
+            public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
+            {
+                return this.container.GetExport<T, TMetadataView>(contractName);
             }
 
             public T GetExportedValue<T>()

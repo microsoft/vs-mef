@@ -20,6 +20,10 @@
 
         ILazy<T> GetExport<T>(string contractName);
 
+        ILazy<T, TMetadataView> GetExport<T, TMetadataView>();
+
+        ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName);
+
         IEnumerable<ILazy<T>> GetExports<T>();
 
         IEnumerable<ILazy<T>> GetExports<T>(string contractName);

@@ -55,6 +55,16 @@
             return (ILazy<T>)this.GetExport(exportDefinition);
         }
 
+        public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
+        {
+            return this.GetExport<T, TMetadataView>(null);
+        }
+
+        public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
+        {
+            throw new NotImplementedException();
+        }
+
         public T GetExportedValue<T>()
         {
             return this.GetExport<T>().Value;
@@ -67,17 +77,18 @@
 
         public IEnumerable<ILazy<T>> GetExports<T>()
         {
-            throw new NotImplementedException();
+            return this.GetExports<T>(null);
         }
 
         public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
         {
-            throw new NotImplementedException();
+            var exportDefinition = new ExportDefinition(new CompositionContract(contractName, typeof(T)), ImmutableDictionary.Create<string, object>());
+            return (IEnumerable<ILazy<T>>)this.GetExports(exportDefinition);
         }
 
         public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
         {
-            throw new NotImplementedException();
+            return this.GetExports<T, TMetadataView>(null);
         }
 
         public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
@@ -87,12 +98,12 @@
 
         public IEnumerable<T> GetExportedValues<T>()
         {
-            throw new NotImplementedException();
+            return this.GetExports<T>().Select(l => l.Value);
         }
 
         public IEnumerable<T> GetExportedValues<T>(string contractName)
         {
-            throw new NotImplementedException();
+            return this.GetExports<T>(contractName).Select(l => l.Value);
         }
 
         public void Dispose()
@@ -123,6 +134,16 @@
         /// satisfies the specified <see cref="ExportDefinition"/>.
         /// </summary>
         protected abstract object GetExport(ExportDefinition exportDefinition);
+
+        /// <summary>
+        /// When implemented by a derived class, returns an <see cref="IEnumerable&lt;ILazy&lt;T&gt;&gt;"/> value that
+        /// satisfies the specified <see cref="ExportDefinition"/>.
+        /// </summary>
+        protected virtual IEnumerable<object> GetExports(ExportDefinition exportDefinition)
+        {
+            // TODO: make this method abstract.
+            throw new NotImplementedException();
+        }
 
         protected bool TryGetSharedInstanceFactory<T>(string partSharingBoundary, Type type, out ILazy<T> value)
         {

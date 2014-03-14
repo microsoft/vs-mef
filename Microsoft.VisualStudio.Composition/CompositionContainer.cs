@@ -25,6 +25,16 @@
             return this.exportFactory.GetExport<T>(contractName);
         }
 
+        public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
+        {
+            return this.exportFactory.GetExport<T, TMetadataView>();
+        }
+
+        public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
+        {
+            return this.exportFactory.GetExport<T, TMetadataView>(contractName);
+        }
+
         public T GetExportedValue<T>()
         {
             return this.exportFactory.GetExportedValue<T>();
