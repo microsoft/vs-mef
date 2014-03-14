@@ -62,7 +62,8 @@
 
         public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
         {
-            throw new NotImplementedException();
+            var exportDefinition = new ExportDefinition(new CompositionContract(contractName, typeof(T)), ImmutableDictionary.Create<string, object>());
+            return (ILazy<T, TMetadataView>)this.GetExport(exportDefinition);
         }
 
         public T GetExportedValue<T>()
@@ -93,7 +94,8 @@
 
         public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
         {
-            throw new NotImplementedException();
+            var exportDefinition = new ExportDefinition(new CompositionContract(contractName, typeof(T)), ImmutableDictionary.Create<string, object>());
+            return (IEnumerable<ILazy<T, TMetadataView>>)this.GetExports(exportDefinition);
         }
 
         public IEnumerable<T> GetExportedValues<T>()
@@ -136,8 +138,8 @@
         protected abstract object GetExport(ExportDefinition exportDefinition);
 
         /// <summary>
-        /// When implemented by a derived class, returns an <see cref="IEnumerable&lt;ILazy&lt;T&gt;&gt;"/> value that
-        /// satisfies the specified <see cref="ExportDefinition"/>.
+        /// When implemented by a derived class, returns an <see cref="IEnumerable&lt;ILazy&lt;T&gt;&gt;"/> of values that
+        /// satisfy the specified <see cref="ExportDefinition"/>.
         /// </summary>
         protected abstract IEnumerable<object> GetExports(ExportDefinition exportDefinition);
 
