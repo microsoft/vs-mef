@@ -307,6 +307,46 @@
 
         #endregion
 
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        public void GetExportOneForManyThrowsException(IContainer container)
+        {
+            try
+            {
+                var result = container.GetExport<IExtension>();
+
+                // MEFv1 would have thrown already, but MEFv2 needs a bit more help.
+                var dummy = result.Value;
+
+                Assert.False(true, "Expected exception not thrown.");
+            }
+            catch (InvalidOperationException)
+            {
+                // MEFv1 throws this.
+            }
+            catch (System.Composition.Hosting.CompositionFailedException)
+            {
+                // MEFv2 throws this
+            }
+        }
+
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        public void GetExportedValueOneForManyThrowsException(IContainer container)
+        {
+            try
+            {
+                container.GetExportedValue<IExtension>();
+                Assert.False(true, "Expected exception not thrown.");
+            }
+            catch (InvalidOperationException)
+            {
+                // MEFv1 throws this.
+            }
+            catch (System.Composition.Hosting.CompositionFailedException)
+            {
+                // MEFv2 throws this
+            }
+        }
+
         public interface IExtension { }
 
         [Export(typeof(IExtension))]
