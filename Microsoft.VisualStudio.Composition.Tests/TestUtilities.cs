@@ -351,32 +351,32 @@
 
             public IEnumerable<ILazy<T>> GetExports<T>()
             {
-                throw new NotImplementedException();
+                return this.container.GetExports<T>();
             }
 
             public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
             {
-                throw new NotImplementedException();
+                return this.container.GetExports<T>(contractName);
             }
 
             public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
             {
-                throw new NotImplementedException();
+                return this.container.GetExports<T, TMetadataView>();
             }
 
             public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
             {
-                throw new NotImplementedException();
+                return this.container.GetExports<T, TMetadataView>(contractName);
             }
 
             public IEnumerable<T> GetExportedValues<T>()
             {
-                throw new NotImplementedException();
+                return this.container.GetExportedValues<T>();
             }
 
             public IEnumerable<T> GetExportedValues<T>(string contractName)
             {
-                throw new NotImplementedException();
+                return this.container.GetExportedValues<T>(contractName);
             }
 
             public void Dispose()
