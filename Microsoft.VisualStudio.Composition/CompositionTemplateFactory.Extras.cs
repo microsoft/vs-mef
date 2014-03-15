@@ -181,7 +181,7 @@
                 Type enumerableOfTType = typeof(IEnumerable<>).MakeGenericType(import.ImportDefinition.MemberWithoutManyWrapper);
                 if (import.ImportDefinition.MemberType.IsArray || import.ImportDefinition.MemberType.IsEquivalentTo(enumerableOfTType))
                 {
-                    this.EmitSatisfyImportManyArrayOrEnumerable(import, exports, writer);
+                    this.EmitSatisfyImportManyArrayOrEnumerable(import, exports);
                 }
                 else
                 {
@@ -194,7 +194,7 @@
             }
         }
 
-        private void EmitSatisfyImportManyArrayOrEnumerable(Import import, IReadOnlyList<Export> exports, StringWriter writer)
+        private void EmitSatisfyImportManyArrayOrEnumerable(Import import, IReadOnlyList<Export> exports)
         {
             Requires.NotNull(import, "import");
             Requires.NotNull(exports, "exports");
@@ -205,7 +205,7 @@
                 memberAssignment = this.EmitMemberAssignment(import);
             }
 
-            this.EmitSatisfyImportManyArrayOrEnumerableExpression(import, exports, writer);
+            this.EmitSatisfyImportManyArrayOrEnumerableExpression(import, exports);
 
             if (memberAssignment != null)
             {
@@ -213,7 +213,7 @@
             }
         }
 
-        private void EmitSatisfyImportManyArrayOrEnumerableExpression(Import import, IReadOnlyList<Export> exports, StringWriter writer)
+        private void EmitSatisfyImportManyArrayOrEnumerableExpression(Import import, IEnumerable<Export> exports)
         {
             Requires.NotNull(import, "import");
             Requires.NotNull(exports, "exports");
