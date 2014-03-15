@@ -63,7 +63,13 @@
         public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
         {
             var exportDefinition = new ExportDefinition(new CompositionContract(contractName, typeof(T)), ImmutableDictionary.Create<string, object>());
-            return (ILazy<T, TMetadataView>)this.GetExport(exportDefinition);
+            var result = (ILazy<T, TMetadataView>)this.GetExport(exportDefinition);
+            if (result == null)
+            {
+                throw new System.Composition.Hosting.CompositionFailedException();
+            }
+
+            return result;
         }
 
         public T GetExportedValue<T>()
@@ -84,7 +90,13 @@
         public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
         {
             var exportDefinition = new ExportDefinition(new CompositionContract(contractName, typeof(T)), ImmutableDictionary.Create<string, object>());
-            return (IEnumerable<ILazy<T>>)this.GetExports(exportDefinition);
+            var result = (IEnumerable<ILazy<T>>)this.GetExports(exportDefinition);
+            if (result == null)
+            {
+                return Enumerable.Empty<ILazy<T>>();
+            }
+
+            return result;
         }
 
         public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
@@ -95,7 +107,13 @@
         public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
         {
             var exportDefinition = new ExportDefinition(new CompositionContract(contractName, typeof(T)), ImmutableDictionary.Create<string, object>());
-            return (IEnumerable<ILazy<T, TMetadataView>>)this.GetExports(exportDefinition);
+            var result = (IEnumerable<ILazy<T, TMetadataView>>)this.GetExports(exportDefinition);
+            if (result == null)
+            {
+                return Enumerable.Empty<ILazy<T, TMetadataView>>();
+            }
+
+            return result;
         }
 
         public IEnumerable<T> GetExportedValues<T>()
