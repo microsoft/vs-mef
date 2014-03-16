@@ -239,7 +239,7 @@
                 }
             }
 
-            this.WriteLine("}");
+            this.Write("}");
         }
 
         private void EmitSatisfyImportManyCollection(Import import, IReadOnlyList<Export> exports)
