@@ -317,17 +317,41 @@
         public void ImportManyMethods(IContainer container)
         {
             var importsMethodsExport = container.GetExportedValue<ImportsMethods>();
+
             Assert.Equal(2, importsMethodsExport.ImportedMethods.Length);
+            foreach (Action action in importsMethodsExport.ImportedMethods)
+            {
+                action();
+            }
+
             Assert.Equal(2, importsMethodsExport.LazilyImportedMethods.Length);
+            foreach (Lazy<Action> action in importsMethodsExport.LazilyImportedMethods)
+            {
+                action.Value();
+            }
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ImportsMethodsV3), typeof(ExportMembers), Skip = "Not passing yet.")]
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ImportsMethodsV3), typeof(ExportMembers))]
         public void ImportManyMethodsV3(IContainer container)
         {
             var importsMethodsExport = container.GetExportedValue<ImportsMethodsV3>();
             Assert.Equal(2, importsMethodsExport.ImportedMethods.Length);
+            foreach (Action action in importsMethodsExport.ImportedMethods)
+            {
+                action();
+            }
+
             Assert.Equal(2, importsMethodsExport.LazilyImportedMethods.Length);
+            foreach (Lazy<Action> action in importsMethodsExport.LazilyImportedMethods)
+            {
+                action.Value();
+            }
+
             Assert.Equal(2, importsMethodsExport.ILazilyImportedMethods.Length);
+            foreach (ILazy<Action> action in importsMethodsExport.ILazilyImportedMethods)
+            {
+                action.Value();
+            }
         }
 
         [MefV1.Export]

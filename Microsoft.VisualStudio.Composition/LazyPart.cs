@@ -70,13 +70,17 @@
         {
             Requires.NotNull(type, "type");
 
-            if (type.GetGenericTypeDefinition().IsEquivalentTo(typeof(Lazy<>)))
+            if (type.IsGenericType)
             {
-                return typeof(LazyPart<>).MakeGenericType(type.GenericTypeArguments);
-            }
-            else if (type.GetGenericTypeDefinition().IsEquivalentTo(typeof(Lazy<,>)))
-            {
-                return typeof(LazyPart<,>).MakeGenericType(type.GenericTypeArguments);
+                Type genericTypeDefinition = type.GetGenericTypeDefinition();
+                if (genericTypeDefinition.IsEquivalentTo(typeof(Lazy<>)) || genericTypeDefinition.IsEquivalentTo(typeof(ILazy<>)))
+                {
+                    return typeof(LazyPart<>).MakeGenericType(type.GenericTypeArguments);
+                }
+                else if (genericTypeDefinition.IsEquivalentTo(typeof(Lazy<,>)) || genericTypeDefinition.IsEquivalentTo(typeof(ILazy<,>)))
+                {
+                    return typeof(LazyPart<,>).MakeGenericType(type.GenericTypeArguments);
+                }
             }
 
             throw new ArgumentException();

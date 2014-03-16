@@ -575,7 +575,7 @@
 
             IDisposable closeLazy = null;
             bool closeParenthesis = false;
-            if (importDefinition.IsLazyConcreteType)
+            if (importDefinition.IsLazyConcreteType || (export.ExportingMember != null && importDefinition.IsLazy))
             {
                 if (IsPublic(importDefinition.CoercedValueType))
                 {
@@ -692,16 +692,16 @@
                 {
                     if (importDefinition.MetadataType != null)
                     {
-                        writer.Write("{0}", memberAccessor);
+                        writer.Write(memberAccessor);
                         this.WriteExportMetadataReference(export, importDefinition, writer);
                     }
                     else if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
                     {
-                        writer.Write("{0}", memberAccessor);
+                        writer.Write(memberAccessor);
                     }
-                    else if (closeLazy != null)
+                    else if (closeLazy != null || (export.ExportingMember != null && importDefinition.IsLazy))
                     {
-                        writer.Write("{0}", memberAccessor);
+                        writer.Write(memberAccessor);
                     }
 
                     if (closeLazy != null)
