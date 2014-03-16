@@ -311,6 +311,57 @@
 
         #endregion
 
+        #region ImportManyMethods test
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportsMethods), typeof(ExportMembers))]
+        public void ImportManyMethods(IContainer container)
+        {
+            var importsMethodsExport = container.GetExportedValue<ImportsMethods>();
+            Assert.Equal(2, importsMethodsExport.ImportedMethods.Length);
+            Assert.Equal(2, importsMethodsExport.LazilyImportedMethods.Length);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ImportsMethodsV3), typeof(ExportMembers), Skip = "Not passing yet.")]
+        public void ImportManyMethodsV3(IContainer container)
+        {
+            var importsMethodsExport = container.GetExportedValue<ImportsMethodsV3>();
+            Assert.Equal(2, importsMethodsExport.ImportedMethods.Length);
+            Assert.Equal(2, importsMethodsExport.LazilyImportedMethods.Length);
+            Assert.Equal(2, importsMethodsExport.ILazilyImportedMethods.Length);
+        }
+
+        [MefV1.Export]
+        public class ImportsMethods
+        {
+            [MefV1.ImportMany]
+            public Action[] ImportedMethods { get; set; }
+
+            [MefV1.ImportMany]
+            public Lazy<Action>[] LazilyImportedMethods { get; set; }
+        }
+
+        [MefV1.Export]
+        public class ImportsMethodsV3 : ImportsMethods
+        {
+            [MefV1.ImportMany]
+            public ILazy<Action>[] ILazilyImportedMethods { get; set; }
+        }
+
+        public class ExportMembers
+        {
+            [MefV1.Export]
+            public void ActionMethod1()
+            {
+            }
+
+            [MefV1.Export]
+            public void ActionMethod2()
+            {
+            }
+        }
+
+        #endregion
+
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
         [Trait("Container.GetExport", "CardinalityMismatch")]
         public void GetExportOneForManyThrowsException(IContainer container)
