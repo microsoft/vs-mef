@@ -18,7 +18,7 @@
             Requires.NotNull(partType, "partType");
 
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
-            var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, ExportDefinition>();
+            var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
             var imports = ImmutableDictionary.CreateBuilder<MemberInfo, ImportDefinition>();
             var exportMetadataOnType = GetExportMetadata(partType.GetCustomAttributes());
             var partCreationPolicy = CreationPolicy.Any;
@@ -50,35 +50,47 @@
                 var propertyOrFieldType = property != null ? property.PropertyType : field.FieldType;
                 var importAttribute = member.GetCustomAttribute<ImportAttribute>();
                 var importManyAttribute = member.GetCustomAttribute<ImportManyAttribute>();
-                var exportAttribute = member.GetCustomAttribute<ExportAttribute>();
+                var exportAttributes = member.GetCustomAttributes<ExportAttribute>();
                 Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", "Member \"{0}\" contains both ImportAttribute and ImportManyAttribute.", member.Name);
-                Requires.Argument(!(exportAttribute != null && (importAttribute != null || importManyAttribute != null)), "partType", "Member \"{0}\" contains both import and export attributes.", member.Name);
+                Requires.Argument(!(exportAttributes.Any() && (importAttribute != null || importManyAttribute != null)), "partType", "Member \"{0}\" contains both import and export attributes.", member.Name);
 
                 ImportDefinition importDefinition;
                 if (TryCreateImportDefinition(propertyOrFieldType, member.GetCustomAttributes(), out importDefinition))
                 {
                     imports.Add(member, importDefinition);
                 }
-                else if (exportAttribute != null)
+                else if (exportAttributes.Any())
                 {
                     Verify.Operation(!partType.IsGenericTypeDefinition, "Exports on members not allowed when the declaring type is generic.");
                     var exportMetadataOnMember = GetExportMetadata(member.GetCustomAttributes());
-                    var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? propertyOrFieldType);
-                    var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
-                    exportsOnMembers.Add(member, exportDefinition);
+                    var exportDefinitions = ImmutableList.Create<ExportDefinition>();
+                    foreach (var exportAttribute in exportAttributes)
+                    {
+                        var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? propertyOrFieldType);
+                        var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
+                        exportDefinitions = exportDefinitions.Add(exportDefinition);
+                    }
+
+                    exportsOnMembers.Add(member, exportDefinitions);
                 }
             }
 
             foreach (var method in partType.GetMethods(flags))
             {
-                var exportAttribute = method.GetCustomAttribute<ExportAttribute>();
-                if (exportAttribute != null)
+                var exportAttributes = method.GetCustomAttributes<ExportAttribute>();
+                if (exportAttributes.Any())
                 {
                     var exportMetadataOnMember = GetExportMetadata(method.GetCustomAttributes());
-                    Type contractType = exportAttribute.ContractType ?? Export.GetContractTypeForDelegate(method);
-                    var contract = new CompositionContract(exportAttribute.ContractName, contractType);
-                    var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
-                    exportsOnMembers.Add(method, exportDefinition);
+                    var exportDefinitions = ImmutableList.Create<ExportDefinition>();
+                    foreach (var exportAttribute in exportAttributes)
+                    {
+                        Type contractType = exportAttribute.ContractType ?? Export.GetContractTypeForDelegate(method);
+                        var contract = new CompositionContract(exportAttribute.ContractName, contractType);
+                        var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
+                        exportDefinitions = exportDefinitions.Add(exportDefinition);
+                    }
+
+                    exportsOnMembers.Add(method, exportDefinitions);
                 }
             }
 

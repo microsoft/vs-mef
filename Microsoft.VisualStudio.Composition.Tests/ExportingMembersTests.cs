@@ -17,6 +17,9 @@
         {
             string actual = container.GetExportedValue<string>("Field");
             Assert.Equal("Andrew", actual);
+
+            actual = container.GetExportedValue<string>("Field_Extra_Export");
+            Assert.Equal("Andrew", actual);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportingMembersClass))]
@@ -24,7 +27,10 @@
         {
             string actual = container.GetExportedValue<string>("Property");
             Assert.Equal("Andrew", actual);
-        }
+
+            actual = container.GetExportedValue<string>("Property_Extra_Export");
+            Assert.Equal("Andrew", actual);
+    }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportingMembersClass))]
         [Trait("GenericExports", "Closed")]
@@ -56,6 +62,9 @@
         public void ExportedMethodAction(IContainer container)
         {
             var actual = container.GetExportedValue<Action>("Method");
+            Assert.NotNull(actual);
+
+            actual = container.GetExportedValue<Action>("Method_Extra_Export");
             Assert.NotNull(actual);
         }
 
@@ -125,10 +134,13 @@
         public class ExportingMembersClass
         {
             [MefV1.Export("Field")]
+            [MefV1.Export("Field_Extra_Export")]
             public string Field = "Andrew";
 
             [Export("Property")]
             [MefV1.Export("Property")]
+            [Export("Property_Extra_Export")]
+            [MefV1.Export("Property_Extra_Export")]
             public string Property
             {
                 get { return "Andrew"; }
@@ -142,6 +154,7 @@
             }
 
             [MefV1.Export("Method")]
+            [MefV1.Export("Method_Extra_Export")]
             public void SomeAction()
             {
             }
