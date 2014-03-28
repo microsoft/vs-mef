@@ -202,7 +202,10 @@
         public void MetadataViewWithMultipleValues(IContainer container)
         {
             var part = container.GetExportedValue<ImportOfMultipleMetadata>();
-            Assert.Equal(new Type[] { typeof(int), typeof(string) }, part.ImportingProperty.Metadata.Name);
+            IEnumerable<Type> metadataValue = part.ImportingProperty.Metadata.Name;
+            Assert.Equal(2, metadataValue.Count());
+            Assert.Contains(typeof(int), metadataValue);
+            Assert.Contains(typeof(string), metadataValue);
         }
 
         public interface IMetadataViewForMultipleValues
@@ -233,7 +236,8 @@
             object metadataValue = part.ImportingProperty.Metadata["Name"];
             Assert.IsType<string[]>(metadataValue);
             var array = (string[])metadataValue;
-            Assert.Equal(new string[] { null, "hi", null }, array);
+            Assert.Contains("hi", array);
+            Assert.Equal(2, array.Where(v => v == null).Count());
         }
 
         [Export, ExportMetadata("Name", null), ExportMetadata("Name", "hi"), ExportMetadata("Name", null)]
