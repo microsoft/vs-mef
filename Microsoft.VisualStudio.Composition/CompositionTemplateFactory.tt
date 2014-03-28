@@ -39,18 +39,26 @@ internal class CompiledExportProvider : ExportProvider
     {
         var provisionalSharedObjects = new Dictionary<Type, object>();
         Type exportTypeDefinition = exportDefinition.Contract.Type.IsGenericType ? exportDefinition.Contract.Type.GetGenericTypeDefinition() : exportDefinition.Contract.Type;<#
-foreach (var part in this.RootPartDefinitions)
+foreach (var contractAndExports in this.RootExportsByContract)
 {
-    foreach (var partExportPair in part.ExportDefinitions)
+    CompositionContract contract = contractAndExports.Key;
+    IEnumerable<Export> exports = contractAndExports;
+    if (exports.Count() != 1)
     {
-        var member = partExportPair.Key;
-        var partExport = partExportPair.Value;
+        // This method returns matches when exactly one export exists.
+        continue;
+    }
+
+    var onlyExport = exports.First();
+    var part = onlyExport.PartDefinition;
+    var member = onlyExport.ExportingMember;
+    var partExport = onlyExport.ExportDefinition;
 #>
 
-        if (<#= partExport.Contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type" #>.IsEquivalentTo(<#= GetTypeExpression(partExport.Contract.Type, partExport.Contract.Type.IsGenericTypeDefinition) #>))
+        if (<#= contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type" #>.IsEquivalentTo(<#= GetTypeExpression(contract.Type, contract.Type.IsGenericTypeDefinition) #>))
         {
 <#
-            if (partExport.Contract.ContractName == null)
+            if (contract.ContractName == null)
             {
 #>
             if (exportDefinition.Contract.ContractName == null)
@@ -59,7 +67,7 @@ foreach (var part in this.RootPartDefinitions)
             else
             {
 #>
-            if (exportDefinition.Contract.ContractName == "<#= partExport.Contract.ContractName #>")
+            if (exportDefinition.Contract.ContractName == "<#= contract.ContractName #>")
 <#
             }
 #>
@@ -94,7 +102,6 @@ foreach (var part in this.RootPartDefinitions)
             }
         }
 <#
-    }
 }
 #>
 

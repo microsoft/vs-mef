@@ -738,15 +738,18 @@
             }
         }
 
-        private IEnumerable<ComposablePartDefinition> RootPartDefinitions
+        private IEnumerable<IGrouping<CompositionContract, Export>> RootExportsByContract
         {
             get
             {
                 return
-                from part in this.Configuration.Parts
-                where part.RequiredSharingBoundaries.Count == 0
-                where part.Definition.IsInstantiable
-                select part.Definition;
+                    from part in this.Configuration.Parts
+                    from exportingMemberAndDefinition in part.Definition.ExportDefinitions
+                    let export = new Export(exportingMemberAndDefinition.Value, part.Definition, exportingMemberAndDefinition.Key)
+                    where part.RequiredSharingBoundaries.Count == 0
+                    where part.Definition.IsInstantiable
+                    group export by export.ExportDefinition.Contract into exportsByContract
+                    select exportsByContract;
             }
         }
 
