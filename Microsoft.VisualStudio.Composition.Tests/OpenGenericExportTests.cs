@@ -28,6 +28,36 @@
             Assert.NotNull(user.Useful);
         }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Useful<>), typeof(ImportManyUser))]
+        public void AcquireExportWithImportManyOfOpenGenericExport(IContainer container)
+        {
+            var user = container.GetExportedValue<ImportManyUser>();
+            Assert.NotNull(user);
+            Assert.NotNull(user.Useful);
+            Assert.Equal(1, user.Useful.Length);
+            Assert.IsType<Useful<int>>(user.Useful[0]);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Useful<>), typeof(ImportManyLazyUser))]
+        public void AcquireExportWithImportManyLazyOfOpenGenericExport(IContainer container)
+        {
+            var user = container.GetExportedValue<ImportManyLazyUser>();
+            Assert.NotNull(user);
+            Assert.NotNull(user.Useful);
+            Assert.Equal(1, user.Useful.Length);
+            Assert.IsType<Useful<int>>(user.Useful[0].Value);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Useful<>), typeof(ImportManyILazyUser))]
+        public void AcquireExportWithImportManyILazyOfOpenGenericExport(IContainer container)
+        {
+            var user = container.GetExportedValue<ImportManyILazyUser>();
+            Assert.NotNull(user);
+            Assert.NotNull(user.Useful);
+            Assert.Equal(1, user.Useful.Length);
+            Assert.IsType<Useful<int>>(user.Useful[0].Value);
+        }
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(OpenGenericPartWithPrivateExportingProperty<>), InvalidConfiguration = true)]
         public void ExportingPropertyOnGenericPart(IContainer container)
         {
@@ -51,6 +81,33 @@
             [Import]
             [MefV1.Import]
             public Useful<int> Useful { get; set; }
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ImportManyUser
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            public Useful<int>[] Useful { get; set; }
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ImportManyLazyUser
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            public Lazy<Useful<int>>[] Useful { get; set; }
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ImportManyILazyUser
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            public ILazy<Useful<int>>[] Useful { get; set; }
         }
 
         public class OpenGenericPartWithPrivateExportingProperty<T>
