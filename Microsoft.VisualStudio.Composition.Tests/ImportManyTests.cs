@@ -386,6 +386,31 @@
 
         #endregion
 
+        #region NonPublic ImportMany tests
+
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(NonPublicExtensionThree), typeof(ExtendableListOfLazy))]
+        public void ImportManyListOfLazyPublicInterfaceWithNonPublicParts(IContainer container)
+        {
+            var export =container.GetExportedValue<ExtendableListOfLazy>();
+            Assert.Equal(1, export.Extensions.Count);
+            Assert.IsType<NonPublicExtensionThree>(export.Extensions.Single().Value);
+        }
+
+        [Export("NonPublic", typeof(IExtension))]
+        [MefV1.Export("NonPublic", typeof(IExtension)), MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        internal class NonPublicExtensionThree : IExtension { }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ExtendableListOfLazy
+        {
+            [ImportMany("NonPublic")]
+            [MefV1.ImportMany("NonPublic")]
+            public List<ILazy<IExtension>> Extensions { get; set; }
+        }
+
+        #endregion
+
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
         [Trait("Container.GetExport", "CardinalityMismatch")]
         public void GetExportOneForManyThrowsException(IContainer container)
