@@ -342,6 +342,21 @@
             Assert.IsType<FooExport2>(b.Value);
         }
 
+        [MefFact(CompositionEngines.V1, typeof(FooExport1), typeof(FooExport2))]
+        [Trait("Container.GetExport", "Plural")]
+        public void GetExportsDictionaryMetadata(IContainer container)
+        {
+            IEnumerable<ILazy<IFoo, IDictionary<string, object>>> result =
+                container.GetExports<IFoo, IDictionary<string, object>>();
+            Assert.Equal(2, result.Count());
+
+            var a = result.Single(e => (string)e.Metadata["a"] == "1");
+            var b = result.Single(e => (string)e.Metadata["a"] == "2");
+
+            Assert.IsType<FooExport1>(a.Value);
+            Assert.IsType<FooExport2>(b.Value);
+        }
+
         public interface IFoo { }
 
         [MefV1.Export(typeof(IFoo))]
