@@ -273,7 +273,7 @@
             Assert.Equal(0, results.Count());
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportedValues(IContainer container)
         {

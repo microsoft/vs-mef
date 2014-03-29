@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.ComponentModel;
     using System.Globalization;
     using System.IO;
@@ -720,6 +721,24 @@
             });
         }
 
+        private void EmitGetExportsReturnExpression(CompositionContract contract, IEnumerable<Export> exports)
+        {
+            using (Indent(4))
+            {
+                if (contract.Type.IsGenericTypeDefinition)
+                {
+                    // TODO: implement this.
+                    this.WriteLine("throw new NotImplementedException();");
+                }
+                else
+                {
+                    this.Write("return ");
+                    this.EmitSatisfyImportManyArrayOrEnumerableExpression(WrapContractAsImport(contract), exports);
+                    this.WriteLine(";");
+                }
+            }
+        }
+
         private void WriteExportMetadataReference(Export export, ImportDefinition importDefinition, TextWriter writer)
         {
             if (importDefinition.MetadataType != null)
@@ -1067,6 +1086,19 @@
                 default:
                     throw new NotSupportedException();
             }
+        }
+
+        private static Import WrapContractAsImport(CompositionContract contract)
+        {
+            Requires.NotNull(contract, "contract");
+
+            var importDefinition = new ImportDefinition(
+                contract,
+                ImportCardinality.ZeroOrMore,
+                typeof(IEnumerable<>).MakeGenericType(typeof(ILazy<>).MakeGenericType(contract.Type)),
+                ImmutableList.Create<IImportSatisfiabilityConstraint>(),
+                MefV1.CreationPolicy.Any);
+            return new Import(importDefinition);
         }
 
         private IDisposable EmitLazyConstruction(Type valueType, TextWriter writer = null)

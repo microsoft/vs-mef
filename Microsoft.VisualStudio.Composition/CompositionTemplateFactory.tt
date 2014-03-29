@@ -110,7 +110,40 @@ foreach (var contractAndExports in this.RootExportsByContract)
 
     protected override IEnumerable<object> GetExports(ExportDefinition exportDefinition)
     {
-        throw new NotImplementedException();
+        var provisionalSharedObjects = new Dictionary<Type, object>();
+        Type exportTypeDefinition = exportDefinition.Contract.Type.IsGenericType ? exportDefinition.Contract.Type.GetGenericTypeDefinition() : exportDefinition.Contract.Type;<#
+foreach (var contractAndExports in this.RootExportsByContract)
+{
+    CompositionContract contract = contractAndExports.Key;
+    IEnumerable<Export> exports = contractAndExports;
+
+#>
+
+        if (<#= contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type" #>.IsEquivalentTo(<#= GetTypeExpression(contract.Type, contract.Type.IsGenericTypeDefinition) #>))
+        {
+<#
+            if (contract.ContractName == null)
+            {
+#>
+            if (exportDefinition.Contract.ContractName == null)
+<#
+            }
+            else
+            {
+#>
+            if (exportDefinition.Contract.ContractName == "<#= contract.ContractName #>")
+<#
+            }
+#>
+            {
+                <# EmitGetExportsReturnExpression(contract, exports); #>
+            }
+        }
+<#
+}
+#>
+
+        throw new CompositionFailedException();
     }
 <#
 foreach (var part in this.Configuration.Parts) 

@@ -39,6 +39,17 @@
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="Import"/> class
+        /// to represent an imperative query into the container (no importing part).
+        /// </summary>
+        public Import(ImportDefinition importDefinition)
+        {
+            Requires.NotNull(importDefinition, "importDefinition");
+
+            this.ImportDefinition = importDefinition;
+        }
+
+        /// <summary>
         /// Gets the definition for this import.
         /// </summary>
         public ImportDefinition ImportDefinition { get; private set; }
