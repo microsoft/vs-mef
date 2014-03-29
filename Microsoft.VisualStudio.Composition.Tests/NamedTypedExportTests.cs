@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.IsAssignableFrom(typeof(Pear), fruit);
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportsNamed(IContainer container)
         {

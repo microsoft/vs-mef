@@ -32,7 +32,7 @@
             Assert.NotNull(apple);
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         [Trait("Container.GetExport", "Plural")]
         public void AcquireSingleExportViaGetExports(IContainer container)
         {
