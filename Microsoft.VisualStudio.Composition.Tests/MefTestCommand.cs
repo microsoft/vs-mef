@@ -26,7 +26,7 @@
             this.engineVersion = engineVersion;
             this.parts = parts;
             this.assemblies = assemblies;
-            this.DisplayName += " " + engineVersion;
+            this.DisplayName = method.Class.Type.Name + "." + method.Name + " " + engineVersion;
             this.invalidConfiguration = invalidConfiguration;
         }
 
