@@ -309,7 +309,7 @@ foreach (var contractAndExports in this.RootExportsByContract)
             
             #line default
             #line hidden
-            this.Write("\r\n        throw new CompositionFailedException();\r\n    }\r\n");
+            this.Write("\r\n        return null;\r\n    }\r\n");
             
             #line 148 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 

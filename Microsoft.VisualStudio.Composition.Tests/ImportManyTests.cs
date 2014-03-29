@@ -265,7 +265,7 @@
 
         #region GetExportedValues tests
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportedValuesEmpty(IContainer container)
         {
@@ -283,7 +283,7 @@
             Assert.Equal(1, results.OfType<ExtensionTwo>().Count());
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportedValuesNamedEmpty(IContainer container)
         {
