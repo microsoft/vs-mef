@@ -43,5 +43,10 @@
         {
             return this.Type.GetHashCode() + (this.ContractName != null ? StringComparer.Ordinal.GetHashCode(this.ContractName) : 0);
         }
+
+        public override string ToString()
+        {
+            return this.ContractName + " (" + this.Type.FullName + ")";
+        }
     }
 }
