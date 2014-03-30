@@ -73,27 +73,17 @@ foreach (var contractAndExports in this.RootExportsByContract)
 #>
             {
 <#
-                if (part.Type.IsGenericType)
+                if (member.IsStaticExport())
                 {
 #>
-                return <#=GetPartOrMemberLazy(GetGenericPartFactoryMethodInvokeExpression(part), member, partExport, part)#>;
+                throw new InvalidOperationException("Static exports not supported.");
 <#
                 }
                 else
                 {
-                    if (member.IsStaticExport())
-                    {
 #>
-                throw new InvalidOperationException("Static exports not supported.");
+                return <#=GetPartOrMemberLazy(member, partExport, part)#>;
 <#
-                    }
-                    else
-                    {
-#>
-                var part = this.<#= GetPartFactoryMethodName(part) #>(provisionalSharedObjects);
-                return <#=GetPartOrMemberLazy("part", member, partExport, part)#>;
-<#
-                    }
                 }
 #>
             }

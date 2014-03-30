@@ -930,6 +930,18 @@
             return name;
         }
 
+        private static string GetPartFactoryMethodInvokeExpression(ComposablePartDefinition part)
+        {
+            if (part.Type.IsGenericType)
+            {
+                return GetGenericPartFactoryMethodInvokeExpression(part);
+            }
+            else
+            {
+                return "this." + GetPartFactoryMethodName(part) + "(provisionalSharedObjects)";
+            }
+        }
+
         private static string GetGenericPartFactoryMethodInfoExpression(ComposablePartDefinition part)
         {
             return "typeof(CompiledExportProvider).GetMethod(\"" + GetPartFactoryMethodNameNoTypeArgs(part) + "\", BindingFlags.Instance | BindingFlags.NonPublic)"
@@ -990,11 +1002,12 @@
             return name;
         }
 
-        private string GetPartOrMemberLazy(string partExpression, MemberInfo member, ExportDefinition exportDefinition, ComposablePartDefinition part)
+        private string GetPartOrMemberLazy(MemberInfo member, ExportDefinition exportDefinition, ComposablePartDefinition part)
         {
-            Requires.NotNullOrEmpty(partExpression, "partExpression");
             Requires.NotNull(exportDefinition, "exportDefinition");
             Requires.NotNull(part, "part");
+
+            string partExpression = GetPartFactoryMethodInvokeExpression(part);
 
             if (member == null)
             {
