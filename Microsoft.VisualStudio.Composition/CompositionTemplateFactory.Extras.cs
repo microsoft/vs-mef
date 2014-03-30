@@ -930,6 +930,18 @@
             return name;
         }
 
+        private static string GetGenericPartFactoryMethodInfoExpression(ComposablePartDefinition part)
+        {
+            return "typeof(CompiledExportProvider).GetMethod(\"" + GetPartFactoryMethodNameNoTypeArgs(part) + "\", BindingFlags.Instance | BindingFlags.NonPublic)"
+                + ".MakeGenericMethod(exportDefinition.Contract.Type.GetGenericArguments())";
+        }
+
+        private static string GetGenericPartFactoryMethodInvokeExpression(ComposablePartDefinition part)
+        {
+            return GetGenericPartFactoryMethodInfoExpression(part) + 
+                ".Invoke(this, new object[] { provisionalSharedObjects, /* nonSharedInstanceRequired: */ false })";
+        }
+
         private static string ReplaceBackTickWithTypeArgs(string originalName, params string[] typeArguments)
         {
             Requires.NotNullOrEmpty(originalName, "originalName");
@@ -978,15 +990,15 @@
             return name;
         }
 
-        private string GetPartOrMemberLazy(string partLocalVariableName, MemberInfo member, ExportDefinition exportDefinition, ComposablePartDefinition part)
+        private string GetPartOrMemberLazy(string partExpression, MemberInfo member, ExportDefinition exportDefinition, ComposablePartDefinition part)
         {
-            Requires.NotNullOrEmpty(partLocalVariableName, "partLocalVariableName");
+            Requires.NotNullOrEmpty(partExpression, "partExpression");
             Requires.NotNull(exportDefinition, "exportDefinition");
             Requires.NotNull(part, "part");
 
             if (member == null)
             {
-                return partLocalVariableName;
+                return partExpression;
             }
 
             string valueFactoryExpression;
@@ -994,8 +1006,8 @@
             {
                 string memberExpression = string.Format(
                     CultureInfo.InvariantCulture,
-                    "{0}.Value.{1}",
-                    partLocalVariableName,
+                    "({0}).Value.{1}",
+                    partExpression,
                     member.Name);
                 switch (member.MemberType)
                 {
@@ -1021,27 +1033,27 @@
                     case MemberTypes.Method:
                         valueFactoryExpression = string.Format(
                             CultureInfo.InvariantCulture,
-                            "({0}){1}.CreateDelegate({3}, {2}.Value)",
+                            "({0}){1}.CreateDelegate({3}, ({2}).Value)",
                             GetTypeName(exportDefinition.Contract.Type),
                             GetMethodInfoExpression((MethodInfo)member),
-                            partLocalVariableName,
+                            partExpression,
                             GetTypeExpression(exportDefinition.Contract.Type));
                         break;
                     case MemberTypes.Field:
                         valueFactoryExpression = string.Format(
                             CultureInfo.InvariantCulture,
-                            "({0}){1}.GetValue({2}.Value)",
+                            "({0}){1}.GetValue(({2}).Value)",
                             GetTypeName(((FieldInfo)member).FieldType),
                             GetFieldInfoExpression((FieldInfo)member),
-                            partLocalVariableName);
+                            partExpression);
                         break;
                     case MemberTypes.Property:
                         valueFactoryExpression = string.Format(
                             CultureInfo.InvariantCulture,
-                            "({0}){1}.Invoke({2}.Value, new object[0])",
+                            "({0}){1}.Invoke(({2}).Value, new object[0])",
                             GetTypeName(((PropertyInfo)member).PropertyType),
                             GetMethodInfoExpression(((PropertyInfo)member).GetGetMethod(true)),
-                            partLocalVariableName);
+                            partExpression);
                         break;
                     default:
                         throw new NotSupportedException();
