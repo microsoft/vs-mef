@@ -50,9 +50,6 @@ foreach (var contractAndExports in this.RootExportsByContract)
     }
 
     var onlyExport = exports.First();
-    var part = onlyExport.PartDefinition;
-    var member = onlyExport.ExportingMember;
-    var partExport = onlyExport.ExportDefinition;
 #>
 
         if (<#= contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type" #>.IsEquivalentTo(<#= GetTypeExpression(contract.Type, contract.Type.IsGenericTypeDefinition) #>))
@@ -73,7 +70,7 @@ foreach (var contractAndExports in this.RootExportsByContract)
 #>
             {
 <#
-                if (member.IsStaticExport())
+                if (onlyExport.ExportingMember.IsStaticExport())
                 {
 #>
                 throw new InvalidOperationException("Static exports not supported.");
@@ -82,7 +79,7 @@ foreach (var contractAndExports in this.RootExportsByContract)
                 else
                 {
 #>
-                return <#=GetPartOrMemberLazy(member, partExport, part)#>;
+                return <#=GetPartOrMemberLazy(onlyExport)#>;
 <#
                 }
 #>

@@ -1002,12 +1002,14 @@
             return name;
         }
 
-        private string GetPartOrMemberLazy(MemberInfo member, ExportDefinition exportDefinition, ComposablePartDefinition part)
+        private string GetPartOrMemberLazy(Export export)
         {
-            Requires.NotNull(exportDefinition, "exportDefinition");
-            Requires.NotNull(part, "part");
+            Requires.NotNull(export, "export");
 
-            string partExpression = GetPartFactoryMethodInvokeExpression(part);
+            MemberInfo member = export.ExportingMember;
+            ExportDefinition exportDefinition = export.ExportDefinition;
+
+            string partExpression = GetPartFactoryMethodInvokeExpression(export.PartDefinition);
 
             if (member == null)
             {
@@ -1015,7 +1017,7 @@
             }
 
             string valueFactoryExpression;
-            if (IsPublic(member, part.Type))
+            if (IsPublic(member, export.PartDefinition.Type))
             {
                 string memberExpression = string.Format(
                     CultureInfo.InvariantCulture,
