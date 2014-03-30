@@ -124,6 +124,14 @@
             return Create(ComposableCatalog.Create(parts));
         }
 
+        public static ICompositionContainerFactory LoadDefault()
+        {
+            string exePath = Process.GetCurrentProcess().MainModule.FileName.Replace(".vshost", string.Empty);
+            string baseName = Path.Combine(Path.GetDirectoryName(exePath), Path.GetFileNameWithoutExtension(exePath));
+            string defaultCompositionFile = baseName + ".Composition.dll";
+            return Load(defaultCompositionFile);
+        }
+
         public static ICompositionContainerFactory Load(string path)
         {
             return new ContainerFactory(Assembly.LoadFile(path));
@@ -225,6 +233,7 @@
 
         private async Task CompileAsync(string sourceFilePath, ISet<Assembly> assemblies, string targetPath)
         {
+            targetPath = Path.GetFullPath(targetPath);
             var pc = new ProjectCollection();
             ProjectRootElement pre;
             using (var templateStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Microsoft.VisualStudio.Composition.CompositionTemplateFactory.csproj"))
@@ -237,7 +246,6 @@
 
             var globalProperties = new Dictionary<string, string> {
                 { "Configuration", "Debug" },
-                { "OutputPath", Path.GetDirectoryName(targetPath) }
             };
             var project = new Project(pre, globalProperties, null, pc);
             project.SetProperty("AssemblyName", Path.GetFileNameWithoutExtension(targetPath));
@@ -278,7 +286,7 @@
             }
 
             string finalAssemblyPath = buildResult.ResultsByTarget["GetTargetPath"].Items.Single().ItemSpec;
-            if (Path.GetFileName(finalAssemblyPath) != Path.GetFileName(targetPath))
+            if (!string.Equals(finalAssemblyPath, targetPath, StringComparison.OrdinalIgnoreCase))
             {
                 // If the caller requested a non .dll extension, we need to honor that.
                 File.Delete(targetPath);
