@@ -15,13 +15,13 @@
     {
         private readonly CompositionEngines engineVersion;
         private readonly Type[] parts;
-        private readonly ImmutableArray<string> assemblies;
+        private readonly IReadOnlyList<string> assemblies;
         private readonly bool invalidConfiguration;
 
-        public MefTestCommand(IMethodInfo method, CompositionEngines engineVersion, Type[] parts, ImmutableArray<string> assemblies, bool invalidConfiguration)
+        public MefTestCommand(IMethodInfo method, CompositionEngines engineVersion, Type[] parts, IReadOnlyList<string> assemblies, bool invalidConfiguration)
             : base(method)
         {
-            Requires.Argument(parts != null || !assemblies.IsDefault, "parts ?? assemblies", "Either parameter must be non-null.");
+            Requires.Argument(parts != null || assemblies != null, "parts ?? assemblies", "Either parameter must be non-null.");
 
             this.engineVersion = engineVersion;
             this.parts = parts;
@@ -75,10 +75,10 @@
             return new PassedResult(this.testMethod, this.DisplayName);
         }
 
-        private static void RunMultiEngineTest(CompositionEngines attributesVersion, Type[] parts, ImmutableArray<string> assemblies, Action<IContainer> test)
+        private static void RunMultiEngineTest(CompositionEngines attributesVersion, Type[] parts, IReadOnlyList<string> assemblies, Action<IContainer> test)
         {
             parts = parts ?? new Type[0];
-            var loadedAssemblies = assemblies.Select(Assembly.Load).ToImmutableArray();
+            var loadedAssemblies = assemblies != null ? assemblies.Select(Assembly.Load).ToImmutableList() : ImmutableList<Assembly>.Empty;
             TestUtilities.RunMultiEngineTest(attributesVersion, loadedAssemblies, parts, test);
         }
     }

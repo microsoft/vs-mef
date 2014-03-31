@@ -15,7 +15,7 @@
     {
         private readonly CompositionEngines compositionVersions;
         private readonly Type[] parts;
-        private readonly ImmutableArray<string> assemblies;
+        private readonly IReadOnlyList<string> assemblies;
 
         public MefFactAttribute(CompositionEngines compositionVersions)
         {
@@ -38,7 +38,7 @@
                 .Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(l => l.Trim())
                 .Where(l => !string.IsNullOrEmpty(l))
-                .ToImmutableArray();
+                .ToImmutableList();
         }
 
         public MefFactAttribute(CompositionEngines compositionVersions, params string[] assemblies)
@@ -46,7 +46,7 @@
         {
             Requires.NotNull(assemblies, "assemblies");
 
-            this.assemblies = assemblies.ToImmutableArray();
+            this.assemblies = assemblies.ToImmutableList();
         }
 
         public bool InvalidConfiguration { get; set; }

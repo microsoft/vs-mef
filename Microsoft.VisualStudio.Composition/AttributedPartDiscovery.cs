@@ -229,7 +229,7 @@
                         let part = this.CreatePart(type)
                         where part != null
                         select part;
-            return parts.ToImmutableArray();
+            return parts.ToImmutableList();
         }
     }
 }

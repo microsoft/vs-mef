@@ -49,7 +49,7 @@
                                   where import.ExportContraints.All(c => c.IsSatisfiedBy(import, export.ExportDefinition))
                                   select export;
 
-            return ImmutableList.From(filteredExports);
+            return ImmutableList.CreateRange(filteredExports);
         }
 
         public IEnumerable<Assembly> Assemblies

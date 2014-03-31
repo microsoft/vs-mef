@@ -31,7 +31,7 @@
             return CreateContainerV1(catalog);
         }
 
-        internal static IContainer CreateContainerV1(ImmutableArray<Assembly> assemblies, Type[] parts)
+        internal static IContainer CreateContainerV1(IReadOnlyList<Assembly> assemblies, Type[] parts)
         {
             Requires.NotNull(parts, "parts");
             var catalogs = assemblies.Select(a => new MefV1.Hosting.AssemblyCatalog(a))
@@ -54,7 +54,7 @@
             return CreateContainerV2(configuration);
         }
 
-        internal static IContainer CreateContainerV2(ImmutableArray<Assembly> assemblies, Type[] types)
+        internal static IContainer CreateContainerV2(IReadOnlyList<Assembly> assemblies, Type[] types)
         {
             var configuration = new ContainerConfiguration().WithAssemblies(assemblies).WithParts(types);
             return CreateContainerV2(configuration);
@@ -71,17 +71,17 @@
             return CreateContainerV3(parts, CompositionEngines.Unspecified);
         }
 
-        internal static IContainer CreateContainerV3(ImmutableArray<Assembly> assemblies)
+        internal static IContainer CreateContainerV3(IReadOnlyList<Assembly> assemblies)
         {
             return CreateContainerV3(assemblies, CompositionEngines.Unspecified);
         }
 
         internal static IContainer CreateContainerV3(Type[] parts, CompositionEngines attributesDiscovery)
         {
-            return CreateContainerV3(default(ImmutableArray<Assembly>), attributesDiscovery, parts);
+            return CreateContainerV3(default(IReadOnlyList<Assembly>), attributesDiscovery, parts);
         }
 
-        internal static IContainer CreateContainerV3(ImmutableArray<Assembly> assemblies, CompositionEngines attributesDiscovery, Type[] parts = null)
+        internal static IContainer CreateContainerV3(IReadOnlyList<Assembly> assemblies, CompositionEngines attributesDiscovery, Type[] parts = null)
         {
             PartDiscovery discovery = GetDiscoveryService(attributesDiscovery);
             var assemblyParts = discovery.CreateParts(assemblies);
@@ -138,7 +138,7 @@
             }
         }
 
-        internal static void RunMultiEngineTest(CompositionEngines attributesVersion, ImmutableArray<Assembly> assemblies, Type[] parts, Action<IContainer> test)
+        internal static void RunMultiEngineTest(CompositionEngines attributesVersion, IReadOnlyList<Assembly> assemblies, Type[] parts, Action<IContainer> test)
         {
             if (attributesVersion.HasFlag(CompositionEngines.V1))
             {
