@@ -50,32 +50,39 @@
         {
             foreach (var pair in this.SatisfyingExports)
             {
-                var importDefinition = pair.Key.ImportDefinition;
-                switch (importDefinition.Cardinality)
+                try
                 {
-                    case ImportCardinality.ExactlyOne:
-                        Verify.Operation(pair.Value.Count == 1, "Import of {0} expected 1 export but found {1}.", importDefinition.Contract, pair.Value.Count);
-                        break;
-                    case ImportCardinality.OneOrZero:
-                        Verify.Operation(pair.Value.Count < 2, "Import of {0} expected 1 or 0 exports but found {1}.", importDefinition.Contract, pair.Value.Count);
-                        break;
-                }
-
-                foreach (var export in pair.Value)
-                {
-                    var receivingType = pair.Key.ImportDefinition.ElementType;
-                    if (export.ExportedValueType.GetTypeInfo().IsGenericTypeDefinition && receivingType.GetTypeInfo().IsGenericType)
+                    var importDefinition = pair.Key.ImportDefinition;
+                    switch (importDefinition.Cardinality)
                     {
-                        receivingType = receivingType.GetGenericTypeDefinition();
+                        case ImportCardinality.ExactlyOne:
+                            Verify.Operation(pair.Value.Count == 1, "Import of {0} expected 1 export but found {1}.", importDefinition.Contract, pair.Value.Count);
+                            break;
+                        case ImportCardinality.OneOrZero:
+                            Verify.Operation(pair.Value.Count < 2, "Import of {0} expected 1 or 0 exports but found {1}.", importDefinition.Contract, pair.Value.Count);
+                            break;
                     }
 
-                    Verify.Operation(
-                        receivingType.GetTypeInfo().IsAssignableFrom(export.ExportedValueType.GetTypeInfo()),
-                        "Exporting MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
-                        export.PartDefinition.Type.Name,
-                        importDefinition.MemberType.Name,
-                        this.Definition.Type.Name,
-                        pair.Key.ImportingMember != null ? pair.Key.ImportingMember.Name : "ctor");
+                    foreach (var export in pair.Value)
+                    {
+                        var receivingType = pair.Key.ImportDefinition.ElementType;
+                        if (export.ExportedValueType.GetTypeInfo().IsGenericTypeDefinition && receivingType.GetTypeInfo().IsGenericType)
+                        {
+                            receivingType = receivingType.GetGenericTypeDefinition();
+                        }
+
+                        Verify.Operation(
+                            receivingType.GetTypeInfo().IsAssignableFrom(export.ExportedValueType.GetTypeInfo()),
+                            "Exporting MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
+                            export.PartDefinition.Type.Name,
+                            importDefinition.MemberType.Name,
+                            this.Definition.Type.Name,
+                            pair.Key.ImportingMember != null ? pair.Key.ImportingMember.Name : "ctor");
+                    }
+                }
+                catch (InvalidOperationException ex)
+                {
+                    throw new InvalidOperationException("Error validating MEF part: " + pair.Key.PartDefinition.Type.Name, ex);
                 }
             }
         }

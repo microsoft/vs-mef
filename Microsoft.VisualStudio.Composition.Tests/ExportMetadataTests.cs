@@ -318,7 +318,7 @@
             Assert.IsType<PartWithExportMetadataAB>(ab.Value);
         }
 
-        [MefFact(CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V1Compat, typeof(FooExport1), typeof(FooExport2))]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportsTMetadataEmpty(IContainer container)
         {
