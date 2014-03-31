@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.VisualStudio.Composition</id>
+    <version>0.1.0-alpha1</version>
+    <authors>andarno</authors>
+    <owners>andarno</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</description>
+    <tags>mef</tags>
+    <dependencies>
+      <dependency id="Microsoft.Bcl.Immutable" version="[1.0.30, 2.0)" />
+      <dependency id="Validation" version="[2.0.3.13323,3.0)" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="$TargetPath$Microsoft.VisualStudio.Composition.dll" target="lib\portable-net45+win" />
+
+    <file src="tools/Microsoft.VisualStudio.Composition.targets" target="tools" />
+    <file src="$TargetPath$Microsoft.VisualStudio.Composition.dll" target="tools" />
+    <file src="$TargetPath$Microsoft.VisualStudio.Composition.Configuration.dll" target="tools" />
+    <file src="$TargetPath$System.Composition.Runtime.dll" target="tools" />
+    <file src="$TargetPath$System.Composition.AttributedModel.dll" target="tools" />
+    <file src="$TargetPath$Validation.dll" target="tools" />
+    <file src="$TargetPath$System.Collections.Immutable.dll" target="tools" />
+    <file src="tools/install.ps1" target="tools" />
+    <file src="tools/uninstall.ps1" target="tools" />
+  </files>
+</package>

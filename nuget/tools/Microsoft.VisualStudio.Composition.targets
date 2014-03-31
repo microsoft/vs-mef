@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<UsingTask TaskName="CreateComposition" AssemblyFile="Microsoft.VisualStudio.Composition.Configuration.dll" />
+	<UsingTask TaskName="CreateContainerFactoryBootstrapFile" AssemblyFile="Microsoft.VisualStudio.Composition.Configuration.dll" />
+
+	<PropertyGroup>
+		<CompositionConfigurationAssemblyName>$(TargetName).Composition</CompositionConfigurationAssemblyName>
+		<MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+		<PrepareResourceNamesDependsOn>
+			GenerateCompositionBootstrapSourceFile;
+			$(PrepareResourceNamesDependsOn)
+		</PrepareResourceNamesDependsOn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<CompositionConfigurationAssembly Include="$(TargetPath)" />
+	</ItemGroup>
+
+	<Target Name="GenerateCompositionBootstrapSourceFile">
+		<PropertyGroup>
+			<ContainerFactoryBootstrapFile>$(IntermediateOutputPath)ContainerFactory.cs</ContainerFactoryBootstrapFile>
+		</PropertyGroup>
+		<ItemGroup>
+			<Compile Include="$(ContainerFactoryBootstrapFile)" />
+		</ItemGroup>
+
+		<CreateContainerFactoryBootstrapFile
+			BootstrapFile="$(ContainerFactoryBootstrapFile)"
+			RootNamespace="$(RootNamespace)"
+			ConfigurationAssemblyName="$(CompositionConfigurationAssemblyName)"/>
+	</Target>
+
+	<Target Name="GenerateCompositionConfigurationAssembly" AfterTargets="Build">
+		<CreateComposition
+			CatalogAssemblies="@(CompositionConfigurationAssembly)"
+			ConfigurationOutputPath="$(OutputPath)$(CompositionConfigurationAssemblyName).dll" />
+	</Target>
+
+	<Target Name="BeforeCompile" DependsOnTargets="GenerateCompositionBootstrapSourceFile"/>
+</Project>

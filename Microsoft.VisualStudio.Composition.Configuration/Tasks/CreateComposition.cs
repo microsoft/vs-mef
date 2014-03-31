@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -41,10 +42,17 @@
             return !this.Log.HasLoggedErrors;
         }
 
+        private static readonly string[] AssembliesToResolve = new string[]
+        {
+            "System.Composition.AttributedModel",
+            "Validation",
+            "System.Collections.Immutable",
+        };
+
         private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             var name = new AssemblyName(args.Name);
-            if (name.Name == "System.Composition.AttributedModel")
+            if (Array.IndexOf(AssembliesToResolve, name.Name) >= 0)
             {
                 string basePath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 string path = Path.Combine(basePath, name.Name + ".dll");

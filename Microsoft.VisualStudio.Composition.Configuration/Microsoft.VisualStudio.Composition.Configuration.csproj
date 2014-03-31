@@ -85,7 +85,9 @@
     </Compile>
     <Compile Include="CompositionTemplateFactory.Extras.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Tasks\ContainerFactory.cs" />
     <Compile Include="Tasks\CreateComposition.cs" />
+    <Compile Include="Tasks\CreateContainerFactoryBootstrapFile.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CompositionTemplateFactory.tt">
