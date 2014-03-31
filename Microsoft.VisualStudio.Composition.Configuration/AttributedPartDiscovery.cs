@@ -104,6 +104,20 @@
             }
         }
 
+        public override bool IsExportFactoryType(Type type)
+        {
+            if (type != null && type.GetTypeInfo().IsGenericType)
+            {
+                var typeDefinition = type.GetGenericTypeDefinition();
+                if (typeDefinition.Equals(typeof(ExportFactory<>)) || typeDefinition.Equals(typeof(ExportFactory<,>)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static IReadOnlyDictionary<string, object> GetExportMetadata(IEnumerable<Attribute> attributes)
         {
             Requires.NotNull(attributes, "attributes");

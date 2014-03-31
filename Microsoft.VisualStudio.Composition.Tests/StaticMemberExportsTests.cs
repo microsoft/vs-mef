@@ -7,6 +7,7 @@
     using System.Threading.Tasks;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
+    using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
 
     [Trait("Static", "")]
     public class StaticMemberExportsTests
@@ -45,7 +46,7 @@
             Assert.Equal("Hello", part.FieldImportingMember.Value);
 
             // Instance member requires an importing constructor on the exporting part.
-            Assert.Throws<MefV1.CompositionException>(() => part.PropertyImportingMember.Value);
+            Assert.Throws<CompositionFailedException>(() => part.PropertyImportingMember.Value);
         }
 
         [MefFact(CompositionEngines.V3EmulatingV1, typeof(InternalUninstantiablePartWithMetadataOnExports), typeof(PartImportingNonInstantiablePartExports))]
@@ -58,7 +59,7 @@
             Assert.Equal("Hello", part.FieldImportingMember.Value);
 
             // Instance member requires an importing constructor on the exporting part.
-            Assert.Throws<MefV1.CompositionException>(() => part.PropertyImportingMember.Value);
+            Assert.Throws<CompositionFailedException>(() => part.PropertyImportingMember.Value);
         }
 
         [MefFact(CompositionEngines.V1, typeof(UninstantiablePartWithMetadataOnExports), typeof(PartImportingNonInstantiablePartExports), NoCompatGoal = true)]

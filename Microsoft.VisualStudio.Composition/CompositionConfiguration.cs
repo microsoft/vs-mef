@@ -14,13 +14,6 @@
     using System.Threading.Tasks;
     using System.Xml;
     using System.Xml.Linq;
-    using Microsoft.Build.Construction;
-    using Microsoft.Build.Evaluation;
-    using Microsoft.Build.Execution;
-    using Microsoft.Build.Framework;
-    using Microsoft.Build.Logging;
-    using Microsoft.Build.Tasks;
-    using Microsoft.Build.Utilities;
     using Validation;
     using Task = System.Threading.Tasks.Task;
 
@@ -110,58 +103,28 @@
             // Detect loops of all non-shared parts.
             if (IsLoopPresent(parts))
             {
-                Console.WriteLine(CreateDgml(parts));
                 Verify.FailOperation("Loop detected.");
             }
 
             return new CompositionConfiguration(catalog, parts);
         }
 
-        public static CompositionConfiguration Create(params Type[] parts)
+        public static CompositionConfiguration Create(PartDiscovery partDiscovery, params Type[] parts)
         {
+            Requires.NotNull(partDiscovery, "partDiscovery");
             Requires.NotNull(parts, "parts");
 
-            return Create(ComposableCatalog.Create(parts));
+            return Create(ComposableCatalog.Create(partDiscovery, parts));
         }
 
-        public static ICompositionContainerFactory LoadDefault()
+        public static ICompositionContainerFactory Load(AssemblyName assemblyRef)
         {
-            string exePath = Process.GetCurrentProcess().MainModule.FileName.Replace(".vshost", string.Empty);
-            string baseName = Path.Combine(Path.GetDirectoryName(exePath), Path.GetFileNameWithoutExtension(exePath));
-            string defaultCompositionFile = baseName + ".Composition.dll";
-            return Load(defaultCompositionFile);
+            return new ContainerFactory(Assembly.Load(assemblyRef));
         }
 
-        public static ICompositionContainerFactory Load(string path)
+        public static ICompositionContainerFactory Load(Assembly assembly)
         {
-            return new ContainerFactory(Assembly.LoadFile(path));
-        }
-
-        public async Task SaveAsync(string assemblyPath)
-        {
-            Requires.NotNullOrEmpty(assemblyPath, "assemblyPath");
-
-            var sourceFilePathAndAssemblies = this.CreateCompositionSourceFile();
-            await this.CompileAsync(sourceFilePathAndAssemblies.Item1, sourceFilePathAndAssemblies.Item2, assemblyPath);
-        }
-
-        public async Task<ICompositionContainerFactory> CreateContainerFactoryAsync()
-        {
-            string targetPath = Path.GetTempFileName();
-            await this.SaveAsync(targetPath);
-            return Load(targetPath);
-        }
-
-        private static void WriteWithLineNumbers(TextWriter writer, string content)
-        {
-            Requires.NotNull(writer, "writer");
-            Requires.NotNull(content, "content");
-
-            int lineNumber = 0;
-            foreach (string line in content.Split('\n'))
-            {
-                writer.WriteLine("{0,5}: {1}", ++lineNumber, line.Trim('\r', '\n'));
-            }
+            return new ContainerFactory(assembly);
         }
 
         private static bool IsLoopPresent(ImmutableHashSet<ComposablePart> parts)
@@ -220,80 +183,6 @@
             return false;
         }
 
-        private Tuple<string, ISet<Assembly>> CreateCompositionSourceFile()
-        {
-            var templateFactory = new CompositionTemplateFactory();
-            templateFactory.Configuration = this;
-            string source = templateFactory.TransformText();
-            var sourceFilePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".cs");
-            File.WriteAllText(sourceFilePath, source);
-            WriteWithLineNumbers(Console.Out, source);
-            return Tuple.Create(sourceFilePath, templateFactory.RelevantAssemblies);
-        }
-
-        private async Task CompileAsync(string sourceFilePath, ISet<Assembly> assemblies, string targetPath)
-        {
-            targetPath = Path.GetFullPath(targetPath);
-            var pc = new ProjectCollection();
-            ProjectRootElement pre;
-            using (var templateStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Microsoft.VisualStudio.Composition.CompositionTemplateFactory.csproj"))
-            {
-                using (var xmlReader = XmlReader.Create(templateStream))
-                {
-                    pre = ProjectRootElement.Create(xmlReader, pc);
-                }
-            }
-
-            var globalProperties = new Dictionary<string, string> {
-                { "Configuration", "Debug" },
-            };
-            var project = new Project(pre, globalProperties, null, pc);
-            project.SetProperty("AssemblyName", Path.GetFileNameWithoutExtension(targetPath));
-            project.AddItem("Compile", ProjectCollection.Escape(sourceFilePath));
-            project.AddItem("Reference", ProjectCollection.Escape(Assembly.GetExecutingAssembly().Location));
-            project.AddItem("Reference", ProjectCollection.Escape(typeof(System.Composition.ExportFactory<>).Assembly.Location));
-            project.AddItem("Reference", ProjectCollection.Escape(typeof(System.Collections.Immutable.ImmutableDictionary).Assembly.Location));
-            foreach (var assembly in assemblies)
-            {
-                project.AddItem("Reference", ProjectCollection.Escape(assembly.Location));
-            }
-
-            string projectPath = Path.GetTempFileName();
-            project.Save(projectPath);
-            BuildResult buildResult;
-            using (var buildManager = new BuildManager())
-            {
-                var hostServices = new HostServices();
-                var logger = new ConsoleLogger(LoggerVerbosity.Minimal);
-                buildManager.BeginBuild(new BuildParameters(pc)
-                {
-                    DisableInProcNode = true,
-                    Loggers = new ILogger[] { logger },
-                });
-                var buildSubmission = buildManager.PendBuildRequest(new BuildRequestData(projectPath, globalProperties, null, new[] { "Build", "GetTargetPath" }, hostServices));
-                buildResult = await buildSubmission.ExecuteAsync();
-                buildManager.EndBuild();
-            }
-
-            if (buildResult.OverallResult != BuildResultCode.Success)
-            {
-                Console.WriteLine("Build errors");
-            }
-
-            if (buildResult.OverallResult != BuildResultCode.Success)
-            {
-                throw new InvalidOperationException("Build failed. Project File was \"" + projectPath + "\"", buildResult.Exception);
-            }
-
-            string finalAssemblyPath = buildResult.ResultsByTarget["GetTargetPath"].Items.Single().ItemSpec;
-            if (!string.Equals(finalAssemblyPath, targetPath, StringComparison.OrdinalIgnoreCase))
-            {
-                // If the caller requested a non .dll extension, we need to honor that.
-                File.Delete(targetPath);
-                File.Move(finalAssemblyPath, targetPath);
-            }
-        }
-
         public XDocument CreateDgml()
         {
             return CreateDgml(this.Parts);
@@ -313,7 +202,10 @@
                 {
                     foreach (Export export in part.SatisfyingExports[import])
                     {
-                        links.Add(Dgml.Link(export.PartDefinition.Id, part.Definition.Id));
+                        string linkLabel = !export.ExportDefinition.Contract.Type.Equals(export.PartDefinition.Type)
+                            ? export.ExportDefinition.Contract.ToString()
+                            : null;
+                        links.Add(Dgml.Link(export.PartDefinition.Id, part.Definition.Id, linkLabel));
                     }
                 }
             }

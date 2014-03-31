@@ -5,11 +5,11 @@
     using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
-    using MefV1 = System.ComponentModel.Composition;
-
+    
     [DebuggerDisplay("{Contract.Type.Name,nq} (Lazy: {IsLazy}, {Cardinality})")]
     public class ImportDefinition : IEquatable<ImportDefinition>
     {
@@ -28,7 +28,7 @@
             this.Cardinality = cardinality;
             this.MemberType = memberType;
             this.ExportContraints = additionalConstraints;
-            this.RequiredCreationPolicy = MefV1.CreationPolicy.Any;
+            this.RequiredCreationPolicy = CreationPolicy.Any;
             this.ExportFactorySharingBoundaries = exportFactorySharingBoundaries;
         }
 
@@ -36,7 +36,7 @@
         /// Initializes a new instance of the <see cref="ImportDefinition"/> class
         /// based on MEF v1 attributes.
         /// </summary>
-        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, Type memberType, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, MefV1.CreationPolicy requiredCreationPolicy)
+        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, Type memberType, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, CreationPolicy requiredCreationPolicy)
             : this(contract, cardinality, memberType, additionalConstraints, ImmutableHashSet.Create<string>())
         {
             this.RequiredCreationPolicy = requiredCreationPolicy;
@@ -44,7 +44,7 @@
 
         public ImportCardinality Cardinality { get; private set; }
 
-        public MefV1.CreationPolicy RequiredCreationPolicy { get; private set; }
+        public CreationPolicy RequiredCreationPolicy { get; private set; }
 
         /// <summary>
         /// Gets the literal declared type of this member.
@@ -105,7 +105,7 @@
             {
                 if (this.IsLazy || this.IsExportFactory)
                 {
-                    var args = this.MemberWithoutManyWrapper.GetGenericArguments();
+                    var args = this.MemberWithoutManyWrapper.GetTypeInfo().GenericTypeArguments;
                     if (args.Length == 2)
                     {
                         return args[1];

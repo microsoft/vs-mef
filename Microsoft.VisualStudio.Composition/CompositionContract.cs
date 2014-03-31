@@ -46,7 +46,10 @@
 
         public override string ToString()
         {
-            return this.ContractName + " (" + this.Type.FullName + ")";
+            string contractSuffix = this.ContractName != null
+                ? " (" + this.ContractName + ")"
+                : string.Empty;
+            return ReflectionHelpers.GetTypeName(this.Type, false, true, null) + contractSuffix;
         }
     }
 }

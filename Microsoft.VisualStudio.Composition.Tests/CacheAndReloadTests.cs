@@ -5,6 +5,7 @@
     using System.Composition;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.AppDomainTests;
@@ -16,12 +17,12 @@
         [Fact]
         public async Task CacheAndReload()
         {
-            var configuration = CompositionConfiguration.Create(typeof(SomeExport));
+            var configuration = CompositionConfiguration.Create(new AttributedPartDiscovery(), typeof(SomeExport));
             string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             await configuration.SaveAsync(path);
             configuration = null;
 
-            var reconstitutedConfiguration = CompositionConfiguration.Load(path);
+            var reconstitutedConfiguration = CompositionConfiguration.Load(Assembly.LoadFile(path));
             var container = reconstitutedConfiguration.CreateContainer();
             SomeExport export = container.GetExportedValue<SomeExport>();
             Assert.NotNull(export);

@@ -10,6 +10,7 @@
     using System.Threading.Tasks;
     using Validation;
     using MefV1 = System.ComponentModel.Composition;
+    using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
 
     internal static class TestUtilities
     {
@@ -21,7 +22,7 @@
 
         internal static CompositionContainer CreateContainer(params Type[] parts)
         {
-            return CompositionConfiguration.Create(parts).CreateContainer();
+            return CompositionConfiguration.Create(new AttributedPartDiscovery(), parts).CreateContainer();
         }
 
         internal static IContainer CreateContainerV1(params Type[] parts)
@@ -88,7 +89,7 @@
             var catalog = ComposableCatalog.Create(assemblyParts);
             if (parts != null && parts.Length != 0)
             {
-                var typeCatalog = ComposableCatalog.Create(parts, discovery);
+                var typeCatalog = ComposableCatalog.Create(discovery, parts);
                 catalog = ComposableCatalog.Create(catalog.Parts.Concat(typeCatalog.Parts));
             }
             return CreateContainerV3(catalog);
@@ -166,8 +167,8 @@
             protected override IEnumerable<MefV1.Primitives.Export> GetExportsCore(MefV1.Primitives.ImportDefinition definition, MefV1.Hosting.AtomicComposition atomicComposition)
             {
                 var result = base.GetExportsCore(definition, atomicComposition);
-                if (definition.Cardinality == MefV1.Primitives.ImportCardinality.ExactlyOne && result.SingleOrDefault() == null ||
-                    definition.Cardinality == MefV1.Primitives.ImportCardinality.ZeroOrOne && result.Take(2).Count() == 2)
+                if ((definition.Cardinality == MefV1.Primitives.ImportCardinality.ExactlyOne && result.Count() != 1) ||
+                    (definition.Cardinality == MefV1.Primitives.ImportCardinality.ZeroOrOne && result.Count() > 1))
                 {
                     // Set breakpoint here
                 }
@@ -197,62 +198,146 @@
 
             public ILazy<T> GetExport<T>()
             {
-                return new LazyWrapper<T>(this.container.GetExport<T>());
+                try
+                {
+                    return new LazyWrapper<T>(this.container.GetExport<T>());
+                }
+                catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public ILazy<T> GetExport<T>(string contractName)
             {
-                return new LazyWrapper<T>(this.container.GetExport<T>(contractName));
+                try
+                {
+                    return new LazyWrapper<T>(this.container.GetExport<T>(contractName));
+                }
+                catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
             {
-                return new LazyWrapper<T, TMetadataView>(this.container.GetExport<T, TMetadataView>());
+                try
+                {
+                    return new LazyWrapper<T, TMetadataView>(this.container.GetExport<T, TMetadataView>());
+                }
+                catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
             {
-                return new LazyWrapper<T, TMetadataView>(this.container.GetExport<T, TMetadataView>(contractName));
+                try
+                {
+                    return new LazyWrapper<T, TMetadataView>(this.container.GetExport<T, TMetadataView>(contractName));
+                }
+                catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public IEnumerable<ILazy<T>> GetExports<T>()
             {
-                return this.container.GetExports<T>().Select(l => new LazyWrapper<T>(l));
+                try
+                {
+                    return this.container.GetExports<T>().Select(l => new LazyWrapper<T>(l));
+                }
+                catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
             {
-                return this.container.GetExports<T>(contractName).Select(l => new LazyWrapper<T>(l));
+                try
+                {
+                    return this.container.GetExports<T>(contractName).Select(l => new LazyWrapper<T>(l));
+                }
+                catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
             {
-                return this.container.GetExports<T, TMetadataView>().Select(l => (ILazy<T, TMetadataView>)new LazyWrapper<T, TMetadataView>(l));
+                try
+                {
+                    return this.container.GetExports<T, TMetadataView>().Select(l => (ILazy<T, TMetadataView>)new LazyWrapper<T, TMetadataView>(l));
+                }
+                catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
             {
-                return this.container.GetExports<T, TMetadataView>(contractName).Select(l => (ILazy<T, TMetadataView>)new LazyWrapper<T, TMetadataView>(l));
+                try
+                {
+                    return this.container.GetExports<T, TMetadataView>(contractName).Select(l => (ILazy<T, TMetadataView>)new LazyWrapper<T, TMetadataView>(l));
+                }
+                catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public T GetExportedValue<T>()
             {
-                return this.container.GetExportedValue<T>();
+                try
+                {
+                    return this.container.GetExportedValue<T>();
+                }
+                catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public T GetExportedValue<T>(string contractName)
             {
-                return this.container.GetExportedValue<T>(contractName);
+                try
+                {
+                    return this.container.GetExportedValue<T>(contractName);
+                }
+                catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public IEnumerable<T> GetExportedValues<T>()
             {
-                return this.container.GetExportedValues<T>();
+                try
+                {
+                    return this.container.GetExportedValues<T>();
+                }
+                catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public IEnumerable<T> GetExportedValues<T>(string contractName)
             {
-                return this.container.GetExportedValues<T>(contractName);
+                try
+                {
+                    return this.container.GetExportedValues<T>(contractName);
+                }
+                catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public void Dispose()
@@ -274,13 +359,33 @@
             public ILazy<T> GetExport<T>()
             {
                 // MEF v2 doesn't support this, so emulate it.
-                return new LazyPart<T>(() => this.container.GetExport<T>());
+                return new LazyPart<T>(() =>
+                {
+                    try
+                    {
+                        return this.container.GetExport<T>();
+                    }
+                    catch (System.Composition.Hosting.CompositionFailedException ex)
+                    {
+                        throw new CompositionFailedException(ex.Message, ex);
+                    }
+                });
             }
 
             public ILazy<T> GetExport<T>(string contractName)
             {
                 // MEF v2 doesn't support this, so emulate it.
-                return new LazyPart<T>(() => this.container.GetExport<T>(contractName));
+                return new LazyPart<T>(() =>
+                {
+                    try
+                    {
+                        return this.container.GetExport<T>(contractName);
+                    }
+                    catch (System.Composition.Hosting.CompositionFailedException ex)
+                    {
+                        throw new CompositionFailedException(ex.Message, ex);
+                    }
+                });
             }
 
             public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
@@ -295,22 +400,50 @@
 
             public T GetExportedValue<T>()
             {
-                return this.container.GetExport<T>();
+                try
+                {
+                    return this.container.GetExport<T>();
+                }
+                catch (System.Composition.Hosting.CompositionFailedException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public T GetExportedValue<T>(string contractName)
             {
-                return this.container.GetExport<T>(contractName);
+                try
+                {
+                    return this.container.GetExport<T>(contractName);
+                }
+                catch (System.Composition.Hosting.CompositionFailedException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public IEnumerable<ILazy<T>> GetExports<T>()
             {
-                return this.container.GetExports<T>().Select(v => LazyPart.Wrap(v));
+                try
+                {
+                    return this.container.GetExports<T>().Select(v => LazyPart.Wrap(v));
+                }
+                catch (System.Composition.Hosting.CompositionFailedException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
             {
-                return this.container.GetExports<T>(contractName).Select(v => LazyPart.Wrap(v));
+                try
+                {
+                    return this.container.GetExports<T>(contractName).Select(v => LazyPart.Wrap(v));
+                }
+                catch (System.Composition.Hosting.CompositionFailedException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
@@ -325,12 +458,26 @@
 
             public IEnumerable<T> GetExportedValues<T>()
             {
-                return this.container.GetExports<T>();
+                try
+                {
+                    return this.container.GetExports<T>();
+                }
+                catch (System.Composition.Hosting.CompositionFailedException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public IEnumerable<T> GetExportedValues<T>(string contractName)
             {
-                return this.container.GetExports<T>(contractName);
+                try
+                {
+                    return this.container.GetExports<T>(contractName);
+                }
+                catch (System.Composition.Hosting.CompositionFailedException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public void Dispose()

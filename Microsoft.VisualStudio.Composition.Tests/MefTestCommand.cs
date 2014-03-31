@@ -39,11 +39,11 @@
                 {
                     if (this.engineVersion == CompositionEngines.V3EmulatingV1)
                     {
-                        CompositionConfiguration.Create(ComposableCatalog.Create(this.parts, new AttributedPartDiscoveryV1()));
+                        CompositionConfiguration.Create(ComposableCatalog.Create(new AttributedPartDiscoveryV1(), this.parts));
                     }
                     else if (this.engineVersion == CompositionEngines.V3EmulatingV2)
                     {
-                        CompositionConfiguration.Create(ComposableCatalog.Create(this.parts, new AttributedPartDiscovery()));
+                        CompositionConfiguration.Create(ComposableCatalog.Create(new AttributedPartDiscovery(), this.parts));
                     }
                     else
                     {

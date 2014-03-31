@@ -8,7 +8,6 @@
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
-    using MefV1 = System.ComponentModel.Composition;
 
     [DebuggerDisplay("{Type.Name}")]
     public class ComposablePartDefinition
@@ -38,10 +37,10 @@
             this.OnImportsSatisfied = onImportsSatisfied;
             this.ImportingConstructor = importingConstructor;
 
-            this.CreationPolicy = this.IsShared ? MefV1.CreationPolicy.Shared : MefV1.CreationPolicy.NonShared;
+            this.CreationPolicy = this.IsShared ? CreationPolicy.Shared : CreationPolicy.NonShared;
         }
 
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinition> importingConstructor, MefV1.CreationPolicy partCreationPolicy)
+        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinition> importingConstructor, CreationPolicy partCreationPolicy)
             : this(partType, exportsOnType, exportsOnMembers, imports, sharingBoundary, onImportsSatisfied, importingConstructor)
         {
             this.CreationPolicy = partCreationPolicy;
@@ -56,7 +55,7 @@
 
         public string SharingBoundary { get; private set; }
 
-        public MefV1.CreationPolicy CreationPolicy { get; private set; }
+        public CreationPolicy CreationPolicy { get; private set; }
 
         public bool IsShared
         {
@@ -113,9 +112,8 @@
         {
             get
             {
-                const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
                 return this.ImportingConstructor != null
-                    ? this.Type.GetConstructor(flags, null, this.ImportingConstructor.Select(i => i.MemberType).ToArray(), null)
+                    ? this.Type.GetTypeInfo().DeclaredConstructors.FirstOrDefault(ctor => !ctor.IsStatic && ctor.HasParameters(this.ImportingConstructor.Select(i => i.MemberType).ToArray()))
                     : null;
             }
         }

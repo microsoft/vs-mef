@@ -13,7 +13,7 @@
         [Fact]
         public void TwoContainersDoNotShareAnyExports()
         {
-            var configuration = CompositionConfiguration.Create(typeof(SharedExport));
+            var configuration = CompositionConfiguration.Create(new AttributedPartDiscovery(), typeof(SharedExport));
             var container1 = configuration.CreateContainer();
             var container2 = configuration.CreateContainer();
 

@@ -5,6 +5,7 @@
     using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
@@ -65,13 +66,13 @@
                     foreach (var export in pair.Value)
                     {
                         var receivingType = pair.Key.ImportDefinition.ElementType;
-                        if (export.ExportedValueType.IsGenericTypeDefinition && receivingType.IsGenericType)
+                        if (export.ExportedValueType.GetTypeInfo().IsGenericTypeDefinition && receivingType.GetTypeInfo().IsGenericType)
                         {
                             receivingType = receivingType.GetGenericTypeDefinition();
                         }
 
                         Verify.Operation(
-                            receivingType.IsAssignableFrom(export.ExportedValueType),
+                            receivingType.GetTypeInfo().IsAssignableFrom(export.ExportedValueType.GetTypeInfo()),
                             "Exporting MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
                             export.PartDefinition.Type.Name,
                             importDefinition.MemberType.Name,

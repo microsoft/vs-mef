@@ -113,20 +113,26 @@
             return document;
         }
 
-        internal static XElement Link(string source, string target)
+        internal static XElement Link(string source, string target, string label)
         {
             Requires.NotNullOrEmpty(source, "source");
             Requires.NotNullOrEmpty(target, "target");
 
-            return new XElement(
+            var link = new XElement(
                 LinkName,
                 new XAttribute("Source", source),
                 new XAttribute("Target", target));
+            if (!string.IsNullOrEmpty(label))
+            {
+                link.SetAttributeValue("Label", label);
+            }
+
+            return link;
         }
 
-        internal static XElement Link(XElement source, XElement target)
+        internal static XElement Link(XElement source, XElement target, string label)
         {
-            return Link(source.Attribute("Id").Value, target.Attribute("Id").Value);
+            return Link(source.Attribute("Id").Value, target.Attribute("Id").Value, label);
         }
 
         internal static XDocument WithLink(this XDocument document, XElement link)
@@ -202,7 +208,7 @@
             Requires.NotNull(node, "node");
             Requires.NotNull(container, "container");
 
-            Link(container, node).WithCategories("Contains");
+            Link(container, node, null).WithCategories("Contains");
             return node;
         }
 
@@ -211,7 +217,7 @@
             Requires.NotNull(node, "node");
             Requires.NotNullOrEmpty(containerId, "containerId");
 
-            document.WithLink(Link(containerId, node.Attribute("Id").Value).WithCategories("Contains"));
+            document.WithLink(Link(containerId, node.Attribute("Id").Value, null).WithCategories("Contains"));
             return node;
         }
 
