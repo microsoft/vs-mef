@@ -9,8 +9,9 @@
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.Build.Framework;
+    using Microsoft.Build.Utilities;
 
-    public class CreateComposition : Microsoft.Build.Utilities.Task
+    public class CreateComposition : AppDomainIsolatedTask
     {
         public ITaskItem[] CatalogAssemblies { get; set; }
 
