@@ -28,21 +28,6 @@
             get { return this.relevantAssemblies; }
         }
 
-        private static IEnumerable<Type> GetAllBaseTypesAndInterfaces(Type type)
-        {
-            Requires.NotNull(type, "type");
-
-            for (Type baseType = type.GetTypeInfo().BaseType; baseType != null; baseType = baseType.GetTypeInfo().BaseType)
-            {
-                yield return baseType;
-            }
-
-            foreach (var iface in type.GetTypeInfo().ImplementedInterfaces)
-            {
-                yield return iface;
-            }
-        }
-
         private IDisposable EmitMemberAssignment(Import import)
         {
             Requires.NotNull(import, "import");
@@ -140,7 +125,7 @@
                 this.GetAssemblyExpression(type.Assembly),
                 type.GetGenericTypeDefinition().MetadataToken,
                 string.Join(", ", type.GetGenericArguments().Select(t => t.IsGenericType && t.ContainsGenericParameters ? GetClosedGenericTypeExpression(t) : GetTypeExpression(t))),
-                type.ContainsGenericParameters ? "incomplete" : GetTypeName(type, evenNonPublic: true));
+                type.ContainsGenericParameters ? "incomplete" : this.GetTypeName(type, evenNonPublic: true));
         }
 
         private string GetClosedGenericTypeHandleExpression(Type type)
@@ -773,41 +758,12 @@
 
         private string GetTypeName(Type type)
         {
-            return this.GetTypeName(type, genericTypeDefinition: false);
+            return this.GetTypeName(type, false, false);
         }
 
         private string GetTypeName(Type type, bool genericTypeDefinition = false, bool evenNonPublic = false)
         {
-            this.relevantAssemblies.Add(type.Assembly);
-            this.relevantAssemblies.UnionWith(GetAllBaseTypesAndInterfaces(type).Select(t => t.Assembly));
-
-            if (type.IsGenericParameter)
-            {
-                return type.Name;
-            }
-
-            if (!IsPublic(type) && !evenNonPublic)
-            {
-                return this.GetTypeName(type.BaseType ?? typeof(object), genericTypeDefinition, evenNonPublic);
-            }
-
-            string result = string.Empty;
-            if (type.DeclaringType != null)
-            {
-                result = GetTypeName(type.DeclaringType, genericTypeDefinition) + ".";
-            }
-
-            if (genericTypeDefinition)
-            {
-                result += FilterTypeNameForGenericTypeDefinition(type, type.DeclaringType == null);
-            }
-            else
-            {
-                string[] typeArguments = type.GetGenericArguments().Select(GetTypeName).ToArray();
-                result += ReplaceBackTickWithTypeArgs(type.DeclaringType == null ? type.FullName : type.Name, typeArguments);
-            }
-
-            return result;
+            return ReflectionHelpers.GetTypeName(type, genericTypeDefinition, evenNonPublic, this.relevantAssemblies);
         }
 
         /// <summary>
@@ -888,22 +844,6 @@
             }
         }
 
-        private static string FilterTypeNameForGenericTypeDefinition(Type type, bool fullName)
-        {
-            Requires.NotNull(type, "type");
-
-            string name = fullName ? type.FullName : type.Name;
-            if (type.IsGenericType)
-            {
-                name = name.Substring(0, name.IndexOf('`'));
-                name += "<";
-                name += new String(',', type.GetGenericArguments().Length - 1);
-                name += ">";
-            }
-
-            return name;
-        }
-
         private static void Test<T>() { }
 
         private static string GetPartFactoryMethodNameNoTypeArgs(ComposablePartDefinition part)
@@ -925,7 +865,7 @@
                 typeArguments = part.Type.GetGenericArguments().Select(t => t.Name).ToArray();
             }
 
-            string name = "GetOrCreate" + ReplaceBackTickWithTypeArgs(part.Id, typeArguments);
+            string name = "GetOrCreate" + ReflectionHelpers.ReplaceBackTickWithTypeArgs(part.Id, typeArguments);
             return name;
         }
 
@@ -949,56 +889,8 @@
 
         private static string GetGenericPartFactoryMethodInvokeExpression(ComposablePartDefinition part)
         {
-            return GetGenericPartFactoryMethodInfoExpression(part) + 
+            return GetGenericPartFactoryMethodInfoExpression(part) +
                 ".Invoke(this, new object[] { provisionalSharedObjects, /* nonSharedInstanceRequired: */ false })";
-        }
-
-        private static string ReplaceBackTickWithTypeArgs(string originalName, params string[] typeArguments)
-        {
-            Requires.NotNullOrEmpty(originalName, "originalName");
-
-            string name = originalName;
-            int backTickIndex = originalName.IndexOf('`');
-            if (backTickIndex >= 0)
-            {
-                name = originalName.Substring(0, name.IndexOf('`'));
-                name += "<";
-                int typeArgIndex = originalName.IndexOf('[', backTickIndex + 1);
-                string typeArgumentsCountString = originalName.Substring(backTickIndex + 1);
-                if (typeArgIndex >= 0)
-                {
-                    typeArgumentsCountString = typeArgumentsCountString.Substring(0, typeArgIndex - backTickIndex - 1);
-                }
-
-                int typeArgumentsCount = int.Parse(typeArgumentsCountString, CultureInfo.InvariantCulture);
-                if (typeArguments == null || typeArguments.Length == 0)
-                {
-                    if (typeArgumentsCount == 1)
-                    {
-                        name += "T";
-                    }
-                    else
-                    {
-                        for (int i = 1; i <= typeArgumentsCount; i++)
-                        {
-                            name += "T" + i;
-                            if (i < typeArgumentsCount)
-                            {
-                                name += ",";
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    Requires.Argument(typeArguments.Length == typeArgumentsCount, "typeArguments", "Wrong length.");
-                    name += string.Join(",", typeArguments);
-                }
-
-                name += ">";
-            }
-
-            return name;
         }
 
         private string GetPartOrMemberLazy(Export export)
