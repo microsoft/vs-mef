@@ -50,9 +50,6 @@ foreach (var contractAndExports in this.RootExportsByContract)
     }
 
     var onlyExport = exports.First();
-    var part = onlyExport.PartDefinition;
-    var member = onlyExport.ExportingMember;
-    var partExport = onlyExport.ExportDefinition;
 #>
 
         if (<#= contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type" #>.IsEquivalentTo(<#= GetTypeExpression(contract.Type, contract.Type.IsGenericTypeDefinition) #>))
@@ -73,30 +70,17 @@ foreach (var contractAndExports in this.RootExportsByContract)
 #>
             {
 <#
-                if (part.Type.IsGenericType)
+                if (onlyExport.ExportingMember.IsStaticExport())
                 {
 #>
-                var genericTemplateMethod = typeof(CompiledExportProvider).GetMethod("<#= GetPartFactoryMethodNameNoTypeArgs(part) #>", BindingFlags.Instance | BindingFlags.NonPublic);
-                var genericMethod = genericTemplateMethod.MakeGenericMethod(exportDefinition.Contract.Type.GetGenericArguments());
-                var part = genericMethod.Invoke(this, new object[] { provisionalSharedObjects, /* nonSharedInstanceRequired: */ false });
-                return <#=GetPartOrMemberLazy("part", member, partExport, part)#>;
+                throw new InvalidOperationException("Static exports not supported.");
 <#
                 }
                 else
                 {
-                    if (member.IsStaticExport())
-                    {
 #>
-                throw new InvalidOperationException("Static exports not supported.");
+                return <#=GetPartOrMemberLazy(onlyExport)#>;
 <#
-                    }
-                    else
-                    {
-#>
-                var part = this.<#= GetPartFactoryMethodName(part) #>(provisionalSharedObjects);
-                return <#=GetPartOrMemberLazy("part", member, partExport, part)#>;
-<#
-                    }
                 }
 #>
             }

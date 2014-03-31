@@ -32,6 +32,14 @@
             Assert.Equal("Andrew", actual);
     }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [Trait("Container.GetExport", "Plural")]
+        public void GetExportsFromProperty(IContainer container)
+        {
+            IEnumerable<string> result = container.GetExportedValues<string>("Property");
+            Assert.Equal(new[] { "Andrew" }, result);
+        }
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportingMembersClass))]
         [Trait("GenericExports", "Closed")]
         public void ExportedPropertyGenericType(IContainer container)

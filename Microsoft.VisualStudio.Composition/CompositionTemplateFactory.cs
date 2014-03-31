@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Composition
     /// Class to produce the template output
     /// </summary>
     
-    #line 1 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+    #line 1 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "12.0.0.0")]
     public partial class CompositionTemplateFactory : CompositionTemplateFactoryBase
     {
@@ -65,7 +65,7 @@ internal class CompiledExportProvider : ExportProvider
         var provisionalSharedObjects = new Dictionary<Type, object>();
         Type exportTypeDefinition = exportDefinition.Contract.Type.IsGenericType ? exportDefinition.Contract.Type.GetGenericTypeDefinition() : exportDefinition.Contract.Type;");
             
-            #line 41 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 41 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 foreach (var contractAndExports in this.RootExportsByContract)
 {
@@ -78,30 +78,27 @@ foreach (var contractAndExports in this.RootExportsByContract)
     }
 
     var onlyExport = exports.First();
-    var part = onlyExport.PartDefinition;
-    var member = onlyExport.ExportingMember;
-    var partExport = onlyExport.ExportDefinition;
 
             
             #line default
             #line hidden
             this.Write("\r\n        if (");
             
-            #line 58 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 55 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type"));
             
             #line default
             #line hidden
             this.Write(".IsEquivalentTo(");
             
-            #line 58 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 55 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeExpression(contract.Type, contract.Type.IsGenericTypeDefinition)));
             
             #line default
             #line hidden
             this.Write("))\r\n        {\r\n");
             
-            #line 60 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 57 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
             if (contract.ContractName == null)
             {
@@ -111,7 +108,7 @@ foreach (var contractAndExports in this.RootExportsByContract)
             #line hidden
             this.Write("            if (exportDefinition.Contract.ContractName == null)\r\n");
             
-            #line 65 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 62 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
             }
             else
@@ -122,14 +119,14 @@ foreach (var contractAndExports in this.RootExportsByContract)
             #line hidden
             this.Write("            if (exportDefinition.Contract.ContractName == \"");
             
-            #line 70 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 67 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(contract.ContractName));
             
             #line default
             #line hidden
             this.Write("\")\r\n");
             
-            #line 71 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 68 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
             }
 
@@ -138,41 +135,10 @@ foreach (var contractAndExports in this.RootExportsByContract)
             #line hidden
             this.Write("            {\r\n");
             
-            #line 75 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 72 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
-                if (part.Type.IsGenericType)
+                if (onlyExport.ExportingMember.IsStaticExport())
                 {
-
-            
-            #line default
-            #line hidden
-            this.Write("                var genericTemplateMethod = typeof(CompiledExportProvider).GetMet" +
-                    "hod(\"");
-            
-            #line 79 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(GetPartFactoryMethodNameNoTypeArgs(part)));
-            
-            #line default
-            #line hidden
-            this.Write(@""", BindingFlags.Instance | BindingFlags.NonPublic);
-                var genericMethod = genericTemplateMethod.MakeGenericMethod(exportDefinition.Contract.Type.GetGenericArguments());
-                var part = genericMethod.Invoke(this, new object[] { provisionalSharedObjects, /* nonSharedInstanceRequired: */ false });
-                return ");
-            
-            #line 82 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(GetPartOrMemberLazy("part", member, partExport, part)));
-            
-            #line default
-            #line hidden
-            this.Write(";\r\n");
-            
-            #line 83 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-
-                }
-                else
-                {
-                    if (member.IsStaticExport())
-                    {
 
             
             #line default
@@ -180,34 +146,26 @@ foreach (var contractAndExports in this.RootExportsByContract)
             this.Write("                throw new InvalidOperationException(\"Static exports not supported" +
                     ".\");\r\n");
             
-            #line 91 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 77 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
-                    }
-                    else
-                    {
+                }
+                else
+                {
 
             
             #line default
             #line hidden
-            this.Write("                var part = this.");
+            this.Write("                return ");
             
-            #line 96 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(GetPartFactoryMethodName(part)));
-            
-            #line default
-            #line hidden
-            this.Write("(provisionalSharedObjects);\r\n                return ");
-            
-            #line 97 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(GetPartOrMemberLazy("part", member, partExport, part)));
+            #line 82 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(GetPartOrMemberLazy(onlyExport)));
             
             #line default
             #line hidden
             this.Write(";\r\n");
             
-            #line 98 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 83 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
-                    }
                 }
 
             
@@ -215,7 +173,7 @@ foreach (var contractAndExports in this.RootExportsByContract)
             #line hidden
             this.Write("            }\r\n        }\r\n");
             
-            #line 104 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 88 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 }
 
@@ -231,7 +189,7 @@ foreach (var contractAndExports in this.RootExportsByContract)
         var provisionalSharedObjects = new Dictionary<Type, object>();
         Type exportTypeDefinition = exportDefinition.Contract.Type.IsGenericType ? exportDefinition.Contract.Type.GetGenericTypeDefinition() : exportDefinition.Contract.Type;");
             
-            #line 114 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 98 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 foreach (var contractAndExports in this.RootExportsByContract)
 {
@@ -244,21 +202,21 @@ foreach (var contractAndExports in this.RootExportsByContract)
             #line hidden
             this.Write("\r\n        if (");
             
-            #line 122 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 106 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type"));
             
             #line default
             #line hidden
             this.Write(".IsEquivalentTo(");
             
-            #line 122 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 106 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeExpression(contract.Type, contract.Type.IsGenericTypeDefinition)));
             
             #line default
             #line hidden
             this.Write("))\r\n        {\r\n");
             
-            #line 124 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 108 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
             if (contract.ContractName == null)
             {
@@ -268,7 +226,7 @@ foreach (var contractAndExports in this.RootExportsByContract)
             #line hidden
             this.Write("            if (exportDefinition.Contract.ContractName == null)\r\n");
             
-            #line 129 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 113 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
             }
             else
@@ -279,14 +237,14 @@ foreach (var contractAndExports in this.RootExportsByContract)
             #line hidden
             this.Write("            if (exportDefinition.Contract.ContractName == \"");
             
-            #line 134 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 118 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(contract.ContractName));
             
             #line default
             #line hidden
             this.Write("\")\r\n");
             
-            #line 135 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 119 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
             }
 
@@ -295,14 +253,14 @@ foreach (var contractAndExports in this.RootExportsByContract)
             #line hidden
             this.Write("            {\r\n                ");
             
-            #line 139 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 123 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
  EmitGetExportsReturnExpression(contract, exports); 
             
             #line default
             #line hidden
             this.Write("            }\r\n        }\r\n");
             
-            #line 142 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 126 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 }
 
@@ -311,7 +269,7 @@ foreach (var contractAndExports in this.RootExportsByContract)
             #line hidden
             this.Write("\r\n        return null;\r\n    }\r\n");
             
-            #line 148 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 132 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 foreach (var part in this.Configuration.Parts) 
 {
@@ -321,14 +279,14 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("\r\n    protected ILazy<");
             
-            #line 153 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 137 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(part.Definition.Type)));
             
             #line default
             #line hidden
             this.Write("> ");
             
-            #line 153 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 137 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetPartFactoryMethodName(part.Definition)));
             
             #line default
@@ -336,14 +294,14 @@ foreach (var part in this.Configuration.Parts)
             this.Write("(Dictionary<Type, object> provisionalSharedObjects, bool nonSharedInstanceRequire" +
                     "d = false)\r\n    {\r\n        ILazy<");
             
-            #line 155 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 139 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(part.Definition.Type)));
             
             #line default
             #line hidden
             this.Write("> value;\r\n        Type partType = ");
             
-            #line 156 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 140 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(this.GetTypeExpression(part.Definition.Type)));
             
             #line default
@@ -352,14 +310,14 @@ foreach (var part in this.Configuration.Parts)
                     "ionalSharedObjects, partType, out value))\r\n        {\r\n            return value;\r" +
                     "\n        }\r\n\r\n        ILazy<");
             
-            #line 162 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 146 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(part.Definition.Type)));
             
             #line default
             #line hidden
             this.Write("> lazyResult;\r\n");
             
-            #line 163 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 147 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
         if (part.Definition.IsShared)
         {
@@ -369,21 +327,21 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("        if (nonSharedInstanceRequired || !this.TryGetSharedInstanceFactory(@\"");
             
-            #line 167 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 151 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(part.Definition.SharingBoundary));
             
             #line default
             #line hidden
             this.Write("\", partType, out lazyResult))\r\n        {\r\n            lazyResult = ");
             
-            #line 169 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 153 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
  using (EmitLazyConstruction(part.Definition.Type)) { 
             
             #line default
             #line hidden
             this.Write("                {\r\n");
             
-            #line 171 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 155 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
                 if (part.Definition.IsInstantiable)
                 {
@@ -400,7 +358,7 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("                    return CannotInstantiatePartWithNoImportingConstructor();\r\n");
             
-            #line 183 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 167 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
                 }
 
@@ -409,7 +367,7 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("                }");
             
-            #line 186 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 170 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
  } 
             
             #line default
@@ -417,14 +375,14 @@ foreach (var part in this.Configuration.Parts)
             this.Write(";\r\n\r\n            if (!nonSharedInstanceRequired)\r\n            {\r\n                " +
                     "lazyResult = this.GetOrAddSharedInstanceFactory(@\"");
             
-            #line 190 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 174 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(part.Definition.SharingBoundary));
             
             #line default
             #line hidden
             this.Write("\", partType, lazyResult);\r\n            }\r\n        }\r\n");
             
-            #line 193 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 177 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
         }
         else
@@ -435,14 +393,14 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("        lazyResult = ");
             
-            #line 198 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 182 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
  using (EmitLazyConstruction(part.Definition.Type)) { 
             
             #line default
             #line hidden
             this.Write("            {\r\n");
             
-            #line 200 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 184 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
                 using(Indent(4))
                 {
@@ -458,7 +416,7 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("                return CannotInstantiatePartWithNoImportingConstructor();\r\n");
             
-            #line 211 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 195 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
                     }
                 }
@@ -468,14 +426,14 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("            }");
             
-            #line 215 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 199 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
  } 
             
             #line default
             #line hidden
             this.Write(";\r\n");
             
-            #line 216 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 200 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
         }
 
@@ -484,7 +442,7 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("\r\n        return lazyResult;\r\n    }\r\n");
             
-            #line 222 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 206 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
 }
 
@@ -506,7 +464,7 @@ foreach (var part in this.Configuration.Parts)
     }
 ");
             
-            #line 238 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 222 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
     // Emit concrete types for each metadataview interface.
     foreach (Type interfaceType in GetMetadataViewInterfaces())
@@ -518,21 +476,21 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("\r\n    private class ");
             
-            #line 245 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 229 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(className));
             
             #line default
             #line hidden
             this.Write(" : ");
             
-            #line 245 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 229 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(interfaceType)));
             
             #line default
             #line hidden
             this.Write("\r\n    {\r\n");
             
-            #line 247 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 231 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
         foreach (var member in interfaceType.EnumProperties(BindingFlags.Instance | BindingFlags.Public).Distinct(UniquePropertyNameComparer.Default))
         {
@@ -542,21 +500,21 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("        private readonly ");
             
-            #line 251 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 235 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(member.PropertyType)));
             
             #line default
             #line hidden
             this.Write(" ");
             
-            #line 251 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 235 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(member.Name));
             
             #line default
             #line hidden
             this.Write(";\r\n");
             
-            #line 252 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 236 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
         }
 
@@ -565,14 +523,14 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("\r\n        internal ");
             
-            #line 256 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 240 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(className));
             
             #line default
             #line hidden
             this.Write("(IReadOnlyDictionary<string, object> source)\r\n        {\r\n");
             
-            #line 258 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 242 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
         foreach (var member in interfaceType.EnumProperties(BindingFlags.Instance | BindingFlags.Public).Distinct(UniquePropertyNameComparer.Default))
         {
@@ -582,21 +540,21 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("            this.");
             
-            #line 262 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 246 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(member.Name));
             
             #line default
             #line hidden
             this.Write(" = ");
             
-            #line 262 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 246 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetValueOrDefaultForMetadataView(member, "source")));
             
             #line default
             #line hidden
             this.Write(";\r\n");
             
-            #line 263 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 247 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
         }
 
@@ -605,7 +563,7 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("        }\r\n");
             
-            #line 267 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 251 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
         foreach (var member in interfaceType.EnumProperties(BindingFlags.Instance | BindingFlags.Public))
         {
@@ -615,35 +573,35 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("\r\n        ");
             
-            #line 272 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 256 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(member.PropertyType)));
             
             #line default
             #line hidden
             this.Write(" ");
             
-            #line 272 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 256 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(GetTypeName(member.DeclaringType)));
             
             #line default
             #line hidden
             this.Write(".");
             
-            #line 272 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 256 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(member.Name));
             
             #line default
             #line hidden
             this.Write("\r\n        {\r\n            get { return this.");
             
-            #line 274 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 258 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(member.Name));
             
             #line default
             #line hidden
             this.Write("; }\r\n        }\r\n");
             
-            #line 276 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 260 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
         }
 
@@ -652,7 +610,7 @@ foreach (var part in this.Configuration.Parts)
             #line hidden
             this.Write("    }\r\n");
             
-            #line 280 "C:\Users\andarno\Source\Repos\mef3\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
+            #line 264 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition\CompositionTemplateFactory.tt"
 
     }
 
