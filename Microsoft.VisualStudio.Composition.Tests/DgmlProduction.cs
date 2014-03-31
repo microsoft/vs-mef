@@ -13,7 +13,7 @@
     public class DgmlProduction
     {
         internal const string Namespace = "http://schemas.microsoft.com/vs/2009/dgml";
-        
+
         [Fact]
         public void CreateDgmlFromConfiguration()
         {
@@ -38,14 +38,20 @@
             Assert.Equal(importingPartNode.Attribute("Id").Value, link.Attribute("Target").Value);
         }
 
-        [Export]
-        public class Exporter { }
+        [Export(typeof(IEquatable<Exporter>))]
+        public class Exporter : IEquatable<Exporter>
+        {
+            public bool Equals(Exporter other)
+            {
+                throw new NotImplementedException();
+            }
+        }
 
         [Export]
         public class Importer
         {
             [Import]
-            public Exporter ImportingProperty { get; set; }
+            public IEquatable<Exporter> ImportingProperty { get; set; }
         }
     }
 }

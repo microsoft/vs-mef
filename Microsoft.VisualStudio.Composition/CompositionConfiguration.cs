@@ -202,7 +202,10 @@
                 {
                     foreach (Export export in part.SatisfyingExports[import])
                     {
-                        links.Add(Dgml.Link(export.PartDefinition.Id, part.Definition.Id));
+                        string linkLabel = !export.ExportDefinition.Contract.Type.Equals(export.PartDefinition.Type)
+                            ? export.ExportDefinition.Contract.ToString()
+                            : null;
+                        links.Add(Dgml.Link(export.PartDefinition.Id, part.Definition.Id, linkLabel));
                     }
                 }
             }
