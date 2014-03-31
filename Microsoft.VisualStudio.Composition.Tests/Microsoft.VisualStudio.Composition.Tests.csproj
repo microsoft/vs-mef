@@ -149,9 +149,9 @@
       <Project>{37e36aec-3319-4219-974f-d258fbe8d143}</Project>
       <Name>Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.Hosting\Microsoft.VisualStudio.Composition.Hosting.csproj">
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.Configuration\Microsoft.VisualStudio.Composition.Configuration.csproj">
       <Project>{2285f0b1-0b9e-43c5-9ba5-0cb293c9bc63}</Project>
-      <Name>Microsoft.VisualStudio.Composition.Hosting</Name>
+      <Name>Microsoft.VisualStudio.Composition.Configuration</Name>
     </ProjectReference>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj">
       <Project>{1ca6a92c-5dd9-4be5-b5b7-ee4a1318b4c2}</Project>

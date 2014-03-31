@@ -12,8 +12,8 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-            var config = CompositionConfigurationDesktop.LoadDefault();
-            var container = config.CreateContainer();
+            var containerFactory = CompositionConfigurationDesktop.LoadDefault();
+            var container = containerFactory.CreateContainer();
             Foo foo = container.GetExportedValue<Foo>();
         }
     }
