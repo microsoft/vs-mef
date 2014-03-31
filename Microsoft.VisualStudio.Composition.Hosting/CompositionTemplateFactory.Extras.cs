@@ -11,7 +11,6 @@
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
-    using MefV1 = System.ComponentModel.Composition;
 
     partial class CompositionTemplateFactory
     {
@@ -33,12 +32,12 @@
         {
             Requires.NotNull(type, "type");
 
-            for (Type baseType = type.BaseType; baseType != null; baseType = baseType.BaseType)
+            for (Type baseType = type.GetTypeInfo().BaseType; baseType != null; baseType = baseType.GetTypeInfo().BaseType)
             {
                 yield return baseType;
             }
 
-            foreach (var iface in type.GetInterfaces())
+            foreach (var iface in type.GetTypeInfo().ImplementedInterfaces)
             {
                 yield return iface;
             }
@@ -352,7 +351,7 @@
                     }
 
                     writer.Write("{0})",
-                        import.ImportDefinition.RequiredCreationPolicy == MefV1.CreationPolicy.NonShared ? ", nonSharedInstanceRequired: true" : string.Empty);
+                        import.ImportDefinition.RequiredCreationPolicy == CreationPolicy.NonShared ? ", nonSharedInstanceRequired: true" : string.Empty);
                 }
             }
         }
@@ -1124,7 +1123,7 @@
                 ImportCardinality.ZeroOrMore,
                 typeof(IEnumerable<>).MakeGenericType(typeof(ILazy<>).MakeGenericType(contract.Type)),
                 ImmutableList.Create<IImportSatisfiabilityConstraint>(),
-                MefV1.CreationPolicy.Any);
+                CreationPolicy.Any);
             return new Import(importDefinition);
         }
 

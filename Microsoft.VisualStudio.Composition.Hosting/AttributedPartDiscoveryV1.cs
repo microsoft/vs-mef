@@ -10,6 +10,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
+    using MefV1 = System.ComponentModel.Composition;
 
     public class AttributedPartDiscoveryV1 : PartDiscovery
     {
@@ -21,7 +22,7 @@
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
             var imports = ImmutableDictionary.CreateBuilder<MemberInfo, ImportDefinition>();
             var exportMetadataOnType = GetExportMetadata(partType.GetCustomAttributes());
-            var partCreationPolicy = CreationPolicy.Any;
+            var partCreationPolicy =  CreationPolicy.Any;
 
             foreach (var exportAttribute in partType.GetCustomAttributes<ExportAttribute>())
             {
@@ -35,15 +36,15 @@
             string sharingBoundary = string.Empty;
             if (partCreationPolicyAttribute != null)
             {
-                partCreationPolicy = partCreationPolicyAttribute.CreationPolicy;
-                if (partCreationPolicyAttribute.CreationPolicy == CreationPolicy.NonShared)
+                partCreationPolicy = (CreationPolicy)partCreationPolicyAttribute.CreationPolicy;
+                if (partCreationPolicyAttribute.CreationPolicy == MefV1.CreationPolicy.NonShared)
                 {
                     sharingBoundary = null;
                 }
             }
 
             var flags = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            foreach (var member in Enumerable.Concat<MemberInfo>(partType.EnumProperties(flags), partType.EnumFields(flags)))
+            foreach (var member in Enumerable.Concat<MemberInfo>(partType.EnumProperties(), partType.EnumFields()))
             {
                 var property = member as PropertyInfo;
                 var field = member as FieldInfo;
@@ -134,6 +135,20 @@
             }
         }
 
+        public override bool IsExportFactoryType(Type type)
+        {
+            if (type != null && type.GetTypeInfo().IsGenericType)
+            {
+                var typeDefinition = type.GetGenericTypeDefinition();
+                if (typeDefinition.Equals(typeof(ExportFactory<>)) || typeDefinition.IsEquivalentTo(typeof(ExportFactory<,>)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static bool TryCreateImportDefinition(Type propertyOrFieldType, IEnumerable<Attribute> attributes, out ImportDefinition importDefinition)
         {
             Requires.NotNull(propertyOrFieldType, "propertyOrFieldType");
@@ -145,7 +160,7 @@
             {
                 var requiredCreationPolicy = propertyOrFieldType.IsExportFactoryTypeV1()
                     ? CreationPolicy.NonShared
-                    : importAttribute.RequiredCreationPolicy;
+                    : (CreationPolicy)importAttribute.RequiredCreationPolicy;
 
                 Type contractType = importAttribute.ContractType ?? GetElementFromImportingMemberType(propertyOrFieldType, importMany: false);
                 var contract = new CompositionContract(importAttribute.ContractName, contractType);
@@ -161,7 +176,7 @@
             {
                 var requiredCreationPolicy = GetElementTypeFromMany(propertyOrFieldType).IsExportFactoryTypeV1()
                     ? CreationPolicy.NonShared
-                    : importManyAttribute.RequiredCreationPolicy;
+                    : (CreationPolicy)importManyAttribute.RequiredCreationPolicy;
 
                 Type contractType = importManyAttribute.ContractType ?? GetElementFromImportingMemberType(propertyOrFieldType, importMany: true);
                 var contract = new CompositionContract(importManyAttribute.ContractName, contractType);

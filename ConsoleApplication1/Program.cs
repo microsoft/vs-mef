@@ -12,7 +12,7 @@ namespace ConsoleApplication1
     {
         static void Main(string[] args)
         {
-            var config = CompositionConfiguration.LoadDefault();
+            var config = CompositionConfigurationDesktop.LoadDefault();
             var container = config.CreateContainer();
             Foo foo = container.GetExportedValue<Foo>();
         }

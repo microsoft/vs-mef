@@ -14,7 +14,7 @@
         [Fact]
         public void CreateFromTypesOmitsNonPartsV1()
         {
-            var catalog = ComposableCatalog.Create(new[] { typeof(NonExportingType), typeof(ExportingType) }, new AttributedPartDiscoveryV1());
+            var catalog = ComposableCatalog.Create(new AttributedPartDiscoveryV1(), new[] { typeof(NonExportingType), typeof(ExportingType) });
             Assert.Equal(1, catalog.Parts.Count);
             Assert.Equal(typeof(ExportingType), catalog.Parts.Single().Type);
         }
@@ -22,7 +22,7 @@
         [Fact]
         public void CreateFromTypesOmitsNonPartsV2()
         {
-            var catalog = ComposableCatalog.Create(new[] { typeof(NonExportingType), typeof(ExportingType) }, new AttributedPartDiscovery());
+            var catalog = ComposableCatalog.Create(new AttributedPartDiscovery(), new[] { typeof(NonExportingType), typeof(ExportingType) });
             Assert.Equal(1, catalog.Parts.Count);
             Assert.Equal(typeof(ExportingType), catalog.Parts.Single().Type);
         }

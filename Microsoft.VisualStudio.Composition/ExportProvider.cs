@@ -5,6 +5,7 @@
     using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
@@ -66,7 +67,7 @@
             var result = (ILazy<T, TMetadataView>)this.GetExport(exportDefinition);
             if (result == null)
             {
-                throw new System.Composition.Hosting.CompositionFailedException();
+                throw new CompositionFailedException();
             }
 
             return result;
@@ -146,7 +147,7 @@
 
         protected static object CannotInstantiatePartWithNoImportingConstructor()
         {
-            throw new System.ComponentModel.Composition.CompositionException("No importing constructor");
+            throw new CompositionFailedException("No importing constructor");
         }
 
         /// <summary>
@@ -164,7 +165,7 @@
         protected bool TryGetSharedInstanceFactory<T>(string partSharingBoundary, Type type, out ILazy<T> value)
         {
             Requires.NotNull(type, "type");
-            Assumes.True(typeof(T).IsAssignableFrom(type));
+            Assumes.True(typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()));
 
             lock (this.syncObject)
             {
@@ -180,7 +181,7 @@
         {
             Requires.NotNull(type, "type");
             Requires.NotNull(value, "value");
-            Assumes.True(typeof(T).IsAssignableFrom(type));
+            Assumes.True(typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()));
 
             lock (this.syncObject)
             {

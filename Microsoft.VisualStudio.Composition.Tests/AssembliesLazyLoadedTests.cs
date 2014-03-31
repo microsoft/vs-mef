@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.AppDomainTests;
@@ -19,7 +20,7 @@
         [Fact(Skip = "Functionality not yet implemented.")]
         public async Task ComposableAssembliesLazyLoadedWhenQueried()
         {
-            var configuration = CompositionConfiguration.Create(typeof(ExternalExport), typeof(YetAnotherExport));
+            var configuration = CompositionConfiguration.Create(new AttributedPartDiscovery(), typeof(ExternalExport), typeof(YetAnotherExport));
             string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             await configuration.SaveAsync(path);
 
@@ -44,7 +45,7 @@
         [Fact(Skip = "Functionality not yet implemented.")]
         public async Task ComposableAssembliesLazyLoadedByLazyImport()
         {
-            var configuration = CompositionConfiguration.Create(typeof(ExternalExport), typeof(YetAnotherExport));
+            var configuration = CompositionConfiguration.Create(new AttributedPartDiscovery(), typeof(ExternalExport), typeof(YetAnotherExport));
             string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             await configuration.SaveAsync(path);
 
@@ -68,7 +69,7 @@
 
             internal void Initialize(string cachedCompositionPath)
             {
-                var containerFactory = CompositionConfiguration.Load(cachedCompositionPath);
+                var containerFactory = CompositionConfiguration.Load(Assembly.LoadFile(cachedCompositionPath));
                 this.container = containerFactory.CreateContainer();
             }
 

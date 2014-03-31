@@ -2,20 +2,19 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Composition;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
-    using MefV1 = System.ComponentModel.Composition;
 
     internal static class ExportFactory
     {
         internal static bool IsExportFactoryTypeV1(this Type type)
         {
-            if (type != null && type.IsGenericType)
+            if (type != null && type.GetTypeInfo().IsGenericType)
             {
                 var typeDefinition = type.GetGenericTypeDefinition();
-                if (typeDefinition.IsEquivalentTo(typeof(MefV1.ExportFactory<>)) || typeDefinition.IsEquivalentTo(typeof(MefV1.ExportFactory<,>)))
+                if (typeDefinition.FullName.StartsWith("System.ComponentModel.Composition.ExportFactory"))
                 {
                     return true;
                 }
@@ -26,10 +25,10 @@
 
         internal static bool IsExportFactoryTypeV2(this Type type)
         {
-            if (type != null && type.IsGenericType)
+            if (type != null && type.GetTypeInfo().IsGenericType)
             {
                 var typeDefinition = type.GetGenericTypeDefinition();
-                if (typeDefinition.IsEquivalentTo(typeof(ExportFactory<>)) || typeDefinition.IsEquivalentTo(typeof(ExportFactory<,>)))
+                if (typeDefinition.FullName.StartsWith("System.Composition.ExportFactory"))
                 {
                     return true;
                 }

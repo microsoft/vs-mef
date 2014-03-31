@@ -9,6 +9,7 @@
     using System.Threading.Tasks;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
+    using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
 
     public class ExportingMembersTests
     {
@@ -52,18 +53,7 @@
         [Trait("GenericExports", "Closed")]
         public void ExportedPropertyGenericTypeWrongTypeArgs(IContainer container)
         {
-            try
-            {
-                container.GetExportedValue<Comparer<bool>>("PropertyGenericType");
-                Assert.False(true, "Expected exception not thrown.");
-            }
-            catch (ArgumentException) { } // V3
-            catch (MefV1.ImportCardinalityMismatchException)
-            {
-            }
-            catch (System.Composition.Hosting.CompositionFailedException)
-            {
-            }
+            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<Comparer<bool>>("PropertyGenericType"));
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass))]
@@ -110,7 +100,7 @@
                 Assert.False(true, "Expected exception not thrown.");
             }
             catch (MefV1.ImportCardinalityMismatchException) { }
-            catch (CompositionFailedException) { } // V2/V3
+            catch (Microsoft.VisualStudio.Composition.CompositionFailedException) { } // V2/V3
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass), typeof(ImportingClass))]

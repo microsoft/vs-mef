@@ -9,7 +9,6 @@
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
-    using MefV1 = System.ComponentModel.Composition;
 
     public class ComposableCatalog
     {
@@ -36,7 +35,7 @@
 
             var exports = this.exportsByContract.GetValueOrDefault(import.Contract, ImmutableList.Create<Export>());
 
-            if (import.Contract.Type.IsGenericType && !import.Contract.Type.IsGenericTypeDefinition)
+            if (import.Contract.Type.GetTypeInfo().IsGenericType && !import.Contract.Type.GetTypeInfo().IsGenericTypeDefinition)
             {
                 var typeDefinitionContract = new CompositionContract(import.Contract.ContractName, import.Contract.Type.GetGenericTypeDefinition());
                 exports = exports.AddRange(this.exportsByContract.GetValueOrDefault(typeDefinitionContract, ImmutableList.Create<Export>()));
@@ -54,7 +53,7 @@
 
         public IEnumerable<Assembly> Assemblies
         {
-            get { return this.types.Select(t => t.Assembly).Distinct(); }
+            get { return this.types.Select(t => t.GetTypeInfo().Assembly).Distinct(); }
         }
 
         public IImmutableSet<ComposablePartDefinition> Parts
@@ -75,18 +74,18 @@
             return parts.Aggregate(Create(), (catalog, part) => catalog.WithPart(part));
         }
 
-        public static ComposableCatalog Create(IEnumerable<Type> types, PartDiscovery discovery = null)
+        public static ComposableCatalog Create(PartDiscovery discovery, IEnumerable<Type> types)
         {
             Requires.NotNull(types, "types");
-            discovery = discovery ?? new AttributedPartDiscovery();
+            Requires.NotNull(discovery, "discovery");
 
             return Create(types.Select(discovery.CreatePart).Where(p => p != null));
         }
 
-        public static ComposableCatalog Create(params Type[] types)
+        public static ComposableCatalog Create(PartDiscovery discovery, params Type[] types)
         {
             Requires.NotNull(types, "types");
-            return Create((IEnumerable<Type>)types);
+            return Create(discovery, (IEnumerable<Type>)types);
         }
 
         public ComposableCatalog WithPart(ComposablePartDefinition partDefinition)
@@ -126,8 +125,8 @@
 
         private static bool HasCompatibleCreationPolicies(ComposablePartDefinition exportPartDefinition, ImportDefinition importDefinition)
         {
-            return exportPartDefinition.CreationPolicy == MefV1.CreationPolicy.Any
-                || importDefinition.RequiredCreationPolicy == MefV1.CreationPolicy.Any
+            return exportPartDefinition.CreationPolicy == CreationPolicy.Any
+                || importDefinition.RequiredCreationPolicy == CreationPolicy.Any
                 || exportPartDefinition.CreationPolicy == importDefinition.RequiredCreationPolicy;
         }
 
@@ -139,9 +138,9 @@
 
             if (importDefinition.MetadataType != null)
             {
-                if (importDefinition.MetadataType.IsInterface && !importDefinition.MetadataType.IsEquivalentTo(typeof(IDictionary<string, object>)))
+                if (importDefinition.MetadataType.GetTypeInfo().IsInterface && !importDefinition.MetadataType.Equals(typeof(IDictionary<string, object>)))
                 {
-                    foreach (var property in importDefinition.MetadataType.EnumProperties(BindingFlags.Instance | BindingFlags.Public))
+                    foreach (var property in importDefinition.MetadataType.EnumProperties().WherePublicInstance())
                     {
                         if (property.GetCustomAttribute<DefaultValueAttribute>() == null)
                         {

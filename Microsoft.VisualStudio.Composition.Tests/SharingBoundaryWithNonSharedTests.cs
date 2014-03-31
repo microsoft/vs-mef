@@ -8,6 +8,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
 
     [Trait("SharingBoundary", "")]
     public class SharingBoundaryWithNonSharedTests

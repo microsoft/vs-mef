@@ -26,6 +26,8 @@
         /// <returns>A set of generated parts.</returns>
         public abstract IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly);
 
+        public abstract bool IsExportFactoryType(Type type);
+
         /// <summary>
         /// Reflects over a set of assemblies and produces MEF parts for every applicable type.
         /// </summary>
@@ -55,7 +57,7 @@
 
             if (type.IsAnyLazyType() || type.IsExportFactoryTypeV1() || type.IsExportFactoryTypeV2())
             {
-                return type.GetGenericArguments()[0];
+                return type.GetTypeInfo().GenericTypeArguments[0];
             }
 
             return type;
@@ -71,7 +73,7 @@
             }
             else
             {
-                type = type.GetGenericArguments()[0]; // IEnumerable<T> -> T
+                type = type.GetTypeInfo().GenericTypeArguments[0]; // IEnumerable<T> -> T
             }
 
             return type;
@@ -82,13 +84,7 @@
             Requires.NotNull(type, "type");
             Requires.NotNull(importingConstructorAttributeType, "importingConstructorAttributeType");
 
-            var flags = BindingFlags.Instance | BindingFlags.Public;
-            if (!publicOnly)
-            {
-                flags |= BindingFlags.NonPublic;
-            }
-
-            var ctors = type.GetConstructors(flags);
+            var ctors = type.GetTypeInfo().DeclaredConstructors.Where(ctor => !ctor.IsStatic && (ctor.IsPublic || !publicOnly));
             var taggedCtor = ctors.SingleOrDefault(ctor => ctor.GetCustomAttribute(importingConstructorAttributeType) != null);
             var defaultCtor = ctors.SingleOrDefault(ctor => ctor.GetParameters().Length == 0);
             var importingCtor = taggedCtor ?? defaultCtor;
@@ -126,14 +122,14 @@
             var ienumerableOfT = typeof(IEnumerable<>).MakeGenericType(elementType);
             var ilistOfT = typeof(IList<>).MakeGenericType(elementType);
 
-            if (collectionType.IsArray || collectionType.IsEquivalentTo(ienumerableOfT) || collectionType.IsEquivalentTo(ilistOfT) || collectionType.IsEquivalentTo(icollectionOfT))
+            if (collectionType.IsArray || collectionType.Equals(ienumerableOfT) || collectionType.Equals(ilistOfT) || collectionType.Equals(icollectionOfT))
             {
                 return true;
             }
 
-            Verify.Operation(icollectionOfT.IsAssignableFrom(collectionType), "Collection type must derive from ICollection<T>");
+            Verify.Operation(icollectionOfT.GetTypeInfo().IsAssignableFrom(collectionType.GetTypeInfo()), "Collection type must derive from ICollection<T>");
 
-            var defaultCtor = collectionType.GetConstructor(new Type[0]);
+            var defaultCtor = collectionType.GetTypeInfo().DeclaredConstructors.FirstOrDefault(ctor => ctor.GetParameters().Length == 0);
             if (defaultCtor != null && defaultCtor.IsPublic)
             {
                 return true;

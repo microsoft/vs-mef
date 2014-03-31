@@ -42,42 +42,42 @@
 
         internal static bool IsAnyLazyType(this Type type)
         {
-            if (type == null || !type.IsGenericType)
+            if (type == null || !type.GetTypeInfo().IsGenericType)
             {
                 return false;
             }
 
             var typeDefinition = type.GetGenericTypeDefinition();
-            return typeDefinition.IsEquivalentTo(typeof(Lazy<>))
-                || typeDefinition.IsEquivalentTo(typeof(Lazy<,>))
-                || typeDefinition.IsEquivalentTo(typeof(ILazy<>))
-                || typeDefinition.IsEquivalentTo(typeof(ILazy<,>));
+            return typeDefinition.Equals(typeof(Lazy<>))
+                || typeDefinition.Equals(typeof(Lazy<,>))
+                || typeDefinition.Equals(typeof(ILazy<>))
+                || typeDefinition.Equals(typeof(ILazy<,>));
         }
 
         internal static bool IsConcreteLazyType(this Type type)
         {
-            if (type == null || !type.IsGenericType)
+            if (type == null || !type.GetTypeInfo().IsGenericType)
             {
                 return false;
             }
 
             var typeDefinition = type.GetGenericTypeDefinition();
-            return typeDefinition.IsEquivalentTo(typeof(Lazy<>))
-                || typeDefinition.IsEquivalentTo(typeof(Lazy<,>));
+            return typeDefinition.Equals(typeof(Lazy<>))
+                || typeDefinition.Equals(typeof(Lazy<,>));
         }
 
         internal static Type FromLazy(Type type)
         {
             Requires.NotNull(type, "type");
 
-            if (type.IsGenericType)
+            if (type.GetTypeInfo().IsGenericType)
             {
                 Type genericTypeDefinition = type.GetGenericTypeDefinition();
-                if (genericTypeDefinition.IsEquivalentTo(typeof(Lazy<>)) || genericTypeDefinition.IsEquivalentTo(typeof(ILazy<>)))
+                if (genericTypeDefinition.Equals(typeof(Lazy<>)) || genericTypeDefinition.Equals(typeof(ILazy<>)))
                 {
                     return typeof(LazyPart<>).MakeGenericType(type.GenericTypeArguments);
                 }
-                else if (genericTypeDefinition.IsEquivalentTo(typeof(Lazy<,>)) || genericTypeDefinition.IsEquivalentTo(typeof(ILazy<,>)))
+                else if (genericTypeDefinition.Equals(typeof(Lazy<,>)) || genericTypeDefinition.Equals(typeof(ILazy<,>)))
                 {
                     return typeof(LazyPart<,>).MakeGenericType(type.GenericTypeArguments);
                 }

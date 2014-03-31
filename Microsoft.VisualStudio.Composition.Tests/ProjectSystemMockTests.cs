@@ -8,6 +8,7 @@
     using System.Composition;
     using Xunit;
     using System.Composition.Hosting;
+    using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
 
     public class ProjectSystemMockTests
     {

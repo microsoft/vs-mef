@@ -18,6 +18,7 @@
         public void CreateDgmlFromConfiguration()
         {
             var configuration = CompositionConfiguration.Create(
+                new AttributedPartDiscovery(),
                 typeof(Exporter),
                 typeof(Importer));
             XDocument dgml = configuration.CreateDgml();

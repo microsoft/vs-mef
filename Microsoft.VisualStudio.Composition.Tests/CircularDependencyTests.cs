@@ -136,6 +136,7 @@
         {
             // There is no way to resolve this catalog. It would instantiate parts forever.
             Assert.Throws<InvalidOperationException>(() => CompositionConfiguration.Create(
+                new AttributedPartDiscovery(), 
                 typeof(NonSharedPart1),
                 typeof(NonSharedPart2),
                 typeof(NonSharedPart3)));
@@ -183,7 +184,7 @@
         public void SelfImportingNonSharedPartThrowsV2()
         {
             var container = TestUtilities.CreateContainerV2(typeof(SelfImportingNonSharedPart));
-            Assert.Throws<System.Composition.Hosting.CompositionFailedException>(() => container.GetExportedValue<SelfImportingNonSharedPart>());
+            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<SelfImportingNonSharedPart>());
         }
 
         [MefFact(CompositionEngines.V2Compat | CompositionEngines.V1Compat, typeof(SelfImportingSharedPart))]
@@ -247,6 +248,7 @@
         public void ValidMultiplePaths()
         {
             CompositionConfiguration.Create(
+                new AttributedPartDiscovery(), 
                 typeof(ValidMultiplePathRoot),
                 typeof(ValidMultiplePathTrail1),
                 typeof(ValidMultiplePathTrail2),

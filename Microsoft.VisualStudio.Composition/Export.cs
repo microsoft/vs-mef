@@ -46,17 +46,25 @@
                     return this.PartDefinition.Type;
                 }
 
-                switch (this.ExportingMember.MemberType)
+                var exportingField = this.ExportingMember as FieldInfo;
+                if (exportingField != null)
                 {
-                    case MemberTypes.Field:
-                        return ((FieldInfo)this.ExportingMember).FieldType;
-                    case MemberTypes.Property:
-                        return ((PropertyInfo)this.ExportingMember).PropertyType;
-                    case MemberTypes.Method:
-                        return GetContractTypeForDelegate((MethodInfo)this.ExportingMember);
-                    default:
-                        throw new NotSupportedException();
+                    return exportingField.FieldType;
                 }
+
+                var exportingProperty = this.ExportingMember as PropertyInfo;
+                if (exportingProperty != null)
+                {
+                    return exportingProperty.PropertyType;
+                }
+
+                var exportingMethod = this.ExportingMember as MethodInfo;
+                if (exportingMethod != null)
+                {
+                    return GetContractTypeForDelegate(exportingMethod);
+                }
+
+                throw new NotSupportedException();
             }
         }
 
@@ -65,7 +73,7 @@
             Type genericTypeDefinition;
             int parametersCount = method.GetParameters().Length;
             var typeArguments = method.GetParameters().Select(p => p.ParameterType).ToList();
-            var voidResult = method.ReturnType.IsEquivalentTo(typeof(void));
+            var voidResult = method.ReturnType.Equals(typeof(void));
             if (voidResult)
             {
                 if (typeArguments.Count == 0)

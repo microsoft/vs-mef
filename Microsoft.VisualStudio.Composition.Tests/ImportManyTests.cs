@@ -8,6 +8,7 @@
     using System.Threading.Tasks;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
+    using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
 
     public class ImportManyTests
     {
@@ -391,7 +392,7 @@
         [MefFact(CompositionEngines.V3EmulatingV1, typeof(NonPublicExtensionThree), typeof(ExtendableListOfLazy))]
         public void ImportManyListOfLazyPublicInterfaceWithNonPublicParts(IContainer container)
         {
-            var export =container.GetExportedValue<ExtendableListOfLazy>();
+            var export = container.GetExportedValue<ExtendableListOfLazy>();
             Assert.Equal(1, export.Extensions.Count);
             Assert.IsType<NonPublicExtensionThree>(export.Extensions.Single().Value);
         }
@@ -415,42 +416,20 @@
         [Trait("Container.GetExport", "CardinalityMismatch")]
         public void GetExportOneForManyThrowsException(IContainer container)
         {
-            try
+            Assert.Throws<CompositionFailedException>(() =>
             {
                 var result = container.GetExport<IExtension>();
 
                 // MEFv1 would have thrown already, but MEFv2 needs a bit more help.
                 var dummy = result.Value;
-
-                Assert.False(true, "Expected exception not thrown.");
-            }
-            catch (InvalidOperationException)
-            {
-                // MEFv1 throws this.
-            }
-            catch (System.Composition.Hosting.CompositionFailedException)
-            {
-                // MEFv2 throws this
-            }
+            });
         }
 
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
         [Trait("Container.GetExport", "CardinalityMismatch")]
         public void GetExportedValueOneForManyThrowsException(IContainer container)
         {
-            try
-            {
-                container.GetExportedValue<IExtension>();
-                Assert.False(true, "Expected exception not thrown.");
-            }
-            catch (InvalidOperationException)
-            {
-                // MEFv1 throws this.
-            }
-            catch (System.Composition.Hosting.CompositionFailedException)
-            {
-                // MEFv2 throws this
-            }
+            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<IExtension>());
         }
 
         public interface IExtension { }
