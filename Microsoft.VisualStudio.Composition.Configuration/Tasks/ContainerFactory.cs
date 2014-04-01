@@ -17,7 +17,7 @@ namespace $rootnamespace$
     {
         internal static ICompositionContainerFactory LoadDefault()
         {
-            return CompositionConfiguration.Load(Assembly.LoadWithPartialName("$ConfigurationAssemblyName$"));
+            return CompositionConfiguration.Load(Assembly.Load("$ConfigurationAssemblyName$"));
         }
    }
 }
