@@ -18,6 +18,8 @@
         [Required]
         public string ConfigurationOutputPath { get; set; }
 
+        public string DgmlOutputPath { get; set; }
+
         public override bool Execute()
         {
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
@@ -27,6 +29,12 @@
                 var parts = discovery.CreateParts(this.CatalogAssemblies.Select(item => Assembly.LoadFile(item.ItemSpec)));
                 var catalog = ComposableCatalog.Create(parts);
                 var configuration = CompositionConfiguration.Create(catalog);
+
+                if (!string.IsNullOrEmpty(this.DgmlOutputPath))
+                {
+                    configuration.CreateDgml().Save(this.DgmlOutputPath);
+                }
+
                 string path = Path.GetFullPath(this.ConfigurationOutputPath);
                 this.Log.LogMessage("Producing IoC container \"{0}\"", path);
                 configuration.SaveAsync(path).GetAwaiter().GetResult();

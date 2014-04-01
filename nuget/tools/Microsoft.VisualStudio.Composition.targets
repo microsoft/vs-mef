@@ -33,6 +33,7 @@
 	<Target Name="GenerateCompositionConfigurationAssembly" AfterTargets="Build">
 		<CreateComposition
 			CatalogAssemblies="@(CompositionConfigurationAssembly)"
+			DgmlOutputPath="$(OutputPath)$(CompositionConfigurationAssemblyName).dgml"
 			ConfigurationOutputPath="$(OutputPath)$(CompositionConfigurationAssemblyName).dll" />
 	</Target>
 
