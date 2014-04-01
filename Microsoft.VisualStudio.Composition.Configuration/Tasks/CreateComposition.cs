@@ -39,9 +39,16 @@
                 this.Log.LogMessage("Producing IoC container \"{0}\"", path);
                 configuration.SaveAsync(path).GetAwaiter().GetResult();
             }
+            catch (AggregateException ex)
+            {
+                foreach (Exception inner in ex.Flatten().InnerExceptions)
+                {
+                    this.Log.LogError(inner.GetUserMessage());
+                }
+            }
             catch (Exception ex)
             {
-                this.Log.LogError(ex.Message);
+                this.Log.LogError(ex.GetUserMessage());
             }
             finally
             {
