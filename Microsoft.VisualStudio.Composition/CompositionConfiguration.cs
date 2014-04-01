@@ -193,11 +193,11 @@
             Requires.NotNull(parts, "parts");
 
             XElement nodes, links;
-            var dgml = Dgml.Create(out nodes, out links);
+            var dgml = Dgml.Create(out nodes, out links, direction: "RightToLeft");
 
             foreach (var part in parts)
             {
-                nodes.Add(Dgml.Node(part.Definition.Id, part.Definition.Id));
+                nodes.Add(Dgml.Node(part.Definition.Id, ReflectionHelpers.GetTypeName(part.Definition.Type, false, true, null)));
                 foreach (var import in part.SatisfyingExports.Keys)
                 {
                     foreach (Export export in part.SatisfyingExports[import])
