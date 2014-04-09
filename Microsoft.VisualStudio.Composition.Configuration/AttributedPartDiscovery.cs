@@ -12,6 +12,31 @@
 
     public class AttributedPartDiscovery : PartDiscovery
     {
+        /// <summary>
+        /// Gets or sets a value indicating whether non-public types and members will be explored.
+        /// </summary>
+        /// <remarks>
+        /// The Microsoft.Composition NuGet package ignores non-publics.
+        /// </remarks>
+        public bool IsNonPublicSupported { get; set; }
+
+        /// <summary>
+        /// Gets the flags that select just public members or public and non-public as appropriate.
+        /// </summary>
+        protected BindingFlags PublicVsNonPublicFlags
+        {
+            get
+            {
+                var baseline = BindingFlags.Public;
+                if (this.IsNonPublicSupported)
+                {
+                    baseline |= BindingFlags.NonPublic;
+                }
+
+                return baseline;
+            }
+        }
+
         public override ComposablePartDefinition CreatePart(Type partType)
         {
             Requires.NotNull(partType, "partType");
@@ -19,7 +44,7 @@
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
             var imports = ImmutableDictionary.CreateBuilder<MemberInfo, ImportDefinition>();
-            var exportMetadataOnType = GetExportMetadata(partType.GetCustomAttributes());
+            var exportMetadataOnType = this.GetExportMetadata(partType.GetCustomAttributes());
 
             foreach (var exportAttribute in partType.GetCustomAttributes<ExportAttribute>())
             {
@@ -36,7 +61,7 @@
                 sharingBoundary = sharedAttribute.SharingBoundary ?? string.Empty;
             }
 
-            foreach (var member in partType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            foreach (var member in partType.GetProperties(BindingFlags.Instance | this.PublicVsNonPublicFlags))
             {
                 var importAttribute = member.GetCustomAttribute<ImportAttribute>();
                 var importManyAttribute = member.GetCustomAttribute<ImportManyAttribute>();
@@ -53,7 +78,7 @@
                 else if (exportAttributes.Any())
                 {
                     Verify.Operation(!partType.IsGenericTypeDefinition, "Exports on members not allowed when the declaring type is generic.");
-                    var exportMetadataOnMember = GetExportMetadata(member.GetCustomAttributes());
+                    var exportMetadataOnMember = this.GetExportMetadata(member.GetCustomAttributes());
                     var exportDefinitions = ImmutableList.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
@@ -67,7 +92,7 @@
             }
 
             MethodInfo onImportsSatisfied = null;
-            foreach (var method in partType.GetMethods(BindingFlags.Public | BindingFlags.Instance))
+            foreach (var method in partType.GetMethods(this.PublicVsNonPublicFlags | BindingFlags.Instance))
             {
                 if (method.GetCustomAttribute<OnImportsSatisfiedAttribute>() != null)
                 {
@@ -80,7 +105,7 @@
             if (exportsOnMembers.Count > 0 || exportsOnType.Count > 0)
             {
                 var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinition>();
-                var importingCtor = GetImportingConstructor(partType, typeof(ImportingConstructorAttribute), publicOnly: true);
+                var importingCtor = GetImportingConstructor(partType, typeof(ImportingConstructorAttribute), publicOnly: !this.IsNonPublicSupported);
                 Verify.Operation(importingCtor != null, "No importing constructor found.");
                 foreach (var parameter in importingCtor.GetParameters())
                 {
@@ -118,7 +143,7 @@
             return false;
         }
 
-        private static IReadOnlyDictionary<string, object> GetExportMetadata(IEnumerable<Attribute> attributes)
+        private IReadOnlyDictionary<string, object> GetExportMetadata(IEnumerable<Attribute> attributes)
         {
             Requires.NotNull(attributes, "attributes");
 
@@ -133,7 +158,7 @@
                 }
                 else if (attribute.GetType().GetCustomAttribute<MetadataAttributeAttribute>() != null)
                 {
-                    var properties = attribute.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+                    var properties = attribute.GetType().GetProperties(this.PublicVsNonPublicFlags | BindingFlags.Instance);
                     foreach (var property in properties.Where(p => p.DeclaringType != typeof(Attribute)))
                     {
                         UpdateMetadataDictionary(result, namesOfMetadataWithMultipleValues, property.Name, property.GetValue(attribute));
@@ -238,7 +263,7 @@
         {
             Requires.NotNull(assembly, "assembly");
 
-            var parts = from type in assembly.GetExportedTypes()
+            var parts = from type in this.IsNonPublicSupported ? assembly.GetTypes() : assembly.GetExportedTypes()
                         where type.GetCustomAttribute<PartNotDiscoverableAttribute>() == null
                         let part = this.CreatePart(type)
                         where part != null

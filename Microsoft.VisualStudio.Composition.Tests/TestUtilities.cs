@@ -104,7 +104,13 @@
             }
             else if (attributesDiscovery.HasFlag(CompositionEngines.V2))
             {
-                discovery = new AttributedPartDiscovery();
+                var v2Discovery = new AttributedPartDiscovery();
+                if (attributesDiscovery.HasFlag(CompositionEngines.V3NonPublicSupport))
+                {
+                    v2Discovery.IsNonPublicSupported = true;
+                }
+
+                discovery = v2Discovery;
             }
             return discovery;
         }
@@ -158,7 +164,7 @@
 
             if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV2))
             {
-                test(CreateContainerV3(assemblies, CompositionEngines.V2, parts));
+                test(CreateContainerV3(assemblies, CompositionEngines.V2 | (CompositionEngines.V3NonPublicSupport & attributesVersion), parts));
             }
         }
 

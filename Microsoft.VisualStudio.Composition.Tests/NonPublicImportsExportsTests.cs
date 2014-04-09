@@ -7,11 +7,12 @@
     using System.Threading.Tasks;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
+    using MefV2 = System.Composition;
 
     [Trait("Access", "NonPublic")]
     public class NonPublicImportsExportsTests
     {
-        [MefFact(CompositionEngines.V1Compat, typeof(InternalExport), typeof(PublicExport))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2WithNonPublic, typeof(InternalExport), typeof(PublicExport))]
         public void InternalExportedType(IContainer container)
         {
             var result = container.GetExportedValue<InternalExport>();
@@ -377,12 +378,15 @@
         internal interface IInternalInterface { }
 
         [MefV1.Export]
+        [MefV2.Export, MefV2.Shared]
         internal class InternalExport
         {
             [MefV1.Import]
+            [MefV2.Import]
             public PublicExport PublicImportingProperty { get; set; }
 
             [MefV1.Import]
+            [MefV2.Import]
             internal PublicExport InternalImportingProperty { get; set; }
         }
 
@@ -449,6 +453,7 @@
         }
 
         [MefV1.Export]
+        [MefV2.Export, MefV2.Shared]
         public class PublicExport { }
 
         [MefV1.Export]

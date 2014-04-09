@@ -68,7 +68,7 @@
             {
                 if (this.compositionVersions.HasFlag(engine))
                 {
-                    yield return new MefTestCommand(method, engine, parts, this.assemblies, this.InvalidConfiguration);
+                    yield return new MefTestCommand(method, engine | (this.compositionVersions & CompositionEngines.V3OptionsMask), parts, this.assemblies, this.InvalidConfiguration);
                 }
             }
 
