@@ -158,6 +158,11 @@
 
             if (importAttribute != null)
             {
+                if (importAttribute.Source != ImportSource.Any)
+                {
+                    throw new NotSupportedException("Custom import sources are not yet supported.");
+                }
+
                 var requiredCreationPolicy = propertyOrFieldType.IsExportFactoryTypeV1()
                     ? CreationPolicy.NonShared
                     : (CreationPolicy)importAttribute.RequiredCreationPolicy;
@@ -174,6 +179,11 @@
             }
             else if (importManyAttribute != null)
             {
+                if (importManyAttribute.Source != ImportSource.Any)
+                {
+                    throw new NotSupportedException("Custom import sources are not yet supported.");
+                }
+
                 var requiredCreationPolicy = GetElementTypeFromMany(propertyOrFieldType).IsExportFactoryTypeV1()
                     ? CreationPolicy.NonShared
                     : (CreationPolicy)importManyAttribute.RequiredCreationPolicy;
