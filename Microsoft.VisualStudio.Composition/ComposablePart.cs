@@ -66,16 +66,17 @@
                     foreach (var export in pair.Value)
                     {
                         var receivingType = pair.Key.ImportDefinition.ElementType;
-                        if (export.ExportedValueType.GetTypeInfo().IsGenericTypeDefinition && receivingType.GetTypeInfo().IsGenericType)
+                        var exportingType = export.ExportedValueType;
+                        if (exportingType.GetTypeInfo().IsGenericTypeDefinition && receivingType.GetTypeInfo().IsGenericType)
                         {
-                            receivingType = receivingType.GetGenericTypeDefinition();
+                            exportingType = exportingType.MakeGenericType(receivingType.GenericTypeArguments);
                         }
 
                         Verify.Operation(
-                            receivingType.GetTypeInfo().IsAssignableFrom(export.ExportedValueType.GetTypeInfo()),
+                            receivingType.GetTypeInfo().IsAssignableFrom(exportingType.GetTypeInfo()),
                             "Exporting MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
                             ReflectionHelpers.GetTypeName(export.PartDefinition.Type, false, true, null),
-                            ReflectionHelpers.GetTypeName(importDefinition.MemberType, false, true, null),
+                            ReflectionHelpers.GetTypeName(receivingType, false, true, null),
                             ReflectionHelpers.GetTypeName(this.Definition.Type, false, true, null),
                             pair.Key.ImportingMember != null ? pair.Key.ImportingMember.Name : "ctor");
                     }
