@@ -216,6 +216,23 @@
             Assert.Equal(1, importingPart.ImportingProperty.Count);
         }
 
+        [MefFact(CompositionEngines.V1, typeof(PartWithImportManyOfInternalPartViaInternalInterface), typeof(InternalPartWithPublicExport))]
+        public void ImportManyOfInternalPartViaInternalInterface(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<PartWithImportManyOfInternalPartViaInternalInterface>();
+            Assert.NotNull(importingPart.ImportingProperty);
+            Assert.Equal(1, importingPart.ImportingProperty.Count);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(PartWithLazyImportManyOfInternalPartViaInternalInterface), typeof(InternalPartWithPublicExport))]
+        public void LazyImportManyOfInternalPartViaInternalInterface(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<PartWithLazyImportManyOfInternalPartViaInternalInterface>();
+            Assert.NotNull(importingPart.ImportingProperty);
+            Assert.Equal(1, importingPart.ImportingProperty.Count);
+            Assert.IsType<InternalPartWithPublicExport>(importingPart.ImportingProperty[0].Value);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(PartWithLazyImportOfInternalPartViaInternalInterface), typeof(InternalPartWithPublicExport))]
         public void LazyImportOfInternalPartViaInternalInterface(IContainer container)
         {
@@ -355,10 +372,24 @@
         }
 
         [MefV1.Export]
+        public class PartWithImportManyOfInternalPartViaInternalInterface
+        {
+            [MefV1.ImportMany]
+            internal List<IInternalInterface> ImportingProperty { get; set; }
+        }
+
+        [MefV1.Export]
         internal class PartWithLazyImportOfInternalPartViaInternalInterface
         {
             [MefV1.Import]
             internal Lazy<IInternalInterface> ImportingProperty { get; set; }
+        }
+
+        [MefV1.Export]
+        internal class PartWithLazyImportManyOfInternalPartViaInternalInterface
+        {
+            [MefV1.ImportMany]
+            internal List<Lazy<IInternalInterface>> ImportingProperty { get; set; }
         }
 
         [MefV1.Export]
