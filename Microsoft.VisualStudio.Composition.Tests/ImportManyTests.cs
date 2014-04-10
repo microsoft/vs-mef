@@ -180,10 +180,33 @@
             Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionOfLazyMetadata), typeof(ExtensionOne))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionOfLazyMetadata), typeof(ExtensionOne))]
         public void ImportManyCustomCollectionWithLazyMetadata(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableCustomCollectionOfLazyMetadata>();
+            Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
+            Assert.Equal(1, extendable.Extensions.Count);
+            var extension = extendable.Extensions.Single();
+            Assert.IsType<ExtensionOne>(extension.Value);
+            Assert.Equal(1, extension.Metadata["a"]);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionOfConcreteType), typeof(ExtensionOne))]
+        public void ImportManyCustomCollectionConcreteType(IContainer container)
+        {
+            var extendable = container.GetExportedValue<ExtendableCustomCollectionOfConcreteType>();
+            Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
+            Assert.Equal(1, extendable.Extensions.Count);
+            var extension = extendable.Extensions.Single();
+            Assert.IsType<ExtensionOne>(extension);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionOfConcreteTypeWithMetadata), typeof(ExtensionOne))]
+        public void ImportManyCustomCollectionConcreteTypeWithMetadata(IContainer container)
+        {
+            var extendable = container.GetExportedValue<ExtendableCustomCollectionOfConcreteTypeWithMetadata>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
             Assert.Equal(1, extendable.Extensions.Count);
@@ -545,6 +568,24 @@
             public CustomCollectionWithLazyMetadata<IExtension, IDictionary<string, object>> Extensions { get; set; }
         }
 
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ExtendableCustomCollectionOfConcreteType
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            public CustomCollectionConcreteType Extensions { get; set; }
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ExtendableCustomCollectionOfConcreteTypeWithMetadata
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            public CustomCollectionConcreteTypeWithMetadata Extensions { get; set; }
+        }
+
         public class CustomCollectionWithPublicCtor<T> : ICollection<T>
         {
             private List<T> inner = new List<T>();
@@ -678,5 +719,9 @@
                 return this.GetEnumerator();
             }
         }
+
+        public class CustomCollectionConcreteType : CustomCollectionWithPublicCtor<IExtension> { }
+
+        public class CustomCollectionConcreteTypeWithMetadata : CustomCollectionWithPublicCtor<Lazy<IExtension, IDictionary<string, object>>> { }
     }
 }
