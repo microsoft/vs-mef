@@ -562,7 +562,7 @@
             bool closeParenthesis = false;
             if (importDefinition.IsLazyConcreteType || (export.ExportingMember != null && importDefinition.IsLazy))
             {
-                if (IsPublic(importDefinition.CoercedValueType))
+                if (IsPublic(importDefinition.ElementType))
                 {
                     string lazyTypeName = GetTypeName(LazyPart.FromLazy(importDefinition.MemberWithoutManyWrapper));
                     if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type) && import.PartDefinition != export.PartDefinition)
@@ -577,7 +577,7 @@
                 }
                 else
                 {
-                    closeLazy = this.EmitLazyConstruction(importDefinition.CoercedValueType, writer);
+                    closeLazy = this.EmitLazyConstruction(importDefinition.ElementType, writer);
                 }
             }
             else if (importDefinition.IsExportFactory)
@@ -595,7 +595,7 @@
 
                 return new DisposableWithAction(delegate
                 {
-                    writer.Write(".Value; return Tuple.Create<{0}, Action>(temp, () => {{ ", GetTypeName(importDefinition.CoercedValueType));
+                    writer.Write(".Value; return Tuple.Create<{0}, Action>(temp, () => {{ ", GetTypeName(importDefinition.ElementType));
                     if (typeof(IDisposable).IsAssignableFrom(export.PartDefinition.Type))
                     {
                         writer.Write("((IDisposable)temp).Dispose(); ");

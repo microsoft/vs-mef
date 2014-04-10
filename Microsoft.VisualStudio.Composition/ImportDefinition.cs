@@ -120,18 +120,6 @@
 
         public IReadOnlyCollection<IImportSatisfiabilityConstraint> ExportContraints { get; private set; }
 
-        /// <summary>
-        /// Gets the actual type (without the Lazy{T} wrapper) of the importing member.
-        /// </summary>
-        public Type CoercedValueType
-        {
-            get
-            {
-                // MEF v2 only allows for this to match the contract itself. MEF v1 was more flexible.
-                return this.Contract.Type;
-            }
-        }
-
         public override int GetHashCode()
         {
             return this.Contract.GetHashCode();

@@ -40,7 +40,7 @@
             Assert.Equal(1, NonSharedPart.DisposalCounter);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartFactoryV1WithExplicitContractType), typeof(NonSharedPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1WithExplicitContractType), typeof(NonSharedPart))]
         public void ExportFactoryWithExplicitContractTypeV1(IContainer container)
         {
             var partFactory = container.GetExportedValue<PartFactoryV1WithExplicitContractType>();
@@ -78,6 +78,27 @@
             using (var exportContext = factory2.CreateExport())
             {
                 Assert.IsType<NonSharedPart2>(exportContext.Value);
+            }
+        }
+
+        /// <summary>
+        /// Verifies a very tricky combination of export factories, explicit contract types and open generic exports.
+        /// </summary>
+        /// <remarks>
+        /// CPS did this in Dev12 with MEFv1. I don't know why it doesn't work in this unit test (or in a console app I wrote) against MEFv1.
+        /// But somehow it worked in VS. Perhaps due to some nuance in the ExportProviders CPS set up.
+        /// </remarks>
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(PartFactoryOfOpenGenericPart), typeof(NonSharedOpenGenericExportPart<>))]
+        [Trait("GenericExports", "Open")]
+        public void ExportFactoryWithOpenGenericExport(IContainer container)
+        {
+            var partFactory = container.GetExportedValue<PartFactoryOfOpenGenericPart>();
+            Assert.NotNull(partFactory.Factory);
+            using (var exportContext = partFactory.Factory.CreateExport())
+            {
+                var value = exportContext.Value;
+                Assert.NotNull(value);
+                Assert.IsType<NonSharedOpenGenericExportPart<IDisposable>>(value);
             }
         }
 
@@ -241,6 +262,21 @@
         [ExportMetadata("N", "V2")]
         public class NonSharedPart2 : NonSharedPart
         {
+        }
+
+        public interface INonSharedOpenGenericExportPart<T> { }
+
+        [MefV1.Export(typeof(NonSharedOpenGenericExportPart<>))]
+        [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class NonSharedOpenGenericExportPart<T> : INonSharedOpenGenericExportPart<T>
+        {
+        }
+
+        [MefV1.Export]
+        public class PartFactoryOfOpenGenericPart
+        {
+            [MefV1.Import(typeof(NonSharedOpenGenericExportPart<IDisposable>))]
+            public MefV1.ExportFactory<INonSharedOpenGenericExportPart<IDisposable>> Factory { get; set; }
         }
     }
 }
