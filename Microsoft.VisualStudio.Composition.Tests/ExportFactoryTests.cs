@@ -153,7 +153,7 @@
             Assert.IsType<InternalPart>(export.Value);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(NonPublicFactoryOfInternalPart), typeof(InternalPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(NonPublicFactoryOfInternalPart), typeof(InternalPart))]
         public void ExportFactoryForInternalPart(IContainer container)
         {
             var factory = container.GetExportedValue<NonPublicFactoryOfInternalPart>();

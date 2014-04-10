@@ -9,8 +9,15 @@
     using System.Threading.Tasks;
     using Validation;
 
-    internal static class ReflectionHelpers
+    public static class ReflectionHelpers
     {
+        private static readonly MethodInfo CastAsFuncMethodInfo = new Func<Func<object>, Delegate>(CastAsFunc<object>).GetMethodInfo().GetGenericMethodDefinition();
+
+        public static object CreateFuncOfType(Type typeArg, Func<object> func)
+        {
+            return CastAsFuncMethodInfo.MakeGenericMethod(typeArg).Invoke(null, new object[] { func });
+        }
+
         internal static IEnumerable<PropertyInfo> EnumProperties(this Type type)
         {
             Requires.NotNull(type, "type");
@@ -152,7 +159,7 @@
             }
             else
             {
-                string[] typeArguments = type.GetTypeInfo().GenericTypeArguments.Select(t => GetTypeName(t, false, false, relevantAssemblies)).ToArray();
+                string[] typeArguments = type.GetTypeInfo().GenericTypeArguments.Select(t => GetTypeName(t, false, evenNonPublic, relevantAssemblies)).ToArray();
                 result += ReplaceBackTickWithTypeArgs(type.DeclaringType == null ? type.FullName : type.Name, typeArguments);
             }
 
@@ -253,6 +260,11 @@
             {
                 yield return iface;
             }
+        }
+
+        private static Delegate CastAsFunc<T>(Func<object> func)
+        {
+            return new Func<T>(() => (T)func());
         }
     }
 }

@@ -582,9 +582,8 @@
             }
             else if (importDefinition.IsExportFactory)
             {
-                writer.Write(
-                    "new {0}(() => {{ var temp = ",
-                    GetTypeName(importDefinition.ExportFactoryType));
+                var exportFactoryEmitClose = this.EmitExportFactoryConstruction(importDefinition, writer);
+                writer.Write("() => { var temp = ");
 
                 if (importDefinition.ExportFactorySharingBoundaries.Count > 0)
                 {
@@ -595,15 +594,21 @@
 
                 return new DisposableWithAction(delegate
                 {
-                    writer.Write(".Value; return Tuple.Create<{0}, Action>(({0})temp, () => {{ ", GetTypeName(importDefinition.ElementType));
-                    if (typeof(IDisposable).IsAssignableFrom(export.PartDefinition.Type))
+                    writer.Write(".Value; return ");
+                    using (this.EmitExportFactoryTupleConstruction(importDefinition.ElementType, "temp", writer))
                     {
-                        writer.Write("((IDisposable)temp).Dispose(); ");
+                        writer.Write("() => { ");
+                        if (typeof(IDisposable).IsAssignableFrom(export.PartDefinition.Type))
+                        {
+                            writer.Write("((IDisposable)temp).Dispose(); ");
+                        }
+
+                        writer.Write("}");
                     }
 
-                    writer.Write("}); }");
+                    writer.Write("; }");
                     this.WriteExportMetadataReference(export, importDefinition, writer);
-                    writer.Write(")");
+                    exportFactoryEmitClose.Dispose();
                 });
             }
             else if (!IsPublic(export.PartDefinition.Type))
@@ -1047,6 +1052,90 @@
                     writer.Write(" ) }))");
                 });
             }
+        }
+
+        private IDisposable EmitExportFactoryConstruction(ImportDefinition exportFactoryImport, TextWriter writer = null)
+        {
+            writer = writer ?? new SelfTextWriter(this);
+
+            if (IsPublic(exportFactoryImport.ElementType))
+            {
+                writer.Write("new {0}(", GetTypeName(exportFactoryImport.ExportFactoryType));
+                return new DisposableWithAction(delegate
+                {
+                    writer.Write(")");
+                });
+            }
+            else
+            {
+                var ctor = exportFactoryImport.ExportFactoryType.GetConstructors().Single();
+                writer.WriteLine(
+                    "((ConstructorInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}/*{3}*/).MethodHandle, {2})).Invoke(new object[] {{ ",
+                    GetAssemblyExpression(exportFactoryImport.ExportFactoryType.Assembly),
+                    ctor.MetadataToken,
+                    this.GetClosedGenericTypeHandleExpression(exportFactoryImport.ExportFactoryType),
+                    ReflectionHelpers.GetTypeName(ctor.DeclaringType, false, true, null) + "." + ctor.Name);
+                using (Indent())
+                {
+                    writer.WriteLine(
+                        "{0}.CreateFuncOfType(",
+                        typeof(ReflectionHelpers).FullName);
+                    using (Indent())
+                    {
+                        writer.WriteLine(
+                            "{0},",
+                            this.GetExportFactoryTupleTypeExpression(exportFactoryImport.ElementType));
+                    }
+                }
+
+                var indent = Indent(3);
+                return new DisposableWithAction(delegate
+                {
+                    indent.Dispose();
+                    writer.WriteLine();
+                    writer.Write(") })");
+                });
+            }
+        }
+
+        private IDisposable EmitExportFactoryTupleConstruction(Type firstArgType, string valueExpression, TextWriter writer)
+        {
+            if (IsPublic(firstArgType))
+            {
+                writer.Write(
+                    "Tuple.Create<{0}, Action>(({0})({1}), ",
+                    this.GetTypeName(firstArgType),
+                    valueExpression);
+
+                return new DisposableWithAction(delegate
+                {
+                    writer.Write(")");
+                });
+            }
+            else
+            {
+                string create = GetMethodInfoExpression(
+                    new Func<object, object, Tuple<object, object>>(Tuple.Create<object, object>)
+                    .GetMethodInfo().GetGenericMethodDefinition());
+                writer.Write(
+                    "{0}.MakeGenericMethod({2}, typeof(Action)).Invoke(null, new object[] {{ {1}, (Action)(",
+                    create,
+                    valueExpression,
+                    GetTypeExpression(firstArgType));
+
+                return new DisposableWithAction(delegate
+                {
+                    writer.Write(") })");
+                });
+            }
+        }
+
+        private string GetExportFactoryTupleTypeExpression(Type constructedType)
+        {
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                "typeof(Tuple<,>).MakeGenericType({0}, typeof(System.Action))",
+                this.GetTypeExpression(constructedType));
         }
 
         private IDisposable Indent(int count = 1, bool withBraces = false)
