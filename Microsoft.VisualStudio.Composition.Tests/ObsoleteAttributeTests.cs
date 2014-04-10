@@ -10,22 +10,25 @@
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
-    public class CompilerSwitchesTests
+    [Trait("Obsolete", "BuildBreak")]
+    public class ObsoleteAttributeTests
     {
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
-        public void CanActivatePartWithObsoleteConstructor(IContainer container)
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(PartWithObsoleteConstructor))]
+        public void ObsoleteConstructor(IContainer container)
         {
-            var export = container.GetExportedValue<SomeClass>();
+            var export = container.GetExportedValue<PartWithObsoleteConstructor>();
             Assert.NotNull(export);
         }
 
         [MefV1.Export, Export]
-        public class SomeClass
+        public class PartWithObsoleteConstructor
         {
             [Obsolete("This part is activated by MEF. You should not call this directly.", true)]
-            public SomeClass()
+            public PartWithObsoleteConstructor()
             {
             }
         }
+
+        // TODO: Add tests for accessing properties, methods, etc. with Obsolete attributes.
     }
 }
