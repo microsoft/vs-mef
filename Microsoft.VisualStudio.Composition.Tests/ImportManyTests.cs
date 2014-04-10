@@ -44,6 +44,18 @@
             Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
         }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExtendableArrayWithMetadata), typeof(ExtensionOne))]
+        public void ImportManyArrayWithOneAndMetadata(IContainer container)
+        {
+            var extendable = container.GetExportedValue<ExtendableArrayWithMetadata>();
+            Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
+            Assert.Equal(1, extendable.Extensions.Length);
+            var value = extendable.Extensions.Single();
+            Assert.IsAssignableFrom(typeof(ExtensionOne), value.Value);
+            Assert.Equal(1, value.Metadata["a"]);
+        }
+
         #endregion
 
         #region IEnumerable<T> tests
@@ -192,7 +204,7 @@
             Assert.Equal(1, extension.Metadata["a"]);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionOfConcreteType), typeof(ExtensionOne))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionOfConcreteType), typeof(ExtensionOne))]
         public void ImportManyCustomCollectionConcreteType(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableCustomCollectionOfConcreteType>();
@@ -203,7 +215,7 @@
             Assert.IsType<ExtensionOne>(extension);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionOfConcreteTypeWithMetadata), typeof(ExtensionOne))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionOfConcreteTypeWithMetadata), typeof(ExtensionOne))]
         public void ImportManyCustomCollectionConcreteTypeWithMetadata(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableCustomCollectionOfConcreteTypeWithMetadata>();
@@ -511,6 +523,15 @@
             [ImportMany]
             [MefV1.ImportMany]
             public IExtension[] Extensions { get; set; }
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ExtendableArrayWithMetadata
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            public Lazy<IExtension, IDictionary<string, object>>[] Extensions { get; set; }
         }
 
         [Export]
