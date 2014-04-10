@@ -153,6 +153,15 @@
             Assert.IsType<InternalPart>(export.Value);
         }
 
+        [MefFact(CompositionEngines.V1, typeof(NonPublicFactoryOfInternalPart), typeof(InternalPart))]
+        public void ExportFactoryForInternalPart(IContainer container)
+        {
+            var factory = container.GetExportedValue<NonPublicFactoryOfInternalPart>();
+            var export = factory.InternalPartFactory.CreateExport();
+            Assert.NotNull(export.Value);
+            Assert.IsType<InternalPart>(export.Value);
+        }
+
         [MefV1.Export]
         public class PublicFactoryOfInternalPartViaPublicInterface
         {
@@ -160,7 +169,15 @@
             public MefV1.ExportFactory<IDisposable> InternalPartFactory { get; set; }
         }
 
+        [MefV1.Export]
+        public class NonPublicFactoryOfInternalPart
+        {
+            [MefV1.Import]
+            internal MefV1.ExportFactory<InternalPart> InternalPartFactory { get; set; }
+        }
+
         [MefV1.Export(typeof(IDisposable))]
+        [MefV1.Export]
         internal class InternalPart : IDisposable
         {
             public void Dispose()
