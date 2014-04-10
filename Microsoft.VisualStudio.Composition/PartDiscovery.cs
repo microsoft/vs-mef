@@ -69,14 +69,21 @@
 
             if (type.HasElementType)
             {
-                type = type.GetElementType(); // T[] -> T
+                return type.GetElementType(); // T[] -> T
             }
             else
             {
-                type = type.GetTypeInfo().GenericTypeArguments[0]; // IEnumerable<T> -> T
+                // Discover the ICollection<T> or ICollection<Lazy<T, TMetadata>> interface implemented by this type.
+                var icollectionTypes =
+                    from iface in ImmutableList.Create(type).AddRange(type.GetTypeInfo().ImplementedInterfaces)
+                    let ifaceInfo = iface.GetTypeInfo()
+                    where ifaceInfo.IsGenericType
+                    let genericTypeDef = ifaceInfo.GetGenericTypeDefinition()
+                    where genericTypeDef.Equals(typeof(ICollection<>)) || genericTypeDef.Equals(typeof(IEnumerable<>)) || genericTypeDef.Equals(typeof(IList<>))
+                    select ifaceInfo;
+                var icollectionType = icollectionTypes.First();
+                return icollectionType.GenericTypeArguments[0]; // IEnumerable<T> -> T
             }
-
-            return type;
         }
 
         protected static ConstructorInfo GetImportingConstructor(Type type, Type importingConstructorAttributeType, bool publicOnly)
