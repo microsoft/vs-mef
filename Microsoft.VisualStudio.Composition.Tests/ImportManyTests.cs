@@ -180,6 +180,18 @@
             Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
         }
 
+        [MefFact(CompositionEngines.V1, typeof(ExtendableCustomCollectionOfLazyMetadata), typeof(ExtensionOne))]
+        public void ImportManyCustomCollectionWithLazyMetadata(IContainer container)
+        {
+            var extendable = container.GetExportedValue<ExtendableCustomCollectionOfLazyMetadata>();
+            Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
+            Assert.Equal(1, extendable.Extensions.Count);
+            var extension = extendable.Extensions.Single();
+            Assert.IsType<ExtensionOne>(extension.Value);
+            Assert.Equal(1, extension.Metadata["a"]);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionWithPreInitializedPublicCtor), typeof(ExtensionOne), typeof(ExtensionTwo))]
         public void ImportManyCustomCollectionWithPreInitializedPublicCtor(IContainer container)
         {
@@ -434,8 +446,8 @@
 
         public interface IExtension { }
 
-        [Export(typeof(IExtension))]
-        [MefV1.Export(typeof(IExtension)), MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        [Export(typeof(IExtension)), ExportMetadata("a", 1)]
+        [MefV1.Export(typeof(IExtension)), MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared), MefV1.ExportMetadata("a", 1)]
         public class ExtensionOne : IExtension { }
 
         [Export(typeof(IExtension))]
@@ -524,6 +536,15 @@
             public CustomCollectionWithInternalCtor<IExtension> Extensions { get; set; }
         }
 
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ExtendableCustomCollectionOfLazyMetadata
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            public CustomCollectionWithLazyMetadata<IExtension, IDictionary<string, object>> Extensions { get; set; }
+        }
+
         public class CustomCollectionWithPublicCtor<T> : ICollection<T>
         {
             private List<T> inner = new List<T>();
@@ -595,6 +616,66 @@
         {
             internal CustomCollectionWithInternalCtor()
             {
+            }
+        }
+
+        public class CustomCollectionWithLazyMetadata<T, TMetadata> : ICollection<Lazy<T, TMetadata>>
+        {
+            private List<Lazy<T, TMetadata>> inner = new List<Lazy<T, TMetadata>>();
+
+            /// <summary>
+            /// An internal constructor, to suppress the public one.
+            /// </summary>
+            public CustomCollectionWithLazyMetadata()
+            {
+            }
+
+            public bool Cleared { get; set; }
+
+            public void Add(Lazy<T, TMetadata> item)
+            {
+                this.inner.Add(item);
+            }
+
+            public void Clear()
+            {
+                this.inner.Clear();
+                this.Cleared = true;
+            }
+
+            public bool Contains(Lazy<T, TMetadata> item)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void CopyTo(Lazy<T, TMetadata>[] array, int arrayIndex)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int Count
+            {
+                get { return this.inner.Count; }
+            }
+
+            public bool IsReadOnly
+            {
+                get { return false; }
+            }
+
+            public bool Remove(Lazy<T, TMetadata> item)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IEnumerator<Lazy<T, TMetadata>> GetEnumerator()
+            {
+                return this.inner.GetEnumerator();
+            }
+
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            {
+                return this.GetEnumerator();
             }
         }
     }
