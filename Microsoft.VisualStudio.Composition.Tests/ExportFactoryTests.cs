@@ -129,6 +129,21 @@
             public IEnumerable<MefV1.ExportFactory<NonSharedPart, IDictionary<string, object>>> FactoriesWithMetadata { get; set; }
         }
 
+        public interface INonSharedOpenGenericExportPart<T> { }
+
+        [MefV1.Export(typeof(NonSharedOpenGenericExportPart<>))]
+        [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class NonSharedOpenGenericExportPart<T> : INonSharedOpenGenericExportPart<T>
+        {
+        }
+
+        [MefV1.Export]
+        public class PartFactoryOfOpenGenericPart
+        {
+            [MefV1.Import(typeof(NonSharedOpenGenericExportPart<IDisposable>))]
+            public MefV1.ExportFactory<INonSharedOpenGenericExportPart<IDisposable>> Factory { get; set; }
+        }
+
         #endregion
 
         #region V2 tests
@@ -262,21 +277,6 @@
         [ExportMetadata("N", "V2")]
         public class NonSharedPart2 : NonSharedPart
         {
-        }
-
-        public interface INonSharedOpenGenericExportPart<T> { }
-
-        [MefV1.Export(typeof(NonSharedOpenGenericExportPart<>))]
-        [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
-        public class NonSharedOpenGenericExportPart<T> : INonSharedOpenGenericExportPart<T>
-        {
-        }
-
-        [MefV1.Export]
-        public class PartFactoryOfOpenGenericPart
-        {
-            [MefV1.Import(typeof(NonSharedOpenGenericExportPart<IDisposable>))]
-            public MefV1.ExportFactory<INonSharedOpenGenericExportPart<IDisposable>> Factory { get; set; }
         }
     }
 }
