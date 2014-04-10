@@ -96,15 +96,10 @@
             Assert.NotNull(partFactory.Factory);
             using (var exportContext = partFactory.Factory.CreateExport())
             {
-                Assert.NotNull(exportContext);
-                Assert.Equal(1, NonSharedPart.InstantiationCounter);
-
                 var value = exportContext.Value;
                 Assert.NotNull(value);
-                Assert.Equal(0, NonSharedPart.DisposalCounter);
+                Assert.IsType<NonSharedOpenGenericExportPart<IDisposable>>(value);
             }
-
-            Assert.Equal(1, NonSharedPart.DisposalCounter);
         }
 
         [MefV1.Export]
