@@ -40,6 +40,24 @@
             Assert.Equal(1, NonSharedPart.DisposalCounter);
         }
 
+        [MefFact(CompositionEngines.V1, typeof(PartFactoryV1WithExplicitContractType), typeof(NonSharedPart))]
+        public void ExportFactoryWithExplicitContractTypeV1(IContainer container)
+        {
+            var partFactory = container.GetExportedValue<PartFactoryV1WithExplicitContractType>();
+            Assert.NotNull(partFactory.Factory);
+            using (var exportContext = partFactory.Factory.CreateExport())
+            {
+                Assert.NotNull(exportContext);
+                Assert.Equal(1, NonSharedPart.InstantiationCounter);
+
+                var value = exportContext.Value;
+                Assert.NotNull(value);
+                Assert.Equal(0, NonSharedPart.DisposalCounter);
+            }
+
+            Assert.Equal(1, NonSharedPart.DisposalCounter);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryManyV1), typeof(NonSharedPart), typeof(NonSharedPart2))]
         public void ExportFactoryForNonSharedPartManyV1(IContainer container)
         {
@@ -61,6 +79,13 @@
             {
                 Assert.IsType<NonSharedPart2>(exportContext.Value);
             }
+        }
+
+        [MefV1.Export]
+        public class PartFactoryV1WithExplicitContractType
+        {
+            [MefV1.Import(typeof(NonSharedPart))]
+            public MefV1.ExportFactory<IDisposable> Factory { get; set; }
         }
 
         [MefV1.Export]
