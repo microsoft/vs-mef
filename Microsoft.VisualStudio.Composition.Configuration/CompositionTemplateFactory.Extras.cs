@@ -595,7 +595,7 @@
 
                 return new DisposableWithAction(delegate
                 {
-                    writer.Write(".Value; return Tuple.Create<{0}, Action>(temp, () => {{ ", GetTypeName(importDefinition.ElementType));
+                    writer.Write(".Value; return Tuple.Create<{0}, Action>(({0})temp, () => {{ ", GetTypeName(importDefinition.ElementType));
                     if (typeof(IDisposable).IsAssignableFrom(export.PartDefinition.Type))
                     {
                         writer.Write("((IDisposable)temp).Dispose(); ");
