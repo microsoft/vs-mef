@@ -144,6 +144,31 @@
             public MefV1.ExportFactory<INonSharedOpenGenericExportPart<IDisposable>> Factory { get; set; }
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(PublicFactoryOfInternalPartViaPublicInterface), typeof(InternalPart))]
+        public void ExportFactoryForInternalPartViaPublicInterface(IContainer container)
+        {
+            var factory = container.GetExportedValue<PublicFactoryOfInternalPartViaPublicInterface>();
+            var export = factory.InternalPartFactory.CreateExport();
+            Assert.NotNull(export.Value);
+            Assert.IsType<InternalPart>(export.Value);
+        }
+
+        [MefV1.Export]
+        public class PublicFactoryOfInternalPartViaPublicInterface
+        {
+            [MefV1.Import]
+            public MefV1.ExportFactory<IDisposable> InternalPartFactory { get; set; }
+        }
+
+        [MefV1.Export(typeof(IDisposable))]
+        internal class InternalPart : IDisposable
+        {
+            public void Dispose()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         #endregion
 
         #region V2 tests
