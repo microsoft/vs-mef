@@ -74,9 +74,9 @@
                         Verify.Operation(
                             receivingType.GetTypeInfo().IsAssignableFrom(export.ExportedValueType.GetTypeInfo()),
                             "Exporting MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
-                            export.PartDefinition.Type.Name,
-                            importDefinition.MemberType.Name,
-                            this.Definition.Type.Name,
+                            ReflectionHelpers.GetTypeName(export.PartDefinition.Type, false, true, null),
+                            ReflectionHelpers.GetTypeName(importDefinition.MemberType, false, true, null),
+                            ReflectionHelpers.GetTypeName(this.Definition.Type, false, true, null),
                             pair.Key.ImportingMember != null ? pair.Key.ImportingMember.Name : "ctor");
                     }
                 }
