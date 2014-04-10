@@ -26,18 +26,18 @@
             return CompositionConfiguration.Load(Assembly.LoadFile(defaultCompositionFile));
         }
 
-        public static async Task SaveAsync(this CompositionConfiguration configuration, string assemblyPath)
+        public static async Task SaveAsync(this CompositionConfiguration configuration, string assemblyPath, TextWriter sourceFile = null, TextWriter buildOutput = null)
         {
             Requires.NotNullOrEmpty(assemblyPath, "assemblyPath");
 
-            var sourceFilePathAndAssemblies = CreateCompositionSourceFile(configuration);
-            await CompileAsync(sourceFilePathAndAssemblies.Item1, sourceFilePathAndAssemblies.Item2, assemblyPath);
+            var sourceFilePathAndAssemblies = CreateCompositionSourceFile(configuration, sourceFile);
+            await CompileAsync(sourceFilePathAndAssemblies.Item1, sourceFilePathAndAssemblies.Item2, assemblyPath, buildOutput);
         }
 
-        public static async Task<ICompositionContainerFactory> CreateContainerFactoryAsync(this CompositionConfiguration configuration)
+        public static async Task<ICompositionContainerFactory> CreateContainerFactoryAsync(this CompositionConfiguration configuration, TextWriter sourceFile = null, TextWriter buildOutput = null)
         {
             string targetPath = Path.GetTempFileName();
-            await configuration.SaveAsync(targetPath);
+            await configuration.SaveAsync(targetPath, sourceFile, buildOutput);
             return CompositionConfiguration.Load(Assembly.LoadFile(targetPath));
         }
 
@@ -53,19 +53,25 @@
             }
         }
 
-        private static Tuple<string, ISet<Assembly>> CreateCompositionSourceFile(CompositionConfiguration configuration)
+        private static Tuple<string, ISet<Assembly>> CreateCompositionSourceFile(CompositionConfiguration configuration, TextWriter sourceFileAndBuildOutput)
         {
             var templateFactory = new CompositionTemplateFactory();
             templateFactory.Configuration = configuration;
             string source = templateFactory.TransformText();
             var sourceFilePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".cs");
             File.WriteAllText(sourceFilePath, source);
-            WriteWithLineNumbers(Console.Out, source);
+            if (sourceFileAndBuildOutput != null && sourceFileAndBuildOutput != TextWriter.Null)
+            {
+                WriteWithLineNumbers(sourceFileAndBuildOutput, source);
+            }
+
             return Tuple.Create(sourceFilePath, templateFactory.RelevantAssemblies);
         }
 
-        private static async Task CompileAsync(string sourceFilePath, ISet<Assembly> assemblies, string targetPath)
+        private static async Task CompileAsync(string sourceFilePath, ISet<Assembly> assemblies, string targetPath, TextWriter buildOutput)
         {
+            buildOutput = buildOutput ?? TextWriter.Null;
+
             targetPath = Path.GetFullPath(targetPath);
             var pc = new ProjectCollection();
             ProjectRootElement pre;
@@ -98,7 +104,7 @@
             using (var buildManager = new BuildManager())
             {
                 var hostServices = new HostServices();
-                var logger = new ConsoleLogger(LoggerVerbosity.Minimal);
+                var logger = new ConsoleLogger(LoggerVerbosity.Minimal, buildOutput.Write, null, null);
                 buildManager.BeginBuild(new BuildParameters(pc)
                 {
                     DisableInProcNode = true,
@@ -111,7 +117,7 @@
 
             if (buildResult.OverallResult != BuildResultCode.Success)
             {
-                Console.WriteLine("Build errors");
+                buildOutput.WriteLine("Build errors");
             }
 
             if (buildResult.OverallResult != BuildResultCode.Success)

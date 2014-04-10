@@ -17,7 +17,7 @@
         internal static CompositionContainer CreateContainer(this CompositionConfiguration configuration)
         {
             Requires.NotNull(configuration, "configuration");
-            return configuration.CreateContainerFactoryAsync().Result.CreateContainer();
+            return configuration.CreateContainerFactoryAsync(Console.Out, Console.Out).Result.CreateContainer();
         }
 
         internal static CompositionContainer CreateContainer(params Type[] parts)
