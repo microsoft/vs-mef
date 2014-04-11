@@ -234,7 +234,7 @@
             Type elementType = import.ImportDefinition.MemberWithoutManyWrapper;
             Type listType = typeof(List<>).MakeGenericType(elementType);
 
-            if (IsPublic(elementType))
+            if (IsPublic(elementType, true))
             {
                 // Casting the collection to ICollection<T> instead of the concrete type guarantees
                 // that we'll be able to call Add(T) and Clear() on it even if the type is NonPublic
@@ -803,9 +803,9 @@
             }
         }
 
-        private static bool IsPublic(Type type)
+        private static bool IsPublic(Type type, bool checkGenericTypeArgs = false)
         {
-            return ReflectionHelpers.IsPublic(type);
+            return ReflectionHelpers.IsPublic(type, checkGenericTypeArgs);
         }
 
         private string GetClassNameForMetadataView(Type metadataView)
