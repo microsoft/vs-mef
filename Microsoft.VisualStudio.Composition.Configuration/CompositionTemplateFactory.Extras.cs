@@ -87,7 +87,7 @@
                     "{0}.ManifestModule.ResolveField({1}/*{2}*/)",
                     this.GetAssemblyExpression(fieldInfo.DeclaringType.Assembly),
                     fieldInfo.MetadataToken,
-                    fieldInfo.DeclaringType.Name + "." + fieldInfo.Name);
+                    GetTypeName(fieldInfo.DeclaringType, evenNonPublic: true) + "." + fieldInfo.Name);
             }
         }
 
@@ -103,7 +103,7 @@
                     this.GetAssemblyExpression(methodInfo.DeclaringType.Assembly),
                     methodInfo.MetadataToken,
                     this.GetClosedGenericTypeHandleExpression(methodInfo.DeclaringType),
-                    methodInfo.DeclaringType + "." + methodInfo.Name);
+                    GetTypeName(methodInfo.DeclaringType, evenNonPublic: true) + "." + methodInfo.Name);
             }
             else
             {
@@ -112,7 +112,7 @@
                     "((MethodInfo){0}.ManifestModule.ResolveMethod({1}/*{2}*/))",
                     this.GetAssemblyExpression(methodInfo.DeclaringType.Assembly),
                     methodInfo.MetadataToken,
-                    methodInfo.DeclaringType + "." + methodInfo.Name);
+                    GetTypeName(methodInfo.DeclaringType, evenNonPublic: true) + "." + methodInfo.Name);
             }
         }
 
@@ -482,7 +482,7 @@
                         ctor.MetadataToken,
                         this.GetClosedGenericTypeHandleExpression(ctor.DeclaringType),
                         GetAssemblyExpression(ctor.DeclaringType.Assembly),
-                        ctor.DeclaringType.Name + "." + ctor.Name);
+                        GetTypeName(ctor.DeclaringType, evenNonPublic: true) + "." + ctor.Name);
                 }
                 else
                 {
@@ -491,7 +491,7 @@
                         "(ConstructorInfo){0}.ManifestModule.ResolveMethod({1}/*{2}*/)",
                         GetAssemblyExpression(ctor.DeclaringType.Assembly),
                         ctor.MetadataToken,
-                        ctor.DeclaringType.Name + "." + ctor.Name);
+                        GetTypeName(ctor.DeclaringType, evenNonPublic: true) + "." + ctor.Name);
                 }
 
                 this.Write("({0})({1}).Invoke(new object[] {{", skipCast ? "object" : GetTypeName(ctor.DeclaringType), ctorExpression);
@@ -1063,7 +1063,7 @@
                     GetAssemblyExpression(typeof(LazyPart<>).Assembly),
                     ctor.MetadataToken,
                     this.GetClosedGenericTypeHandleExpression(typeof(LazyPart<>).MakeGenericType(valueType)),
-                    ctor.DeclaringType.Name + "." + ctor.Name,
+                    GetTypeName(ctor.DeclaringType, evenNonPublic: true) + "." + ctor.Name,
                     GetTypeName(valueType));
                 var indent = Indent();
                 return new DisposableWithAction(delegate
