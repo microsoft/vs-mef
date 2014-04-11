@@ -118,5 +118,40 @@
         }
 
         #endregion
+
+        #region Test for ImportMany on ExportProvider
+
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(PartWithImportManyExportProvider))]
+        public void ImportManyExportProvider(IContainer container)
+        {
+            var part = container.GetExportedValue<PartWithImportManyExportProvider>();
+
+            Assert.NotNull(part.ExportProvidersPublicList);
+            Assert.Equal(1, part.ExportProvidersPublicList.Count);
+            Assert.NotNull(part.ExportProvidersPublicList[0]);
+
+            Assert.NotNull(part.ExportProvidersPublicArray);
+            Assert.Equal(1, part.ExportProvidersPublicArray.Length);
+            Assert.Same(part.ExportProvidersPublicList[0], part.ExportProvidersPublicArray[0]);
+
+            Assert.NotNull(part.ExportProvidersInternalArray);
+            Assert.Equal(1, part.ExportProvidersInternalArray.Length);
+            Assert.Same(part.ExportProvidersPublicList[0], part.ExportProvidersInternalArray[0]);
+        }
+
+        [MefV1.Export]
+        public class PartWithImportManyExportProvider
+        {
+            [MefV1.ImportMany]
+            public List<ExportProvider> ExportProvidersPublicList { get; set; }
+
+            [MefV1.ImportMany]
+            public ExportProvider[] ExportProvidersPublicArray { get; set; }
+
+            [MefV1.ImportMany]
+            internal ExportProvider[] ExportProvidersInternalArray { get; set; }
+        }
+
+        #endregion
     }
 }
