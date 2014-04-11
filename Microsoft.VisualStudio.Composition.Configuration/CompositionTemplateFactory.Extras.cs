@@ -233,80 +233,104 @@
             var importDefinition = import.ImportDefinition;
             Type elementType = import.ImportDefinition.MemberWithoutManyWrapper;
             Type listType = typeof(List<>).MakeGenericType(elementType);
+            bool stronglyTypedCollection = IsPublic(elementType, true);
+            Type icollectionType = typeof(ICollection<>).MakeGenericType(elementType);
+            string importManyLocalVarTypeName = stronglyTypedCollection ? GetTypeName(icollectionType) : "object";
 
-            if (IsPublic(elementType, true))
+            // Casting the collection to ICollection<T> instead of the concrete type guarantees
+            // that we'll be able to call Add(T) and Clear() on it even if the type is NonPublic
+            // or its methods are explicit interface implementations.
+            if (import.ImportingMember is FieldInfo)
             {
-                // Casting the collection to ICollection<T> instead of the concrete type guarantees
-                // that we'll be able to call Add(T) and Clear() on it even if the type is NonPublic
-                // or its methods are explicit interface implementations.
-                string importManyLocalVarTypeName = GetTypeName(typeof(ICollection<>).MakeGenericType(import.ImportDefinition.MemberWithoutManyWrapper));
-                if (import.ImportingMember is FieldInfo)
-                {
-                    this.WriteLine("var {0} = ({3}){1}.GetValue({2});", import.ImportingMember.Name, GetFieldInfoExpression((FieldInfo)import.ImportingMember), InstantiatedPartLocalVarName, importManyLocalVarTypeName);
-                }
-                else
-                {
-                    this.WriteLine("var {0} = ({3}){1}.Invoke({2}, new object[0]);", import.ImportingMember.Name, GetMethodInfoExpression(((PropertyInfo)import.ImportingMember).GetGetMethod(true)), InstantiatedPartLocalVarName, importManyLocalVarTypeName);
-                }
+                this.WriteLine("var {0} = ({3}){1}.GetValue({2});", import.ImportingMember.Name, GetFieldInfoExpression((FieldInfo)import.ImportingMember), InstantiatedPartLocalVarName, importManyLocalVarTypeName);
+            }
+            else
+            {
+                this.WriteLine("var {0} = ({3}){1}.Invoke({2}, new object[0]);", import.ImportingMember.Name, GetMethodInfoExpression(((PropertyInfo)import.ImportingMember).GetGetMethod(true)), InstantiatedPartLocalVarName, importManyLocalVarTypeName);
+            }
 
-                this.WriteLine("if ({0} == null)", import.ImportingMember.Name);
-                using (Indent(withBraces: true))
+            this.WriteLine("if ({0} == null)", import.ImportingMember.Name);
+            using (Indent(withBraces: true))
+            {
+                if (PartDiscovery.IsImportManyCollectionTypeCreateable(importDefinition))
                 {
-                    if (PartDiscovery.IsImportManyCollectionTypeCreateable(importDefinition))
+                    if (importDefinition.MemberType.IsAssignableFrom(listType))
                     {
-                        if (importDefinition.MemberType.IsAssignableFrom(listType))
+                        if (stronglyTypedCollection)
                         {
                             string elementTypeName = GetTypeName(elementType);
                             this.WriteLine("{0} = new List<{1}>();", import.ImportingMember.Name, elementTypeName);
                         }
                         else
                         {
-                            this.Write("{0} = ({1})(", import.ImportingMember.Name, importManyLocalVarTypeName);
-                            using (this.EmitConstructorInvocationExpression(importDefinition.MemberType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null)))
-                            {
-                                // no arguments to constructor
-                            }
-
-                            this.WriteLine(");");
-                        }
-
-                        if (import.ImportingMember is FieldInfo)
-                        {
-                            this.WriteLine("{0}.SetValue({1}, {2});", GetFieldInfoExpression((FieldInfo)import.ImportingMember), InstantiatedPartLocalVarName, import.ImportingMember.Name);
-                        }
-                        else
-                        {
-                            this.WriteLine("{0}.Invoke({1}, new object[] {{ {2} }});", GetMethodInfoExpression(((PropertyInfo)import.ImportingMember).GetSetMethod(true)), InstantiatedPartLocalVarName, import.ImportingMember.Name);
+                            this.Write("{0} = ", import.ImportingMember.Name);
+                            EmitConstructorInvocationExpression(typeof(List<>).MakeGenericType(elementType).GetConstructor(new Type[0]), alwaysUseReflection: true, skipCast: true).Dispose();
+                            this.WriteLine(";");
                         }
                     }
                     else
                     {
-                        this.WriteLine(
-                            "throw new InvalidOperationException(\"The {0}.{1} collection must be instantiated by the importing constructor.\");",
-                            import.PartDefinition.Type.Name,
-                            import.ImportingMember.Name);
+                        this.Write("{0} = ({1})(", import.ImportingMember.Name, importManyLocalVarTypeName);
+                        using (this.EmitConstructorInvocationExpression(importDefinition.MemberType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null)))
+                        {
+                            // no arguments to constructor
+                        }
+
+                        this.WriteLine(");");
+                    }
+
+                    if (import.ImportingMember is FieldInfo)
+                    {
+                        this.WriteLine("{0}.SetValue({1}, {2});", GetFieldInfoExpression((FieldInfo)import.ImportingMember), InstantiatedPartLocalVarName, import.ImportingMember.Name);
+                    }
+                    else
+                    {
+                        this.WriteLine("{0}.Invoke({1}, new object[] {{ {2} }});", GetMethodInfoExpression(((PropertyInfo)import.ImportingMember).GetSetMethod(true)), InstantiatedPartLocalVarName, import.ImportingMember.Name);
                     }
                 }
+                else
+                {
+                    this.WriteLine(
+                        "throw new InvalidOperationException(\"The {0}.{1} collection must be instantiated by the importing constructor.\");",
+                        import.PartDefinition.Type.Name,
+                        import.ImportingMember.Name);
+                }
+            }
 
-                this.WriteLine("else");
-                using (Indent(withBraces: true))
+            this.WriteLine("else");
+            using (Indent(withBraces: true))
+            {
+                if (stronglyTypedCollection)
                 {
                     this.WriteLine("{0}.Clear();", import.ImportingMember.Name);
                 }
-
-                this.WriteLine(string.Empty);
-
-                foreach (var export in exports)
+                else
                 {
-                    var valueWriter = new StringWriter();
-                    EmitValueFactory(import, export, valueWriter);
-                    this.WriteLine("{0}.Add({1});", import.ImportingMember.Name, valueWriter);
+                    this.WriteLine(
+                        "{0}.Invoke({1}, new object[0]);",
+                        GetMethodInfoExpression(icollectionType.GetMethod("Clear")),
+                        import.ImportingMember.Name);
                 }
             }
-            else
+
+            this.WriteLine(string.Empty);
+
+            foreach (var export in exports)
             {
-                // When the type argument is not public, we have to do *everything* by reflection.
-                throw new NotImplementedException();
+                var valueWriter = new StringWriter();
+                EmitValueFactory(import, export, valueWriter);
+                if (stronglyTypedCollection)
+                {
+                    this.WriteLine("{0}.Add({1});", import.ImportingMember.Name, valueWriter);
+                }
+                else
+                {
+                    this.WriteLine(
+                        "{0}.Invoke({1}, new object[] {{ {2} }});",
+                        GetMethodInfoExpression(icollectionType.GetMethod("Add")),
+                        import.ImportingMember.Name,
+                        valueWriter);
+                }
             }
         }
 
@@ -437,11 +461,11 @@
             return this.EmitConstructorInvocationExpression(partDefinition.ImportingConstructorInfo);
         }
 
-        private IDisposable EmitConstructorInvocationExpression(ConstructorInfo ctor)
+        private IDisposable EmitConstructorInvocationExpression(ConstructorInfo ctor, bool alwaysUseReflection = false, bool skipCast = false)
         {
             Requires.NotNull(ctor, "ctor");
 
-            bool publicCtor = IsPublic(ctor, ctor.DeclaringType);
+            bool publicCtor = !alwaysUseReflection && IsPublic(ctor, ctor.DeclaringType);
             if (publicCtor)
             {
                 this.Write("new {0}(", GetTypeName(ctor.DeclaringType));
@@ -470,7 +494,7 @@
                         ctor.DeclaringType.Name + "." + ctor.Name);
                 }
 
-                this.Write("({0})({1}).Invoke(new object[] {{", GetTypeName(ctor.DeclaringType), ctorExpression);
+                this.Write("({0})({1}).Invoke(new object[] {{", skipCast ? "object" : GetTypeName(ctor.DeclaringType), ctorExpression);
             }
             var indent = this.Indent();
 
@@ -786,7 +810,7 @@
         {
             Requires.NotNull(type, "type");
 
-            if (IsPublic(type))
+            if (IsPublic(type, true))
             {
                 return string.Format(
                     CultureInfo.InvariantCulture,
