@@ -84,6 +84,20 @@
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<PartWithImportManyOfScopedExports>());
         }
 
+        [MefFact(CompositionEngines.V2)]
+        public void DisposeExportDisposesContainer(IContainer container)
+        {
+            var root = container.GetExportedValue<RootPart>();
+            var boundaryExport = root.Factory.CreateExport();
+            var subcontainerPart = boundaryExport.Value.BoundaryScopedSharedParts.OfType<SharedPartThatImportsBoundaryPart>().Single();
+            Assert.Equal(0, boundaryExport.Value.DisposalCount);
+            Assert.Equal(0, subcontainerPart.DisposalCount);
+
+            boundaryExport.Dispose();
+            Assert.Equal(1, boundaryExport.Value.DisposalCount);
+            Assert.Equal(1, subcontainerPart.DisposalCount);
+        }
+
         [Export]
         public class RootPart
         {
@@ -106,8 +120,10 @@
         }
 
         [Export, Shared("SomeBoundary")]
-        public class BoundaryPart
+        public class BoundaryPart : IDisposable
         {
+            internal int DisposalCount { get; private set; }
+
             [ImportMany("SharedWithinBoundaryParts")]
             public IList<object> BoundaryScopedSharedParts { get; set; }
 
@@ -116,14 +132,26 @@
 
             [Import]
             public AnotherPartWithImportManyOfScopedExports ImportManyPart2 { get; set; }
+
+            public void Dispose()
+            {
+                this.DisposalCount++;
+            }
         }
 
         [Export, Export("SharedWithinBoundaryParts", typeof(object))]
         [Shared("SomeBoundary")] // TODO: try removing the argument from this attribute
-        public class SharedPartThatImportsBoundaryPart
+        public class SharedPartThatImportsBoundaryPart : IDisposable
         {
+            internal int DisposalCount { get; private set; }
+
             [Import]
             public BoundaryPart BoundaryPart { get; set; }
+
+            public void Dispose()
+            {
+                this.DisposalCount++;
+            }
         }
 
         [Export, Export("SharedWithinBoundaryParts", typeof(object))]

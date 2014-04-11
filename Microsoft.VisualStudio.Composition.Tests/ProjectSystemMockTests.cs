@@ -69,6 +69,54 @@
             Assert.IsType<ProjectPartB>(project2.Value.GetApplicableExtensions().Single().Value);
         }
 
+        /// <summary>
+        /// This test documents the V2 behavior of disposing all values in the immediate container
+        /// of a scoping part when its export is disposed of, but not doing so recursively.
+        /// </summary>
+        [MefFact(CompositionEngines.V2, NoCompatGoal = true)]
+        public void DisposeExportDisposesAllSubContainersV2(IContainer container)
+        {
+            var projectService = container.GetExportedValue<ProjectService>();
+            var projectExport = projectService.ProjectFactory.CreateExport();
+            var configuredProjectExport = projectExport.Value.ConfiguredProjectFactory.CreateExport();
+
+            Assert.Equal(0, projectExport.Value.DisposalCount);
+            Assert.Equal(0, projectExport.Value.ActiveConfiguration.DisposalCount);
+            Assert.Equal(0, configuredProjectExport.Value.DisposalCount);
+            Assert.Equal(0, configuredProjectExport.Value.SubscriptionService.DisposalCount);
+
+            projectExport.Dispose();
+
+            Assert.Equal(1, projectExport.Value.DisposalCount);
+            Assert.Equal(1, projectExport.Value.ActiveConfiguration.DisposalCount);
+            Assert.Equal(0, configuredProjectExport.Value.DisposalCount);
+            Assert.Equal(0, configuredProjectExport.Value.SubscriptionService.DisposalCount);
+        }
+
+        /// <summary>
+        /// This test documents the V3 behavior of disposing all values in the immediate container
+        /// of a scoping part when its export is disposed of, and also recursively disposing of descendent containers.
+        /// </summary>
+        [MefFact(CompositionEngines.Unspecified/*V3EmulatingV2*/)]
+        public void DisposeExportDisposesAllSubContainersV3AsV2(IContainer container)
+        {
+            var projectService = container.GetExportedValue<ProjectService>();
+            var projectExport = projectService.ProjectFactory.CreateExport();
+            var configuredProjectExport = projectExport.Value.ConfiguredProjectFactory.CreateExport();
+
+            Assert.Equal(0, projectExport.Value.DisposalCount);
+            Assert.Equal(0, projectExport.Value.ActiveConfiguration.DisposalCount);
+            Assert.Equal(0, configuredProjectExport.Value.DisposalCount);
+            Assert.Equal(0, configuredProjectExport.Value.SubscriptionService.DisposalCount);
+
+            projectExport.Dispose();
+
+            Assert.Equal(1, projectExport.Value.DisposalCount);
+            Assert.Equal(1, projectExport.Value.ActiveConfiguration.DisposalCount);
+            Assert.Equal(1, configuredProjectExport.Value.DisposalCount);
+            Assert.Equal(1, configuredProjectExport.Value.SubscriptionService.DisposalCount);
+        }
+
         #region MEF parts
 
         [Export, Shared]
@@ -91,7 +139,7 @@
         }
 
         [Export, Shared("Project")]
-        public class Project
+        public class Project : IDisposable
         {
             [Import]
             public ProjectService ProjectService { get; set; }
@@ -107,6 +155,13 @@
 
             public string[] Capabilities { get; set; }
 
+            internal int DisposalCount { get; private set; }
+
+            public void Dispose()
+            {
+                this.DisposalCount++;
+            }
+
             public Lazy<object, IDictionary<string, object>>[] GetApplicableExtensions()
             {
                 return this.Extensions.Where(export => this.Capabilities.Contains(export.Metadata["ProjectCapabilityRequires"])).ToArray();
@@ -117,27 +172,47 @@
                 return this.ConfiguredProjectFactory.CreateExport();
             }
         }
-        
+
         [Export, Shared("Project")]
-        public class ProjectActiveConfiguration
+        public class ProjectActiveConfiguration : IDisposable
         {
             [Import]
             public Project Project { get; set; }
+
+            internal int DisposalCount { get; private set; }
+
+            public void Dispose()
+            {
+                this.DisposalCount++;
+            }
         }
 
         [Export, Shared("ConfiguredProject")]
-        public class ConfiguredProject
+        public class ConfiguredProject : IDisposable
         {
             [Import]
             public Project Project { get; set; }
 
             [Import]
             public ProjectSubscriptionService SubscriptionService { get; set; }
+
+            internal int DisposalCount { get; private set; }
+
+            public void Dispose()
+            {
+                this.DisposalCount++;
+            }
         }
 
         [Export, Shared("ConfiguredProject")]
-        public class ProjectSubscriptionService
+        public class ProjectSubscriptionService : IDisposable
         {
+            internal int DisposalCount { get; private set; }
+
+            public void Dispose()
+            {
+                this.DisposalCount++;
+            }
         }
 
         [Export("ProjectExtension", typeof(object))]
