@@ -31,7 +31,7 @@
             Assert.NotNull(otherPart);
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV2 | CompositionEngines.V3EmulatingV1, typeof(PartThatImportsExportProvider), typeof(SomeOtherPart))]
+        [MefFact(CompositionEngines.V3EmulatingV2 | CompositionEngines.V3EmulatingV1, typeof(PartThatImportsExportProvider))]
         public void ExportProviderCanAcquireSameExportProvider(IContainer container)
         {
             var importer = container.GetExportedValue<PartThatImportsExportProvider>();
