@@ -214,16 +214,25 @@
             return name;
         }
 
-        internal static bool IsPublic(Type type)
+        internal static bool IsPublic(Type type, bool checkGenericTypeArgs = false)
         {
             Requires.NotNull(type, "type");
 
-            if (type.GetTypeInfo().IsNotPublic)
+            var typeInfo = type.GetTypeInfo();
+            if (typeInfo.IsNotPublic)
             {
                 return false;
             }
 
-            if (type.GetTypeInfo().IsPublic || type.GetTypeInfo().IsNestedPublic)
+            if (checkGenericTypeArgs && typeInfo.IsGenericType && !typeInfo.IsGenericTypeDefinition)
+            {
+                if (typeInfo.GenericTypeArguments.Any(t => !IsPublic(t)))
+                {
+                    return false;
+                }
+            }
+
+            if (typeInfo.IsPublic || typeInfo.IsNestedPublic)
             {
                 return true;
             }

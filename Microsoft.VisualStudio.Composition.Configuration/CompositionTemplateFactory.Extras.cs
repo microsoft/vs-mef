@@ -797,19 +797,7 @@
 
         private static bool IsPublic(Type type)
         {
-            Requires.NotNull(type, "type");
-
-            if (type.IsNotPublic)
-            {
-                return false;
-            }
-
-            if (type.IsPublic || type.IsNestedPublic)
-            {
-                return true;
-            }
-
-            return false;
+            return ReflectionHelpers.IsPublic(type);
         }
 
         private string GetClassNameForMetadataView(Type metadataView)
