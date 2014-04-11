@@ -38,6 +38,16 @@
             Assert.Same(importer.ExportProvider, importer.ExportProvider.GetExportedValue<ExportProvider>());
         }
 
+        /// <summary>
+        /// Verifies that parts cannot dispose of their owners.
+        /// </summary>
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(PartThatImportsExportProvider))]
+        public void ImportedExportProviderCannotBeDisposed(IContainer container)
+        {
+            var importer = container.GetExportedValue<PartThatImportsExportProvider>();
+            Assert.Throws<InvalidOperationException>(() => importer.ExportProvider.Dispose());
+        }
+
         [Export, Shared]
         [MefV1.Export]
         public class PartThatImportsExportProvider
