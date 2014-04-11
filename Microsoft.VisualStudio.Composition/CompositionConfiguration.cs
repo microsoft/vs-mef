@@ -19,6 +19,8 @@
 
     public class CompositionConfiguration
     {
+        private static readonly CompositionContract ExportProviderContract = new CompositionContract(null, typeof(ExportProvider));
+
         private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposablePart> parts)
         {
             Requires.NotNull(catalog, "catalog");
@@ -36,7 +38,9 @@
         {
             Requires.NotNull(catalog, "catalog");
 
-            // Construct up our part builders, initialized with all their imports satisfied.
+            ValidateIndividualParts(catalog.Parts);
+
+            // Construct our part builders, initialized with all their imports satisfied.
             var partBuilders = new Dictionary<ComposablePartDefinition, PartBuilder>();
             foreach (ComposablePartDefinition partDefinition in catalog.Parts)
             {
@@ -181,6 +185,16 @@
             }
 
             return false;
+        }
+
+        private static void ValidateIndividualParts(IImmutableSet<ComposablePartDefinition> parts)
+        {
+            Requires.NotNull(parts, "parts");
+            var partsExportingExportProvider = parts.Where(p => p.ExportDefinitions.Any(ed => ExportProviderContract.Equals(ed.Value.Contract)));
+            if (partsExportingExportProvider.Any())
+            {
+                throw new CompositionFailedException();
+            }
         }
 
         public XDocument CreateDgml()
