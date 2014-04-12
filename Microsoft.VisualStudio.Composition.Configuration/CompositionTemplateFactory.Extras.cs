@@ -514,9 +514,16 @@
 
         private void EmitInstantiatePart(ComposablePart part)
         {
-            if (part.Definition.ImportingConstructor == null)
+            if (part.Definition.Equals(ExportProvider.ExportProviderPartDefinition))
             {
-                this.Write("throw new InvalidOperationException(\"Cannot instantiate this part.\");");
+                // Special case for our synthesized part that acts as a placeholder for *this* export provider.
+                this.WriteLine("return this.NonDisposableWrapper;");
+                return;
+            }
+
+            if (!part.Definition.IsInstantiable)
+            {
+                this.WriteLine("return CannotInstantiatePartWithNoImportingConstructor();");
                 return;
             }
 
@@ -787,7 +794,7 @@
                     from exportingMemberAndDefinition in part.Definition.ExportDefinitions
                     let export = new Export(exportingMemberAndDefinition.Value, part.Definition, exportingMemberAndDefinition.Key)
                     where part.RequiredSharingBoundaries.Count == 0
-                    where part.Definition.IsInstantiable
+                    where part.Definition.IsInstantiable || part.Definition.Equals(ExportProvider.ExportProviderPartDefinition) // normally they must be instantiable, but we have one special case.
                     group export by export.ExportDefinition.Contract into exportsByContract
                     select exportsByContract;
             }

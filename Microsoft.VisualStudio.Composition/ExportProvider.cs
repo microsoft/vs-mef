@@ -12,6 +12,18 @@
 
     public abstract class ExportProvider : IDisposable
     {
+        internal static readonly CompositionContract ExportProviderContract = new CompositionContract(null, typeof(ExportProvider));
+
+        internal static readonly ComposablePartDefinition ExportProviderPartDefinition = new ComposablePartDefinition(
+            typeof(ExportProviderAsExport),
+            new[] { new ExportDefinition(ExportProviderContract, ImmutableDictionary<string, object>.Empty) },
+            ImmutableDictionary<MemberInfo, IReadOnlyList<ExportDefinition>>.Empty,
+            ImmutableDictionary<MemberInfo, ImportDefinition>.Empty,
+            string.Empty,
+            null,
+            null,
+            CreationPolicy.Shared);
+
         private readonly object syncObject = new object();
 
         /// <summary>
@@ -43,7 +55,11 @@
                     this.sharedInstantiatedExports = this.sharedInstantiatedExports.SetItem(freshSharingBoundary, new Dictionary<Type, object>());
                 }
             }
+
+            this.NonDisposableWrapper = this is ExportProviderAsExport ? this : new ExportProviderAsExport(this, null, null);
         }
+
+        protected ExportProvider NonDisposableWrapper { get; private set; }
 
         public ILazy<T> GetExport<T>()
         {
@@ -129,19 +145,28 @@
 
         public void Dispose()
         {
-            // Snapshot the contents of the collection within the lock,
-            // then dispose of the values outside the lock to avoid
-            // executing arbitrary 3rd-party code within our lock.
-            List<IDisposable> disposableSnapshot;
-            lock (this.syncObject)
-            {
-                disposableSnapshot = new List<IDisposable>(this.disposableInstantiatedParts);
-                this.disposableInstantiatedParts.Clear();
-            }
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
-            foreach (var item in disposableSnapshot)
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
             {
-                item.Dispose();
+                // Snapshot the contents of the collection within the lock,
+                // then dispose of the values outside the lock to avoid
+                // executing arbitrary 3rd-party code within our lock.
+                List<IDisposable> disposableSnapshot;
+                lock (this.syncObject)
+                {
+                    disposableSnapshot = new List<IDisposable>(this.disposableInstantiatedParts);
+                    this.disposableInstantiatedParts.Clear();
+                }
+
+                foreach (var item in disposableSnapshot)
+                {
+                    item.Dispose();
+                }
             }
         }
 
@@ -215,6 +240,34 @@
             // that belongs to a sharing boundary that has not yet been created.
             var sharingBoundary = this.sharedInstantiatedExports[sharingBoundaryName];
             return sharingBoundary;
+        }
+
+        private class ExportProviderAsExport : ExportProvider
+        {
+            private readonly ExportProvider inner;
+
+            internal ExportProviderAsExport(ExportProvider inner, ExportProvider parent, string[] freshSharingBoundaries)
+                : base(parent, freshSharingBoundaries)
+            {
+                Requires.NotNull(inner, "inner");
+
+                this.inner = inner;
+            }
+
+            protected override object GetExport(ExportDefinition exportDefinition)
+            {
+                return this.inner.GetExport(exportDefinition);
+            }
+
+            protected override IEnumerable<object> GetExports(ExportDefinition exportDefinition)
+            {
+                return this.inner.GetExports(exportDefinition);
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                throw new InvalidOperationException("This instance is an import and cannot be directly disposed.");
+            }
         }
     }
 }

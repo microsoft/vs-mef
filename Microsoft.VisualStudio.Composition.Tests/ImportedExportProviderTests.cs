@@ -36,6 +36,7 @@
         {
             var importer = container.GetExportedValue<PartThatImportsExportProvider>();
             Assert.Same(importer.ExportProvider, importer.ExportProvider.GetExportedValue<ExportProvider>());
+            Assert.Same(importer.ExportProvider, importer.ExportProvider.GetExportedValues<ExportProvider>().Single());
         }
 
         /// <summary>

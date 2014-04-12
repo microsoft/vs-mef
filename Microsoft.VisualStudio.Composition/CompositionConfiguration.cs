@@ -19,8 +19,6 @@
 
     public class CompositionConfiguration
     {
-        private static readonly CompositionContract ExportProviderContract = new CompositionContract(null, typeof(ExportProvider));
-
         private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposablePart> parts)
         {
             Requires.NotNull(catalog, "catalog");
@@ -39,6 +37,10 @@
             Requires.NotNull(catalog, "catalog");
 
             ValidateIndividualParts(catalog.Parts);
+
+            // We consider all the parts in the catalog, plus the specially synthesized one
+            // so that folks can import the ExportProvider itself.
+            catalog = catalog.WithPart(ExportProvider.ExportProviderPartDefinition);
 
             // Construct our part builders, initialized with all their imports satisfied.
             var partBuilders = new Dictionary<ComposablePartDefinition, PartBuilder>();
@@ -190,7 +192,7 @@
         private static void ValidateIndividualParts(IImmutableSet<ComposablePartDefinition> parts)
         {
             Requires.NotNull(parts, "parts");
-            var partsExportingExportProvider = parts.Where(p => p.ExportDefinitions.Any(ed => ExportProviderContract.Equals(ed.Value.Contract)));
+            var partsExportingExportProvider = parts.Where(p => p.ExportDefinitions.Any(ed => ExportProvider.ExportProviderContract.Equals(ed.Value.Contract)));
             if (partsExportingExportProvider.Any())
             {
                 throw new CompositionFailedException();

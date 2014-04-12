@@ -80,9 +80,9 @@
     <Compile Include="AwaitExtensions.cs" />
     <Compile Include="CompositionConfigurationDesktop.cs" />
     <Compile Include="CompositionTemplateFactory.cs">
-      <DependentUpon>CompositionTemplateFactory.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
+      <DependentUpon>CompositionTemplateFactory.tt</DependentUpon>
     </Compile>
     <Compile Include="CompositionTemplateFactory.Extras.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
