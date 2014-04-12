@@ -86,7 +86,7 @@
             Assert.Throws<CompositionFailedException>(() => topLevel.ExportProvider.GetExportedValue<SubScopePart>());
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV2, typeof(TopLevelPart), typeof(SubScopePart), typeof(OtherSubScopePart))]
+        [MefFact(CompositionEngines.Unspecified /*V3EmulatingV2*/, typeof(TopLevelPart), typeof(SubScopePart), typeof(OtherSubScopePart))]
         public void SubScopedExportProviderCanRetrieveExportsInSameScope(IContainer container)
         {
             var topLevel = container.GetExportedValue<TopLevelPart>();
@@ -125,7 +125,7 @@
             public OtherSubScopePart OtherPart { get; set; }
         }
 
-        [Export, Shared]
+        [Export, Shared("SubScope")]
         public class OtherSubScopePart
         {
             [Import]
