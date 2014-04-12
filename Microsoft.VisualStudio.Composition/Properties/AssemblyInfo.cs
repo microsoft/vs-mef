@@ -14,7 +14,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("14.0.0.0")]
+[assembly: AssemblyFileVersion("14.0.0.0")]
 
-[assembly: InternalsVisibleTo("Microsoft.VisualStudio.Composition.Configuration, PublicKey=0024000004800000940000000602000000240000525341310004000001000100159389d6f1631955f6a701c145edc4bd26d23de452ab7f4ba2a52c6deaced5ce49f9a31e48d4e4cbf5d35993a10ee0b65e4f108dee68dfd1972f6beca290a1f61e5e52d7a45ac4e8450f10ef6c4101747e0b3252c93a98822a519185e75a494892aa7f87d20aef614ea1079c3843484f18f37f3712665ed5f3ef4df26ab17ec5")]
+[assembly: InternalsVisibleTo("Microsoft.VisualStudio.Composition.Configuration, PublicKey=002400000480000094000000060200000024000052534131000400000100010007d1fa57c4aed9f0a32e84aa0faefd0de9e8fd6aec8f87fb03766c834c99921eb23be79ad9d5dcc1dd9ad236132102900b723cf980957fc4e177108fc607774f29e8320e92ea05ece4e821c0a5efe8f1645c4c0c93c1ab99285d622caa652c1dfad63d745d6f2de5f17e5eaf0fc4963d261c8a12436518206dc093344d5ad293")]
