@@ -127,6 +127,7 @@
     <Compile Include="ProjectSystemMockTests.cs" />
     <Compile Include="SharedNoBoundaryExportsTests.cs" />
     <Compile Include="SharingBoundaryTwoPathsToPartTests.cs" />
+    <Compile Include="SharingBoundaryAcquiresSharedRootScopeExport.cs" />
     <Compile Include="SharingBoundaryWithNonSharedTests.cs" />
     <Compile Include="SharingBoundaryWithNestedBoundaryFactoryTests.cs" />
     <Compile Include="SharingBoundaryWithNonNestedBoundaryFactoryTests.cs" />
