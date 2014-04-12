@@ -56,10 +56,11 @@
                 }
             }
 
-            this.NonDisposableWrapper = this is ExportProviderAsExport ? this : new ExportProviderAsExport(this, null, null);
+            var nonDisposableWrapper = this is ExportProviderAsExport ? this : new ExportProviderAsExport(this, null, null);
+            this.NonDisposableWrapper = LazyPart.Wrap(nonDisposableWrapper);
         }
 
-        protected ExportProvider NonDisposableWrapper { get; private set; }
+        protected ILazy<ExportProvider> NonDisposableWrapper { get; private set; }
 
         public ILazy<T> GetExport<T>()
         {
@@ -236,9 +237,14 @@
         {
             Requires.NotNull(sharingBoundaryName, "sharingBoundaryName");
 
-            // If this throws an IndexOutOfRangeException, it means someone is trying to create a part
-            // that belongs to a sharing boundary that has not yet been created.
-            var sharingBoundary = this.sharedInstantiatedExports[sharingBoundaryName];
+            var sharingBoundary = this.sharedInstantiatedExports.GetValueOrDefault(sharingBoundaryName);
+            if (sharingBoundary == null)
+            {
+                // This means someone is trying to create a part
+                // that belongs to a sharing boundary that has not yet been created.
+                throw new CompositionFailedException("Inappropriate request for export from part that belongs to another sharing boundary.");
+            }
+
             return sharingBoundary;
         }
 

@@ -40,7 +40,7 @@ internal class CompiledExportProvider : ExportProvider
     {
         var provisionalSharedObjects = new Dictionary<Type, object>();
         Type exportTypeDefinition = exportDefinition.Contract.Type.IsGenericType ? exportDefinition.Contract.Type.GetGenericTypeDefinition() : exportDefinition.Contract.Type;<#
-foreach (var contractAndExports in this.RootExportsByContract)
+foreach (var contractAndExports in this.ExportsByContract)
 {
     CompositionContract contract = contractAndExports.Key;
     IEnumerable<Export> exports = contractAndExports;
@@ -97,7 +97,7 @@ foreach (var contractAndExports in this.RootExportsByContract)
     {
         var provisionalSharedObjects = new Dictionary<Type, object>();
         Type exportTypeDefinition = exportDefinition.Contract.Type.IsGenericType ? exportDefinition.Contract.Type.GetGenericTypeDefinition() : exportDefinition.Contract.Type;<#
-foreach (var contractAndExports in this.RootExportsByContract)
+foreach (var contractAndExports in this.ExportsByContract)
 {
     CompositionContract contract = contractAndExports.Key;
     IEnumerable<Export> exports = contractAndExports;
@@ -137,6 +137,16 @@ foreach (var part in this.Configuration.Parts)
 
     protected ILazy<<#= GetTypeName(part.Definition.Type) #>> <#= GetPartFactoryMethodName(part.Definition) #>(Dictionary<Type, object> provisionalSharedObjects, bool nonSharedInstanceRequired = false)
     {
+<#      if (part.Definition.Equals(ExportProvider.ExportProviderPartDefinition))
+        {
+            // Special case for our synthesized part that acts as a placeholder for *this* export provider.
+#>
+            return this.NonDisposableWrapper;
+<#
+        }
+        else
+        {
+#>
         ILazy<<#= GetTypeName(part.Definition.Type) #>> value;
         Type partType = <#= this.GetTypeExpression(part.Definition.Type) #>;
         if (!nonSharedInstanceRequired && TryGetProvisionalSharedExport(provisionalSharedObjects, partType, out value))
@@ -185,6 +195,9 @@ foreach (var part in this.Configuration.Parts)
 #>
 
         return lazyResult;
+<#
+        } // else block for the !specialcase
+#>
     }
 <#
 }
