@@ -36,7 +36,13 @@
         {
             Requires.NotNull(catalog, "catalog");
 
-            // Construct up our part builders, initialized with all their imports satisfied.
+            ValidateIndividualParts(catalog.Parts);
+
+            // We consider all the parts in the catalog, plus the specially synthesized one
+            // so that folks can import the ExportProvider itself.
+            catalog = catalog.WithPart(ExportProvider.ExportProviderPartDefinition);
+
+            // Construct our part builders, initialized with all their imports satisfied.
             var partBuilders = new Dictionary<ComposablePartDefinition, PartBuilder>();
             foreach (ComposablePartDefinition partDefinition in catalog.Parts)
             {
@@ -181,6 +187,16 @@
             }
 
             return false;
+        }
+
+        private static void ValidateIndividualParts(IImmutableSet<ComposablePartDefinition> parts)
+        {
+            Requires.NotNull(parts, "parts");
+            var partsExportingExportProvider = parts.Where(p => p.ExportDefinitions.Any(ed => ExportProvider.ExportProviderContract.Equals(ed.Value.Contract)));
+            if (partsExportingExportProvider.Any())
+            {
+                throw new CompositionFailedException();
+            }
         }
 
         public XDocument CreateDgml()
