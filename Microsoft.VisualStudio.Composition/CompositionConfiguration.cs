@@ -88,9 +88,9 @@
             var parts = partsBuilder.ToImmutable();
 
             // Validate configuration.
+            var exceptions = new List<Exception>();
             foreach (var part in parts)
             {
-                var exceptions = new List<Exception>();
                 try
                 {
                     part.Validate();
@@ -99,11 +99,11 @@
                 {
                     exceptions.Add(ex);
                 }
+            }
 
-                if (exceptions.Count > 0)
-                {
-                    throw new AggregateException(exceptions);
-                }
+            if (exceptions.Count > 0)
+            {
+                throw new CompositionFailedException("Catalog fails to create a well-formed configuration.", new AggregateException(exceptions));
             }
 
             // Detect loops of all non-shared parts.
