@@ -65,9 +65,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Validation">
-      <HintPath>..\packages\Validation.2.0.3.13323\lib\portable-windows8+net40+sl5+windowsphone8+MonoAndroid+MonoTouch\Validation.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AttributedPartDiscovery.cs" />
@@ -97,6 +94,9 @@
       <Project>{1ca6a92c-5dd9-4be5-b5b7-ee4a1318b4c2}</Project>
       <Name>Microsoft.VisualStudio.Composition</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ModuleReference Include="Microsoft.VisualStudio.Validation" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="CompositionTemplateFactory.csproj" />
