@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -48,6 +49,7 @@
 
         public void Validate()
         {
+            var exceptions = ImmutableList.Create<Exception>();
             foreach (var pair in this.SatisfyingExports)
             {
                 try
@@ -56,10 +58,28 @@
                     switch (importDefinition.Cardinality)
                     {
                         case ImportCardinality.ExactlyOne:
-                            Verify.Operation(pair.Value.Count == 1, "Import of {0} expected 1 export but found {1}.", importDefinition.Contract, pair.Value.Count);
+                            if (pair.Value.Count != 1)
+                            {
+                                throw new CompositionFailedException(
+                                    string.Format(
+                                        CultureInfo.CurrentCulture,
+                                        "Import of {0} expected 1 export but found {1}.",
+                                        importDefinition.Contract,
+                                        pair.Value.Count));
+                            }
+
                             break;
                         case ImportCardinality.OneOrZero:
-                            Verify.Operation(pair.Value.Count < 2, "Import of {0} expected 1 or 0 exports but found {1}.", importDefinition.Contract, pair.Value.Count);
+                            if (pair.Value.Count > 1)
+                            {
+                                throw new CompositionFailedException(
+                                    string.Format(
+                                        CultureInfo.CurrentCulture,
+                                        "Import of {0} expected 1 or 0 exports but found {1}.",
+                                        importDefinition.Contract,
+                                        pair.Value.Count));
+                            }
+
                             break;
                     }
 
@@ -72,19 +92,28 @@
                             exportingType = exportingType.MakeGenericType(receivingType.GenericTypeArguments);
                         }
 
-                        Verify.Operation(
-                            receivingType.GetTypeInfo().IsAssignableFrom(exportingType.GetTypeInfo()),
-                            "Exporting MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
-                            ReflectionHelpers.GetTypeName(export.PartDefinition.Type, false, true, null),
-                            ReflectionHelpers.GetTypeName(receivingType, false, true, null),
-                            ReflectionHelpers.GetTypeName(this.Definition.Type, false, true, null),
-                            pair.Key.ImportingMember != null ? pair.Key.ImportingMember.Name : "ctor");
+                        if (!receivingType.GetTypeInfo().IsAssignableFrom(exportingType.GetTypeInfo()))
+                        {
+                            throw new CompositionFailedException(
+                                string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    "Exporting MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
+                                    ReflectionHelpers.GetTypeName(export.PartDefinition.Type, false, true, null),
+                                    ReflectionHelpers.GetTypeName(receivingType, false, true, null),
+                                    ReflectionHelpers.GetTypeName(this.Definition.Type, false, true, null),
+                                    pair.Key.ImportingMember != null ? pair.Key.ImportingMember.Name : "ctor"));
+                        }
                     }
                 }
-                catch (InvalidOperationException ex)
+                catch (CompositionFailedException ex)
                 {
-                    throw new InvalidOperationException("Error validating MEF part: " + pair.Key.PartDefinition.Type.Name, ex);
+                    exceptions = exceptions.Add(new CompositionFailedException("Error validating MEF part: " + pair.Key.PartDefinition.Type.Name, ex));
                 }
+            }
+
+            if (!exceptions.IsEmpty)
+            {
+                throw new CompositionFailedException("Error validating MEF part: " + this.Definition.Type.FullName, new AggregateException(exceptions));
             }
         }
     }
