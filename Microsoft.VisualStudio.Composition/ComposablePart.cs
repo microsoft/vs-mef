@@ -97,11 +97,12 @@
                             throw new CompositionFailedException(
                                 string.Format(
                                     CultureInfo.CurrentCulture,
-                                    "Exporting MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
+                                    "Exported type {4} on MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
                                     ReflectionHelpers.GetTypeName(export.PartDefinition.Type, false, true, null),
                                     ReflectionHelpers.GetTypeName(receivingType, false, true, null),
                                     ReflectionHelpers.GetTypeName(this.Definition.Type, false, true, null),
-                                    pair.Key.ImportingMember != null ? pair.Key.ImportingMember.Name : "ctor"));
+                                    pair.Key.ImportingMember != null ? pair.Key.ImportingMember.Name : "ctor",
+                                    ReflectionHelpers.GetTypeName(exportingType, false, true, null)));
                         }
                     }
                 }
