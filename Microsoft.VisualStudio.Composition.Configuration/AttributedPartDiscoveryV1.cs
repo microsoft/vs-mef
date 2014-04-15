@@ -18,18 +18,26 @@
         {
             Requires.NotNull(partType, "partType");
 
+            if (partType.IsAbstract)
+            {
+                return null;
+            }
+
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
             var imports = ImmutableDictionary.CreateBuilder<MemberInfo, ImportDefinition>();
             var exportMetadataOnType = GetExportMetadata(partType.GetCustomAttributes());
             var partCreationPolicy =  CreationPolicy.Any;
 
-            foreach (var exportAttribute in partType.GetCustomAttributes<ExportAttribute>())
+            foreach (var exportAttributes in partType.GetCustomAttributesByType<ExportAttribute>())
             {
-                var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
-                var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? partType);
-                var exportDefinition = new ExportDefinition(contract, exportMetadataOnType);
-                exportsOnType.Add(exportDefinition);
+                foreach (var exportAttribute in exportAttributes)
+                {
+                    var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
+                    var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? exportAttributes.Key);
+                    var exportDefinition = new ExportDefinition(contract, exportMetadataOnType);
+                    exportsOnType.Add(exportDefinition);
+                }
             }
 
             var partCreationPolicyAttribute = partType.GetCustomAttribute<PartCreationPolicyAttribute>();

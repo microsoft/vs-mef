@@ -45,6 +45,30 @@
             return types.SelectMany(t => t.GetTypeInfo().DeclaredProperties);
         }
 
+        internal static IEnumerable<Type> EnumTypeAndBaseTypes(this Type type)
+        {
+            Requires.NotNull(type, "type");
+
+            while (type != null)
+            {
+                yield return type;
+                type = type.GetTypeInfo().BaseType;
+            }
+        }
+
+        internal static IEnumerable<IGrouping<Type, T>> GetCustomAttributesByType<T>(this Type type)
+            where T : Attribute
+        {
+            Requires.NotNull(type, "type");
+
+            return from t in EnumTypeAndBaseTypes(type)
+                   from attribute in t.GetTypeInfo().GetCustomAttributes<T>(false)
+                   let usage = attribute.GetType().GetTypeInfo().GetCustomAttribute<AttributeUsageAttribute>()
+                   where t.Equals(type) || (usage != null && usage.Inherited)
+                   group attribute by t into attributesByType
+                   select attributesByType;
+        }
+
         internal static IEnumerable<PropertyInfo> WherePublicInstance(this IEnumerable<PropertyInfo> infos)
         {
             return infos.Where(p => p.GetMethod.IsPublicInstance() || p.SetMethod.IsPublicInstance());
