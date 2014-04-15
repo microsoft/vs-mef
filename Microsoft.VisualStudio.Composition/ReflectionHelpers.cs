@@ -233,10 +233,11 @@
             int backTickIndex = originalName.IndexOf('`');
             if (backTickIndex >= 0)
             {
+                int typeArgCountLength = originalName.ToCharArray().Skip(backTickIndex + 1).TakeWhile(ch => char.IsDigit(ch)).Count();
                 name = originalName.Substring(0, name.IndexOf('`'));
                 name += "<";
                 int typeArgIndex = originalName.IndexOf('[', backTickIndex + 1);
-                string typeArgumentsCountString = originalName.Substring(backTickIndex + 1);
+                string typeArgumentsCountString = originalName.Substring(backTickIndex + 1, typeArgCountLength);
                 if (typeArgIndex >= 0)
                 {
                     typeArgumentsCountString = typeArgumentsCountString.Substring(0, typeArgIndex - backTickIndex - 1);
@@ -304,7 +305,7 @@
             Requires.NotNull(type, "type");
 
             string name = fullName ? type.FullName : type.Name;
-            if (type.GetTypeInfo().IsGenericType)
+            if (type.GetTypeInfo().IsGenericType && name.IndexOf('`') >= 0) // simple name may not include ` if parent type is the generic one
             {
                 name = name.Substring(0, name.IndexOf('`'));
                 name += "<";
