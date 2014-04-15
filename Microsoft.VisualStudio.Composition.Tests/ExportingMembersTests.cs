@@ -31,9 +31,9 @@
 
             actual = container.GetExportedValue<string>("Property_Extra_Export");
             Assert.Equal("Andrew", actual);
-    }
+        }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportingMembersClass))]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportsFromProperty(IContainer container)
         {
@@ -174,5 +174,51 @@
                 return true;
             }
         }
+
+        #region Custom delegate type tests
+
+        [MefFact(CompositionEngines.V1, typeof(PartImportingDelegatesOfCustomType), typeof(PartExportingDelegateOfCustomType))]
+        public void EventHandlerAsExports(IContainer container)
+        {
+            var importer = container.GetExportedValue<PartImportingDelegatesOfCustomType>();
+            Assert.Equal(1, importer.Handlers.Count);
+            importer.Handlers[0](null, null);
+            Assert.Equal(1, container.GetExportedValue<PartExportingDelegateOfCustomType>().InvocationCount);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(PartImportingDelegatesOfCustomType), typeof(PartExportingIncompatibleDelegateType), InvalidConfiguration = true)]
+        public void IncompatibleDelegateExported(IContainer container)
+        {
+            container.GetExportedValue<PartImportingDelegatesOfCustomType>();
+        }
+
+        [MefV1.Export]
+        public class PartImportingDelegatesOfCustomType
+        {
+            [MefV1.ImportMany]
+            public List<EventHandler> Handlers { get; set; }
+        }
+
+        [MefV1.Export]
+        public class PartExportingDelegateOfCustomType
+        {
+            public int InvocationCount { get; set; }
+
+            [MefV1.Export(typeof(EventHandler))]
+            public void Handler(object sender, EventArgs e)
+            {
+                this.InvocationCount++;
+            }
+        }
+
+        public class PartExportingIncompatibleDelegateType
+        {
+            [MefV1.Export(typeof(EventHandler))]
+            public void Handler()
+            {
+            }
+        }
+
+        #endregion
     }
 }
