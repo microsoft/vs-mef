@@ -91,6 +91,7 @@
     <Compile Include="GenericImportTests.cs" />
     <Compile Include="ImportedExportProviderTests.cs" />
     <Compile Include="InheritedExportTests.cs" />
+    <Compile Include="NestedTypeTests.cs" />
     <Compile Include="ObsoleteAttributeTests.cs" />
     <Compile Include="CompositionCatalogTests.cs" />
     <Compile Include="CompositionServiceTests.cs" />
