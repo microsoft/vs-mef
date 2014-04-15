@@ -18,6 +18,41 @@
             return CastAsFuncMethodInfo.MakeGenericMethod(typeArg).Invoke(null, new object[] { func });
         }
 
+        internal static bool IsAssignableTo(Import import, Export export)
+        {
+            Requires.NotNull(import, "import");
+            Requires.NotNull(export, "export");
+
+            var receivingType = import.ImportDefinition.ElementType;
+            var exportingType = export.ExportedValueType;
+            if (exportingType.GetTypeInfo().IsGenericTypeDefinition && receivingType.GetTypeInfo().IsGenericType)
+            {
+                exportingType = exportingType.MakeGenericType(receivingType.GenericTypeArguments);
+            }
+
+            if (typeof(Delegate).GetTypeInfo().IsAssignableFrom(receivingType.GetTypeInfo()) && typeof(Delegate).GetTypeInfo().IsAssignableFrom(exportingType.GetTypeInfo()))
+            {
+                // Delegates of varying types may be assigned to each other.
+                // For example Action<object, EventArgs> can be assigned to EventHandler.
+                // The simplest way to test for it is to ask the CLR to do it.
+                // http://stackoverflow.com/questions/23075298/how-to-detect-compatibility-between-delegate-types/23088194#23088194
+                try
+                {
+                    ((MethodInfo)export.ExportingMember).CreateDelegate(receivingType, null);
+                    return true;
+                }
+                catch (ArgumentException)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                // Utilize the standard assignability checks for everything else.
+                return receivingType.GetTypeInfo().IsAssignableFrom(exportingType.GetTypeInfo());
+            }
+        }
+
         internal static IEnumerable<PropertyInfo> EnumProperties(this Type type)
         {
             Requires.NotNull(type, "type");
@@ -43,6 +78,30 @@
             }
 
             return types.SelectMany(t => t.GetTypeInfo().DeclaredProperties);
+        }
+
+        internal static IEnumerable<Type> EnumTypeAndBaseTypes(this Type type)
+        {
+            Requires.NotNull(type, "type");
+
+            while (type != null)
+            {
+                yield return type;
+                type = type.GetTypeInfo().BaseType;
+            }
+        }
+
+        internal static IEnumerable<IGrouping<Type, T>> GetCustomAttributesByType<T>(this Type type)
+            where T : Attribute
+        {
+            Requires.NotNull(type, "type");
+
+            return from t in EnumTypeAndBaseTypes(type)
+                   from attribute in t.GetTypeInfo().GetCustomAttributes<T>(false)
+                   let usage = attribute.GetType().GetTypeInfo().GetCustomAttribute<AttributeUsageAttribute>()
+                   where t.Equals(type) || (usage != null && usage.Inherited)
+                   group attribute by t into attributesByType
+                   select attributesByType;
         }
 
         internal static IEnumerable<PropertyInfo> WherePublicInstance(this IEnumerable<PropertyInfo> infos)
