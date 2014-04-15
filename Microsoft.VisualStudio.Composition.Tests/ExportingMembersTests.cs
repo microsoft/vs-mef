@@ -177,7 +177,7 @@
 
         #region Custom delegate type tests
 
-        [MefFact(CompositionEngines.V1, typeof(PartImportingDelegatesOfCustomType), typeof(PartExportingDelegateOfCustomType))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartImportingDelegatesOfCustomType), typeof(PartExportingDelegateOfCustomType))]
         public void EventHandlerAsExports(IContainer container)
         {
             var importer = container.GetExportedValue<PartImportingDelegatesOfCustomType>();
@@ -186,7 +186,7 @@
             Assert.Equal(1, container.GetExportedValue<PartExportingDelegateOfCustomType>().InvocationCount);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartImportingDelegatesOfCustomType), typeof(PartExportingIncompatibleDelegateType), InvalidConfiguration = true)]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartImportingDelegatesOfCustomType), typeof(PartExportingIncompatibleDelegateType), InvalidConfiguration = true)]
         public void IncompatibleDelegateExported(IContainer container)
         {
             container.GetExportedValue<PartImportingDelegatesOfCustomType>();
