@@ -459,6 +459,32 @@
 
         #endregion
 
+        #region Import of non-public export using public custom collection
+
+        [MefFact(CompositionEngines.V1, typeof(PartThatImportsNonPublicTypeWithPublicCustomCollection), typeof(InternalExtension1))]
+        public void ImportManyNonPublicUsingPublicCustomCollection(IContainer container)
+        {
+            var importer = container.GetExport<PartThatImportsNonPublicTypeWithPublicCustomCollection>();
+            Assert.IsType<InternalExtension1>(importer.Value.ImportingCollection.Single());
+        }
+
+        internal interface IInternalExtension { }
+
+        [Export(typeof(IInternalExtension))]
+        [MefV1.Export(typeof(IInternalExtension)), MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        internal class InternalExtension1 : IInternalExtension { }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class PartThatImportsNonPublicTypeWithPublicCustomCollection
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            internal CustomCollectionWithPublicCtor<IInternalExtension> ImportingCollection { get; set; }
+        }
+
+        #endregion
+
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
         [Trait("Container.GetExport", "CardinalityMismatch")]
         public void GetExportOneForManyThrowsException(IContainer container)
