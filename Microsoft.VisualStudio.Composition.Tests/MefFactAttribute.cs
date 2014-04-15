@@ -61,7 +61,7 @@
             var parts = this.parts;
             if (parts == null && this.assemblies == null)
             {
-                parts = method.Class.Type.GetNestedTypes().Where(t => (!t.IsAbstract || t.IsSealed) && !t.IsInterface).ToArray();
+                parts = GetNestedTypesRecursively(method.Class.Type).Where(t => (!t.IsAbstract || t.IsSealed) && !t.IsInterface).ToArray();
             }
 
             foreach (var engine in new[] { CompositionEngines.V1, CompositionEngines.V2, CompositionEngines.V3EmulatingV1, CompositionEngines.V3EmulatingV2 })
@@ -78,6 +78,21 @@
                 if ((this.compositionVersions & (CompositionEngines.V3EmulatingV2 | CompositionEngines.V3EmulatingV1)) == CompositionEngines.Unspecified)
                 {
                     yield return new SkipCommand(method, MethodUtility.GetDisplayName(method) + "V3", "Test does not include V3 test.");
+                }
+            }
+        }
+
+        private static IEnumerable<Type> GetNestedTypesRecursively(Type parentType)
+        {
+            Requires.NotNull(parentType, "parentType");
+
+            foreach (var nested in parentType.GetNestedTypes())
+            {
+                yield return nested;
+
+                foreach (var recursive in GetNestedTypesRecursively(nested))
+                {
+                    yield return recursive;
                 }
             }
         }
