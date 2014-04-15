@@ -494,7 +494,7 @@
                         GetTypeName(ctor.DeclaringType, evenNonPublic: true) + "." + ctor.Name);
                 }
 
-                this.Write("({0})({1}).Invoke(new object[] {{", skipCast ? "object" : GetTypeName(ctor.DeclaringType), ctorExpression);
+                this.Write("({0})({1}).Invoke(new object[] {{", (skipCast || !IsPublic(ctor.DeclaringType, true)) ? "object" : GetTypeName(ctor.DeclaringType), ctorExpression);
             }
             var indent = this.Indent();
 
@@ -1008,7 +1008,7 @@
             Requires.NotNull(reflectedType, "reflectedType");
             Requires.Argument(memberInfo.ReflectedType.IsAssignableFrom(reflectedType), "reflectedType", "Type must be the one that defines memberInfo or a derived type.");
 
-            if (!IsPublic(reflectedType))
+            if (!IsPublic(reflectedType, true))
             {
                 return false;
             }

@@ -461,7 +461,7 @@
 
         #region Import of non-public export using public custom collection
 
-        [MefFact(CompositionEngines.V1, typeof(PartThatImportsNonPublicTypeWithPublicCustomCollection), typeof(InternalExtension1))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartThatImportsNonPublicTypeWithPublicCustomCollection), typeof(InternalExtension1))]
         public void ImportManyNonPublicUsingPublicCustomCollection(IContainer container)
         {
             var importer = container.GetExport<PartThatImportsNonPublicTypeWithPublicCustomCollection>();
