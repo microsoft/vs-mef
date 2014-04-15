@@ -468,6 +468,13 @@
             Assert.IsType<InternalExtension1>(importer.Value.ImportingCollection.Single());
         }
 
+        [MefFact(CompositionEngines.V1, typeof(PartThatImportsNonPublicTypeWithPublicCustomCollectionAndMetadataView), typeof(InternalExtension1))]
+        public void ImportManyNonPublicUsingPublicCustomCollectionWithMetadataView(IContainer container)
+        {
+            var importer = container.GetExport<PartThatImportsNonPublicTypeWithPublicCustomCollectionAndMetadataView>();
+            Assert.IsType<InternalExtension1>(importer.Value.ImportingCollection.Single().Value);
+        }
+
         internal interface IInternalExtension { }
 
         [Export(typeof(IInternalExtension))]
@@ -481,6 +488,17 @@
             [ImportMany]
             [MefV1.ImportMany]
             internal CustomCollectionWithPublicCtor<IInternalExtension> ImportingCollection { get; set; }
+        }
+
+        public interface IPublicMetadataView { }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class PartThatImportsNonPublicTypeWithPublicCustomCollectionAndMetadataView
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            internal CustomCollectionWithPublicCtor<IInternalExtension, IPublicMetadataView> ImportingCollection { get; set; }
         }
 
         #endregion
@@ -699,6 +717,8 @@
                 return this.GetEnumerator();
             }
         }
+
+        public class CustomCollectionWithPublicCtor<T, TMetadata> : CustomCollectionWithPublicCtor<Lazy<T, TMetadata>> { }
 
         public class CustomCollectionWithInternalCtor<T> : CustomCollectionWithPublicCtor<T>
         {
