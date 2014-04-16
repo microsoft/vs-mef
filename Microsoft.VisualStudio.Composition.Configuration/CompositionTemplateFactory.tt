@@ -161,7 +161,7 @@ foreach (var part in this.Configuration.Parts)
 #>
         if (nonSharedInstanceRequired || !this.TryGetSharedInstanceFactory(@"<#= part.Definition.SharingBoundary #>", partType, out lazyResult))
         {
-            lazyResult = <# using (EmitLazyConstruction(part.Definition.Type)) { #>
+            lazyResult = <# using (EmitLazyConstruction(part.Definition.Type, null)) { #>
                 {
 <#
                 using(Indent(5))
@@ -181,7 +181,7 @@ foreach (var part in this.Configuration.Parts)
         else
         {
 #>
-        lazyResult = <# using (EmitLazyConstruction(part.Definition.Type)) { #>
+        lazyResult = <# using (EmitLazyConstruction(part.Definition.Type, null)) { #>
             {
 <#
                 using(Indent(4))

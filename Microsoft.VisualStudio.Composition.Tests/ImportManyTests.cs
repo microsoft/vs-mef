@@ -468,7 +468,7 @@
             Assert.IsType<InternalExtension1>(importer.Value.ImportingCollection.Single());
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartThatImportsNonPublicTypeWithPublicCustomCollectionAndMetadataView), typeof(InternalExtension1))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartThatImportsNonPublicTypeWithPublicCustomCollectionAndMetadataView), typeof(InternalExtension1))]
         public void ImportManyNonPublicUsingPublicCustomCollectionWithMetadataView(IContainer container)
         {
             var importer = container.GetExport<PartThatImportsNonPublicTypeWithPublicCustomCollectionAndMetadataView>();

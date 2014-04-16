@@ -357,7 +357,7 @@ foreach (var part in this.Configuration.Parts)
             this.Write("\", partType, out lazyResult))\r\n        {\r\n            lazyResult = ");
             
             #line 164 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.Configuration\CompositionTemplateFactory.tt"
- using (EmitLazyConstruction(part.Definition.Type)) { 
+ using (EmitLazyConstruction(part.Definition.Type, null)) { 
             
             #line default
             #line hidden
@@ -402,7 +402,7 @@ foreach (var part in this.Configuration.Parts)
             this.Write("        lazyResult = ");
             
             #line 184 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.Configuration\CompositionTemplateFactory.tt"
- using (EmitLazyConstruction(part.Definition.Type)) { 
+ using (EmitLazyConstruction(part.Definition.Type, null)) { 
             
             #line default
             #line hidden
