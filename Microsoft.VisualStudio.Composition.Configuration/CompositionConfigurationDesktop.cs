@@ -65,7 +65,7 @@
                 WriteWithLineNumbers(sourceFileAndBuildOutput, source);
             }
 
-            return Tuple.Create(sourceFilePath, templateFactory.RelevantAssemblies);
+            return Tuple.Create<string, ISet<Assembly>>(sourceFilePath, configuration.AdditionalReferenceAssemblies.Union(templateFactory.RelevantAssemblies));
         }
 
         private static async Task CompileAsync(string sourceFilePath, ISet<Assembly> assemblies, string targetPath, TextWriter buildOutput)

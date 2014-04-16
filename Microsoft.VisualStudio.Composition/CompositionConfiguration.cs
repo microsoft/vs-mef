@@ -26,11 +26,14 @@
 
             this.Catalog = catalog;
             this.Parts = parts;
+            this.AdditionalReferenceAssemblies = ImmutableHashSet<Assembly>.Empty;
         }
 
         public ComposableCatalog Catalog { get; private set; }
 
         public ISet<ComposablePart> Parts { get; private set; }
+
+        public ImmutableHashSet<Assembly> AdditionalReferenceAssemblies { get; private set; }
 
         public static CompositionConfiguration Create(ComposableCatalog catalog)
         {
@@ -131,6 +134,16 @@
         public static ICompositionContainerFactory Load(Assembly assembly)
         {
             return new ContainerFactory(assembly);
+        }
+
+        public CompositionConfiguration WithReferenceAssemblies(ImmutableHashSet<Assembly> additionalReferenceAssemblies)
+        {
+            Requires.NotNull(additionalReferenceAssemblies, "additionalReferenceAssemblies");
+
+            return new CompositionConfiguration(this.Catalog, this.Parts)
+            {
+                AdditionalReferenceAssemblies = this.AdditionalReferenceAssemblies.Union(additionalReferenceAssemblies)
+            };
         }
 
         private static bool IsLoopPresent(ImmutableHashSet<ComposablePart> parts)
