@@ -459,6 +459,50 @@
 
         #endregion
 
+        #region Import of non-public export using public custom collection
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartThatImportsNonPublicTypeWithPublicCustomCollection), typeof(InternalExtension1))]
+        public void ImportManyNonPublicUsingPublicCustomCollection(IContainer container)
+        {
+            var importer = container.GetExport<PartThatImportsNonPublicTypeWithPublicCustomCollection>();
+            Assert.IsType<InternalExtension1>(importer.Value.ImportingCollection.Single());
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartThatImportsNonPublicTypeWithPublicCustomCollectionAndMetadataView), typeof(InternalExtension1))]
+        public void ImportManyNonPublicUsingPublicCustomCollectionWithMetadataView(IContainer container)
+        {
+            var importer = container.GetExport<PartThatImportsNonPublicTypeWithPublicCustomCollectionAndMetadataView>();
+            Assert.IsType<InternalExtension1>(importer.Value.ImportingCollection.Single().Value);
+        }
+
+        internal interface IInternalExtension { }
+
+        [Export(typeof(IInternalExtension))]
+        [MefV1.Export(typeof(IInternalExtension)), MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        internal class InternalExtension1 : IInternalExtension { }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class PartThatImportsNonPublicTypeWithPublicCustomCollection
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            internal CustomCollectionWithPublicCtor<IInternalExtension> ImportingCollection { get; set; }
+        }
+
+        public interface IPublicMetadataView { }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class PartThatImportsNonPublicTypeWithPublicCustomCollectionAndMetadataView
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            internal CustomCollectionWithPublicCtor<IInternalExtension, IPublicMetadataView> ImportingCollection { get; set; }
+        }
+
+        #endregion
+
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
         [Trait("Container.GetExport", "CardinalityMismatch")]
         public void GetExportOneForManyThrowsException(IContainer container)
@@ -673,6 +717,8 @@
                 return this.GetEnumerator();
             }
         }
+
+        public class CustomCollectionWithPublicCtor<T, TMetadata> : CustomCollectionWithPublicCtor<Lazy<T, TMetadata>> { }
 
         public class CustomCollectionWithInternalCtor<T> : CustomCollectionWithPublicCtor<T>
         {

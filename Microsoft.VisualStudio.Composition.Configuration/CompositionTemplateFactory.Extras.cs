@@ -494,7 +494,7 @@
                         GetTypeName(ctor.DeclaringType, evenNonPublic: true) + "." + ctor.Name);
                 }
 
-                this.Write("({0})({1}).Invoke(new object[] {{", skipCast ? "object" : GetTypeName(ctor.DeclaringType), ctorExpression);
+                this.Write("({0})({1}).Invoke(new object[] {{", (skipCast || !IsPublic(ctor.DeclaringType, true)) ? "object" : GetTypeName(ctor.DeclaringType), ctorExpression);
             }
             var indent = this.Indent();
 
@@ -590,7 +590,7 @@
         {
             var importDefinition = import.ImportDefinition;
 
-            IDisposable closeLazy = null;
+            LazyConstructionResult closeLazy = null;
             bool closeParenthesis = false;
             if (importDefinition.IsLazyConcreteType || (export.ExportingMember != null && importDefinition.IsLazy))
             {
@@ -609,7 +609,7 @@
                 }
                 else
                 {
-                    closeLazy = this.EmitLazyConstruction(importDefinition.ElementType, writer);
+                    closeLazy = this.EmitLazyConstruction(importDefinition.ElementType, importDefinition.MetadataType, writer);
                 }
             }
             else if (importDefinition.IsExportFactory)
@@ -715,6 +715,11 @@
                     if (importDefinition.MetadataType != null)
                     {
                         writer.Write(memberAccessor);
+                        if (closeLazy != null)
+                        {
+                            closeLazy.OnBeforeWriteMetadata();
+                        }
+
                         this.WriteExportMetadataReference(export, importDefinition, writer);
                     }
                     else if (importDefinition.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
@@ -1008,7 +1013,7 @@
             Requires.NotNull(reflectedType, "reflectedType");
             Requires.Argument(memberInfo.ReflectedType.IsAssignableFrom(reflectedType), "reflectedType", "Type must be the one that defines memberInfo or a derived type.");
 
-            if (!IsPublic(reflectedType))
+            if (!IsPublic(reflectedType, true))
             {
                 return false;
             }
@@ -1043,33 +1048,46 @@
             return new Import(importDefinition);
         }
 
-        private IDisposable EmitLazyConstruction(Type valueType, TextWriter writer = null)
+        private LazyConstructionResult EmitLazyConstruction(Type valueType, Type metadataType, TextWriter writer = null)
         {
             writer = writer ?? new SelfTextWriter(this);
-            if (IsPublic(valueType))
+            if (IsPublic(valueType, true) && (metadataType == null || IsPublic(metadataType, true)))
             {
-                writer.Write("new LazyPart<{0}>(() => ", GetTypeName(valueType));
-                return new DisposableWithAction(delegate
+                writer.Write("new LazyPart<{0}", GetTypeName(valueType));
+                if (metadataType != null)
+                {
+                    writer.Write(", {0}", GetTypeName(metadataType));
+                }
+
+                writer.Write(">(() => ");
+                return new LazyConstructionResult(delegate
                 {
                     writer.Write(")");
                 });
             }
             else
             {
-                var ctor = typeof(LazyPart<>).GetConstructor(new Type[] { typeof(Func<object>) });
+                Type lazyType = metadataType != null ? typeof(LazyPart<,>) : typeof(LazyPart<>);
+                Type[] lazyTypeArgs = metadataType != null ? new[] { valueType, metadataType } : new[] { valueType };
+                var ctor = lazyType.GetConstructors().Single(c => c.GetParameters()[0].ParameterType.Equals(typeof(Func<object>)));
                 writer.WriteLine(
                     "((ILazy<{4}>)((ConstructorInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}/*{3}*/).MethodHandle, {2})).Invoke(new object[] {{ (Func<object>)(() => ",
-                    GetAssemblyExpression(typeof(LazyPart<>).Assembly),
+                    GetAssemblyExpression(lazyType.Assembly),
                     ctor.MetadataToken,
-                    this.GetClosedGenericTypeHandleExpression(typeof(LazyPart<>).MakeGenericType(valueType)),
+                    this.GetClosedGenericTypeHandleExpression(lazyType.MakeGenericType(lazyTypeArgs)),
                     GetTypeName(ctor.DeclaringType, evenNonPublic: true) + "." + ctor.Name,
-                    GetTypeName(valueType));
+                    GetTypeName(valueType) + (metadataType != null ? (", " + GetTypeName(metadataType)) : ""));
                 var indent = Indent();
-                return new DisposableWithAction(delegate
-                {
-                    indent.Dispose();
-                    writer.Write(" ) }))");
-                });
+                return new LazyConstructionResult(
+                    () =>
+                    {
+                        writer.Write(")");
+                    },
+                    () =>
+                    {
+                        indent.Dispose();
+                        writer.Write(" }))");
+                    });
             }
         }
 
@@ -1198,6 +1216,41 @@
             public override void Write(string value)
             {
                 this.factory.Write(value);
+            }
+        }
+
+        private class LazyConstructionResult : IDisposable
+        {
+            private Action beforeWriteMetadata;
+            private Action disposal;
+
+            internal LazyConstructionResult(Action beforeWriteMetadata, Action disposal)
+            {
+                this.beforeWriteMetadata = beforeWriteMetadata;
+                this.disposal = disposal;
+            }
+
+            internal LazyConstructionResult(Action disposal)
+            {
+                this.disposal = disposal;
+            }
+
+            internal void OnBeforeWriteMetadata()
+            {
+                if (this.beforeWriteMetadata != null)
+                {
+                    this.beforeWriteMetadata();
+                    this.beforeWriteMetadata = null;
+                }
+            }
+
+            public void Dispose()
+            {
+                this.OnBeforeWriteMetadata(); // in case the caller didn't bother with metadata.
+                if (this.disposal != null)
+                {
+                    this.disposal();
+                }
             }
         }
     }
