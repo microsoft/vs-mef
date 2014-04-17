@@ -118,6 +118,11 @@
         private static IContainer CreateContainerV3(ComposableCatalog catalog)
         {
             var configuration = CompositionConfiguration.Create(catalog);
+#if DGML
+            string dgmlFile = System.IO.Path.GetTempFileName() + ".dgml";
+            configuration.CreateDgml().Save(dgmlFile);
+            Console.WriteLine("DGML saved to: " + dgmlFile);
+#endif
             var container = configuration.CreateContainer();
             return new V3ContainerWrapper(container);
         }
