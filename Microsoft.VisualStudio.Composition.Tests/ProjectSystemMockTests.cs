@@ -117,6 +117,14 @@
             Assert.Equal(1, configuredProjectExport.Value.SubscriptionService.DisposalCount);
         }
 
+        [MefFact(CompositionEngines.V3EmulatingV2WithNonPublic)]
+        public void ActiveConfiguredProjectSimpleUsage(IContainer container)
+        {
+            var projectService = container.GetExportedValue<ProjectService>();
+            var project = projectService.CreateProject();
+            Assert.NotNull(project.Value.ActiveConfiguredProjectSubscriptionService.ImportHelper);
+        }
+
         #region MEF parts
 
         [Export, Shared]
@@ -149,6 +157,9 @@
 
             [Import]
             public ProjectActiveConfiguration ActiveConfiguration { get; set; }
+
+            [Import]
+            public ActiveConfiguredProjectSubscriptionService ActiveConfiguredProjectSubscriptionService { get; set; }
 
             [ImportMany("ProjectExtension")]
             public Lazy<object, IDictionary<string, object>>[] Extensions { get; set; }
@@ -184,6 +195,32 @@
             public void Dispose()
             {
                 this.DisposalCount++;
+            }
+        }
+
+        [Export(typeof(ActiveConfiguredProject<>)), Shared("Project")]
+        public class ActiveConfiguredProject<T>
+        {
+            [Import]
+            private Project Project { get; set; }
+
+            public T Value
+            {
+                get { throw new NotImplementedException(); }
+            }
+        }
+
+        [Export, Shared("Project")]
+        public class ActiveConfiguredProjectSubscriptionService
+        {
+            [Import]
+            internal ActiveConfiguredProject<Helper> ImportHelper { get; set; }
+
+            [Export]
+            internal class Helper
+            {
+                [Import]
+                internal ProjectSubscriptionService ProjectSubscriptionService { get; set; }
             }
         }
 

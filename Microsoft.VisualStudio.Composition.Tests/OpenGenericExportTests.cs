@@ -147,7 +147,7 @@
         #region Non-public tests
 
         [Trait("Access", "NonPublic")]
-        [MefFact(CompositionEngines.V1/*Compat | CompositionEngines.V3EmulatingV2WithNonPublic*/, typeof(Useful<>), typeof(UserOfNonPublicNestedType), typeof(UserOfNonPublicNestedType.NonPublicNestedType))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2WithNonPublic, typeof(Useful<>), typeof(UserOfNonPublicNestedType), typeof(UserOfNonPublicNestedType.NonPublicNestedType))]
         public void NonPublicTypeArgOfOpenGenericExport(IContainer container)
         {
             var user = container.GetExportedValue<UserOfNonPublicNestedType>();
