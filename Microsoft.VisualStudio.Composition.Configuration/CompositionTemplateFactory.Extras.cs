@@ -357,18 +357,25 @@
                 }
                 else
                 {
-                    writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, import.ImportDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
-                    if (import.ImportDefinition.IsExportFactory)
+                    if (import.ImportDefinition.Contract.Type.GetGenericArguments().All(arg => IsPublic(arg, true)))
                     {
-                        writer.Write("new Dictionary<Type, object>()");
+                        writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, import.ImportDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
+                        if (import.ImportDefinition.IsExportFactory)
+                        {
+                            writer.Write("new Dictionary<Type, object>()");
+                        }
+                        else
+                        {
+                            writer.Write("provisionalSharedObjects");
+                        }
+
+                        writer.Write("{0})",
+                            import.ImportDefinition.RequiredCreationPolicy == CreationPolicy.NonShared ? ", nonSharedInstanceRequired: true" : string.Empty);
                     }
                     else
                     {
-                        writer.Write("provisionalSharedObjects");
+                        throw new NotImplementedException();
                     }
-
-                    writer.Write("{0})",
-                        import.ImportDefinition.RequiredCreationPolicy == CreationPolicy.NonShared ? ", nonSharedInstanceRequired: true" : string.Empty);
                 }
             }
         }
