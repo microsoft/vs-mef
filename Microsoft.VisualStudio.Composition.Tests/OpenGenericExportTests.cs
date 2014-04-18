@@ -76,7 +76,7 @@
             Assert.IsType<Useful<int>>(usefuls.First().Value);
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(OpenGenericPartWithPrivateExportingProperty<>), InvalidConfiguration = true)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(OpenGenericPartWithExportingProperty<>), InvalidConfiguration = true)]
         public void ExportingPropertyOnGenericPart(IContainer container)
         {
             string result = container.GetExportedValue<string>();
@@ -128,7 +128,7 @@
             public ILazy<Useful<int>>[] Useful { get; set; }
         }
 
-        public class OpenGenericPartWithPrivateExportingProperty<T>
+        public class OpenGenericPartWithExportingProperty<T>
         {
             [MefV1.Export]
             [Export]
@@ -143,5 +143,27 @@
             [MefV1.Export]
             public string ExportingField = "Success";
         }
+
+        #region Non-public tests
+
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2WithNonPublic, typeof(Useful<>), typeof(UserOfNonPublicNestedType), typeof(UserOfNonPublicNestedType.NonPublicNestedType))]
+        public void NonPublicTypeArgOfOpenGenericExport(IContainer container)
+        {
+            var user = container.GetExportedValue<UserOfNonPublicNestedType>();
+            Assert.NotNull(user.Importer);
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class UserOfNonPublicNestedType
+        {
+            [Import, MefV1.Import]
+            internal Useful<NonPublicNestedType> Importer { get; set; }
+
+            internal class NonPublicNestedType { }
+        }
+
+        #endregion
     }
 }

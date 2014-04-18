@@ -357,18 +357,27 @@
                 }
                 else
                 {
-                    writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, import.ImportDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
-                    if (import.ImportDefinition.IsExportFactory)
+                    var genericTypeArgs = import.ImportDefinition.Contract.Type.GetGenericArguments();
+                    string provisionalSharedObjectsExpression = import.ImportDefinition.IsExportFactory
+                        ? "new Dictionary<Type, object>()"
+                        : "provisionalSharedObjects";
+                    bool nonSharedInstanceRequired = import.ImportDefinition.RequiredCreationPolicy == CreationPolicy.NonShared;
+
+                    if (genericTypeArgs.All(arg => IsPublic(arg, true)))
                     {
-                        writer.Write("new Dictionary<Type, object>()");
+                        writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, import.ImportDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
+                        writer.Write(provisionalSharedObjectsExpression);
+                        writer.Write(", nonSharedInstanceRequired: {0})", nonSharedInstanceRequired ? "true" : "false");
                     }
                     else
                     {
-                        writer.Write("provisionalSharedObjects");
+                        string expression = GetGenericPartFactoryMethodInvokeExpression(
+                            export.PartDefinition,
+                            string.Join(", ", genericTypeArgs.Select(t => GetTypeExpression(t))),
+                            provisionalSharedObjectsExpression,
+                            nonSharedInstanceRequired);
+                        writer.Write("((ILazy<object>)({0}))", expression);
                     }
-
-                    writer.Write("{0})",
-                        import.ImportDefinition.RequiredCreationPolicy == CreationPolicy.NonShared ? ", nonSharedInstanceRequired: true" : string.Empty);
                 }
             }
         }
@@ -898,28 +907,40 @@
             return name;
         }
 
-        private static string GetPartFactoryMethodInvokeExpression(ComposablePartDefinition part)
+        private static string GetPartFactoryMethodInvokeExpression(
+            ComposablePartDefinition part,
+            string typeArgsParamsArrayExpression,
+            string provisionalSharedObjectsExpression,
+            bool nonSharedInstanceRequired)
         {
             if (part.Type.IsGenericType)
             {
-                return GetGenericPartFactoryMethodInvokeExpression(part);
+                return GetGenericPartFactoryMethodInvokeExpression(
+                    part,
+                    typeArgsParamsArrayExpression,
+                    provisionalSharedObjectsExpression,
+                    false);
             }
             else
             {
-                return "this." + GetPartFactoryMethodName(part) + "(provisionalSharedObjects)";
+                return "this." + GetPartFactoryMethodName(part) + "(" + provisionalSharedObjectsExpression + ", " + (nonSharedInstanceRequired ? "true" : "false") + ")";
             }
         }
 
-        private static string GetGenericPartFactoryMethodInfoExpression(ComposablePartDefinition part)
+        private static string GetGenericPartFactoryMethodInfoExpression(ComposablePartDefinition part, string typeArgsParamsArrayExpression)
         {
             return "typeof(CompiledExportProvider).GetMethod(\"" + GetPartFactoryMethodNameNoTypeArgs(part) + "\", BindingFlags.Instance | BindingFlags.NonPublic)"
-                + ".MakeGenericMethod(exportDefinition.Contract.Type.GetGenericArguments())";
+                + ".MakeGenericMethod(" + typeArgsParamsArrayExpression + ")";
         }
 
-        private static string GetGenericPartFactoryMethodInvokeExpression(ComposablePartDefinition part)
+        private static string GetGenericPartFactoryMethodInvokeExpression(
+            ComposablePartDefinition part,
+            string typeArgsParamsArrayExpression,
+            string provisionalSharedObjectsExpression,
+            bool nonSharedInstanceRequired)
         {
-            return GetGenericPartFactoryMethodInfoExpression(part) +
-                ".Invoke(this, new object[] { provisionalSharedObjects, /* nonSharedInstanceRequired: */ false })";
+            return GetGenericPartFactoryMethodInfoExpression(part, typeArgsParamsArrayExpression) +
+                ".Invoke(this, new object[] { " + provisionalSharedObjectsExpression + ", /* nonSharedInstanceRequired: */ " + (nonSharedInstanceRequired ? "true" : "false") + " })";
         }
 
         private string GetPartOrMemberLazy(Export export)
@@ -929,7 +950,11 @@
             MemberInfo member = export.ExportingMember;
             ExportDefinition exportDefinition = export.ExportDefinition;
 
-            string partExpression = GetPartFactoryMethodInvokeExpression(export.PartDefinition);
+            string partExpression = GetPartFactoryMethodInvokeExpression(
+                export.PartDefinition,
+                "exportDefinition.Contract.Type.GetGenericArguments()",
+                "provisionalSharedObjects",
+                false);
 
             if (member == null)
             {
