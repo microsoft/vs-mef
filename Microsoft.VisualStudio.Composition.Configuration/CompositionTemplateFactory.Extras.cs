@@ -652,7 +652,7 @@
                     exportFactoryEmitClose.Dispose();
                 });
             }
-            else if (!IsPublic(export.PartDefinition.Type))
+            else if (!IsPublic(export.PartDefinition.Type) && IsPublic(import.ImportDefinition.MemberWithoutManyWrapper, true))
             {
                 writer.Write("({0})", GetTypeName(import.ImportDefinition.MemberWithoutManyWrapper));
             }
