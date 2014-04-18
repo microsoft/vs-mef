@@ -154,6 +154,14 @@
             Assert.NotNull(user.Importer);
         }
 
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2WithNonPublic, typeof(InternalUseful<>), typeof(UserOfNonPublicNestedType), typeof(UserOfNonPublicNestedType.NonPublicNestedType))]
+        public void NonPublicTypeArgOfOpenGenericExportWithNonPublicPart(IContainer container)
+        {
+            var user = container.GetExportedValue<UserOfNonPublicNestedType>();
+            Assert.NotNull(user.Importer);
+        }
+
         [Export]
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class UserOfNonPublicNestedType
@@ -163,6 +171,11 @@
 
             internal class NonPublicNestedType { }
         }
+
+
+        [Export(typeof(Useful<>))]
+        [MefV1.Export(typeof(Useful<>)), MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        internal class InternalUseful<T> : Useful<T> { }
 
         #endregion
     }
