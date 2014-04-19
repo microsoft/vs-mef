@@ -144,6 +144,56 @@
             public string ExportingField = "Success";
         }
 
+        #region Sharing instance distinction tests
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(SharedUserOfSharedUseful), typeof(SharedUseful<>))]
+        public void OpenGenericExportSharedByTypeArg(IContainer container)
+        {
+            var part = container.GetExportedValue<SharedUserOfSharedUseful>();
+            Assert.NotNull(part.Container);
+            Assert.NotNull(part.Disposable);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2WithNonPublic, typeof(SharedUserOfInternalSharedUseful), typeof(InternalSharedUseful<>))]
+        public void OpenGenericExportSharedByTypeArgNonPublic(IContainer container)
+        {
+            var part = container.GetExportedValue<SharedUserOfInternalSharedUseful>();
+            Assert.NotNull(part.Container);
+            Assert.NotNull(part.Disposable);
+        }
+
+        [Export(typeof(SharedUseful<>)), Shared]
+        [MefV1.Export(typeof(SharedUseful<>))]
+        public class SharedUseful<T> { }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class SharedUserOfSharedUseful
+        {
+            [Import, MefV1.Import]
+            public SharedUseful<IDisposable> Disposable { get; set; }
+
+            [Import, MefV1.Import]
+            public SharedUseful<IContainer> Container { get; set; }
+        }
+
+        [Export(typeof(InternalSharedUseful<>)), Shared]
+        [MefV1.Export(typeof(InternalSharedUseful<>))]
+        internal class InternalSharedUseful<T> { }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class SharedUserOfInternalSharedUseful
+        {
+            [Import, MefV1.Import]
+            internal InternalSharedUseful<IDisposable> Disposable { get; set; }
+
+            [Import, MefV1.Import]
+            internal InternalSharedUseful<IContainer> Container { get; set; }
+        }
+
+        #endregion
+
         #region Non-public tests
 
         [Trait("Access", "NonPublic")]
