@@ -833,10 +833,29 @@
             else
             {
                 var targetType = (genericTypeDefinition && type.IsGenericType) ? type.GetGenericTypeDefinition() : type;
-                return string.Format(
+                var expression = new StringBuilder();
+                expression.AppendFormat(
                     CultureInfo.InvariantCulture,
                     "Type.GetType({0})",
                     Quote(targetType.AssemblyQualifiedName));
+                if (!genericTypeDefinition && targetType.IsGenericTypeDefinition)
+                {
+                    // Concatenate on the generic type arguments if the caller didn't explicitly want the generic type definition.
+                    // Note that the type itself may be a generic type definition, in which case the concatenated types might be
+                    // T1, T2. That's fine. In fact that's what we want because it causes the types from the caller's caller to
+                    // propagate.
+                    expression.Append(".MakeGenericType(");
+                    foreach (Type typeArg in targetType.GetGenericArguments())
+                    {
+                        expression.Append(this.GetTypeExpression(typeArg, false));
+                        expression.Append(", ");
+                    }
+
+                    expression.Length -= 2;
+                    expression.Append(")");
+                }
+
+                return expression.ToString();
             }
         }
 
