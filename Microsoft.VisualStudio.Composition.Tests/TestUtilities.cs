@@ -92,7 +92,8 @@
                 var typeCatalog = ComposableCatalog.Create(discovery, parts);
                 catalog = ComposableCatalog.Create(catalog.Parts.Concat(typeCatalog.Parts));
             }
-            return CreateContainerV3(catalog);
+
+            return CreateContainerV3(catalog, assemblies.ToImmutableHashSet());
         }
 
         private static PartDiscovery GetDiscoveryService(CompositionEngines attributesDiscovery)
@@ -115,9 +116,10 @@
             return discovery;
         }
 
-        private static IContainer CreateContainerV3(ComposableCatalog catalog)
+        private static IContainer CreateContainerV3(ComposableCatalog catalog, ImmutableHashSet<Assembly> additionalAssemblies = null)
         {
-            var configuration = CompositionConfiguration.Create(catalog);
+            var configuration = CompositionConfiguration.Create(catalog)
+                .WithReferenceAssemblies(additionalAssemblies ?? ImmutableHashSet<Assembly>.Empty);
 #if DGML
             string dgmlFile = System.IO.Path.GetTempFileName() + ".dgml";
             configuration.CreateDgml().Save(dgmlFile);
