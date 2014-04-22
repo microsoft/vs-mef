@@ -19,6 +19,23 @@
     ////using TEmbedded = System.IDisposable;
     using TEmbedded = Microsoft.VisualStudio.Shell.Interop.IVsRetargetProjectAsync;
 
+    /// <summary>
+    /// Tests for support of embeddable types.
+    /// </summary>
+    /// <remarks>
+    /// When it's time to add support for this feature,
+    /// it may be done by generating code such as this:
+    /// <code>
+    /// var foo = typeof(ClassLibrary1.Class1).GetMethod("Foo");
+    /// Type otherEmbedded = foo.GetParameters()[0].ParameterType.GetGenericArguments()[0];
+    /// Type otherEmbedded = Type.GetType(otherEmbedded.AssemblyQualifiedName); // this *also* works
+    /// var arg = typeof(Lazy<>).MakeGenericType(type).GetConstructor(new Type[0]).Invoke(new object[0]);
+    /// </code>
+    /// The secret sauce here being that the instance of System.Type used to construct
+    /// the Lazy`1 or LazyPart`1 instance is exactly taken from the assembly to which
+    /// the value will be passed. That way, we'll get the instance of the Type that is
+    /// embedded in that assembly and it will therefore be deemed compatible at runtime.
+    /// </remarks>
     public class EmbeddableTypesTests
     {
         /// <summary>
@@ -49,6 +66,18 @@
             var exporter = container.GetExportedValue<TEmbedded>();
             var importer = container.GetExportedValue<PartThatImportsLazyOfEmbeddedTypeNonPublic>();
             Assert.Same(exporter, importer.RetargetProjectNoLazy);
+        }
+
+        [MefFact(
+            CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2,
+            "Microsoft.VisualStudio.Shell.Interop.12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+            typeof(PartThatImportsEmbeddedType),
+            typeof(PartThatExportsEmbeddedType))]
+        public void EmbeddedTypePublicImportingProperty(IContainer container)
+        {
+            var exporter = container.GetExportedValue<TEmbedded>();
+            var importer = container.GetExportedValue<PartThatImportsEmbeddedType>();
+            Assert.Same(exporter, importer.RetargetProject);
         }
 
         [Export(typeof(TEmbedded)), Shared]

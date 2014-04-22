@@ -44,4 +44,11 @@
             get { return this.RetargetProject.Value; }
         }
     }
+
+    [MefV1.Export, MefV2.Export]
+    public class PartThatImportsEmbeddedType
+    {
+        [MefV1.Import, MefV2.Import]
+        public TEmbedded RetargetProject { get; set; }
+    }
 }
