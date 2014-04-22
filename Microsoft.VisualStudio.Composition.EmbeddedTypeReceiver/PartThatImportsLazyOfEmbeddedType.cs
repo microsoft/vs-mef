@@ -34,6 +34,18 @@
     }
 
     [MefV1.Export, MefV2.Export]
+    public class PartThatImportsILazyOfEmbeddedType
+    {
+        [MefV1.Import, MefV2.Import]
+        public ILazy<TEmbedded> RetargetProject { get; set; }
+
+        public TEmbedded RetargetProjectNoLazy
+        {
+            get { return this.RetargetProject.Value; }
+        }
+    }
+
+    [MefV1.Export, MefV2.Export]
     public class PartThatImportsLazyOfEmbeddedTypeNonPublic
     {
         [MefV1.Import, MefV2.Import]

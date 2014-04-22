@@ -57,6 +57,18 @@
         }
 
         [MefFact(
+            CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2,
+            "Microsoft.VisualStudio.Shell.Interop.12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+            typeof(PartThatImportsILazyOfEmbeddedType),
+            typeof(PartThatExportsEmbeddedType))]
+        public void CovariantEmbeddedGenericTypeArgument(IContainer container)
+        {
+            var exporter = container.GetExportedValue<TEmbedded>();
+            var importer = container.GetExportedValue<PartThatImportsILazyOfEmbeddedType>();
+            Assert.Same(exporter, importer.RetargetProjectNoLazy);
+        }
+
+        [MefFact(
             CompositionEngines.V1/*Compat*/,
             "Microsoft.VisualStudio.Shell.Interop.12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
             typeof(PartThatImportsLazyOfEmbeddedTypeNonPublic),
