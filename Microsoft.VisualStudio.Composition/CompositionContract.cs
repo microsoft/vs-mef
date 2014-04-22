@@ -35,13 +35,16 @@
                 return false;
             }
 
-            return this.Type == other.Type
+            return this.Type.IsEquivalentTo(other.Type)
                 && StringComparer.Ordinal.Equals(this.ContractName, other.ContractName);
         }
 
         public override int GetHashCode()
         {
-            return this.Type.GetHashCode() + (this.ContractName != null ? StringComparer.Ordinal.GetHashCode(this.ContractName) : 0);
+            // Use the type's full name for its hash code rather than
+            // calling Type.GetHashCode() directly. This allows contracts to
+            // equivalent embeddedable types to generate the same hash code.
+            return this.Type.FullName.GetHashCode() + (this.ContractName != null ? StringComparer.Ordinal.GetHashCode(this.ContractName) : 0);
         }
 
         public override string ToString()

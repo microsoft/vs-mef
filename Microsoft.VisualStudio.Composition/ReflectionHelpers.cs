@@ -18,6 +18,22 @@
             return CastAsFuncMethodInfo.MakeGenericMethod(typeArg).Invoke(null, new object[] { func });
         }
 
+        internal static bool IsEquivalentTo(this Type type1, Type type2)
+        {
+            Requires.NotNull(type1, "type1");
+            Requires.NotNull(type2, "type2");
+
+            if (type1 == type2)
+            {
+                return true;
+            }
+
+            var type1Info = type1.GetTypeInfo();
+            var type2Info = type2.GetTypeInfo();
+            return type1Info.IsAssignableFrom(type2Info)
+                && type2Info.IsAssignableFrom(type1Info);
+        }
+
         internal static bool IsAssignableTo(Import import, Export export)
         {
             Requires.NotNull(import, "import");
