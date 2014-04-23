@@ -28,17 +28,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{183D709F
 		nuget\Microsoft.VisualStudio.Composition.nuspec = nuget\Microsoft.VisualStudio.Composition.nuspec
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{CD50126D-9184-45A5-B1A1-8F0E9A2BB655}"
-	ProjectSection(SolutionItems) = preProject
-		nuget\tools\install.ps1 = nuget\tools\install.ps1
-		nuget\tools\Microsoft.VisualStudio.Composition.targets = nuget\tools\Microsoft.VisualStudio.Composition.targets
-		nuget\tools\uninstall.ps1 = nuget\tools\uninstall.ps1
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "content", "content", "{0C9E1477-B523-49DD-A1CA-C3BE704E359D}"
-	ProjectSection(SolutionItems) = preProject
-		nuget\content\Microsoft.VisualStudio.Composition.targets = nuget\content\Microsoft.VisualStudio.Composition.targets
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver", "Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver\Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver.csproj", "{843DB118-C15B-48B5-A9DC-B815CC788CEF}"
 EndProject
@@ -81,7 +71,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{CD50126D-9184-45A5-B1A1-8F0E9A2BB655} = {183D709F-9E0E-4E68-8979-7366BA1B0C91}
 		{0C9E1477-B523-49DD-A1CA-C3BE704E359D} = {183D709F-9E0E-4E68-8979-7366BA1B0C91}
 	EndGlobalSection
 EndGlobal
