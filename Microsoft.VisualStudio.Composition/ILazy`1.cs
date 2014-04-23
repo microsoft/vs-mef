@@ -1,4 +1,4 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿namespace Microsoft.VisualStudio
 {
     using System;
     using System.Collections.Generic;
