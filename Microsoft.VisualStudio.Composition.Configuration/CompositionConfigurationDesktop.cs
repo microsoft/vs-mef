@@ -18,7 +18,7 @@
 
     public static class CompositionConfigurationDesktop
     {
-        public static ICompositionContainerFactory LoadDefault()
+        public static IExportProviderFactory LoadDefault()
         {
             string exePath = Process.GetCurrentProcess().MainModule.FileName.Replace(".vshost", string.Empty);
             string baseName = Path.Combine(Path.GetDirectoryName(exePath), Path.GetFileNameWithoutExtension(exePath));
@@ -34,7 +34,7 @@
             await CompileAsync(sourceFilePathAndAssemblies.Item1, sourceFilePathAndAssemblies.Item2, assemblyPath, buildOutput);
         }
 
-        public static async Task<ICompositionContainerFactory> CreateContainerFactoryAsync(this CompositionConfiguration configuration, TextWriter sourceFile = null, TextWriter buildOutput = null)
+        public static async Task<IExportProviderFactory> CreateContainerFactoryAsync(this CompositionConfiguration configuration, TextWriter sourceFile = null, TextWriter buildOutput = null)
         {
             string targetPath = Path.GetTempFileName();
             await configuration.SaveAsync(targetPath, sourceFile, buildOutput);

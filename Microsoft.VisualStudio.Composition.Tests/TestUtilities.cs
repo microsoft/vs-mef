@@ -14,13 +14,13 @@
 
     internal static class TestUtilities
     {
-        internal static CompositionContainer CreateContainer(this CompositionConfiguration configuration)
+        internal static ExportProvider CreateContainer(this CompositionConfiguration configuration)
         {
             Requires.NotNull(configuration, "configuration");
-            return configuration.CreateContainerFactoryAsync(Console.Out, Console.Out).Result.CreateContainer();
+            return configuration.CreateContainerFactoryAsync(Console.Out, Console.Out).Result.CreateExportProvider();
         }
 
-        internal static CompositionContainer CreateContainer(params Type[] parts)
+        internal static ExportProvider CreateContainer(params Type[] parts)
         {
             return CompositionConfiguration.Create(new AttributedPartDiscovery(), parts).CreateContainer();
         }
@@ -501,9 +501,9 @@
 
         private class V3ContainerWrapper : IContainer
         {
-            private readonly CompositionContainer container;
+            private readonly ExportProvider container;
 
-            internal V3ContainerWrapper(CompositionContainer container)
+            internal V3ContainerWrapper(ExportProvider container)
             {
                 Requires.NotNull(container, "container");
                 this.container = container;

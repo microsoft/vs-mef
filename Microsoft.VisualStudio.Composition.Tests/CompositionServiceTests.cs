@@ -27,7 +27,7 @@
         [Fact(Skip = "Not yet implemented.")]
         public void CompositionContainerImplementsICompositionService()
         {
-            Assert.True(typeof(ICompositionService).IsAssignableFrom(typeof(CompositionContainer)));
+            Assert.True(typeof(ICompositionService).IsAssignableFrom(typeof(ExportProvider)));
         }
 
         /// <summary>

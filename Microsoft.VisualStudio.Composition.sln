@@ -26,9 +26,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{183D709F
 	ProjectSection(SolutionItems) = preProject
 		buildnuget.bat = buildnuget.bat
 		nuget\Microsoft.VisualStudio.Composition.nuspec = nuget\Microsoft.VisualStudio.Composition.nuspec
+		nuget\README.txt = nuget\README.txt
 	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "content", "content", "{0C9E1477-B523-49DD-A1CA-C3BE704E359D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver", "Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver\Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver.csproj", "{843DB118-C15B-48B5-A9DC-B815CC788CEF}"
 EndProject
@@ -69,8 +68,5 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{0C9E1477-B523-49DD-A1CA-C3BE704E359D} = {183D709F-9E0E-4E68-8979-7366BA1B0C91}
 	EndGlobalSection
 EndGlobal

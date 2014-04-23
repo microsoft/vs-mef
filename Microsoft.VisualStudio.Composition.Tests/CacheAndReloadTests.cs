@@ -23,7 +23,7 @@
             configuration = null;
 
             var reconstitutedConfiguration = CompositionConfiguration.Load(Assembly.LoadFile(path));
-            var container = reconstitutedConfiguration.CreateContainer();
+            var container = reconstitutedConfiguration.CreateExportProvider();
             SomeExport export = container.GetExportedValue<SomeExport>();
             Assert.NotNull(export);
         }

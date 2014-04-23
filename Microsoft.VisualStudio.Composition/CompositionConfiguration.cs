@@ -126,14 +126,14 @@
             return Create(ComposableCatalog.Create(partDiscovery, parts));
         }
 
-        public static ICompositionContainerFactory Load(AssemblyName assemblyRef)
+        public static IExportProviderFactory Load(AssemblyName assemblyRef)
         {
-            return new ContainerFactory(Assembly.Load(assemblyRef));
+            return new ExportProviderFactory(Assembly.Load(assemblyRef));
         }
 
-        public static ICompositionContainerFactory Load(Assembly assembly)
+        public static IExportProviderFactory Load(Assembly assembly)
         {
-            return new ContainerFactory(assembly);
+            return new ExportProviderFactory(assembly);
         }
 
         public CompositionConfiguration WithReferenceAssemblies(ImmutableHashSet<Assembly> additionalReferenceAssemblies)
@@ -242,11 +242,11 @@
             return dgml;
         }
 
-        private class ContainerFactory : ICompositionContainerFactory
+        private class ExportProviderFactory : IExportProviderFactory
         {
             private Func<ExportProvider> createFactory;
 
-            internal ContainerFactory(Assembly assembly)
+            internal ExportProviderFactory(Assembly assembly)
             {
                 Requires.NotNull(assembly, "assembly");
 
@@ -254,9 +254,9 @@
                 this.createFactory = () => (ExportProvider)Activator.CreateInstance(exportFactoryType);
             }
 
-            public CompositionContainer CreateContainer()
+            public ExportProvider CreateExportProvider()
             {
-                return new CompositionContainer(this.createFactory());
+                return this.createFactory();
             }
         }
 

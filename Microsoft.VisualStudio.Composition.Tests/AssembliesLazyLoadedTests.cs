@@ -65,12 +65,12 @@
 
         private class AppDomainTestDriver : MarshalByRefObject
         {
-            private CompositionContainer container;
+            private ExportProvider container;
 
             internal void Initialize(string cachedCompositionPath)
             {
                 var containerFactory = CompositionConfiguration.Load(Assembly.LoadFile(cachedCompositionPath));
-                this.container = containerFactory.CreateContainer();
+                this.container = containerFactory.CreateExportProvider();
             }
 
             internal void TestExternalExport(string lazyLoadedAssemblyPath)
@@ -97,7 +97,7 @@
 
             }
 
-            private void CauseLazyLoad1(CompositionContainer container)
+            private void CauseLazyLoad1(ExportProvider container)
             {
                 // Actually the lazy load happens before GetExport is actually called since this method
                 // references a type in that assembly.
@@ -105,7 +105,7 @@
                 Assert.NotNull(export);
             }
 
-            private void CauseLazyLoad2(CompositionContainer container)
+            private void CauseLazyLoad2(ExportProvider container)
             {
                 // Actually the lazy load happens before GetExport is actually called since this method
                 // references a type in that assembly.
