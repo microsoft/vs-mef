@@ -128,12 +128,12 @@
 
         public static IExportProviderFactory Load(AssemblyName assemblyRef)
         {
-            return new ExportProviderFactory(Assembly.Load(assemblyRef));
+            return new CompiledExportProviderFactory(Assembly.Load(assemblyRef));
         }
 
         public static IExportProviderFactory Load(Assembly assembly)
         {
-            return new ExportProviderFactory(assembly);
+            return new CompiledExportProviderFactory(assembly);
         }
 
         public CompositionConfiguration WithReferenceAssemblies(ImmutableHashSet<Assembly> additionalReferenceAssemblies)
@@ -242,11 +242,11 @@
             return dgml;
         }
 
-        private class ExportProviderFactory : IExportProviderFactory
+        private class CompiledExportProviderFactory : IExportProviderFactory
         {
             private Func<ExportProvider> createFactory;
 
-            internal ExportProviderFactory(Assembly assembly)
+            internal CompiledExportProviderFactory(Assembly assembly)
             {
                 Requires.NotNull(assembly, "assembly");
 
