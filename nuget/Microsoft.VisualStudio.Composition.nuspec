@@ -17,12 +17,12 @@
     <file src="$TargetPath$Microsoft.VisualStudio.Composition.dll" target="lib\portable-net45+win" />
 
     <file src="README.TXT" target="" />
-    <file src="build/Microsoft.VisualStudio.Composition.targets" target="build" />
-    <file src="$TargetPath$Microsoft.VisualStudio.Composition.dll" target="build" />
-    <file src="$TargetPath$Microsoft.VisualStudio.Composition.Configuration.dll" target="build" />
-    <file src="$TargetPath$System.Composition.Runtime.dll" target="build" />
-    <file src="$TargetPath$System.Composition.AttributedModel.dll" target="build" />
-    <file src="$TargetPath$Validation.dll" target="build" />
-    <file src="$TargetPath$System.Collections.Immutable.dll" target="build" />
+    <file target="build" src="build/Microsoft.VisualStudio.Composition.targets" />
+    <file target="build" src="$TargetPath$Microsoft.VisualStudio.Composition.dll" />
+    <file target="build" src="$TargetPath$Microsoft.VisualStudio.Composition.Configuration.dll" />
+    <file target="build" src="$TargetPath$System.Composition.Runtime.dll" />
+    <file target="build" src="$TargetPath$System.Composition.AttributedModel.dll" />
+    <file target="build" src="$TargetPath$Validation.dll" />
+    <file target="build" src="$TargetPath$System.Collections.Immutable.dll" />
   </files>
 </package>
