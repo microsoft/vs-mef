@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Composition.Hosting;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -19,19 +20,35 @@
         {
             Requires.NotNull(configuration, "configuration");
 
-            var sourceFileStream = new MemoryStream();
-            var exportProvider = configuration.CreateContainerFactoryAsync(sourceFileStream, Console.Out).Result.CreateExportProvider();
-
-            sourceFileStream.Position = 0;
-            var sourceFileReader = new StreamReader(sourceFileStream);
-            int lineNumber = 0;
-            string line;
-            while ((line = sourceFileReader.ReadLine()) != null)
+            if (Debugger.IsAttached)
             {
-                Console.WriteLine("Line {0,5}: {1}", ++lineNumber, line);
+                string basePath = Path.GetTempFileName();
+                string assemblyPath = basePath + ".dll";
+                string pdbPath = basePath + ".pdb";
+                string sourcePath = basePath + ".cs";
+                configuration.SaveAsync(
+                    assemblyPath,
+                    pdbPath,
+                    sourcePath).GetAwaiter().GetResult();
+                var exportProviderFactory = CompositionConfiguration.Load(Assembly.LoadFile(assemblyPath));
+                return exportProviderFactory.CreateExportProvider();
             }
+            else
+            {
+                var sourceFileStream = new MemoryStream();
+                var exportProvider = configuration.CreateContainerFactoryAsync(sourceFileStream, Console.Out).Result.CreateExportProvider();
 
-            return exportProvider;
+                sourceFileStream.Position = 0;
+                var sourceFileReader = new StreamReader(sourceFileStream);
+                int lineNumber = 0;
+                string line;
+                while ((line = sourceFileReader.ReadLine()) != null)
+                {
+                    Console.WriteLine("Line {0,5}: {1}", ++lineNumber, line);
+                }
+
+                return exportProvider;
+            }
         }
 
         internal static ExportProvider CreateContainer(params Type[] parts)
