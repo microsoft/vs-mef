@@ -7,16 +7,23 @@
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Build.Framework;
     using Microsoft.Build.Utilities;
 
-    public class CreateComposition : AppDomainIsolatedTask
+    public class CreateComposition : AppDomainIsolatedTask, ICancelableTask
     {
+        private readonly CancellationTokenSource cancellationSource = new CancellationTokenSource();
+
         public ITaskItem[] CatalogAssemblies { get; set; }
 
         [Required]
         public string ConfigurationOutputPath { get; set; }
+
+        public string ConfigurationSymbolsPath { get; set; }
+
+        public string ConfigurationSourcePath { get; set; }
 
         public string DgmlOutputPath { get; set; }
 
@@ -30,6 +37,9 @@
                     new AttributedPartDiscoveryV1(),
                     new AttributedPartDiscovery(),
                 };
+
+                this.cancellationSource.Token.ThrowIfCancellationRequested();
+
                 var parts = discovery.SelectMany(d => d.CreateParts(this.CatalogAssemblies.Select(item => Assembly.LoadFile(item.ItemSpec))));
                 var catalog = ComposableCatalog.Create(parts);
                 var configuration = CompositionConfiguration.Create(catalog);
@@ -39,9 +49,15 @@
                     configuration.CreateDgml().Save(this.DgmlOutputPath);
                 }
 
-                string path = Path.GetFullPath(this.ConfigurationOutputPath);
-                this.Log.LogMessage("Producing IoC container \"{0}\"", path);
-                configuration.SaveAsync(path).GetAwaiter().GetResult();
+                this.cancellationSource.Token.ThrowIfCancellationRequested();
+
+                string assemblyPath = Path.GetFullPath(this.ConfigurationOutputPath);
+                this.Log.LogMessage("Producing IoC container \"{0}\"", assemblyPath);
+                configuration.SaveAsync(
+                    assemblyPath,
+                    Path.GetFullPath(this.ConfigurationSymbolsPath),
+                    Path.GetFullPath(this.ConfigurationSourcePath),
+                    this.cancellationSource.Token).GetAwaiter().GetResult();
             }
             catch (AggregateException ex)
             {
@@ -80,6 +96,11 @@
             }
 
             return null;
+        }
+
+        public void Cancel()
+        {
+            this.cancellationSource.Cancel();
         }
     }
 }

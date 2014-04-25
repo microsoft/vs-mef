@@ -4,20 +4,34 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Composition.Hosting;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
-    using MefV1 = System.ComponentModel.Composition;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
+    using MefV1 = System.ComponentModel.Composition;
 
     internal static class TestUtilities
     {
         internal static ExportProvider CreateContainer(this CompositionConfiguration configuration)
         {
             Requires.NotNull(configuration, "configuration");
-            return configuration.CreateContainerFactoryAsync(Console.Out, Console.Out).Result.CreateExportProvider();
+
+            var sourceFileStream = new MemoryStream();
+            var exportProvider = configuration.CreateContainerFactoryAsync(sourceFileStream, Console.Out).Result.CreateExportProvider();
+
+            sourceFileStream.Position = 0;
+            var sourceFileReader = new StreamReader(sourceFileStream);
+            int lineNumber = 0;
+            string line;
+            while ((line = sourceFileReader.ReadLine()) != null)
+            {
+                Console.WriteLine("Line {0,5}: {1}", ++lineNumber, line);
+            }
+
+            return exportProvider;
         }
 
         internal static ExportProvider CreateContainer(params Type[] parts)

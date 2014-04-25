@@ -26,6 +26,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{183D709F
 	ProjectSection(SolutionItems) = preProject
 		buildnuget.bat = buildnuget.bat
 		nuget\Microsoft.VisualStudio.Composition.nuspec = nuget\Microsoft.VisualStudio.Composition.nuspec
+		nuget\build\Microsoft.VisualStudio.Composition.targets = nuget\build\Microsoft.VisualStudio.Composition.targets
 		nuget\README.txt = nuget\README.txt
 	EndProjectSection
 EndProject

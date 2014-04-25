@@ -31,23 +31,31 @@
             return CompositionConfiguration.Load(Assembly.LoadFile(defaultCompositionFile));
         }
 
-        public static async Task SaveAsync(this CompositionConfiguration configuration, string assemblyPath, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task SaveAsync(this CompositionConfiguration configuration, string assemblyPath, string pdbPath = null, string sourceFilePath = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             string assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
-            using (Stream assemblyStream = File.OpenWrite(assemblyPath))
+            using (Stream assemblyStream = File.Open(assemblyPath, FileMode.Create))
             {
-                var result = await configuration.SaveCompilationAsync(
-                    assemblyName,
-                    assemblyStream,
-                    cancellationToken: cancellationToken);
-                if (!result.Success)
+                using (Stream pdbStream = pdbPath != null ? File.Open(pdbPath, FileMode.Create) : null)
                 {
-                    throw new Exception("Internal error");
+                    using (FileStream sourceFile = sourceFilePath != null ? File.OpenWrite(sourceFilePath) : null)
+                    {
+                        var result = await configuration.SaveCompilationAsync(
+                            assemblyName,
+                            assemblyStream,
+                            pdbStream,
+                            sourceFile,
+                            cancellationToken: cancellationToken);
+                        if (!result.Success)
+                        {
+                            throw new Exception("Internal error");
+                        }
+                    }
                 }
             }
         }
 
-        public static Task<EmitResult> SaveCompilationAsync(this CompositionConfiguration configuration, string assemblyName, Stream assemblyStream, Stream pdbStream = null, TextWriter sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<EmitResult> SaveCompilationAsync(this CompositionConfiguration configuration, string assemblyName, Stream assemblyStream, Stream pdbStream = null, Stream sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(configuration, "configuration");
             Requires.NotNullOrEmpty(assemblyName, "assemblyName");
@@ -60,16 +68,16 @@
                 bool debug = pdbStream != null;
                 CSharpCompilation templateCompilation = CreateTemplateCompilation(assemblyName, debug);
 
-                var compilation = AddGeneratedCodeAndDependencies(templateCompilation, configuration);
+                FileStream sourceFileStream = sourceFile as FileStream;
+                string sourceFilePath = sourceFileStream != null ? sourceFileStream.Name : null;
+                var compilation = AddGeneratedCodeAndDependencies(templateCompilation, configuration, sourceFilePath);
 
-                if (sourceFile != null && sourceFile != TextWriter.Null)
+                if (sourceFile != null)
                 {
-                    var text = await compilation.SyntaxTrees.Single().GetTextAsync(cancellationToken);
-                    int lineNumber = 1;
-                    foreach (var line in text.Lines)
-                    {
-                        sourceFile.WriteLine("{0}: {1}", lineNumber++, line);
-                    }
+                    var writer = new StreamWriter(sourceFile);
+                    var root = await compilation.SyntaxTrees.Single().GetRootAsync(cancellationToken);
+                    await writer.WriteAsync(root.ToFullString());
+                    await writer.FlushAsync();
                 }
 
                 var result = compilation.Emit(
@@ -107,7 +115,7 @@
                     debugInformationKind: debug ? DebugInformationKind.Full : DebugInformationKind.None));
         }
 
-        public static async Task<IExportProviderFactory> CreateContainerFactoryAsync(this CompositionConfiguration configuration, TextWriter sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<IExportProviderFactory> CreateContainerFactoryAsync(this CompositionConfiguration configuration, Stream sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             string assemblyName = Path.GetRandomFileName();
             var assemblyStream = new MemoryStream();
@@ -128,19 +136,7 @@
             }
         }
 
-        private static void WriteWithLineNumbers(TextWriter writer, string content)
-        {
-            Requires.NotNull(writer, "writer");
-            Requires.NotNull(content, "content");
-
-            int lineNumber = 0;
-            foreach (string line in content.Split('\n'))
-            {
-                writer.WriteLine("{0,5}: {1}", ++lineNumber, line.Trim('\r', '\n'));
-            }
-        }
-
-        private static CSharpCompilation AddGeneratedCodeAndDependencies(CSharpCompilation compilationTemplate, CompositionConfiguration configuration)
+        private static CSharpCompilation AddGeneratedCodeAndDependencies(CSharpCompilation compilationTemplate, CompositionConfiguration configuration, string sourceFilePath = null)
         {
             var templateFactory = new CompositionTemplateFactory();
             templateFactory.Configuration = configuration;
@@ -152,7 +148,7 @@
 
             return compilationTemplate
                 .AddReferences(assemblies.Select(r => MetadataReferenceProvider.Default.GetReference(r.Location)))
-                .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(source));
+                .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(source, sourceFilePath ?? string.Empty));
         }
     }
 }

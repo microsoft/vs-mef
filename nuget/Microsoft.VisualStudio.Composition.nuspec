@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Microsoft.VisualStudio.Composition</id>
-    <version>0.1.0-alpha3</version>
+    <version>0.1.0-alpha6</version>
     <authors>andarno</authors>
     <owners>andarno</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -24,5 +24,6 @@
     <file target="build" src="$TargetPath$System.Composition.AttributedModel.dll" />
     <file target="build" src="$TargetPath$Validation.dll" />
     <file target="build" src="$TargetPath$System.Collections.Immutable.dll" />
+    <file target="build" src="$TargetPath$Microsoft.CodeAnalysis*.dll" />
   </files>
 </package>
