@@ -78,9 +78,18 @@
                 if (!result.Success)
                 {
                     await buildOutput.WriteLineAsync("Build failed.");
-                    foreach (var diagnostic in result.Diagnostics)
+                }
+
+                foreach (var diagnostic in result.Diagnostics)
+                {
+                    if (diagnostic.Severity > DiagnosticSeverity.Info)
                     {
-                        await buildOutput.WriteLineAsync("Line " + (diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1) + ": " + diagnostic.GetMessage());
+                        if (diagnostic.Location != Location.None)
+                        {
+                            await buildOutput.WriteAsync("Line " + (diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1) + ": ");
+                        }
+
+                        await buildOutput.WriteLineAsync(diagnostic.Category + " " + diagnostic.Severity + " " + diagnostic.Id + ": " + diagnostic.GetMessage());
                     }
                 }
 
