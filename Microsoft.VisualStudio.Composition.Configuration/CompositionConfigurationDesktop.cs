@@ -19,6 +19,7 @@
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.Emit;
+    using Microsoft.CodeAnalysis.Text;
     using Validation;
 
     public static class CompositionConfigurationDesktop
@@ -38,7 +39,7 @@
             {
                 using (Stream pdbStream = pdbPath != null ? File.Open(pdbPath, FileMode.Create) : null)
                 {
-                    using (FileStream sourceFile = sourceFilePath != null ? File.OpenWrite(sourceFilePath) : null)
+                    using (FileStream sourceFile = sourceFilePath != null ? File.Open(sourceFilePath, FileMode.Create) : null)
                     {
                         var result = await configuration.SaveCompilationAsync(
                             assemblyName,
@@ -68,17 +69,7 @@
                 bool debug = pdbStream != null;
                 CSharpCompilation templateCompilation = CreateTemplateCompilation(assemblyName, debug);
 
-                FileStream sourceFileStream = sourceFile as FileStream;
-                string sourceFilePath = sourceFileStream != null ? sourceFileStream.Name : null;
-                var compilation = AddGeneratedCodeAndDependencies(templateCompilation, configuration, sourceFilePath);
-
-                if (sourceFile != null)
-                {
-                    var writer = new StreamWriter(sourceFile);
-                    var root = await compilation.SyntaxTrees.Single().GetRootAsync(cancellationToken);
-                    await writer.WriteAsync(root.ToFullString());
-                    await writer.FlushAsync();
-                }
+                var compilation = await AddGeneratedCodeAndDependenciesAsync(templateCompilation, configuration, sourceFile, cancellationToken);
 
                 var result = compilation.Emit(
                     assemblyStream,
@@ -136,19 +127,35 @@
             }
         }
 
-        private static CSharpCompilation AddGeneratedCodeAndDependencies(CSharpCompilation compilationTemplate, CompositionConfiguration configuration, string sourceFilePath = null)
+        private static async Task<CSharpCompilation> AddGeneratedCodeAndDependenciesAsync(CSharpCompilation compilationTemplate, CompositionConfiguration configuration, Stream sourceFile = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var templateFactory = new CompositionTemplateFactory();
             templateFactory.Configuration = configuration;
             string source = templateFactory.TransformText();
 
+            SyntaxTree syntaxTree;
+            if (sourceFile != null)
+            {
+                FileStream sourceFileStream = sourceFile as FileStream;
+                string sourceFilePath = sourceFileStream != null ? sourceFileStream.Name : null;
+                Encoding encoding = new UTF8Encoding(true);
+                var writer = new StreamWriter(sourceFile, encoding);
+                await writer.WriteAsync(source);
+                await writer.FlushAsync();
+                sourceFile.Position = 0;
+                syntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceFile, encoding), sourceFilePath ?? string.Empty, cancellationToken: cancellationToken);
+            }
+            else
+            {
+                syntaxTree = SyntaxFactory.ParseSyntaxTree(source);
+            }
+
             var assemblies = ImmutableHashSet.Create<Assembly>()
                 .Union(configuration.AdditionalReferenceAssemblies)
                 .Union(templateFactory.RelevantAssemblies);
-
             return compilationTemplate
                 .AddReferences(assemblies.Select(r => MetadataReferenceProvider.Default.GetReference(r.Location)))
-                .AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(source, sourceFilePath ?? string.Empty));
+                .AddSyntaxTrees(syntaxTree);
         }
     }
 }
