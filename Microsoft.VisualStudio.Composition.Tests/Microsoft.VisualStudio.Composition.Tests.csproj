@@ -92,6 +92,7 @@
     <Compile Include="AttributedPartDiscoveryTestBase.cs" />
     <Compile Include="AttributedPartDiscoveryTests.cs" />
     <Compile Include="AttributedPartDiscoveryV1Tests.cs" />
+    <Compile Include="BaseGenericTypeTests.cs" />
     <Compile Include="CacheAndReloadTests.cs" />
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="CircularDependencyTests.cs" />

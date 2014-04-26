@@ -302,7 +302,7 @@
 
             if (checkGenericTypeArgs && typeInfo.IsGenericType && !typeInfo.IsGenericTypeDefinition)
             {
-                if (typeInfo.GenericTypeArguments.Any(t => !IsPublic(t)))
+                if (typeInfo.GenericTypeArguments.Any(t => !IsPublic(t, true)))
                 {
                     return false;
                 }
