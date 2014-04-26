@@ -36,7 +36,7 @@
         private string GetSourceFileTemplate()
         {
             var assembly = Assembly.GetExecutingAssembly();
-            using (Stream resourceStream = assembly.GetManifestResourceStream(this.GetType(), "ContainerFactory.cs"))
+            using (Stream resourceStream = assembly.GetManifestResourceStream(this.GetType(), "ExportProviderFactory.cs"))
             {
                 using (var sr = new StreamReader(resourceStream))
                 {

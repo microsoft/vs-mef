@@ -4,23 +4,54 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Composition.Hosting;
+    using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
-    using MefV1 = System.ComponentModel.Composition;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
+    using MefV1 = System.ComponentModel.Composition;
 
     internal static class TestUtilities
     {
-        internal static CompositionContainer CreateContainer(this CompositionConfiguration configuration)
+        internal static ExportProvider CreateContainer(this CompositionConfiguration configuration)
         {
             Requires.NotNull(configuration, "configuration");
-            return configuration.CreateContainerFactoryAsync(Console.Out, Console.Out).Result.CreateContainer();
+
+            if (Debugger.IsAttached)
+            {
+                string basePath = Path.GetTempFileName();
+                string assemblyPath = basePath + ".dll";
+                string pdbPath = basePath + ".pdb";
+                string sourcePath = basePath + ".cs";
+                configuration.SaveAsync(
+                    assemblyPath,
+                    pdbPath,
+                    sourcePath).GetAwaiter().GetResult();
+                var exportProviderFactory = CompositionConfiguration.Load(Assembly.LoadFile(assemblyPath));
+                return exportProviderFactory.CreateExportProvider();
+            }
+            else
+            {
+                var sourceFileStream = new MemoryStream();
+                var exportProvider = configuration.CreateContainerFactoryAsync(sourceFileStream, Console.Out).Result.CreateExportProvider();
+
+                sourceFileStream.Position = 0;
+                var sourceFileReader = new StreamReader(sourceFileStream);
+                int lineNumber = 0;
+                string line;
+                while ((line = sourceFileReader.ReadLine()) != null)
+                {
+                    Console.WriteLine("Line {0,5}: {1}", ++lineNumber, line);
+                }
+
+                return exportProvider;
+            }
         }
 
-        internal static CompositionContainer CreateContainer(params Type[] parts)
+        internal static ExportProvider CreateContainer(params Type[] parts)
         {
             return CompositionConfiguration.Create(new AttributedPartDiscovery(), parts).CreateContainer();
         }
@@ -92,7 +123,8 @@
                 var typeCatalog = ComposableCatalog.Create(discovery, parts);
                 catalog = ComposableCatalog.Create(catalog.Parts.Concat(typeCatalog.Parts));
             }
-            return CreateContainerV3(catalog);
+
+            return CreateContainerV3(catalog, assemblies.ToImmutableHashSet());
         }
 
         private static PartDiscovery GetDiscoveryService(CompositionEngines attributesDiscovery)
@@ -115,9 +147,10 @@
             return discovery;
         }
 
-        private static IContainer CreateContainerV3(ComposableCatalog catalog)
+        private static IContainer CreateContainerV3(ComposableCatalog catalog, ImmutableHashSet<Assembly> additionalAssemblies = null)
         {
-            var configuration = CompositionConfiguration.Create(catalog);
+            var configuration = CompositionConfiguration.Create(catalog)
+                .WithReferenceAssemblies(additionalAssemblies ?? ImmutableHashSet<Assembly>.Empty);
 #if DGML
             string dgmlFile = System.IO.Path.GetTempFileName() + ".dgml";
             configuration.CreateDgml().Save(dgmlFile);
@@ -499,9 +532,9 @@
 
         private class V3ContainerWrapper : IContainer
         {
-            private readonly CompositionContainer container;
+            private readonly ExportProvider container;
 
-            internal V3ContainerWrapper(CompositionContainer container)
+            internal V3ContainerWrapper(ExportProvider container)
             {
                 Requires.NotNull(container, "container");
                 this.container = container;

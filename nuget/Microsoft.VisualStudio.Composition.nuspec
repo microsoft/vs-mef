@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Microsoft.VisualStudio.Composition</id>
-    <version>0.1.0-alpha1</version>
+    <version>0.1.0-alpha6</version>
     <authors>andarno</authors>
     <owners>andarno</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -16,14 +16,14 @@
   <files>
     <file src="$TargetPath$Microsoft.VisualStudio.Composition.dll" target="lib\portable-net45+win" />
 
-    <file src="tools/Microsoft.VisualStudio.Composition.targets" target="tools" />
-    <file src="$TargetPath$Microsoft.VisualStudio.Composition.dll" target="tools" />
-    <file src="$TargetPath$Microsoft.VisualStudio.Composition.Configuration.dll" target="tools" />
-    <file src="$TargetPath$System.Composition.Runtime.dll" target="tools" />
-    <file src="$TargetPath$System.Composition.AttributedModel.dll" target="tools" />
-    <file src="$TargetPath$Validation.dll" target="tools" />
-    <file src="$TargetPath$System.Collections.Immutable.dll" target="tools" />
-    <file src="tools/install.ps1" target="tools" />
-    <file src="tools/uninstall.ps1" target="tools" />
+    <file src="README.TXT" target="" />
+    <file target="build" src="build/Microsoft.VisualStudio.Composition.targets" />
+    <file target="build" src="$TargetPath$Microsoft.VisualStudio.Composition.dll" />
+    <file target="build" src="$TargetPath$Microsoft.VisualStudio.Composition.Configuration.dll" />
+    <file target="build" src="$TargetPath$System.Composition.Runtime.dll" />
+    <file target="build" src="$TargetPath$System.Composition.AttributedModel.dll" />
+    <file target="build" src="$TargetPath$Validation.dll" />
+    <file target="build" src="$TargetPath$System.Collections.Immutable.dll" />
+    <file target="build" src="$TargetPath$Microsoft.CodeAnalysis*.dll" />
   </files>
 </package>

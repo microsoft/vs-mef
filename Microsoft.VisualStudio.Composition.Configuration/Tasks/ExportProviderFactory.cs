@@ -13,9 +13,9 @@ namespace $rootnamespace$
     using System.Reflection;
     using Microsoft.VisualStudio.Composition;
 
-    internal static class ContainerFactory
+    internal static class ExportProviderFactory
     {
-        internal static ICompositionContainerFactory LoadDefault()
+        internal static IExportProviderFactory LoadDefault()
         {
             return CompositionConfiguration.Load(Assembly.Load("$ConfigurationAssemblyName$"));
         }

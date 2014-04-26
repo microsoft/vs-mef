@@ -6,8 +6,8 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public interface ICompositionContainerFactory
+    public interface IExportProviderFactory
     {
-        CompositionContainer CreateContainer();
+        ExportProvider CreateExportProvider();
     }
 }

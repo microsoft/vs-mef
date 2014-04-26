@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.30421.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition", "Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj", "{1CA6A92C-5DD9-4BE5-B5B7-EE4A1318B4C2}"
 EndProject
@@ -26,19 +26,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{183D709F
 	ProjectSection(SolutionItems) = preProject
 		buildnuget.bat = buildnuget.bat
 		nuget\Microsoft.VisualStudio.Composition.nuspec = nuget\Microsoft.VisualStudio.Composition.nuspec
+		nuget\build\Microsoft.VisualStudio.Composition.targets = nuget\build\Microsoft.VisualStudio.Composition.targets
+		nuget\README.txt = nuget\README.txt
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{CD50126D-9184-45A5-B1A1-8F0E9A2BB655}"
-	ProjectSection(SolutionItems) = preProject
-		nuget\tools\install.ps1 = nuget\tools\install.ps1
-		nuget\tools\Microsoft.VisualStudio.Composition.targets = nuget\tools\Microsoft.VisualStudio.Composition.targets
-		nuget\tools\uninstall.ps1 = nuget\tools\uninstall.ps1
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "content", "content", "{0C9E1477-B523-49DD-A1CA-C3BE704E359D}"
-	ProjectSection(SolutionItems) = preProject
-		nuget\content\Microsoft.VisualStudio.Composition.targets = nuget\content\Microsoft.VisualStudio.Composition.targets
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver", "Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver\Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver.csproj", "{843DB118-C15B-48B5-A9DC-B815CC788CEF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -70,12 +62,12 @@ Global
 		{2285F0B1-0B9E-43C5-9BA5-0CB293C9BC63}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2285F0B1-0B9E-43C5-9BA5-0CB293C9BC63}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2285F0B1-0B9E-43C5-9BA5-0CB293C9BC63}.Release|Any CPU.Build.0 = Release|Any CPU
+		{843DB118-C15B-48B5-A9DC-B815CC788CEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{843DB118-C15B-48B5-A9DC-B815CC788CEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{843DB118-C15B-48B5-A9DC-B815CC788CEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{843DB118-C15B-48B5-A9DC-B815CC788CEF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{CD50126D-9184-45A5-B1A1-8F0E9A2BB655} = {183D709F-9E0E-4E68-8979-7366BA1B0C91}
-		{0C9E1477-B523-49DD-A1CA-C3BE704E359D} = {183D709F-9E0E-4E68-8979-7366BA1B0C91}
 	EndGlobalSection
 EndGlobal

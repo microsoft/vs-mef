@@ -2,11 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
     using Microsoft.Build.Construction;
@@ -14,11 +16,15 @@
     using Microsoft.Build.Execution;
     using Microsoft.Build.Framework;
     using Microsoft.Build.Logging;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.Emit;
+    using Microsoft.CodeAnalysis.Text;
     using Validation;
 
     public static class CompositionConfigurationDesktop
     {
-        public static ICompositionContainerFactory LoadDefault()
+        public static IExportProviderFactory LoadDefault()
         {
             string exePath = Process.GetCurrentProcess().MainModule.FileName.Replace(".vshost", string.Empty);
             string baseName = Path.Combine(Path.GetDirectoryName(exePath), Path.GetFileNameWithoutExtension(exePath));
@@ -26,112 +32,139 @@
             return CompositionConfiguration.Load(Assembly.LoadFile(defaultCompositionFile));
         }
 
-        public static async Task SaveAsync(this CompositionConfiguration configuration, string assemblyPath, TextWriter sourceFile = null, TextWriter buildOutput = null)
+        public static async Task SaveAsync(this CompositionConfiguration configuration, string assemblyPath, string pdbPath = null, string sourceFilePath = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Requires.NotNullOrEmpty(assemblyPath, "assemblyPath");
-
-            var sourceFilePathAndAssemblies = CreateCompositionSourceFile(configuration, sourceFile);
-            await CompileAsync(sourceFilePathAndAssemblies.Item1, sourceFilePathAndAssemblies.Item2, assemblyPath, buildOutput);
-        }
-
-        public static async Task<ICompositionContainerFactory> CreateContainerFactoryAsync(this CompositionConfiguration configuration, TextWriter sourceFile = null, TextWriter buildOutput = null)
-        {
-            string targetPath = Path.GetTempFileName();
-            await configuration.SaveAsync(targetPath, sourceFile, buildOutput);
-            return CompositionConfiguration.Load(Assembly.LoadFile(targetPath));
-        }
-
-        private static void WriteWithLineNumbers(TextWriter writer, string content)
-        {
-            Requires.NotNull(writer, "writer");
-            Requires.NotNull(content, "content");
-
-            int lineNumber = 0;
-            foreach (string line in content.Split('\n'))
+            string assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
+            using (Stream assemblyStream = File.Open(assemblyPath, FileMode.Create))
             {
-                writer.WriteLine("{0,5}: {1}", ++lineNumber, line.Trim('\r', '\n'));
+                using (Stream pdbStream = pdbPath != null ? File.Open(pdbPath, FileMode.Create) : null)
+                {
+                    using (FileStream sourceFile = sourceFilePath != null ? File.Open(sourceFilePath, FileMode.Create) : null)
+                    {
+                        var result = await configuration.SaveCompilationAsync(
+                            assemblyName,
+                            assemblyStream,
+                            pdbStream,
+                            sourceFile,
+                            cancellationToken: cancellationToken);
+                        if (!result.Success)
+                        {
+                            throw new Exception("Internal error");
+                        }
+                    }
+                }
             }
         }
 
-        private static Tuple<string, ISet<Assembly>> CreateCompositionSourceFile(CompositionConfiguration configuration, TextWriter sourceFileAndBuildOutput)
+        public static Task<EmitResult> SaveCompilationAsync(this CompositionConfiguration configuration, string assemblyName, Stream assemblyStream, Stream pdbStream = null, Stream sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Requires.NotNull(configuration, "configuration");
+            Requires.NotNullOrEmpty(assemblyName, "assemblyName");
+            Requires.NotNull(assemblyStream, "assemblyStream");
+
+            return Task.Run(async delegate
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                bool debug = pdbStream != null;
+                CSharpCompilation templateCompilation = CreateTemplateCompilation(assemblyName, debug);
+
+                var compilation = await AddGeneratedCodeAndDependenciesAsync(templateCompilation, configuration, sourceFile, cancellationToken);
+
+                var result = compilation.Emit(
+                    assemblyStream,
+                    pdbStream: pdbStream,
+                    cancellationToken: cancellationToken);
+                if (!result.Success)
+                {
+                    await buildOutput.WriteLineAsync("Build failed.");
+                }
+
+                foreach (var diagnostic in result.Diagnostics)
+                {
+                    if (diagnostic.Severity > DiagnosticSeverity.Info)
+                    {
+                        if (diagnostic.Location != Location.None)
+                        {
+                            await buildOutput.WriteAsync("Line " + (diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1) + ": ");
+                        }
+
+                        await buildOutput.WriteLineAsync(diagnostic.Category + " " + diagnostic.Severity + " " + diagnostic.Id + ": " + diagnostic.GetMessage());
+                    }
+                }
+
+                return result;
+            });
+        }
+
+        private static CSharpCompilation CreateTemplateCompilation(string assemblyName, bool debug)
+        {
+            var referenceAssemblies = ImmutableHashSet.Create(
+                Assembly.GetExecutingAssembly(),
+                Assembly.Load("System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
+                typeof(ILazy<>).Assembly,
+                typeof(System.Composition.ExportFactory<>).Assembly,
+                typeof(ImmutableDictionary).Assembly);
+
+            return CSharpCompilation.Create(
+                assemblyName,
+                references: referenceAssemblies.Select(a => MetadataReferenceProvider.Default.GetReference(a.Location)),
+                options: new CSharpCompilationOptions(
+                    OutputKind.DynamicallyLinkedLibrary,
+                    optimize: !debug,
+                    debugInformationKind: debug ? DebugInformationKind.Full : DebugInformationKind.None));
+        }
+
+        public static async Task<IExportProviderFactory> CreateContainerFactoryAsync(this CompositionConfiguration configuration, Stream sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            string assemblyName = Path.GetRandomFileName();
+            var assemblyStream = new MemoryStream();
+
+            var result = await configuration.SaveCompilationAsync(
+                assemblyName,
+                assemblyStream: assemblyStream,
+                sourceFile: sourceFile,
+                buildOutput: buildOutput);
+            if (result.Success)
+            {
+                var compositionAssembly = Assembly.Load(assemblyStream.ToArray());
+                return CompositionConfiguration.Load(compositionAssembly);
+            }
+            else
+            {
+                throw new Exception("Internal error.");
+            }
+        }
+
+        private static async Task<CSharpCompilation> AddGeneratedCodeAndDependenciesAsync(CSharpCompilation compilationTemplate, CompositionConfiguration configuration, Stream sourceFile = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             var templateFactory = new CompositionTemplateFactory();
             templateFactory.Configuration = configuration;
             string source = templateFactory.TransformText();
-            var sourceFilePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".cs");
-            File.WriteAllText(sourceFilePath, source);
-            if (sourceFileAndBuildOutput != null && sourceFileAndBuildOutput != TextWriter.Null)
+
+            SyntaxTree syntaxTree;
+            if (sourceFile != null)
             {
-                WriteWithLineNumbers(sourceFileAndBuildOutput, source);
+                FileStream sourceFileStream = sourceFile as FileStream;
+                string sourceFilePath = sourceFileStream != null ? sourceFileStream.Name : null;
+                Encoding encoding = new UTF8Encoding(true);
+                var writer = new StreamWriter(sourceFile, encoding);
+                await writer.WriteAsync(source);
+                await writer.FlushAsync();
+                sourceFile.Position = 0;
+                syntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceFile, encoding), sourceFilePath ?? string.Empty, cancellationToken: cancellationToken);
+            }
+            else
+            {
+                syntaxTree = SyntaxFactory.ParseSyntaxTree(source);
             }
 
-            return Tuple.Create<string, ISet<Assembly>>(sourceFilePath, configuration.AdditionalReferenceAssemblies.Union(templateFactory.RelevantAssemblies));
-        }
-
-        private static async Task CompileAsync(string sourceFilePath, ISet<Assembly> assemblies, string targetPath, TextWriter buildOutput)
-        {
-            buildOutput = buildOutput ?? TextWriter.Null;
-
-            targetPath = Path.GetFullPath(targetPath);
-            var pc = new ProjectCollection();
-            ProjectRootElement pre;
-            using (var templateStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Microsoft.VisualStudio.Composition.CompositionTemplateFactory.csproj"))
-            {
-                using (var xmlReader = XmlReader.Create(templateStream))
-                {
-                    pre = ProjectRootElement.Create(xmlReader, pc);
-                }
-            }
-
-            var globalProperties = new Dictionary<string, string> {
-                { "Configuration", "Debug" },
-            };
-            var project = new Project(pre, globalProperties, null, pc);
-            project.SetProperty("AssemblyName", Path.GetFileNameWithoutExtension(targetPath));
-            project.AddItem("Compile", ProjectCollection.Escape(sourceFilePath));
-            project.AddItem("Reference", ProjectCollection.Escape(Assembly.GetExecutingAssembly().Location));
-            project.AddItem("Reference", ProjectCollection.Escape(typeof(ILazy<>).Assembly.Location));
-            project.AddItem("Reference", ProjectCollection.Escape(typeof(System.Composition.ExportFactory<>).Assembly.Location));
-            project.AddItem("Reference", ProjectCollection.Escape(typeof(System.Collections.Immutable.ImmutableDictionary).Assembly.Location));
-            foreach (var assembly in assemblies)
-            {
-                project.AddItem("Reference", ProjectCollection.Escape(assembly.Location));
-            }
-
-            string projectPath = Path.GetTempFileName();
-            project.Save(projectPath);
-            BuildResult buildResult;
-            using (var buildManager = new BuildManager())
-            {
-                var hostServices = new HostServices();
-                var logger = new ConsoleLogger(LoggerVerbosity.Minimal, buildOutput.Write, null, null);
-                buildManager.BeginBuild(new BuildParameters(pc)
-                {
-                    DisableInProcNode = true,
-                    Loggers = new ILogger[] { logger },
-                });
-                var buildSubmission = buildManager.PendBuildRequest(new BuildRequestData(projectPath, globalProperties, null, new[] { "Build", "GetTargetPath" }, hostServices));
-                buildResult = await buildSubmission.ExecuteAsync();
-                buildManager.EndBuild();
-            }
-
-            if (buildResult.OverallResult != BuildResultCode.Success)
-            {
-                buildOutput.WriteLine("Build errors");
-            }
-
-            if (buildResult.OverallResult != BuildResultCode.Success)
-            {
-                throw new InvalidOperationException("Build failed. Project File was \"" + projectPath + "\"", buildResult.Exception);
-            }
-
-            string finalAssemblyPath = buildResult.ResultsByTarget["GetTargetPath"].Items.Single().ItemSpec;
-            if (!string.Equals(finalAssemblyPath, targetPath, StringComparison.OrdinalIgnoreCase))
-            {
-                // If the caller requested a non .dll extension, we need to honor that.
-                File.Delete(targetPath);
-                File.Move(finalAssemblyPath, targetPath);
-            }
+            var assemblies = ImmutableHashSet.Create<Assembly>()
+                .Union(configuration.AdditionalReferenceAssemblies)
+                .Union(templateFactory.RelevantAssemblies);
+            return compilationTemplate
+                .AddReferences(assemblies.Select(r => MetadataReferenceProvider.Default.GetReference(r.Location)))
+                .AddSyntaxTrees(syntaxTree);
         }
     }
 }
