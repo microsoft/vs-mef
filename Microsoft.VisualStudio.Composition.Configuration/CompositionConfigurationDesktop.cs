@@ -75,21 +75,25 @@
                     assemblyStream,
                     pdbStream: pdbStream,
                     cancellationToken: cancellationToken);
-                if (!result.Success)
-                {
-                    await buildOutput.WriteLineAsync("Build failed.");
-                }
 
-                foreach (var diagnostic in result.Diagnostics)
+                if (buildOutput != null)
                 {
-                    if (diagnostic.Severity > DiagnosticSeverity.Info)
+                    if (!result.Success)
                     {
-                        if (diagnostic.Location != Location.None)
-                        {
-                            await buildOutput.WriteAsync("Line " + (diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1) + ": ");
-                        }
+                        await buildOutput.WriteLineAsync("Build failed.");
+                    }
 
-                        await buildOutput.WriteLineAsync(diagnostic.Category + " " + diagnostic.Severity + " " + diagnostic.Id + ": " + diagnostic.GetMessage());
+                    foreach (var diagnostic in result.Diagnostics)
+                    {
+                        if (diagnostic.Severity > DiagnosticSeverity.Info)
+                        {
+                            if (diagnostic.Location != Location.None)
+                            {
+                                await buildOutput.WriteAsync("Line " + (diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1) + ": ");
+                            }
+
+                            await buildOutput.WriteLineAsync(diagnostic.Category + " " + diagnostic.Severity + " " + diagnostic.Id + ": " + diagnostic.GetMessage());
+                        }
                     }
                 }
 
