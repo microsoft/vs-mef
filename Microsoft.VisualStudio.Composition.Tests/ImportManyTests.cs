@@ -227,6 +227,18 @@
             Assert.Equal(1, extension.Metadata["a"]);
         }
 
+        [MefFact(CompositionEngines.Unspecified /*.V3EmulatingV1 | CompositionEngines.V3EmulatingV2*/, typeof(ExtendableCustomCollectionOfConcreteTypeWithILazyMetadata), typeof(ExtensionOne))]
+        public void ImportManyCustomCollectionConcreteTypeWithILazyMetadata(IContainer container)
+        {
+            var extendable = container.GetExportedValue<ExtendableCustomCollectionOfConcreteTypeWithILazyMetadata>();
+            Assert.NotNull(extendable);
+            Assert.NotNull(extendable.Extensions);
+            Assert.Equal(1, extendable.Extensions.Count);
+            var extension = extendable.Extensions.Single();
+            Assert.IsType<ExtensionOne>(extension.Value);
+            Assert.Equal(1, extension.Metadata["a"]);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionWithPreInitializedPublicCtor), typeof(ExtensionOne), typeof(ExtensionTwo))]
         public void ImportManyCustomCollectionWithPreInitializedPublicCtor(IContainer container)
         {
@@ -651,6 +663,15 @@
             public CustomCollectionConcreteTypeWithMetadata Extensions { get; set; }
         }
 
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class ExtendableCustomCollectionOfConcreteTypeWithILazyMetadata
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            public CustomCollectionConcreteTypeWithILazyMetadata Extensions { get; set; }
+        }
+
         public class CustomCollectionWithPublicCtor<T> : ICollection<T>
         {
             private List<T> inner = new List<T>();
@@ -790,5 +811,7 @@
         public class CustomCollectionConcreteType : CustomCollectionWithPublicCtor<IExtension> { }
 
         public class CustomCollectionConcreteTypeWithMetadata : CustomCollectionWithPublicCtor<Lazy<IExtension, IDictionary<string, object>>> { }
+
+        public class CustomCollectionConcreteTypeWithILazyMetadata : CustomCollectionWithPublicCtor<ILazy<IExtension, IDictionary<string, object>>> { }
     }
 }
