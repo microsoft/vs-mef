@@ -530,7 +530,7 @@
             }
         }
 
-        private class V3ContainerWrapper : IContainer
+        internal class V3ContainerWrapper : IContainer
         {
             private readonly ExportProvider container;
 
@@ -538,6 +538,11 @@
             {
                 Requires.NotNull(container, "container");
                 this.container = container;
+            }
+
+            internal ExportProvider ExportProvider
+            {
+                get { return this.container; }
             }
 
             public ILazy<T> GetExport<T>()
