@@ -7,13 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Comp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.Tests", "Microsoft.VisualStudio.Composition.Tests\Microsoft.VisualStudio.Composition.Tests.csproj", "{C92F90BA-CD5B-4847-832A-EE738F0FDB13}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{ADCFC842-1592-486E-A0EC-E109EEECC1C4}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.AppDomainTests", "Microsoft.VisualStudio.Composition.AppDomainTests\Microsoft.VisualStudio.Composition.AppDomainTests.csproj", "{15FC5B0E-AE82-4437-8916-B59E646C41E7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.AppDomainTests2", "Microsoft.VisualStudio.Composition.AppDomainTests2\Microsoft.VisualStudio.Composition.AppDomainTests2.csproj", "{8FEA4ED5-0504-43A6-92C0-E9DACB20F1C8}"
