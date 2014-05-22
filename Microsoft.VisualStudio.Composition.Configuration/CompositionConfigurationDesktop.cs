@@ -112,7 +112,7 @@
 
             return CSharpCompilation.Create(
                 assemblyName,
-                references: referenceAssemblies.Select(a => MetadataReferenceProvider.Default.GetReference(a.Location)),
+                references: referenceAssemblies.Select(a => MetadataFileReferenceProvider.Default.GetReference(a.Location, MetadataReferenceProperties.Assembly)),
                 options: new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
                     optimize: !debug,
@@ -167,7 +167,7 @@
                 .Union(configuration.AdditionalReferenceAssemblies)
                 .Union(templateFactory.RelevantAssemblies);
             return compilationTemplate
-                .AddReferences(assemblies.Select(r => MetadataReferenceProvider.Default.GetReference(r.Location)))
+                .AddReferences(assemblies.Select(r => MetadataFileReferenceProvider.Default.GetReference(r.Location, MetadataReferenceProperties.Assembly)))
                 .AddSyntaxTrees(syntaxTree);
         }
     }
