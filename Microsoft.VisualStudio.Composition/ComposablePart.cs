@@ -31,6 +31,9 @@
 
         public ComposablePartDefinition Definition { get; private set; }
 
+        /// <summary>
+        /// Gets a map of this part's imports, and the exports which satisfy them.
+        /// </summary>
         public IReadOnlyDictionary<Import, IReadOnlyList<Export>> SatisfyingExports { get; private set; }
 
         /// <summary>
