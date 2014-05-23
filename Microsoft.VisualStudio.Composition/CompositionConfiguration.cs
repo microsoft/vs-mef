@@ -80,6 +80,19 @@
                 partBuilder.ApplySharingBoundary();
             }
 
+            // Create a non-cyclic directed graph of sharing boundary relationships.
+            // TODO: code here
+
+            // Establish which sharing boundary each MEF part can be considered to truly belong to.
+            // Note that a [Shared("someboundary")] attribute isn't reliable as a source because 
+            // not all parts specify the argument, and even those that do might import other parts
+            // that belong to other sharing boundaries.
+            // And (ultimately) many parts use MEFv1 attributes, for which SharedAttribute isn't available.
+            // So we have to be able to synthesize this data.
+            // TODO: code here
+            // TODO: emit a warning (or error?) when a Shared("boundary") attribute exists and the argument is being
+            //       overridden.
+
             // Build up our set of composed parts.
             var partsBuilder = ImmutableHashSet.CreateBuilder<ComposablePart>();
             foreach (var partBuilder in partBuilders.Values)

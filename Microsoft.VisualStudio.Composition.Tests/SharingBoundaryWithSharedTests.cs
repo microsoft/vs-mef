@@ -62,7 +62,7 @@
             }
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV1AndV2AtOnce, Skip = "Does not yet pass.")]
+        [MefFact(CompositionEngines.V3EmulatingV1AndV2AtOnce)]
         public void ScopedSharedPartsIsolatedToSharingBoundaryPartWithV1AndV2(IContainer container)
         {
             var root = container.GetExportedValue<RootPart>();
