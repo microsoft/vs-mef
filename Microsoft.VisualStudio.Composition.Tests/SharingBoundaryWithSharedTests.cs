@@ -74,7 +74,7 @@
             {
                 // If this fails, it means that scoped parts are being inappropriately shared between
                 // instances of the sub-scopes.
-                Assert.False(subscope2.BoundaryScopedSharedParts.Contains(export));
+                Assert.False(subscope2.BoundaryScopedSharedParts.Contains(export), export.GetType().Name + " is improperly shared across instances of a sharing boundary.");
             }
         }
 

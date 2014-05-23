@@ -10,10 +10,25 @@
     using Xunit;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
 
+    [Trait("SharingBoundary", "")]
     public class SharingBoundaryInvalidTests
     {
-        [MefFact(CompositionEngines.V2Compat, InvalidConfiguration = true, Skip = "Not yet passing")]
-        public void InvalidImportAcrossSharingBoundary(IContainer container)
+        /// <summary>
+        /// This test documents that V2 considers this an invalid graph.
+        /// </summary>
+        [MefFact(CompositionEngines.V2, NoCompatGoal = true, InvalidConfiguration = true)]
+        public void InvalidImportAcrossSharingBoundaryV2(IContainer container)
+        {
+            var root = container.GetExportedValue<RootPart>();
+            var boundaryPartExport = root.Factory.CreateExport();
+        }
+
+        /// <summary>
+        /// This test documents that V3 works where V2 doesn't,
+        /// because it automatically propagates sharing boundaries across imports.
+        /// </summary>
+        [MefFact(CompositionEngines.V3EmulatingV2)]
+        public void InvalidImportAcrossSharingBoundaryV3(IContainer container)
         {
             var root = container.GetExportedValue<RootPart>();
             var boundaryPartExport = root.Factory.CreateExport();
@@ -29,8 +44,6 @@
         [Export, Shared("SomeBoundary")]
         public class BoundaryPart
         {
-            internal int DisposalCount { get; private set; }
-
             [Import]
             public PartThatImportsBoundaryPartFromOutsideBoundary BoundaryScopedSharedParts { get; set; }
         }
