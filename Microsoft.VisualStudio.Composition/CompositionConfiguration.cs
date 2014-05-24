@@ -89,7 +89,7 @@
             var sharingBoundaryExportFactories = from partBuilder in partBuilders.Values
                                                  from import in partBuilder.PartDefinition.ImportDefinitions
                                                  from sharingBoundary in import.ExportFactorySharingBoundaries
-                                                 select new { ParentSharingBoundaries = partBuilder.EffectiveSharingBoundaries, ChildSharingBoundary = sharingBoundary };
+                                                 select new { ParentSharingBoundaries = partBuilder.RequiredSharingBoundaries, ChildSharingBoundary = sharingBoundary };
             var childSharingBoundariesAndTheirParents = new Dictionary<string, ISet<string>>();
             foreach (var parentChild in sharingBoundaryExportFactories)
             {
@@ -122,7 +122,7 @@
             {
                 if (partBuilder.PartDefinition.IsShared)
                 {
-                    string primarySharingBoundary = GetPrimarySharingBoundary(childSharingBoundariesAndTheirParents, partBuilder.EffectiveSharingBoundaries);
+                    string primarySharingBoundary = GetPrimarySharingBoundary(childSharingBoundariesAndTheirParents, partBuilder.RequiredSharingBoundaries);
 
                     if (partBuilder.PartDefinition.SharingBoundary != primarySharingBoundary)
                     {
@@ -150,7 +150,7 @@
             var partsBuilder = ImmutableHashSet.CreateBuilder<ComposablePart>();
             foreach (var partBuilder in partBuilders.Values)
             {
-                var composedPart = new ComposablePart(partBuilder.PartDefinition, partBuilder.SatisfyingExports, partBuilder.EffectiveSharingBoundaries.ToImmutableHashSet());
+                var composedPart = new ComposablePart(partBuilder.PartDefinition, partBuilder.SatisfyingExports, partBuilder.RequiredSharingBoundaries.ToImmutableHashSet());
                 partsBuilder.Add(composedPart);
             }
 
@@ -217,7 +217,14 @@
             Requires.NotNull(partDefinition, "partDefinition");
             Requires.That(partDefinition.IsShared, "partDefinition", "Part is not shared.");
 
-            return this.effectiveSharingBoundaryOverrides.GetValueOrDefault(partDefinition) ?? partDefinition.SharingBoundary;
+            if (partDefinition.IsSharingBoundaryInferred)
+            {
+                return this.effectiveSharingBoundaryOverrides.GetValueOrDefault(partDefinition) ?? partDefinition.SharingBoundary;
+            }
+            else
+            {
+                return partDefinition.SharingBoundary;
+            }
         }
 
         private static string GetPrimarySharingBoundary(Dictionary<string, ISet<string>> childSharingBoundariesAndTheirParents, ISet<string> effectiveSharingBoundaries)
@@ -366,7 +373,7 @@
                 Requires.NotNull(importedParts, "importedParts");
 
                 this.PartDefinition = partDefinition;
-                this.EffectiveSharingBoundaries = ImmutableHashSet.CreateBuilder<string>();
+                this.RequiredSharingBoundaries = ImmutableHashSet.CreateBuilder<string>();
                 this.SatisfyingExports = importedParts;
                 this.ImportingParts = new HashSet<PartBuilder>();
             }
@@ -377,9 +384,13 @@
             public ComposablePartDefinition PartDefinition { get; set; }
 
             /// <summary>
-            /// Gets the sharing boundaries applied to this part.
+            /// Gets the sharing boundaries required to instantiate this part.
             /// </summary>
-            public ISet<string> EffectiveSharingBoundaries { get; private set; }
+            /// <remarks>
+            /// This is the union of the part's own explicitly declared sharing boundary 
+            /// and the boundaries of all parts it imports (transitively).
+            /// </remarks>
+            public ISet<string> RequiredSharingBoundaries { get; private set; }
 
             /// <summary>
             /// Gets the set of parts that import this one.
@@ -400,7 +411,7 @@
             {
                 if (!string.IsNullOrEmpty(sharingBoundary))
                 {
-                    if (this.EffectiveSharingBoundaries.Add(sharingBoundary))
+                    if (this.RequiredSharingBoundaries.Add(sharingBoundary))
                     {
                         // Since this is new to us, be sure that all our importers belong to this sharing boundary as well.
                         foreach (var importingPart in this.ImportingParts)
