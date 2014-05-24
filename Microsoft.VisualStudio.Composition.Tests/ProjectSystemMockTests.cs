@@ -10,6 +10,7 @@
     using System.Composition.Hosting;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
 
+    [Trait("SharingBoundary", "")]
     public class ProjectSystemMockTests
     {
         [MefFact(CompositionEngines.V2Compat)]

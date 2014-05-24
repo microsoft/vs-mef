@@ -160,7 +160,7 @@ foreach (var part in this.Configuration.Parts)
         if (part.Definition.IsShared)
         {
 #>
-        if (nonSharedInstanceRequired || !this.TryGetSharedInstanceFactory(@"<#= part.Definition.SharingBoundary #>", partType, out lazyResult))
+        if (nonSharedInstanceRequired || !this.TryGetSharedInstanceFactory(@"<#= this.Configuration.GetEffectiveSharingBoundary(part.Definition) #>", partType, out lazyResult))
         {
             lazyResult = <# using (EmitLazyConstruction(part.Definition.Type, null)) { #>
                 {
@@ -174,7 +174,7 @@ foreach (var part in this.Configuration.Parts)
 
             if (!nonSharedInstanceRequired)
             {
-                lazyResult = this.GetOrAddSharedInstanceFactory(@"<#= part.Definition.SharingBoundary #>", partType, lazyResult);
+                lazyResult = this.GetOrAddSharedInstanceFactory(@"<#= this.Configuration.GetEffectiveSharingBoundary(part.Definition) #>", partType, lazyResult);
             }
         }
 <#
