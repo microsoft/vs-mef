@@ -6,6 +6,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Linq.Expressions;
@@ -19,14 +20,18 @@
 
     public class CompositionConfiguration
     {
-        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposablePart> parts)
+        private ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides;
+
+        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposablePart> parts, ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides)
         {
             Requires.NotNull(catalog, "catalog");
             Requires.NotNull(parts, "parts");
+            Requires.NotNull(effectiveSharingBoundaryOverrides, "effectiveSharingBoundaryOverrides");
 
             this.Catalog = catalog;
             this.Parts = parts;
             this.AdditionalReferenceAssemblies = ImmutableHashSet<Assembly>.Empty;
+            this.effectiveSharingBoundaryOverrides = effectiveSharingBoundaryOverrides;
         }
 
         public ComposableCatalog Catalog { get; private set; }
@@ -80,8 +85,31 @@
                 partBuilder.ApplySharingBoundary();
             }
 
-            // Create a non-cyclic directed graph of sharing boundary relationships.
-            // TODO: code here
+            // Create a tree of sharing boundaries.
+            var sharingBoundaryExportFactories = from partBuilder in partBuilders.Values
+                                                 from import in partBuilder.PartDefinition.ImportDefinitions
+                                                 from sharingBoundary in import.ExportFactorySharingBoundaries
+                                                 select new { ParentSharingBoundaries = partBuilder.EffectiveSharingBoundaries, ChildSharingBoundary = sharingBoundary };
+            var childSharingBoundariesAndTheirParents = new Dictionary<string, ISet<string>>();
+            foreach (var parentChild in sharingBoundaryExportFactories)
+            {
+                ISet<string> parentBoundaries;
+                if (childSharingBoundariesAndTheirParents.TryGetValue(parentChild.ChildSharingBoundary, out parentBoundaries))
+                {
+                    if (!parentBoundaries.SetEquals(parentChild.ParentSharingBoundaries))
+                    {
+                        throw new CompositionFailedException(
+                            string.Format(
+                                CultureInfo.CurrentCulture,
+                                "Sharing boundary \"{0}\" has inconsistent parent boundaries.",
+                                parentChild.ChildSharingBoundary));
+                    }
+                }
+                else
+                {
+                    childSharingBoundariesAndTheirParents.Add(parentChild.ChildSharingBoundary, parentChild.ParentSharingBoundaries);
+                }
+            }
 
             // Establish which sharing boundary each MEF part can be considered to truly belong to.
             // Note that a [Shared("someboundary")] attribute isn't reliable as a source because 
@@ -89,9 +117,34 @@
             // that belong to other sharing boundaries.
             // And (ultimately) many parts use MEFv1 attributes, for which SharedAttribute isn't available.
             // So we have to be able to synthesize this data.
-            // TODO: code here
-            // TODO: emit a warning (or error?) when a Shared("boundary") attribute exists and the argument is being
-            //       overridden.
+            var sharingBoundaryOverrides = ImmutableDictionary.CreateBuilder<ComposablePartDefinition, string>();
+            foreach (PartBuilder partBuilder in partBuilders.Values)
+            {
+                if (partBuilder.PartDefinition.IsShared)
+                {
+                    string primarySharingBoundary = GetPrimarySharingBoundary(childSharingBoundariesAndTheirParents, partBuilder.EffectiveSharingBoundaries);
+
+                    if (partBuilder.PartDefinition.SharingBoundary != primarySharingBoundary)
+                    {
+                        if (partBuilder.PartDefinition.SharingBoundary == string.Empty)
+                        {
+                            // Modify the implicit sharing boundary to be the one we discovered.
+                            sharingBoundaryOverrides.Add(partBuilder.PartDefinition, primarySharingBoundary);
+                        }
+                        else
+                        {
+                            // We can't override an explicit sharing boundary. So throw.
+                            throw new CompositionFailedException(
+                                string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    "Part {0} is declared to have sharing boundary \"{1}\" but has effective sharing boundary of \"{2}\".",
+                                    ReflectionHelpers.GetTypeName(partBuilder.PartDefinition.Type, false, true, null),
+                                    partBuilder.PartDefinition.SharingBoundary,
+                                    primarySharingBoundary));
+                        }
+                    }
+                }
+            }
 
             // Build up our set of composed parts.
             var partsBuilder = ImmutableHashSet.CreateBuilder<ComposablePart>();
@@ -128,7 +181,7 @@
                 Verify.FailOperation("Loop detected.");
             }
 
-            return new CompositionConfiguration(catalog, parts);
+            return new CompositionConfiguration(catalog, parts, sharingBoundaryOverrides.ToImmutable());
         }
 
         public static CompositionConfiguration Create(PartDiscovery partDiscovery, params Type[] parts)
@@ -153,10 +206,41 @@
         {
             Requires.NotNull(additionalReferenceAssemblies, "additionalReferenceAssemblies");
 
-            return new CompositionConfiguration(this.Catalog, this.Parts)
+            return new CompositionConfiguration(this.Catalog, this.Parts, this.effectiveSharingBoundaryOverrides)
             {
                 AdditionalReferenceAssemblies = this.AdditionalReferenceAssemblies.Union(additionalReferenceAssemblies)
             };
+        }
+
+        public string GetEffectiveSharingBoundary(ComposablePartDefinition partDefinition)
+        {
+            Requires.NotNull(partDefinition, "partDefinition");
+            Requires.That(partDefinition.IsShared, "partDefinition", "Part is not shared.");
+
+            return this.effectiveSharingBoundaryOverrides.GetValueOrDefault(partDefinition) ?? partDefinition.SharingBoundary;
+        }
+
+        private static string GetPrimarySharingBoundary(Dictionary<string, ISet<string>> childSharingBoundariesAndTheirParents, ISet<string> effectiveSharingBoundaries)
+        {
+            Requires.NotNull(childSharingBoundariesAndTheirParents, "childSharingBoundariesAndTheirParents");
+            Requires.NotNull(effectiveSharingBoundaries, "effectiveSharingBoundaries");
+
+            // For now, use a simple algorithm of the largest set of parents indicates the most derived child.
+            // There may be room for more precise work here in order to throw when unexpected graphs are discovered.
+            string mostDerivedSharingBoundary = null;
+            int parentCount = 0;
+            foreach (string effectiveSharingBoundary in effectiveSharingBoundaries)
+            {
+                ISet<string> parents = childSharingBoundariesAndTheirParents[effectiveSharingBoundary];
+
+                if (mostDerivedSharingBoundary == null || parents.Count > parentCount)
+                {
+                    mostDerivedSharingBoundary = effectiveSharingBoundary;
+                    parentCount = parents.Count;
+                }
+            }
+
+            return mostDerivedSharingBoundary;
         }
 
         private static bool IsLoopPresent(ImmutableHashSet<ComposablePart> parts)
@@ -290,7 +374,7 @@
             /// <summary>
             /// Gets the part definition tracked by this instance.
             /// </summary>
-            public ComposablePartDefinition PartDefinition { get; private set; }
+            public ComposablePartDefinition PartDefinition { get; set; }
 
             /// <summary>
             /// Gets the sharing boundaries applied to this part.
@@ -331,6 +415,24 @@
             {
                 this.ImportingParts.Add(part);
             }
+        }
+
+        [DebuggerDisplay("{Name}")]
+        private class SharingBoundaryTree
+        {
+            public SharingBoundaryTree(string name, ImmutableHashSet<SharingBoundaryTree> children)
+            {
+                Requires.NotNull(name, "name");
+                Requires.NotNull(children, "children");
+
+                this.Name = name;
+                this.Children = children;
+            }
+
+            public string Name { get; private set; }
+
+            [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+            public ImmutableHashSet<SharingBoundaryTree> Children { get; private set; }
         }
     }
 }
