@@ -143,6 +143,7 @@
     <Compile Include="SharingBoundaryInvalidTests.cs" />
     <Compile Include="SharingBoundaryTwoPathsToPartTests.cs" />
     <Compile Include="SharingBoundaryAcquiresSharedRootScopeExport.cs" />
+    <Compile Include="SharingBoundaryWithMixedMefParts.cs" />
     <Compile Include="SharingBoundaryWithNonSharedTests.cs" />
     <Compile Include="SharingBoundaryWithNestedBoundaryFactoryTests.cs" />
     <Compile Include="SharingBoundaryWithNonNestedBoundaryFactoryTests.cs" />
