@@ -27,7 +27,7 @@
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
             var imports = ImmutableDictionary.CreateBuilder<MemberInfo, ImportDefinition>();
             var exportMetadataOnType = GetExportMetadata(partType.GetCustomAttributes());
-            var partCreationPolicy =  CreationPolicy.Any;
+            var partCreationPolicy = CreationPolicy.Any;
 
             foreach (var exportAttributes in partType.GetCustomAttributesByType<ExportAttribute>())
             {
@@ -41,14 +41,9 @@
             }
 
             var partCreationPolicyAttribute = partType.GetCustomAttribute<PartCreationPolicyAttribute>();
-            string sharingBoundary = string.Empty;
             if (partCreationPolicyAttribute != null)
             {
                 partCreationPolicy = (CreationPolicy)partCreationPolicyAttribute.CreationPolicy;
-                if (partCreationPolicyAttribute.CreationPolicy == MefV1.CreationPolicy.NonShared)
-                {
-                    sharingBoundary = null;
-                }
             }
 
             var flags = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
@@ -132,7 +127,6 @@
                     exportsOnType.ToImmutable(),
                     exportsOnMembers.ToImmutable(),
                     imports.ToImmutable(),
-                    sharingBoundary,
                     onImportsSatisfied,
                     importingCtor != null ? importingConstructorParameters.ToImmutable() : null,
                     partCreationPolicy);

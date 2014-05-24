@@ -9,6 +9,7 @@
     using System.Threading.Tasks;
     using Xunit;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
+    using MefV1 = System.ComponentModel.Composition;
 
     [Trait("SharingBoundary", "")]
     public class SharingBoundaryWithSharedTests
@@ -58,6 +59,22 @@
                 // If this fails, it means that scoped parts are being inappropriately shared between
                 // instances of the sub-scopes.
                 Assert.False(subscope2.BoundaryScopedSharedParts.Contains(export));
+            }
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1AndV2AtOnce)]
+        public void ScopedSharedPartsIsolatedToSharingBoundaryPartWithV1AndV2(IContainer container)
+        {
+            var root = container.GetExportedValue<RootPart>();
+
+            var subscope1 = root.Factory.CreateExport().Value;
+            var subscope2 = root.Factory.CreateExport().Value;
+
+            foreach (var export in subscope1.BoundaryScopedSharedParts)
+            {
+                // If this fails, it means that scoped parts are being inappropriately shared between
+                // instances of the sub-scopes.
+                Assert.False(subscope2.BoundaryScopedSharedParts.Contains(export), export.GetType().Name + " is improperly shared across instances of a sharing boundary.");
             }
         }
 
@@ -140,7 +157,7 @@
         }
 
         [Export, Export("SharedWithinBoundaryParts", typeof(object))]
-        [Shared("SomeBoundary")] // TODO: try removing the argument from this attribute
+        [Shared("SomeBoundary")]
         public class SharedPartThatImportsBoundaryPart : IDisposable
         {
             internal int DisposalCount { get; private set; }
@@ -155,7 +172,7 @@
         }
 
         [Export, Export("SharedWithinBoundaryParts", typeof(object))]
-        [Shared("SomeBoundary")] // TODO: try removing the argument from this attribute
+        [Shared("SomeBoundary")]
         public class SharedPartThatOptionallyImportsBoundaryPart
         {
             [Import(AllowDefault = true)]
@@ -163,10 +180,38 @@
         }
 
         [Export, Export("SharedWithinBoundaryParts", typeof(object))]
-        [Shared("SomeBoundary")] // TODO: try removing the argument from this attribute
+        [Shared("SomeBoundary")]
         public class SharedPartThatIndirectlyImportsBoundaryPart
         {
             [Import]
+            public SharedPartThatImportsBoundaryPart BoundaryImportingPart { get; set; }
+        }
+
+        [MefV1.Export, MefV1.Export("SharedWithinBoundaryParts", typeof(object))]
+        public class V1SharedPartThatImportsBoundaryPart : IDisposable
+        {
+            internal int DisposalCount { get; private set; }
+
+            [MefV1.Import]
+            public BoundaryPart BoundaryPart { get; set; }
+
+            public void Dispose()
+            {
+                this.DisposalCount++;
+            }
+        }
+
+        [MefV1.Export, MefV1.Export("SharedWithinBoundaryParts", typeof(object))]
+        public class V1SharedPartThatOptionallyImportsBoundaryPart
+        {
+            [MefV1.Import(AllowDefault = true)]
+            public BoundaryPart BoundaryPart { get; set; }
+        }
+
+        [MefV1.Export, MefV1.Export("SharedWithinBoundaryParts", typeof(object))]
+        public class V1SharedPartThatIndirectlyImportsBoundaryPart
+        {
+            [MefV1.Import]
             public SharedPartThatImportsBoundaryPart BoundaryImportingPart { get; set; }
         }
     }

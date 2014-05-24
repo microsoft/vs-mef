@@ -12,6 +12,23 @@
     public abstract class PartDiscovery
     {
         /// <summary>
+        /// Creates an aggregate <see cref="PartDiscovery"/> instance that delegates to a series of other part discovery extensions.
+        /// </summary>
+        /// <param name="discoveryMechanisms">The discovery extensions to use. In some cases, extensions defined earlier in the list are preferred.</param>
+        /// <returns>The aggregate PartDiscovery instance.</returns>
+        public static PartDiscovery Combine(params PartDiscovery[] discoveryMechanisms)
+        {
+            Requires.NotNull(discoveryMechanisms, "discoveryMechanisms");
+
+            if (discoveryMechanisms.Length == 1)
+            {
+                return discoveryMechanisms[0];
+            }
+
+            return new CombinedPartDiscovery(discoveryMechanisms);
+        }
+
+        /// <summary>
         /// Reflects on a type and returns metadata on its role as a MEF part, if applicable.
         /// </summary>
         /// <param name="partType">The type to reflect over.</param>
@@ -143,6 +160,47 @@
             }
 
             return false;
+        }
+
+        private class CombinedPartDiscovery : PartDiscovery
+        {
+            private readonly IReadOnlyList<PartDiscovery> discoveryMechanisms;
+
+            internal CombinedPartDiscovery(IReadOnlyList<PartDiscovery> discoveryMechanisms)
+            {
+                Requires.NotNull(discoveryMechanisms, "discoveryMechanisms");
+                this.discoveryMechanisms = discoveryMechanisms;
+            }
+
+            public override ComposablePartDefinition CreatePart(Type partType)
+            {
+                Requires.NotNull(partType, "partType");
+
+                foreach (var discovery in this.discoveryMechanisms)
+                {
+                    var result = discovery.CreatePart(partType);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+
+                return null;
+            }
+
+            public override IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly)
+            {
+                Requires.NotNull(assembly, "assembly");
+
+                return this.discoveryMechanisms.SelectMany(discovery => discovery.CreateParts(assembly)).ToImmutableList();
+            }
+
+            public override bool IsExportFactoryType(Type type)
+            {
+                Requires.NotNull(type, "type");
+
+                return this.discoveryMechanisms.Any(discovery => discovery.IsExportFactoryType(type));
+            }
         }
     }
 }

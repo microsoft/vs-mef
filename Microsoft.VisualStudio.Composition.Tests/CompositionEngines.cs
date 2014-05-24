@@ -28,9 +28,15 @@
         V3EmulatingV1 = 0x8 | V3NonPublicSupport,
 
         /// <summary>
+        /// Microsoft.VisualStudio.Composition, with the catalog created by reading both
+        /// System.ComponentModel.Composition and System.Composition MEF attributes.
+        /// </summary>
+        V3EmulatingV1AndV2AtOnce = 0x10,
+
+        /// <summary>
         /// Indicates that non-publics will be reflected over.
         /// </summary>
-        V3NonPublicSupport = 0x10,
+        V3NonPublicSupport = 0x100,
 
         /// <summary>
         /// The test is run both against System.ComponentModel.Composition and Microsoft.VisualStudio.Composition,
@@ -52,6 +58,6 @@
         /// <summary>
         /// The bit mask for options sent to the V3 engine.
         /// </summary>
-        V3OptionsMask = 0xF0,
+        V3OptionsMask = 0xF00,
     }
 }

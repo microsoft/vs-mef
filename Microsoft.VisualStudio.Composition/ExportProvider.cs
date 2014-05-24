@@ -19,7 +19,6 @@
             new[] { new ExportDefinition(ExportProviderContract, ImmutableDictionary<string, object>.Empty) },
             ImmutableDictionary<MemberInfo, IReadOnlyList<ExportDefinition>>.Empty,
             ImmutableDictionary<MemberInfo, ImportDefinition>.Empty,
-            string.Empty,
             null,
             null,
             CreationPolicy.Shared);

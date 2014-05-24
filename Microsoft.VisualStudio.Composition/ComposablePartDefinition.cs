@@ -40,10 +40,11 @@
             this.CreationPolicy = this.IsShared ? CreationPolicy.Shared : CreationPolicy.NonShared;
         }
 
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinition> importingConstructor, CreationPolicy partCreationPolicy)
-            : this(partType, exportsOnType, exportsOnMembers, imports, sharingBoundary, onImportsSatisfied, importingConstructor)
+        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinition> importingConstructor, CreationPolicy partCreationPolicy)
+            : this(partType, exportsOnType, exportsOnMembers, imports, partCreationPolicy != CreationPolicy.NonShared ? string.Empty : null, onImportsSatisfied, importingConstructor)
         {
             this.CreationPolicy = partCreationPolicy;
+            this.IsSharingBoundaryInferred = partCreationPolicy != Composition.CreationPolicy.NonShared;
         }
 
         public Type Type { get; private set; }
@@ -54,6 +55,18 @@
         }
 
         public string SharingBoundary { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether the sharing boundary must be inferred from what is imported.
+        /// </summary>
+        /// <remarks>
+        /// This is <c>true</c> when the part was discovered by MEFv1 attributes, since these attributes do not have
+        /// a way to convey a sharing boundary.
+        /// This is <c>false</c> when the part is discovered by MEFv2 attributes, which have a SharedAttribute(string) that they can use
+        /// to specify the value.
+        /// When this is <c>true</c>, the <see cref="SharingBoundary"/> property is set to <see cref="String.Empty"/>.
+        /// </remarks>
+        public bool IsSharingBoundaryInferred { get; private set; }
 
         public CreationPolicy CreationPolicy { get; private set; }
 
