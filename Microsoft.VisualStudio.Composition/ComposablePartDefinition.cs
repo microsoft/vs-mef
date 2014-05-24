@@ -40,11 +40,11 @@
             this.CreationPolicy = this.IsShared ? CreationPolicy.Shared : CreationPolicy.NonShared;
         }
 
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, bool isShareable, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinition> importingConstructor, CreationPolicy partCreationPolicy)
-            : this(partType, exportsOnType, exportsOnMembers, imports, isShareable ? string.Empty : null, onImportsSatisfied, importingConstructor)
+        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinition> importingConstructor, CreationPolicy partCreationPolicy)
+            : this(partType, exportsOnType, exportsOnMembers, imports, partCreationPolicy != CreationPolicy.NonShared ? string.Empty : null, onImportsSatisfied, importingConstructor)
         {
             this.CreationPolicy = partCreationPolicy;
-            this.IsSharingBoundaryInferred = isShareable;
+            this.IsSharingBoundaryInferred = partCreationPolicy != Composition.CreationPolicy.NonShared;
         }
 
         public Type Type { get; private set; }

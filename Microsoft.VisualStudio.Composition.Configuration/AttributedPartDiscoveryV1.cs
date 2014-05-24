@@ -41,14 +41,9 @@
             }
 
             var partCreationPolicyAttribute = partType.GetCustomAttribute<PartCreationPolicyAttribute>();
-            bool isShareable = true;
             if (partCreationPolicyAttribute != null)
             {
                 partCreationPolicy = (CreationPolicy)partCreationPolicyAttribute.CreationPolicy;
-                if (partCreationPolicyAttribute.CreationPolicy == MefV1.CreationPolicy.NonShared)
-                {
-                    isShareable = false;
-                }
             }
 
             var flags = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
@@ -132,7 +127,6 @@
                     exportsOnType.ToImmutable(),
                     exportsOnMembers.ToImmutable(),
                     imports.ToImmutable(),
-                    isShareable,
                     onImportsSatisfied,
                     importingCtor != null ? importingConstructorParameters.ToImmutable() : null,
                     partCreationPolicy);
