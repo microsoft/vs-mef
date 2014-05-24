@@ -169,7 +169,7 @@
         public string GetEffectiveSharingBoundary(ComposablePartDefinition partDefinition)
         {
             Requires.NotNull(partDefinition, "partDefinition");
-            Requires.That(partDefinition.IsShared, "partDefinition", "Part is not shared.");
+            Requires.Argument(partDefinition.IsShared, "partDefinition", "Part is not shared.");
 
             if (partDefinition.IsSharingBoundaryInferred)
             {
