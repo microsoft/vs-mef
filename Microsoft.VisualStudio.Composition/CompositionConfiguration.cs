@@ -85,32 +85,6 @@
                 partBuilder.ApplySharingBoundary();
             }
 
-            // Create a tree of sharing boundaries.
-            var sharingBoundaryExportFactories = from partBuilder in partBuilders.Values
-                                                 from import in partBuilder.PartDefinition.ImportDefinitions
-                                                 from sharingBoundary in import.ExportFactorySharingBoundaries
-                                                 select new { ParentSharingBoundaries = partBuilder.RequiredSharingBoundaries, ChildSharingBoundary = sharingBoundary };
-            var childSharingBoundariesAndTheirParents = new Dictionary<string, ISet<string>>();
-            foreach (var parentChild in sharingBoundaryExportFactories)
-            {
-                ISet<string> parentBoundaries;
-                if (childSharingBoundariesAndTheirParents.TryGetValue(parentChild.ChildSharingBoundary, out parentBoundaries))
-                {
-                    if (!parentBoundaries.SetEquals(parentChild.ParentSharingBoundaries))
-                    {
-                        throw new CompositionFailedException(
-                            string.Format(
-                                CultureInfo.CurrentCulture,
-                                "Sharing boundary \"{0}\" has inconsistent parent boundaries.",
-                                parentChild.ChildSharingBoundary));
-                    }
-                }
-                else
-                {
-                    childSharingBoundariesAndTheirParents.Add(parentChild.ChildSharingBoundary, parentChild.ParentSharingBoundaries);
-                }
-            }
-
             // Establish which sharing boundary each MEF part can be considered to truly belong to.
             // Note that a [Shared("someboundary")] attribute isn't reliable as a source because 
             // not all parts specify the argument, and even those that do might import other parts
@@ -120,29 +94,9 @@
             var sharingBoundaryOverrides = ImmutableDictionary.CreateBuilder<ComposablePartDefinition, string>();
             foreach (PartBuilder partBuilder in partBuilders.Values)
             {
-                if (partBuilder.PartDefinition.IsShared)
+                if (partBuilder.PartDefinition.IsSharingBoundaryInferred)
                 {
-                    string primarySharingBoundary = GetPrimarySharingBoundary(childSharingBoundariesAndTheirParents, partBuilder.RequiredSharingBoundaries);
-
-                    if (partBuilder.PartDefinition.SharingBoundary != primarySharingBoundary)
-                    {
-                        if (partBuilder.PartDefinition.SharingBoundary == string.Empty)
-                        {
-                            // Modify the implicit sharing boundary to be the one we discovered.
-                            sharingBoundaryOverrides.Add(partBuilder.PartDefinition, primarySharingBoundary);
-                        }
-                        else
-                        {
-                            // We can't override an explicit sharing boundary. So throw.
-                            throw new CompositionFailedException(
-                                string.Format(
-                                    CultureInfo.CurrentCulture,
-                                    "Part {0} is declared to have sharing boundary \"{1}\" but has effective sharing boundary of \"{2}\".",
-                                    ReflectionHelpers.GetTypeName(partBuilder.PartDefinition.Type, false, true, null),
-                                    partBuilder.PartDefinition.SharingBoundary,
-                                    primarySharingBoundary));
-                        }
-                    }
+                    sharingBoundaryOverrides.Add(partBuilder.PartDefinition, ConstructInferredSharingBoundary(partBuilder.RequiredSharingBoundaries));
                 }
             }
 
@@ -227,27 +181,11 @@
             }
         }
 
-        private static string GetPrimarySharingBoundary(Dictionary<string, ISet<string>> childSharingBoundariesAndTheirParents, ISet<string> effectiveSharingBoundaries)
+        private static string ConstructInferredSharingBoundary(IEnumerable<string> discoveredSharingBoundaries)
         {
-            Requires.NotNull(childSharingBoundariesAndTheirParents, "childSharingBoundariesAndTheirParents");
-            Requires.NotNull(effectiveSharingBoundaries, "effectiveSharingBoundaries");
+            Requires.NotNull(discoveredSharingBoundaries, "discoveredSharingBoundaries");
 
-            // For now, use a simple algorithm of the largest set of parents indicates the most derived child.
-            // There may be room for more precise work here in order to throw when unexpected graphs are discovered.
-            string mostDerivedSharingBoundary = null;
-            int parentCount = 0;
-            foreach (string effectiveSharingBoundary in effectiveSharingBoundaries)
-            {
-                ISet<string> parents = childSharingBoundariesAndTheirParents[effectiveSharingBoundary];
-
-                if (mostDerivedSharingBoundary == null || parents.Count > parentCount)
-                {
-                    mostDerivedSharingBoundary = effectiveSharingBoundary;
-                    parentCount = parents.Count;
-                }
-            }
-
-            return mostDerivedSharingBoundary;
+            return string.Join("-", discoveredSharingBoundaries);
         }
 
         private static bool IsLoopPresent(ImmutableHashSet<ComposablePart> parts)
