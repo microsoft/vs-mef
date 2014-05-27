@@ -12,10 +12,6 @@
 		</PrepareResourceNamesDependsOn>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<CompositionConfigurationAssembly Include="$(TargetPath)" />
-	</ItemGroup>
-
 	<Target Name="GenerateCompositionBootstrapSourceFile">
 		<PropertyGroup>
 			<ContainerFactoryBootstrapFile>$(IntermediateOutputPath)ContainerFactory.cs</ContainerFactoryBootstrapFile>
@@ -30,7 +26,12 @@
 			ConfigurationAssemblyName="$(CompositionConfigurationAssemblyName)"/>
 	</Target>
 
-	<Target Name="GenerateCompositionConfigurationAssembly" AfterTargets="Build">
+	<Target Name="GenerateCompositionConfigurationAssembly" AfterTargets="Build" DependsOnTargets="ResolveReferences">
+		<ItemGroup>
+			<CompositionConfigurationAssembly Include="$(TargetPath)" />
+			<CompositionConfigurationAssembly Include="@(ReferencePath)" Condition=" '%(ReferencePath.MEFAssembly)'=='true' " />
+		</ItemGroup>
+
 		<CreateComposition
 			CatalogAssemblies="@(CompositionConfigurationAssembly)"
 			DgmlOutputPath="$(OutputPath)$(CompositionConfigurationAssemblyName).dgml"
