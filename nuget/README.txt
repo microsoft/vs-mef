@@ -5,4 +5,4 @@ Initialize your IoC container and extract your first export using code such as t
 
     var exportProviderFactory = ExportProviderFactory.LoadDefault();
     var exportProvider = exportProviderFactory.CreateExportProvider();
-    var program = container.GetExportedValue<Program>();
+    var program = exportProvider.GetExportedValue<Program>();
