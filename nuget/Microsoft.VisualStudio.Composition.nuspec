@@ -9,7 +9,7 @@
     <description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</description>
     <tags>mef</tags>
     <dependencies>
-      <dependency id="Microsoft.Bcl.Immutable" version="[1.0.30, 2.0)" />
+      <dependency id="Microsoft.Bcl.Immutable" version="[1.1.20-beta, 2.0)" />
       <dependency id="Validation" version="[2.0.3.13323,3.0)" />
     </dependencies>
   </metadata>
