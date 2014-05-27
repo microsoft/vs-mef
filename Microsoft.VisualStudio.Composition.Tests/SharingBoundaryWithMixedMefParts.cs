@@ -13,7 +13,7 @@
     [Trait("SharingBoundary", "")]
     public class SharingBoundaryWithMixedMefParts
     {
-        [MefFact(CompositionEngines.V3EmulatingV1AndV2AtOnce, Skip = "Currently fails.")]
+        [MefFact(CompositionEngines.V3EmulatingV1AndV2AtOnce)]
         public void SharingBoundariesWithV1AttributedPartsInTheMix(IContainer container)
         {
             var root = container.GetExportedValue<Root>();
