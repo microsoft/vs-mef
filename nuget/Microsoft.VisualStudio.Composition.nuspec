@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Microsoft.VisualStudio.Composition</id>
-    <version>0.1.0-alpha2</version>
+    <version>0.1.0-alpha3</version>
     <authors>andarno</authors>
     <owners>andarno</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
