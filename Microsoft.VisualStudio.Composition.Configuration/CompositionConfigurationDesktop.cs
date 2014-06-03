@@ -156,7 +156,7 @@
                 await writer.WriteAsync(source);
                 await writer.FlushAsync();
                 sourceFile.Position = 0;
-                syntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceFile, encoding), sourceFilePath ?? string.Empty, cancellationToken: cancellationToken);
+                syntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceFile, encoding), path:  sourceFilePath ?? string.Empty, cancellationToken: cancellationToken);
             }
             else
             {
