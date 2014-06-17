@@ -971,7 +971,7 @@
 
             string partExpression = GetPartFactoryMethodInvokeExpression(
                 export.PartDefinition,
-                "exportDefinition.Contract.Type.GetGenericArguments()",
+                "compositionContract.Type.GetGenericArguments()",
                 "provisionalSharedObjects",
                 false);
 

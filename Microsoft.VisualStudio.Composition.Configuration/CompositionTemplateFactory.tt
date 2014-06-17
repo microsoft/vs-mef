@@ -37,10 +37,10 @@ internal class CompiledExportProvider : ExportProvider
     {
     }
 
-    protected override object GetExport(ExportDefinition exportDefinition)
+    protected override object GetExport(CompositionContract compositionContract)
     {
         var provisionalSharedObjects = new Dictionary<Type, object>();
-        Type exportTypeDefinition = exportDefinition.Contract.Type.IsGenericType ? exportDefinition.Contract.Type.GetGenericTypeDefinition() : exportDefinition.Contract.Type;<#
+        Type exportTypeDefinition = compositionContract.Type.IsGenericType ? compositionContract.Type.GetGenericTypeDefinition() : compositionContract.Type;<#
 foreach (var contractAndExports in this.ExportsByContract)
 {
     CompositionContract contract = contractAndExports.Key;
@@ -54,19 +54,19 @@ foreach (var contractAndExports in this.ExportsByContract)
     var onlyExport = exports.First();
 #>
 
-        if (<#= contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type" #>.IsEquivalentTo(<#= GetTypeExpression(contract.Type, contract.Type.IsGenericTypeDefinition) #>))
+        if (<#= contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "compositionContract.Type" #>.IsEquivalentTo(<#= GetTypeExpression(contract.Type, contract.Type.IsGenericTypeDefinition) #>))
         {
 <#
             if (contract.ContractName == null)
             {
 #>
-            if (exportDefinition.Contract.ContractName == null)
+            if (compositionContract.ContractName == null)
 <#
             }
             else
             {
 #>
-            if (exportDefinition.Contract.ContractName == "<#= contract.ContractName #>")
+            if (compositionContract.ContractName == "<#= contract.ContractName #>")
 <#
             }
 #>
@@ -94,10 +94,10 @@ foreach (var contractAndExports in this.ExportsByContract)
         throw new CompositionFailedException();
     }
 
-    protected override IEnumerable<object> GetExports(ExportDefinition exportDefinition)
+    protected override IEnumerable<object> GetExports(CompositionContract compositionContract)
     {
         var provisionalSharedObjects = new Dictionary<Type, object>();
-        Type exportTypeDefinition = exportDefinition.Contract.Type.IsGenericType ? exportDefinition.Contract.Type.GetGenericTypeDefinition() : exportDefinition.Contract.Type;<#
+        Type exportTypeDefinition = compositionContract.Type.IsGenericType ? compositionContract.Type.GetGenericTypeDefinition() : compositionContract.Type;<#
 foreach (var contractAndExports in this.ExportsByContract)
 {
     CompositionContract contract = contractAndExports.Key;
@@ -105,19 +105,19 @@ foreach (var contractAndExports in this.ExportsByContract)
 
 #>
 
-        if (<#= contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type" #>.IsEquivalentTo(<#= GetTypeExpression(contract.Type, contract.Type.IsGenericTypeDefinition) #>))
+        if (<#= contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "compositionContract.Type" #>.IsEquivalentTo(<#= GetTypeExpression(contract.Type, contract.Type.IsGenericTypeDefinition) #>))
         {
 <#
             if (contract.ContractName == null)
             {
 #>
-            if (exportDefinition.Contract.ContractName == null)
+            if (compositionContract.ContractName == null)
 <#
             }
             else
             {
 #>
-            if (exportDefinition.Contract.ContractName == "<#= contract.ContractName #>")
+            if (compositionContract.ContractName == "<#= contract.ContractName #>")
 <#
             }
 #>

@@ -68,8 +68,8 @@
 
         public ILazy<T> GetExport<T>(string contractName)
         {
-            var exportDefinition = new ExportDefinition(new CompositionContract(contractName, typeof(T)), ImmutableDictionary.Create<string, object>());
-            return (ILazy<T>)this.GetExport(exportDefinition);
+            var compositionContract = new CompositionContract(contractName, typeof(T));
+            return (ILazy<T>)this.GetExport(compositionContract);
         }
 
         public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
@@ -79,8 +79,8 @@
 
         public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
         {
-            var exportDefinition = new ExportDefinition(new CompositionContract(contractName, typeof(T)), ImmutableDictionary.Create<string, object>());
-            var result = (ILazy<T, TMetadataView>)this.GetExport(exportDefinition);
+            var compositionContract = new CompositionContract(contractName, typeof(T));
+            var result = (ILazy<T, TMetadataView>)this.GetExport(compositionContract);
             if (result == null)
             {
                 throw new CompositionFailedException();
@@ -106,8 +106,8 @@
 
         public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
         {
-            var exportDefinition = new ExportDefinition(new CompositionContract(contractName, typeof(T)), ImmutableDictionary.Create<string, object>());
-            var result = (IEnumerable<ILazy<T>>)this.GetExports(exportDefinition) ?? Enumerable.Empty<ILazy<T>>();
+            var compositionContract = new CompositionContract(contractName, typeof(T));
+            var result = (IEnumerable<ILazy<T>>)this.GetExports(compositionContract) ?? Enumerable.Empty<ILazy<T>>();
             return result;
         }
 
@@ -118,8 +118,8 @@
 
         public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
         {
-            var exportDefinition = new ExportDefinition(new CompositionContract(contractName, typeof(T)), ImmutableDictionary.Create<string, object>());
-            var result = (IEnumerable<ILazy<T, TMetadataView>>)this.GetExports(exportDefinition);
+            var compositionContract = new CompositionContract(contractName, typeof(T));
+            var result = (IEnumerable<ILazy<T, TMetadataView>>)this.GetExports(compositionContract);
             if (result == null)
             {
                 return Enumerable.Empty<ILazy<T, TMetadataView>>();
@@ -142,9 +142,14 @@
         {
             Requires.NotNull(contractType, "contractType");
 
-            var exportDefinition = new ExportDefinition(new CompositionContract(contractName, contractType), ImmutableDictionary.Create<string, object>());
-            var result = (IEnumerable<ILazy<object>>)this.GetExports(exportDefinition) ?? Enumerable.Empty<ILazy<object>>();
+            var compositionContract = new CompositionContract(contractName, contractType);
+            var result = (IEnumerable<ILazy<object>>)this.GetExports(compositionContract) ?? Enumerable.Empty<ILazy<object>>();
             return result;
+        }
+
+        public IEnumerable<ILazy<object, IDictionary<string, object>>> GetExports(string contractName)
+        {
+            throw new NotImplementedException();
         }
 
         public void Dispose()
@@ -183,13 +188,13 @@
         /// When implemented by a derived class, returns an <see cref="ILazy&lt;T&gt;"/> value that
         /// satisfies the specified <see cref="ExportDefinition"/>.
         /// </summary>
-        protected abstract object GetExport(ExportDefinition exportDefinition);
+        protected abstract object GetExport(CompositionContract compositionContract);
 
         /// <summary>
         /// When implemented by a derived class, returns an <see cref="IEnumerable&lt;ILazy&lt;T&gt;&gt;"/> of values that
         /// satisfy the specified <see cref="ExportDefinition"/>.
         /// </summary>
-        protected abstract IEnumerable<object> GetExports(ExportDefinition exportDefinition);
+        protected abstract IEnumerable<object> GetExports(CompositionContract compositionContract);
 
         protected bool TryGetSharedInstanceFactory<T>(string partSharingBoundary, Type type, out ILazy<T> value)
         {
@@ -263,14 +268,14 @@
                 this.inner = inner;
             }
 
-            protected override object GetExport(ExportDefinition exportDefinition)
+            protected override object GetExport(CompositionContract compositionContract)
             {
-                return this.inner.GetExport(exportDefinition);
+                return this.inner.GetExport(compositionContract);
             }
 
-            protected override IEnumerable<object> GetExports(ExportDefinition exportDefinition)
+            protected override IEnumerable<object> GetExports(CompositionContract compositionContract)
             {
-                return this.inner.GetExports(exportDefinition);
+                return this.inner.GetExports(compositionContract);
             }
 
             protected override void Dispose(bool disposing)
