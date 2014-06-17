@@ -811,7 +811,7 @@
             }
         }
 
-        private IEnumerable<IGrouping<CompositionContract, Export>> ExportsByContract
+        private IEnumerable<IGrouping<string, IGrouping<CompositionContract, Export>>> ExportsByContract
         {
             get
             {
@@ -821,7 +821,8 @@
                     let export = new Export(exportingMemberAndDefinition.Value, part.Definition, exportingMemberAndDefinition.Key)
                     where part.Definition.IsInstantiable || part.Definition.Equals(ExportProvider.ExportProviderPartDefinition) // normally they must be instantiable, but we have one special case.
                     group export by export.ExportDefinition.Contract into exportsByContract
-                    select exportsByContract;
+                    group exportsByContract by exportsByContract.Key.ContractName into exportsByContractByName
+                    select exportsByContractByName;
             }
         }
 
