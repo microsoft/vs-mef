@@ -36,18 +36,22 @@
             else
             {
                 var sourceFileStream = new MemoryStream();
-                var exportProvider = configuration.CreateContainerFactoryAsync(sourceFileStream, Console.Out).Result.CreateExportProvider();
-
-                sourceFileStream.Position = 0;
-                var sourceFileReader = new StreamReader(sourceFileStream);
-                int lineNumber = 0;
-                string line;
-                while ((line = sourceFileReader.ReadLine()) != null)
+                try
                 {
-                    Console.WriteLine("Line {0,5}: {1}", ++lineNumber, line);
+                    var exportProvider = configuration.CreateContainerFactoryAsync(sourceFileStream, Console.Out).Result.CreateExportProvider();
+                    return exportProvider;
                 }
-
-                return exportProvider;
+                finally
+                {
+                    sourceFileStream.Position = 0;
+                    var sourceFileReader = new StreamReader(sourceFileStream);
+                    int lineNumber = 0;
+                    string line;
+                    while ((line = sourceFileReader.ReadLine()) != null)
+                    {
+                        Console.WriteLine("Line {0,5}: {1}", ++lineNumber, line);
+                    }
+                }
             }
         }
 
