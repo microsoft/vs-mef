@@ -12,13 +12,22 @@
     [Trait("Metadata", "NonStringValues")]
     public class ExportMetadataNonStringValuesTests
     {
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithIntMetadataValues), typeof(ImportingPart))]
         public void ExportMetadataWithIntValues(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPart>();
             object metadataValue = importingPart.ImportingProperty.Metadata["a"];
             Assert.IsType<int>(metadataValue);
             Assert.Equal(5, metadataValue);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithNegativeIntMetadataValues), typeof(ImportingPart))]
+        public void ExportMetadataWithNegativeIntValues(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<ImportingPart>();
+            object metadataValue = importingPart.NegativeMetadataImport.Metadata["a"];
+            Assert.IsType<int>(metadataValue);
+            Assert.Equal(-5, metadataValue);
         }
 
         [Export]
@@ -29,11 +38,21 @@
 
         [Export]
         [MefV1.Export]
+        [ExportMetadata("a", -5)]
+        [MefV1.ExportMetadata("a", -5)]
+        public class PartWithNegativeIntMetadataValues { }
+
+        [Export]
+        [MefV1.Export]
         public class ImportingPart
         {
-            [Import]
-            [MefV1.Import]
+            [Import(AllowDefault = true)]
+            [MefV1.Import(AllowDefault = true)]
             public Lazy<PartWithIntMetadataValues, IDictionary<string, object>> ImportingProperty { get; set; }
+
+            [Import(AllowDefault = true)]
+            [MefV1.Import(AllowDefault = true)]
+            public Lazy<PartWithNegativeIntMetadataValues, IDictionary<string, object>> NegativeMetadataImport { get; set; }
         }
     }
 }

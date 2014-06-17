@@ -6,6 +6,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Linq.Expressions;
@@ -19,14 +20,18 @@
 
     public class CompositionConfiguration
     {
-        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposablePart> parts)
+        private ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides;
+
+        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposablePart> parts, ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides)
         {
             Requires.NotNull(catalog, "catalog");
             Requires.NotNull(parts, "parts");
+            Requires.NotNull(effectiveSharingBoundaryOverrides, "effectiveSharingBoundaryOverrides");
 
             this.Catalog = catalog;
             this.Parts = parts;
             this.AdditionalReferenceAssemblies = ImmutableHashSet<Assembly>.Empty;
+            this.effectiveSharingBoundaryOverrides = effectiveSharingBoundaryOverrides;
         }
 
         public ComposableCatalog Catalog { get; private set; }
@@ -80,11 +85,13 @@
                 partBuilder.ApplySharingBoundary();
             }
 
+            var sharingBoundaryOverrides = ComputeInferredSharingBoundaries(partBuilders.Values);
+
             // Build up our set of composed parts.
             var partsBuilder = ImmutableHashSet.CreateBuilder<ComposablePart>();
             foreach (var partBuilder in partBuilders.Values)
             {
-                var composedPart = new ComposablePart(partBuilder.PartDefinition, partBuilder.SatisfyingExports, partBuilder.EffectiveSharingBoundaries.ToImmutableHashSet());
+                var composedPart = new ComposablePart(partBuilder.PartDefinition, partBuilder.SatisfyingExports, partBuilder.RequiredSharingBoundaries.ToImmutableHashSet());
                 partsBuilder.Add(composedPart);
             }
 
@@ -115,7 +122,7 @@
                 Verify.FailOperation("Loop detected.");
             }
 
-            return new CompositionConfiguration(catalog, parts);
+            return new CompositionConfiguration(catalog, parts, sharingBoundaryOverrides);
         }
 
         public static CompositionConfiguration Create(PartDiscovery partDiscovery, params Type[] parts)
@@ -140,10 +147,18 @@
         {
             Requires.NotNull(additionalReferenceAssemblies, "additionalReferenceAssemblies");
 
-            return new CompositionConfiguration(this.Catalog, this.Parts)
+            return new CompositionConfiguration(this.Catalog, this.Parts, this.effectiveSharingBoundaryOverrides)
             {
                 AdditionalReferenceAssemblies = this.AdditionalReferenceAssemblies.Union(additionalReferenceAssemblies)
             };
+        }
+
+        public string GetEffectiveSharingBoundary(ComposablePartDefinition partDefinition)
+        {
+            Requires.NotNull(partDefinition, "partDefinition");
+            Requires.That(partDefinition.IsShared, "partDefinition", "Part is not shared.");
+
+            return this.effectiveSharingBoundaryOverrides.GetValueOrDefault(partDefinition) ?? partDefinition.SharingBoundary;
         }
 
         private static bool IsLoopPresent(ImmutableHashSet<ComposablePart> parts)
@@ -212,6 +227,81 @@
             }
         }
 
+        /// <summary>
+        /// Returns a map of those MEF parts that are missing explicit sharing boundaries, and the sharing boundary that can be inferred.
+        /// </summary>
+        /// <param name="partBuilders">The part builders to build the map for.</param>
+        /// <returns>A map of those parts with inferred boundaries where the key is the part and the value is its designated sharing boundary.</returns>
+        private static ImmutableDictionary<ComposablePartDefinition, string> ComputeInferredSharingBoundaries(IEnumerable<PartBuilder> partBuilders)
+        {
+            var sharingBoundariesAndMetadata = ComputeSharingBoundaryMetadata(partBuilders);
+
+            var sharingBoundaryOverrides = ImmutableDictionary.CreateBuilder<ComposablePartDefinition, string>();
+            foreach (PartBuilder partBuilder in partBuilders)
+            {
+                if (partBuilder.PartDefinition.IsSharingBoundaryInferred)
+                {
+                    // ALGORITHM selects: the ONE sharing boundary that 
+                    //  * FILTER 1: does not create ANY of the others
+                    //  * FILTER 2: can reach ALL the others by following UP the sharing boundary export factory chains.
+                    var filter = from boundary in partBuilder.RequiredSharingBoundaries
+                                 let others = partBuilder.RequiredSharingBoundaries.ToImmutableHashSet().Remove(boundary)
+                                 where !others.Any(other => sharingBoundariesAndMetadata[other].ParentBoundariesUnion.Contains(boundary)) // filter 1
+                                 where others.All(other => sharingBoundariesAndMetadata[boundary].ParentBoundariesIntersection.Contains(other)) // filter 2
+                                 select boundary;
+                    var qualifyingSharingBoundaries = filter.ToList();
+
+                    if (qualifyingSharingBoundaries.Count == 1)
+                    {
+                        sharingBoundaryOverrides.Add(partBuilder.PartDefinition, qualifyingSharingBoundaries[0]);
+                    }
+                    else if (qualifyingSharingBoundaries.Count > 1)
+                    {
+                        throw new CompositionFailedException(
+                            string.Format(
+                                CultureInfo.CurrentCulture,
+                                "Unable to determine the primary sharing boundary for MEF part \"{0}\".",
+                                ReflectionHelpers.GetTypeName(partBuilder.PartDefinition.Type, false, true, null)));
+                    }
+                }
+            }
+
+            return sharingBoundaryOverrides.ToImmutable();
+        }
+
+        /// <summary>
+        /// Constructs a map of all sharing boundaries and information about the boundaries that create them.
+        /// </summary>
+        /// <param name="partBuilders">A set of part builders.</param>
+        /// <returns>A map where the key is the name of a sharing boundary and the value is its metadata.</returns>
+        private static ImmutableDictionary<string, SharingBoundaryMetadata> ComputeSharingBoundaryMetadata(IEnumerable<PartBuilder> partBuilders)
+        {
+            Requires.NotNull(partBuilders, "partBuilders");
+
+            // First build up a dictionary of all sharing boundaries and the parent boundaries that consistently exist.
+            var sharingBoundaryExportFactories = from partBuilder in partBuilders
+                                                 from import in partBuilder.PartDefinition.ImportDefinitions
+                                                 from sharingBoundary in import.ExportFactorySharingBoundaries
+                                                 select new { ParentSharingBoundaries = partBuilder.RequiredSharingBoundaries, ChildSharingBoundary = sharingBoundary };
+            var childSharingBoundariesAndTheirParents = ImmutableDictionary.CreateBuilder<string, SharingBoundaryMetadata>();
+            foreach (var parentChild in sharingBoundaryExportFactories)
+            {
+                SharingBoundaryMetadata priorMetadata, newMetadata;
+                if (childSharingBoundariesAndTheirParents.TryGetValue(parentChild.ChildSharingBoundary, out priorMetadata))
+                {
+                    newMetadata = priorMetadata.AdditionalFactoryEncountered(parentChild.ParentSharingBoundaries);
+                }
+                else
+                {
+                    newMetadata = SharingBoundaryMetadata.InitialFactoryEncountered(parentChild.ParentSharingBoundaries);
+                }
+
+                childSharingBoundariesAndTheirParents[parentChild.ChildSharingBoundary] = newMetadata;
+            }
+
+            return childSharingBoundariesAndTheirParents.ToImmutable();
+        }
+
         public XDocument CreateDgml()
         {
             return CreateDgml(this.Parts);
@@ -269,7 +359,7 @@
                 Requires.NotNull(importedParts, "importedParts");
 
                 this.PartDefinition = partDefinition;
-                this.EffectiveSharingBoundaries = ImmutableHashSet.CreateBuilder<string>();
+                this.RequiredSharingBoundaries = ImmutableHashSet.CreateBuilder<string>();
                 this.SatisfyingExports = importedParts;
                 this.ImportingParts = new HashSet<PartBuilder>();
             }
@@ -277,12 +367,16 @@
             /// <summary>
             /// Gets the part definition tracked by this instance.
             /// </summary>
-            public ComposablePartDefinition PartDefinition { get; private set; }
+            public ComposablePartDefinition PartDefinition { get; set; }
 
             /// <summary>
-            /// Gets the sharing boundaries applied to this part.
+            /// Gets the sharing boundaries required to instantiate this part.
             /// </summary>
-            public ISet<string> EffectiveSharingBoundaries { get; private set; }
+            /// <remarks>
+            /// This is the union of the part's own explicitly declared sharing boundary 
+            /// and the boundaries of all parts it imports (transitively).
+            /// </remarks>
+            public ISet<string> RequiredSharingBoundaries { get; private set; }
 
             /// <summary>
             /// Gets the set of parts that import this one.
@@ -303,7 +397,7 @@
             {
                 if (!string.IsNullOrEmpty(sharingBoundary))
                 {
-                    if (this.EffectiveSharingBoundaries.Add(sharingBoundary))
+                    if (this.RequiredSharingBoundaries.Add(sharingBoundary))
                     {
                         // Since this is new to us, be sure that all our importers belong to this sharing boundary as well.
                         foreach (var importingPart in this.ImportingParts)
@@ -317,6 +411,66 @@
             public void ReportImportingPart(PartBuilder part)
             {
                 this.ImportingParts.Add(part);
+            }
+        }
+
+        [DebuggerDisplay("{Name}")]
+        private class SharingBoundaryTree
+        {
+            public SharingBoundaryTree(string name, ImmutableHashSet<SharingBoundaryTree> children)
+            {
+                Requires.NotNull(name, "name");
+                Requires.NotNull(children, "children");
+
+                this.Name = name;
+                this.Children = children;
+            }
+
+            public string Name { get; private set; }
+
+            [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+            public ImmutableHashSet<SharingBoundaryTree> Children { get; private set; }
+        }
+
+        private class SharingBoundaryMetadata
+        {
+            private SharingBoundaryMetadata(ISet<string> initialParentBoundaries)
+            {
+                Requires.NotNull(initialParentBoundaries, "initialParentBoundaries");
+
+                this.ParentBoundariesUnion = initialParentBoundaries.ToImmutableHashSet();
+                this.ParentBoundariesIntersection = this.ParentBoundariesUnion;
+            }
+
+            private SharingBoundaryMetadata(ImmutableHashSet<string> parentBoundariesUnion, ImmutableHashSet<string> parentBoundariesIntersection)
+            {
+                Requires.NotNull(parentBoundariesUnion, "parentBoundariesUnion");
+                Requires.NotNull(parentBoundariesIntersection, "parentBoundariesIntersection");
+
+                this.ParentBoundariesUnion = parentBoundariesUnion;
+                this.ParentBoundariesIntersection = parentBoundariesIntersection;
+            }
+
+            /// <summary>
+            /// Gets the set of parent boundaries that MAY be present at the construction of this sharing boundary.
+            /// </summary>
+            internal ImmutableHashSet<string> ParentBoundariesUnion { get; private set; }
+
+            /// <summary>
+            /// Gets the set of parent boundaries that ARE always present at the construction of this sharing boundary.
+            /// </summary>
+            internal ImmutableHashSet<string> ParentBoundariesIntersection { get; private set; }
+
+            internal static SharingBoundaryMetadata InitialFactoryEncountered(ISet<string> parentBoundaries)
+            {
+                return new SharingBoundaryMetadata(parentBoundaries);
+            }
+
+            internal SharingBoundaryMetadata AdditionalFactoryEncountered(ISet<string> parentBoundaries)
+            {
+                return new SharingBoundaryMetadata(
+                    this.ParentBoundariesUnion.Union(parentBoundaries),
+                    this.ParentBoundariesIntersection.Intersect(parentBoundaries));
             }
         }
     }

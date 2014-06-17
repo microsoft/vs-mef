@@ -129,12 +129,13 @@
 
         private static PartDiscovery GetDiscoveryService(CompositionEngines attributesDiscovery)
         {
-            PartDiscovery discovery = null;
+            var discovery = new List<PartDiscovery>(2);
             if (attributesDiscovery.HasFlag(CompositionEngines.V1))
             {
-                discovery = new AttributedPartDiscoveryV1();
+                discovery.Add(new AttributedPartDiscoveryV1());
             }
-            else if (attributesDiscovery.HasFlag(CompositionEngines.V2))
+
+            if (attributesDiscovery.HasFlag(CompositionEngines.V2))
             {
                 var v2Discovery = new AttributedPartDiscovery();
                 if (attributesDiscovery.HasFlag(CompositionEngines.V3NonPublicSupport))
@@ -142,9 +143,10 @@
                     v2Discovery.IsNonPublicSupported = true;
                 }
 
-                discovery = v2Discovery;
+                discovery.Add(v2Discovery);
             }
-            return discovery;
+
+            return PartDiscovery.Combine(discovery.ToArray());
         }
 
         private static IContainer CreateContainerV3(ComposableCatalog catalog, ImmutableHashSet<Assembly> additionalAssemblies = null)
@@ -181,6 +183,11 @@
             {
                 test(CreateContainerV3(parts, CompositionEngines.V2));
             }
+
+            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1AndV2AtOnce))
+            {
+                test(CreateContainerV3(parts, CompositionEngines.V1 | CompositionEngines.V2));
+            }
         }
 
         internal static void RunMultiEngineTest(CompositionEngines attributesVersion, IReadOnlyList<Assembly> assemblies, Type[] parts, Action<IContainer> test)
@@ -203,6 +210,11 @@
             if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV2))
             {
                 test(CreateContainerV3(assemblies, CompositionEngines.V2 | (CompositionEngines.V3NonPublicSupport & attributesVersion), parts));
+            }
+
+            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1AndV2AtOnce))
+            {
+                test(CreateContainerV3(assemblies, CompositionEngines.V1 | CompositionEngines.V2 | (CompositionEngines.V3NonPublicSupport & attributesVersion), parts));
             }
         }
 

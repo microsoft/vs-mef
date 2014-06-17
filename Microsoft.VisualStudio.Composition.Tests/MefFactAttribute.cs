@@ -64,7 +64,7 @@
                 parts = GetNestedTypesRecursively(method.Class.Type).Where(t => (!t.IsAbstract || t.IsSealed) && !t.IsInterface).ToArray();
             }
 
-            foreach (var engine in new[] { CompositionEngines.V1, CompositionEngines.V2, CompositionEngines.V3EmulatingV1, CompositionEngines.V3EmulatingV2 })
+            foreach (var engine in new[] { CompositionEngines.V1, CompositionEngines.V2, CompositionEngines.V3EmulatingV1, CompositionEngines.V3EmulatingV2, CompositionEngines.V3EmulatingV1AndV2AtOnce })
             {
                 if (this.compositionVersions.HasFlag(engine))
                 {
@@ -75,7 +75,7 @@
             if (!this.NoCompatGoal)
             {
                 // Call out that we're *not* testing V3 functionality for this test.
-                if ((this.compositionVersions & (CompositionEngines.V3EmulatingV2 | CompositionEngines.V3EmulatingV1)) == CompositionEngines.Unspecified)
+                if ((this.compositionVersions & (CompositionEngines.V3EmulatingV2 | CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV1AndV2AtOnce)) == CompositionEngines.Unspecified)
                 {
                     yield return new SkipCommand(method, MethodUtility.GetDisplayName(method) + "V3", "Test does not include V3 test.");
                 }

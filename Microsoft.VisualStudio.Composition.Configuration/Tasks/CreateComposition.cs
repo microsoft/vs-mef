@@ -32,15 +32,11 @@
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
             try
             {
-                var discovery = new List<PartDiscovery>
-                {
-                    new AttributedPartDiscoveryV1(),
-                    new AttributedPartDiscovery(),
-                };
+                var discovery = PartDiscovery.Combine(new AttributedPartDiscoveryV1(), new AttributedPartDiscovery());
 
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
 
-                var parts = discovery.SelectMany(d => d.CreateParts(this.CatalogAssemblies.Select(item => Assembly.LoadFile(item.ItemSpec))));
+                var parts = discovery.CreateParts(this.CatalogAssemblies.Select(item => Assembly.LoadFile(item.ItemSpec)));
                 var catalog = ComposableCatalog.Create(parts);
                 var configuration = CompositionConfiguration.Create(catalog);
 

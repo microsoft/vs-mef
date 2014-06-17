@@ -112,7 +112,7 @@
 
             return CSharpCompilation.Create(
                 assemblyName,
-                references: referenceAssemblies.Select(a => MetadataReferenceProvider.Default.GetReference(a.Location)),
+                references: referenceAssemblies.Select(a => MetadataFileReferenceProvider.Default.GetReference(a.Location, MetadataReferenceProperties.Assembly)),
                 options: new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
                     optimize: !debug,
@@ -156,7 +156,7 @@
                 await writer.WriteAsync(source);
                 await writer.FlushAsync();
                 sourceFile.Position = 0;
-                syntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceFile, encoding), sourceFilePath ?? string.Empty, cancellationToken: cancellationToken);
+                syntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceFile, encoding), path:  sourceFilePath ?? string.Empty, cancellationToken: cancellationToken);
             }
             else
             {
@@ -167,7 +167,7 @@
                 .Union(configuration.AdditionalReferenceAssemblies)
                 .Union(templateFactory.RelevantAssemblies);
             return compilationTemplate
-                .AddReferences(assemblies.Select(r => MetadataReferenceProvider.Default.GetReference(r.Location)))
+                .AddReferences(assemblies.Select(r => MetadataFileReferenceProvider.Default.GetReference(r.Location, MetadataReferenceProperties.Assembly)))
                 .AddSyntaxTrees(syntaxTree);
         }
     }

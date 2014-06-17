@@ -325,7 +325,7 @@
 
         #region GetExportedValues tests
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExtensionOne), typeof(ExtensionTwo))]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportedValuesEmpty(IContainer container)
         {
@@ -333,7 +333,7 @@
             Assert.Equal(0, results.Count());
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExtensionOne), typeof(ExtensionTwo))]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportedValues(IContainer container)
         {
@@ -343,7 +343,7 @@
             Assert.Equal(1, results.OfType<ExtensionTwo>().Count());
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExtensionOne), typeof(ExtensionTwo))]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportedValuesNamedEmpty(IContainer container)
         {
@@ -351,7 +351,7 @@
             Assert.Equal(0, results.Count());
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(NamedExtensionOne), typeof(NamedExtensionTwo))]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportedValuesNamed(IContainer container)
         {

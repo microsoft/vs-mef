@@ -419,7 +419,7 @@
             }
             else if (valueType.IsPrimitive)
             {
-                return string.Format(CultureInfo.InvariantCulture, "({0}){1}", GetTypeName(valueType), value);
+                return string.Format(CultureInfo.InvariantCulture, "({0})({1})", GetTypeName(valueType), value);
             }
             else if (valueType.IsEquivalentTo(typeof(Guid)))
             {
