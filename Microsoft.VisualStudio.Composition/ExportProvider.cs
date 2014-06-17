@@ -107,12 +107,7 @@
         public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
         {
             var exportDefinition = new ExportDefinition(new CompositionContract(contractName, typeof(T)), ImmutableDictionary.Create<string, object>());
-            var result = (IEnumerable<ILazy<T>>)this.GetExports(exportDefinition);
-            if (result == null)
-            {
-                return Enumerable.Empty<ILazy<T>>();
-            }
-
+            var result = (IEnumerable<ILazy<T>>)this.GetExports(exportDefinition) ?? Enumerable.Empty<ILazy<T>>();
             return result;
         }
 
@@ -141,6 +136,15 @@
         public IEnumerable<T> GetExportedValues<T>(string contractName)
         {
             return this.GetExports<T>(contractName).Select(l => l.Value);
+        }
+
+        public IEnumerable<ILazy<object>> GetExports(Type contractType, string contractName)
+        {
+            Requires.NotNull(contractType, "contractType");
+
+            var exportDefinition = new ExportDefinition(new CompositionContract(contractName, contractType), ImmutableDictionary.Create<string, object>());
+            var result = (IEnumerable<ILazy<object>>)this.GetExports(exportDefinition) ?? Enumerable.Empty<ILazy<object>>();
+            return result;
         }
 
         public void Dispose()
