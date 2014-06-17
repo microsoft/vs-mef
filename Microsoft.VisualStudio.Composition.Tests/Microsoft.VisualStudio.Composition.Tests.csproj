@@ -99,6 +99,7 @@
     <Compile Include="CacheAndReloadTests.cs" />
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="CircularDependencyTests.cs" />
+    <Compile Include="ClosedGenericExportedTypeTests.cs" />
     <Compile Include="EmbeddableTypesTests.cs" />
     <Compile Include="ExportProviderTests.cs" />
     <Compile Include="GenericImportTests.cs" />
