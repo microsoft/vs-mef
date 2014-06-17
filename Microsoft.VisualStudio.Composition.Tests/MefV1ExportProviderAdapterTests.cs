@@ -14,7 +14,7 @@
         // When we support this, we should have a flag that automatically creates an IContainer around a MEFv1 container
         // that uses a v3 export provider. That way we can just run ALL our tests through that mechanism to ensure
         // equivalent behavior between native V1 and emulated V1 through an adapting export provider.
-        [MefFact(CompositionEngines.Unspecified/* CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2*/)]
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, Skip = "Not working yet")]
         public void ExportProviderAdapter(IContainer container)
         {
             var v3Container = (TestUtilities.V3ContainerWrapper)container;

@@ -30,7 +30,15 @@
 
             protected override IEnumerable<MefV1.Primitives.Export> GetExportsCore(MefV1.Primitives.ImportDefinition definition, MefV1.Hosting.AtomicComposition atomicComposition)
             {
-                throw new NotImplementedException();
+                // MEFv1 deals exclusively with strings at this level: a particular string representation
+                // of the exported type name, and the contract name. 
+                // It seems the contract name is the first test for matching, followed by 
+                // either execution or interpretation of the ImportDefinition constraint which has
+                // the type name encoded into it.
+                // TODO: We need to make such a lookup possible in MEFv3 as well in order to allow for
+                //       shimming into V1 like this.
+                var v3Exports = this.exportProvider.GetExports(typeof(object), definition.ContractName);
+                return v3Exports.Select(e => new MefV1.Primitives.Export(definition.ContractName, () => e.Value));
             }
         }
     }
