@@ -227,6 +227,25 @@
             this.Write("}");
         }
 
+        private string EmitOpenGenericExportCollection(ImportDefinition importDefinition, IEnumerable<Export> exports)
+        {
+            Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(exports, "exports");
+
+            Type elementType = importDefinition.MemberWithoutManyWrapper;
+
+            const string localVarName = "temp";
+            this.WriteLine("Array {0} = Array.CreateInstance(typeof(ILazy<>).MakeGenericType(compositionContract.Type), {1});", localVarName, exports.Count().ToString(CultureInfo.InvariantCulture));
+
+            int index = 0;
+            foreach (var export in exports)
+            {
+                this.WriteLine("{0}.SetValue({1}, {2});", localVarName, GetPartOrMemberLazy(export), index++);
+            }
+
+            return localVarName;
+        }
+
         private void EmitSatisfyImportManyCollection(Import import, IReadOnlyList<Export> exports)
         {
             Requires.NotNull(import, "import");
@@ -762,8 +781,8 @@
             {
                 if (contract.Type.IsGenericTypeDefinition)
                 {
-                    // TODO: implement this.
-                    this.WriteLine("throw new NotImplementedException();");
+                    string localVarName = this.EmitOpenGenericExportCollection(WrapContractAsImportDefinition(contract), exports);
+                    this.WriteLine("return (IEnumerable<object>){0};", localVarName);
                 }
                 else
                 {
@@ -1083,13 +1102,21 @@
         {
             Requires.NotNull(contract, "contract");
 
+            var importDefinition = WrapContractAsImportDefinition(contract);
+            return new Import(importDefinition);
+        }
+
+        private static ImportDefinition WrapContractAsImportDefinition(CompositionContract contract)
+        {
+            Requires.NotNull(contract, "contract");
+
             var importDefinition = new ImportDefinition(
                 contract,
                 ImportCardinality.ZeroOrMore,
                 typeof(IEnumerable<>).MakeGenericType(typeof(ILazy<>).MakeGenericType(contract.Type)),
                 ImmutableList.Create<IImportSatisfiabilityConstraint>(),
                 CreationPolicy.Any);
-            return new Import(importDefinition);
+            return importDefinition;
         }
 
         private LazyConstructionResult EmitLazyConstruction(Type valueType, Type metadataType, TextWriter writer = null)

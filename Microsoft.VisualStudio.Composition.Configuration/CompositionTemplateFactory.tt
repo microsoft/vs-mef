@@ -37,63 +37,6 @@ internal class CompiledExportProvider : ExportProvider
     {
     }
 
-    protected override object GetExport(CompositionContract compositionContract)
-    {
-        var provisionalSharedObjects = new Dictionary<Type, object>();
-        Type exportTypeDefinition = compositionContract.Type.IsGenericType ? compositionContract.Type.GetGenericTypeDefinition() : compositionContract.Type;<#
-foreach (var contractAndExports in this.ExportsByContract)
-{
-    CompositionContract contract = contractAndExports.Key;
-    IEnumerable<Export> exports = contractAndExports;
-    if (exports.Count() != 1)
-    {
-        // This method returns matches when exactly one export exists.
-        continue;
-    }
-
-    var onlyExport = exports.First();
-#>
-
-        if (<#= contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "compositionContract.Type" #>.IsEquivalentTo(<#= GetTypeExpression(contract.Type, contract.Type.IsGenericTypeDefinition) #>))
-        {
-<#
-            if (contract.ContractName == null)
-            {
-#>
-            if (compositionContract.ContractName == null)
-<#
-            }
-            else
-            {
-#>
-            if (compositionContract.ContractName == "<#= contract.ContractName #>")
-<#
-            }
-#>
-            {
-<#
-                if (onlyExport.ExportingMember.IsStaticExport())
-                {
-#>
-                throw new InvalidOperationException("Static exports not supported.");
-<#
-                }
-                else
-                {
-#>
-                return <#=GetPartOrMemberLazy(onlyExport)#>;
-<#
-                }
-#>
-            }
-        }
-<#
-}
-#>
-
-        throw new CompositionFailedException();
-    }
-
     protected override IEnumerable<object> GetExports(CompositionContract compositionContract)
     {
         var provisionalSharedObjects = new Dictionary<Type, object>();

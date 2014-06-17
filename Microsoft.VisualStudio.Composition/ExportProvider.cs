@@ -69,7 +69,7 @@
         public ILazy<T> GetExport<T>(string contractName)
         {
             var compositionContract = new CompositionContract(contractName, typeof(T));
-            return (ILazy<T>)this.GetExport(compositionContract);
+            return (ILazy<T>)ExpectOne(this.GetExports(compositionContract));
         }
 
         public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
@@ -80,7 +80,7 @@
         public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
         {
             var compositionContract = new CompositionContract(contractName, typeof(T));
-            var result = (ILazy<T, TMetadataView>)this.GetExport(compositionContract);
+            var result = (ILazy<T, TMetadataView>)ExpectOne(this.GetExports(compositionContract));
             if (result == null)
             {
                 throw new CompositionFailedException();
@@ -185,12 +185,6 @@
         }
 
         /// <summary>
-        /// When implemented by a derived class, returns an <see cref="ILazy&lt;T&gt;"/> value that
-        /// satisfies the specified <see cref="ExportDefinition"/>.
-        /// </summary>
-        protected abstract object GetExport(CompositionContract compositionContract);
-
-        /// <summary>
         /// When implemented by a derived class, returns an <see cref="IEnumerable&lt;ILazy&lt;T&gt;&gt;"/> of values that
         /// satisfy the specified <see cref="ExportDefinition"/>.
         /// </summary>
@@ -241,6 +235,24 @@
             }
         }
 
+        private static object ExpectOne(IEnumerable<object> exports)
+        {
+            if (exports == null)
+            {
+                // Null is our derived type's way of saying there are no exports.
+                throw new CompositionFailedException();
+            }
+
+            try
+            {
+                return exports.Single();
+            }
+            catch (InvalidOperationException)
+            {
+                throw new CompositionFailedException();
+            }
+        }
+
         private Dictionary<Type, object> AcquireSharingBoundaryInstances(string sharingBoundaryName)
         {
             Requires.NotNull(sharingBoundaryName, "sharingBoundaryName");
@@ -266,11 +278,6 @@
                 Requires.NotNull(inner, "inner");
 
                 this.inner = inner;
-            }
-
-            protected override object GetExport(CompositionContract compositionContract)
-            {
-                return this.inner.GetExport(compositionContract);
             }
 
             protected override IEnumerable<object> GetExports(CompositionContract compositionContract)
