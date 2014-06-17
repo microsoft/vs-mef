@@ -63,6 +63,11 @@
             return parts.ToImmutable();
         }
 
+        protected internal static string GetContractName(Type type)
+        {
+            return ContractNameServices.GetTypeIdentity(type);
+        }
+
         protected internal static Type GetElementFromImportingMemberType(Type type, bool importMany)
         {
             Requires.NotNull(type, "type");

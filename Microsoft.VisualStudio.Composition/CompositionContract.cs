@@ -15,7 +15,7 @@
         {
             Requires.NotNull(type, "type");
 
-            this.ContractName = contractName;
+            this.ContractName = contractName; // ?? PartDiscovery.GetContractName(type);
             this.Type = type;
         }
 

@@ -316,6 +316,22 @@
             return false;
         }
 
+        internal static bool HasBaseclassOf(this Type type, Type baseClass)
+        {
+            if (type == baseClass)
+            {
+                return false;
+            }
+
+            while (type != null)
+            {
+                if (type == baseClass)
+                    return true;
+                type = type.GetTypeInfo().BaseType;
+            }
+            return false;
+        }
+
         private static string FilterTypeNameForGenericTypeDefinition(Type type, bool fullName)
         {
             Requires.NotNull(type, "type");
