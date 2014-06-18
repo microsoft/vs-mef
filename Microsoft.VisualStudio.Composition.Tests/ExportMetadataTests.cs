@@ -143,7 +143,7 @@
             Assert.IsType<bool>(metadataValue);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithExportMetadata), typeof(ImportingPartWithMetadataDictionary))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithExportMetadata), typeof(ImportingPartWithMetadataDictionary))]
         public void ExportTypeIdentityMetadataIsPresent(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPartWithMetadataDictionary>();

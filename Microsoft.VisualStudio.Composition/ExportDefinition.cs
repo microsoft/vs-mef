@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Linq;
     using System.Text;
@@ -17,7 +18,8 @@
             Requires.NotNull(metadata, "metadata");
 
             this.Contract = contract;
-            this.Metadata = metadata;
+            this.Metadata = ImmutableDictionary.CreateRange(metadata)
+                .SetItem(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(contract.Type));
         }
 
         public CompositionContract Contract { get; private set; }
