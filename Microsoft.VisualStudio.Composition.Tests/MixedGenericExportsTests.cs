@@ -16,32 +16,38 @@
         [MefFact(CompositionEngines.V1/*Compat*/ | CompositionEngines.V2/*Compat*/, typeof(Forest), typeof(Tree<>))]
         public void OpenAndClosedGenericExportsFromContainer(IContainer container)
         {
-            var trees = container.GetExportedValues<Tree<Apple>>().ToList();
-            Assert.Equal(2, trees.Count);
+            var appleTrees = container.GetExportedValues<Tree<Apple>>().ToList();
+            Assert.Equal(2, appleTrees.Count);
 
-            var forestTree = trees.Single(t => t is Forest.MyAppleTree);
-            var loneTree = trees.Single(t => !(t is Forest.MyAppleTree));
+            var forestTree = appleTrees.Single(t => t is Forest.MyAppleTree);
+            var loneTree = appleTrees.Single(t => !(t is Forest.MyAppleTree));
+
+            var pearTrees = container.GetExportedValues<Tree<Pear>>().ToList();
+            Assert.Equal(1, pearTrees.Count);
+            Assert.NotNull(pearTrees[0]);
         }
 
         [MefFact(CompositionEngines.V1/*Compat | CompositionEngines.V3EmulatingV2*/, typeof(Forest), typeof(Tree<>))]
         public void OpenAndClosedGenericExportsFromContainerWithMetadata(IContainer container)
         {
-            var trees = container.GetExports<Tree<Apple>, IDictionary<string, object>>().ToList();
-            Assert.Equal(2, trees.Count);
+            var appleTrees = container.GetExports<Tree<Apple>, IDictionary<string, object>>().ToList();
+            Assert.Equal(2, appleTrees.Count);
 
-            var forestTree = trees.Single(t => "Forest" == (string)t.Metadata["Origin"]);
-            var loneTree = trees.Single(t => "Lone" == (string)t.Metadata["Origin"]);
+            var forestTree = appleTrees.Single(t => "Forest" == (string)t.Metadata["Origin"]);
+            var loneTree = appleTrees.Single(t => "Lone" == (string)t.Metadata["Origin"]);
 
             Assert.IsType(typeof(Forest.MyAppleTree), forestTree.Value);
             Assert.IsType(typeof(Tree<Apple>), loneTree.Value);
+
+            var pearTrees = container.GetExports<Tree<Pear>, IDictionary<string, object>>().ToList();
+            Assert.Equal(1, pearTrees.Count);
+            Assert.NotNull(pearTrees[0]);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Forest), typeof(Tree<>), typeof(ImportingPart))]
         public void OpenAndClosedGenericExportsFromPart(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPart>();
-            Assert.NotNull(part);
-            Assert.NotNull(part.AppleTrees);
             Assert.Equal(2, part.AppleTrees.Length);
 
             var forestTree = part.AppleTrees.Single(t => "Forest" == (string)t.Metadata["Origin"]);
@@ -49,6 +55,9 @@
 
             Assert.IsType(typeof(Forest.MyAppleTree), forestTree.Value);
             Assert.IsType(typeof(Tree<Apple>), loneTree.Value);
+
+            Assert.Equal(1, part.PearTrees.Length);
+            Assert.NotNull(part.PearTrees[0]);
         }
 
         [Shared]
@@ -78,8 +87,14 @@
             [ImportMany]
             [MefV1.ImportMany]
             public Lazy<Tree<Apple>, IDictionary<string, object>>[] AppleTrees { get; set; }
+
+            [ImportMany]
+            [MefV1.ImportMany]
+            public Lazy<Tree<Pear>, IDictionary<string, object>>[] PearTrees { get; set; }
         }
 
         public class Apple { }
+
+        public class Pear { }
     }
 }
