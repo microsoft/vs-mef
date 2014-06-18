@@ -143,6 +143,17 @@
             Assert.IsType<bool>(metadataValue);
         }
 
+        [MefFact(CompositionEngines.V1, typeof(PartWithExportMetadata), typeof(ImportingPartWithMetadataDictionary))]
+        public void ExportTypeIdentityMetadataIsPresent(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportingPartWithMetadataDictionary>();
+            
+            object metadataValue;
+            Assert.True(part.ImportingProperty.Metadata.TryGetValue("ExportTypeIdentity", out metadataValue));
+            Assert.IsType(typeof(string), metadataValue);
+            Assert.Equal(typeof(PartWithExportMetadata).FullName, metadataValue);
+        }
+
         #region Metaview filtering tests
 
         [MefFact(CompositionEngines.V1Compat, typeof(ImportingPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB))]
