@@ -147,7 +147,7 @@
         public void ExportTypeIdentityMetadataIsPresent(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPartWithMetadataDictionary>();
-            
+
             object metadataValue;
             Assert.True(part.ImportingProperty.Metadata.TryGetValue("ExportTypeIdentity", out metadataValue));
             Assert.IsType(typeof(string), metadataValue);
@@ -377,6 +377,36 @@
         [MefV1.Export(typeof(IFoo))]
         [MefV1.ExportMetadata("a", "2")]
         public class FooExport2 : IFoo { }
+
+        #endregion
+
+        #region Exported Method ExportTypeIdentity test
+
+        [MefFact(CompositionEngines.V1Compat, typeof(MethodExportingPart), typeof(PartThatImportsMethod))]
+        public void ExportedMethodHasExportTypeIdentityMetadata(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsMethod>();
+            object metadataValue;
+            Assert.True(part.ImportedMethod.Metadata.TryGetValue("ExportTypeIdentity", out metadataValue));
+            Assert.IsType(typeof(string), metadataValue);
+            Assert.Equal("System.Single(System.Int32,System.Int32)", metadataValue);
+        }
+
+        public class MethodExportingPart
+        {
+            [MefV1.Export]
+            public float Add(int a, int b)
+            {
+                return a + b;
+            }
+        }
+
+        [MefV1.Export]
+        public class PartThatImportsMethod
+        {
+            [MefV1.Import]
+            public Lazy<Func<int, int, float>, IDictionary<string, object>> ImportedMethod { get; set; }
+        }
 
         #endregion
 
