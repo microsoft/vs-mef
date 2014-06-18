@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
     public class NamedTypedExportTests
     {
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Pear), typeof(Apple), typeof(FruitTree))]
         public void AcquireExportWithNamedImports(IContainer container)
         {
             FruitTree tree = container.GetExportedValue<FruitTree>();
@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.IsAssignableFrom(typeof(Pear), tree.Pear);
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Pear), typeof(Apple), typeof(FruitTree))]
         public void AcquireNamedExport(IContainer container)
         {
             Fruit fruit = container.GetExportedValue<Fruit>("Pear");
@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.IsAssignableFrom(typeof(Pear), fruit);
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Pear), typeof(Apple), typeof(FruitTree))]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportsNamed(IContainer container)
         {
@@ -38,13 +38,43 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.IsType<Pear>(result.Single().Value);
         }
 
+        [MefFact(CompositionEngines.V1/*Compat | CompositionEngines.V3EmulatingV2*/, typeof(Apple))]
+        public void AcquireExportWithDefaultContractName(IContainer container)
+        {
+            var fruit = container.GetExportedValue<Fruit>(typeof(Fruit).FullName);
+            Assert.IsType(typeof(Apple), fruit);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(Apple))]
+        public void AcquireExportWithEmptyContractName(IContainer container)
+        {
+            var fruit = container.GetExportedValue<Fruit>(string.Empty);
+            Assert.IsType(typeof(Apple), fruit);
+        }
+
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(Apple))]
+        public void AcquireExportWithNullContractName(IContainer container)
+        {
+            var fruit = container.GetExportedValue<Fruit>(null);
+            Assert.IsType(typeof(Apple), fruit);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(Apple), typeof(AppleImportingPart))]
+        public void ImportWithExplicitContractNameVariants(IContainer container)
+        {
+            var part = container.GetExportedValue<AppleImportingPart>();
+            Assert.NotNull(part.AppleDefault);
+            Assert.Same(part.AppleDefault, part.AppleEmptyString);
+            Assert.Same(part.AppleDefault, part.AppleNull);
+        }
+
         public class Fruit { }
 
         [Export("Pear", typeof(Fruit))]
         [MefV1.Export("Pear", typeof(Fruit))]
         public class Pear : Fruit { }
 
-        [Export(typeof(Fruit))]
+        [Export(typeof(Fruit)), Shared]
         [MefV1.Export(typeof(Fruit))]
         public class Apple : Fruit { }
 
@@ -55,6 +85,23 @@ namespace Microsoft.VisualStudio.Composition.Tests
             [Import("Pear")]
             [MefV1.Import("Pear")]
             public Fruit Pear { get; set; }
+        }
+
+        [Export]
+        [MefV1.Export]
+        public class AppleImportingPart
+        {
+            [Import]
+            [MefV1.Import]
+            public Fruit AppleDefault { get; set; }
+
+            [Import((string)null)]
+            [MefV1.Import((string)null)]
+            public Fruit AppleNull { get; set; }
+
+            [Import("")]
+            [MefV1.Import("")]
+            public Fruit AppleEmptyString { get; set; }
         }
     }
 }
