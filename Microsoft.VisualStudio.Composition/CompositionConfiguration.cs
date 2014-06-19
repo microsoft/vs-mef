@@ -60,7 +60,7 @@
                     imports = imports.Concat(partDefinition.ImportingConstructor.Select(i => new Import(i.ImportDefinition, partDefinition.Type, i.ImportingParameter)));
                 }
 
-                var satisfyingImports = imports.ToImmutableDictionary(i => i, i => catalog.GetExports(i.ImportDefinition));
+                var satisfyingImports = imports.ToImmutableDictionary(i => i, i => catalog.GetExports(i));
                 partBuilders.Add(partDefinition, new PartBuilder(partDefinition, satisfyingImports));
             }
 
@@ -69,7 +69,7 @@
             {
                 var importedPartsExcludingFactories =
                     (from entry in partBuilder.SatisfyingExports
-                     where !entry.Key.ImportDefinition.IsExportFactory
+                     where !entry.Key.IsExportFactory
                      from export in entry.Value
                      select export.PartDefinition).Distinct();
                 foreach (var importedPartDefinition in importedPartsExcludingFactories)

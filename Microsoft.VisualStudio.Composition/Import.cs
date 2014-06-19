@@ -23,6 +23,10 @@
             this.ImportDefinition = importDefinition;
             this.ComposablePartType = composablePartType;
             this.ImportingMember = importingMember;
+           
+            var importingType = ReflectionHelpers.GetMemberType(importingMember);
+            this.IsLazy = importingType.IsAnyLazyType();
+            this.IsLazyConcreteType = importingType.IsConcreteLazyType();
         }
 
         /// <summary>
@@ -38,6 +42,10 @@
             this.ImportDefinition = importDefinition;
             this.ComposablePartType = composablePartType;
             this.ImportingParameter = importingConstructorParameter;
+
+            var importingType = importingConstructorParameter.ParameterType;
+            this.IsLazy = importingType.IsAnyLazyType();
+            this.IsLazyConcreteType = importingType.IsConcreteLazyType();
         }
 
         /// <summary>
@@ -49,6 +57,9 @@
             Requires.NotNull(importDefinition, "importDefinition");
 
             this.ImportDefinition = importDefinition;
+         
+            this.IsLazy = true;
+            this.IsLazyConcreteType = false;
         }
 
         /// <summary>
@@ -74,20 +85,44 @@
                     return this.ImportingParameter.ParameterType;
                 }
 
-                var property = this.ImportingMember as PropertyInfo;
-                if (property != null)
+                if (this.ImportingMember != null)
                 {
-                    return property.PropertyType;
-                }
-
-                var field = this.ImportingMember as FieldInfo;
-                if (field != null)
-                {
-                    return field.FieldType;
+                    return ReflectionHelpers.GetMemberType(this.ImportingMember);
                 }
 
                 return null;
             }
+        }
+
+        public bool IsLazy { get; private set; }
+
+        public bool IsLazyConcreteType { get; private set; }
+
+        public Type MetadataType
+        {
+            get
+            {
+                if ((this.IsLazy || this.IsExportFactory) && this.ImportingMemberOrParameterType != null)
+                {
+                    var args = this.ImportingMemberOrParameterType.GetTypeInfo().GenericTypeArguments;
+                    if (args.Length == 2)
+                    {
+                        return args[1];
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        public bool IsExportFactory
+        {
+            get { return this.ImportingMemberOrParameterType.IsExportFactoryTypeV1() || this.ImportingMemberOrParameterType.IsExportFactoryTypeV2(); }
+        }
+
+        public Type ExportFactoryType
+        {
+            get { return this.IsExportFactory ? this.ImportingMemberOrParameterType : null; }
         }
 
         public override int GetHashCode()

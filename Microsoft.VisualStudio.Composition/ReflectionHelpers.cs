@@ -199,6 +199,25 @@
             throw new NotSupportedException();
         }
 
+        internal static Type GetMemberType(MemberInfo fieldOrProperty)
+        {
+            Requires.NotNull(fieldOrProperty, "fieldOrProperty");
+
+            var property = fieldOrProperty as PropertyInfo;
+            if (property != null)
+            {
+                return property.PropertyType;
+            }
+
+            var field = fieldOrProperty as FieldInfo;
+            if (field != null)
+            {
+                return field.FieldType;
+            }
+
+            throw new ArgumentException("Unexpected member type.");
+        }
+
         internal static bool IsPublicInstance(this MethodInfo methodInfo)
         {
             return methodInfo.IsPublic && !methodInfo.IsStatic;

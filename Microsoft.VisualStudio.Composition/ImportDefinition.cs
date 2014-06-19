@@ -10,7 +10,7 @@
     using System.Threading.Tasks;
     using Validation;
 
-    [DebuggerDisplay("{Contract.Type.Name,nq} (Lazy: {IsLazy}, {Cardinality})")]
+    [DebuggerDisplay("{Contract.Type.Name,nq} ({Cardinality})")]
     public class ImportDefinition : IEquatable<ImportDefinition>
     {
         /// <summary>
@@ -49,52 +49,10 @@
             get { return this.Contract.Type; }
         }
 
-        public bool IsLazy
-        {
-            get { return this.TypeIdentity.IsAnyLazyType(); }
-        }
-
-        public bool IsLazyConcreteType
-        {
-            get { return this.TypeIdentity.IsConcreteLazyType(); }
-        }
-
-        public Type LazyType
-        {
-            get { return this.IsLazy ? this.TypeIdentity : null; }
-        }
-
-        public bool IsExportFactory
-        {
-            get { return this.TypeIdentity.IsExportFactoryTypeV1() || this.TypeIdentity.IsExportFactoryTypeV2(); }
-        }
-
-        public Type ExportFactoryType
-        {
-            get { return this.IsExportFactory ? this.TypeIdentity : null; }
-        }
-
         /// <summary>
         /// Gets the sharing boundaries created when the export factory is used.
         /// </summary>
         public IReadOnlyCollection<string> ExportFactorySharingBoundaries { get; private set; }
-
-        public Type MetadataType
-        {
-            get
-            {
-                if (this.IsLazy || this.IsExportFactory)
-                {
-                    var args = this.TypeIdentity.GetTypeInfo().GenericTypeArguments;
-                    if (args.Length == 2)
-                    {
-                        return args[1];
-                    }
-                }
-
-                return null;
-            }
-        }
 
         public CompositionContract Contract { get; private set; }
 
