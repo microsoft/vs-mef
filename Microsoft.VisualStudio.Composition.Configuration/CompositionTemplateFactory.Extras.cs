@@ -653,7 +653,7 @@
                 return new DisposableWithAction(delegate
                 {
                     writer.Write(".Value; return ");
-                    using (this.EmitExportFactoryTupleConstruction(importDefinition.TypeIdentity, "temp", writer))
+                    using (this.EmitExportFactoryTupleConstruction(import.ExportFactoryType.GetGenericArguments()[0], "temp", writer))
                     {
                         writer.Write("() => { ");
                         if (typeof(IDisposable).IsAssignableFrom(export.PartDefinition.Type))
