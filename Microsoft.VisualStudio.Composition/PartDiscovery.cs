@@ -146,8 +146,8 @@
             Requires.NotNull(import, "import");
 
             var importDefinition = import.ImportDefinition;
-            var collectionType = import.ImportingMemberOrParameterType;
-            var elementType = importDefinition.TypeIdentity;
+            var collectionType = import.ImportingSiteType;
+            var elementType = import.ImportingSiteTypeWithoutCollection;
             var icollectionOfT = typeof(ICollection<>).MakeGenericType(elementType);
             var ienumerableOfT = typeof(IEnumerable<>).MakeGenericType(elementType);
             var ilistOfT = typeof(IList<>).MakeGenericType(elementType);

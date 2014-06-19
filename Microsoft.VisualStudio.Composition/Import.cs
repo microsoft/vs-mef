@@ -23,10 +23,7 @@
             this.ImportDefinition = importDefinition;
             this.ComposablePartType = composablePartType;
             this.ImportingMember = importingMember;
-           
-            var importingType = ReflectionHelpers.GetMemberType(importingMember);
-            this.IsLazy = importingType.IsAnyLazyType();
-            this.IsLazyConcreteType = importingType.IsConcreteLazyType();
+            this.ImportingSiteType = ReflectionHelpers.GetMemberType(importingMember);
         }
 
         /// <summary>
@@ -42,10 +39,7 @@
             this.ImportDefinition = importDefinition;
             this.ComposablePartType = composablePartType;
             this.ImportingParameter = importingConstructorParameter;
-
-            var importingType = importingConstructorParameter.ParameterType;
-            this.IsLazy = importingType.IsAnyLazyType();
-            this.IsLazyConcreteType = importingType.IsConcreteLazyType();
+            this.ImportingSiteType = importingConstructorParameter.ParameterType;
         }
 
         /// <summary>
@@ -58,8 +52,7 @@
 
             this.ImportDefinition = importDefinition;
          
-            this.IsLazy = true;
-            this.IsLazyConcreteType = false;
+            this.ImportingSiteType = typeof(IEnumerable<>).MakeGenericType(typeof(ILazy<>).MakeGenericType(importDefinition.Contract.Type));
         }
 
         /// <summary>
@@ -76,35 +69,35 @@
 
         public Type ComposablePartType { get; private set; }
 
-        public Type ImportingMemberOrParameterType
+        public Type ImportingSiteType { get; private set; }
+
+        public Type ImportingSiteTypeWithoutCollection
         {
             get
             {
-                if (this.ImportingParameter != null)
-                {
-                    return this.ImportingParameter.ParameterType;
-                }
-
-                if (this.ImportingMember != null)
-                {
-                    return ReflectionHelpers.GetMemberType(this.ImportingMember);
-                }
-
-                return null;
+                return this.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore
+                    ? PartDiscovery.GetElementTypeFromMany(this.ImportingSiteType)
+                    : this.ImportingSiteType;
             }
         }
 
-        public bool IsLazy { get; private set; }
+        public bool IsLazy
+        {
+            get { return this.ImportingSiteTypeWithoutCollection.IsAnyLazyType(); }
+        }
 
-        public bool IsLazyConcreteType { get; private set; }
+        public bool IsLazyConcreteType
+        {
+            get { return this.ImportingSiteTypeWithoutCollection.IsConcreteLazyType(); }
+        }
 
         public Type MetadataType
         {
             get
             {
-                if ((this.IsLazy || this.IsExportFactory) && this.ImportingMemberOrParameterType != null)
+                if ((this.IsLazy || this.IsExportFactory) && this.ImportingSiteTypeWithoutCollection != null)
                 {
-                    var args = this.ImportingMemberOrParameterType.GetTypeInfo().GenericTypeArguments;
+                    var args = this.ImportingSiteTypeWithoutCollection.GetTypeInfo().GenericTypeArguments;
                     if (args.Length == 2)
                     {
                         return args[1];
@@ -117,12 +110,12 @@
 
         public bool IsExportFactory
         {
-            get { return this.ImportingMemberOrParameterType.IsExportFactoryTypeV1() || this.ImportingMemberOrParameterType.IsExportFactoryTypeV2(); }
+            get { return this.ImportingSiteTypeWithoutCollection.IsExportFactoryTypeV1() || this.ImportingSiteTypeWithoutCollection.IsExportFactoryTypeV2(); }
         }
 
         public Type ExportFactoryType
         {
-            get { return this.IsExportFactory ? this.ImportingMemberOrParameterType : null; }
+            get { return this.IsExportFactory ? this.ImportingSiteTypeWithoutCollection : null; }
         }
 
         public override int GetHashCode()

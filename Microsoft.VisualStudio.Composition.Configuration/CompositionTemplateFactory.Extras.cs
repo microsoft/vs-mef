@@ -163,8 +163,8 @@
         {
             if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
             {
-                Type enumerableOfTType = typeof(IEnumerable<>).MakeGenericType(import.ImportDefinition.TypeIdentity);
-                if (import.ImportingMemberOrParameterType.IsArray || import.ImportingMemberOrParameterType.IsEquivalentTo(enumerableOfTType))
+                Type enumerableOfTType = typeof(IEnumerable<>).MakeGenericType(import.ImportingSiteTypeWithoutCollection);
+                if (import.ImportingSiteType.IsArray || import.ImportingSiteType.IsEquivalentTo(enumerableOfTType))
                 {
                     this.EmitSatisfyImportManyArrayOrEnumerable(import, exports);
                 }
@@ -204,13 +204,13 @@
             Requires.NotNull(exports, "exports");
 
             this.Write("new ");
-            if (import.ImportingMemberOrParameterType != null && import.ImportingMemberOrParameterType.IsArray)
+            if (import.ImportingSiteType != null && import.ImportingSiteType.IsArray)
             {
-                this.WriteLine("{0}[]", GetTypeName(import.ImportDefinition.TypeIdentity));
+                this.WriteLine("{0}[]", GetTypeName(import.ImportingSiteTypeWithoutCollection));
             }
             else
             {
-                this.WriteLine("List<{0}>", GetTypeName(import.ImportDefinition.TypeIdentity));
+                this.WriteLine("List<{0}>", GetTypeName(import.ImportingSiteTypeWithoutCollection));
             }
 
             this.WriteLine("{");
@@ -231,8 +231,6 @@
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(exports, "exports");
-
-            Type elementType = importDefinition.TypeIdentity;
 
             const string localVarName = "temp";
             this.WriteLine("Array {0} = Array.CreateInstance(typeof(ILazy<>).MakeGenericType(compositionContract.Type), {1});", localVarName, exports.Count().ToString(CultureInfo.InvariantCulture));
@@ -273,7 +271,7 @@
             {
                 if (PartDiscovery.IsImportManyCollectionTypeCreateable(import))
                 {
-                    if (import.ImportingMemberOrParameterType.IsAssignableFrom(listType))
+                    if (import.ImportingSiteType.IsAssignableFrom(listType))
                     {
                         if (stronglyTypedCollection)
                         {
@@ -290,7 +288,7 @@
                     else
                     {
                         this.Write("{0} = ({1})(", import.ImportingMember.Name, importManyLocalVarTypeName);
-                        using (this.EmitConstructorInvocationExpression(import.ImportingMemberOrParameterType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null)))
+                        using (this.EmitConstructorInvocationExpression(import.ImportingSiteType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null)))
                         {
                             // no arguments to constructor
                         }
@@ -624,7 +622,7 @@
             {
                 if (IsPublic(importDefinition.TypeIdentity))
                 {
-                    string lazyTypeName = GetTypeName(LazyPart.FromLazy(importDefinition.TypeIdentity));
+                    string lazyTypeName = GetTypeName(LazyPart.FromLazy(import.ImportingSiteTypeWithoutCollection));
                     if (import.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type) && import.ComposablePartType != export.PartDefinition.Type)
                     {
                         writer.Write("({0})", lazyTypeName);
@@ -671,9 +669,9 @@
                     exportFactoryEmitClose.Dispose();
                 });
             }
-            else if (!IsPublic(export.PartDefinition.Type) && IsPublic(import.ImportDefinition.TypeIdentity, true))
+            else if (!IsPublic(export.PartDefinition.Type) && IsPublic(import.ImportingSiteTypeWithoutCollection, true))
             {
-                writer.Write("({0})", GetTypeName(import.ImportDefinition.TypeIdentity));
+                writer.Write("({0})", GetTypeName(import.ImportingSiteTypeWithoutCollection));
             }
 
             if (export.ExportingMember != null && !IsPublic(export.ExportingMember, export.PartDefinition.Type))
@@ -685,20 +683,20 @@
                     case MemberTypes.Field:
                         writer.Write(
                             "({0}){1}.GetValue(",
-                            GetTypeName(import.ImportDefinition.TypeIdentity),
+                            GetTypeName(import.ImportingSiteTypeWithoutCollection),
                             GetFieldInfoExpression((FieldInfo)export.ExportingMember));
                         break;
                     case MemberTypes.Method:
                         writer.Write(
                             "({0}){1}.CreateDelegate({2}, ",
-                            GetTypeName(import.ImportDefinition.TypeIdentity),
+                            GetTypeName(import.ImportingSiteTypeWithoutCollection),
                             GetMethodInfoExpression((MethodInfo)export.ExportingMember),
                             GetTypeExpression(import.ImportDefinition.TypeIdentity));
                         break;
                     case MemberTypes.Property:
                         writer.Write(
                             "({0}){1}.Invoke(",
-                            GetTypeName(import.ImportDefinition.TypeIdentity),
+                            GetTypeName(import.ImportingSiteTypeWithoutCollection),
                             GetMethodInfoExpression(((PropertyInfo)export.ExportingMember).GetGetMethod(true)));
                         break;
                     default:
