@@ -248,7 +248,7 @@
         {
             Requires.NotNull(import, "import");
             var importDefinition = import.ImportDefinition;
-            Type elementType = import.ImportDefinition.TypeIdentity;
+            Type elementType = import.ImportingSiteTypeWithoutCollection;
             Type listType = typeof(List<>).MakeGenericType(elementType);
             bool stronglyTypedCollection = IsPublic(elementType, true);
             Type icollectionType = typeof(ICollection<>).MakeGenericType(elementType);
