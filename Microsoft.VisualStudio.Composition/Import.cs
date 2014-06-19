@@ -80,6 +80,17 @@
             }
         }
 
+        /// <summary>
+        /// Gets the type of the member, with the ImportMany collection and Lazy/ExportFactory stripped off, when present.
+        /// </summary>
+        public Type ImportingSiteElementType
+        {
+            get
+            {
+                return PartDiscovery.GetTypeIdentityFromImportingType(this.ImportingSiteType, this.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore);
+            }
+        }
+
         public bool IsLazy
         {
             get { return this.ImportingSiteTypeWithoutCollection.IsAnyLazyType(); }
