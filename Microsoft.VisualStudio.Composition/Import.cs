@@ -51,7 +51,6 @@
             Requires.NotNull(importDefinition, "importDefinition");
 
             this.ImportDefinition = importDefinition;
-         
             this.ImportingSiteType = typeof(IEnumerable<>).MakeGenericType(typeof(ILazy<>).MakeGenericType(importDefinition.Contract.Type));
         }
 

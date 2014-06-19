@@ -683,20 +683,20 @@
                     case MemberTypes.Field:
                         writer.Write(
                             "({0}){1}.GetValue(",
-                            GetTypeName(import.ImportingSiteTypeWithoutCollection),
+                            GetTypeName(import.ImportDefinition.Contract.Type),
                             GetFieldInfoExpression((FieldInfo)export.ExportingMember));
                         break;
                     case MemberTypes.Method:
                         writer.Write(
                             "({0}){1}.CreateDelegate({2}, ",
-                            GetTypeName(import.ImportingSiteTypeWithoutCollection),
+                            GetTypeName(import.ImportDefinition.Contract.Type),
                             GetMethodInfoExpression((MethodInfo)export.ExportingMember),
                             GetTypeExpression(import.ImportDefinition.TypeIdentity));
                         break;
                     case MemberTypes.Property:
                         writer.Write(
                             "({0}){1}.Invoke(",
-                            GetTypeName(import.ImportingSiteTypeWithoutCollection),
+                            GetTypeName(import.ImportDefinition.Contract.Type),
                             GetMethodInfoExpression(((PropertyInfo)export.ExportingMember).GetGetMethod(true)));
                         break;
                     default:
