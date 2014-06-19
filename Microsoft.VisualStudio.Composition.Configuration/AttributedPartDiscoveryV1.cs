@@ -106,19 +106,19 @@
 
             if (exportsOnMembers.Count > 0 || exportsOnType.Count > 0)
             {
-                var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinition>();
+                var importingConstructorParameters = ImmutableList.CreateBuilder<Import>();
                 var importingCtor = GetImportingConstructor(partType, typeof(ImportingConstructorAttribute), publicOnly: false);
                 if (importingCtor != null) // some parts have exports merely for metadata -- they can't be instantiated
                 {
                     foreach (var parameter in importingCtor.GetParameters())
                     {
-                        var importDefinition = CreateImportDefinition(parameter.ParameterType, parameter.GetCustomAttributes());
-                        if (importDefinition.Cardinality == ImportCardinality.ZeroOrMore)
+                        var import = CreateImport(parameter, parameter.GetCustomAttributes());
+                        if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
                         {
-                            Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(importDefinition), "Collection must be public with a public constructor when used with an [ImportingConstructor].");
+                            Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(import), "Collection must be public with a public constructor when used with an [ImportingConstructor].");
                         }
 
-                        importingConstructorParameters.Add(importDefinition);
+                        importingConstructorParameters.Add(import);
                     }
                 }
 
@@ -151,9 +151,9 @@
             return false;
         }
 
-        private static bool TryCreateImportDefinition(Type propertyOrFieldType, IEnumerable<Attribute> attributes, out ImportDefinition importDefinition)
+        private static bool TryCreateImportDefinition(Type importingType, IEnumerable<Attribute> attributes, out ImportDefinition importDefinition)
         {
-            Requires.NotNull(propertyOrFieldType, "propertyOrFieldType");
+            Requires.NotNull(importingType, "importingType");
 
             var importAttribute = attributes.OfType<ImportAttribute>().SingleOrDefault();
             var importManyAttribute = attributes.OfType<ImportManyAttribute>().SingleOrDefault();
@@ -165,16 +165,15 @@
                     throw new NotSupportedException("Custom import sources are not yet supported.");
                 }
 
-                var requiredCreationPolicy = propertyOrFieldType.IsExportFactoryTypeV1()
+                var requiredCreationPolicy = importingType.IsExportFactoryTypeV1()
                     ? CreationPolicy.NonShared
                     : (CreationPolicy)importAttribute.RequiredCreationPolicy;
 
-                Type contractType = importAttribute.ContractType ?? GetElementFromImportingMemberType(propertyOrFieldType, importMany: false);
+                Type contractType = importAttribute.ContractType ?? GetTypeIdentityFromImportingType(importingType, importMany: false);
                 var contract = new CompositionContract(importAttribute.ContractName, contractType);
                 importDefinition = new ImportDefinition(
                     contract,
                     importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
-                    propertyOrFieldType,
                     ImmutableList.Create<IImportSatisfiabilityConstraint>(),
                     requiredCreationPolicy);
                 return true;
@@ -186,16 +185,15 @@
                     throw new NotSupportedException("Custom import sources are not yet supported.");
                 }
 
-                var requiredCreationPolicy = GetElementTypeFromMany(propertyOrFieldType).IsExportFactoryTypeV1()
+                var requiredCreationPolicy = GetElementTypeFromMany(importingType).IsExportFactoryTypeV1()
                     ? CreationPolicy.NonShared
                     : (CreationPolicy)importManyAttribute.RequiredCreationPolicy;
 
-                Type contractType = importManyAttribute.ContractType ?? GetElementFromImportingMemberType(propertyOrFieldType, importMany: true);
+                Type contractType = importManyAttribute.ContractType ?? GetTypeIdentityFromImportingType(importingType, importMany: true);
                 var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
                 importDefinition = new ImportDefinition(
                     contract,
                     ImportCardinality.ZeroOrMore,
-                    propertyOrFieldType,
                     ImmutableList.Create<IImportSatisfiabilityConstraint>(),
                     requiredCreationPolicy);
                 return true;
@@ -207,15 +205,15 @@
             }
         }
 
-        private static ImportDefinition CreateImportDefinition(Type propertyOrFieldType, IEnumerable<Attribute> attributes)
+        private static Import CreateImport(ParameterInfo parameter, IEnumerable<Attribute> attributes)
         {
-            ImportDefinition result;
-            if (!TryCreateImportDefinition(propertyOrFieldType, attributes, out result))
+            ImportDefinition definition;
+            if (!TryCreateImportDefinition(parameter.ParameterType, attributes, out definition))
             {
-                Assumes.True(TryCreateImportDefinition(propertyOrFieldType, attributes.Concat(new Attribute[] { new ImportAttribute() }), out result));
+                Assumes.True(TryCreateImportDefinition(parameter.ParameterType, attributes.Concat(new Attribute[] { new ImportAttribute() }), out definition));
             }
 
-            return result;
+            return new Import(definition, parameter.Member.DeclaringType, parameter);
         }
 
         private static IReadOnlyDictionary<string, object> GetExportMetadata(IEnumerable<Attribute> attributes)

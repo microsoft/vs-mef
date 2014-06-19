@@ -104,21 +104,21 @@
 
             if (exportsOnMembers.Count > 0 || exportsOnType.Count > 0)
             {
-                var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinition>();
+                var importingConstructorParameters = ImmutableList.CreateBuilder<Import>();
                 var importingCtor = GetImportingConstructor(partType, typeof(ImportingConstructorAttribute), publicOnly: !this.IsNonPublicSupported);
                 Verify.Operation(importingCtor != null, "No importing constructor found.");
                 foreach (var parameter in importingCtor.GetParameters())
                 {
-                    var importDefinition = CreateImportDefinition(
-                            parameter.ParameterType,
+                    var import = CreateImport(
+                            parameter,
                             parameter.GetCustomAttributes(),
                             GetImportConstraints(parameter.GetCustomAttributes()));
-                    if (importDefinition.Cardinality == ImportCardinality.ZeroOrMore)
+                    if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
                     {
-                        Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(importDefinition), "Collection must be public with a public constructor when used with an [ImportingConstructor].");
+                        Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(import), "Collection must be public with a public constructor when used with an [ImportingConstructor].");
                     }
 
-                    importingConstructorParameters.Add(importDefinition);
+                    importingConstructorParameters.Add(import);
                 }
 
                 return new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary, onImportsSatisfied, importingConstructorParameters.ToImmutable());
@@ -189,9 +189,9 @@
             }
         }
 
-        private static bool TryCreateImportDefinition(Type propertyOrFieldType, IEnumerable<Attribute> attributes, IReadOnlyCollection<IImportSatisfiabilityConstraint> importConstraints, out ImportDefinition importDefinition)
+        private static bool TryCreateImportDefinition(Type importingType, IEnumerable<Attribute> attributes, IReadOnlyCollection<IImportSatisfiabilityConstraint> importConstraints, out ImportDefinition importDefinition)
         {
-            Requires.NotNull(propertyOrFieldType, "propertyOrFieldType");
+            Requires.NotNull(importingType, "importingType");
 
             var importAttribute = attributes.OfType<ImportAttribute>().SingleOrDefault();
             var importManyAttribute = attributes.OfType<ImportManyAttribute>().SingleOrDefault();
@@ -200,13 +200,13 @@
             var sharingBoundaries = ImmutableHashSet.Create<string>();
             if (sharingBoundaryAttribute != null)
             {
-                Verify.Operation(propertyOrFieldType.IsExportFactoryTypeV2(), "{0} is expected only on imports of ExportFactory<T>", typeof(SharingBoundaryAttribute).Name);
+                Verify.Operation(importingType.IsExportFactoryTypeV2(), "{0} is expected only on imports of ExportFactory<T>", typeof(SharingBoundaryAttribute).Name);
                 sharingBoundaries = sharingBoundaries.Union(sharingBoundaryAttribute.SharingBoundaryNames);
             }
 
             if (importAttribute != null)
             {
-                Type contractType = propertyOrFieldType;
+                Type contractType = GetTypeIdentityFromImportingType(importingType, importMany: false);
                 if (contractType.IsAnyLazyType() || contractType.IsExportFactoryTypeV2())
                 {
                     contractType = contractType.GetGenericArguments()[0];
@@ -216,19 +216,17 @@
                 importDefinition = new ImportDefinition(
                     contract,
                     importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
-                    propertyOrFieldType,
                     importConstraints,
                     sharingBoundaries);
                 return true;
             }
             else if (importManyAttribute != null)
             {
-                Type contractType = GetElementFromImportingMemberType(propertyOrFieldType, importMany: true);
+                Type contractType = GetTypeIdentityFromImportingType(importingType, importMany: true);
                 var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
                 importDefinition = new ImportDefinition(
                    contract,
                    ImportCardinality.ZeroOrMore,
-                   propertyOrFieldType,
                    importConstraints,
                    sharingBoundaries);
                 return true;
@@ -240,15 +238,15 @@
             }
         }
 
-        private static ImportDefinition CreateImportDefinition(Type propertyOrFieldType, IEnumerable<Attribute> attributes, IReadOnlyCollection<IImportSatisfiabilityConstraint> importConstraints)
+        private static Import CreateImport(ParameterInfo parameter, IEnumerable<Attribute> attributes, IReadOnlyCollection<IImportSatisfiabilityConstraint> importConstraints)
         {
             ImportDefinition result;
-            if (!TryCreateImportDefinition(propertyOrFieldType, attributes, importConstraints, out result))
+            if (!TryCreateImportDefinition(parameter.ParameterType, attributes, importConstraints, out result))
             {
-                Assumes.True(TryCreateImportDefinition(propertyOrFieldType, attributes.Concat(new Attribute[] { new ImportAttribute() }), importConstraints, out result));
+                Assumes.True(TryCreateImportDefinition(parameter.ParameterType, attributes.Concat(new Attribute[] { new ImportAttribute() }), importConstraints, out result));
             }
 
-            return result;
+            return new Import(result, parameter.Member.DeclaringType, parameter);
         }
 
         private static IReadOnlyCollection<IImportSatisfiabilityConstraint> GetImportConstraints(IEnumerable<Attribute> attributes)

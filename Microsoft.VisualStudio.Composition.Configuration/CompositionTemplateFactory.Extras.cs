@@ -37,7 +37,7 @@
             Assumes.True(importingField != null || importingProperty != null);
 
             string tail;
-            if (IsPublic(import.ImportingMember, import.PartDefinition.Type, setter: true))
+            if (IsPublic(import.ImportingMember, import.ComposablePartType, setter: true))
             {
                 this.Write("{0}.{1} = ", InstantiatedPartLocalVarName, import.ImportingMember.Name);
                 tail = ";";
@@ -163,8 +163,8 @@
         {
             if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
             {
-                Type enumerableOfTType = typeof(IEnumerable<>).MakeGenericType(import.ImportDefinition.MemberWithoutManyWrapper);
-                if (import.ImportDefinition.MemberType.IsArray || import.ImportDefinition.MemberType.IsEquivalentTo(enumerableOfTType))
+                Type enumerableOfTType = typeof(IEnumerable<>).MakeGenericType(import.ImportDefinition.TypeIdentity);
+                if (import.ImportingMemberOrParameterType.IsArray || import.ImportingMemberOrParameterType.IsEquivalentTo(enumerableOfTType))
                 {
                     this.EmitSatisfyImportManyArrayOrEnumerable(import, exports);
                 }
@@ -204,13 +204,13 @@
             Requires.NotNull(exports, "exports");
 
             this.Write("new ");
-            if (import.ImportDefinition.MemberType.IsArray)
+            if (import.ImportingMemberOrParameterType != null && import.ImportingMemberOrParameterType.IsArray)
             {
-                this.WriteLine("{0}[]", GetTypeName(import.ImportDefinition.MemberWithoutManyWrapper));
+                this.WriteLine("{0}[]", GetTypeName(import.ImportDefinition.TypeIdentity));
             }
             else
             {
-                this.WriteLine("List<{0}>", GetTypeName(import.ImportDefinition.MemberWithoutManyWrapper));
+                this.WriteLine("List<{0}>", GetTypeName(import.ImportDefinition.TypeIdentity));
             }
 
             this.WriteLine("{");
@@ -232,7 +232,7 @@
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(exports, "exports");
 
-            Type elementType = importDefinition.MemberWithoutManyWrapper;
+            Type elementType = importDefinition.TypeIdentity;
 
             const string localVarName = "temp";
             this.WriteLine("Array {0} = Array.CreateInstance(typeof(ILazy<>).MakeGenericType(compositionContract.Type), {1});", localVarName, exports.Count().ToString(CultureInfo.InvariantCulture));
@@ -250,7 +250,7 @@
         {
             Requires.NotNull(import, "import");
             var importDefinition = import.ImportDefinition;
-            Type elementType = import.ImportDefinition.MemberWithoutManyWrapper;
+            Type elementType = import.ImportDefinition.TypeIdentity;
             Type listType = typeof(List<>).MakeGenericType(elementType);
             bool stronglyTypedCollection = IsPublic(elementType, true);
             Type icollectionType = typeof(ICollection<>).MakeGenericType(elementType);
@@ -271,9 +271,9 @@
             this.WriteLine("if ({0} == null)", import.ImportingMember.Name);
             using (Indent(withBraces: true))
             {
-                if (PartDiscovery.IsImportManyCollectionTypeCreateable(importDefinition))
+                if (PartDiscovery.IsImportManyCollectionTypeCreateable(import))
                 {
-                    if (importDefinition.MemberType.IsAssignableFrom(listType))
+                    if (import.ImportingMemberOrParameterType.IsAssignableFrom(listType))
                     {
                         if (stronglyTypedCollection)
                         {
@@ -290,7 +290,7 @@
                     else
                     {
                         this.Write("{0} = ({1})(", import.ImportingMember.Name, importManyLocalVarTypeName);
-                        using (this.EmitConstructorInvocationExpression(importDefinition.MemberType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null)))
+                        using (this.EmitConstructorInvocationExpression(import.ImportingMemberOrParameterType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null)))
                         {
                             // no arguments to constructor
                         }
@@ -311,7 +311,7 @@
                 {
                     this.WriteLine(
                         "throw new InvalidOperationException(\"The {0}.{1} collection must be instantiated by the importing constructor.\");",
-                        import.PartDefinition.Type.Name,
+                        import.ComposablePartType.Name,
                         import.ImportingMember.Name);
                 }
             }
@@ -357,7 +357,7 @@
         {
             using (this.ValueFactoryWrapper(import, export, writer))
             {
-                if (export.PartDefinition == import.PartDefinition && !import.ImportDefinition.IsExportFactory)
+                if (export.PartDefinition.Type.IsEquivalentTo(import.ComposablePartType) && !import.ImportDefinition.IsExportFactory)
                 {
                     // The part is importing itself. So just assign it directly.
                     writer.Write(InstantiatedPartLocalVarName);
@@ -622,10 +622,10 @@
             bool closeParenthesis = false;
             if (importDefinition.IsLazyConcreteType || (export.ExportingMember != null && importDefinition.IsLazy))
             {
-                if (IsPublic(importDefinition.ElementType))
+                if (IsPublic(importDefinition.TypeIdentity))
                 {
-                    string lazyTypeName = GetTypeName(LazyPart.FromLazy(importDefinition.MemberWithoutManyWrapper));
-                    if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type) && import.PartDefinition != export.PartDefinition)
+                    string lazyTypeName = GetTypeName(LazyPart.FromLazy(importDefinition.TypeIdentity));
+                    if (importDefinition.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type) && import.ComposablePartType != export.PartDefinition.Type)
                     {
                         writer.Write("({0})", lazyTypeName);
                     }
@@ -637,7 +637,7 @@
                 }
                 else
                 {
-                    closeLazy = this.EmitLazyConstruction(importDefinition.ElementType, importDefinition.MetadataType, writer);
+                    closeLazy = this.EmitLazyConstruction(importDefinition.TypeIdentity, importDefinition.MetadataType, writer);
                 }
             }
             else if (importDefinition.IsExportFactory)
@@ -655,7 +655,7 @@
                 return new DisposableWithAction(delegate
                 {
                     writer.Write(".Value; return ");
-                    using (this.EmitExportFactoryTupleConstruction(importDefinition.ElementType, "temp", writer))
+                    using (this.EmitExportFactoryTupleConstruction(importDefinition.TypeIdentity, "temp", writer))
                     {
                         writer.Write("() => { ");
                         if (typeof(IDisposable).IsAssignableFrom(export.PartDefinition.Type))
@@ -671,9 +671,9 @@
                     exportFactoryEmitClose.Dispose();
                 });
             }
-            else if (!IsPublic(export.PartDefinition.Type) && IsPublic(import.ImportDefinition.MemberWithoutManyWrapper, true))
+            else if (!IsPublic(export.PartDefinition.Type) && IsPublic(import.ImportDefinition.TypeIdentity, true))
             {
-                writer.Write("({0})", GetTypeName(import.ImportDefinition.MemberWithoutManyWrapper));
+                writer.Write("({0})", GetTypeName(import.ImportDefinition.TypeIdentity));
             }
 
             if (export.ExportingMember != null && !IsPublic(export.ExportingMember, export.PartDefinition.Type))
@@ -685,20 +685,20 @@
                     case MemberTypes.Field:
                         writer.Write(
                             "({0}){1}.GetValue(",
-                            GetTypeName(import.ImportDefinition.ElementType),
+                            GetTypeName(import.ImportDefinition.TypeIdentity),
                             GetFieldInfoExpression((FieldInfo)export.ExportingMember));
                         break;
                     case MemberTypes.Method:
                         writer.Write(
                             "({0}){1}.CreateDelegate({2}, ",
-                            GetTypeName(import.ImportDefinition.ElementType),
+                            GetTypeName(import.ImportDefinition.TypeIdentity),
                             GetMethodInfoExpression((MethodInfo)export.ExportingMember),
-                            GetTypeExpression(import.ImportDefinition.ElementType));
+                            GetTypeExpression(import.ImportDefinition.TypeIdentity));
                         break;
                     case MemberTypes.Property:
                         writer.Write(
                             "({0}){1}.Invoke(",
-                            GetTypeName(import.ImportDefinition.ElementType),
+                            GetTypeName(import.ImportDefinition.TypeIdentity),
                             GetMethodInfoExpression(((PropertyInfo)export.ExportingMember).GetGetMethod(true)));
                         break;
                     default:
@@ -733,7 +733,7 @@
                 }
 
                 string memberAccessor = memberModifier;
-                if ((export.PartDefinition != import.PartDefinition || import.ImportDefinition.IsExportFactory) && !export.IsStaticExport)
+                if ((export.PartDefinition.Type != import.ComposablePartType || import.ImportDefinition.IsExportFactory) && !export.IsStaticExport)
                 {
                     memberAccessor = ".Value" + memberAccessor;
                 }
@@ -768,7 +768,7 @@
                         writer.Write(")");
                     }
                 }
-                else if (import.PartDefinition != export.PartDefinition)
+                else if (import.ComposablePartType != export.PartDefinition.Type)
                 {
                     writer.Write(memberAccessor);
                 }
@@ -1114,7 +1114,6 @@
             var importDefinition = new ImportDefinition(
                 contract,
                 ImportCardinality.ZeroOrMore,
-                typeof(IEnumerable<>).MakeGenericType(typeof(ILazy<>).MakeGenericType(contract.Type)),
                 ImmutableList.Create<IImportSatisfiabilityConstraint>(),
                 CreationPolicy.Any);
             return importDefinition;
@@ -1167,7 +1166,7 @@
         {
             writer = writer ?? new SelfTextWriter(this);
 
-            if (IsPublic(exportFactoryImport.ElementType))
+            if (IsPublic(exportFactoryImport.TypeIdentity))
             {
                 writer.Write("new {0}(", GetTypeName(exportFactoryImport.ExportFactoryType));
                 return new DisposableWithAction(delegate
@@ -1193,7 +1192,7 @@
                     {
                         writer.WriteLine(
                             "{0},",
-                            this.GetExportFactoryTupleTypeExpression(exportFactoryImport.ElementType));
+                            this.GetExportFactoryTupleTypeExpression(exportFactoryImport.TypeIdentity));
                     }
                 }
 

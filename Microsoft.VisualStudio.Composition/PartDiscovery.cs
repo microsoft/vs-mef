@@ -68,7 +68,7 @@
             return ContractNameServices.GetTypeIdentity(type);
         }
 
-        protected internal static Type GetElementFromImportingMemberType(Type type, bool importMany)
+        protected internal static Type GetTypeIdentityFromImportingType(Type type, bool importMany)
         {
             Requires.NotNull(type, "type");
 
@@ -141,12 +141,13 @@
             return newValue;
         }
 
-        internal static bool IsImportManyCollectionTypeCreateable(ImportDefinition importDefinition)
+        internal static bool IsImportManyCollectionTypeCreateable(Import import)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(import, "import");
 
-            var collectionType = importDefinition.MemberType;
-            var elementType = importDefinition.MemberWithoutManyWrapper;
+            var importDefinition = import.ImportDefinition;
+            var collectionType = import.ImportingMemberOrParameterType;
+            var elementType = importDefinition.TypeIdentity;
             var icollectionOfT = typeof(ICollection<>).MakeGenericType(elementType);
             var ienumerableOfT = typeof(IEnumerable<>).MakeGenericType(elementType);
             var ilistOfT = typeof(IList<>).MakeGenericType(elementType);

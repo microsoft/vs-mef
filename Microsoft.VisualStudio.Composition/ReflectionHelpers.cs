@@ -39,7 +39,7 @@
             Requires.NotNull(import, "import");
             Requires.NotNull(export, "export");
 
-            var receivingType = import.ImportDefinition.ElementType;
+            var receivingType = import.ImportDefinition.TypeIdentity;
             var exportingType = export.ExportedValueType;
             if (exportingType.GetTypeInfo().IsGenericTypeDefinition && receivingType.GetTypeInfo().IsGenericType)
             {
