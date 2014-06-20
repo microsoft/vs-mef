@@ -40,7 +40,7 @@
         public override ComposablePartDefinition CreatePart(Type partType)
         {
             Requires.NotNull(partType, "partType");
-            
+
             var sharedAttribute = partType.GetCustomAttribute<SharedAttribute>();
             string sharingBoundary = null;
             if (sharedAttribute != null)
@@ -192,7 +192,7 @@
             }
         }
 
-        private static bool TryCreateImportDefinition(Type importingType, IEnumerable<Attribute> attributes, IReadOnlyCollection<IImportSatisfiabilityConstraint> importConstraints, out ImportDefinition importDefinition)
+        private static bool TryCreateImportDefinition(Type importingType, IEnumerable<Attribute> attributes, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints, out ImportDefinition importDefinition)
         {
             Requires.NotNull(importingType, "importingType");
 
@@ -216,6 +216,7 @@
                 }
 
                 var contract = new CompositionContract(importAttribute.ContractName, contractType);
+                importConstraints = importConstraints.Union(GetMetadataViewConstraints(importingType, importMany: false));
                 importDefinition = new ImportDefinition(
                     contract,
                     importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
@@ -227,6 +228,7 @@
             {
                 Type contractType = GetTypeIdentityFromImportingType(importingType, importMany: true);
                 var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
+                importConstraints = importConstraints.Union(GetMetadataViewConstraints(importingType, importMany: true));
                 importDefinition = new ImportDefinition(
                    contract,
                    ImportCardinality.ZeroOrMore,
@@ -241,7 +243,7 @@
             }
         }
 
-        private static Import CreateImport(ParameterInfo parameter, IEnumerable<Attribute> attributes, IReadOnlyCollection<IImportSatisfiabilityConstraint> importConstraints)
+        private static Import CreateImport(ParameterInfo parameter, IEnumerable<Attribute> attributes, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints)
         {
             ImportDefinition result;
             if (!TryCreateImportDefinition(parameter.ParameterType, attributes, importConstraints, out result))
@@ -252,12 +254,20 @@
             return new Import(result, parameter.Member.DeclaringType, parameter);
         }
 
-        private static IReadOnlyCollection<IImportSatisfiabilityConstraint> GetImportConstraints(IEnumerable<Attribute> attributes)
+        /// <summary>
+        /// Creates a set of import constraints for an import site.
+        /// </summary>
+        /// <param name="attributes">The attributes applied to the importing member or parameter.</param>
+        /// <returns>A set of import constraints.</returns>
+        private static ImmutableHashSet<IImportSatisfiabilityConstraint> GetImportConstraints(IEnumerable<Attribute> attributes)
         {
             Requires.NotNull(attributes, "attributes");
 
-            return (from importConstraint in attributes.OfType<ImportMetadataConstraintAttribute>()
-                    select new ExportMetadataValueImportConstraint(importConstraint.Name, importConstraint.Value)).ToImmutableList();
+            var constraints = ImmutableHashSet.CreateRange<IImportSatisfiabilityConstraint>(
+                from importConstraint in attributes.OfType<ImportMetadataConstraintAttribute>()
+                select new ExportMetadataValueImportConstraint(importConstraint.Name, importConstraint.Value));
+
+            return constraints;
         }
 
         public override IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly)

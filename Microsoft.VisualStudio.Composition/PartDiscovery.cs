@@ -120,6 +120,22 @@
             return importingCtor;
         }
 
+        protected static ImmutableHashSet<IImportSatisfiabilityConstraint> GetMetadataViewConstraints(Type receivingType, bool importMany)
+        {
+            Requires.NotNull(receivingType, "receivingType");
+
+            var result = ImmutableHashSet.Create<IImportSatisfiabilityConstraint>();
+
+            Type receivingTypeWithoutMany = importMany ? PartDiscovery.GetElementTypeFromMany(receivingType) : receivingType;
+            Type metadataType = GetMetadataType(receivingTypeWithoutMany);
+            if (metadataType != null)
+            {
+                result = result.Add(new ImportMetadataViewConstraint(metadataType));
+            }
+
+            return result;
+        }
+
         protected static Array AddElement(Array priorArray, object value)
         {
             Type valueType;
@@ -166,6 +182,27 @@
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Gets the Type of the interface that serves as a metadata view for a given import.
+        /// </summary>
+        /// <param name="receivingType">The type of the importing member or parameter, without its ImportMany collection if it had one.</param>
+        /// <returns>The metadata view, <see cref="IDictionary{string, object}"/>, or <c>null</c> if there is none.</returns>
+        private static Type GetMetadataType(Type receivingType)
+        {
+            Requires.NotNull(receivingType, "receivingType");
+
+            if (receivingType.IsAnyLazyType() || receivingType.IsExportFactoryType())
+            {
+                var args = receivingType.GetTypeInfo().GenericTypeArguments;
+                if (args.Length == 2)
+                {
+                    return args[1];
+                }
+            }
+
+            return null;
         }
 
         private class CombinedPartDiscovery : PartDiscovery

@@ -43,7 +43,6 @@
 
 
             var filteredExports = from export in exports
-                                  where HasMetadata(export.ExportDefinition, GetRequiredMetadata(import))
                                   where import.ImportDefinition.ExportContraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
                                   select export;
 
@@ -112,37 +111,6 @@
             }
 
             return new ComposableCatalog(types, parts, exportsByContract);
-        }
-
-        private static bool HasMetadata(ExportDefinition exportDefinition, IReadOnlyCollection<string> metadataNames)
-        {
-            Requires.NotNull(exportDefinition, "exportDefinition");
-            Requires.NotNull(metadataNames, "metadataNames");
-
-            return metadataNames.All(name => exportDefinition.Metadata.ContainsKey(name));
-        }
-
-        private static IReadOnlyCollection<string> GetRequiredMetadata(Import import)
-        {
-            Requires.NotNull(import, "import");
-
-            var requiredMetadata = ImmutableHashSet.CreateBuilder<string>();
-
-            if (import.MetadataType != null)
-            {
-                if (import.MetadataType.GetTypeInfo().IsInterface && !import.MetadataType.Equals(typeof(IDictionary<string, object>)))
-                {
-                    foreach (var property in import.MetadataType.EnumProperties().WherePublicInstance())
-                    {
-                        if (property.GetCustomAttribute<DefaultValueAttribute>() == null)
-                        {
-                            requiredMetadata.Add(property.Name);
-                        }
-                    }
-                }
-            }
-
-            return requiredMetadata.ToImmutable();
         }
     }
 }
