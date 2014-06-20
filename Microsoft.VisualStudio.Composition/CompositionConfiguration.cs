@@ -54,7 +54,7 @@
             var partBuilders = new Dictionary<ComposablePartDefinition, PartBuilder>();
             foreach (ComposablePartDefinition partDefinition in catalog.Parts)
             {
-                var satisfyingImports = partDefinition.Imports.ToImmutableDictionary(i => i, i => catalog.GetExports(i));
+                var satisfyingImports = partDefinition.Imports.ToImmutableDictionary(i => i, i => catalog.GetExports(i.ImportDefinition));
                 partBuilders.Add(partDefinition, new PartBuilder(partDefinition, satisfyingImports));
             }
 

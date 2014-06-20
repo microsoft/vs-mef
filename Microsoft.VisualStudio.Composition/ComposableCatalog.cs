@@ -29,21 +29,21 @@
             this.exportsByContract = exportsByContract;
         }
 
-        public IReadOnlyList<Export> GetExports(Import import)
+        public IReadOnlyList<Export> GetExports(ImportDefinition importDefinition)
         {
-            Requires.NotNull(import, "import");
+            Requires.NotNull(importDefinition, "importDefinition");
 
-            var exports = this.exportsByContract.GetValueOrDefault(import.ImportDefinition.Contract, ImmutableList.Create<Export>());
+            var exports = this.exportsByContract.GetValueOrDefault(importDefinition.Contract, ImmutableList.Create<Export>());
 
-            if (import.ImportDefinition.Contract.Type.GetTypeInfo().IsGenericType && !import.ImportDefinition.Contract.Type.GetTypeInfo().IsGenericTypeDefinition)
+            if (importDefinition.Contract.Type.GetTypeInfo().IsGenericType && !importDefinition.Contract.Type.GetTypeInfo().IsGenericTypeDefinition)
             {
-                var typeDefinitionContract = new CompositionContract(import.ImportDefinition.Contract.ContractName, import.ImportDefinition.Contract.Type.GetGenericTypeDefinition());
+                var typeDefinitionContract = new CompositionContract(importDefinition.Contract.ContractName, importDefinition.Contract.Type.GetGenericTypeDefinition());
                 exports = exports.AddRange(this.exportsByContract.GetValueOrDefault(typeDefinitionContract, ImmutableList.Create<Export>()));
             }
 
 
             var filteredExports = from export in exports
-                                  where import.ImportDefinition.ExportContraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
+                                  where importDefinition.ExportContraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
                                   select export;
 
             return ImmutableList.CreateRange(filteredExports);
