@@ -40,11 +40,21 @@
         public override ComposablePartDefinition CreatePart(Type partType)
         {
             Requires.NotNull(partType, "partType");
+            
+            var sharedAttribute = partType.GetCustomAttribute<SharedAttribute>();
+            string sharingBoundary = null;
+            if (sharedAttribute != null)
+            {
+                sharingBoundary = sharedAttribute.SharingBoundary ?? string.Empty;
+            }
+
+            CreationPolicy partCreationPolicy = sharingBoundary != null ? CreationPolicy.Shared : CreationPolicy.NonShared;
+            var allExportsMetadata = ImmutableDictionary.CreateRange(PartCreationPolicyConstraint.GetExportMetadata(partCreationPolicy));
 
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
             var imports = ImmutableDictionary.CreateBuilder<MemberInfo, ImportDefinition>();
-            var exportMetadataOnType = this.GetExportMetadata(partType.GetCustomAttributes());
+            var exportMetadataOnType = allExportsMetadata.AddRange(this.GetExportMetadata(partType.GetCustomAttributes()));
 
             foreach (var exportAttribute in partType.GetCustomAttributes<ExportAttribute>())
             {
@@ -52,13 +62,6 @@
                 var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? partType);
                 var exportDefinition = new ExportDefinition(contract, exportMetadataOnType);
                 exportsOnType.Add(exportDefinition);
-            }
-
-            var sharedAttribute = partType.GetCustomAttribute<SharedAttribute>();
-            string sharingBoundary = null;
-            if (sharedAttribute != null)
-            {
-                sharingBoundary = sharedAttribute.SharingBoundary ?? string.Empty;
             }
 
             foreach (var member in partType.GetProperties(BindingFlags.Instance | this.PublicVsNonPublicFlags))
@@ -78,7 +81,7 @@
                 else if (exportAttributes.Any())
                 {
                     Verify.Operation(!partType.IsGenericTypeDefinition, "Exports on members not allowed when the declaring type is generic.");
-                    var exportMetadataOnMember = this.GetExportMetadata(member.GetCustomAttributes());
+                    var exportMetadataOnMember = allExportsMetadata.AddRange(this.GetExportMetadata(member.GetCustomAttributes()));
                     var exportDefinitions = ImmutableList.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
@@ -121,7 +124,7 @@
                     importingConstructorParameters.Add(import);
                 }
 
-                return new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary, onImportsSatisfied, importingConstructorParameters.ToImmutable());
+                return new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary, onImportsSatisfied, importingConstructorParameters.ToImmutable(), partCreationPolicy);
             }
             else
             {
@@ -143,7 +146,7 @@
             return false;
         }
 
-        private IReadOnlyDictionary<string, object> GetExportMetadata(IEnumerable<Attribute> attributes)
+        private ImmutableDictionary<string, object> GetExportMetadata(IEnumerable<Attribute> attributes)
         {
             Requires.NotNull(attributes, "attributes");
 

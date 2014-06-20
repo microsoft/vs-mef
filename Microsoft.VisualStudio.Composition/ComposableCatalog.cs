@@ -43,7 +43,6 @@
 
 
             var filteredExports = from export in exports
-                                  where HasCompatibleCreationPolicies(export.PartDefinition, import.ImportDefinition)
                                   where HasMetadata(export.ExportDefinition, GetRequiredMetadata(import))
                                   where import.ImportDefinition.ExportContraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
                                   select export;
@@ -121,13 +120,6 @@
             Requires.NotNull(metadataNames, "metadataNames");
 
             return metadataNames.All(name => exportDefinition.Metadata.ContainsKey(name));
-        }
-
-        private static bool HasCompatibleCreationPolicies(ComposablePartDefinition exportPartDefinition, ImportDefinition importDefinition)
-        {
-            return exportPartDefinition.CreationPolicy == CreationPolicy.Any
-                || importDefinition.RequiredCreationPolicy == CreationPolicy.Any
-                || exportPartDefinition.CreationPolicy == importDefinition.RequiredCreationPolicy;
         }
 
         private static IReadOnlyCollection<string> GetRequiredMetadata(Import import)

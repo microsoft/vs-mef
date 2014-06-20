@@ -99,6 +99,7 @@
     <Compile Include="LazyPart.cs" />
     <Compile Include="LazyPart`2.cs" />
     <Compile Include="LazyPart`1.cs" />
+    <Compile Include="PartCreationPolicyImportConstraint.cs" />
     <Compile Include="PartDiscovery.cs" />
     <Compile Include="ComposablePartDefinition.cs" />
     <Compile Include="CompositionConfiguration.cs" />

@@ -26,7 +26,6 @@
             this.Contract = contract;
             this.Cardinality = cardinality;
             this.ExportContraints = additionalConstraints;
-            this.RequiredCreationPolicy = CreationPolicy.Any;
             this.ExportFactorySharingBoundaries = exportFactorySharingBoundaries;
         }
 
@@ -34,15 +33,12 @@
         /// Initializes a new instance of the <see cref="ImportDefinition"/> class
         /// based on MEF v1 attributes.
         /// </summary>
-        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, CreationPolicy requiredCreationPolicy)
+        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints)
             : this(contract, cardinality, additionalConstraints, ImmutableHashSet.Create<string>())
         {
-            this.RequiredCreationPolicy = requiredCreationPolicy;
         }
 
         public ImportCardinality Cardinality { get; private set; }
-
-        public CreationPolicy RequiredCreationPolicy { get; private set; }
 
         public Type TypeIdentity
         {
