@@ -23,11 +23,19 @@
                 return null;
             }
 
+            var partCreationPolicy = CreationPolicy.Any;
+            var partCreationPolicyAttribute = partType.GetCustomAttribute<PartCreationPolicyAttribute>();
+            if (partCreationPolicyAttribute != null)
+            {
+                partCreationPolicy = (CreationPolicy)partCreationPolicyAttribute.CreationPolicy;
+            }
+
+            var allExportsMetadata = ImmutableDictionary.CreateRange(PartCreationPolicyConstraint.GetExportMetadata(partCreationPolicy));
+
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
-            var imports = ImmutableDictionary.CreateBuilder<MemberInfo, ImportDefinition>();
-            var exportMetadataOnType = GetExportMetadata(partType.GetCustomAttributes());
-            var partCreationPolicy = CreationPolicy.Any;
+            var imports = ImmutableList.CreateBuilder<Import>();
+            var exportMetadataOnType = allExportsMetadata.AddRange(GetExportMetadata(partType.GetCustomAttributes()));
 
             foreach (var exportAttributes in partType.GetCustomAttributesByType<ExportAttribute>())
             {
@@ -38,12 +46,6 @@
                     var exportDefinition = new ExportDefinition(contract, exportMetadataOnType);
                     exportsOnType.Add(exportDefinition);
                 }
-            }
-
-            var partCreationPolicyAttribute = partType.GetCustomAttribute<PartCreationPolicyAttribute>();
-            if (partCreationPolicyAttribute != null)
-            {
-                partCreationPolicy = (CreationPolicy)partCreationPolicyAttribute.CreationPolicy;
             }
 
             var flags = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
@@ -61,12 +63,12 @@
                 ImportDefinition importDefinition;
                 if (TryCreateImportDefinition(propertyOrFieldType, member.GetCustomAttributes(), out importDefinition))
                 {
-                    imports.Add(member, importDefinition);
+                    imports.Add(new Import(importDefinition, partType, member));
                 }
                 else if (exportAttributes.Any())
                 {
                     Verify.Operation(!partType.IsGenericTypeDefinition, "Exports on members not allowed when the declaring type is generic.");
-                    var exportMetadataOnMember = GetExportMetadata(member.GetCustomAttributes());
+                    var exportMetadataOnMember = allExportsMetadata.AddRange(GetExportMetadata(member.GetCustomAttributes()));
                     var exportDefinitions = ImmutableList.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
@@ -84,7 +86,7 @@
                 var exportAttributes = method.GetCustomAttributes<ExportAttribute>();
                 if (exportAttributes.Any())
                 {
-                    var exportMetadataOnMember = GetExportMetadata(method.GetCustomAttributes());
+                    var exportMetadataOnMember = allExportsMetadata.AddRange(GetExportMetadata(method.GetCustomAttributes()));
                     var exportDefinitions = ImmutableList.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
@@ -128,7 +130,7 @@
                     exportsOnMembers.ToImmutable(),
                     imports.ToImmutable(),
                     onImportsSatisfied,
-                    importingCtor != null ? importingConstructorParameters.ToImmutable() : null,
+                    importingCtor != null ? importingConstructorParameters.ToImmutable() : null, // some MEF parts are only for metadata
                     partCreationPolicy);
             }
             else
@@ -171,11 +173,12 @@
 
                 Type contractType = importAttribute.ContractType ?? GetTypeIdentityFromImportingType(importingType, importMany: false);
                 var contract = new CompositionContract(importAttribute.ContractName, contractType);
+                var constraints = PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraints(requiredCreationPolicy)
+                    .Union(GetMetadataViewConstraints(importingType, importMany: false));
                 importDefinition = new ImportDefinition(
                     contract,
                     importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
-                    ImmutableList.Create<IImportSatisfiabilityConstraint>(),
-                    requiredCreationPolicy);
+                    constraints);
                 return true;
             }
             else if (importManyAttribute != null)
@@ -191,11 +194,12 @@
 
                 Type contractType = importManyAttribute.ContractType ?? GetTypeIdentityFromImportingType(importingType, importMany: true);
                 var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
+                var constraints = PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraints(requiredCreationPolicy)
+                   .Union(GetMetadataViewConstraints(importingType, importMany: true));
                 importDefinition = new ImportDefinition(
                     contract,
                     ImportCardinality.ZeroOrMore,
-                    ImmutableList.Create<IImportSatisfiabilityConstraint>(),
-                    requiredCreationPolicy);
+                    constraints);
                 return true;
             }
             else

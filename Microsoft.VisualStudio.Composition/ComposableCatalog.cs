@@ -29,23 +29,21 @@
             this.exportsByContract = exportsByContract;
         }
 
-        public IReadOnlyList<Export> GetExports(Import import)
+        public IReadOnlyList<Export> GetExports(ImportDefinition importDefinition)
         {
-            Requires.NotNull(import, "import");
+            Requires.NotNull(importDefinition, "importDefinition");
 
-            var exports = this.exportsByContract.GetValueOrDefault(import.ImportDefinition.Contract, ImmutableList.Create<Export>());
+            var exports = this.exportsByContract.GetValueOrDefault(importDefinition.Contract, ImmutableList.Create<Export>());
 
-            if (import.ImportDefinition.Contract.Type.GetTypeInfo().IsGenericType && !import.ImportDefinition.Contract.Type.GetTypeInfo().IsGenericTypeDefinition)
+            if (importDefinition.Contract.Type.GetTypeInfo().IsGenericType && !importDefinition.Contract.Type.GetTypeInfo().IsGenericTypeDefinition)
             {
-                var typeDefinitionContract = new CompositionContract(import.ImportDefinition.Contract.ContractName, import.ImportDefinition.Contract.Type.GetGenericTypeDefinition());
+                var typeDefinitionContract = new CompositionContract(importDefinition.Contract.ContractName, importDefinition.Contract.Type.GetGenericTypeDefinition());
                 exports = exports.AddRange(this.exportsByContract.GetValueOrDefault(typeDefinitionContract, ImmutableList.Create<Export>()));
             }
 
 
             var filteredExports = from export in exports
-                                  where HasCompatibleCreationPolicies(export.PartDefinition, import.ImportDefinition)
-                                  where HasMetadata(export.ExportDefinition, GetRequiredMetadata(import))
-                                  where import.ImportDefinition.ExportContraints.All(c => c.IsSatisfiedBy(import.ImportDefinition, export.ExportDefinition))
+                                  where importDefinition.ExportContraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
                                   select export;
 
             return ImmutableList.CreateRange(filteredExports);
@@ -113,44 +111,6 @@
             }
 
             return new ComposableCatalog(types, parts, exportsByContract);
-        }
-
-        private static bool HasMetadata(ExportDefinition exportDefinition, IReadOnlyCollection<string> metadataNames)
-        {
-            Requires.NotNull(exportDefinition, "exportDefinition");
-            Requires.NotNull(metadataNames, "metadataNames");
-
-            return metadataNames.All(name => exportDefinition.Metadata.ContainsKey(name));
-        }
-
-        private static bool HasCompatibleCreationPolicies(ComposablePartDefinition exportPartDefinition, ImportDefinition importDefinition)
-        {
-            return exportPartDefinition.CreationPolicy == CreationPolicy.Any
-                || importDefinition.RequiredCreationPolicy == CreationPolicy.Any
-                || exportPartDefinition.CreationPolicy == importDefinition.RequiredCreationPolicy;
-        }
-
-        private static IReadOnlyCollection<string> GetRequiredMetadata(Import import)
-        {
-            Requires.NotNull(import, "import");
-
-            var requiredMetadata = ImmutableHashSet.CreateBuilder<string>();
-
-            if (import.MetadataType != null)
-            {
-                if (import.MetadataType.GetTypeInfo().IsInterface && !import.MetadataType.Equals(typeof(IDictionary<string, object>)))
-                {
-                    foreach (var property in import.MetadataType.EnumProperties().WherePublicInstance())
-                    {
-                        if (property.GetCustomAttribute<DefaultValueAttribute>() == null)
-                        {
-                            requiredMetadata.Add(property.Name);
-                        }
-                    }
-                }
-            }
-
-            return requiredMetadata.ToImmutable();
         }
     }
 }

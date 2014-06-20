@@ -9,6 +9,11 @@
 
     internal static class ExportFactory
     {
+        internal static bool IsExportFactoryType(this Type type)
+        {
+            return IsExportFactoryTypeV1(type) || IsExportFactoryTypeV2(type);
+        }
+
         internal static bool IsExportFactoryTypeV1(this Type type)
         {
             if (type != null && type.GetTypeInfo().IsGenericType)

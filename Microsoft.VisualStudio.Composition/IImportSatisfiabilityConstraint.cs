@@ -8,6 +8,6 @@
 
     public interface IImportSatisfiabilityConstraint
     {
-        bool IsSatisfiedBy(ImportDefinition importDefinition, ExportDefinition exportDefinition);
+        bool IsSatisfiedBy(ExportDefinition exportDefinition);
     }
 }

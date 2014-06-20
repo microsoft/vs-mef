@@ -378,7 +378,7 @@
                     string provisionalSharedObjectsExpression = import.IsExportFactory
                         ? "new Dictionary<Type, object>()"
                         : "provisionalSharedObjects";
-                    bool nonSharedInstanceRequired = import.ImportDefinition.RequiredCreationPolicy == CreationPolicy.NonShared;
+                    bool nonSharedInstanceRequired = PartCreationPolicyConstraint.IsNonSharedInstanceRequired(import.ImportDefinition);
 
                     if (genericTypeArgs.All(arg => IsPublic(arg, true)))
                     {
@@ -1112,8 +1112,7 @@
             var importDefinition = new ImportDefinition(
                 contract,
                 ImportCardinality.ZeroOrMore,
-                ImmutableList.Create<IImportSatisfiabilityConstraint>(),
-                CreationPolicy.Any);
+                ImmutableList.Create<IImportSatisfiabilityConstraint>());
             return importDefinition;
         }
 
