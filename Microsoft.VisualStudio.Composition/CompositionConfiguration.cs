@@ -57,7 +57,7 @@
                 var imports = partDefinition.ImportingMembers.Select(i => new Import(i.Value, partDefinition.Type, i.Key));
                 if (partDefinition.ImportingConstructor != null)
                 {
-                    imports = imports.Concat(partDefinition.ImportingConstructor.Select(i => new Import(i.ImportDefinition, partDefinition.Type, i.ImportingParameter)));
+                    imports = imports.Concat(partDefinition.ImportingConstructor);
                 }
 
                 var satisfyingImports = imports.ToImmutableDictionary(i => i, i => catalog.GetExports(i));

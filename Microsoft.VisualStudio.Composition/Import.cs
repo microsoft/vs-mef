@@ -110,7 +110,7 @@
         {
             get
             {
-                if ((this.IsLazy || this.IsExportFactory) && this.ImportingSiteTypeWithoutCollection != null)
+                if (this.IsLazy || this.IsExportFactory)
                 {
                     var args = this.ImportingSiteTypeWithoutCollection.GetTypeInfo().GenericTypeArguments;
                     if (args.Length == 2)
@@ -125,7 +125,7 @@
 
         public bool IsExportFactory
         {
-            get { return this.ImportingSiteTypeWithoutCollection.IsExportFactoryTypeV1() || this.ImportingSiteTypeWithoutCollection.IsExportFactoryTypeV2(); }
+            get { return this.ImportingSiteTypeWithoutCollection.IsExportFactoryType(); }
         }
 
         public Type ExportFactoryType
