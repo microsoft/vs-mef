@@ -20,9 +20,8 @@
             this.value = value;
         }
 
-        public bool IsSatisfiedBy(ImportDefinition importDefinition, ExportDefinition exportDefinition)
+        public bool IsSatisfiedBy(ExportDefinition exportDefinition)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(exportDefinition, "exportDefinition");
 
             object exportMetadataValue;

@@ -45,7 +45,7 @@
             var filteredExports = from export in exports
                                   where HasCompatibleCreationPolicies(export.PartDefinition, import.ImportDefinition)
                                   where HasMetadata(export.ExportDefinition, GetRequiredMetadata(import))
-                                  where import.ImportDefinition.ExportContraints.All(c => c.IsSatisfiedBy(import.ImportDefinition, export.ExportDefinition))
+                                  where import.ImportDefinition.ExportContraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
                                   select export;
 
             return ImmutableList.CreateRange(filteredExports);
