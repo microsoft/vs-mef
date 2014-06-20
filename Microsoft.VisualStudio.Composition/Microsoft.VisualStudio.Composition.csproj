@@ -95,7 +95,7 @@
     <Compile Include="ILazy`1.cs" />
     <Compile Include="Import.cs" />
     <Compile Include="ImportCardinality.cs" />
-    <Compile Include="ImportMetadataValueConstraint.cs" />
+    <Compile Include="ExportMetadataValueImportConstraint.cs" />
     <Compile Include="LazyPart.cs" />
     <Compile Include="LazyPart`2.cs" />
     <Compile Include="LazyPart`1.cs" />

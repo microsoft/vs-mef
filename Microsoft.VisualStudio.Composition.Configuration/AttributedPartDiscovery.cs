@@ -254,7 +254,7 @@
             Requires.NotNull(attributes, "attributes");
 
             return (from importConstraint in attributes.OfType<ImportMetadataConstraintAttribute>()
-                    select new ImportMetadataValueConstraint(importConstraint.Name, importConstraint.Value)).ToImmutableList();
+                    select new ExportMetadataValueImportConstraint(importConstraint.Name, importConstraint.Value)).ToImmutableList();
         }
 
         public override IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly)
