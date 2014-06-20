@@ -68,6 +68,11 @@
 
         public Type ComposablePartType { get; private set; }
 
+        /// <summary>
+        /// Gets the actual type of the variable or member that will be assigned the result.
+        /// This includes any Lazy, ExportFactory or collection wrappers.
+        /// </summary>
+        /// <value>Never null.</value>
         public Type ImportingSiteType { get; private set; }
 
         public Type ImportingSiteTypeWithoutCollection

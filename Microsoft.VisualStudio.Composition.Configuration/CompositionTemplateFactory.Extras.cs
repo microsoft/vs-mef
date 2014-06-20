@@ -204,7 +204,7 @@
             Requires.NotNull(exports, "exports");
 
             this.Write("new ");
-            if (import.ImportingSiteType != null && import.ImportingSiteType.IsArray)
+            if (import.ImportingSiteType.IsArray)
             {
                 this.WriteLine("{0}[]", GetTypeName(import.ImportingSiteTypeWithoutCollection));
             }
@@ -635,7 +635,7 @@
                 }
                 else
                 {
-                    closeLazy = this.EmitLazyConstruction(importDefinition.TypeIdentity, import.MetadataType, writer);
+                    closeLazy = this.EmitLazyConstruction(import.ImportingSiteElementType, import.MetadataType, writer);
                 }
             }
             else if (import.IsExportFactory)
@@ -653,7 +653,7 @@
                 return new DisposableWithAction(delegate
                 {
                     writer.Write(".Value; return ");
-                    using (this.EmitExportFactoryTupleConstruction(import.ExportFactoryType.GetGenericArguments()[0], "temp", writer))
+                    using (this.EmitExportFactoryTupleConstruction(import.ImportingSiteElementType, "temp", writer))
                     {
                         writer.Write("() => { ");
                         if (typeof(IDisposable).IsAssignableFrom(export.PartDefinition.Type))
@@ -683,20 +683,20 @@
                     case MemberTypes.Field:
                         writer.Write(
                             "({0}){1}.GetValue(",
-                            GetTypeName(import.ImportDefinition.Contract.Type),
+                            GetTypeName(import.ImportingSiteElementType),
                             GetFieldInfoExpression((FieldInfo)export.ExportingMember));
                         break;
                     case MemberTypes.Method:
                         writer.Write(
                             "({0}){1}.CreateDelegate({2}, ",
-                            GetTypeName(import.ImportDefinition.Contract.Type),
+                            GetTypeName(import.ImportingSiteElementType),
                             GetMethodInfoExpression((MethodInfo)export.ExportingMember),
                             GetTypeExpression(import.ImportDefinition.TypeIdentity));
                         break;
                     case MemberTypes.Property:
                         writer.Write(
                             "({0}){1}.Invoke(",
-                            GetTypeName(import.ImportDefinition.Contract.Type),
+                            GetTypeName(import.ImportingSiteElementType),
                             GetMethodInfoExpression(((PropertyInfo)export.ExportingMember).GetGetMethod(true)));
                         break;
                     default:
@@ -731,7 +731,7 @@
                 }
 
                 string memberAccessor = memberModifier;
-                if ((export.PartDefinition.Type != import.ComposablePartType || import.IsExportFactory) && !export.IsStaticExport)
+                if ((!export.PartDefinition.Type.IsEquivalentTo(import.ComposablePartType) || import.IsExportFactory) && !export.IsStaticExport)
                 {
                     memberAccessor = ".Value" + memberAccessor;
                 }
@@ -1164,7 +1164,7 @@
         {
             writer = writer ?? new SelfTextWriter(this);
 
-            if (IsPublic(exportFactoryImport.ImportDefinition.TypeIdentity))
+            if (IsPublic(exportFactoryImport.ImportingSiteElementType))
             {
                 writer.Write("new {0}(", GetTypeName(exportFactoryImport.ExportFactoryType));
                 return new DisposableWithAction(delegate
@@ -1190,7 +1190,7 @@
                     {
                         writer.WriteLine(
                             "{0},",
-                            this.GetExportFactoryTupleTypeExpression(exportFactoryImport.ImportDefinition.TypeIdentity));
+                            this.GetExportFactoryTupleTypeExpression(exportFactoryImport.ImportingSiteElementType));
                     }
                 }
 
