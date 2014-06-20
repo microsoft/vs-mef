@@ -14,28 +14,32 @@
         /// Initializes a new instance of the <see cref="Import"/> class
         /// to represent an importing member.
         /// </summary>
-        public Import(ComposablePartDefinition partDefinition, ImportDefinition importDefinition, MemberInfo importingMember)
+        public Import(ImportDefinition importDefinition, Type composablePartType, MemberInfo importingMember)
         {
-            Requires.NotNull(partDefinition, "partDefinition");
             Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(composablePartType, "composablePartType");
             Requires.NotNull(importingMember, "importingMember");
 
-            this.PartDefinition = partDefinition;
             this.ImportDefinition = importDefinition;
+            this.ComposablePartType = composablePartType;
             this.ImportingMember = importingMember;
+            this.ImportingSiteType = ReflectionHelpers.GetMemberType(importingMember);
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Import"/> class
         /// to represent a parameter in an importing constructor.
         /// </summary>
-        public Import(ComposablePartDefinition partDefinition, ImportDefinition importDefinition)
+        public Import(ImportDefinition importDefinition, Type composablePartType, ParameterInfo importingConstructorParameter)
         {
-            Requires.NotNull(partDefinition, "partDefinition");
             Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(composablePartType, "composablePartType");
+            Requires.NotNull(importingConstructorParameter, "importingConstructorParameter");
 
-            this.PartDefinition = partDefinition;
             this.ImportDefinition = importDefinition;
+            this.ComposablePartType = composablePartType;
+            this.ImportingParameter = importingConstructorParameter;
+            this.ImportingSiteType = importingConstructorParameter.ParameterType;
         }
 
         /// <summary>
@@ -47,6 +51,7 @@
             Requires.NotNull(importDefinition, "importDefinition");
 
             this.ImportDefinition = importDefinition;
+            this.ImportingSiteType = typeof(IEnumerable<>).MakeGenericType(typeof(ILazy<>).MakeGenericType(importDefinition.Contract.Type));
         }
 
         /// <summary>
@@ -55,18 +60,82 @@
         public ImportDefinition ImportDefinition { get; private set; }
 
         /// <summary>
-        /// Gets the part definition on which this import is found.
-        /// </summary>
-        public ComposablePartDefinition PartDefinition { get; private set; }
-
-        /// <summary>
         /// Gets the members this import is found on. Null for importing constructors.
         /// </summary>
         public MemberInfo ImportingMember { get; private set; }
 
+        public ParameterInfo ImportingParameter { get; private set; }
+
+        public Type ComposablePartType { get; private set; }
+
+        /// <summary>
+        /// Gets the actual type of the variable or member that will be assigned the result.
+        /// This includes any Lazy, ExportFactory or collection wrappers.
+        /// </summary>
+        /// <value>Never null.</value>
+        public Type ImportingSiteType { get; private set; }
+
+        public Type ImportingSiteTypeWithoutCollection
+        {
+            get
+            {
+                return this.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore
+                    ? PartDiscovery.GetElementTypeFromMany(this.ImportingSiteType)
+                    : this.ImportingSiteType;
+            }
+        }
+
+        /// <summary>
+        /// Gets the type of the member, with the ImportMany collection and Lazy/ExportFactory stripped off, when present.
+        /// </summary>
+        public Type ImportingSiteElementType
+        {
+            get
+            {
+                return PartDiscovery.GetTypeIdentityFromImportingType(this.ImportingSiteType, this.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore);
+            }
+        }
+
+        public bool IsLazy
+        {
+            get { return this.ImportingSiteTypeWithoutCollection.IsAnyLazyType(); }
+        }
+
+        public bool IsLazyConcreteType
+        {
+            get { return this.ImportingSiteTypeWithoutCollection.IsConcreteLazyType(); }
+        }
+
+        public Type MetadataType
+        {
+            get
+            {
+                if ((this.IsLazy || this.IsExportFactory) && this.ImportingSiteTypeWithoutCollection != null)
+                {
+                    var args = this.ImportingSiteTypeWithoutCollection.GetTypeInfo().GenericTypeArguments;
+                    if (args.Length == 2)
+                    {
+                        return args[1];
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        public bool IsExportFactory
+        {
+            get { return this.ImportingSiteTypeWithoutCollection.IsExportFactoryTypeV1() || this.ImportingSiteTypeWithoutCollection.IsExportFactoryTypeV2(); }
+        }
+
+        public Type ExportFactoryType
+        {
+            get { return this.IsExportFactory ? this.ImportingSiteTypeWithoutCollection : null; }
+        }
+
         public override int GetHashCode()
         {
-            return this.ImportDefinition.GetHashCode() + this.PartDefinition.GetHashCode();
+            return this.ImportDefinition.GetHashCode();
         }
 
         public override bool Equals(object obj)
@@ -82,8 +151,9 @@
             }
 
             return this.ImportDefinition.Equals(other.ImportDefinition)
-                && this.PartDefinition.Equals(other.PartDefinition)
-                && EqualityComparer<MemberInfo>.Default.Equals(this.ImportingMember, other.ImportingMember);
+                && EqualityComparer<Type>.Default.Equals(this.ComposablePartType, other.ComposablePartType)
+                && EqualityComparer<MemberInfo>.Default.Equals(this.ImportingMember, other.ImportingMember)
+                && EqualityComparer<ParameterInfo>.Default.Equals(this.ImportingParameter, other.ImportingParameter);
         }
     }
 }

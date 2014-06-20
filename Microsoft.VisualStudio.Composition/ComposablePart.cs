@@ -43,9 +43,9 @@
 
         public IEnumerable<KeyValuePair<Import, IReadOnlyList<Export>>> GetImportingConstructorImports()
         {
-            foreach (var importDefinition in this.Definition.ImportingConstructor)
+            foreach (var import in this.Definition.ImportingConstructor)
             {
-                var key = this.SatisfyingExports.Keys.Single(k => k.ImportDefinition == importDefinition);
+                var key = this.SatisfyingExports.Keys.Single(k => k.ImportDefinition == import.ImportDefinition);
                 yield return new KeyValuePair<Import, IReadOnlyList<Export>>(key, this.SatisfyingExports[key]);
             }
         }
@@ -95,7 +95,7 @@
                                     CultureInfo.CurrentCulture,
                                     "Exported type {4} on MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
                                     ReflectionHelpers.GetTypeName(export.PartDefinition.Type, false, true, null),
-                                    ReflectionHelpers.GetTypeName(pair.Key.ImportDefinition.ElementType, false, true, null),
+                                    ReflectionHelpers.GetTypeName(pair.Key.ImportDefinition.TypeIdentity, false, true, null),
                                     ReflectionHelpers.GetTypeName(this.Definition.Type, false, true, null),
                                     pair.Key.ImportingMember != null ? pair.Key.ImportingMember.Name : "ctor",
                                     ReflectionHelpers.GetTypeName(export.ExportedValueType, false, true, null)));
@@ -104,7 +104,7 @@
                 }
                 catch (CompositionFailedException ex)
                 {
-                    exceptions = exceptions.Add(new CompositionFailedException("Error validating MEF part: " + pair.Key.PartDefinition.Type.Name, ex));
+                    exceptions = exceptions.Add(new CompositionFailedException("Error validating MEF part: " + pair.Key.ComposablePartType.Name, ex));
                 }
             }
 

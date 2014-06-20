@@ -39,7 +39,7 @@
             Requires.NotNull(import, "import");
             Requires.NotNull(export, "export");
 
-            var receivingType = import.ImportDefinition.ElementType;
+            var receivingType = import.ImportingSiteElementType;
             var exportingType = export.ExportedValueType;
             if (exportingType.GetTypeInfo().IsGenericTypeDefinition && receivingType.GetTypeInfo().IsGenericType)
             {
@@ -197,6 +197,25 @@
             }
 
             throw new NotSupportedException();
+        }
+
+        internal static Type GetMemberType(MemberInfo fieldOrProperty)
+        {
+            Requires.NotNull(fieldOrProperty, "fieldOrProperty");
+
+            var property = fieldOrProperty as PropertyInfo;
+            if (property != null)
+            {
+                return property.PropertyType;
+            }
+
+            var field = fieldOrProperty as FieldInfo;
+            if (field != null)
+            {
+                return field.FieldType;
+            }
+
+            throw new ArgumentException("Unexpected member type.");
         }
 
         internal static bool IsPublicInstance(this MethodInfo methodInfo)

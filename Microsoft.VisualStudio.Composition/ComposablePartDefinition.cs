@@ -22,7 +22,7 @@
         /// <param name="sharingBoundary">The sharing boundary that this part is shared within.</param>
         /// <param name="onImportsSatisfied">The method to invoke after satisfying imports, if any.</param>
         /// <param name="importingConstructor">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportingMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> importingMembers, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinition> importingConstructor)
+        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportingMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> importingMembers, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<Import> importingConstructor)
         {
             Requires.NotNull(partType, "partType");
             Requires.NotNull(exportedTypes, "exportedTypes");
@@ -40,7 +40,7 @@
             this.CreationPolicy = this.IsShared ? CreationPolicy.Shared : CreationPolicy.NonShared;
         }
 
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinition> importingConstructor, CreationPolicy partCreationPolicy)
+        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportsOnMembers, IReadOnlyDictionary<MemberInfo, ImportDefinition> imports, MethodInfo onImportsSatisfied, IReadOnlyList<Import> importingConstructor, CreationPolicy partCreationPolicy)
             : this(partType, exportsOnType, exportsOnMembers, imports, partCreationPolicy != CreationPolicy.NonShared ? string.Empty : null, onImportsSatisfied, importingConstructor)
         {
             this.CreationPolicy = partCreationPolicy;
@@ -114,7 +114,7 @@
         /// <summary>
         /// Gets the list of parameters on the importing constructor.
         /// </summary>
-        public IReadOnlyList<ImportDefinition> ImportingConstructor { get; private set; }
+        public IReadOnlyList<Import> ImportingConstructor { get; private set; }
 
         public bool IsInstantiable
         {
@@ -126,7 +126,7 @@
             get
             {
                 return this.ImportingConstructor != null
-                    ? this.Type.GetTypeInfo().DeclaredConstructors.FirstOrDefault(ctor => !ctor.IsStatic && ctor.HasParameters(this.ImportingConstructor.Select(i => i.MemberType).ToArray()))
+                    ? this.Type.GetTypeInfo().DeclaredConstructors.FirstOrDefault(ctor => !ctor.IsStatic && ctor.HasParameters(this.ImportingConstructor.Select(i => i.ImportingParameter.ParameterType).ToArray()))
                     : null;
             }
         }
@@ -139,7 +139,7 @@
             get
             {
                 return this.ImportingConstructor != null
-                    ? this.ImportingMembers.Values.Concat(this.ImportingConstructor)
+                    ? this.ImportingMembers.Values.Concat(this.ImportingConstructor.Select(i => i.ImportDefinition))
                     : this.ImportingMembers.Values;
             }
         }
