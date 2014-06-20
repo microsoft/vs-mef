@@ -53,7 +53,7 @@
 
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
-            var imports = ImmutableDictionary.CreateBuilder<MemberInfo, ImportDefinition>();
+            var imports = ImmutableList.CreateBuilder<Import>();
             var exportMetadataOnType = allExportsMetadata.AddRange(this.GetExportMetadata(partType.GetCustomAttributes()));
 
             foreach (var exportAttribute in partType.GetCustomAttributes<ExportAttribute>())
@@ -76,7 +76,7 @@
                 ImportDefinition importDefinition;
                 if (TryCreateImportDefinition(member.PropertyType, member.GetCustomAttributes(), importConstraints, out importDefinition))
                 {
-                    imports.Add(member, importDefinition);
+                    imports.Add(new Import(importDefinition, partType, member));
                 }
                 else if (exportAttributes.Any())
                 {

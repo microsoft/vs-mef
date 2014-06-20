@@ -34,7 +34,7 @@
 
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
-            var imports = ImmutableDictionary.CreateBuilder<MemberInfo, ImportDefinition>();
+            var imports = ImmutableList.CreateBuilder<Import>();
             var exportMetadataOnType = allExportsMetadata.AddRange(GetExportMetadata(partType.GetCustomAttributes()));
 
             foreach (var exportAttributes in partType.GetCustomAttributesByType<ExportAttribute>())
@@ -63,7 +63,7 @@
                 ImportDefinition importDefinition;
                 if (TryCreateImportDefinition(propertyOrFieldType, member.GetCustomAttributes(), out importDefinition))
                 {
-                    imports.Add(member, importDefinition);
+                    imports.Add(new Import(importDefinition, partType, member));
                 }
                 else if (exportAttributes.Any())
                 {
@@ -130,7 +130,7 @@
                     exportsOnMembers.ToImmutable(),
                     imports.ToImmutable(),
                     onImportsSatisfied,
-                    importingCtor != null ? importingConstructorParameters.ToImmutable() : null,
+                    importingCtor != null ? importingConstructorParameters.ToImmutable() : null, // some MEF parts are only for metadata
                     partCreationPolicy);
             }
             else

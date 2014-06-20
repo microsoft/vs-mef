@@ -54,13 +54,7 @@
             var partBuilders = new Dictionary<ComposablePartDefinition, PartBuilder>();
             foreach (ComposablePartDefinition partDefinition in catalog.Parts)
             {
-                var imports = partDefinition.ImportingMembers.Select(i => new Import(i.Value, partDefinition.Type, i.Key));
-                if (partDefinition.ImportingConstructor != null)
-                {
-                    imports = imports.Concat(partDefinition.ImportingConstructor);
-                }
-
-                var satisfyingImports = imports.ToImmutableDictionary(i => i, i => catalog.GetExports(i));
+                var satisfyingImports = partDefinition.Imports.ToImmutableDictionary(i => i, i => catalog.GetExports(i));
                 partBuilders.Add(partDefinition, new PartBuilder(partDefinition, satisfyingImports));
             }
 
@@ -280,8 +274,8 @@
 
             // First build up a dictionary of all sharing boundaries and the parent boundaries that consistently exist.
             var sharingBoundaryExportFactories = from partBuilder in partBuilders
-                                                 from import in partBuilder.PartDefinition.ImportDefinitions
-                                                 from sharingBoundary in import.ExportFactorySharingBoundaries
+                                                 from import in partBuilder.PartDefinition.Imports
+                                                 from sharingBoundary in import.ImportDefinition.ExportFactorySharingBoundaries
                                                  select new { ParentSharingBoundaries = partBuilder.RequiredSharingBoundaries, ChildSharingBoundary = sharingBoundary };
             var childSharingBoundariesAndTheirParents = ImmutableDictionary.CreateBuilder<string, SharingBoundaryMetadata>();
             foreach (var parentChild in sharingBoundaryExportFactories)

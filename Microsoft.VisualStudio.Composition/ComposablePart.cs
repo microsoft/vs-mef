@@ -21,7 +21,7 @@
             Requires.NotNull(requiredSharingBoundaries, "requiredSharingBoundaries");
 
             // Make sure we have entries for every import.
-            Requires.Argument(satisfyingExports.Count == definition.ImportDefinitions.Count() && definition.ImportDefinitions.All(d => satisfyingExports.Keys.Any(e => e.ImportDefinition.Equals(d))), "satisfyingExports", "There should be exactly one entry for every import.");
+            Requires.Argument(satisfyingExports.Count == definition.Imports.Count() && definition.Imports.All(d => satisfyingExports.ContainsKey(d)), "satisfyingExports", "There should be exactly one entry for every import.");
             Requires.Argument(satisfyingExports.All(kv => kv.Value != null), "satisfyingExports", "All values must be non-null.");
 
             this.Definition = definition;
