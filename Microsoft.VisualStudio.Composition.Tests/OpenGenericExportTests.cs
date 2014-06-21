@@ -20,12 +20,34 @@
             Assert.NotNull(useful);
         }
 
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(Useful<>), typeof(Useful<,>))]
+        public void AcquireOpenGenericExportArity2(IContainer container)
+        {
+            var useful1 = container.GetExportedValue<Useful<int>>();
+            Assert.NotNull(useful1);
+
+            var useful2 = container.GetExportedValue<Useful<int, byte>>();
+            Assert.NotNull(useful2);
+        }
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Useful<>), typeof(User))]
         public void AcquireExportWithImportOfOpenGenericExport(IContainer container)
         {
             User user = container.GetExportedValue<User>();
             Assert.NotNull(user);
             Assert.NotNull(user.Useful);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Useful<>), typeof(User), typeof(Useful<,>), typeof(UserOfTwoArity))]
+        public void AcquireExportWithImportOfOpenGenericExportArity2(IContainer container)
+        {
+            var user = container.GetExportedValue<User>();
+            Assert.NotNull(user);
+            Assert.NotNull(user.Useful);
+
+            var userOfTwo = container.GetExportedValue<UserOfTwoArity>();
+            Assert.NotNull(userOfTwo);
+            Assert.NotNull(userOfTwo.Useful);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Useful<>), typeof(ImportManyUser))]
@@ -92,6 +114,10 @@
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class Useful<T> { }
 
+        [Export, Shared]
+        [MefV1.Export]
+        public class Useful<T1, T2> { }
+
         [Export]
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class User
@@ -99,6 +125,15 @@
             [Import]
             [MefV1.Import]
             public Useful<int> Useful { get; set; }
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class UserOfTwoArity
+        {
+            [Import]
+            [MefV1.Import]
+            public Useful<int, byte> Useful { get; set; }
         }
 
         [Export]
