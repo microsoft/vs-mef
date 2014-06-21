@@ -8,11 +8,14 @@
 
     internal static class CompositionConstants
     {
-        internal const string PartCreationPolicyMetadataName = CompositionNamespace + ".CreationPolicy";
-        internal const string GenericContractMetadataName = CompositionNamespace + ".GenericContractName";
-        internal const string GenericParametersMetadataName = CompositionNamespace + ".GenericParameters";
+        internal const string PartCreationPolicyMetadataName = MefV1CompositionNamespace + ".CreationPolicy";
+        internal const string GenericContractMetadataName = MefV1CompositionNamespace + ".GenericContractName";
+        internal const string GenericParametersMetadataName = MefV1CompositionNamespace + ".GenericParameters";
         internal const string ExportTypeIdentityMetadataName = "ExportTypeIdentity";
 
-        private const string CompositionNamespace = "System.ComponentModel.Composition";
+        internal const string IsOpenGenericExport = MefV3CompositionNamespace + ".IsOpenGenericExport";
+
+        private const string MefV1CompositionNamespace = "System.ComponentModel.Composition";
+        private const string MefV3CompositionNamespace = "Microsoft.VisualStudio.Composition";
     }
 }
