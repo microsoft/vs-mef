@@ -53,7 +53,7 @@
 
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
-            var imports = ImmutableList.CreateBuilder<Import>();
+            var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
             var exportMetadataOnType = allExportsMetadata.AddRange(this.GetExportMetadata(partType.GetCustomAttributes()));
 
             foreach (var exportAttribute in partType.GetCustomAttributes<ExportAttribute>())
@@ -76,7 +76,7 @@
                 ImportDefinition importDefinition;
                 if (TryCreateImportDefinition(member.PropertyType, member.GetCustomAttributes(), importConstraints, out importDefinition))
                 {
-                    imports.Add(new Import(importDefinition, partType, member));
+                    imports.Add(new ImportDefinitionBinding(importDefinition, partType, member));
                 }
                 else if (exportAttributes.Any())
                 {
@@ -107,7 +107,7 @@
 
             if (exportsOnMembers.Count > 0 || exportsOnType.Count > 0)
             {
-                var importingConstructorParameters = ImmutableList.CreateBuilder<Import>();
+                var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
                 var importingCtor = GetImportingConstructor(partType, typeof(ImportingConstructorAttribute), publicOnly: !this.IsNonPublicSupported);
                 Verify.Operation(importingCtor != null, "No importing constructor found.");
                 foreach (var parameter in importingCtor.GetParameters())
@@ -243,7 +243,7 @@
             }
         }
 
-        private static Import CreateImport(ParameterInfo parameter, IEnumerable<Attribute> attributes, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints)
+        private static ImportDefinitionBinding CreateImport(ParameterInfo parameter, IEnumerable<Attribute> attributes, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints)
         {
             ImportDefinition result;
             if (!TryCreateImportDefinition(parameter.ParameterType, attributes, importConstraints, out result))
@@ -251,7 +251,7 @@
                 Assumes.True(TryCreateImportDefinition(parameter.ParameterType, attributes.Concat(new Attribute[] { new ImportAttribute() }), importConstraints, out result));
             }
 
-            return new Import(result, parameter.Member.DeclaringType, parameter);
+            return new ImportDefinitionBinding(result, parameter.Member.DeclaringType, parameter);
         }
 
         /// <summary>

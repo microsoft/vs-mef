@@ -34,7 +34,7 @@
 
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
-            var imports = ImmutableList.CreateBuilder<Import>();
+            var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
             var exportMetadataOnType = allExportsMetadata.AddRange(GetExportMetadata(partType.GetCustomAttributes()));
 
             foreach (var exportAttributes in partType.GetCustomAttributesByType<ExportAttribute>())
@@ -63,7 +63,7 @@
                 ImportDefinition importDefinition;
                 if (TryCreateImportDefinition(propertyOrFieldType, member.GetCustomAttributes(), out importDefinition))
                 {
-                    imports.Add(new Import(importDefinition, partType, member));
+                    imports.Add(new ImportDefinitionBinding(importDefinition, partType, member));
                 }
                 else if (exportAttributes.Any())
                 {
@@ -90,7 +90,7 @@
                     var exportDefinitions = ImmutableList.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
-                        Type contractType = exportAttribute.ContractType ?? Export.GetContractTypeForDelegate(method);
+                        Type contractType = exportAttribute.ContractType ?? ExportDefinitionBinding.GetContractTypeForDelegate(method);
                         var contract = new CompositionContract(exportAttribute.ContractName, contractType);
                         var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
                         exportDefinitions = exportDefinitions.Add(exportDefinition);
@@ -108,7 +108,7 @@
 
             if (exportsOnMembers.Count > 0 || exportsOnType.Count > 0)
             {
-                var importingConstructorParameters = ImmutableList.CreateBuilder<Import>();
+                var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
                 var importingCtor = GetImportingConstructor(partType, typeof(ImportingConstructorAttribute), publicOnly: false);
                 if (importingCtor != null) // some parts have exports merely for metadata -- they can't be instantiated
                 {
@@ -209,7 +209,7 @@
             }
         }
 
-        private static Import CreateImport(ParameterInfo parameter, IEnumerable<Attribute> attributes)
+        private static ImportDefinitionBinding CreateImport(ParameterInfo parameter, IEnumerable<Attribute> attributes)
         {
             ImportDefinition definition;
             if (!TryCreateImportDefinition(parameter.ParameterType, attributes, out definition))
@@ -217,7 +217,7 @@
                 Assumes.True(TryCreateImportDefinition(parameter.ParameterType, attributes.Concat(new Attribute[] { new ImportAttribute() }), out definition));
             }
 
-            return new Import(definition, parameter.Member.DeclaringType, parameter);
+            return new ImportDefinitionBinding(definition, parameter.Member.DeclaringType, parameter);
         }
 
         private static IReadOnlyDictionary<string, object> GetExportMetadata(IEnumerable<Attribute> attributes)

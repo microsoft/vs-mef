@@ -34,7 +34,7 @@
                 && type2Info.IsAssignableFrom(type1Info);
         }
 
-        internal static bool IsAssignableTo(Import import, Export export)
+        internal static bool IsAssignableTo(ImportDefinitionBinding import, ExportDefinitionBinding export)
         {
             Requires.NotNull(import, "import");
             Requires.NotNull(export, "export");

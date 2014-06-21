@@ -28,7 +28,7 @@
             get { return this.relevantAssemblies; }
         }
 
-        private IDisposable EmitMemberAssignment(Import import)
+        private IDisposable EmitMemberAssignment(ImportDefinitionBinding import)
         {
             Requires.NotNull(import, "import");
 
@@ -140,7 +140,7 @@
             return string.Format(CultureInfo.InvariantCulture, "Assembly.Load({0})", Quote(assembly.FullName));
         }
 
-        private void EmitImportSatisfyingAssignment(KeyValuePair<Import, IReadOnlyList<Export>> satisfyingExport)
+        private void EmitImportSatisfyingAssignment(KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExport)
         {
             Requires.Argument(satisfyingExport.Key.ImportingMember != null, "satisfyingExport", "No member to satisfy.");
             var import = satisfyingExport.Key;
@@ -159,7 +159,7 @@
             }
         }
 
-        private void EmitImportSatisfyingExpression(Import import, IReadOnlyList<Export> exports, StringWriter writer)
+        private void EmitImportSatisfyingExpression(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports, StringWriter writer)
         {
             if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
             {
@@ -179,7 +179,7 @@
             }
         }
 
-        private void EmitSatisfyImportManyArrayOrEnumerable(Import import, IReadOnlyList<Export> exports)
+        private void EmitSatisfyImportManyArrayOrEnumerable(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports)
         {
             Requires.NotNull(import, "import");
             Requires.NotNull(exports, "exports");
@@ -198,7 +198,7 @@
             }
         }
 
-        private void EmitSatisfyImportManyArrayOrEnumerableExpression(Import import, IEnumerable<Export> exports)
+        private void EmitSatisfyImportManyArrayOrEnumerableExpression(ImportDefinitionBinding import, IEnumerable<ExportDefinitionBinding> exports)
         {
             Requires.NotNull(import, "import");
             Requires.NotNull(exports, "exports");
@@ -227,7 +227,7 @@
             this.Write("}");
         }
 
-        private string EmitOpenGenericExportCollection(ImportDefinition importDefinition, IEnumerable<Export> exports)
+        private string EmitOpenGenericExportCollection(ImportDefinition importDefinition, IEnumerable<ExportDefinitionBinding> exports)
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(exports, "exports");
@@ -244,7 +244,7 @@
             return localVarName;
         }
 
-        private void EmitSatisfyImportManyCollection(Import import, IReadOnlyList<Export> exports)
+        private void EmitSatisfyImportManyCollection(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports)
         {
             Requires.NotNull(import, "import");
             var importDefinition = import.ImportDefinition;
@@ -351,7 +351,7 @@
             }
         }
 
-        private void EmitValueFactory(Import import, Export export, StringWriter writer)
+        private void EmitValueFactory(ImportDefinitionBinding import, ExportDefinitionBinding export, StringWriter writer)
         {
             using (this.ValueFactoryWrapper(import, export, writer))
             {
@@ -399,7 +399,7 @@
             }
         }
 
-        private string GetExportMetadata(Export export)
+        private string GetExportMetadata(ExportDefinitionBinding export)
         {
             var builder = new StringBuilder();
             builder.Append("new Dictionary<string, object> {");
@@ -612,7 +612,7 @@
             return set;
         }
 
-        private IDisposable ValueFactoryWrapper(Import import, Export export, TextWriter writer)
+        private IDisposable ValueFactoryWrapper(ImportDefinitionBinding import, ExportDefinitionBinding export, TextWriter writer)
         {
             var importDefinition = import.ImportDefinition;
 
@@ -773,7 +773,7 @@
             });
         }
 
-        private void EmitGetExportsReturnExpression(CompositionContract contract, IEnumerable<Export> exports)
+        private void EmitGetExportsReturnExpression(CompositionContract contract, IEnumerable<ExportDefinitionBinding> exports)
         {
             using (Indent(4))
             {
@@ -791,7 +791,7 @@
             }
         }
 
-        private void WriteExportMetadataReference(Export export, Import import, TextWriter writer)
+        private void WriteExportMetadataReference(ExportDefinitionBinding export, ImportDefinitionBinding import, TextWriter writer)
         {
             if (import.MetadataType != null)
             {
@@ -809,14 +809,14 @@
             }
         }
 
-        private IEnumerable<IGrouping<string, IGrouping<CompositionContract, Export>>> ExportsByContract
+        private IEnumerable<IGrouping<string, IGrouping<CompositionContract, ExportDefinitionBinding>>> ExportsByContract
         {
             get
             {
                 return
                     from part in this.Configuration.Parts
                     from exportingMemberAndDefinition in part.Definition.ExportDefinitions
-                    let export = new Export(exportingMemberAndDefinition.Value, part.Definition, exportingMemberAndDefinition.Key)
+                    let export = new ExportDefinitionBinding(exportingMemberAndDefinition.Value, part.Definition, exportingMemberAndDefinition.Key)
                     where part.Definition.IsInstantiable || part.Definition.Equals(ExportProvider.ExportProviderPartDefinition) // normally they must be instantiable, but we have one special case.
                     group export by export.ExportDefinition.Contract into exportsByContract
                     group exportsByContract by exportsByContract.Key.ContractName into exportsByContractByName
@@ -980,7 +980,7 @@
                 ".Invoke(this, new object[] { " + provisionalSharedObjectsExpression + ", /* nonSharedInstanceRequired: */ " + (nonSharedInstanceRequired ? "true" : "false") + " })";
         }
 
-        private string GetPartOrMemberLazy(Export export)
+        private string GetPartOrMemberLazy(ExportDefinitionBinding export)
         {
             Requires.NotNull(export, "export");
 
@@ -1097,12 +1097,12 @@
             }
         }
 
-        private static Import WrapContractAsImport(CompositionContract contract)
+        private static ImportDefinitionBinding WrapContractAsImport(CompositionContract contract)
         {
             Requires.NotNull(contract, "contract");
 
             var importDefinition = WrapContractAsImportDefinition(contract);
-            return new Import(importDefinition);
+            return new ImportDefinitionBinding(importDefinition);
         }
 
         private static ImportDefinition WrapContractAsImportDefinition(CompositionContract contract)
@@ -1159,7 +1159,7 @@
             }
         }
 
-        private IDisposable EmitExportFactoryConstruction(Import exportFactoryImport, TextWriter writer = null)
+        private IDisposable EmitExportFactoryConstruction(ImportDefinitionBinding exportFactoryImport, TextWriter writer = null)
         {
             writer = writer ?? new SelfTextWriter(this);
 

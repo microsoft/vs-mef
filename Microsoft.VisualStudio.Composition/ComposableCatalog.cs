@@ -16,9 +16,9 @@
 
         private ImmutableHashSet<ComposablePartDefinition> parts;
 
-        private ImmutableDictionary<CompositionContract, ImmutableList<Export>> exportsByContract;
+        private ImmutableDictionary<CompositionContract, ImmutableList<ExportDefinitionBinding>> exportsByContract;
 
-        private ComposableCatalog(ImmutableHashSet<Type> types, ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<CompositionContract, ImmutableList<Export>> exportsByContract)
+        private ComposableCatalog(ImmutableHashSet<Type> types, ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<CompositionContract, ImmutableList<ExportDefinitionBinding>> exportsByContract)
         {
             Requires.NotNull(types, "types");
             Requires.NotNull(parts, "parts");
@@ -29,16 +29,16 @@
             this.exportsByContract = exportsByContract;
         }
 
-        public IReadOnlyList<Export> GetExports(ImportDefinition importDefinition)
+        public IReadOnlyList<ExportDefinitionBinding> GetExports(ImportDefinition importDefinition)
         {
             Requires.NotNull(importDefinition, "importDefinition");
 
-            var exports = this.exportsByContract.GetValueOrDefault(importDefinition.Contract, ImmutableList.Create<Export>());
+            var exports = this.exportsByContract.GetValueOrDefault(importDefinition.Contract, ImmutableList.Create<ExportDefinitionBinding>());
 
             if (importDefinition.Contract.Type.GetTypeInfo().IsGenericType && !importDefinition.Contract.Type.GetTypeInfo().IsGenericTypeDefinition)
             {
                 var typeDefinitionContract = new CompositionContract(importDefinition.Contract.ContractName, importDefinition.Contract.Type.GetGenericTypeDefinition());
-                exports = exports.AddRange(this.exportsByContract.GetValueOrDefault(typeDefinitionContract, ImmutableList.Create<Export>()));
+                exports = exports.AddRange(this.exportsByContract.GetValueOrDefault(typeDefinitionContract, ImmutableList.Create<ExportDefinitionBinding>()));
             }
 
 
@@ -64,7 +64,7 @@
             return new ComposableCatalog(
                 ImmutableHashSet.Create<Type>(),
                 ImmutableHashSet.Create<ComposablePartDefinition>(),
-                ImmutableDictionary.Create<CompositionContract, ImmutableList<Export>>());
+                ImmutableDictionary.Create<CompositionContract, ImmutableList<ExportDefinitionBinding>>());
         }
 
         public static ComposableCatalog Create(IEnumerable<ComposablePartDefinition> parts)
@@ -96,8 +96,8 @@
 
             foreach (var export in partDefinition.ExportedTypes)
             {
-                var list = exportsByContract.GetValueOrDefault(export.Contract, ImmutableList.Create<Export>());
-                exportsByContract = exportsByContract.SetItem(export.Contract, list.Add(new Export(export, partDefinition, exportingMember: null)));
+                var list = exportsByContract.GetValueOrDefault(export.Contract, ImmutableList.Create<ExportDefinitionBinding>());
+                exportsByContract = exportsByContract.SetItem(export.Contract, list.Add(new ExportDefinitionBinding(export, partDefinition, exportingMember: null)));
             }
 
             foreach (var exportPair in partDefinition.ExportingMembers)
@@ -105,8 +105,8 @@
                 var member = exportPair.Key;
                 foreach (var export in exportPair.Value)
                 {
-                    var list = exportsByContract.GetValueOrDefault(export.Contract, ImmutableList.Create<Export>());
-                    exportsByContract = exportsByContract.SetItem(export.Contract, list.Add(new Export(export, partDefinition, member)));
+                    var list = exportsByContract.GetValueOrDefault(export.Contract, ImmutableList.Create<ExportDefinitionBinding>());
+                    exportsByContract = exportsByContract.SetItem(export.Contract, list.Add(new ExportDefinitionBinding(export, partDefinition, member)));
                 }
             }
 

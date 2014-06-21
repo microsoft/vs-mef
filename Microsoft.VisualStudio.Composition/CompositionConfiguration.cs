@@ -313,7 +313,7 @@
                 nodes.Add(Dgml.Node(part.Definition.Id, ReflectionHelpers.GetTypeName(part.Definition.Type, false, true, null)));
                 foreach (var import in part.SatisfyingExports.Keys)
                 {
-                    foreach (Export export in part.SatisfyingExports[import])
+                    foreach (ExportDefinitionBinding export in part.SatisfyingExports[import])
                     {
                         string linkLabel = !export.ExportDefinition.Contract.Type.Equals(export.PartDefinition.Type)
                             ? export.ExportDefinition.Contract.ToString()
@@ -347,7 +347,7 @@
         [DebuggerDisplay("{PartDefinition.Type.Name}")]
         private class PartBuilder
         {
-            internal PartBuilder(ComposablePartDefinition partDefinition, IReadOnlyDictionary<Import, IReadOnlyList<Export>> importedParts)
+            internal PartBuilder(ComposablePartDefinition partDefinition, IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> importedParts)
             {
                 Requires.NotNull(partDefinition, "partDefinition");
                 Requires.NotNull(importedParts, "importedParts");
@@ -380,7 +380,7 @@
             /// <summary>
             /// Gets the set of parts imported by this one.
             /// </summary>
-            public IReadOnlyDictionary<Import, IReadOnlyList<Export>> SatisfyingExports { get; private set; }
+            public IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> SatisfyingExports { get; private set; }
 
             public void ApplySharingBoundary()
             {

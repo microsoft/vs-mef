@@ -92,7 +92,7 @@ foreach (var contractNamesAndContractsAndExports in this.ExportsByContract)
     foreach (var contractAndExports in contractNamesAndContractsAndExports)
     {
         CompositionContract contract = contractAndExports.Key;
-        IEnumerable<Export> exports = contractAndExports;
+        IEnumerable<ExportDefinitionBinding> exports = contractAndExports;
 
             
             #line default

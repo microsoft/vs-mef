@@ -8,9 +8,9 @@
     using System.Threading.Tasks;
     using Validation;
 
-    public class Export
+    public class ExportDefinitionBinding
     {
-        public Export(ExportDefinition exportDefinition, ComposablePartDefinition partDefinition, MemberInfo exportingMember)
+        public ExportDefinitionBinding(ExportDefinition exportDefinition, ComposablePartDefinition partDefinition, MemberInfo exportingMember)
         {
             Requires.NotNull(exportDefinition, "exportDefinition");
             Requires.NotNull(partDefinition, "partDefinition");

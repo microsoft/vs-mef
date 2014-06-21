@@ -8,13 +8,13 @@
     using System.Threading.Tasks;
     using Validation;
 
-    public class Import : IEquatable<Import>
+    public class ImportDefinitionBinding : IEquatable<ImportDefinitionBinding>
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="Import"/> class
+        /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
         /// to represent an importing member.
         /// </summary>
-        public Import(ImportDefinition importDefinition, Type composablePartType, MemberInfo importingMember)
+        public ImportDefinitionBinding(ImportDefinition importDefinition, Type composablePartType, MemberInfo importingMember)
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(composablePartType, "composablePartType");
@@ -27,10 +27,10 @@
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Import"/> class
+        /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
         /// to represent a parameter in an importing constructor.
         /// </summary>
-        public Import(ImportDefinition importDefinition, Type composablePartType, ParameterInfo importingConstructorParameter)
+        public ImportDefinitionBinding(ImportDefinition importDefinition, Type composablePartType, ParameterInfo importingConstructorParameter)
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(composablePartType, "composablePartType");
@@ -43,10 +43,10 @@
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Import"/> class
+        /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
         /// to represent an imperative query into the container (no importing part).
         /// </summary>
-        public Import(ImportDefinition importDefinition)
+        public ImportDefinitionBinding(ImportDefinition importDefinition)
         {
             Requires.NotNull(importDefinition, "importDefinition");
 
@@ -140,10 +140,10 @@
 
         public override bool Equals(object obj)
         {
-            return this.Equals(obj as Import);
+            return this.Equals(obj as ImportDefinitionBinding);
         }
 
-        public bool Equals(Import other)
+        public bool Equals(ImportDefinitionBinding other)
         {
             if (other == null)
             {

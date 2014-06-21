@@ -14,7 +14,7 @@
     [DebuggerDisplay("{Definition.Type.Name}")]
     public class ComposedPart
     {
-        public ComposedPart(ComposablePartDefinition definition, IReadOnlyDictionary<Import, IReadOnlyList<Export>> satisfyingExports, IImmutableSet<string> requiredSharingBoundaries)
+        public ComposedPart(ComposablePartDefinition definition, IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExports, IImmutableSet<string> requiredSharingBoundaries)
         {
             Requires.NotNull(definition, "definition");
             Requires.NotNull(satisfyingExports, "satisfyingExports");
@@ -34,19 +34,19 @@
         /// <summary>
         /// Gets a map of this part's imports, and the exports which satisfy them.
         /// </summary>
-        public IReadOnlyDictionary<Import, IReadOnlyList<Export>> SatisfyingExports { get; private set; }
+        public IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> SatisfyingExports { get; private set; }
 
         /// <summary>
         /// Gets the set of sharing boundaries that this part must be instantiated within.
         /// </summary>
         public IImmutableSet<string> RequiredSharingBoundaries { get; private set; }
 
-        public IEnumerable<KeyValuePair<Import, IReadOnlyList<Export>>> GetImportingConstructorImports()
+        public IEnumerable<KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>> GetImportingConstructorImports()
         {
             foreach (var import in this.Definition.ImportingConstructor)
             {
                 var key = this.SatisfyingExports.Keys.Single(k => k.ImportDefinition == import.ImportDefinition);
-                yield return new KeyValuePair<Import, IReadOnlyList<Export>>(key, this.SatisfyingExports[key]);
+                yield return new KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>(key, this.SatisfyingExports[key]);
             }
         }
 

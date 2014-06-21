@@ -157,7 +157,7 @@
             return newValue;
         }
 
-        internal static bool IsImportManyCollectionTypeCreateable(Import import)
+        internal static bool IsImportManyCollectionTypeCreateable(ImportDefinitionBinding import)
         {
             Requires.NotNull(import, "import");
 

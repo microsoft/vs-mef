@@ -18,7 +18,7 @@
             typeof(ExportProviderAsExport),
             new[] { new ExportDefinition(ExportProviderContract, PartCreationPolicyConstraint.GetExportMetadata(CreationPolicy.Shared)) },
             ImmutableDictionary<MemberInfo, IReadOnlyList<ExportDefinition>>.Empty,
-            ImmutableList<Import>.Empty,
+            ImmutableList<ImportDefinitionBinding>.Empty,
             null,
             null,
             CreationPolicy.Shared);
