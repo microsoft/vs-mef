@@ -22,7 +22,7 @@
     {
         private ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides;
 
-        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposablePart> parts, ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides)
+        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposedPart> parts, ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides)
         {
             Requires.NotNull(catalog, "catalog");
             Requires.NotNull(parts, "parts");
@@ -36,7 +36,7 @@
 
         public ComposableCatalog Catalog { get; private set; }
 
-        public ISet<ComposablePart> Parts { get; private set; }
+        public ISet<ComposedPart> Parts { get; private set; }
 
         public ImmutableHashSet<Assembly> AdditionalReferenceAssemblies { get; private set; }
 
@@ -82,10 +82,10 @@
             var sharingBoundaryOverrides = ComputeInferredSharingBoundaries(partBuilders.Values);
 
             // Build up our set of composed parts.
-            var partsBuilder = ImmutableHashSet.CreateBuilder<ComposablePart>();
+            var partsBuilder = ImmutableHashSet.CreateBuilder<ComposedPart>();
             foreach (var partBuilder in partBuilders.Values)
             {
-                var composedPart = new ComposablePart(partBuilder.PartDefinition, partBuilder.SatisfyingExports, partBuilder.RequiredSharingBoundaries.ToImmutableHashSet());
+                var composedPart = new ComposedPart(partBuilder.PartDefinition, partBuilder.SatisfyingExports, partBuilder.RequiredSharingBoundaries.ToImmutableHashSet());
                 partsBuilder.Add(composedPart);
             }
 
@@ -155,9 +155,9 @@
             return this.effectiveSharingBoundaryOverrides.GetValueOrDefault(partDefinition) ?? partDefinition.SharingBoundary;
         }
 
-        private static bool IsLoopPresent(ImmutableHashSet<ComposablePart> parts)
+        private static bool IsLoopPresent(ImmutableHashSet<ComposedPart> parts)
         {
-            var partsAndDirectImports = new Dictionary<ComposablePart, ImmutableHashSet<ComposablePart>>();
+            var partsAndDirectImports = new Dictionary<ComposedPart, ImmutableHashSet<ComposedPart>>();
 
             // First create a map of each NonShared part and the NonShared parts it directly imports.
             foreach (var part in parts.Where(p => !p.Definition.IsShared))
@@ -301,7 +301,7 @@
             return CreateDgml(this.Parts);
         }
 
-        private static XDocument CreateDgml(ISet<ComposablePart> parts)
+        private static XDocument CreateDgml(ISet<ComposedPart> parts)
         {
             Requires.NotNull(parts, "parts");
 

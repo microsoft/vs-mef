@@ -80,7 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ComposableCatalog.cs" />
-    <Compile Include="ComposablePart.cs" />
+    <Compile Include="ComposedPart.cs" />
     <Compile Include="CompositionConstants.cs" />
     <Compile Include="CompositionFailedException.cs" />
     <Compile Include="ContractNameServices.cs" />

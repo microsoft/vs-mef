@@ -12,9 +12,9 @@
     using Validation;
 
     [DebuggerDisplay("{Definition.Type.Name}")]
-    public class ComposablePart
+    public class ComposedPart
     {
-        public ComposablePart(ComposablePartDefinition definition, IReadOnlyDictionary<Import, IReadOnlyList<Export>> satisfyingExports, IImmutableSet<string> requiredSharingBoundaries)
+        public ComposedPart(ComposablePartDefinition definition, IReadOnlyDictionary<Import, IReadOnlyList<Export>> satisfyingExports, IImmutableSet<string> requiredSharingBoundaries)
         {
             Requires.NotNull(definition, "definition");
             Requires.NotNull(satisfyingExports, "satisfyingExports");

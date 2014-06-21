@@ -538,7 +538,7 @@
             });
         }
 
-        private void EmitInstantiatePart(ComposablePart part)
+        private void EmitInstantiatePart(ComposedPart part)
         {
             if (!part.Definition.IsInstantiable)
             {
