@@ -450,12 +450,12 @@
 
             public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
             {
-                throw new NotImplementedException();
+                throw new NotSupportedException("Not supported by System.Composition.");
             }
 
             public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
             {
-                throw new NotImplementedException();
+                throw new NotSupportedException("Not supported by System.Composition.");
             }
 
             public T GetExportedValue<T>()
