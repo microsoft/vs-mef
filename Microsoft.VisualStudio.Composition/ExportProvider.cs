@@ -69,7 +69,8 @@
         public ILazy<T> GetExport<T>(string contractName)
         {
             var compositionContract = new CompositionContract(contractName, typeof(T));
-            return (ILazy<T>)ExpectOne(this.GetExports(compositionContract));
+            var importDefinition = new ImportDefinition(compositionContract, ImportCardinality.ExactlyOne, ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty);
+            return (ILazy<T>)this.GetExports(importDefinition).Single();
         }
 
         public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
@@ -80,12 +81,9 @@
         public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
         {
             var compositionContract = new CompositionContract(contractName, typeof(T));
-            var result = (ILazy<T, TMetadataView>)ExpectOne(this.GetExports(compositionContract));
-            if (result == null)
-            {
-                throw new CompositionFailedException();
-            }
-
+            var constraints = ImmutableHashSet.Create(new ImportMetadataViewConstraint(typeof(TMetadataView)));
+            var importDefinition = new ImportDefinition(compositionContract, ImportCardinality.ExactlyOne, constraints);
+            var result = (ILazy<T, TMetadataView>)this.GetExports(importDefinition).Single();
             return result;
         }
 
@@ -107,8 +105,9 @@
         public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
         {
             var compositionContract = new CompositionContract(contractName, typeof(T));
-            var result = (IEnumerable<ILazy<T>>)this.GetExports(compositionContract) ?? Enumerable.Empty<ILazy<T>>();
-            return result;
+            var importDefinition = new ImportDefinition(compositionContract, ImportCardinality.ZeroOrMore, ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty);
+            var result = this.GetExports(importDefinition);
+            return result.Cast<ILazy<T>>();
         }
 
         public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
@@ -119,13 +118,10 @@
         public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
         {
             var compositionContract = new CompositionContract(contractName, typeof(T));
-            var result = (IEnumerable<ILazy<T, TMetadataView>>)this.GetExports(compositionContract);
-            if (result == null)
-            {
-                return Enumerable.Empty<ILazy<T, TMetadataView>>();
-            }
-
-            return result;
+            var constraints = ImmutableHashSet.Create(new ImportMetadataViewConstraint(typeof(TMetadataView)));
+            var importDefinition = new ImportDefinition(compositionContract, ImportCardinality.ZeroOrMore, constraints);
+            var result = this.GetExports(importDefinition);
+            return result.Cast<ILazy<T, TMetadataView>>();
         }
 
         public IEnumerable<T> GetExportedValues<T>()
@@ -143,8 +139,9 @@
             Requires.NotNull(contractType, "contractType");
 
             var compositionContract = new CompositionContract(contractName, contractType);
-            var result = (IEnumerable<ILazy<object>>)this.GetExports(compositionContract) ?? Enumerable.Empty<ILazy<object>>();
-            return result;
+            var importDefinition = new ImportDefinition(compositionContract, ImportCardinality.ZeroOrMore, ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty);
+            var result = this.GetExports(importDefinition);
+            return result.Cast<ILazy<object>>();
         }
 
         public IEnumerable<ILazy<object, IDictionary<string, object>>> GetExports(string contractName)
@@ -235,22 +232,18 @@
             }
         }
 
-        private static object ExpectOne(IEnumerable<object> exports)
+        private IEnumerable<object> GetExports(ImportDefinition importDefinition)
         {
-            if (exports == null)
+            Requires.NotNull(importDefinition, "importDefinition");
+
+            var compositionContract = importDefinition.Contract;
+            var exports = this.GetExports(compositionContract) ?? ImmutableList<ILazy<object>>.Empty;
+            if (importDefinition.Cardinality == ImportCardinality.ExactlyOne && exports.Count() != 1)
             {
-                // Null is our derived type's way of saying there are no exports.
                 throw new CompositionFailedException();
             }
 
-            try
-            {
-                return exports.Single();
-            }
-            catch (InvalidOperationException)
-            {
-                throw new CompositionFailedException();
-            }
+            return exports;
         }
 
         private Dictionary<Type, object> AcquireSharingBoundaryInstances(string sharingBoundaryName)
