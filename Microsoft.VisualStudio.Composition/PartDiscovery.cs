@@ -126,14 +126,29 @@
 
             var result = ImmutableHashSet.Create<IImportSatisfiabilityConstraint>();
 
-            Type receivingTypeWithoutMany = importMany ? PartDiscovery.GetElementTypeFromMany(receivingType) : receivingType;
-            Type metadataType = GetMetadataType(receivingTypeWithoutMany);
+            Type elementType = importMany ? PartDiscovery.GetElementTypeFromMany(receivingType) : receivingType;
+            Type metadataType = GetMetadataType(elementType);
             if (metadataType != null)
             {
                 result = result.Add(new ImportMetadataViewConstraint(metadataType));
             }
 
             return result;
+        }
+
+        protected internal static ImmutableDictionary<string, object> GetImportMetadataForGenericTypeImport(Type contractType)
+        {
+            Requires.NotNull(contractType, "contractType");
+            if (contractType.IsConstructedGenericType)
+            {
+                return ImmutableDictionary.Create<string, object>()
+                    .Add(CompositionConstants.GenericContractMetadataName, GetContractName(contractType))
+                    .Add(CompositionConstants.GenericParametersMetadataName, contractType.GenericTypeArguments);
+            }
+            else
+            {
+                return ImmutableDictionary<string, object>.Empty;
+            }
         }
 
         protected static Array AddElement(Array priorArray, object value)

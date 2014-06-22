@@ -89,6 +89,9 @@
     <Compile Include="DisposableWithAction.cs" />
     <Compile Include="ExportDefinitionBinding.cs" />
     <Compile Include="ExportFactory.cs" />
+    <Compile Include="Export.cs" />
+    <Compile Include="ExportTypeIdentityConstraint.cs" />
+    <Compile Include="IHasValueAndMetadata.cs" />
     <Compile Include="ImportMetadataViewConstraint.cs" />
     <Compile Include="ICompositionContainerFactory.cs" />
     <Compile Include="IImportSatisfiabilityConstraint.cs" />

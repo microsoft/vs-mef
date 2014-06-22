@@ -215,11 +215,11 @@
                     contractType = contractType.GetGenericArguments()[0];
                 }
 
-                var contract = new CompositionContract(importAttribute.ContractName, contractType);
                 importConstraints = importConstraints.Union(GetMetadataViewConstraints(importingType, importMany: false));
                 importDefinition = new ImportDefinition(
-                    contract,
+                    string.IsNullOrEmpty(importAttribute.ContractName) ? GetContractName(contractType) : importAttribute.ContractName,
                     importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
+                    GetImportMetadataForGenericTypeImport(contractType),
                     importConstraints,
                     sharingBoundaries);
                 return true;
@@ -227,13 +227,13 @@
             else if (importManyAttribute != null)
             {
                 Type contractType = GetTypeIdentityFromImportingType(importingType, importMany: true);
-                var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
                 importConstraints = importConstraints.Union(GetMetadataViewConstraints(importingType, importMany: true));
                 importDefinition = new ImportDefinition(
-                   contract,
-                   ImportCardinality.ZeroOrMore,
-                   importConstraints,
-                   sharingBoundaries);
+                    string.IsNullOrEmpty(importManyAttribute.ContractName) ? GetContractName(contractType) : importManyAttribute.ContractName,
+                    ImportCardinality.ZeroOrMore,
+                    GetImportMetadataForGenericTypeImport(contractType),
+                    importConstraints,
+                    sharingBoundaries);
                 return true;
             }
             else

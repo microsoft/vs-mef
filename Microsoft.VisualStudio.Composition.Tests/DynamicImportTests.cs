@@ -11,14 +11,14 @@
 
     public class DynamicImportTests
     {
-        [MefFact(CompositionEngines.V1, typeof(Apple), typeof(PartImportingByDynamic))]
+        [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(PartImportingByDynamic))]
         public void AcquirePartWithDynamicImport(IContainer container)
         {
             var part = container.GetExportedValue<PartImportingByDynamic>();
             Assert.IsType(typeof(Apple), part.Apple);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(Apple), typeof(PartImportingByObject))]
+        [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(PartImportingByObject))]
         public void AcquirePartWithObjectImport(IContainer container)
         {
             var part = container.GetExportedValue<PartImportingByObject>();

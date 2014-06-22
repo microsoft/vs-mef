@@ -46,12 +46,13 @@
         /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
         /// to represent an imperative query into the container (no importing part).
         /// </summary>
-        public ImportDefinitionBinding(ImportDefinition importDefinition)
+        public ImportDefinitionBinding(ImportDefinition importDefinition, Type contractType)
         {
             Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(contractType, "contractType");
 
             this.ImportDefinition = importDefinition;
-            this.ImportingSiteType = typeof(IEnumerable<>).MakeGenericType(typeof(ILazy<>).MakeGenericType(importDefinition.Contract.Type));
+            this.ImportingSiteType = typeof(IEnumerable<>).MakeGenericType(typeof(ILazy<>).MakeGenericType(contractType));
         }
 
         /// <summary>

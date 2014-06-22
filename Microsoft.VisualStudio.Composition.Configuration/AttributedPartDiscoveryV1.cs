@@ -172,12 +172,12 @@
                     : (CreationPolicy)importAttribute.RequiredCreationPolicy;
 
                 Type contractType = importAttribute.ContractType ?? GetTypeIdentityFromImportingType(importingType, importMany: false);
-                var contract = new CompositionContract(importAttribute.ContractName, contractType);
                 var constraints = PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraints(requiredCreationPolicy)
                     .Union(GetMetadataViewConstraints(importingType, importMany: false));
                 importDefinition = new ImportDefinition(
-                    contract,
+                    string.IsNullOrEmpty(importAttribute.ContractName) ? GetContractName(contractType) : importAttribute.ContractName,
                     importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
+                    GetImportMetadataForGenericTypeImport(contractType),
                     constraints);
                 return true;
             }
@@ -193,12 +193,12 @@
                     : (CreationPolicy)importManyAttribute.RequiredCreationPolicy;
 
                 Type contractType = importManyAttribute.ContractType ?? GetTypeIdentityFromImportingType(importingType, importMany: true);
-                var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
                 var constraints = PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraints(requiredCreationPolicy)
                    .Union(GetMetadataViewConstraints(importingType, importMany: true));
                 importDefinition = new ImportDefinition(
-                    contract,
+                    string.IsNullOrEmpty(importManyAttribute.ContractName) ? GetContractName(contractType) : importManyAttribute.ContractName,
                     ImportCardinality.ZeroOrMore,
+                    GetImportMetadataForGenericTypeImport(contractType),
                     constraints);
                 return true;
             }

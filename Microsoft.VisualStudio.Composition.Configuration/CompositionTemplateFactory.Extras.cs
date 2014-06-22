@@ -374,7 +374,7 @@
                 }
                 else
                 {
-                    var genericTypeArgs = import.ImportDefinition.Contract.Type.GetGenericArguments();
+                    var genericTypeArgs = (IReadOnlyList<Type>)import.ImportDefinition.Metadata.GetValueOrDefault(CompositionConstants.GenericParametersMetadataName, ImmutableList<Type>.Empty);
                     string provisionalSharedObjectsExpression = import.IsExportFactory
                         ? "new Dictionary<Type, object>()"
                         : "provisionalSharedObjects";
@@ -382,7 +382,7 @@
 
                     if (genericTypeArgs.All(arg => IsPublic(arg, true)))
                     {
-                        writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, import.ImportDefinition.Contract.Type.GetGenericArguments().Select(GetTypeName).ToArray()));
+                        writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, genericTypeArgs.Select(GetTypeName).ToArray()));
                         writer.Write(provisionalSharedObjectsExpression);
                         writer.Write(", nonSharedInstanceRequired: {0})", nonSharedInstanceRequired ? "true" : "false");
                     }
@@ -620,10 +620,10 @@
             bool closeParenthesis = false;
             if (import.IsLazyConcreteType || (export.ExportingMember != null && import.IsLazy))
             {
-                if (IsPublic(importDefinition.TypeIdentity))
+                if (IsPublic(export.ExportedValueType))
                 {
                     string lazyTypeName = GetTypeName(LazyPart.FromLazy(import.ImportingSiteTypeWithoutCollection));
-                    if (import.MetadataType == null && importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type) && import.ComposablePartType != export.PartDefinition.Type)
+                    if (import.MetadataType == null && export.ExportedValueType.IsEquivalentTo(export.PartDefinition.Type) && import.ComposablePartType != export.PartDefinition.Type)
                     {
                         writer.Write("({0})", lazyTypeName);
                     }
@@ -691,7 +691,7 @@
                             "({0}){1}.CreateDelegate({2}, ",
                             GetTypeName(import.ImportingSiteElementType),
                             GetMethodInfoExpression((MethodInfo)export.ExportingMember),
-                            GetTypeExpression(import.ImportDefinition.TypeIdentity));
+                            GetTypeExpression(export.ExportedValueType));
                         break;
                     case MemberTypes.Property:
                         writer.Write(
@@ -748,7 +748,7 @@
 
                         this.WriteExportMetadataReference(export, import, writer);
                     }
-                    else if (import.IsLazyConcreteType && !importDefinition.Contract.Type.IsEquivalentTo(export.PartDefinition.Type))
+                    else if (import.IsLazyConcreteType && !export.ExportedValueType.IsEquivalentTo(export.PartDefinition.Type))
                     {
                         writer.Write(memberAccessor);
                     }
@@ -773,19 +773,22 @@
             });
         }
 
-        private void EmitGetExportsReturnExpression(CompositionContract contract, IEnumerable<ExportDefinitionBinding> exports)
+        private void EmitGetExportsReturnExpression(IGrouping<string, ExportDefinitionBinding> exports)
         {
             using (Indent(4))
             {
-                if (contract.Type.IsGenericTypeDefinition)
+                ////if (contract.Type.IsGenericTypeDefinition)
+                ////{
+                ////    string localVarName = this.EmitOpenGenericExportCollection(WrapContractAsImportDefinition(contract), exports);
+                ////    this.WriteLine("return (IEnumerable<object>){0};", localVarName);
+                ////}
+                ////else
                 {
-                    string localVarName = this.EmitOpenGenericExportCollection(WrapContractAsImportDefinition(contract), exports);
-                    this.WriteLine("return (IEnumerable<object>){0};", localVarName);
-                }
-                else
-                {
+                    var synthesizedImport = new ImportDefinitionBinding(
+                        new ImportDefinition(exports.Key, ImportCardinality.ZeroOrMore, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty),
+                        typeof(object));
                     this.Write("return ");
-                    this.EmitSatisfyImportManyArrayOrEnumerableExpression(WrapContractAsImport(contract), exports);
+                    this.EmitSatisfyImportManyArrayOrEnumerableExpression(synthesizedImport, exports);
                     this.WriteLine(";");
                 }
             }
@@ -809,7 +812,7 @@
             }
         }
 
-        private IEnumerable<IGrouping<string, IGrouping<CompositionContract, ExportDefinitionBinding>>> ExportsByContract
+        private IEnumerable<IGrouping<string, ExportDefinitionBinding>> ExportsByContract
         {
             get
             {
@@ -818,9 +821,8 @@
                     from exportingMemberAndDefinition in part.Definition.ExportDefinitions
                     let export = new ExportDefinitionBinding(exportingMemberAndDefinition.Value, part.Definition, exportingMemberAndDefinition.Key)
                     where part.Definition.IsInstantiable || part.Definition.Equals(ExportProvider.ExportProviderPartDefinition) // normally they must be instantiable, but we have one special case.
-                    group export by export.ExportDefinition.Contract into exportsByContract
-                    group exportsByContract by exportsByContract.Key.ContractName into exportsByContractByName
-                    select exportsByContractByName;
+                    group export by export.ExportDefinition.Contract.ContractName into exportsByContract
+                    select exportsByContract;
             }
         }
 
@@ -1097,21 +1099,14 @@
             }
         }
 
-        private static ImportDefinitionBinding WrapContractAsImport(CompositionContract contract)
-        {
-            Requires.NotNull(contract, "contract");
-
-            var importDefinition = WrapContractAsImportDefinition(contract);
-            return new ImportDefinitionBinding(importDefinition);
-        }
-
         private static ImportDefinition WrapContractAsImportDefinition(CompositionContract contract)
         {
             Requires.NotNull(contract, "contract");
 
             var importDefinition = new ImportDefinition(
-                contract,
+                contract.ContractName,
                 ImportCardinality.ZeroOrMore,
+                ImmutableDictionary<string, object>.Empty,
                 ImmutableList.Create<IImportSatisfiabilityConstraint>());
             return importDefinition;
         }

@@ -9,6 +9,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
+    using DefaultMetadataType = System.Collections.Generic.IDictionary<string, object>;
 
     public abstract class ExportProvider : IDisposable
     {
@@ -68,9 +69,7 @@
 
         public ILazy<T> GetExport<T>(string contractName)
         {
-            var compositionContract = new CompositionContract(contractName, typeof(T));
-            var importDefinition = new ImportDefinition(compositionContract, ImportCardinality.ExactlyOne, ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty);
-            return (ILazy<T>)this.GetExports(importDefinition).Single();
+            return this.GetExport<T, DefaultMetadataType>(contractName);
         }
 
         public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
@@ -80,11 +79,7 @@
 
         public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
         {
-            var compositionContract = new CompositionContract(contractName, typeof(T));
-            var constraints = ImmutableHashSet.Create(new ImportMetadataViewConstraint(typeof(TMetadataView)));
-            var importDefinition = new ImportDefinition(compositionContract, ImportCardinality.ExactlyOne, constraints);
-            var result = (ILazy<T, TMetadataView>)this.GetExports(importDefinition).Single();
-            return result;
+            return this.GetExports<T, TMetadataView>(contractName, ImportCardinality.ExactlyOne).Single();
         }
 
         public T GetExportedValue<T>()
@@ -104,10 +99,7 @@
 
         public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
         {
-            var compositionContract = new CompositionContract(contractName, typeof(T));
-            var importDefinition = new ImportDefinition(compositionContract, ImportCardinality.ZeroOrMore, ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty);
-            var result = this.GetExports(importDefinition);
-            return result.Cast<ILazy<T>>();
+            return this.GetExports<T, DefaultMetadataType>(contractName);
         }
 
         public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
@@ -117,11 +109,7 @@
 
         public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
         {
-            var compositionContract = new CompositionContract(contractName, typeof(T));
-            var constraints = ImmutableHashSet.Create(new ImportMetadataViewConstraint(typeof(TMetadataView)));
-            var importDefinition = new ImportDefinition(compositionContract, ImportCardinality.ZeroOrMore, constraints);
-            var result = this.GetExports(importDefinition);
-            return result.Cast<ILazy<T, TMetadataView>>();
+            return this.GetExports<T, TMetadataView>(contractName, ImportCardinality.ZeroOrMore);
         }
 
         public IEnumerable<T> GetExportedValues<T>()
@@ -134,19 +122,21 @@
             return this.GetExports<T>(contractName).Select(l => l.Value);
         }
 
-        public IEnumerable<ILazy<object>> GetExports(Type contractType, string contractName)
+        public IEnumerable<Export> GetExports(ImportDefinition importDefinition)
         {
-            Requires.NotNull(contractType, "contractType");
+            Requires.NotNull(importDefinition, "importDefinition");
 
-            var compositionContract = new CompositionContract(contractName, contractType);
-            var importDefinition = new ImportDefinition(compositionContract, ImportCardinality.ZeroOrMore, ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty);
-            var result = this.GetExports(importDefinition);
-            return result.Cast<ILazy<object>>();
-        }
+            IEnumerable<Export> exports = this.GetExportsCore(importDefinition);
+            Assumes.NotNull(exports);
+            var filteredExports = from export in exports
+                                  where importDefinition.ExportContraints.All(c => c.IsSatisfiedBy(export.Definition))
+                                  select export;
+            if (importDefinition.Cardinality == ImportCardinality.ExactlyOne && filteredExports.Count() != 1)
+            {
+                throw new CompositionFailedException();
+            }
 
-        public IEnumerable<ILazy<object, IDictionary<string, object>>> GetExports(string contractName)
-        {
-            throw new NotImplementedException();
+            return filteredExports;
         }
 
         public void Dispose()
@@ -183,9 +173,12 @@
 
         /// <summary>
         /// When implemented by a derived class, returns an <see cref="IEnumerable&lt;ILazy&lt;T&gt;&gt;"/> of values that
-        /// satisfy the specified <see cref="ExportDefinition"/>.
+        /// satisfy the contract name of the specified <see cref="ImportDefinition"/>.
         /// </summary>
-        protected abstract IEnumerable<object> GetExports(CompositionContract compositionContract);
+        /// <remarks>
+        /// The derived type is *not* expected to filter the exports based on the import definition constraints.
+        /// </remarks>
+        protected abstract IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition);
 
         protected bool TryGetSharedInstanceFactory<T>(string partSharingBoundary, Type type, out ILazy<T> value)
         {
@@ -232,18 +225,22 @@
             }
         }
 
-        private IEnumerable<object> GetExports(ImportDefinition importDefinition)
+        private IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName, ImportCardinality cardinality)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
+            contractName = string.IsNullOrEmpty(contractName) ? ContractNameServices.GetTypeIdentity(typeof(T)) : contractName;
 
-            var compositionContract = importDefinition.Contract;
-            var exports = this.GetExports(compositionContract) ?? ImmutableList<ILazy<object>>.Empty;
-            if (importDefinition.Cardinality == ImportCardinality.ExactlyOne && exports.Count() != 1)
+            var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty
+                .Add(new ExportTypeIdentityConstraint(typeof(T)));
+
+            if (typeof(TMetadataView) != typeof(DefaultMetadataType))
             {
-                throw new CompositionFailedException();
+                constraints = constraints.Add(new ImportMetadataViewConstraint(typeof(TMetadataView)));
             }
 
-            return exports;
+            var importMetadata = PartDiscovery.GetImportMetadataForGenericTypeImport(typeof(T));
+            var importDefinition = new ImportDefinition(contractName, cardinality, importMetadata, constraints);
+            IEnumerable<Export> results = this.GetExports(importDefinition);
+            return results.Select(result => new LazyPart<T, TMetadataView>(() => result.Value, (TMetadataView)result.Metadata));
         }
 
         private Dictionary<Type, object> AcquireSharingBoundaryInstances(string sharingBoundaryName)
@@ -273,9 +270,9 @@
                 this.inner = inner;
             }
 
-            protected override IEnumerable<object> GetExports(CompositionContract compositionContract)
+            protected override IEnumerable<Export> GetExportsCore(ImportDefinition definition)
             {
-                return this.inner.GetExports(compositionContract);
+                return this.inner.GetExportsCore(definition);
             }
 
             protected override void Dispose(bool disposing)
