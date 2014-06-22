@@ -45,6 +45,20 @@
             Assert.Equal(0, exports.Count());
         }
 
+        [MefFact(CompositionEngines.V1/*Compat*/, typeof(Apple))]
+        public void GetExportOfTypeByObjectAndContractName(IContainer container)
+        {
+            var apple = container.GetExportedValue<object>("SomeContract");
+            Assert.IsType(typeof(Apple), apple);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Apple))]
+        public void GetExportOfTypeByBaseTypeAndContractName(IContainer container)
+        {
+            var apples = container.GetExportedValues<Fruit>("SomeContract");
+            Assert.Equal(0, apples.Count());
+        }
+
         [Export, Shared]
         [MefV1.Export]
         public class PartThatImportsExportProvider
@@ -66,5 +80,11 @@
         {
             int B { get; }
         }
+
+        public class Fruit { }
+
+        [Export("SomeContract")]
+        [MefV1.Export("SomeContract")]
+        public class Apple : Fruit { }
     }
 }
