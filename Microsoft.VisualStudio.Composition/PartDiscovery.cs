@@ -156,7 +156,7 @@
             if (contractType.IsConstructedGenericType)
             {
                 return ImmutableDictionary.Create<string, object>()
-                    .Add(CompositionConstants.GenericContractMetadataName, GetContractName(contractType))
+                    .Add(CompositionConstants.GenericContractMetadataName, GetContractName(contractType.GetGenericTypeDefinition()))
                     .Add(CompositionConstants.GenericParametersMetadataName, contractType.GenericTypeArguments);
             }
             else

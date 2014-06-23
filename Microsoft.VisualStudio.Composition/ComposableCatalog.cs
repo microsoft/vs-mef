@@ -33,7 +33,16 @@
         {
             Requires.NotNull(importDefinition, "importDefinition");
 
+            // We always want to consider exports with a matching contract name.
             var exports = this.exportsByContract.GetValueOrDefault(importDefinition.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
+
+            // For those imports of generic types, we also want to consider exports that are based on open generic exports,
+            // (TODO:) if the importer isn't using a customized contract name.
+            object genericTypeDefinitionContractName;
+            if (importDefinition.Metadata.TryGetValue(CompositionConstants.GenericContractMetadataName, out genericTypeDefinitionContractName) && genericTypeDefinitionContractName is string)
+            {
+                exports = exports.AddRange(this.exportsByContract.GetValueOrDefault((string)genericTypeDefinitionContractName, ImmutableList.Create<ExportDefinitionBinding>()));
+            }
 
             var filteredExports = from export in exports
                                   where importDefinition.ExportContraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
