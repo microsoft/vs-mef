@@ -674,33 +674,47 @@
                 writer.Write("({0})", GetTypeName(import.ImportingSiteTypeWithoutCollection));
             }
 
-            if (export.ExportingMember != null && !IsPublic(export.ExportingMember, export.PartDefinition.Type))
+            if (export.ExportingMember != null)
             {
-                closeParenthesis = true;
-
-                switch (export.ExportingMember.MemberType)
+                if (IsPublic(export.ExportingMember, export.PartDefinition.Type))
                 {
-                    case MemberTypes.Field:
-                        writer.Write(
-                            "({0}){1}.GetValue(",
-                            GetTypeName(import.ImportingSiteElementType),
-                            GetFieldInfoExpression((FieldInfo)export.ExportingMember));
-                        break;
-                    case MemberTypes.Method:
-                        writer.Write(
-                            "({0}){1}.CreateDelegate({2}, ",
-                            GetTypeName(import.ImportingSiteElementType),
-                            GetMethodInfoExpression((MethodInfo)export.ExportingMember),
-                            GetTypeExpression(import.ImportDefinition.TypeIdentity));
-                        break;
-                    case MemberTypes.Property:
-                        writer.Write(
-                            "({0}){1}.Invoke(",
-                            GetTypeName(import.ImportingSiteElementType),
-                            GetMethodInfoExpression(((PropertyInfo)export.ExportingMember).GetGetMethod(true)));
-                        break;
-                    default:
-                        throw new NotSupportedException();
+                    switch (export.ExportingMember.MemberType)
+                    {
+                        case MemberTypes.Method:
+                            closeParenthesis = true;
+                            var methodInfo = (MethodInfo)export.ExportingMember;
+                            writer.Write("new {0}(", GetTypeName(import.ImportingSiteElementType));
+                            break;
+                    }
+                }
+                else
+                {
+                    closeParenthesis = true;
+
+                    switch (export.ExportingMember.MemberType)
+                    {
+                        case MemberTypes.Field:
+                            writer.Write(
+                                "({0}){1}.GetValue(",
+                                GetTypeName(import.ImportingSiteElementType),
+                                GetFieldInfoExpression((FieldInfo)export.ExportingMember));
+                            break;
+                        case MemberTypes.Method:
+                            writer.Write(
+                                "({0}){1}.CreateDelegate({2}, ",
+                                GetTypeName(import.ImportingSiteElementType),
+                                GetMethodInfoExpression((MethodInfo)export.ExportingMember),
+                                GetTypeExpression(import.ImportDefinition.TypeIdentity));
+                            break;
+                        case MemberTypes.Property:
+                            writer.Write(
+                                "({0}){1}.Invoke(",
+                                GetTypeName(import.ImportingSiteElementType),
+                                GetMethodInfoExpression(((PropertyInfo)export.ExportingMember).GetGetMethod(true)));
+                            break;
+                        default:
+                            throw new NotSupportedException();
+                    }
                 }
             }
 
@@ -712,6 +726,12 @@
                     if (IsPublic(export.ExportingMember, export.PartDefinition.Type))
                     {
                         memberModifier = "." + export.ExportingMember.Name;
+                        switch (export.ExportingMember.MemberType)
+                        {
+                            case MemberTypes.Method:
+                                memberModifier += ")";
+                                break;
+                        }
                     }
                     else
                     {
