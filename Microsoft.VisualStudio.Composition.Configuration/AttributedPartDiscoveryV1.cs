@@ -181,7 +181,8 @@
 
                 Type contractType = importAttribute.ContractType ?? GetTypeIdentityFromImportingType(importingType, importMany: false);
                 var constraints = PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraints(requiredCreationPolicy)
-                    .Union(GetMetadataViewConstraints(importingType, importMany: false));
+                    .Union(GetMetadataViewConstraints(importingType, importMany: false))
+                    .Union(GetExportTypeIdentityConstraints(contractType));
                 importDefinition = new ImportDefinition(
                     string.IsNullOrEmpty(importAttribute.ContractName) ? GetContractName(contractType) : importAttribute.ContractName,
                     importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
@@ -202,7 +203,8 @@
 
                 Type contractType = importManyAttribute.ContractType ?? GetTypeIdentityFromImportingType(importingType, importMany: true);
                 var constraints = PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraints(requiredCreationPolicy)
-                   .Union(GetMetadataViewConstraints(importingType, importMany: true));
+                    .Union(GetMetadataViewConstraints(importingType, importMany: true))
+                    .Union(GetExportTypeIdentityConstraints(contractType));
                 importDefinition = new ImportDefinition(
                     string.IsNullOrEmpty(importManyAttribute.ContractName) ? GetContractName(contractType) : importManyAttribute.ContractName,
                     ImportCardinality.ZeroOrMore,

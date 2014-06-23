@@ -136,6 +136,20 @@
             return result;
         }
 
+        protected static ImmutableHashSet<IImportSatisfiabilityConstraint> GetExportTypeIdentityConstraints(Type contractType)
+        {
+            Requires.NotNull(contractType, "contractType");
+
+            var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty;
+
+            if (contractType.IsConstructedGenericType)
+            {
+                constraints = constraints.Add(new ExportTypeIdentityConstraint(contractType));
+            }
+
+            return constraints;
+        }
+
         protected internal static ImmutableDictionary<string, object> GetImportMetadataForGenericTypeImport(Type contractType)
         {
             Requires.NotNull(contractType, "contractType");
