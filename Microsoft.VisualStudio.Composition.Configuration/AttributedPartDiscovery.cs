@@ -90,7 +90,7 @@
                     {
                         Type exportedType = exportAttribute.ContractType ?? member.PropertyType;
                         string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
-                        var exportMetadata = exportMetadataOnType
+                        var exportMetadata = exportMetadataOnMember
                             .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
                         var exportDefinition = new ExportDefinition(contractName, exportMetadata);
                         exportDefinitions = exportDefinitions.Add(exportDefinition);
