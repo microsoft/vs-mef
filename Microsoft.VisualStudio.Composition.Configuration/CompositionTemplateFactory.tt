@@ -56,7 +56,7 @@ foreach (var exportsByContract in this.ExportsByContract)
 #>
         }
 
-        return Enumerable.Empty<Export>();
+        return ImmutableList<Export>.Empty;
     }
 <#
 foreach (var part in this.Configuration.Parts) 

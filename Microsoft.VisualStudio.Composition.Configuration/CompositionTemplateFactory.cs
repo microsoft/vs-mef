@@ -97,7 +97,7 @@ foreach (var exportsByContract in this.ExportsByContract)
             
             #line default
             #line hidden
-            this.Write("        }\r\n\r\n        return Enumerable.Empty<Export>();\r\n    }\r\n");
+            this.Write("        }\r\n\r\n        return ImmutableList<Export>.Empty;\r\n    }\r\n");
             
             #line 61 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.Configuration\CompositionTemplateFactory.tt"
 

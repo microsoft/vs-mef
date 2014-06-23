@@ -787,8 +787,20 @@
                     var synthesizedImport = new ImportDefinitionBinding(
                         new ImportDefinition(exports.Key, ImportCardinality.ZeroOrMore, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty),
                         typeof(object));
-                    this.Write("return ");
-                    this.EmitSatisfyImportManyArrayOrEnumerableExpression(synthesizedImport, exports);
+                    
+                    this.WriteLine("return new Export[]");
+                    this.WriteLine("{");
+                    using (Indent())
+                    {
+                        foreach (var export in exports)
+                        {
+                            var valueWriter = new StringWriter();
+                            EmitValueFactory(synthesizedImport, export, valueWriter);
+                            this.WriteLine("new Export(importDefinition.ContractName, {1}, () => ({0}).Value),", valueWriter, GetExportMetadata(export));
+                        }
+                    }
+
+                    this.Write("}");
                     this.WriteLine(";");
                 }
             }

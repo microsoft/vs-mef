@@ -9,7 +9,7 @@
     using System.Threading.Tasks;
     using Validation;
 
-    [DebuggerDisplay("{Contract.Type.Name,nq}")]
+    [DebuggerDisplay("{ContractName,nq}")]
     public class ExportDefinition : IEquatable<ExportDefinition>
     {
         public ExportDefinition(string contractName, IReadOnlyDictionary<string, object> metadata)

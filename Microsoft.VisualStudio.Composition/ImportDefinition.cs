@@ -10,7 +10,7 @@
     using System.Threading.Tasks;
     using Validation;
 
-    [DebuggerDisplay("{Contract.Type.Name,nq} ({Cardinality})")]
+    [DebuggerDisplay("{ContractName,nq} ({Cardinality})")]
     public class ImportDefinition : IEquatable<ImportDefinition>
     {
         /// <summary>
