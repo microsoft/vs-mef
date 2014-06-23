@@ -620,7 +620,7 @@
             bool closeParenthesis = false;
             if (import.IsLazyConcreteType || (export.ExportingMember != null && import.IsLazy))
             {
-                if (IsPublic(export.ExportedValueType))
+                if (IsPublic(export.ExportedValueType) && export.ExportedValueType.IsEquivalentTo(import.ImportingSiteElementType))
                 {
                     string lazyTypeName = GetTypeName(LazyPart.FromLazy(import.ImportingSiteTypeWithoutCollection));
                     if (import.MetadataType == null && export.ExportedValueType.IsEquivalentTo(export.PartDefinition.Type) && import.ComposablePartType != export.PartDefinition.Type)
