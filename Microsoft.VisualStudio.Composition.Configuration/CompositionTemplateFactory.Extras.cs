@@ -683,7 +683,7 @@
                         case MemberTypes.Method:
                             closeParenthesis = true;
                             var methodInfo = (MethodInfo)export.ExportingMember;
-                            writer.Write("new {0}(", GetTypeName(import.ImportingSiteElementType));
+                            writer.Write("new {0}(", GetTypeName(export.ExportedValueType));
                             break;
                     }
                 }
