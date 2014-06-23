@@ -214,7 +214,7 @@
         private static void ValidateIndividualParts(IImmutableSet<ComposablePartDefinition> parts)
         {
             Requires.NotNull(parts, "parts");
-            var partsExportingExportProvider = parts.Where(p => p.ExportDefinitions.Any(ed => ExportProvider.ExportProviderContract.Equals(ed.Value.Contract)));
+            var partsExportingExportProvider = parts.Where(p => p.ExportDefinitions.Any(ed => ExportProvider.ExportProviderExportDefinition.Equals(ed.Value)));
             if (partsExportingExportProvider.Any())
             {
                 throw new CompositionFailedException();
@@ -315,8 +315,8 @@
                 {
                     foreach (ExportDefinitionBinding export in part.SatisfyingExports[import])
                     {
-                        string linkLabel = !export.ExportDefinition.Contract.Type.Equals(export.PartDefinition.Type)
-                            ? export.ExportDefinition.Contract.ToString()
+                        string linkLabel = !export.ExportedValueType.Equals(export.PartDefinition.Type)
+                            ? export.ExportedValueType.ToString()
                             : null;
                         links.Add(Dgml.Link(export.PartDefinition.Id, part.Definition.Id, linkLabel));
                     }

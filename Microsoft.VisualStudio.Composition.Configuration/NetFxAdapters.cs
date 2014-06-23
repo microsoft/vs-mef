@@ -34,7 +34,7 @@
                 var v3ImportDefinition = WrapImportDefinition(definition);
                 var result = ImmutableList.CreateBuilder<MefV1.Primitives.Export>();
                 var exports = this.exportProvider.GetExports(v3ImportDefinition);
-                return exports.Select(e => new MefV1.Primitives.Export(e.Definition.Contract.ContractName, (IDictionary<string, object>)e.Metadata, () => e.Value));
+                return exports.Select(e => new MefV1.Primitives.Export(e.Definition.ContractName, (IDictionary<string, object>)e.Metadata, () => e.Value));
             }
 
             private static ImportDefinition WrapImportDefinition(MefV1.Primitives.ImportDefinition definition)
@@ -74,7 +74,7 @@
             public bool IsSatisfiedBy(ExportDefinition exportDefinition)
             {
                 var v3ExportDefinition = new MefV1.Primitives.ExportDefinition(
-                    exportDefinition.Contract.ContractName,
+                    exportDefinition.ContractName,
                     (IDictionary<string, object>)exportDefinition.Metadata);
                 return this.definition.IsConstraintSatisfiedBy(v3ExportDefinition);
             }

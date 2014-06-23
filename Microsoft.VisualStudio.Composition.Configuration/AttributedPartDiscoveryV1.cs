@@ -42,8 +42,11 @@
                 foreach (var exportAttribute in exportAttributes)
                 {
                     var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
-                    var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? exportAttributes.Key);
-                    var exportDefinition = new ExportDefinition(contract, exportMetadataOnType);
+                    Type exportedType = exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? partType;
+                    string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
+                    var exportMetadata = exportMetadataOnType
+                        .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
+                    var exportDefinition = new ExportDefinition(contractName, exportMetadata);
                     exportsOnType.Add(exportDefinition);
                 }
             }
@@ -72,8 +75,11 @@
                     var exportDefinitions = ImmutableList.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
-                        var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? propertyOrFieldType);
-                        var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
+                        Type exportedType = exportAttribute.ContractType ?? propertyOrFieldType;
+                        string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
+                        var exportMetadata = exportMetadataOnMember
+                            .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
+                        var exportDefinition = new ExportDefinition(contractName, exportMetadata);
                         exportDefinitions = exportDefinitions.Add(exportDefinition);
                     }
 
@@ -90,9 +96,11 @@
                     var exportDefinitions = ImmutableList.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
-                        Type contractType = exportAttribute.ContractType ?? ExportDefinitionBinding.GetContractTypeForDelegate(method);
-                        var contract = new CompositionContract(exportAttribute.ContractName, contractType);
-                        var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
+                        Type exportedType = exportAttribute.ContractType ?? ExportDefinitionBinding.GetContractTypeForDelegate(method);
+                        string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
+                        var exportMetadata = exportMetadataOnMember
+                            .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
+                        var exportDefinition = new ExportDefinition(contractName, exportMetadata);
                         exportDefinitions = exportDefinitions.Add(exportDefinition);
                     }
 

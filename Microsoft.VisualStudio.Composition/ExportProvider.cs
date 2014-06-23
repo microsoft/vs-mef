@@ -13,11 +13,13 @@
 
     public abstract class ExportProvider : IDisposable
     {
-        internal static readonly CompositionContract ExportProviderContract = new CompositionContract(null, typeof(ExportProvider));
+        internal static readonly ExportDefinition ExportProviderExportDefinition = new ExportDefinition(
+            ContractNameServices.GetTypeIdentity(typeof(ExportProvider)),
+            PartCreationPolicyConstraint.GetExportMetadata(CreationPolicy.Shared));
 
         internal static readonly ComposablePartDefinition ExportProviderPartDefinition = new ComposablePartDefinition(
             typeof(ExportProviderAsExport),
-            new[] { new ExportDefinition(ExportProviderContract, PartCreationPolicyConstraint.GetExportMetadata(CreationPolicy.Shared)) },
+            new[] { ExportProviderExportDefinition },
             ImmutableDictionary<MemberInfo, IReadOnlyList<ExportDefinition>>.Empty,
             ImmutableList<ImportDefinitionBinding>.Empty,
             null,

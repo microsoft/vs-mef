@@ -821,7 +821,7 @@
                     from exportingMemberAndDefinition in part.Definition.ExportDefinitions
                     let export = new ExportDefinitionBinding(exportingMemberAndDefinition.Value, part.Definition, exportingMemberAndDefinition.Key)
                     where part.Definition.IsInstantiable || part.Definition.Equals(ExportProvider.ExportProviderPartDefinition) // normally they must be instantiable, but we have one special case.
-                    group export by export.ExportDefinition.Contract.ContractName into exportsByContract
+                    group export by export.ExportDefinition.ContractName into exportsByContract
                     select exportsByContract;
             }
         }
@@ -1014,7 +1014,7 @@
                         valueFactoryExpression = string.Format(
                             CultureInfo.InvariantCulture,
                             "new {0}({1})",
-                            GetTypeName(exportDefinition.Contract.Type),
+                            GetTypeName(export.ExportedValueType),
                             memberExpression);
                         break;
                     case MemberTypes.Field:
@@ -1033,10 +1033,10 @@
                         valueFactoryExpression = string.Format(
                             CultureInfo.InvariantCulture,
                             "({0}){1}.CreateDelegate({3}, ({2}).Value)",
-                            GetTypeName(exportDefinition.Contract.Type),
+                            GetTypeName(export.ExportedValueType),
                             GetMethodInfoExpression((MethodInfo)member),
                             partExpression,
-                            GetTypeExpression(exportDefinition.Contract.Type));
+                            GetTypeExpression(export.ExportedValueType));
                         break;
                     case MemberTypes.Field:
                         valueFactoryExpression = string.Format(
@@ -1062,7 +1062,7 @@
             return string.Format(
                 CultureInfo.InvariantCulture,
                 "new LazyPart<{0}>(() => {1})",
-                GetTypeName(exportDefinition.Contract.Type),
+                GetTypeName(export.ExportedValueType),
                 valueFactoryExpression);
         }
 
@@ -1097,18 +1097,6 @@
                 default:
                     throw new NotSupportedException();
             }
-        }
-
-        private static ImportDefinition WrapContractAsImportDefinition(CompositionContract contract)
-        {
-            Requires.NotNull(contract, "contract");
-
-            var importDefinition = new ImportDefinition(
-                contract.ContractName,
-                ImportCardinality.ZeroOrMore,
-                ImmutableDictionary<string, object>.Empty,
-                ImmutableList.Create<IImportSatisfiabilityConstraint>());
-            return importDefinition;
         }
 
         private LazyConstructionResult EmitLazyConstruction(Type valueType, Type metadataType, TextWriter writer = null)

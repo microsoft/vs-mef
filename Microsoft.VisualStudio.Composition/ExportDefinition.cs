@@ -12,17 +12,16 @@
     [DebuggerDisplay("{Contract.Type.Name,nq}")]
     public class ExportDefinition : IEquatable<ExportDefinition>
     {
-        public ExportDefinition(CompositionContract contract, IReadOnlyDictionary<string, object> metadata)
+        public ExportDefinition(string contractName, IReadOnlyDictionary<string, object> metadata)
         {
-            Requires.NotNull(contract, "contract");
+            Requires.NotNullOrEmpty(contractName, "contractName");
             Requires.NotNull(metadata, "metadata");
 
-            this.Contract = contract;
-            this.Metadata = ImmutableDictionary.CreateRange(metadata)
-                .SetItem(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(contract.Type));
+            this.ContractName = contractName;
+            this.Metadata = ImmutableDictionary.CreateRange(metadata);
         }
 
-        public CompositionContract Contract { get; private set; }
+        public string ContractName { get; private set; }
 
         public IReadOnlyDictionary<string, object> Metadata { get; private set; }
 
@@ -33,12 +32,13 @@
 
         public override int GetHashCode()
         {
-            return this.Contract == null ? 0 : this.Contract.GetHashCode();
+            return this.ContractName.GetHashCode();
         }
 
         public bool Equals(ExportDefinition other)
         {
-            return this.Contract.Equals(other.Contract);
+            return this.ContractName == other.ContractName
+                && this.Metadata.EqualsByValue(other.Metadata);
         }
     }
 }

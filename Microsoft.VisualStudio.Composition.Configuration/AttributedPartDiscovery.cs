@@ -59,8 +59,11 @@
             foreach (var exportAttribute in partType.GetCustomAttributes<ExportAttribute>())
             {
                 var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
-                var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? partType);
-                var exportDefinition = new ExportDefinition(contract, exportMetadataOnType);
+                Type exportedType = exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? partType;
+                string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
+                var exportMetadata = exportMetadataOnType
+                    .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
+                var exportDefinition = new ExportDefinition(contractName, exportMetadata);
                 exportsOnType.Add(exportDefinition);
             }
 
@@ -85,8 +88,11 @@
                     var exportDefinitions = ImmutableList.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
-                        var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? member.PropertyType);
-                        var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
+                        Type exportedType = exportAttribute.ContractType ?? member.PropertyType;
+                        string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
+                        var exportMetadata = exportMetadataOnType
+                            .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
+                        var exportDefinition = new ExportDefinition(contractName, exportMetadata);
                         exportDefinitions = exportDefinitions.Add(exportDefinition);
                     }
 

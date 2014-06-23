@@ -11,8 +11,8 @@
     {
         private readonly Func<object> exportedValueGetter;
 
-        public Export(CompositionContract contract, IReadOnlyDictionary<string, object> metadata, Func<object> exportedValueGetter)
-            : this(new ExportDefinition(contract, metadata), exportedValueGetter)
+        public Export(string contractName, IReadOnlyDictionary<string, object> metadata, Func<object> exportedValueGetter)
+            : this(new ExportDefinition(contractName, metadata), exportedValueGetter)
         {
         }
 

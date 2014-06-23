@@ -87,10 +87,10 @@
             var parts = this.parts.Add(partDefinition);
             var exportsByContract = this.exportsByContract;
 
-            foreach (var export in partDefinition.ExportedTypes)
+            foreach (var exportDefinition in partDefinition.ExportedTypes)
             {
-                var list = exportsByContract.GetValueOrDefault(export.Contract.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
-                exportsByContract = exportsByContract.SetItem(export.Contract.ContractName, list.Add(new ExportDefinitionBinding(export, partDefinition, exportingMember: null)));
+                var list = exportsByContract.GetValueOrDefault(exportDefinition.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
+                exportsByContract = exportsByContract.SetItem(exportDefinition.ContractName, list.Add(new ExportDefinitionBinding(exportDefinition, partDefinition, exportingMember: null)));
             }
 
             foreach (var exportPair in partDefinition.ExportingMembers)
@@ -98,8 +98,8 @@
                 var member = exportPair.Key;
                 foreach (var export in exportPair.Value)
                 {
-                    var list = exportsByContract.GetValueOrDefault(export.Contract.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
-                    exportsByContract = exportsByContract.SetItem(export.Contract.ContractName, list.Add(new ExportDefinitionBinding(export, partDefinition, member)));
+                    var list = exportsByContract.GetValueOrDefault(export.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
+                    exportsByContract = exportsByContract.SetItem(export.ContractName, list.Add(new ExportDefinitionBinding(export, partDefinition, member)));
                 }
             }
 
