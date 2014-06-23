@@ -674,7 +674,20 @@
                 writer.Write("({0})", GetTypeName(import.ImportingSiteTypeWithoutCollection));
             }
 
-            if (export.ExportingMember != null && !IsPublic(export.ExportingMember, export.PartDefinition.Type))
+            if (export.ExportingMember != null)
+            {
+                if (IsPublic(export.ExportingMember, export.PartDefinition.Type))
+                {
+                    switch (export.ExportingMember.MemberType)
+                    {
+                        case MemberTypes.Method:
+                            closeParenthesis = true;
+                            var methodInfo = (MethodInfo)export.ExportingMember;
+                            writer.Write("new {0}(", GetTypeName(import.ImportingSiteElementType));
+                            break;
+                    }
+                }
+                else
             {
                 closeParenthesis = true;
 
@@ -703,6 +716,7 @@
                         throw new NotSupportedException();
                 }
             }
+            }
 
             return new DisposableWithAction(() =>
             {
@@ -712,6 +726,12 @@
                     if (IsPublic(export.ExportingMember, export.PartDefinition.Type))
                     {
                         memberModifier = "." + export.ExportingMember.Name;
+                        switch (export.ExportingMember.MemberType)
+                        {
+                            case MemberTypes.Method:
+                                memberModifier += ")";
+                                break;
+                        }
                     }
                     else
                     {
@@ -797,7 +817,7 @@
                             var valueWriter = new StringWriter();
                             EmitValueFactory(synthesizedImport, export, valueWriter);
                             this.WriteLine("new Export(importDefinition.ContractName, {1}, () => ({0}).Value),", valueWriter, GetExportMetadata(export));
-                        }
+                }
                     }
 
                     this.Write("}");
