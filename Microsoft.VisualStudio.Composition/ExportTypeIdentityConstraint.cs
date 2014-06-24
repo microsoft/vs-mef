@@ -27,10 +27,10 @@
         {
             Requires.NotNull(exportDefinition, "exportDefinition");
 
-            object value;
+            string value;
             if (exportDefinition.Metadata.TryGetValue(CompositionConstants.ExportTypeIdentityMetadataName, out value))
             {
-                return this.typeIdentityName == value as string;
+                return this.typeIdentityName == value;
             }
 
             return false;

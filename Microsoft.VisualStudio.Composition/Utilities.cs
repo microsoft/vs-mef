@@ -37,5 +37,18 @@
 
             return true;
         }
+
+        internal static bool TryGetValue<TValue>(this IReadOnlyDictionary<string, object> metadata, string key, out TValue value)
+        {
+            object valueObject;
+            if (metadata.TryGetValue(key, out valueObject) && valueObject is TValue)
+            {
+                value = (TValue)valueObject;
+                return true;
+            }
+
+            value = default(TValue);
+            return false;
+        }
     }
 }

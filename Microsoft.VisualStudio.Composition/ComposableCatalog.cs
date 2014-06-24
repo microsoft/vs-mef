@@ -38,10 +38,17 @@
 
             // For those imports of generic types, we also want to consider exports that are based on open generic exports,
             // (TODO:) if the importer isn't using a customized contract name.
-            object genericTypeDefinitionContractName;
-            if (importDefinition.Metadata.TryGetValue(CompositionConstants.GenericContractMetadataName, out genericTypeDefinitionContractName) && genericTypeDefinitionContractName is string)
+            string genericTypeDefinitionContractName;
+            Type[] genericTypeArguments; 
+            if (importDefinition.Metadata.TryGetValue(CompositionConstants.GenericContractMetadataName, out genericTypeDefinitionContractName) &&
+                importDefinition.Metadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out genericTypeArguments))
             {
-                exports = exports.AddRange(this.exportsByContract.GetValueOrDefault((string)genericTypeDefinitionContractName, ImmutableList.Create<ExportDefinitionBinding>()));
+                var openGenericExports = this.exportsByContract.GetValueOrDefault(genericTypeDefinitionContractName, ImmutableList.Create<ExportDefinitionBinding>());
+
+                // We have to synthesize exports to match the required generic type arguments.
+                exports = exports.AddRange(
+                    from export in openGenericExports
+                    select export.CloseGenericExport(genericTypeArguments));
             }
 
             var filteredExports = from export in exports
