@@ -41,6 +41,9 @@
             var exports = container.GetExportedValues<BaseClass>();
             Assert.Equal(2, exports.Count());
             Assert.Equal(1, exports.OfType<DerivedClass>().Count());
+
+            exports = container.GetExportedValues<DerivedClass>();
+            Assert.Equal(0, exports.Count());
         }
 
         [MefV1.InheritedExport]
