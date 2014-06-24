@@ -214,7 +214,7 @@
         private static void ValidateIndividualParts(IImmutableSet<ComposablePartDefinition> parts)
         {
             Requires.NotNull(parts, "parts");
-            var partsExportingExportProvider = parts.Where(p => p.ExportDefinitions.Any(ed => ExportProvider.ExportProviderExportDefinition.Equals(ed.Value)));
+            var partsExportingExportProvider = parts.Where(p => p.ExportDefinitions.Any(ed => ExportDefinitionPracticallyEqual.Default.Equals(ExportProvider.ExportProviderExportDefinition, ed.Value)));
             if (partsExportingExportProvider.Any())
             {
                 throw new CompositionFailedException();
@@ -465,6 +465,24 @@
                 return new SharingBoundaryMetadata(
                     this.ParentBoundariesUnion.Union(parentBoundaries),
                     this.ParentBoundariesIntersection.Intersect(parentBoundaries));
+            }
+        }
+
+        private class ExportDefinitionPracticallyEqual : IEqualityComparer<ExportDefinition>
+        {
+            private ExportDefinitionPracticallyEqual() { }
+
+            internal static ExportDefinitionPracticallyEqual Default = new ExportDefinitionPracticallyEqual();
+
+            public bool Equals(ExportDefinition x, ExportDefinition y)
+            {
+                return x.ContractName == y.ContractName
+                    && x.Metadata.GetValueOrDefault(CompositionConstants.ExportTypeIdentityMetadataName) == y.Metadata.GetValueOrDefault(CompositionConstants.ExportTypeIdentityMetadataName);
+            }
+
+            public int GetHashCode(ExportDefinition obj)
+            {
+                return obj.ContractName.GetHashCode();
             }
         }
     }

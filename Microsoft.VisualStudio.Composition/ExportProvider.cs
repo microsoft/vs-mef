@@ -16,7 +16,7 @@
     {
         internal static readonly ExportDefinition ExportProviderExportDefinition = new ExportDefinition(
             ContractNameServices.GetTypeIdentity(typeof(ExportProvider)),
-            PartCreationPolicyConstraint.GetExportMetadata(CreationPolicy.Shared));
+            PartCreationPolicyConstraint.GetExportMetadata(CreationPolicy.Shared).AddRange(ExportTypeIdentityConstraint.GetExportMetadata(typeof(ExportProvider))));
 
         internal static readonly ComposablePartDefinition ExportProviderPartDefinition = new ComposablePartDefinition(
             typeof(ExportProviderAsExport),

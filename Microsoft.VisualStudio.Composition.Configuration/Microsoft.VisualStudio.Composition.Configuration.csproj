@@ -102,7 +102,6 @@
     <Compile Include="NetFxAdapters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tasks\ExceptionHelpers.cs" />
-    <Compile Include="Utilities.cs" />
     <EmbeddedResource Include="Tasks\ExportProviderFactory.cs" />
     <Compile Include="Tasks\CreateComposition.cs" />
     <Compile Include="Tasks\CreateContainerFactoryBootstrapFile.cs" />
