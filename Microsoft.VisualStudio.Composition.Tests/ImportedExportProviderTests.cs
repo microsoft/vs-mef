@@ -49,7 +49,7 @@
             Assert.Throws<InvalidOperationException>(() => importer.ExportProvider.Dispose());
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV2, typeof(PartThatExportsExportProvider), InvalidConfiguration = true)]
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(PartThatExportsExportProvider), InvalidConfiguration = true)]
         public void CannotExportExportProvider(IContainer container)
         {
         }
@@ -69,6 +69,7 @@
         public class PartThatExportsExportProvider
         {
             [Export]
+            [MefV1.Export]
             public ExportProvider ExportProvider
             {
                 get { return null; }

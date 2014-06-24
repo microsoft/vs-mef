@@ -476,8 +476,8 @@
 
             public bool Equals(ExportDefinition x, ExportDefinition y)
             {
-                return x.ContractName == y.ContractName
-                    && x.Metadata.GetValueOrDefault(CompositionConstants.ExportTypeIdentityMetadataName) == y.Metadata.GetValueOrDefault(CompositionConstants.ExportTypeIdentityMetadataName);
+                return string.Equals(x.ContractName, y.ContractName, StringComparison.Ordinal)
+                    && string.Equals(x.Metadata.GetValueOrDefault(CompositionConstants.ExportTypeIdentityMetadataName) as string, y.Metadata.GetValueOrDefault(CompositionConstants.ExportTypeIdentityMetadataName) as string, StringComparison.Ordinal);
             }
 
             public int GetHashCode(ExportDefinition obj)
