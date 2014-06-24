@@ -26,7 +26,7 @@
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(PartImportingByFruit), InvalidConfiguration = true)]
-        public void AcquirePartWithFruitImport(IContainer container)
+        public void AcquirePartWithBaseTypeImport(IContainer container)
         {
             var part = container.GetExportedValue<PartImportingByFruit>();
         }

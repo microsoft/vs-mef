@@ -142,7 +142,7 @@
 
             var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty;
 
-            if (contractType.IsConstructedGenericType)
+            if (!contractType.IsEquivalentTo(typeof(object)))
             {
                 constraints = constraints.Add(new ExportTypeIdentityConstraint(contractType));
             }
