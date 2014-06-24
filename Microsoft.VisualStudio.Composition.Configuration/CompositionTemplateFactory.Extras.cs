@@ -374,26 +374,41 @@
                 }
                 else
                 {
-                    var genericTypeArgs = (IReadOnlyList<Type>)import.ImportDefinition.Metadata.GetValueOrDefault(CompositionConstants.GenericParametersMetadataName, ImmutableList<Type>.Empty);
                     string provisionalSharedObjectsExpression = import.IsExportFactory
                         ? "new Dictionary<Type, object>()"
                         : "provisionalSharedObjects";
                     bool nonSharedInstanceRequired = PartCreationPolicyConstraint.IsNonSharedInstanceRequired(import.ImportDefinition);
-
-                    if (genericTypeArgs.All(arg => IsPublic(arg, true)))
+                    if (import.ComposablePartType == null && export.PartDefinition.Type.IsGenericType)
                     {
-                        writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, genericTypeArgs.Select(GetTypeName).ToArray()));
-                        writer.Write(provisionalSharedObjectsExpression);
-                        writer.Write(", nonSharedInstanceRequired: {0})", nonSharedInstanceRequired ? "true" : "false");
+                        // We're constructing an open generic export using generic type args that are only known at runtime.
+                        const string TypeArgsPlaceholder = "***PLACEHOLDER***";
+                        string expressionTemplate = GetGenericPartFactoryMethodInvokeExpression(
+                            export.PartDefinition,
+                            TypeArgsPlaceholder,
+                            provisionalSharedObjectsExpression,
+                            nonSharedInstanceRequired);
+                        string expression = expressionTemplate.Replace(TypeArgsPlaceholder, "(Type[])importDefinition.Metadata[\"" + CompositionConstants.GenericParametersMetadataName + "\"]");
+                        writer.Write("((ILazy<object>)({0}))", expression);
                     }
                     else
                     {
-                        string expression = GetGenericPartFactoryMethodInvokeExpression(
-                            export.PartDefinition,
-                            string.Join(", ", genericTypeArgs.Select(t => GetTypeExpression(t))),
-                            provisionalSharedObjectsExpression,
-                            nonSharedInstanceRequired);
-                        writer.Write("((ILazy<object>)({0}))", expression);
+                        var genericTypeArgs = (IReadOnlyList<Type>)import.ImportDefinition.Metadata.GetValueOrDefault(CompositionConstants.GenericParametersMetadataName, ImmutableList<Type>.Empty);
+
+                        if (genericTypeArgs.All(arg => IsPublic(arg, true)))
+                        {
+                            writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, genericTypeArgs.Select(GetTypeName).ToArray()));
+                            writer.Write(provisionalSharedObjectsExpression);
+                            writer.Write(", nonSharedInstanceRequired: {0})", nonSharedInstanceRequired ? "true" : "false");
+                        }
+                        else
+                        {
+                            string expression = GetGenericPartFactoryMethodInvokeExpression(
+                                export.PartDefinition,
+                                string.Join(", ", genericTypeArgs.Select(t => GetTypeExpression(t))),
+                                provisionalSharedObjectsExpression,
+                                nonSharedInstanceRequired);
+                            writer.Write("((ILazy<object>)({0}))", expression);
+                        }
                     }
                 }
             }
@@ -688,34 +703,34 @@
                     }
                 }
                 else
-            {
-                closeParenthesis = true;
-
-                switch (export.ExportingMember.MemberType)
                 {
-                    case MemberTypes.Field:
-                        writer.Write(
-                            "({0}){1}.GetValue(",
-                            GetTypeName(import.ImportingSiteElementType),
-                            GetFieldInfoExpression((FieldInfo)export.ExportingMember));
-                        break;
-                    case MemberTypes.Method:
-                        writer.Write(
-                            "({0}){1}.CreateDelegate({2}, ",
-                            GetTypeName(import.ImportingSiteElementType),
-                            GetMethodInfoExpression((MethodInfo)export.ExportingMember),
-                            GetTypeExpression(export.ExportedValueType));
-                        break;
-                    case MemberTypes.Property:
-                        writer.Write(
-                            "({0}){1}.Invoke(",
-                            GetTypeName(import.ImportingSiteElementType),
-                            GetMethodInfoExpression(((PropertyInfo)export.ExportingMember).GetGetMethod(true)));
-                        break;
-                    default:
-                        throw new NotSupportedException();
+                    closeParenthesis = true;
+
+                    switch (export.ExportingMember.MemberType)
+                    {
+                        case MemberTypes.Field:
+                            writer.Write(
+                                "({0}){1}.GetValue(",
+                                GetTypeName(import.ImportingSiteElementType),
+                                GetFieldInfoExpression((FieldInfo)export.ExportingMember));
+                            break;
+                        case MemberTypes.Method:
+                            writer.Write(
+                                "({0}){1}.CreateDelegate({2}, ",
+                                GetTypeName(import.ImportingSiteElementType),
+                                GetMethodInfoExpression((MethodInfo)export.ExportingMember),
+                                GetTypeExpression(export.ExportedValueType));
+                            break;
+                        case MemberTypes.Property:
+                            writer.Write(
+                                "({0}){1}.Invoke(",
+                                GetTypeName(import.ImportingSiteElementType),
+                                GetMethodInfoExpression(((PropertyInfo)export.ExportingMember).GetGetMethod(true)));
+                            break;
+                        default:
+                            throw new NotSupportedException();
+                    }
                 }
-            }
             }
 
             return new DisposableWithAction(() =>
@@ -807,7 +822,7 @@
                     var synthesizedImport = new ImportDefinitionBinding(
                         new ImportDefinition(exports.Key, ImportCardinality.ZeroOrMore, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty),
                         typeof(object));
-                    
+
                     this.WriteLine("return new Export[]");
                     this.WriteLine("{");
                     using (Indent())
@@ -817,7 +832,7 @@
                             var valueWriter = new StringWriter();
                             EmitValueFactory(synthesizedImport, export, valueWriter);
                             this.WriteLine("new Export(importDefinition.ContractName, {1}, () => ({0}).Value),", valueWriter, GetExportMetadata(export));
-                }
+                        }
                     }
 
                     this.Write("}");

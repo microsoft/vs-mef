@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -129,7 +130,21 @@
             Requires.NotNull(importDefinition, "importDefinition");
 
             IEnumerable<Export> exports = this.GetExportsCore(importDefinition);
-            Assumes.NotNull(exports);
+
+            string genericTypeDefinitionContractName;
+            Type[] genericTypeArguments;
+            if (ComposableCatalog.TryGetOpenGenericExport(importDefinition, out genericTypeDefinitionContractName, out genericTypeArguments))
+            {
+                var genericTypeImportDefinition = new ImportDefinition(genericTypeDefinitionContractName, importDefinition.Cardinality, importDefinition.Metadata, importDefinition.ExportContraints);
+                var openGenericExports = this.GetExportsCore(genericTypeImportDefinition);
+                var closedGenericExports = from export in openGenericExports
+                                           let genericTypeDefinitionIdentityPattern = (string)export.Metadata[CompositionConstants.ExportTypeIdentityMetadataName]
+                                           let closedTypeIdentity = string.Format(CultureInfo.InvariantCulture, genericTypeDefinitionIdentityPattern, genericTypeArguments.Select(ContractNameServices.GetTypeIdentity).ToArray())
+                                           let metadata = ImmutableDictionary.CreateRange(export.Metadata).SetItem(CompositionConstants.ExportTypeIdentityMetadataName, closedTypeIdentity)
+                                           select new Export(export.Definition.ContractName, metadata, () => export.Value);
+                exports = exports.Concat(closedGenericExports);
+            }
+
             var filteredExports = from export in exports
                                   where importDefinition.ExportContraints.All(c => c.IsSatisfiedBy(export.Definition))
                                   select export;
