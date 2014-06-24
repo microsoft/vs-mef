@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Composition;
     using System.Linq;
     using System.Text;
@@ -17,12 +18,17 @@
             var importer = container.GetExportedValue<PartThatImportsExportProvider>();
             var exportProvider = importer.ExportProvider;
 
-            IEnumerable<ILazy<object>> exports = exportProvider.GetExports(typeof(SomeOtherPart), null);
+            var importDefinition = new ImportDefinition(
+                typeof(SomeOtherPart).FullName,
+                ImportCardinality.ZeroOrMore,
+                ImmutableDictionary<string, object>.Empty,
+                ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty);
+            IEnumerable<Export> exports = exportProvider.GetExports(importDefinition);
             var otherPart2 = exports.Single().Value;
             Assert.NotNull(otherPart2);
         }
 
-        [MefFact(CompositionEngines.V1/*Compat | CompositionEngines.V3EmulatingV2*/, typeof(SomeOtherPart))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
         public void GetExportWithMetadataDictionary(IContainer container)
         {
             var export = container.GetExport<SomeOtherPart, IDictionary<string, object>>();

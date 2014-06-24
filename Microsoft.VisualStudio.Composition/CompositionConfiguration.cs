@@ -214,7 +214,7 @@
         private static void ValidateIndividualParts(IImmutableSet<ComposablePartDefinition> parts)
         {
             Requires.NotNull(parts, "parts");
-            var partsExportingExportProvider = parts.Where(p => p.ExportDefinitions.Any(ed => ExportProvider.ExportProviderContract.Equals(ed.Value.Contract)));
+            var partsExportingExportProvider = parts.Where(p => p.ExportDefinitions.Any(ed => ExportDefinitionPracticallyEqual.Default.Equals(ExportProvider.ExportProviderExportDefinition, ed.Value)));
             if (partsExportingExportProvider.Any())
             {
                 throw new CompositionFailedException();
@@ -315,8 +315,8 @@
                 {
                     foreach (ExportDefinitionBinding export in part.SatisfyingExports[import])
                     {
-                        string linkLabel = !export.ExportDefinition.Contract.Type.Equals(export.PartDefinition.Type)
-                            ? export.ExportDefinition.Contract.ToString()
+                        string linkLabel = !export.ExportedValueType.Equals(export.PartDefinition.Type)
+                            ? export.ExportedValueType.ToString()
                             : null;
                         links.Add(Dgml.Link(export.PartDefinition.Id, part.Definition.Id, linkLabel));
                     }
@@ -465,6 +465,24 @@
                 return new SharingBoundaryMetadata(
                     this.ParentBoundariesUnion.Union(parentBoundaries),
                     this.ParentBoundariesIntersection.Intersect(parentBoundaries));
+            }
+        }
+
+        private class ExportDefinitionPracticallyEqual : IEqualityComparer<ExportDefinition>
+        {
+            private ExportDefinitionPracticallyEqual() { }
+
+            internal static ExportDefinitionPracticallyEqual Default = new ExportDefinitionPracticallyEqual();
+
+            public bool Equals(ExportDefinition x, ExportDefinition y)
+            {
+                return string.Equals(x.ContractName, y.ContractName, StringComparison.Ordinal)
+                    && string.Equals(x.Metadata.GetValueOrDefault(CompositionConstants.ExportTypeIdentityMetadataName) as string, y.Metadata.GetValueOrDefault(CompositionConstants.ExportTypeIdentityMetadataName) as string, StringComparison.Ordinal);
+            }
+
+            public int GetHashCode(ExportDefinition obj)
+            {
+                return obj.ContractName.GetHashCode();
             }
         }
     }

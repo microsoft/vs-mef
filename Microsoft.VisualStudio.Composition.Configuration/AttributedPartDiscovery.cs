@@ -59,8 +59,11 @@
             foreach (var exportAttribute in partType.GetCustomAttributes<ExportAttribute>())
             {
                 var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
-                var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? partType);
-                var exportDefinition = new ExportDefinition(contract, exportMetadataOnType);
+                Type exportedType = exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? partType;
+                string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
+                var exportMetadata = exportMetadataOnType
+                    .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
+                var exportDefinition = new ExportDefinition(contractName, exportMetadata);
                 exportsOnType.Add(exportDefinition);
             }
 
@@ -85,8 +88,11 @@
                     var exportDefinitions = ImmutableList.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
-                        var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? member.PropertyType);
-                        var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
+                        Type exportedType = exportAttribute.ContractType ?? member.PropertyType;
+                        string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
+                        var exportMetadata = exportMetadataOnMember
+                            .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
+                        var exportDefinition = new ExportDefinition(contractName, exportMetadata);
                         exportDefinitions = exportDefinitions.Add(exportDefinition);
                     }
 
@@ -215,11 +221,11 @@
                     contractType = contractType.GetGenericArguments()[0];
                 }
 
-                var contract = new CompositionContract(importAttribute.ContractName, contractType);
                 importConstraints = importConstraints.Union(GetMetadataViewConstraints(importingType, importMany: false));
                 importDefinition = new ImportDefinition(
-                    contract,
+                    string.IsNullOrEmpty(importAttribute.ContractName) ? GetContractName(contractType) : importAttribute.ContractName,
                     importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
+                    GetImportMetadataForGenericTypeImport(contractType),
                     importConstraints,
                     sharingBoundaries);
                 return true;
@@ -227,13 +233,13 @@
             else if (importManyAttribute != null)
             {
                 Type contractType = GetTypeIdentityFromImportingType(importingType, importMany: true);
-                var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
                 importConstraints = importConstraints.Union(GetMetadataViewConstraints(importingType, importMany: true));
                 importDefinition = new ImportDefinition(
-                   contract,
-                   ImportCardinality.ZeroOrMore,
-                   importConstraints,
-                   sharingBoundaries);
+                    string.IsNullOrEmpty(importManyAttribute.ContractName) ? GetContractName(contractType) : importManyAttribute.ContractName,
+                    ImportCardinality.ZeroOrMore,
+                    GetImportMetadataForGenericTypeImport(contractType),
+                    importConstraints,
+                    sharingBoundaries);
                 return true;
             }
             else

@@ -16,9 +16,9 @@
 
         private ImmutableHashSet<ComposablePartDefinition> parts;
 
-        private ImmutableDictionary<CompositionContract, ImmutableList<ExportDefinitionBinding>> exportsByContract;
+        private ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract;
 
-        private ComposableCatalog(ImmutableHashSet<Type> types, ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<CompositionContract, ImmutableList<ExportDefinitionBinding>> exportsByContract)
+        private ComposableCatalog(ImmutableHashSet<Type> types, ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract)
         {
             Requires.NotNull(types, "types");
             Requires.NotNull(parts, "parts");
@@ -33,20 +33,43 @@
         {
             Requires.NotNull(importDefinition, "importDefinition");
 
-            var exports = this.exportsByContract.GetValueOrDefault(importDefinition.Contract, ImmutableList.Create<ExportDefinitionBinding>());
+            // We always want to consider exports with a matching contract name.
+            var exports = this.exportsByContract.GetValueOrDefault(importDefinition.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
 
-            if (importDefinition.Contract.Type.GetTypeInfo().IsGenericType && !importDefinition.Contract.Type.GetTypeInfo().IsGenericTypeDefinition)
+            // For those imports of generic types, we also want to consider exports that are based on open generic exports,
+            string genericTypeDefinitionContractName;
+            Type[] genericTypeArguments; 
+            if (TryGetOpenGenericExport(importDefinition, out genericTypeDefinitionContractName, out genericTypeArguments))
             {
-                var typeDefinitionContract = new CompositionContract(importDefinition.Contract.ContractName, importDefinition.Contract.Type.GetGenericTypeDefinition());
-                exports = exports.AddRange(this.exportsByContract.GetValueOrDefault(typeDefinitionContract, ImmutableList.Create<ExportDefinitionBinding>()));
-            }
+                var openGenericExports = this.exportsByContract.GetValueOrDefault(genericTypeDefinitionContractName, ImmutableList.Create<ExportDefinitionBinding>());
 
+                // We have to synthesize exports to match the required generic type arguments.
+                exports = exports.AddRange(
+                    from export in openGenericExports
+                    select export.CloseGenericExport(genericTypeArguments));
+            }
 
             var filteredExports = from export in exports
                                   where importDefinition.ExportContraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
                                   select export;
 
             return ImmutableList.CreateRange(filteredExports);
+        }
+
+        internal static bool TryGetOpenGenericExport(ImportDefinition importDefinition, out string contractName, out Type[] typeArguments)
+        {
+            Requires.NotNull(importDefinition, "importDefinition");
+
+            // TODO: if the importer isn't using a customized contract name.
+            if (importDefinition.Metadata.TryGetValue(CompositionConstants.GenericContractMetadataName, out contractName) &&
+                importDefinition.Metadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out typeArguments))
+            {
+                return true;
+            }
+
+            contractName = null;
+            typeArguments = null;
+            return false;
         }
 
         public IEnumerable<Assembly> Assemblies
@@ -64,7 +87,7 @@
             return new ComposableCatalog(
                 ImmutableHashSet.Create<Type>(),
                 ImmutableHashSet.Create<ComposablePartDefinition>(),
-                ImmutableDictionary.Create<CompositionContract, ImmutableList<ExportDefinitionBinding>>());
+                ImmutableDictionary.Create<string, ImmutableList<ExportDefinitionBinding>>());
         }
 
         public static ComposableCatalog Create(IEnumerable<ComposablePartDefinition> parts)
@@ -94,10 +117,10 @@
             var parts = this.parts.Add(partDefinition);
             var exportsByContract = this.exportsByContract;
 
-            foreach (var export in partDefinition.ExportedTypes)
+            foreach (var exportDefinition in partDefinition.ExportedTypes)
             {
-                var list = exportsByContract.GetValueOrDefault(export.Contract, ImmutableList.Create<ExportDefinitionBinding>());
-                exportsByContract = exportsByContract.SetItem(export.Contract, list.Add(new ExportDefinitionBinding(export, partDefinition, exportingMember: null)));
+                var list = exportsByContract.GetValueOrDefault(exportDefinition.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
+                exportsByContract = exportsByContract.SetItem(exportDefinition.ContractName, list.Add(new ExportDefinitionBinding(exportDefinition, partDefinition, exportingMember: null)));
             }
 
             foreach (var exportPair in partDefinition.ExportingMembers)
@@ -105,8 +128,8 @@
                 var member = exportPair.Key;
                 foreach (var export in exportPair.Value)
                 {
-                    var list = exportsByContract.GetValueOrDefault(export.Contract, ImmutableList.Create<ExportDefinitionBinding>());
-                    exportsByContract = exportsByContract.SetItem(export.Contract, list.Add(new ExportDefinitionBinding(export, partDefinition, member)));
+                    var list = exportsByContract.GetValueOrDefault(export.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
+                    exportsByContract = exportsByContract.SetItem(export.ContractName, list.Add(new ExportDefinitionBinding(export, partDefinition, member)));
                 }
             }
 

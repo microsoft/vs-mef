@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
+    using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -90,6 +92,22 @@
             }
 
             return genericTypeDefinition.MakeGenericType(typeArguments.ToArray());
+        }
+
+        internal ExportDefinitionBinding CloseGenericExport(Type[] genericTypeArguments)
+        {
+            Requires.NotNull(genericTypeArguments, "genericTypeArguments");
+
+            string exportTypeIdentity = string.Format(
+                CultureInfo.InvariantCulture,
+                (string)this.ExportDefinition.Metadata[CompositionConstants.ExportTypeIdentityMetadataName],
+                genericTypeArguments.Select(ContractNameServices.GetTypeIdentity).ToArray());
+            var updatedMetadata = ImmutableDictionary.CreateRange(this.ExportDefinition.Metadata)
+                .SetItem(CompositionConstants.ExportTypeIdentityMetadataName, exportTypeIdentity);
+            return new ExportDefinitionBinding(
+                new ExportDefinition(this.ExportDefinition.ContractName, updatedMetadata),
+                this.PartDefinition,
+                this.ExportingMember);
         }
     }
 }

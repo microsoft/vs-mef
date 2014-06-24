@@ -38,28 +38,28 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.IsType<Pear>(result.Single().Value);
         }
 
-        [MefFact(CompositionEngines.V1/*Compat | CompositionEngines.V3EmulatingV2*/, typeof(Apple))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(Apple))]
         public void AcquireExportWithDefaultContractName(IContainer container)
         {
             var fruit = container.GetExportedValue<Fruit>(typeof(Fruit).FullName);
             Assert.IsType(typeof(Apple), fruit);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(Apple))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(Apple))]
         public void AcquireExportWithEmptyContractName(IContainer container)
         {
             var fruit = container.GetExportedValue<Fruit>(string.Empty);
             Assert.IsType(typeof(Apple), fruit);
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(Apple))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Apple))]
         public void AcquireExportWithNullContractName(IContainer container)
         {
             var fruit = container.GetExportedValue<Fruit>(null);
             Assert.IsType(typeof(Apple), fruit);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(Apple), typeof(AppleImportingPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(AppleImportingPart))]
         public void ImportWithExplicitContractNameVariants(IContainer container)
         {
             var part = container.GetExportedValue<AppleImportingPart>();

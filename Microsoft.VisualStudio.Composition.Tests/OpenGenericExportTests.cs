@@ -80,7 +80,7 @@
             Assert.IsType<Useful<int>>(user.Useful[0].Value);
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(Useful<>))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Useful<>))]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportedValuesOfOpenGenericExport(IContainer container)
         {
@@ -89,7 +89,7 @@
             Assert.IsType<Useful<int>>(usefuls.First());
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(Useful<>))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Useful<>))]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportsOfLazyOpenGenericExport(IContainer container)
         {

@@ -89,6 +89,9 @@
     <Compile Include="DisposableWithAction.cs" />
     <Compile Include="ExportDefinitionBinding.cs" />
     <Compile Include="ExportFactory.cs" />
+    <Compile Include="Export.cs" />
+    <Compile Include="ExportTypeIdentityConstraint.cs" />
+    <Compile Include="IHasValueAndMetadata.cs" />
     <Compile Include="ImportMetadataViewConstraint.cs" />
     <Compile Include="ICompositionContainerFactory.cs" />
     <Compile Include="IImportSatisfiabilityConstraint.cs" />
@@ -104,13 +107,13 @@
     <Compile Include="PartDiscovery.cs" />
     <Compile Include="ComposablePartDefinition.cs" />
     <Compile Include="CompositionConfiguration.cs" />
-    <Compile Include="CompositionContract.cs" />
     <Compile Include="ExportDefinition.cs" />
     <Compile Include="ExportProvider.cs" />
     <Compile Include="ImportDefinition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReflectionHelpers.cs" />
     <Compile Include="UniquePropertyNameComparer.cs" />
+    <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

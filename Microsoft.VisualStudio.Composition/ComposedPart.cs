@@ -67,7 +67,7 @@
                                     string.Format(
                                         CultureInfo.CurrentCulture,
                                         "Import of {0} expected 1 export but found {1}.",
-                                        importDefinition.Contract,
+                                        importDefinition.ContractName,
                                         pair.Value.Count));
                             }
 
@@ -79,7 +79,7 @@
                                     string.Format(
                                         CultureInfo.CurrentCulture,
                                         "Import of {0} expected 1 or 0 exports but found {1}.",
-                                        importDefinition.Contract,
+                                        importDefinition.ContractName,
                                         pair.Value.Count));
                             }
 
@@ -95,7 +95,7 @@
                                     CultureInfo.CurrentCulture,
                                     "Exported type {4} on MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
                                     ReflectionHelpers.GetTypeName(export.PartDefinition.Type, false, true, null),
-                                    ReflectionHelpers.GetTypeName(pair.Key.ImportDefinition.TypeIdentity, false, true, null),
+                                    ReflectionHelpers.GetTypeName(pair.Key.ImportingSiteElementType, false, true, null),
                                     ReflectionHelpers.GetTypeName(this.Definition.Type, false, true, null),
                                     pair.Key.ImportingMember != null ? pair.Key.ImportingMember.Name : "ctor",
                                     ReflectionHelpers.GetTypeName(export.ExportedValueType, false, true, null)));

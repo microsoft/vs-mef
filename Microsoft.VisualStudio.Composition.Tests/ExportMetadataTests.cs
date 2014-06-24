@@ -353,7 +353,7 @@
             Assert.IsType<FooExport2>(b.Value);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(FooExport1), typeof(FooExport2))]
+        [MefFact(CompositionEngines.V1Compat, typeof(FooExport1), typeof(FooExport2))]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportsDictionaryMetadata(IContainer container)
         {

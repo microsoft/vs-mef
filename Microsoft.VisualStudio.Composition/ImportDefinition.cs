@@ -10,21 +10,23 @@
     using System.Threading.Tasks;
     using Validation;
 
-    [DebuggerDisplay("{Contract.Type.Name,nq} ({Cardinality})")]
+    [DebuggerDisplay("{ContractName,nq} ({Cardinality})")]
     public class ImportDefinition : IEquatable<ImportDefinition>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportDefinition"/> class
         /// based on MEF v2 attributes.
         /// </summary>
-        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, IReadOnlyCollection<string> exportFactorySharingBoundaries)
+        public ImportDefinition(string contractName, ImportCardinality cardinality, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, IReadOnlyCollection<string> exportFactorySharingBoundaries)
         {
-            Requires.NotNull(contract, "contract");
+            Requires.NotNullOrEmpty(contractName, "contractName");
+            Requires.NotNull(metadata, "metadata");
             Requires.NotNull(additionalConstraints, "additionalConstraints");
             Requires.NotNull(exportFactorySharingBoundaries, "exportFactorySharingBoundaries");
 
-            this.Contract = contract;
+            this.ContractName = contractName;
             this.Cardinality = cardinality;
+            this.Metadata = metadata;
             this.ExportContraints = additionalConstraints;
             this.ExportFactorySharingBoundaries = exportFactorySharingBoundaries;
         }
@@ -33,30 +35,27 @@
         /// Initializes a new instance of the <see cref="ImportDefinition"/> class
         /// based on MEF v1 attributes.
         /// </summary>
-        public ImportDefinition(CompositionContract contract, ImportCardinality cardinality, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints)
-            : this(contract, cardinality, additionalConstraints, ImmutableHashSet.Create<string>())
+        public ImportDefinition(string contractName, ImportCardinality cardinality, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints)
+            : this(contractName, cardinality, metadata, additionalConstraints, ImmutableHashSet.Create<string>())
         {
         }
+
+        public string ContractName { get; private set; }
 
         public ImportCardinality Cardinality { get; private set; }
-
-        public Type TypeIdentity
-        {
-            get { return this.Contract.Type; }
-        }
 
         /// <summary>
         /// Gets the sharing boundaries created when the export factory is used.
         /// </summary>
         public IReadOnlyCollection<string> ExportFactorySharingBoundaries { get; private set; }
 
-        public CompositionContract Contract { get; private set; }
+        public IReadOnlyDictionary<string, object> Metadata { get; private set; }
 
         public IReadOnlyCollection<IImportSatisfiabilityConstraint> ExportContraints { get; private set; }
 
         public override int GetHashCode()
         {
-            return this.Contract.GetHashCode();
+            return this.ContractName.GetHashCode();
         }
 
         public override bool Equals(object obj)
@@ -71,7 +70,7 @@
                 return false;
             }
 
-            return this.Contract.Equals(other.Contract)
+            return this.ContractName == other.ContractName
                 && this.Cardinality == other.Cardinality;
         }
     }
