@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -97,9 +98,12 @@
         {
             Requires.NotNull(genericTypeArguments, "genericTypeArguments");
 
-            var constructedType = this.ExportedValueType.MakeGenericType(genericTypeArguments);
+            string exportTypeIdentity = string.Format(
+                CultureInfo.InvariantCulture,
+                (string)this.ExportDefinition.Metadata[CompositionConstants.ExportTypeIdentityMetadataName],
+                genericTypeArguments.Select(ContractNameServices.GetTypeIdentity).ToArray());
             var updatedMetadata = ImmutableDictionary.CreateRange(this.ExportDefinition.Metadata)
-                .SetItem(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(constructedType));
+                .SetItem(CompositionConstants.ExportTypeIdentityMetadataName, exportTypeIdentity);
             return new ExportDefinitionBinding(
                 new ExportDefinition(this.ExportDefinition.ContractName, updatedMetadata),
                 this.PartDefinition,
