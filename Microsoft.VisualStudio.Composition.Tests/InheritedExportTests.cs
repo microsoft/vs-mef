@@ -79,7 +79,23 @@
             Assert.Equal(0, exports.Count());
         }
 
+        [Trait("GenericExports", "Open")]
+        [MefFact(CompositionEngines.V1Compat, typeof(GenericBase<>), typeof(ClosedDerivedOfGeneric))]
+        public void InheritedExportOnAbstractGenericBaseWithNonGenericDerived(IContainer container)
+        {
+            var exports = container.GetExportedValues<GenericBase<int>>();
+            Assert.Equal(1, exports.Count());
+
+            var exports2 = container.GetExportedValues<GenericBase<double>>();
+            Assert.Equal(0, exports2.Count());
+        }
+
         public class GenericDerived<T> : AbstractBaseClass { }
+
+        [MefV1.InheritedExport]
+        public abstract class GenericBase<T> { }
+
+        public class ClosedDerivedOfGeneric : GenericBase<int> { }
 
         #endregion
     }
