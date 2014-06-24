@@ -8,9 +8,10 @@
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
+    [Trait("Export", "Inherited")]
     public class InheritedExportTests
     {
-        #region Abstract base class tests 
+        #region Abstract base class tests
 
         [MefFact(CompositionEngines.V1Compat, typeof(AbstractBaseClass), typeof(DerivedOfAbstractClass))]
         public void InheritedExportDoesNotApplyToAbstractBaseClasses(IContainer container)
@@ -33,7 +34,7 @@
 
         #endregion
 
-        #region Concrete base class tests 
+        #region Concrete base class tests
 
         [MefFact(CompositionEngines.V1Compat, typeof(BaseClass), typeof(DerivedClass))]
         public void InheritedExportAppliesToConcreteBaseClasses(IContainer container)
@@ -65,6 +66,20 @@
         public class BaseClassWithExport { }
 
         public class DerivedTypeOfExportedClass : BaseClassWithExport { }
+
+        #endregion
+
+        #region Open generic inheriting exports
+
+        [Trait("GenericExports", "Open")]
+        [MefFact(CompositionEngines.V1Compat, typeof(AbstractBaseClass), typeof(GenericDerived<>))]
+        public void InheritedExportOnAbstractNonGenericBaseWithGenericDerived(IContainer container)
+        {
+            var exports = container.GetExportedValues<AbstractBaseClass>();
+            Assert.Equal(0, exports.Count());
+        }
+
+        public class GenericDerived<T> : AbstractBaseClass { }
 
         #endregion
     }
