@@ -42,7 +42,7 @@
                 foreach (var exportAttribute in exportAttributes)
                 {
                     var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
-                    Type exportedType = exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? partType;
+                    Type exportedType = exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? exportAttributes.Key;
                     string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
                     var exportMetadata = exportMetadataOnType
                         .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
