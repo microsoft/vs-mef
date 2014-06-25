@@ -155,7 +155,8 @@
 
         private static IContainer CreateContainerV3(ComposableCatalog catalog, ImmutableHashSet<Assembly> additionalAssemblies = null)
         {
-            var configuration = CompositionConfiguration.Create(catalog)
+            var catalogWithCompositionService = catalog.WithCompositionService();
+            var configuration = CompositionConfiguration.Create(catalogWithCompositionService)
                 .WithReferenceAssemblies(additionalAssemblies ?? ImmutableHashSet<Assembly>.Empty);
 #if DGML
             string dgmlFile = System.IO.Path.GetTempFileName() + ".dgml";

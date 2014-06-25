@@ -11,11 +11,32 @@
 
     public static class NetFxAdapters
     {
+        /// <summary>
+        /// Creates an instance of a <see cref="MefV1.Hosting.ExportProvider"/>
+        /// for purposes of compatibility with the version of MEF found in the .NET Framework.
+        /// </summary>
+        /// <param name="exportProvider">The <see cref="Microsoft.VisualStudio.Composition.ExportProvider"/> to wrap.</param>
+        /// <returns>A MEF "v1" shim.</returns>
         public static MefV1.Hosting.ExportProvider AsExportProvider(this ExportProvider exportProvider)
         {
             Requires.NotNull(exportProvider, "exportProvider");
 
             return new MefV1ExportProvider(exportProvider);
+        }
+
+        /// <summary>
+        /// Creates a catalog that exports an instance of <see cref="MefV1.ICompositionService"/>.
+        /// </summary>
+        /// <param name="catalog">The catalog to add the export to.</param>
+        /// <returns>A catalog that includes <see cref="MefV1.ICompositionService"/>.</returns>
+        public static ComposableCatalog WithCompositionService(this ComposableCatalog catalog)
+        {
+            Requires.NotNull(catalog, "catalog");
+
+            var partDiscovery = new AttributedPartDiscoveryV1();
+            var compositionServicePart = partDiscovery.CreatePart(typeof(CompositionService));
+            var modifiedCatalog = catalog.WithPart(compositionServicePart);
+            return modifiedCatalog;
         }
 
         private class MefV1ExportProvider : MefV1.Hosting.ExportProvider
@@ -77,6 +98,29 @@
                     exportDefinition.ContractName,
                     (IDictionary<string, object>)exportDefinition.Metadata);
                 return this.definition.IsConstraintSatisfiedBy(v3ExportDefinition);
+            }
+        }
+
+        [MefV1.Export(typeof(MefV1.ICompositionService))]
+        private class CompositionService : MefV1.ICompositionService, IDisposable
+        {
+            private MefV1.Hosting.CompositionContainer container;
+
+            [MefV1.ImportingConstructor]
+            private CompositionService([MefV1.Import] ExportProvider exportProvider)
+            {
+                Requires.NotNull(exportProvider, "exportProvider");
+                this.container = new MefV1.Hosting.CompositionContainer(exportProvider.AsExportProvider());
+            }
+
+            public void SatisfyImportsOnce(MefV1.Primitives.ComposablePart part)
+            {
+                this.container.SatisfyImportsOnce(part);
+            }
+
+            public void Dispose()
+            {
+                this.container.Dispose();
             }
         }
     }

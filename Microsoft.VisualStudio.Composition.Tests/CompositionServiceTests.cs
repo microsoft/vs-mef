@@ -10,31 +10,25 @@
 
     public class CompositionServiceTests
     {
-        [MefFact(CompositionEngines.V1, new Type[0])]
+        [MefFact(CompositionEngines.V1Compat, new Type[0])]
         public void GetExportsOfICompositionService(IContainer container)
         {
             var service = container.GetExportedValue<ICompositionService>();
             Assert.NotNull(service);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(CompositionServiceImportingPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(CompositionServiceImportingPart))]
         public void ImportCompositionService(IContainer container)
         {
             var part = container.GetExportedValue<CompositionServiceImportingPart>();
             Assert.NotNull(part.CompositionService);
         }
 
-        [Fact(Skip = "Not yet implemented.")]
-        public void CompositionContainerImplementsICompositionService()
-        {
-            Assert.True(typeof(ICompositionService).IsAssignableFrom(typeof(ExportProvider)));
-        }
-
         /// <summary>
         /// Verifies that SatisfyImportsOnce functions correctly with an object
         /// that was included during catalog discovery with Import attributes on its members.
         /// </summary>
-        [MefFact(CompositionEngines.V1, typeof(CompositionServiceImportingPart), typeof(ImportOnlyPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(CompositionServiceImportingPart), typeof(ImportOnlyPart))]
         public void SatisfyImportsOnceWithDiscoveredImportOnlyPart(IContainer container)
         {
             var exportedPart = container.GetExportedValue<CompositionServiceImportingPart>();
@@ -49,7 +43,7 @@
         /// Verifies that SatisfyImportsOnce functions correctly with an arbitrary object
         /// with Import attributes on its members.
         /// </summary>
-        [MefFact(CompositionEngines.V1, typeof(CompositionServiceImportingPart))] // intentionally leaves out ImportOnlyPart
+        [MefFact(CompositionEngines.V1Compat, typeof(CompositionServiceImportingPart))] // intentionally leaves out ImportOnlyPart
         public void SatisfyImportsOnceWithUnknownImportOnlyPart(IContainer container)
         {
             var exportedPart = container.GetExportedValue<CompositionServiceImportingPart>();
@@ -58,6 +52,15 @@
             var value = new ImportOnlyPart();
             compositionService.SatisfyImportsOnce(value);
             Assert.NotNull(value.SomePropertyThatImports);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, Skip = "Test not yet implemented.")]
+        public void CompositionServiceSatisfiesWithExportsFromAppropriateScope(IContainer container)
+        {
+            // Given a configuration where there are sub-scopes (i.e. sharing boundaries), whatever
+            // the scope is that imports an ICompositionService should determine what exports are
+            // available to satisfy imports passed into it.
+            // TODO: Code here
         }
 
         [Export]
