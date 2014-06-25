@@ -137,11 +137,7 @@
             {
                 var genericTypeImportDefinition = new ImportDefinition(genericTypeDefinitionContractName, importDefinition.Cardinality, importDefinition.Metadata, importDefinition.ExportContraints);
                 var openGenericExports = this.GetExportsCore(genericTypeImportDefinition);
-                var closedGenericExports = from export in openGenericExports
-                                           let genericTypeDefinitionIdentityPattern = (string)export.Metadata[CompositionConstants.ExportTypeIdentityMetadataName]
-                                           let closedTypeIdentity = string.Format(CultureInfo.InvariantCulture, genericTypeDefinitionIdentityPattern, genericTypeArguments.Select(ContractNameServices.GetTypeIdentity).ToArray())
-                                           let metadata = ImmutableDictionary.CreateRange(export.Metadata).SetItem(CompositionConstants.ExportTypeIdentityMetadataName, closedTypeIdentity)
-                                           select new Export(export.Definition.ContractName, metadata, () => export.Value);
+                var closedGenericExports = openGenericExports.Select(export => export.CloseGenericExport(genericTypeArguments));
                 exports = exports.Concat(closedGenericExports);
             }
 

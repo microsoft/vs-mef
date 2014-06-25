@@ -24,7 +24,7 @@
             Assert.NotNull(tree.Apple);
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Tree<>), Skip = "Not yet working.")]
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Tree<>))]
         public void GetOpenGenericExport(IContainer container)
         {
             var v3Container = (TestUtilities.V3ContainerWrapper)container;

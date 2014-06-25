@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
+    using System.Globalization;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -35,6 +37,22 @@
         public object Value
         {
             get { return this.exportedValueGetter(); }
+        }
+
+        internal Export CloseGenericExport(Type[] genericTypeArguments)
+        {
+            Requires.NotNull(genericTypeArguments, "genericTypeArguments");
+
+            string openGenericExportTypeIdentity=(string)this.Metadata[CompositionConstants.ExportTypeIdentityMetadataName];
+            string genericTypeDefinitionIdentityPattern = openGenericExportTypeIdentity;
+            string[] genericTypeArgumentIdentities = genericTypeArguments.Select(ContractNameServices.GetTypeIdentity).ToArray();
+            string closedTypeIdentity = string.Format(CultureInfo.InvariantCulture, genericTypeDefinitionIdentityPattern, genericTypeArgumentIdentities);
+            var metadata = ImmutableDictionary.CreateRange(this.Metadata).SetItem(CompositionConstants.ExportTypeIdentityMetadataName, closedTypeIdentity);
+
+            string contractName = this.Definition.ContractName == openGenericExportTypeIdentity
+                ? closedTypeIdentity : this.Definition.ContractName;
+
+            return new Export(contractName, metadata, this.exportedValueGetter);
         }
     }
 }
