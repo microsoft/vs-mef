@@ -65,6 +65,12 @@
             Assert.Equal(0, apples.Count());
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(SomeOtherPart))]
+        public void GetExportedValueOfExportFactoryOfT(IContainer container)
+        {
+            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<ExportFactory<SomeOtherPart>>());
+        }
+
         [Export, Shared]
         [MefV1.Export]
         public class PartThatImportsExportProvider
