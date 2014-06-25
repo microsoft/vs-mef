@@ -113,8 +113,14 @@
         {
             Requires.NotNull(partDefinition, "partDefinition");
 
-            var types = this.types.Add(partDefinition.Type);
             var parts = this.parts.Add(partDefinition);
+            if (parts.SetEquals(this.parts))
+            {
+                // This part is already in the catalog.
+                return this;
+            }
+
+            var types = this.types.Add(partDefinition.Type);
             var exportsByContract = this.exportsByContract;
 
             foreach (var exportDefinition in partDefinition.ExportedTypes)

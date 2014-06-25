@@ -11,6 +11,7 @@
 
     public static class NetFxAdapters
     {
+        private static readonly ComposablePartDefinition compositionServicePart = (new AttributedPartDiscoveryV1()).CreatePart(typeof(CompositionService));
         /// <summary>
         /// Creates an instance of a <see cref="MefV1.Hosting.ExportProvider"/>
         /// for purposes of compatibility with the version of MEF found in the .NET Framework.
@@ -33,8 +34,6 @@
         {
             Requires.NotNull(catalog, "catalog");
 
-            var partDiscovery = new AttributedPartDiscoveryV1();
-            var compositionServicePart = partDiscovery.CreatePart(typeof(CompositionService));
             var modifiedCatalog = catalog.WithPart(compositionServicePart);
             return modifiedCatalog;
         }

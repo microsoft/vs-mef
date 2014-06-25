@@ -33,7 +33,7 @@
         {
             var exportedPart = container.GetExportedValue<CompositionServiceImportingPart>();
             ICompositionService compositionService = exportedPart.CompositionService;
-            
+
             var value = new ImportOnlyPart();
             compositionService.SatisfyImportsOnce(value);
             Assert.NotNull(value.SomePropertyThatImports);
@@ -61,6 +61,17 @@
             // the scope is that imports an ICompositionService should determine what exports are
             // available to satisfy imports passed into it.
             // TODO: Code here
+        }
+
+        [Fact]
+        public void AddCompositionServiceToCatalogTwice()
+        {
+            var catalog = ComposableCatalog.Create();
+            var catalog1 = catalog.WithCompositionService();
+            var catalog2 = catalog1.WithCompositionService();
+
+            Assert.NotSame(catalog, catalog1);
+            Assert.Same(catalog1, catalog2);
         }
 
         [Export]
