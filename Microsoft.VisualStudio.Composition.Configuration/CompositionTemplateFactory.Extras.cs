@@ -1018,8 +1018,13 @@
 
         private static string GetGenericPartFactoryMethodInfoExpression(ComposablePartDefinition part, string typeArgsParamsArrayExpression)
         {
-            return "typeof(CompiledExportProvider).GetMethod(\"" + GetPartFactoryMethodNameNoTypeArgs(part) + "\", BindingFlags.Instance | BindingFlags.NonPublic)"
-                + ".MakeGenericMethod(" + typeArgsParamsArrayExpression + ")";
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                "this.GetMethodWithArity(\"{0}\", {1})"
+                + ".MakeGenericMethod({2})",
+                GetPartFactoryMethodNameNoTypeArgs(part),
+                part.Type.GetGenericArguments().Length,
+                typeArgsParamsArrayExpression);
         }
 
         private static string GetGenericPartFactoryMethodInvokeExpression(

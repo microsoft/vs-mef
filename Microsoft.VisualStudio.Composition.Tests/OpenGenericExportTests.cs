@@ -20,7 +20,7 @@
             Assert.NotNull(useful);
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(Useful<>), typeof(Useful<,>))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Useful<>), typeof(Useful<,>))]
         public void AcquireOpenGenericExportArity2(IContainer container)
         {
             var useful1 = container.GetExportedValue<Useful<int>>();

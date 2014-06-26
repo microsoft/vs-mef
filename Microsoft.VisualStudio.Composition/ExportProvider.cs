@@ -238,6 +238,23 @@
             }
         }
 
+        protected MethodInfo GetMethodWithArity(string methodName, int arity)
+        {
+            // This approach mysteriously doesn't work. .NET Bug?
+            ////return this.GetType().GetTypeInfo().GetDeclaredMethods(methodName)
+            ////    .Single(m => m.GetGenericArguments().Length == arity);
+
+            foreach (var method in this.GetType().GetTypeInfo().DeclaredMethods)
+            {
+                if (method.Name == methodName && method.GetGenericArguments().Length == arity)
+                {
+                    return method;
+                }
+            }
+
+            throw new ArgumentException();
+        }
+
         private IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName, ImportCardinality cardinality)
         {
             contractName = string.IsNullOrEmpty(contractName) ? ContractNameServices.GetTypeIdentity(typeof(T)) : contractName;
