@@ -13,7 +13,7 @@
     [Trait("GenericExports", "Open")]
     public class MixedGenericExportsTests
     {
-        [MefFact(CompositionEngines.V1/*Compat*/ | CompositionEngines.V2/*Compat*/, typeof(Forest), typeof(Tree<>))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Forest), typeof(Tree<>))]
         public void OpenAndClosedGenericExportsFromContainer(IContainer container)
         {
             var appleTrees = container.GetExportedValues<Tree<Apple>>().ToList();
@@ -27,7 +27,7 @@
             Assert.NotNull(pearTrees[0]);
         }
 
-        [MefFact(CompositionEngines.V1/*Compat | CompositionEngines.V3EmulatingV2*/, typeof(Forest), typeof(Tree<>))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(Forest), typeof(Tree<>))]
         public void OpenAndClosedGenericExportsFromContainerWithMetadata(IContainer container)
         {
             var appleTrees = container.GetExports<Tree<Apple>, IDictionary<string, object>>().ToList();
