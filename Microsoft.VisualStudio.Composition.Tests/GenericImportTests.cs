@@ -11,7 +11,11 @@
 
     public class GenericImportTests
     {
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        /// <summary>
+        /// This is a very difficult scenario to support in MEFv3, since it means much of the graph
+        /// could change based on the type argument. We may never be able to support it.
+        /// </summary>
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, NoCompatGoal = true)]
         public void GenericPartImportsTypeArgument(IContainer container)
         {
             var genericPart = container.GetExportedValue<PartThatImportsT<SomeOtherPart>>();
