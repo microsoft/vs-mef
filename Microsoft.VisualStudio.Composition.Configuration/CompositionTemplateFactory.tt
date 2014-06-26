@@ -75,15 +75,15 @@ foreach (var part in this.Configuration.Parts)
         else
         {
 #>
-        ILazy<<#= GetTypeName(part.Definition.Type) #>> value;
         Type partType = <#= this.GetTypeExpression(part.Definition.Type) #>;
-        if (!nonSharedInstanceRequired && TryGetProvisionalSharedExport(provisionalSharedObjects, partType, out value))
-        {
-            return value;
-        }
-
         ILazy<<#= GetTypeName(part.Definition.Type) #>> lazyResult;
-<#
+<#      if (part.Definition.IsShared) { #>
+        if (!nonSharedInstanceRequired && TryGetProvisionalSharedExport(provisionalSharedObjects, partType, out lazyResult))
+        {
+            return lazyResult;
+        }
+<#      }
+
         if (part.Definition.IsShared)
         {
 #>

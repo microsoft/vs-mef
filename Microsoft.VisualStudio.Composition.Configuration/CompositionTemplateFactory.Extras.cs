@@ -589,7 +589,10 @@
                 this.WriteLine("this.TrackDisposableValue((IDisposable){0});", InstantiatedPartLocalVarName);
             }
 
-            this.WriteLine("provisionalSharedObjects.Add(partType, {0});", InstantiatedPartLocalVarName);
+            if (part.Definition.IsShared)
+            {
+                this.WriteLine("provisionalSharedObjects.Add(partType, {0});", InstantiatedPartLocalVarName);
+            }
 
             foreach (var satisfyingExport in part.SatisfyingExports.Where(i => i.Key.ImportingMember != null))
             {
