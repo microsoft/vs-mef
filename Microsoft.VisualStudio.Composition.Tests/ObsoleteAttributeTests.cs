@@ -13,7 +13,7 @@
     [Trait("Obsolete", "BuildBreak")]
     public class ObsoleteAttributeTests
     {
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(PartWithObsoleteConstructor))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithObsoleteConstructor))]
         public void ObsoleteConstructor(IContainer container)
         {
             var export = container.GetExportedValue<PartWithObsoleteConstructor>();
@@ -29,7 +29,7 @@
             }
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(PartWithObsoleteExportingProperty))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithObsoleteExportingProperty))]
         public void ObsoleteExportingProperty(IContainer container)
         {
             var export = container.GetExportedValue<string>();
@@ -46,7 +46,7 @@
             }
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(PartWithObsoleteImportingProperty), typeof(SomeExportedValue))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithObsoleteImportingProperty), typeof(SomeExportedValue))]
         public void ObsoleteImportingProperty(IContainer container)
         {
             var export = container.GetExportedValue<PartWithObsoleteImportingProperty>();
@@ -67,7 +67,7 @@
             public SomeExportedValue NonObsoleteAccessor { get; set; }
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithObsoleteExportingField))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithObsoleteExportingField))]
         public void ObsoleteExportingField(IContainer container)
         {
             var export = container.GetExportedValue<string>();
@@ -81,7 +81,7 @@
             public string Foo = "PASS";
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithObsoleteImportingField), typeof(SomeExportedValue))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithObsoleteImportingField), typeof(SomeExportedValue))]
         public void ObsoleteImportingField(IContainer container)
         {
             var export = container.GetExportedValue<PartWithObsoleteImportingField>();
@@ -96,7 +96,7 @@
             public SomeExportedValue ObsoleteField;
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithObsoleteExportingMethod))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithObsoleteExportingMethod))]
         public void ObsoleteExportingMethod(IContainer container)
         {
             var export = container.GetExportedValue<Func<string>>();

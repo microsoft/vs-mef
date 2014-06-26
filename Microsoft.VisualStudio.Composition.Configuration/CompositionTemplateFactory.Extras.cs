@@ -1132,6 +1132,13 @@
                 return false;
             }
 
+            var obsoleteAttribute = memberInfo.GetCustomAttribute<ObsoleteAttribute>();
+            if (obsoleteAttribute != null && obsoleteAttribute.IsError)
+            {
+                // It would generate a compile error if we referenced this member directly, so consider it non-public.
+                return false;
+            }
+
             switch (memberInfo.MemberType)
             {
                 case MemberTypes.Constructor:
