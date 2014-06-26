@@ -515,7 +515,7 @@
 
         #endregion
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExtensionOne), typeof(ExtensionTwo))]
         [Trait("Container.GetExport", "CardinalityMismatch")]
         public void GetExportOneForManyThrowsException(IContainer container)
         {
