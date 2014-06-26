@@ -18,6 +18,7 @@
     using Microsoft.Build.Logging;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Emit;
     using Microsoft.CodeAnalysis.Text;
     using Validation;
@@ -168,9 +169,116 @@
             var assemblies = ImmutableHashSet.Create<Assembly>()
                 .Union(configuration.AdditionalReferenceAssemblies)
                 .Union(templateFactory.RelevantAssemblies);
+            var embeddedInteropAssemblies = CreateEmbeddedInteropAssemblies(templateFactory.RelevantEmbeddedTypes);
             return compilationTemplate
                 .AddReferences(assemblies.Select(r => MetadataFileReferenceProvider.Default.GetReference(r.Location, MetadataReferenceProperties.Assembly)))
+                .AddReferences(embeddedInteropAssemblies.Select(r => r.ToMetadataReference(embedInteropTypes: true)))
                 .AddSyntaxTrees(syntaxTree);
+        }
+
+        private static CompilationUnitSyntax CreateTemplateEmbeddableTypesFile()
+        {
+            return SyntaxFactory.CompilationUnit()
+                .WithUsings(
+                        SyntaxFactory.List<UsingDirectiveSyntax>(
+                            new[] {
+                                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System")),
+                                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Runtime.CompilerServices")),
+                                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Runtime.InteropServices")),
+                            }))
+                .WithAttributeLists(
+                    SyntaxFactory.List<AttributeListSyntax>(
+                        new AttributeListSyntax[]{
+                            SyntaxFactory.AttributeList(
+                                SyntaxFactory.SingletonSeparatedList<AttributeSyntax>(
+                                    SyntaxFactory.Attribute(SyntaxFactory.IdentifierName(@"Guid"))
+                                    .WithArgumentList(
+                                        SyntaxFactory.AttributeArgumentList(
+                                            SyntaxFactory.SingletonSeparatedList<AttributeArgumentSyntax>(
+                                                SyntaxFactory.AttributeArgument(
+                                                    SyntaxFactory.LiteralExpression(
+                                                        SyntaxKind.StringLiteralExpression,
+                                                        SyntaxFactory.Literal(Guid.NewGuid().ToString()))))))))
+                            .WithTarget(
+                                SyntaxFactory.AttributeTargetSpecifier(
+                                    SyntaxFactory.Token(
+                                        SyntaxKind.AssemblyKeyword))),
+                            SyntaxFactory.AttributeList(
+                                SyntaxFactory.SingletonSeparatedList<AttributeSyntax>(
+                                    SyntaxFactory.Attribute(
+                                        SyntaxFactory.IdentifierName(@"ImportedFromTypeLib"))
+                                    .WithArgumentList(
+                                        SyntaxFactory.AttributeArgumentList(
+                                            SyntaxFactory.SingletonSeparatedList<AttributeArgumentSyntax>(
+                                                SyntaxFactory.AttributeArgument(
+                                                    SyntaxFactory.LiteralExpression(
+                                                        SyntaxKind.StringLiteralExpression,
+                                                        SyntaxFactory.Literal(""))))))))
+                            .WithTarget(
+                                SyntaxFactory.AttributeTargetSpecifier(
+                                    SyntaxFactory.Token(
+                                        SyntaxKind.AssemblyKeyword)))
+                        }));
+        }
+
+        private static MemberDeclarationSyntax DefineEmbeddableType(Type iface)
+        {
+            // TODO: 
+            // 1. add support for interfaces that derive from PIAs that are not embedded.
+
+            var attributes = new List<AttributeSyntax>();
+            attributes.Add(SyntaxFactory.Attribute(SyntaxFactory.IdentifierName(@"ComImport")));
+            attributes.Add(SyntaxFactory.Attribute(SyntaxFactory.IdentifierName(@"Guid"))
+                .WithArgumentList(
+                    SyntaxFactory.AttributeArgumentList(
+                        SyntaxFactory.SingletonSeparatedList<AttributeArgumentSyntax>(
+                            SyntaxFactory.AttributeArgument(
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.StringLiteralExpression,
+                                    SyntaxFactory.Literal(iface.GUID.ToString())))))));
+            var ifaceType = iface.GetCustomAttribute<System.Runtime.InteropServices.InterfaceTypeAttribute>();
+            if (ifaceType != null)
+            {
+                attributes.Add(SyntaxFactory.Attribute(SyntaxFactory.IdentifierName(@"InterfaceType"))
+                    .WithArgumentList(
+                        SyntaxFactory.AttributeArgumentList(
+                            SyntaxFactory.SingletonSeparatedList<AttributeArgumentSyntax>(
+                                SyntaxFactory.AttributeArgument(
+                                SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.NumericLiteralExpression,
+                                    SyntaxFactory.Literal((short)ifaceType.Value)))))));
+            }
+
+            return SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName(iface.Namespace))
+                .WithMembers(
+                    SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
+                        SyntaxFactory.InterfaceDeclaration(iface.Name)
+                        .WithAttributeLists(SyntaxFactory.SingletonList<AttributeListSyntax>(SyntaxFactory.AttributeList().AddAttributes(attributes.ToArray())))
+                        .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))));
+        }
+
+        private static IEnumerable<CSharpCompilation> CreateEmbeddedInteropAssemblies(IEnumerable<Type> embeddedTypes)
+        {
+            var sourceFile = CreateTemplateEmbeddableTypesFile()
+                .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(embeddedTypes.Select(iface => DefineEmbeddableType(iface))))
+                .NormalizeWhitespace();
+
+            var assemblies = ImmutableHashSet.Create<Assembly>(
+                typeof(Guid).Assembly,
+                typeof(string).Assembly);
+
+            var compilationUnit = CSharpCompilation.Create("NoPIA")
+                .AddSyntaxTrees(sourceFile.SyntaxTree)
+                .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                .AddReferences(assemblies.Select(r => MetadataFileReferenceProvider.Default.GetReference(r.Location, MetadataReferenceProperties.Assembly)));
+
+            var result = compilationUnit.Emit(Stream.Null);
+            if (!result.Success)
+            {
+                throw new CompositionFailedException("Failed to generate embeddable types.");
+            }
+
+            return ImmutableList.Create(compilationUnit);
         }
     }
 }

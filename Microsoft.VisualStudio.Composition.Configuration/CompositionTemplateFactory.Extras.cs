@@ -18,6 +18,8 @@
 
         private readonly HashSet<Assembly> relevantAssemblies = new HashSet<Assembly>();
 
+        private readonly HashSet<Type> relevantEmbeddedTypes = new HashSet<Type>();
+
         public CompositionConfiguration Configuration { get; set; }
 
         /// <summary>
@@ -26,6 +28,14 @@
         public ISet<Assembly> RelevantAssemblies
         {
             get { return this.relevantAssemblies; }
+        }
+
+        /// <summary>
+        /// Gets the relevant embedded types that must be discoverable when compiling the generated code.
+        /// </summary>
+        public ISet<Type> RelevantEmbeddedTypes
+        {
+            get { return this.relevantEmbeddedTypes; }
         }
 
         private IDisposable EmitMemberAssignment(ImportDefinitionBinding import)
@@ -883,7 +893,7 @@
 
         private string GetTypeName(Type type, bool genericTypeDefinition = false, bool evenNonPublic = false)
         {
-            return ReflectionHelpers.GetTypeName(type, genericTypeDefinition, evenNonPublic, this.relevantAssemblies);
+            return ReflectionHelpers.GetTypeName(type, genericTypeDefinition, evenNonPublic, this.relevantAssemblies, this.relevantEmbeddedTypes);
         }
 
         /// <summary>
@@ -1224,7 +1234,7 @@
                     GetAssemblyExpression(exportFactoryImport.ExportFactoryType.Assembly),
                     ctor.MetadataToken,
                     this.GetClosedGenericTypeHandleExpression(exportFactoryImport.ExportFactoryType),
-                    ReflectionHelpers.GetTypeName(ctor.DeclaringType, false, true, null) + "." + ctor.Name);
+                    ReflectionHelpers.GetTypeName(ctor.DeclaringType, false, true, null, null) + "." + ctor.Name);
                 using (Indent())
                 {
                     writer.WriteLine(

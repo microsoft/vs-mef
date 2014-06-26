@@ -255,7 +255,7 @@
                             string.Format(
                                 CultureInfo.CurrentCulture,
                                 "Unable to determine the primary sharing boundary for MEF part \"{0}\".",
-                                ReflectionHelpers.GetTypeName(partBuilder.PartDefinition.Type, false, true, null)));
+                                ReflectionHelpers.GetTypeName(partBuilder.PartDefinition.Type, false, true, null, null)));
                     }
                 }
             }
@@ -310,7 +310,7 @@
 
             foreach (var part in parts)
             {
-                nodes.Add(Dgml.Node(part.Definition.Id, ReflectionHelpers.GetTypeName(part.Definition.Type, false, true, null)));
+                nodes.Add(Dgml.Node(part.Definition.Id, ReflectionHelpers.GetTypeName(part.Definition.Type, false, true, null, null)));
                 foreach (var import in part.SatisfyingExports.Keys)
                 {
                     foreach (ExportDefinitionBinding export in part.SatisfyingExports[import])
