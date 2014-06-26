@@ -100,7 +100,8 @@
             }
         }
 
-        [MefV1.Export(typeof(MefV1.ICompositionService))]
+        // The part creation policy is NonShared so that it can satisfy exports within any sharing boundary.
+        [MefV1.Export(typeof(MefV1.ICompositionService)), MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         private class CompositionService : MefV1.ICompositionService, IDisposable
         {
             private MefV1.Hosting.CompositionContainer container;

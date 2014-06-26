@@ -7,6 +7,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using MefV2 = System.Composition;
 
     public class CompositionServiceTests
     {
@@ -54,15 +55,6 @@
             Assert.NotNull(value.SomePropertyThatImports);
         }
 
-        [MefFact(CompositionEngines.V1Compat, Skip = "Test not yet implemented.")]
-        public void CompositionServiceSatisfiesWithExportsFromAppropriateScope(IContainer container)
-        {
-            // Given a configuration where there are sub-scopes (i.e. sharing boundaries), whatever
-            // the scope is that imports an ICompositionService should determine what exports are
-            // available to satisfy imports passed into it.
-            // TODO: Code here
-        }
-
         [Fact]
         public void AddCompositionServiceToCatalogTwice()
         {
@@ -86,5 +78,114 @@
             [Import]
             public CompositionServiceImportingPart SomePropertyThatImports { get; set; }
         }
+
+        #region Sharing boundary tests
+
+        // Not an important test, and we expect it may fail in the future.
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(RootPart), typeof(AnotherRootPart), typeof(SubScopedPart), typeof(AnotherSubScopedPart))]
+        public void CompositionServiceSharedWithinRootScope(IContainer container)
+        {
+            var root = container.GetExportedValue<RootPart>();
+            var anotherRootPart = container.GetExportedValue<AnotherRootPart>();
+            Assert.Same(root.CompositionService, anotherRootPart.CompositionService);
+        }
+
+        // Not an important test, and we expect it may fail in the future.
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(RootPart), typeof(AnotherRootPart), typeof(SubScopedPart), typeof(AnotherSubScopedPart))]
+        public void CompositionServiceSharedWithinChildScope(IContainer container)
+        {
+            var root = container.GetExportedValue<RootPart>();
+            var scopedPart = root.ScopeFactory.CreateExport().Value;
+            Assert.Same(scopedPart.CompositionService, scopedPart.AnotherSubScopedPart.CompositionService);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(RootPart), typeof(AnotherRootPart), typeof(SubScopedPart), typeof(AnotherSubScopedPart))]
+        public void CompositionServiceUniqueAcrossScopes(IContainer container)
+        {
+            var root = container.GetExportedValue<RootPart>();
+            var scope1Part = root.ScopeFactory.CreateExport().Value;
+            var scope2Part = root.ScopeFactory.CreateExport().Value;
+            Assert.NotSame(scope1Part.CompositionService, scope2Part.CompositionService);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(RootPart), typeof(AnotherRootPart), typeof(SubScopedPart), typeof(AnotherSubScopedPart))]
+        public void CompositionServiceFromRootSatisfiesRootImports(IContainer container)
+        {
+            var root = container.GetExportedValue<RootPart>();
+
+            var myOwnRoot = new RootPart();
+            root.CompositionService.SatisfyImportsOnce(myOwnRoot);
+            Assert.NotNull(myOwnRoot.CompositionService);
+            Assert.Same(root.AnotherRootPart, myOwnRoot.AnotherRootPart);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(RootPart), typeof(AnotherRootPart), typeof(SubScopedPart), typeof(AnotherSubScopedPart))]
+        public void CompositionServiceFromRootDoesNotSatisfySubScopeImports(IContainer container)
+        {
+            var root = container.GetExportedValue<RootPart>();
+            var objectWithSubScopedImports = new SubScopedPart();
+            Assert.Throws<CompositionFailedException>(() => root.CompositionService.SatisfyImportsOnce(objectWithSubScopedImports));
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(RootPart), typeof(AnotherRootPart), typeof(SubScopedPart), typeof(AnotherSubScopedPart))]
+        public void CompositionServiceFromSubScopeSatisfiesSubScopeImports(IContainer container)
+        {
+            var root = container.GetExportedValue<RootPart>();
+            var scope1Part = root.ScopeFactory.CreateExport().Value;
+            var scope1Importer = new SubScopedPart();
+            scope1Part.CompositionService.SatisfyImportsOnce(scope1Importer);
+            Assert.Same(scope1Part.AnotherSubScopedPart, scope1Importer.AnotherSubScopedPart);
+            Assert.Same(root, scope1Importer.Root);
+
+            // Also make sure that another scope gets distinct exports
+            var scope2Part = root.ScopeFactory.CreateExport().Value;
+            var scope2Importer = new SubScopedPart();
+            scope2Part.CompositionService.SatisfyImportsOnce(scope2Importer);
+            Assert.Same(scope2Part.AnotherSubScopedPart, scope2Importer.AnotherSubScopedPart);
+            Assert.NotSame(scope1Part.AnotherSubScopedPart, scope2Part.AnotherSubScopedPart);
+            Assert.Same(root, scope2Importer.Root);
+        }
+
+        [MefV2.Export, MefV2.Shared]
+        public class RootPart
+        {
+            [MefV2.Import, MefV2.SharingBoundary("a")]
+            public MefV2.ExportFactory<SubScopedPart> ScopeFactory { get; set; }
+
+            [Import, MefV2.Import]
+            public ICompositionService CompositionService { get; set; }
+
+            [Import, MefV2.Import]
+            public AnotherRootPart AnotherRootPart { get; set; }
+        }
+
+        [MefV2.Export, MefV2.Shared]
+        public class AnotherRootPart
+        {
+            [Import, MefV2.Import]
+            public ICompositionService CompositionService { get; set; }
+        }
+
+        [MefV2.Export, MefV2.Shared("a")]
+        public class SubScopedPart
+        {
+            [Import, MefV2.Import]
+            public RootPart Root { get; set; }
+
+            [Import, MefV2.Import]
+            public AnotherSubScopedPart AnotherSubScopedPart { get; set; }
+
+            [Import, MefV2.Import]
+            public ICompositionService CompositionService { get; set; }
+        }
+
+        [MefV2.Export, MefV2.Shared("a")]
+        public class AnotherSubScopedPart
+        {
+            [Import, MefV2.Import]
+            public ICompositionService CompositionService { get; set; }
+        }
+
+        #endregion
     }
 }
