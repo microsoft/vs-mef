@@ -217,7 +217,7 @@
         /// Gets the Type of the interface that serves as a metadata view for a given import.
         /// </summary>
         /// <param name="receivingType">The type of the importing member or parameter, without its ImportMany collection if it had one.</param>
-        /// <returns>The metadata view, <see cref="IDictionary{string, object}"/>, or <c>null</c> if there is none.</returns>
+        /// <returns>The metadata view, IDictionary&lt;string, object&gt;, or <c>null</c> if there is none.</returns>
         private static Type GetMetadataType(Type receivingType)
         {
             Requires.NotNull(receivingType, "receivingType");
