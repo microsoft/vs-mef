@@ -89,7 +89,7 @@
         {
             Requires.NotNull(type, "type");
 
-            if (type.HasElementType)
+            if (type.IsArray)
             {
                 return type.GetElementType(); // T[] -> T
             }
