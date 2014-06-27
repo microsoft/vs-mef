@@ -167,6 +167,15 @@
             Assert.Equal(4, importer.ImportingProperty.Metadata.SomeInt);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportingPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataSomeStringArray))]
+        public void ImportWithMetadataViewAsFilterAndMetadatumWithStringArrayValue(IContainer container)
+        {
+            var importer = container.GetExportedValue<ImportingPartOfObjectWithMetadataInterface>();
+
+            Assert.IsType<PartWithExportMetadataSomeStringArray>(importer.ImportingProperty.Value);
+            Assert.Equal(new string[] { "alpha", "beta" }, importer.ImportingProperty.Metadata.SomeStringArray);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(ImportManyPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB), typeof(PartWithExportMetadataAB))]
         public void ImportManyWithMetadataViewAsFilter(IContainer container)
         {
@@ -204,6 +213,11 @@
         [MefV1.ExportMetadata("a", "b")]
         [MefV1.ExportMetadata("B", "c")]
         public class PartWithExportMetadataAB { }
+
+        [MefV1.Export("ExportWithMetadata", typeof(object))]
+        [MefV1.ExportMetadata("a", "b")]
+        [MefV1.ExportMetadata("SomeStringArray", new string[] { "alpha", "beta" })]
+        public class PartWithExportMetadataSomeStringArray { }
 
         #endregion
 
@@ -476,6 +490,9 @@
 
             [DefaultValue(null)]
             IEnumerable<string> SomeStringEnum { get; }
+
+            [DefaultValue(null)]
+            string[] SomeStringArray { get; }
 
             [DefaultValue(4)]
             int SomeInt { get; }
