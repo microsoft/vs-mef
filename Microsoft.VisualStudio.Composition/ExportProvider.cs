@@ -182,7 +182,7 @@
         protected abstract object GetExport(ExportDefinition exportDefinition);
 
         /// <summary>
-        /// When implemented by a derived class, returns an <see cref="IEnumerable&lt;ILazy&lt;T&gt;&gt;"/> of values that
+        /// When implemented by a derived class, returns an IEnumerable{ILazy`1} of values that
         /// satisfy the specified <see cref="ExportDefinition"/>.
         /// </summary>
         protected abstract IEnumerable<object> GetExports(ExportDefinition exportDefinition);

@@ -11,17 +11,13 @@
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
-    using Microsoft.Build.Construction;
-    using Microsoft.Build.Evaluation;
-    using Microsoft.Build.Execution;
-    using Microsoft.Build.Framework;
-    using Microsoft.Build.Logging;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.Emit;
     using Microsoft.CodeAnalysis.Text;
     using Validation;
 
+    [CLSCompliant(false)]
     public static class CompositionConfigurationDesktop
     {
         public static IExportProviderFactory LoadDefault()
