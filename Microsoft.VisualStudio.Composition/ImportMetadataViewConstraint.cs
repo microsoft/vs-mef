@@ -60,7 +60,7 @@
                     }
                 }
 
-                if (typeof(object[]).IsEquivalentTo(value.GetType()) && typeof(IEnumerable<>).GetTypeInfo().IsAssignableFrom(entry.Value.MetadatumValueType.GetTypeInfo().GetGenericTypeDefinition().GetTypeInfo()))
+                if (typeof(object[]).IsEquivalentTo(value.GetType()) && (entry.Value.MetadatumValueType.IsArray || (entry.Value.MetadatumValueType.GetTypeInfo().IsGenericType && typeof(IEnumerable<>).GetTypeInfo().IsAssignableFrom(entry.Value.MetadatumValueType.GetTypeInfo().GetGenericTypeDefinition().GetTypeInfo()))))
                 {
                     // When ExportMetadata(IsMultiple=true), the value is an object[]. Check that each individual value is assignable.
                     var receivingElementType = PartDiscovery.GetElementTypeFromMany(entry.Value.MetadatumValueType).GetTypeInfo();

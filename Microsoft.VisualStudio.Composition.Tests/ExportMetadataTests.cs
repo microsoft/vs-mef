@@ -176,6 +176,15 @@
             Assert.Equal(new string[] { "alpha", "beta" }, importer.ImportingProperty.Metadata.SomeStringArray);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportingPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataSomeStringArray))]
+        public void ImportWithMetadataViewAsFilterOfObjectArrayAndMetadatumWithStringArrayValue(IContainer container)
+        {
+            var importer = container.GetExportedValue<ImportingPartOfObjectWithMetadataInterface>();
+
+            Assert.IsType<PartWithExportMetadataSomeStringArray>(importer.ImportingProperty.Value);
+            Assert.Equal(new object[] { "alpha", "beta" }, importer.ImportingProperty.Metadata.SomeObjectArrayOfStrings);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(ImportManyPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB), typeof(PartWithExportMetadataAB))]
         public void ImportManyWithMetadataViewAsFilter(IContainer container)
         {
@@ -217,6 +226,7 @@
         [MefV1.Export("ExportWithMetadata", typeof(object))]
         [MefV1.ExportMetadata("a", "b")]
         [MefV1.ExportMetadata("SomeStringArray", new string[] { "alpha", "beta" })]
+        [MefV1.ExportMetadata("SomeObjectArrayOfStrings", new object[] { "alpha", "beta" })]
         public class PartWithExportMetadataSomeStringArray { }
 
         #endregion
@@ -328,7 +338,7 @@
             Assert.Equal(0, result.Count());
         }
 
-        [MefFact(CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V1, typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB), typeof(PartWithExportMetadataAB))]
         [Trait("Container.GetExport", "Plural")]
         public void GetNamedExportsTMetadata(IContainer container)
         {
@@ -493,6 +503,9 @@
 
             [DefaultValue(null)]
             string[] SomeStringArray { get; }
+
+            [DefaultValue(null)]
+            object[] SomeObjectArrayOfStrings { get; }
 
             [DefaultValue(4)]
             int SomeInt { get; }
