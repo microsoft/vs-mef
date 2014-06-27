@@ -5,6 +5,7 @@
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
@@ -34,12 +35,12 @@
                 && type2Info.IsAssignableFrom(type1Info);
         }
 
-        internal static bool IsAssignableTo(Import import, Export export)
+        internal static bool IsAssignableTo(ImportDefinitionBinding import, ExportDefinitionBinding export)
         {
             Requires.NotNull(import, "import");
             Requires.NotNull(export, "export");
 
-            var receivingType = import.ImportDefinition.ElementType;
+            var receivingType = import.ImportingSiteElementType;
             var exportingType = export.ExportedValueType;
             if (exportingType.GetTypeInfo().IsGenericTypeDefinition && receivingType.GetTypeInfo().IsGenericType)
             {
@@ -199,17 +200,41 @@
             throw new NotSupportedException();
         }
 
+        internal static Type GetMemberType(MemberInfo fieldOrProperty)
+        {
+            Requires.NotNull(fieldOrProperty, "fieldOrProperty");
+
+            var property = fieldOrProperty as PropertyInfo;
+            if (property != null)
+            {
+                return property.PropertyType;
+            }
+
+            var field = fieldOrProperty as FieldInfo;
+            if (field != null)
+            {
+                return field.FieldType;
+            }
+
+            throw new ArgumentException("Unexpected member type.");
+        }
+
         internal static bool IsPublicInstance(this MethodInfo methodInfo)
         {
             return methodInfo.IsPublic && !methodInfo.IsStatic;
         }
 
-        internal static string GetTypeName(Type type, bool genericTypeDefinition, bool evenNonPublic, HashSet<Assembly> relevantAssemblies)
+        internal static string GetTypeName(Type type, bool genericTypeDefinition, bool evenNonPublic, HashSet<Assembly> relevantAssemblies, HashSet<Type> relevantEmbeddedTypes)
         {
             if (relevantAssemblies != null)
             {
                 relevantAssemblies.Add(type.GetTypeInfo().Assembly);
                 relevantAssemblies.UnionWith(GetAllBaseTypesAndInterfaces(type).Select(t => t.GetTypeInfo().Assembly));
+            }
+
+            if (relevantEmbeddedTypes != null)
+            {
+                AddEmbeddedInterfaces(type, relevantEmbeddedTypes);
             }
 
             if (type.IsGenericParameter)
@@ -219,13 +244,13 @@
 
             if (!IsPublic(type) && !evenNonPublic)
             {
-                return GetTypeName(type.GetTypeInfo().BaseType ?? typeof(object), genericTypeDefinition, evenNonPublic, relevantAssemblies);
+                return GetTypeName(type.GetTypeInfo().BaseType ?? typeof(object), genericTypeDefinition, evenNonPublic, relevantAssemblies, relevantEmbeddedTypes);
             }
 
             string result = string.Empty;
             if (type.DeclaringType != null)
             {
-                result = GetTypeName(type.DeclaringType, genericTypeDefinition, false, relevantAssemblies) + ".";
+                result = GetTypeName(type.DeclaringType, genericTypeDefinition, false, relevantAssemblies, relevantEmbeddedTypes) + ".";
             }
 
             if (genericTypeDefinition)
@@ -234,11 +259,24 @@
             }
             else
             {
-                string[] typeArguments = type.GetTypeInfo().GenericTypeArguments.Select(t => GetTypeName(t, false, evenNonPublic, relevantAssemblies)).ToArray();
+                string[] typeArguments = type.GetTypeInfo().GenericTypeArguments.Select(t => GetTypeName(t, false, evenNonPublic, relevantAssemblies, relevantEmbeddedTypes)).ToArray();
                 result += ReplaceBackTickWithTypeArgs(type.DeclaringType == null ? type.FullName : type.Name, typeArguments);
             }
 
             return result;
+        }
+
+        private static void AddEmbeddedInterfaces(Type type, HashSet<Type> relevantEmbeddedTypes)
+        {
+            if (type.IsEmbeddedType())
+            {
+                relevantEmbeddedTypes.Add(type);
+            }
+
+            foreach (Type iface in type.GetTypeInfo().ImplementedInterfaces)
+            {
+                AddEmbeddedInterfaces(iface, relevantEmbeddedTypes);
+            }
         }
 
         internal static string ReplaceBackTickWithTypeArgs(string originalName, params string[] typeArguments)
@@ -311,6 +349,38 @@
             if (typeInfo.IsPublic || typeInfo.IsNestedPublic)
             {
                 return true;
+            }
+
+            return false;
+        }
+
+        internal static bool HasBaseclassOf(this Type type, Type baseClass)
+        {
+            if (type == baseClass)
+            {
+                return false;
+            }
+
+            while (type != null)
+            {
+                if (type == baseClass)
+                    return true;
+                type = type.GetTypeInfo().BaseType;
+            }
+            return false;
+        }
+
+        internal static bool IsEmbeddedType(this Type type)
+        {
+            Requires.NotNull(type, "type");
+            var typeInfo = type.GetTypeInfo();
+
+            if (typeInfo.IsInterface)
+            {
+                if (typeInfo.GetCustomAttribute<TypeIdentifierAttribute>() != null)
+                {
+                    return true;
+                }
             }
 
             return false;

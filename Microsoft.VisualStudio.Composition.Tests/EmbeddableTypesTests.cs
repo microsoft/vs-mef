@@ -46,7 +46,6 @@
         /// </remarks>
         [MefFact(
             CompositionEngines.V1/*Compat | CompositionEngines.V3EmulatingV2*/,
-            "Microsoft.VisualStudio.Shell.Interop.12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
             typeof(PartThatImportsLazyOfEmbeddedType),
             typeof(PartThatExportsEmbeddedType))]
         public void EmbeddedGenericTypeArgument(IContainer container)
@@ -58,7 +57,6 @@
 
         [MefFact(
             CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2,
-            "Microsoft.VisualStudio.Shell.Interop.12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
             typeof(PartThatImportsILazyOfEmbeddedType),
             typeof(PartThatExportsEmbeddedType))]
         public void CovariantEmbeddedGenericTypeArgument(IContainer container)
@@ -70,7 +68,6 @@
 
         [MefFact(
             CompositionEngines.V1/*Compat*/,
-            "Microsoft.VisualStudio.Shell.Interop.12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
             typeof(PartThatImportsLazyOfEmbeddedTypeNonPublic),
             typeof(PartThatExportsEmbeddedType))]
         public void EmbeddedGenericTypeArgumentNonPublicImportingProperty(IContainer container)
@@ -82,7 +79,6 @@
 
         [MefFact(
             CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2,
-            "Microsoft.VisualStudio.Shell.Interop.12.0, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
             typeof(PartThatImportsEmbeddedType),
             typeof(PartThatExportsEmbeddedType))]
         public void EmbeddedTypePublicImportingProperty(IContainer container)

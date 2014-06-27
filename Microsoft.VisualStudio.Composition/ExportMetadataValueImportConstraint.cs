@@ -7,12 +7,12 @@
     using System.Threading.Tasks;
     using Validation;
 
-    internal class ImportMetadataValueConstraint : IImportSatisfiabilityConstraint
+    internal class ExportMetadataValueImportConstraint : IImportSatisfiabilityConstraint
     {
         private readonly string name;
         private readonly object value;
 
-        internal ImportMetadataValueConstraint(string name, object value)
+        internal ExportMetadataValueImportConstraint(string name, object value)
         {
             Requires.NotNullOrEmpty(name, "name");
 
@@ -20,9 +20,8 @@
             this.value = value;
         }
 
-        public bool IsSatisfiedBy(ImportDefinition importDefinition, ExportDefinition exportDefinition)
+        public bool IsSatisfiedBy(ExportDefinition exportDefinition)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(exportDefinition, "exportDefinition");
 
             object exportMetadataValue;

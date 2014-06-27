@@ -37,99 +37,26 @@ internal class CompiledExportProvider : ExportProvider
     {
     }
 
-    protected override object GetExport(ExportDefinition exportDefinition)
+    protected override IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition)
     {
         var provisionalSharedObjects = new Dictionary<Type, object>();
-        Type exportTypeDefinition = exportDefinition.Contract.Type.IsGenericType ? exportDefinition.Contract.Type.GetGenericTypeDefinition() : exportDefinition.Contract.Type;<#
-foreach (var contractAndExports in this.ExportsByContract)
-{
-    CompositionContract contract = contractAndExports.Key;
-    IEnumerable<Export> exports = contractAndExports;
-    if (exports.Count() != 1)
-    {
-        // This method returns matches when exactly one export exists.
-        continue;
-    }
-
-    var onlyExport = exports.First();
-#>
-
-        if (<#= contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type" #>.IsEquivalentTo(<#= GetTypeExpression(contract.Type, contract.Type.IsGenericTypeDefinition) #>))
+        switch (importDefinition.ContractName)
         {
 <#
-            if (contract.ContractName == null)
-            {
-#>
-            if (exportDefinition.Contract.ContractName == null)
-<#
-            }
-            else
-            {
-#>
-            if (exportDefinition.Contract.ContractName == "<#= contract.ContractName #>")
-<#
-            }
-#>
-            {
-<#
-                if (onlyExport.ExportingMember.IsStaticExport())
-                {
-#>
-                throw new InvalidOperationException("Static exports not supported.");
-<#
-                }
-                else
-                {
-#>
-                return <#=GetPartOrMemberLazy(onlyExport)#>;
-<#
-                }
-#>
-            }
-        }
-<#
-}
-#>
-
-        throw new CompositionFailedException();
-    }
-
-    protected override IEnumerable<object> GetExports(ExportDefinition exportDefinition)
-    {
-        var provisionalSharedObjects = new Dictionary<Type, object>();
-        Type exportTypeDefinition = exportDefinition.Contract.Type.IsGenericType ? exportDefinition.Contract.Type.GetGenericTypeDefinition() : exportDefinition.Contract.Type;<#
-foreach (var contractAndExports in this.ExportsByContract)
+foreach (var exportsByContract in this.ExportsByContract)
 {
-    CompositionContract contract = contractAndExports.Key;
-    IEnumerable<Export> exports = contractAndExports;
-
 #>
-
-        if (<#= contract.Type.IsGenericTypeDefinition ? "exportTypeDefinition" : "exportDefinition.Contract.Type" #>.IsEquivalentTo(<#= GetTypeExpression(contract.Type, contract.Type.IsGenericTypeDefinition) #>))
-        {
+            case "<#= exportsByContract.Key #>":
 <#
-            if (contract.ContractName == null)
-            {
-#>
-            if (exportDefinition.Contract.ContractName == null)
-<#
-            }
-            else
-            {
-#>
-            if (exportDefinition.Contract.ContractName == "<#= contract.ContractName #>")
-<#
-            }
-#>
-            {
-                <# EmitGetExportsReturnExpression(contract, exports); #>
-            }
-        }
-<#
+    foreach (var export in exportsByContract)
+    {
+        using(Indent()) EmitGetExportsReturnExpression(exportsByContract);
+    }
 }
 #>
+        }
 
-        return null;
+        return ImmutableList<Export>.Empty;
     }
 <#
 foreach (var part in this.Configuration.Parts) 
@@ -148,15 +75,15 @@ foreach (var part in this.Configuration.Parts)
         else
         {
 #>
-        ILazy<<#= GetTypeName(part.Definition.Type) #>> value;
         Type partType = <#= this.GetTypeExpression(part.Definition.Type) #>;
-        if (!nonSharedInstanceRequired && TryGetProvisionalSharedExport(provisionalSharedObjects, partType, out value))
-        {
-            return value;
-        }
-
         ILazy<<#= GetTypeName(part.Definition.Type) #>> lazyResult;
-<#
+<#      if (part.Definition.IsShared) { #>
+        if (!nonSharedInstanceRequired && TryGetProvisionalSharedExport(provisionalSharedObjects, partType, out lazyResult))
+        {
+            return lazyResult;
+        }
+<#      }
+
         if (part.Definition.IsShared)
         {
 #>

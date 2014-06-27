@@ -23,27 +23,32 @@
                 return null;
             }
 
+            var partCreationPolicy = CreationPolicy.Any;
+            var partCreationPolicyAttribute = partType.GetCustomAttribute<PartCreationPolicyAttribute>();
+            if (partCreationPolicyAttribute != null)
+            {
+                partCreationPolicy = (CreationPolicy)partCreationPolicyAttribute.CreationPolicy;
+            }
+
+            var allExportsMetadata = ImmutableDictionary.CreateRange(PartCreationPolicyConstraint.GetExportMetadata(partCreationPolicy));
+
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
-            var imports = ImmutableDictionary.CreateBuilder<MemberInfo, ImportDefinition>();
-            var exportMetadataOnType = GetExportMetadata(partType.GetCustomAttributes());
-            var partCreationPolicy = CreationPolicy.Any;
+            var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
+            var exportMetadataOnType = allExportsMetadata.AddRange(GetExportMetadata(partType.GetCustomAttributes()));
 
             foreach (var exportAttributes in partType.GetCustomAttributesByType<ExportAttribute>())
             {
                 foreach (var exportAttribute in exportAttributes)
                 {
                     var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
-                    var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? exportAttributes.Key);
-                    var exportDefinition = new ExportDefinition(contract, exportMetadataOnType);
+                    Type exportedType = exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? exportAttributes.Key;
+                    string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
+                    var exportMetadata = exportMetadataOnType
+                        .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
+                    var exportDefinition = new ExportDefinition(contractName, exportMetadata);
                     exportsOnType.Add(exportDefinition);
                 }
-            }
-
-            var partCreationPolicyAttribute = partType.GetCustomAttribute<PartCreationPolicyAttribute>();
-            if (partCreationPolicyAttribute != null)
-            {
-                partCreationPolicy = (CreationPolicy)partCreationPolicyAttribute.CreationPolicy;
             }
 
             var flags = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
@@ -61,17 +66,20 @@
                 ImportDefinition importDefinition;
                 if (TryCreateImportDefinition(propertyOrFieldType, member.GetCustomAttributes(), out importDefinition))
                 {
-                    imports.Add(member, importDefinition);
+                    imports.Add(new ImportDefinitionBinding(importDefinition, partType, member));
                 }
                 else if (exportAttributes.Any())
                 {
                     Verify.Operation(!partType.IsGenericTypeDefinition, "Exports on members not allowed when the declaring type is generic.");
-                    var exportMetadataOnMember = GetExportMetadata(member.GetCustomAttributes());
+                    var exportMetadataOnMember = allExportsMetadata.AddRange(GetExportMetadata(member.GetCustomAttributes()));
                     var exportDefinitions = ImmutableList.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
-                        var contract = new CompositionContract(exportAttribute.ContractName, exportAttribute.ContractType ?? propertyOrFieldType);
-                        var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
+                        Type exportedType = exportAttribute.ContractType ?? propertyOrFieldType;
+                        string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
+                        var exportMetadata = exportMetadataOnMember
+                            .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
+                        var exportDefinition = new ExportDefinition(contractName, exportMetadata);
                         exportDefinitions = exportDefinitions.Add(exportDefinition);
                     }
 
@@ -84,13 +92,15 @@
                 var exportAttributes = method.GetCustomAttributes<ExportAttribute>();
                 if (exportAttributes.Any())
                 {
-                    var exportMetadataOnMember = GetExportMetadata(method.GetCustomAttributes());
+                    var exportMetadataOnMember = allExportsMetadata.AddRange(GetExportMetadata(method.GetCustomAttributes()));
                     var exportDefinitions = ImmutableList.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
-                        Type contractType = exportAttribute.ContractType ?? Export.GetContractTypeForDelegate(method);
-                        var contract = new CompositionContract(exportAttribute.ContractName, contractType);
-                        var exportDefinition = new ExportDefinition(contract, exportMetadataOnMember);
+                        Type exportedType = exportAttribute.ContractType ?? ExportDefinitionBinding.GetContractTypeForDelegate(method);
+                        string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
+                        var exportMetadata = exportMetadataOnMember
+                            .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
+                        var exportDefinition = new ExportDefinition(contractName, exportMetadata);
                         exportDefinitions = exportDefinitions.Add(exportDefinition);
                     }
 
@@ -106,19 +116,19 @@
 
             if (exportsOnMembers.Count > 0 || exportsOnType.Count > 0)
             {
-                var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinition>();
+                var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
                 var importingCtor = GetImportingConstructor(partType, typeof(ImportingConstructorAttribute), publicOnly: false);
                 if (importingCtor != null) // some parts have exports merely for metadata -- they can't be instantiated
                 {
                     foreach (var parameter in importingCtor.GetParameters())
                     {
-                        var importDefinition = CreateImportDefinition(parameter.ParameterType, parameter.GetCustomAttributes());
-                        if (importDefinition.Cardinality == ImportCardinality.ZeroOrMore)
+                        var import = CreateImport(parameter, parameter.GetCustomAttributes());
+                        if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
                         {
-                            Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(importDefinition), "Collection must be public with a public constructor when used with an [ImportingConstructor].");
+                            Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(import), "Collection must be public with a public constructor when used with an [ImportingConstructor].");
                         }
 
-                        importingConstructorParameters.Add(importDefinition);
+                        importingConstructorParameters.Add(import);
                     }
                 }
 
@@ -128,7 +138,7 @@
                     exportsOnMembers.ToImmutable(),
                     imports.ToImmutable(),
                     onImportsSatisfied,
-                    importingCtor != null ? importingConstructorParameters.ToImmutable() : null,
+                    importingCtor != null ? importingConstructorParameters.ToImmutable() : null, // some MEF parts are only for metadata
                     partCreationPolicy);
             }
             else
@@ -151,9 +161,9 @@
             return false;
         }
 
-        private static bool TryCreateImportDefinition(Type propertyOrFieldType, IEnumerable<Attribute> attributes, out ImportDefinition importDefinition)
+        private static bool TryCreateImportDefinition(Type importingType, IEnumerable<Attribute> attributes, out ImportDefinition importDefinition)
         {
-            Requires.NotNull(propertyOrFieldType, "propertyOrFieldType");
+            Requires.NotNull(importingType, "importingType");
 
             var importAttribute = attributes.OfType<ImportAttribute>().SingleOrDefault();
             var importManyAttribute = attributes.OfType<ImportManyAttribute>().SingleOrDefault();
@@ -165,18 +175,19 @@
                     throw new NotSupportedException("Custom import sources are not yet supported.");
                 }
 
-                var requiredCreationPolicy = propertyOrFieldType.IsExportFactoryTypeV1()
+                var requiredCreationPolicy = importingType.IsExportFactoryTypeV1()
                     ? CreationPolicy.NonShared
                     : (CreationPolicy)importAttribute.RequiredCreationPolicy;
 
-                Type contractType = importAttribute.ContractType ?? GetElementFromImportingMemberType(propertyOrFieldType, importMany: false);
-                var contract = new CompositionContract(importAttribute.ContractName, contractType);
+                Type contractType = importAttribute.ContractType ?? GetTypeIdentityFromImportingType(importingType, importMany: false);
+                var constraints = PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraints(requiredCreationPolicy)
+                    .Union(GetMetadataViewConstraints(importingType, importMany: false))
+                    .Union(GetExportTypeIdentityConstraints(contractType));
                 importDefinition = new ImportDefinition(
-                    contract,
+                    string.IsNullOrEmpty(importAttribute.ContractName) ? GetContractName(contractType) : importAttribute.ContractName,
                     importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
-                    propertyOrFieldType,
-                    ImmutableList.Create<IImportSatisfiabilityConstraint>(),
-                    requiredCreationPolicy);
+                    GetImportMetadataForGenericTypeImport(contractType),
+                    constraints);
                 return true;
             }
             else if (importManyAttribute != null)
@@ -186,18 +197,19 @@
                     throw new NotSupportedException("Custom import sources are not yet supported.");
                 }
 
-                var requiredCreationPolicy = GetElementTypeFromMany(propertyOrFieldType).IsExportFactoryTypeV1()
+                var requiredCreationPolicy = GetElementTypeFromMany(importingType).IsExportFactoryTypeV1()
                     ? CreationPolicy.NonShared
                     : (CreationPolicy)importManyAttribute.RequiredCreationPolicy;
 
-                Type contractType = importManyAttribute.ContractType ?? GetElementFromImportingMemberType(propertyOrFieldType, importMany: true);
-                var contract = new CompositionContract(importManyAttribute.ContractName, contractType);
+                Type contractType = importManyAttribute.ContractType ?? GetTypeIdentityFromImportingType(importingType, importMany: true);
+                var constraints = PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraints(requiredCreationPolicy)
+                    .Union(GetMetadataViewConstraints(importingType, importMany: true))
+                    .Union(GetExportTypeIdentityConstraints(contractType));
                 importDefinition = new ImportDefinition(
-                    contract,
+                    string.IsNullOrEmpty(importManyAttribute.ContractName) ? GetContractName(contractType) : importManyAttribute.ContractName,
                     ImportCardinality.ZeroOrMore,
-                    propertyOrFieldType,
-                    ImmutableList.Create<IImportSatisfiabilityConstraint>(),
-                    requiredCreationPolicy);
+                    GetImportMetadataForGenericTypeImport(contractType),
+                    constraints);
                 return true;
             }
             else
@@ -207,15 +219,15 @@
             }
         }
 
-        private static ImportDefinition CreateImportDefinition(Type propertyOrFieldType, IEnumerable<Attribute> attributes)
+        private static ImportDefinitionBinding CreateImport(ParameterInfo parameter, IEnumerable<Attribute> attributes)
         {
-            ImportDefinition result;
-            if (!TryCreateImportDefinition(propertyOrFieldType, attributes, out result))
+            ImportDefinition definition;
+            if (!TryCreateImportDefinition(parameter.ParameterType, attributes, out definition))
             {
-                Assumes.True(TryCreateImportDefinition(propertyOrFieldType, attributes.Concat(new Attribute[] { new ImportAttribute() }), out result));
+                Assumes.True(TryCreateImportDefinition(parameter.ParameterType, attributes.Concat(new Attribute[] { new ImportAttribute() }), out definition));
             }
 
-            return result;
+            return new ImportDefinitionBinding(definition, parameter.Member.DeclaringType, parameter);
         }
 
         private static IReadOnlyDictionary<string, object> GetExportMetadata(IEnumerable<Attribute> attributes)

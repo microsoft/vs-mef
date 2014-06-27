@@ -2,94 +2,57 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
+    using System.Globalization;
     using System.Linq;
-    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
 
     public class Export
     {
-        public Export(ExportDefinition exportDefinition, ComposablePartDefinition partDefinition, MemberInfo exportingMember)
-        {
-            Requires.NotNull(exportDefinition, "exportDefinition");
-            Requires.NotNull(partDefinition, "partDefinition");
+        private readonly Func<object> exportedValueGetter;
 
-            this.ExportDefinition = exportDefinition;
-            this.PartDefinition = partDefinition;
-            this.ExportingMember = exportingMember;
+        public Export(string contractName, IReadOnlyDictionary<string, object> metadata, Func<object> exportedValueGetter)
+            : this(new ExportDefinition(contractName, metadata), exportedValueGetter)
+        {
         }
 
-        public ExportDefinition ExportDefinition { get; private set; }
-
-        public ComposablePartDefinition PartDefinition { get; private set; }
-
-        /// <summary>
-        /// Gets the member with the ExportAttribute applied. <c>null</c> when the export is on the type itself.
-        /// </summary>
-        public MemberInfo ExportingMember { get; private set; }
-
-        /// <summary>
-        /// Gets a value indicating whether the exporting member is static.
-        /// </summary>
-        public bool IsStaticExport
+        public Export(ExportDefinition definition, Func<object> exportedValueGetter)
         {
-            get { return this.ExportingMember.IsStaticExport(); }
+            Requires.NotNull(definition, "definition");
+            Requires.NotNull(exportedValueGetter, "exportedValueGetter");
+
+            this.Definition = definition;
+            this.exportedValueGetter = exportedValueGetter;
         }
 
-        public Type ExportedValueType
+        public ExportDefinition Definition { get; private set; }
+
+        public IReadOnlyDictionary<string, object> Metadata
         {
-            get
-            {
-                if (this.ExportingMember == null)
-                {
-                    return this.PartDefinition.Type;
-                }
-
-                var exportingField = this.ExportingMember as FieldInfo;
-                if (exportingField != null)
-                {
-                    return exportingField.FieldType;
-                }
-
-                var exportingProperty = this.ExportingMember as PropertyInfo;
-                if (exportingProperty != null)
-                {
-                    return exportingProperty.PropertyType;
-                }
-
-                var exportingMethod = this.ExportingMember as MethodInfo;
-                if (exportingMethod != null)
-                {
-                    return GetContractTypeForDelegate(exportingMethod);
-                }
-
-                throw new NotSupportedException();
-            }
+            get { return this.Definition.Metadata; }
         }
 
-        internal static Type GetContractTypeForDelegate(MethodInfo method)
+        public object Value
         {
-            Type genericTypeDefinition;
-            int parametersCount = method.GetParameters().Length;
-            var typeArguments = method.GetParameters().Select(p => p.ParameterType).ToList();
-            var voidResult = method.ReturnType.Equals(typeof(void));
-            if (voidResult)
-            {
-                if (typeArguments.Count == 0)
-                {
-                    return typeof(Action);
-                }
+            get { return this.exportedValueGetter(); }
+        }
 
-                genericTypeDefinition = Type.GetType("System.Action`" + typeArguments.Count);
-            }
-            else
-            {
-                typeArguments.Add(method.ReturnType);
-                genericTypeDefinition = Type.GetType("System.Func`" + typeArguments.Count);
-            }
+        internal Export CloseGenericExport(Type[] genericTypeArguments)
+        {
+            Requires.NotNull(genericTypeArguments, "genericTypeArguments");
 
-            return genericTypeDefinition.MakeGenericType(typeArguments.ToArray());
+            string openGenericExportTypeIdentity=(string)this.Metadata[CompositionConstants.ExportTypeIdentityMetadataName];
+            string genericTypeDefinitionIdentityPattern = openGenericExportTypeIdentity;
+            string[] genericTypeArgumentIdentities = genericTypeArguments.Select(ContractNameServices.GetTypeIdentity).ToArray();
+            string closedTypeIdentity = string.Format(CultureInfo.InvariantCulture, genericTypeDefinitionIdentityPattern, genericTypeArgumentIdentities);
+            var metadata = ImmutableDictionary.CreateRange(this.Metadata).SetItem(CompositionConstants.ExportTypeIdentityMetadataName, closedTypeIdentity);
+
+            string contractName = this.Definition.ContractName == openGenericExportTypeIdentity
+                ? closedTypeIdentity : this.Definition.ContractName;
+
+            return new Export(contractName, metadata, this.exportedValueGetter);
         }
     }
 }

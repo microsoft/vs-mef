@@ -103,6 +103,7 @@
       <DependentUpon>CompositionTemplateFactory.tt</DependentUpon>
     </Compile>
     <Compile Include="CompositionTemplateFactory.Extras.cs" />
+    <Compile Include="NetFxAdapters.cs" />
     <Compile Include="Tasks\ExceptionHelpers.cs" />
     <EmbeddedResource Include="Tasks\ExportProviderFactory.cs" />
     <Compile Include="Tasks\CreateComposition.cs" />

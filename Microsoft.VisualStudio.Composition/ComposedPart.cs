@@ -12,16 +12,16 @@
     using Validation;
 
     [DebuggerDisplay("{Definition.Type.Name}")]
-    public class ComposablePart
+    public class ComposedPart
     {
-        public ComposablePart(ComposablePartDefinition definition, IReadOnlyDictionary<Import, IReadOnlyList<Export>> satisfyingExports, IImmutableSet<string> requiredSharingBoundaries)
+        public ComposedPart(ComposablePartDefinition definition, IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExports, IImmutableSet<string> requiredSharingBoundaries)
         {
             Requires.NotNull(definition, "definition");
             Requires.NotNull(satisfyingExports, "satisfyingExports");
             Requires.NotNull(requiredSharingBoundaries, "requiredSharingBoundaries");
 
             // Make sure we have entries for every import.
-            Requires.Argument(satisfyingExports.Count == definition.ImportDefinitions.Count() && definition.ImportDefinitions.All(d => satisfyingExports.Keys.Any(e => e.ImportDefinition.Equals(d))), "satisfyingExports", "There should be exactly one entry for every import.");
+            Requires.Argument(satisfyingExports.Count == definition.Imports.Count() && definition.Imports.All(d => satisfyingExports.ContainsKey(d)), "satisfyingExports", "There should be exactly one entry for every import.");
             Requires.Argument(satisfyingExports.All(kv => kv.Value != null), "satisfyingExports", "All values must be non-null.");
 
             this.Definition = definition;
@@ -34,19 +34,19 @@
         /// <summary>
         /// Gets a map of this part's imports, and the exports which satisfy them.
         /// </summary>
-        public IReadOnlyDictionary<Import, IReadOnlyList<Export>> SatisfyingExports { get; private set; }
+        public IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> SatisfyingExports { get; private set; }
 
         /// <summary>
         /// Gets the set of sharing boundaries that this part must be instantiated within.
         /// </summary>
         public IImmutableSet<string> RequiredSharingBoundaries { get; private set; }
 
-        public IEnumerable<KeyValuePair<Import, IReadOnlyList<Export>>> GetImportingConstructorImports()
+        public IEnumerable<KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>> GetImportingConstructorImports()
         {
-            foreach (var importDefinition in this.Definition.ImportingConstructor)
+            foreach (var import in this.Definition.ImportingConstructor)
             {
-                var key = this.SatisfyingExports.Keys.Single(k => k.ImportDefinition == importDefinition);
-                yield return new KeyValuePair<Import, IReadOnlyList<Export>>(key, this.SatisfyingExports[key]);
+                var key = this.SatisfyingExports.Keys.Single(k => k.ImportDefinition == import.ImportDefinition);
+                yield return new KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>(key, this.SatisfyingExports[key]);
             }
         }
 
@@ -67,7 +67,7 @@
                                     string.Format(
                                         CultureInfo.CurrentCulture,
                                         "Import of {0} expected 1 export but found {1}.",
-                                        importDefinition.Contract,
+                                        importDefinition.ContractName,
                                         pair.Value.Count));
                             }
 
@@ -79,7 +79,7 @@
                                     string.Format(
                                         CultureInfo.CurrentCulture,
                                         "Import of {0} expected 1 or 0 exports but found {1}.",
-                                        importDefinition.Contract,
+                                        importDefinition.ContractName,
                                         pair.Value.Count));
                             }
 
@@ -94,17 +94,17 @@
                                 string.Format(
                                     CultureInfo.CurrentCulture,
                                     "Exported type {4} on MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
-                                    ReflectionHelpers.GetTypeName(export.PartDefinition.Type, false, true, null),
-                                    ReflectionHelpers.GetTypeName(pair.Key.ImportDefinition.ElementType, false, true, null),
-                                    ReflectionHelpers.GetTypeName(this.Definition.Type, false, true, null),
+                                    ReflectionHelpers.GetTypeName(export.PartDefinition.Type, false, true, null, null),
+                                    ReflectionHelpers.GetTypeName(pair.Key.ImportingSiteElementType, false, true, null, null),
+                                    ReflectionHelpers.GetTypeName(this.Definition.Type, false, true, null, null),
                                     pair.Key.ImportingMember != null ? pair.Key.ImportingMember.Name : "ctor",
-                                    ReflectionHelpers.GetTypeName(export.ExportedValueType, false, true, null)));
+                                    ReflectionHelpers.GetTypeName(export.ExportedValueType, false, true, null, null)));
                         }
                     }
                 }
                 catch (CompositionFailedException ex)
                 {
-                    exceptions = exceptions.Add(new CompositionFailedException("Error validating MEF part: " + pair.Key.PartDefinition.Type.Name, ex));
+                    exceptions = exceptions.Add(new CompositionFailedException("Error validating MEF part: " + pair.Key.ComposablePartType.Name, ex));
                 }
             }
 

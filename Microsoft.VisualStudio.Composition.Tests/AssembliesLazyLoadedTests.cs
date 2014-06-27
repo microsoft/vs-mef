@@ -17,7 +17,7 @@
         /// <summary>
         /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
         /// </summary>
-        [Fact(Skip = "Functionality not yet implemented.")]
+        [Fact]
         public async Task ComposableAssembliesLazyLoadedWhenQueried()
         {
             var configuration = CompositionConfiguration.Create(new AttributedPartDiscovery(), typeof(ExternalExport), typeof(YetAnotherExport));
@@ -42,10 +42,10 @@
         /// <summary>
         /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
         /// </summary>
-        [Fact(Skip = "Functionality not yet implemented.")]
+        [Fact]
         public async Task ComposableAssembliesLazyLoadedByLazyImport()
         {
-            var configuration = CompositionConfiguration.Create(new AttributedPartDiscovery(), typeof(ExternalExport), typeof(YetAnotherExport));
+            var configuration = CompositionConfiguration.Create(new AttributedPartDiscovery(), typeof(ExternalExportWithLazy), typeof(YetAnotherExport));
             string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             await configuration.SaveAsync(path);
 
@@ -94,7 +94,6 @@
                 Assert.False(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 Assert.NotNull(exportWithLazy.YetAnotherExport.Value);
                 Assert.True(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
-
             }
 
             private void CauseLazyLoad1(ExportProvider container)

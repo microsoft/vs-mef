@@ -27,7 +27,7 @@
             Assert.NotSame(nonSharedExport, nonSharedExport2);
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void MultipleImportsOfNonSharedPart(IContainer container)
         {
             var importer = container.GetExportedValue<MultipleImportsForSamePart>();

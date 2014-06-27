@@ -22,7 +22,7 @@
     {
         private ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides;
 
-        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposablePart> parts, ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides)
+        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposedPart> parts, ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides)
         {
             Requires.NotNull(catalog, "catalog");
             Requires.NotNull(parts, "parts");
@@ -36,7 +36,7 @@
 
         public ComposableCatalog Catalog { get; private set; }
 
-        public ISet<ComposablePart> Parts { get; private set; }
+        public ISet<ComposedPart> Parts { get; private set; }
 
         public ImmutableHashSet<Assembly> AdditionalReferenceAssemblies { get; private set; }
 
@@ -54,13 +54,7 @@
             var partBuilders = new Dictionary<ComposablePartDefinition, PartBuilder>();
             foreach (ComposablePartDefinition partDefinition in catalog.Parts)
             {
-                var imports = partDefinition.ImportingMembers.Select(i => new Import(partDefinition, i.Value, i.Key));
-                if (partDefinition.ImportingConstructor != null)
-                {
-                    imports = imports.Concat(partDefinition.ImportingConstructor.Select(i => new Import(partDefinition, i)));
-                }
-
-                var satisfyingImports = imports.ToImmutableDictionary(i => i, i => catalog.GetExports(i.ImportDefinition));
+                var satisfyingImports = partDefinition.Imports.ToImmutableDictionary(i => i, i => catalog.GetExports(i.ImportDefinition));
                 partBuilders.Add(partDefinition, new PartBuilder(partDefinition, satisfyingImports));
             }
 
@@ -69,7 +63,7 @@
             {
                 var importedPartsExcludingFactories =
                     (from entry in partBuilder.SatisfyingExports
-                     where !entry.Key.ImportDefinition.IsExportFactory
+                     where !entry.Key.IsExportFactory
                      from export in entry.Value
                      select export.PartDefinition).Distinct();
                 foreach (var importedPartDefinition in importedPartsExcludingFactories)
@@ -88,10 +82,10 @@
             var sharingBoundaryOverrides = ComputeInferredSharingBoundaries(partBuilders.Values);
 
             // Build up our set of composed parts.
-            var partsBuilder = ImmutableHashSet.CreateBuilder<ComposablePart>();
+            var partsBuilder = ImmutableHashSet.CreateBuilder<ComposedPart>();
             foreach (var partBuilder in partBuilders.Values)
             {
-                var composedPart = new ComposablePart(partBuilder.PartDefinition, partBuilder.SatisfyingExports, partBuilder.RequiredSharingBoundaries.ToImmutableHashSet());
+                var composedPart = new ComposedPart(partBuilder.PartDefinition, partBuilder.SatisfyingExports, partBuilder.RequiredSharingBoundaries.ToImmutableHashSet());
                 partsBuilder.Add(composedPart);
             }
 
@@ -161,9 +155,9 @@
             return this.effectiveSharingBoundaryOverrides.GetValueOrDefault(partDefinition) ?? partDefinition.SharingBoundary;
         }
 
-        private static bool IsLoopPresent(ImmutableHashSet<ComposablePart> parts)
+        private static bool IsLoopPresent(ImmutableHashSet<ComposedPart> parts)
         {
-            var partsAndDirectImports = new Dictionary<ComposablePart, ImmutableHashSet<ComposablePart>>();
+            var partsAndDirectImports = new Dictionary<ComposedPart, ImmutableHashSet<ComposedPart>>();
 
             // First create a map of each NonShared part and the NonShared parts it directly imports.
             foreach (var part in parts.Where(p => !p.Definition.IsShared))
@@ -220,7 +214,7 @@
         private static void ValidateIndividualParts(IImmutableSet<ComposablePartDefinition> parts)
         {
             Requires.NotNull(parts, "parts");
-            var partsExportingExportProvider = parts.Where(p => p.ExportDefinitions.Any(ed => ExportProvider.ExportProviderContract.Equals(ed.Value.Contract)));
+            var partsExportingExportProvider = parts.Where(p => p.ExportDefinitions.Any(ed => ExportDefinitionPracticallyEqual.Default.Equals(ExportProvider.ExportProviderExportDefinition, ed.Value)));
             if (partsExportingExportProvider.Any())
             {
                 throw new CompositionFailedException();
@@ -261,7 +255,7 @@
                             string.Format(
                                 CultureInfo.CurrentCulture,
                                 "Unable to determine the primary sharing boundary for MEF part \"{0}\".",
-                                ReflectionHelpers.GetTypeName(partBuilder.PartDefinition.Type, false, true, null)));
+                                ReflectionHelpers.GetTypeName(partBuilder.PartDefinition.Type, false, true, null, null)));
                     }
                 }
             }
@@ -280,8 +274,8 @@
 
             // First build up a dictionary of all sharing boundaries and the parent boundaries that consistently exist.
             var sharingBoundaryExportFactories = from partBuilder in partBuilders
-                                                 from import in partBuilder.PartDefinition.ImportDefinitions
-                                                 from sharingBoundary in import.ExportFactorySharingBoundaries
+                                                 from import in partBuilder.PartDefinition.Imports
+                                                 from sharingBoundary in import.ImportDefinition.ExportFactorySharingBoundaries
                                                  select new { ParentSharingBoundaries = partBuilder.RequiredSharingBoundaries, ChildSharingBoundary = sharingBoundary };
             var childSharingBoundariesAndTheirParents = ImmutableDictionary.CreateBuilder<string, SharingBoundaryMetadata>();
             foreach (var parentChild in sharingBoundaryExportFactories)
@@ -307,7 +301,7 @@
             return CreateDgml(this.Parts);
         }
 
-        private static XDocument CreateDgml(ISet<ComposablePart> parts)
+        private static XDocument CreateDgml(ISet<ComposedPart> parts)
         {
             Requires.NotNull(parts, "parts");
 
@@ -316,13 +310,13 @@
 
             foreach (var part in parts)
             {
-                nodes.Add(Dgml.Node(part.Definition.Id, ReflectionHelpers.GetTypeName(part.Definition.Type, false, true, null)));
+                nodes.Add(Dgml.Node(part.Definition.Id, ReflectionHelpers.GetTypeName(part.Definition.Type, false, true, null, null)));
                 foreach (var import in part.SatisfyingExports.Keys)
                 {
-                    foreach (Export export in part.SatisfyingExports[import])
+                    foreach (ExportDefinitionBinding export in part.SatisfyingExports[import])
                     {
-                        string linkLabel = !export.ExportDefinition.Contract.Type.Equals(export.PartDefinition.Type)
-                            ? export.ExportDefinition.Contract.ToString()
+                        string linkLabel = !export.ExportedValueType.Equals(export.PartDefinition.Type)
+                            ? export.ExportedValueType.ToString()
                             : null;
                         links.Add(Dgml.Link(export.PartDefinition.Id, part.Definition.Id, linkLabel));
                     }
@@ -353,7 +347,7 @@
         [DebuggerDisplay("{PartDefinition.Type.Name}")]
         private class PartBuilder
         {
-            internal PartBuilder(ComposablePartDefinition partDefinition, IReadOnlyDictionary<Import, IReadOnlyList<Export>> importedParts)
+            internal PartBuilder(ComposablePartDefinition partDefinition, IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> importedParts)
             {
                 Requires.NotNull(partDefinition, "partDefinition");
                 Requires.NotNull(importedParts, "importedParts");
@@ -386,7 +380,7 @@
             /// <summary>
             /// Gets the set of parts imported by this one.
             /// </summary>
-            public IReadOnlyDictionary<Import, IReadOnlyList<Export>> SatisfyingExports { get; private set; }
+            public IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> SatisfyingExports { get; private set; }
 
             public void ApplySharingBoundary()
             {
@@ -471,6 +465,24 @@
                 return new SharingBoundaryMetadata(
                     this.ParentBoundariesUnion.Union(parentBoundaries),
                     this.ParentBoundariesIntersection.Intersect(parentBoundaries));
+            }
+        }
+
+        private class ExportDefinitionPracticallyEqual : IEqualityComparer<ExportDefinition>
+        {
+            private ExportDefinitionPracticallyEqual() { }
+
+            internal static ExportDefinitionPracticallyEqual Default = new ExportDefinitionPracticallyEqual();
+
+            public bool Equals(ExportDefinition x, ExportDefinition y)
+            {
+                return string.Equals(x.ContractName, y.ContractName, StringComparison.Ordinal)
+                    && string.Equals(x.Metadata.GetValueOrDefault(CompositionConstants.ExportTypeIdentityMetadataName) as string, y.Metadata.GetValueOrDefault(CompositionConstants.ExportTypeIdentityMetadataName) as string, StringComparison.Ordinal);
+            }
+
+            public int GetHashCode(ExportDefinition obj)
+            {
+                return obj.ContractName.GetHashCode();
             }
         }
     }

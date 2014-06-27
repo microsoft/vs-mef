@@ -63,7 +63,12 @@
             return parts.ToImmutable();
         }
 
-        protected internal static Type GetElementFromImportingMemberType(Type type, bool importMany)
+        protected internal static string GetContractName(Type type)
+        {
+            return ContractNameServices.GetTypeIdentity(type);
+        }
+
+        protected internal static Type GetTypeIdentityFromImportingType(Type type, bool importMany)
         {
             Requires.NotNull(type, "type");
 
@@ -115,6 +120,51 @@
             return importingCtor;
         }
 
+        protected static ImmutableHashSet<IImportSatisfiabilityConstraint> GetMetadataViewConstraints(Type receivingType, bool importMany)
+        {
+            Requires.NotNull(receivingType, "receivingType");
+
+            var result = ImmutableHashSet.Create<IImportSatisfiabilityConstraint>();
+
+            Type elementType = importMany ? PartDiscovery.GetElementTypeFromMany(receivingType) : receivingType;
+            Type metadataType = GetMetadataType(elementType);
+            if (metadataType != null)
+            {
+                result = result.Add(new ImportMetadataViewConstraint(metadataType));
+            }
+
+            return result;
+        }
+
+        protected static ImmutableHashSet<IImportSatisfiabilityConstraint> GetExportTypeIdentityConstraints(Type contractType)
+        {
+            Requires.NotNull(contractType, "contractType");
+
+            var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty;
+
+            if (!contractType.IsEquivalentTo(typeof(object)))
+            {
+                constraints = constraints.Add(new ExportTypeIdentityConstraint(contractType));
+            }
+
+            return constraints;
+        }
+
+        protected internal static ImmutableDictionary<string, object> GetImportMetadataForGenericTypeImport(Type contractType)
+        {
+            Requires.NotNull(contractType, "contractType");
+            if (contractType.IsConstructedGenericType)
+            {
+                return ImmutableDictionary.Create<string, object>()
+                    .Add(CompositionConstants.GenericContractMetadataName, GetContractName(contractType.GetGenericTypeDefinition()))
+                    .Add(CompositionConstants.GenericParametersMetadataName, contractType.GenericTypeArguments);
+            }
+            else
+            {
+                return ImmutableDictionary<string, object>.Empty;
+            }
+        }
+
         protected static Array AddElement(Array priorArray, object value)
         {
             Type valueType;
@@ -136,12 +186,13 @@
             return newValue;
         }
 
-        internal static bool IsImportManyCollectionTypeCreateable(ImportDefinition importDefinition)
+        internal static bool IsImportManyCollectionTypeCreateable(ImportDefinitionBinding import)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(import, "import");
 
-            var collectionType = importDefinition.MemberType;
-            var elementType = importDefinition.MemberWithoutManyWrapper;
+            var importDefinition = import.ImportDefinition;
+            var collectionType = import.ImportingSiteType;
+            var elementType = import.ImportingSiteTypeWithoutCollection;
             var icollectionOfT = typeof(ICollection<>).MakeGenericType(elementType);
             var ienumerableOfT = typeof(IEnumerable<>).MakeGenericType(elementType);
             var ilistOfT = typeof(IList<>).MakeGenericType(elementType);
@@ -160,6 +211,27 @@
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Gets the Type of the interface that serves as a metadata view for a given import.
+        /// </summary>
+        /// <param name="receivingType">The type of the importing member or parameter, without its ImportMany collection if it had one.</param>
+        /// <returns>The metadata view, <see cref="IDictionary{string, object}"/>, or <c>null</c> if there is none.</returns>
+        private static Type GetMetadataType(Type receivingType)
+        {
+            Requires.NotNull(receivingType, "receivingType");
+
+            if (receivingType.IsAnyLazyType() || receivingType.IsExportFactoryType())
+            {
+                var args = receivingType.GetTypeInfo().GenericTypeArguments;
+                if (args.Length == 2)
+                {
+                    return args[1];
+                }
+            }
+
+            return null;
         }
 
         private class CombinedPartDiscovery : PartDiscovery

@@ -16,9 +16,9 @@
 
         private ImmutableHashSet<ComposablePartDefinition> parts;
 
-        private ImmutableDictionary<CompositionContract, ImmutableList<Export>> exportsByContract;
+        private ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract;
 
-        private ComposableCatalog(ImmutableHashSet<Type> types, ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<CompositionContract, ImmutableList<Export>> exportsByContract)
+        private ComposableCatalog(ImmutableHashSet<Type> types, ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract)
         {
             Requires.NotNull(types, "types");
             Requires.NotNull(parts, "parts");
@@ -29,26 +29,47 @@
             this.exportsByContract = exportsByContract;
         }
 
-        public IReadOnlyList<Export> GetExports(ImportDefinition import)
+        public IReadOnlyList<ExportDefinitionBinding> GetExports(ImportDefinition importDefinition)
         {
-            Requires.NotNull(import, "import");
+            Requires.NotNull(importDefinition, "importDefinition");
 
-            var exports = this.exportsByContract.GetValueOrDefault(import.Contract, ImmutableList.Create<Export>());
+            // We always want to consider exports with a matching contract name.
+            var exports = this.exportsByContract.GetValueOrDefault(importDefinition.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
 
-            if (import.Contract.Type.GetTypeInfo().IsGenericType && !import.Contract.Type.GetTypeInfo().IsGenericTypeDefinition)
+            // For those imports of generic types, we also want to consider exports that are based on open generic exports,
+            string genericTypeDefinitionContractName;
+            Type[] genericTypeArguments; 
+            if (TryGetOpenGenericExport(importDefinition, out genericTypeDefinitionContractName, out genericTypeArguments))
             {
-                var typeDefinitionContract = new CompositionContract(import.Contract.ContractName, import.Contract.Type.GetGenericTypeDefinition());
-                exports = exports.AddRange(this.exportsByContract.GetValueOrDefault(typeDefinitionContract, ImmutableList.Create<Export>()));
+                var openGenericExports = this.exportsByContract.GetValueOrDefault(genericTypeDefinitionContractName, ImmutableList.Create<ExportDefinitionBinding>());
+
+                // We have to synthesize exports to match the required generic type arguments.
+                exports = exports.AddRange(
+                    from export in openGenericExports
+                    select export.CloseGenericExport(genericTypeArguments));
             }
 
-
             var filteredExports = from export in exports
-                                  where HasCompatibleCreationPolicies(export.PartDefinition, import)
-                                  where HasMetadata(export.ExportDefinition, GetRequiredMetadata(import))
-                                  where import.ExportContraints.All(c => c.IsSatisfiedBy(import, export.ExportDefinition))
+                                  where importDefinition.ExportContraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
                                   select export;
 
             return ImmutableList.CreateRange(filteredExports);
+        }
+
+        internal static bool TryGetOpenGenericExport(ImportDefinition importDefinition, out string contractName, out Type[] typeArguments)
+        {
+            Requires.NotNull(importDefinition, "importDefinition");
+
+            // TODO: if the importer isn't using a customized contract name.
+            if (importDefinition.Metadata.TryGetValue(CompositionConstants.GenericContractMetadataName, out contractName) &&
+                importDefinition.Metadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out typeArguments))
+            {
+                return true;
+            }
+
+            contractName = null;
+            typeArguments = null;
+            return false;
         }
 
         public IEnumerable<Assembly> Assemblies
@@ -66,7 +87,7 @@
             return new ComposableCatalog(
                 ImmutableHashSet.Create<Type>(),
                 ImmutableHashSet.Create<ComposablePartDefinition>(),
-                ImmutableDictionary.Create<CompositionContract, ImmutableList<Export>>());
+                ImmutableDictionary.Create<string, ImmutableList<ExportDefinitionBinding>>());
         }
 
         public static ComposableCatalog Create(IEnumerable<ComposablePartDefinition> parts)
@@ -92,14 +113,20 @@
         {
             Requires.NotNull(partDefinition, "partDefinition");
 
-            var types = this.types.Add(partDefinition.Type);
             var parts = this.parts.Add(partDefinition);
+            if (parts.SetEquals(this.parts))
+            {
+                // This part is already in the catalog.
+                return this;
+            }
+
+            var types = this.types.Add(partDefinition.Type);
             var exportsByContract = this.exportsByContract;
 
-            foreach (var export in partDefinition.ExportedTypes)
+            foreach (var exportDefinition in partDefinition.ExportedTypes)
             {
-                var list = exportsByContract.GetValueOrDefault(export.Contract, ImmutableList.Create<Export>());
-                exportsByContract = exportsByContract.SetItem(export.Contract, list.Add(new Export(export, partDefinition, exportingMember: null)));
+                var list = exportsByContract.GetValueOrDefault(exportDefinition.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
+                exportsByContract = exportsByContract.SetItem(exportDefinition.ContractName, list.Add(new ExportDefinitionBinding(exportDefinition, partDefinition, exportingMember: null)));
             }
 
             foreach (var exportPair in partDefinition.ExportingMembers)
@@ -107,50 +134,12 @@
                 var member = exportPair.Key;
                 foreach (var export in exportPair.Value)
                 {
-                    var list = exportsByContract.GetValueOrDefault(export.Contract, ImmutableList.Create<Export>());
-                    exportsByContract = exportsByContract.SetItem(export.Contract, list.Add(new Export(export, partDefinition, member)));
+                    var list = exportsByContract.GetValueOrDefault(export.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
+                    exportsByContract = exportsByContract.SetItem(export.ContractName, list.Add(new ExportDefinitionBinding(export, partDefinition, member)));
                 }
             }
 
             return new ComposableCatalog(types, parts, exportsByContract);
-        }
-
-        private static bool HasMetadata(ExportDefinition exportDefinition, IReadOnlyCollection<string> metadataNames)
-        {
-            Requires.NotNull(exportDefinition, "exportDefinition");
-            Requires.NotNull(metadataNames, "metadataNames");
-
-            return metadataNames.All(name => exportDefinition.Metadata.ContainsKey(name));
-        }
-
-        private static bool HasCompatibleCreationPolicies(ComposablePartDefinition exportPartDefinition, ImportDefinition importDefinition)
-        {
-            return exportPartDefinition.CreationPolicy == CreationPolicy.Any
-                || importDefinition.RequiredCreationPolicy == CreationPolicy.Any
-                || exportPartDefinition.CreationPolicy == importDefinition.RequiredCreationPolicy;
-        }
-
-        private static IReadOnlyCollection<string> GetRequiredMetadata(ImportDefinition importDefinition)
-        {
-            Requires.NotNull(importDefinition, "importDefinition");
-
-            var requiredMetadata = ImmutableHashSet.CreateBuilder<string>();
-
-            if (importDefinition.MetadataType != null)
-            {
-                if (importDefinition.MetadataType.GetTypeInfo().IsInterface && !importDefinition.MetadataType.Equals(typeof(IDictionary<string, object>)))
-                {
-                    foreach (var property in importDefinition.MetadataType.EnumProperties().WherePublicInstance())
-                    {
-                        if (property.GetCustomAttribute<DefaultValueAttribute>() == null)
-                        {
-                            requiredMetadata.Add(property.Name);
-                        }
-                    }
-                }
-            }
-
-            return requiredMetadata.ToImmutable();
         }
     }
 }

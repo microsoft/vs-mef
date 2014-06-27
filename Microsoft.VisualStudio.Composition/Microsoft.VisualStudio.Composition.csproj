@@ -76,33 +76,40 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ComposableCatalog.cs" />
-    <Compile Include="ComposablePart.cs" />
+    <Compile Include="ComposedPart.cs" />
+    <Compile Include="CompositionConstants.cs" />
     <Compile Include="CompositionFailedException.cs" />
+    <Compile Include="ContractNameServices.cs" />
     <Compile Include="CreationPolicy.cs" />
     <Compile Include="Dgml.cs" />
     <Compile Include="DisposableWithAction.cs" />
-    <Compile Include="Export.cs" />
+    <Compile Include="ExportDefinitionBinding.cs" />
     <Compile Include="ExportFactory.cs" />
+    <Compile Include="Export.cs" />
+    <Compile Include="ExportTypeIdentityConstraint.cs" />
+    <Compile Include="IHasValueAndMetadata.cs" />
+    <Compile Include="ImportMetadataViewConstraint.cs" />
     <Compile Include="ICompositionContainerFactory.cs" />
     <Compile Include="IImportSatisfiabilityConstraint.cs" />
     <Compile Include="ILazy`2.cs" />
     <Compile Include="ILazy`1.cs" />
-    <Compile Include="Import.cs" />
+    <Compile Include="ImportDefinitionBinding.cs" />
     <Compile Include="ImportCardinality.cs" />
-    <Compile Include="ImportMetadataValueConstraint.cs" />
+    <Compile Include="ExportMetadataValueImportConstraint.cs" />
     <Compile Include="LazyPart.cs" />
     <Compile Include="LazyPart`2.cs" />
     <Compile Include="LazyPart`1.cs" />
+    <Compile Include="PartCreationPolicyImportConstraint.cs" />
     <Compile Include="PartDiscovery.cs" />
     <Compile Include="ComposablePartDefinition.cs" />
     <Compile Include="CompositionConfiguration.cs" />
-    <Compile Include="CompositionContract.cs" />
     <Compile Include="ExportDefinition.cs" />
     <Compile Include="ExportProvider.cs" />
     <Compile Include="ImportDefinition.cs" />
     <Compile Include="Properties\assemblyInfo.cs" />
     <Compile Include="ReflectionHelpers.cs" />
     <Compile Include="UniquePropertyNameComparer.cs" />
+    <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config">

@@ -101,10 +101,15 @@
     <Compile Include="CacheAndReloadTests.cs" />
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="CircularDependencyTests.cs" />
+    <Compile Include="ClosedGenericExportedTypeTests.cs" />
+    <Compile Include="DynamicImportTests.cs" />
     <Compile Include="EmbeddableTypesTests.cs" />
+    <Compile Include="ExportProviderTests.cs" />
     <Compile Include="GenericImportTests.cs" />
     <Compile Include="ImportedExportProviderTests.cs" />
     <Compile Include="InheritedExportTests.cs" />
+    <Compile Include="MefV1ExportProviderAdapterTests.cs" />
+    <Compile Include="MixedGenericExportsTests.cs" />
     <Compile Include="NestedTypeTests.cs" />
     <Compile Include="ObsoleteAttributeTests.cs" />
     <Compile Include="CompositionCatalogTests.cs" />

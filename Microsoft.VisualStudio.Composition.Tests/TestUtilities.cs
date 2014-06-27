@@ -36,18 +36,22 @@
             else
             {
                 var sourceFileStream = new MemoryStream();
-                var exportProvider = configuration.CreateContainerFactoryAsync(sourceFileStream, Console.Out).Result.CreateExportProvider();
-
-                sourceFileStream.Position = 0;
-                var sourceFileReader = new StreamReader(sourceFileStream);
-                int lineNumber = 0;
-                string line;
-                while ((line = sourceFileReader.ReadLine()) != null)
+                try
                 {
-                    Console.WriteLine("Line {0,5}: {1}", ++lineNumber, line);
+                    var exportProvider = configuration.CreateContainerFactoryAsync(sourceFileStream, Console.Out).Result.CreateExportProvider();
+                    return exportProvider;
                 }
-
-                return exportProvider;
+                finally
+                {
+                    sourceFileStream.Position = 0;
+                    var sourceFileReader = new StreamReader(sourceFileStream);
+                    int lineNumber = 0;
+                    string line;
+                    while ((line = sourceFileReader.ReadLine()) != null)
+                    {
+                        Console.WriteLine("Line {0,5}: {1}", ++lineNumber, line);
+                    }
+                }
             }
         }
 
@@ -151,7 +155,8 @@
 
         private static IContainer CreateContainerV3(ComposableCatalog catalog, ImmutableHashSet<Assembly> additionalAssemblies = null)
         {
-            var configuration = CompositionConfiguration.Create(catalog)
+            var catalogWithCompositionService = catalog.WithCompositionService();
+            var configuration = CompositionConfiguration.Create(catalogWithCompositionService)
                 .WithReferenceAssemblies(additionalAssemblies ?? ImmutableHashSet<Assembly>.Empty);
 #if DGML
             string dgmlFile = System.IO.Path.GetTempFileName() + ".dgml";
@@ -446,12 +451,12 @@
 
             public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
             {
-                throw new NotImplementedException();
+                throw new NotSupportedException("Not supported by System.Composition.");
             }
 
             public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
             {
-                throw new NotImplementedException();
+                throw new NotSupportedException("Not supported by System.Composition.");
             }
 
             public T GetExportedValue<T>()
@@ -542,7 +547,7 @@
             }
         }
 
-        private class V3ContainerWrapper : IContainer
+        internal class V3ContainerWrapper : IContainer
         {
             private readonly ExportProvider container;
 
@@ -550,6 +555,11 @@
             {
                 Requires.NotNull(container, "container");
                 this.container = container;
+            }
+
+            internal ExportProvider ExportProvider
+            {
+                get { return this.container; }
             }
 
             public ILazy<T> GetExport<T>()
