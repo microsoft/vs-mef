@@ -242,7 +242,7 @@
                 return type.Name;
             }
 
-            if (!IsPublic(type) && !evenNonPublic)
+            if (!IsPublic(type, checkGenericTypeArgs: true) && !evenNonPublic)
             {
                 return GetTypeName(type.GetTypeInfo().BaseType ?? typeof(object), genericTypeDefinition, evenNonPublic, relevantAssemblies, relevantEmbeddedTypes);
             }
