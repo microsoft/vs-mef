@@ -103,5 +103,34 @@ namespace Microsoft.VisualStudio.Composition.Tests
             [MefV1.Import("")]
             public Fruit AppleEmptyString { get; set; }
         }
+
+        #region Contract and type name collision testing
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(SomeClass), typeof(SomeOtherExport))]
+        public void ImportedContractNameCoincidesWithExportedTypeIdentity(IContainer container)
+        {
+            var part = container.GetExportedValue<SomeClass>();
+            Assert.NotNull(part);
+        }
+
+        [MefV1.Export]
+        [Export]
+        public class SomeClass
+        {
+            [MefV1.ImportMany("SomeContractName")]
+            [ImportMany("SomeContractName")]
+            public IEnumerable<ISomeOtherInterface> ImportManyProperty { get; set; }
+
+            [MefV1.Import("SomeContractName", AllowDefault = true)]
+            [Import("SomeContractName", AllowDefault = true)]
+            public ISomeOtherInterface ImportProperty { get; set; }
+        }
+
+        [Export("SomeContractName")]
+        public class SomeOtherExport { }
+
+        public interface ISomeOtherInterface { }
+
+        #endregion
     }
 }

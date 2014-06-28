@@ -221,7 +221,9 @@
                     contractType = contractType.GetGenericArguments()[0];
                 }
 
-                importConstraints = importConstraints.Union(GetMetadataViewConstraints(importingType, importMany: false));
+                importConstraints = importConstraints
+                    .Union(GetMetadataViewConstraints(importingType, importMany: false))
+                    .Union(GetExportTypeIdentityConstraints(contractType));
                 importDefinition = new ImportDefinition(
                     string.IsNullOrEmpty(importAttribute.ContractName) ? GetContractName(contractType) : importAttribute.ContractName,
                     importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
@@ -233,7 +235,9 @@
             else if (importManyAttribute != null)
             {
                 Type contractType = GetTypeIdentityFromImportingType(importingType, importMany: true);
-                importConstraints = importConstraints.Union(GetMetadataViewConstraints(importingType, importMany: true));
+                importConstraints = importConstraints
+                    .Union(GetMetadataViewConstraints(importingType, importMany: true))
+                    .Union(GetExportTypeIdentityConstraints(contractType));
                 importDefinition = new ImportDefinition(
                     string.IsNullOrEmpty(importManyAttribute.ContractName) ? GetContractName(contractType) : importManyAttribute.ContractName,
                     ImportCardinality.ZeroOrMore,
