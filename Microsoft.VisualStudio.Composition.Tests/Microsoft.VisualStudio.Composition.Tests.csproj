@@ -104,6 +104,7 @@
     <Compile Include="EmbeddableTypesTests.cs" />
     <Compile Include="ExportProviderTests.cs" />
     <Compile Include="GenericImportTests.cs" />
+    <Compile Include="GuidMetadataTests.cs" />
     <Compile Include="ImportedExportProviderTests.cs" />
     <Compile Include="InheritedExportTests.cs" />
     <Compile Include="MefV1ExportProviderAdapterTests.cs" />
