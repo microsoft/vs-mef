@@ -107,6 +107,7 @@
     <Compile Include="GuidMetadataTests.cs" />
     <Compile Include="ImportedExportProviderTests.cs" />
     <Compile Include="InheritedExportTests.cs" />
+    <Compile Include="InvalidGraphTests.cs" />
     <Compile Include="MefV1ExportProviderAdapterTests.cs" />
     <Compile Include="MixedGenericExportsTests.cs" />
     <Compile Include="NestedTypeTests.cs" />
