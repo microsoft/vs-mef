@@ -64,5 +64,40 @@
         [Export, Shared]
         [MefV1.Export]
         public class SharedPart { }
+
+        #region Indexer overloading tests
+
+        [Fact]
+        public void IndexerInDerivedAndBase()
+        {
+            var part = this.DiscoveryService.CreatePart(typeof(DerivedTypeWithIndexer));
+        }
+
+        public class BaseTypeWithIndexer
+        {
+            public virtual string this[int index]
+            {
+                get { throw new NotImplementedException(); }
+                set { throw new NotImplementedException(); }
+            }
+
+            public virtual string this[string index]
+            {
+                get { throw new NotImplementedException(); }
+                set { throw new NotImplementedException(); }
+            }
+        }
+
+        [Export]
+        public class DerivedTypeWithIndexer : BaseTypeWithIndexer
+        {
+            public override string this[int index]
+            {
+                get { throw new NotImplementedException(); }
+                set { throw new NotImplementedException(); }
+            }
+        }
+
+        #endregion
     }
 }

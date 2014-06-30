@@ -69,15 +69,15 @@
 
             foreach (var member in partType.GetProperties(BindingFlags.Instance | this.PublicVsNonPublicFlags))
             {
-                var importAttribute = member.GetCustomAttribute<ImportAttribute>();
-                var importManyAttribute = member.GetCustomAttribute<ImportManyAttribute>();
-                var exportAttributes = member.GetCustomAttributes<ExportAttribute>();
+                var importAttribute = member.GetCustomAttribute<ImportAttribute>(inherit: false);
+                var importManyAttribute = member.GetCustomAttribute<ImportManyAttribute>(inherit: false);
+                var exportAttributes = member.GetCustomAttributes<ExportAttribute>(inherit: false);
                 Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", "Member \"{0}\" contains both ImportAttribute and ImportManyAttribute.", member.Name);
                 Requires.Argument(!(exportAttributes.Any() && (importAttribute != null || importManyAttribute != null)), "partType", "Member \"{0}\" contains both import and export attributes.", member.Name);
 
-                var importConstraints = GetImportConstraints(member.GetCustomAttributes<ImportMetadataConstraintAttribute>());
+                var importConstraints = GetImportConstraints(member.GetCustomAttributes<ImportMetadataConstraintAttribute>(inherit: false));
                 ImportDefinition importDefinition;
-                if (TryCreateImportDefinition(member.PropertyType, member.GetCustomAttributes(), importConstraints, out importDefinition))
+                if (TryCreateImportDefinition(member.PropertyType, member.GetCustomAttributes(inherit: false).OfType<Attribute>(), importConstraints, out importDefinition))
                 {
                     imports.Add(new ImportDefinitionBinding(importDefinition, partType, member));
                 }

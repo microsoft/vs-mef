@@ -57,14 +57,14 @@
                 var property = member as PropertyInfo;
                 var field = member as FieldInfo;
                 var propertyOrFieldType = property != null ? property.PropertyType : field.FieldType;
-                var importAttribute = member.GetCustomAttribute<ImportAttribute>();
-                var importManyAttribute = member.GetCustomAttribute<ImportManyAttribute>();
-                var exportAttributes = member.GetCustomAttributes<ExportAttribute>();
+                var importAttribute = member.GetCustomAttribute<ImportAttribute>(inherit: false);
+                var importManyAttribute = member.GetCustomAttribute<ImportManyAttribute>(inherit: false);
+                var exportAttributes = member.GetCustomAttributes<ExportAttribute>(inherit: false);
                 Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", "Member \"{0}\" contains both ImportAttribute and ImportManyAttribute.", member.Name);
                 Requires.Argument(!(exportAttributes.Any() && (importAttribute != null || importManyAttribute != null)), "partType", "Member \"{0}\" contains both import and export attributes.", member.Name);
 
                 ImportDefinition importDefinition;
-                if (TryCreateImportDefinition(propertyOrFieldType, member.GetCustomAttributes(), out importDefinition))
+                if (TryCreateImportDefinition(propertyOrFieldType, member.GetCustomAttributes(inherit: false).OfType<Attribute>(), out importDefinition))
                 {
                     imports.Add(new ImportDefinitionBinding(importDefinition, partType, member));
                 }
