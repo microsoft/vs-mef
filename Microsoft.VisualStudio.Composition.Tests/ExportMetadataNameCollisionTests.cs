@@ -10,7 +10,7 @@
     using MefV1 = System.ComponentModel.Composition;
 
     [Trait("Ambiguous", "MetadataName")]
-    public class ExportMetadataViewNameCollisionTests
+    public class ExportMetadataNameCollisionTests
     {
         [MefFact(CompositionEngines.V1Compat)]
         public void ExportMetadataViewNameCollision(IContainer container)
