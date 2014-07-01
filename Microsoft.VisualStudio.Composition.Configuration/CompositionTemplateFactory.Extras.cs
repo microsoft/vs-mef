@@ -402,7 +402,9 @@
                     }
                     else
                     {
-                        var genericTypeArgs = (IReadOnlyList<Type>)import.ImportDefinition.Metadata.GetValueOrDefault(CompositionConstants.GenericParametersMetadataName, ImmutableList<Type>.Empty);
+                        var genericTypeArgs = export.PartDefinition.Type.GetTypeInfo().IsGenericType
+                            ? (IReadOnlyList<Type>)import.ImportDefinition.Metadata.GetValueOrDefault(CompositionConstants.GenericParametersMetadataName, ImmutableList<Type>.Empty)
+                            : Enumerable.Empty<Type>();
 
                         if (genericTypeArgs.All(arg => IsPublic(arg, true)))
                         {
@@ -732,7 +734,7 @@
                                 "({0}){1}.CreateDelegate({2}, ",
                                 GetTypeName(import.ImportingSiteElementType),
                                 GetMethodInfoExpression((MethodInfo)export.ExportingMember),
-                                GetTypeExpression(export.ExportedValueType));
+                                GetTypeExpression(typeof(Delegate).IsAssignableFrom(import.ImportingSiteElementType) ? import.ImportingSiteElementType : export.ExportedValueType));
                             break;
                         case MemberTypes.Property:
                             writer.Write(

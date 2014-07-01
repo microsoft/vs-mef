@@ -38,7 +38,8 @@
 
                 var parts = discovery.CreateParts(this.CatalogAssemblies.Select(item => Assembly.LoadFile(item.ItemSpec)));
                 var catalog = ComposableCatalog.Create(parts);
-                var configuration = CompositionConfiguration.Create(catalog);
+                var configuration = CompositionConfiguration.Create(catalog)
+                    .ThrowOnErrors();
 
                 if (!string.IsNullOrEmpty(this.DgmlOutputPath))
                 {

@@ -135,7 +135,7 @@
         public void LoopOfNonSharedExports()
         {
             // There is no way to resolve this catalog. It would instantiate parts forever.
-            Assert.Throws<InvalidOperationException>(() => CompositionConfiguration.Create(
+            Assert.Throws<CompositionFailedException>(() => CompositionConfiguration.Create(
                 new AttributedPartDiscovery(), 
                 typeof(NonSharedPart1),
                 typeof(NonSharedPart2),
@@ -170,7 +170,7 @@
         [Fact]
         public void SelfImportingNonSharedPartThrows()
         {
-            Assert.Throws<InvalidOperationException>(() => TestUtilities.CreateContainer(typeof(SelfImportingNonSharedPart)));
+            Assert.Throws<CompositionFailedException>(() => TestUtilities.CreateContainer(typeof(SelfImportingNonSharedPart)));
         }
 
         [Fact]

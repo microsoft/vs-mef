@@ -22,23 +22,45 @@
     {
         private ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides;
 
-        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposedPart> parts, ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides)
+        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposedPart> parts, IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> compositionErrors, ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides)
         {
             Requires.NotNull(catalog, "catalog");
             Requires.NotNull(parts, "parts");
+            Requires.NotNull(compositionErrors, "compositionErrors");
             Requires.NotNull(effectiveSharingBoundaryOverrides, "effectiveSharingBoundaryOverrides");
 
             this.Catalog = catalog;
             this.Parts = parts;
+            this.CompositionErrors = compositionErrors;
             this.AdditionalReferenceAssemblies = ImmutableHashSet<Assembly>.Empty;
             this.effectiveSharingBoundaryOverrides = effectiveSharingBoundaryOverrides;
         }
 
+        /// <summary>
+        /// The catalog that backs this configuration.
+        /// This may be a smaller catalog than the one passed in to create this configuration
+        /// if invalid parts were removed.
+        /// </summary>
         public ComposableCatalog Catalog { get; private set; }
 
+        /// <summary>
+        /// The composed parts, with exports satisfied, that make up this configuration.
+        /// </summary>
         public ISet<ComposedPart> Parts { get; private set; }
 
         public ImmutableHashSet<Assembly> AdditionalReferenceAssemblies { get; private set; }
+
+        /// <summary>
+        /// Gets the compositional errors detected while creating this configuration that led to the removal
+        /// of parts from the catalog backing this configuration.
+        /// </summary>
+        /// <remarks>
+        /// The errors are collected as a stack. The topmost stack element represents the first level of errors detected.
+        /// As errors are detected and parts removed to achieve a 'stable composition', each cycle of removing parts
+        /// and detecting additional errors gets a deeper element in the stack.
+        /// Therefore the 'root cause' of all failures is generally found in the topmost stack element.
+        /// </remarks>
+        public IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> CompositionErrors { get; private set; }
 
         public static CompositionConfiguration Create(ComposableCatalog catalog)
         {
@@ -92,31 +114,35 @@
             var parts = partsBuilder.ToImmutable();
 
             // Validate configuration.
-            var exceptions = new List<Exception>();
+            var errors = new List<ComposedPartDiagnostic>();
             foreach (var part in parts)
             {
-                try
-                {
-                    part.Validate();
-                }
-                catch (Exception ex)
-                {
-                    exceptions.Add(ex);
-                }
-            }
-
-            if (exceptions.Count > 0)
-            {
-                throw new CompositionFailedException("Catalog fails to create a well-formed configuration.", new AggregateException(exceptions));
+                errors.AddRange(part.Validate());
             }
 
             // Detect loops of all non-shared parts.
             if (IsLoopPresent(parts))
             {
-                Verify.FailOperation("Loop detected.");
+                // TODO: improve diagnostic reporting of the loop. Disclose which parts are involved.
+                errors.Add(new ComposedPartDiagnostic(ImmutableList.Create<ComposedPart>(), "Loop detected."));
             }
 
-            return new CompositionConfiguration(catalog, parts, sharingBoundaryOverrides);
+            if (errors.Count > 0)
+            {
+                var invalidParts = ImmutableHashSet.CreateRange(errors.SelectMany(error => error.Parts).Select(p => p.Definition));
+                if (invalidParts.IsEmpty)
+                {
+                    // If we can't identify the faulty parts but we still have errors, we have to just throw.
+                    throw new CompositionFailedException("Failed to find a stable composition.", ImmutableStack.Create<IReadOnlyCollection<ComposedPartDiagnostic>>(errors));
+                }
+
+                var salvagedParts = catalog.Parts.Except(invalidParts);
+                var salvagedCatalog = ComposableCatalog.Create(salvagedParts);
+                var configuration = Create(salvagedCatalog);
+                return configuration.WithErrors(errors);
+            }
+
+            return new CompositionConfiguration(catalog, parts, ImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>>.Empty, sharingBoundaryOverrides);
         }
 
         public static CompositionConfiguration Create(PartDiscovery partDiscovery, params Type[] parts)
@@ -141,7 +167,7 @@
         {
             Requires.NotNull(additionalReferenceAssemblies, "additionalReferenceAssemblies");
 
-            return new CompositionConfiguration(this.Catalog, this.Parts, this.effectiveSharingBoundaryOverrides)
+            return new CompositionConfiguration(this.Catalog, this.Parts, this.CompositionErrors, this.effectiveSharingBoundaryOverrides)
             {
                 AdditionalReferenceAssemblies = this.AdditionalReferenceAssemblies.Union(additionalReferenceAssemblies)
             };
@@ -153,6 +179,31 @@
             Requires.Argument(partDefinition.IsShared, "partDefinition", "Part is not shared.");
 
             return this.effectiveSharingBoundaryOverrides.GetValueOrDefault(partDefinition) ?? partDefinition.SharingBoundary;
+        }
+
+        /// <summary>
+        /// Returns the configuration if it is valid, otherwise throws an exception describing any compositional failures.
+        /// </summary>
+        /// <returns>This configuration.</returns>
+        /// <exception cref="CompositionFailedException">Thrown if <see cref="CompositionErrors"/> is non-empty.</exception>
+        /// <remarks>
+        /// This method returns <c>this</c> so that it may be used in a 'fluent API' expression.
+        /// </remarks>
+        public CompositionConfiguration ThrowOnErrors()
+        {
+            if (this.CompositionErrors.IsEmpty)
+            {
+                return this;
+            }
+
+            throw new CompositionFailedException("Errors exist in the composition.", this.CompositionErrors);
+        }
+
+        internal CompositionConfiguration WithErrors(IReadOnlyCollection<ComposedPartDiagnostic> errors)
+        {
+            Requires.NotNull(errors, "errors");
+
+            return new CompositionConfiguration(this.Catalog, this.Parts, this.CompositionErrors.Push(errors), this.effectiveSharingBoundaryOverrides);
         }
 
         private static bool IsLoopPresent(ImmutableHashSet<ComposedPart> parts)
@@ -214,7 +265,9 @@
         private static void ValidateIndividualParts(IImmutableSet<ComposablePartDefinition> parts)
         {
             Requires.NotNull(parts, "parts");
-            var partsExportingExportProvider = parts.Where(p => p.ExportDefinitions.Any(ed => ExportDefinitionPracticallyEqual.Default.Equals(ExportProvider.ExportProviderExportDefinition, ed.Value)));
+            var partsExportingExportProvider = parts
+                .Remove(ExportProvider.ExportProviderPartDefinition)
+                .Where(p => p.ExportDefinitions.Any(ed => ExportDefinitionPracticallyEqual.Default.Equals(ExportProvider.ExportProviderExportDefinition, ed.Value)));
             if (partsExportingExportProvider.Any())
             {
                 throw new CompositionFailedException();
