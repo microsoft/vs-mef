@@ -39,6 +39,12 @@
         V3NonPublicSupport = 0x100,
 
         /// <summary>
+        /// Suppress the test harness's call to <see cref="CompositionConfiguration.ThrowOnErrors"/>
+        /// after constructing the configuration.
+        /// </summary>
+        V3AllowConfigurationWithErrors = 0x200,
+
+        /// <summary>
         /// The test is run both against System.ComponentModel.Composition and Microsoft.VisualStudio.Composition,
         /// assuming MEF parts are decorated with attributes from System.ComponentModel.Composition.
         /// </summary>
