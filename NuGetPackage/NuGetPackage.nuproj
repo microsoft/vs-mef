@@ -14,8 +14,9 @@
     <ProjectGuid>e0f18440-ca64-4fbd-bd55-e912b663ba16</ProjectGuid>
   </PropertyGroup>
   <PropertyGroup>
-    <NuProjPath>$(SolutionDir)packages\NuProj.0.9.2-beta\tools</NuProjPath>
-    <NuProjPath Condition=" '$(NuProjPath)' == '' ">$(MSBuildExtensionsPath)\NuProj\</NuProjPath>
+    <NuProjPackagePath>packages\NuProj.0.9.2-beta\tools</NuProjPackagePath>
+    <NuProjPath Condition=" '$(SolutionDir)' != '' ">$(SolutionDir)$(NuProjPackagePath)</NuProjPath>
+    <NuProjPath Condition=" '$(NuProjPath)' == '' ">..\$(NuProjPackagePath)</NuProjPath>
   </PropertyGroup>
   <Import Project="$(NuProjPath)\NuProj.props" Condition="Exists('$(NuProjPath)\NuProj.props')" />
   <PropertyGroup Label="Configuration">
@@ -48,9 +49,11 @@
   <ItemGroup>
     <Content Include="..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\Microsoft.CodeAnalysis.CSharp.dll">
       <Link>build\Microsoft.CodeAnalysis.CSharp.dll</Link>
+      <AlwaysInclude>true</AlwaysInclude>
     </Content>
     <Content Include="..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\Microsoft.CodeAnalysis.dll">
       <Link>build\Microsoft.CodeAnalysis.dll</Link>
+      <AlwaysInclude>true</AlwaysInclude>
     </Content>
     <Content Include="..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\Microsoft.VisualStudio.Composition.Configuration.dll">
       <Link>build\Microsoft.VisualStudio.Composition.Configuration.dll</Link>
@@ -60,16 +63,28 @@
     </Content>
     <Content Include="..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\System.Collections.Immutable.dll">
       <Link>build\System.Collections.Immutable.dll</Link>
+      <AlwaysInclude>true</AlwaysInclude>
     </Content>
     <Content Include="..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\System.Composition.AttributedModel.dll">
       <Link>build\System.Composition.AttributedModel.dll</Link>
+      <AlwaysInclude>true</AlwaysInclude>
     </Content>
     <Content Include="..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\System.Composition.Runtime.dll">
       <Link>build\System.Composition.Runtime.dll</Link>
+      <AlwaysInclude>true</AlwaysInclude>
     </Content>
     <Content Include="..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\Validation.dll">
       <Link>build\Validation.dll</Link>
+      <AlwaysInclude>true</AlwaysInclude>
     </Content>
   </ItemGroup>
   <Import Project="$(NuProjPath)\NuProj.targets" />
+
+  <Target Name="EnsureBuildFilesAreIncluded" AfterTargets="GetPackageFiles">
+    <ItemGroup>
+      <PackageFile Include="@(Content)" Condition=" '%(Content.AlwaysInclude)' == 'true' ">
+        <TargetPath>%(Content.Link)</TargetPath>
+      </PackageFile>
+    </ItemGroup>
+  </Target>
 </Project>
