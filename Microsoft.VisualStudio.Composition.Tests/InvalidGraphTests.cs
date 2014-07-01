@@ -46,6 +46,23 @@
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<PartThatRequiresPartWithMissingImport>());
         }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat | CompositionEngines.V3AllowConfigurationWithErrors,
+            typeof(PartThatRequiresPartWithMissingImport), typeof(PartWithMissingImport), typeof(PartWithSatisfiedImports), typeof(SomePart))]
+        public void CompositionErrors_HasMultiLevelErrors(IContainer container)
+        {
+            var satisfiedPart = container.GetExportedValue<PartWithSatisfiedImports>();
+            Assert.NotNull(satisfiedPart.SatisfiedImport);
+
+            var v3Container = container as TestUtilities.V3ContainerWrapper;
+            if (v3Container != null)
+            {
+                var rootCauses = v3Container.Configuration.CompositionErrors.Peek();
+                var secondOrder = v3Container.Configuration.CompositionErrors.Pop().Peek();
+                Assert.Equal(typeof(PartWithMissingImport), rootCauses.Single().Parts.Single().Definition.Type);
+                Assert.Equal(typeof(PartThatRequiresPartWithMissingImport), secondOrder.Single().Parts.Single().Definition.Type);
+            }
+        }
+
         [Export, MefV1.Export]
         public class PartWithMissingImport
         {
