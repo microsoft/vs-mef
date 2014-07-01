@@ -165,7 +165,7 @@
             Console.WriteLine("DGML saved to: " + dgmlFile);
 #endif
             var container = configuration.CreateContainer();
-            return new V3ContainerWrapper(container);
+            return new V3ContainerWrapper(container, configuration);
         }
 
         internal static void RunMultiEngineTest(CompositionEngines attributesVersion, Type[] parts, Action<IContainer> test)
@@ -552,16 +552,21 @@
         {
             private readonly ExportProvider container;
 
-            internal V3ContainerWrapper(ExportProvider container)
+            internal V3ContainerWrapper(ExportProvider container, CompositionConfiguration configuration)
             {
                 Requires.NotNull(container, "container");
+                Requires.NotNull(configuration, "configuration");
+
                 this.container = container;
+                this.Configuration = configuration;
             }
 
             internal ExportProvider ExportProvider
             {
                 get { return this.container; }
             }
+
+            internal CompositionConfiguration Configuration { get; private set; }
 
             public ILazy<T> GetExport<T>()
             {

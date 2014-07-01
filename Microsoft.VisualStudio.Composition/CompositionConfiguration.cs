@@ -130,6 +130,12 @@
             if (errors.Count > 0)
             {
                 var invalidParts = ImmutableHashSet.CreateRange(errors.SelectMany(error => error.Parts).Select(p => p.Definition));
+                if (invalidParts.IsEmpty)
+                {
+                    // If we can't identify the faulty parts but we still have errors, we have to just throw.
+                    throw new CompositionFailedException("Failed to find a stable composition.", ImmutableStack.Create<IReadOnlyCollection<ComposedPartDiagnostic>>(errors));
+                }
+
                 var salvagedParts = catalog.Parts.Except(invalidParts);
                 var salvagedCatalog = ComposableCatalog.Create(salvagedParts);
                 var configuration = Create(salvagedCatalog);
