@@ -13,7 +13,7 @@
     public class ExportMetadataNameCollisionTests
     {
         [MefFact(CompositionEngines.V1Compat)]
-        public void ExportMetadataViewNameCollision(IContainer container)
+        public void ExportMetadataNameCollision(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPart>();
             IMetadata1 metadata1 = importingPart.ImportingProperty.Metadata;
