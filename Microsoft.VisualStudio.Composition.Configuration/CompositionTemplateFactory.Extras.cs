@@ -461,6 +461,22 @@
             {
                 return (bool)value ? "true" : "false";
             }
+            else if (valueType.IsEquivalentTo(typeof(double)) && (double)value == double.MaxValue)
+            {
+                return "double.MaxValue";
+            }
+            else if (valueType.IsEquivalentTo(typeof(double)) && (double)value == double.MinValue)
+            {
+                return "double.MinValue";
+            }
+            else if (valueType.IsEquivalentTo(typeof(float)) && (float)value == float.MaxValue)
+            {
+                return "float.MaxValue";
+            }
+            else if (valueType.IsEquivalentTo(typeof(float)) && (float)value == float.MinValue)
+            {
+                return "float.MinValue";
+            }
             else if (valueType.IsPrimitive)
             {
                 return string.Format(CultureInfo.InvariantCulture, "({0})({1})", GetTypeName(valueType), value);
