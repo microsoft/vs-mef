@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Validation;
 
     public class CompositionFailedException : Exception
     {
@@ -15,12 +16,13 @@
 
         public CompositionFailedException(string message, Exception innerException) : base(message, innerException) { }
 
-        public CompositionFailedException(string message, IEnumerable<ComposedPartDiagnostic> errors)
+        public CompositionFailedException(string message, IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> errors)
             : this(message)
         {
-            this.Errors = ImmutableList.CreateRange(errors);
+            Requires.NotNull(errors, "errors");
+            this.Errors = errors;
         }
 
-        public ImmutableList<ComposedPartDiagnostic> Errors { get; private set; }
+        public IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> Errors { get; private set; }
     }
 }

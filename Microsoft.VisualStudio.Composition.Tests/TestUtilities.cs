@@ -157,7 +157,8 @@
         {
             var catalogWithCompositionService = catalog.WithCompositionService();
             var configuration = CompositionConfiguration.Create(catalogWithCompositionService)
-                .WithReferenceAssemblies(additionalAssemblies ?? ImmutableHashSet<Assembly>.Empty);
+                .WithReferenceAssemblies(additionalAssemblies ?? ImmutableHashSet<Assembly>.Empty)
+                .ThrowOnErrors();
 #if DGML
             string dgmlFile = System.IO.Path.GetTempFileName() + ".dgml";
             configuration.CreateDgml().Save(dgmlFile);

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Globalization;
     using System.Linq;
     using System.Text;
@@ -11,12 +12,8 @@
     public class ComposedPartDiagnostic
     {
         public ComposedPartDiagnostic(ComposedPart part, string formattedMessage)
+            : this(ImmutableHashSet.Create(part), formattedMessage)
         {
-            Requires.NotNull(part, "part");
-            Requires.NotNullOrEmpty(formattedMessage, "formattedMessage");
-
-            this.Part = part;
-            this.Message = formattedMessage;
         }
 
         public ComposedPartDiagnostic(ComposedPart part, string unformattedMessage, params object[] args)
@@ -24,7 +21,21 @@
         {
         }
 
-        public ComposedPart Part { get; private set; }
+        public ComposedPartDiagnostic(IEnumerable<ComposedPart> parts, string formattedMessage)
+        {
+            Requires.NotNull(parts, "parts");
+            Requires.NotNullOrEmpty(formattedMessage, "formattedMessage");
+
+            this.Parts = ImmutableHashSet.CreateRange(parts);
+            this.Message = formattedMessage;
+        }
+
+        public ComposedPartDiagnostic(IEnumerable<ComposedPart> parts, string unformattedMessage, params object[] args)
+            : this(parts, string.Format(CultureInfo.CurrentCulture, unformattedMessage, args))
+        {
+        }
+
+        public IReadOnlyCollection<ComposedPart> Parts { get; private set; }
 
         public string Message { get; private set; }
     }
