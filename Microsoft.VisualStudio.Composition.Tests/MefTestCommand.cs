@@ -39,15 +39,18 @@
                 {
                     if (this.engineVersion == CompositionEngines.V3EmulatingV1)
                     {
-                        CompositionConfiguration.Create(ComposableCatalog.Create(new AttributedPartDiscoveryV1(), this.parts));
+                        CompositionConfiguration.Create(ComposableCatalog.Create(new AttributedPartDiscoveryV1(), this.parts))
+                            .ThrowOnErrors();
                     }
                     else if (this.engineVersion == CompositionEngines.V3EmulatingV2)
                     {
-                        CompositionConfiguration.Create(ComposableCatalog.Create(new AttributedPartDiscovery(), this.parts));
+                        CompositionConfiguration.Create(ComposableCatalog.Create(new AttributedPartDiscovery(), this.parts))
+                            .ThrowOnErrors();
                     }
                     else if (this.engineVersion == CompositionEngines.V3EmulatingV1AndV2AtOnce)
                     {
-                        CompositionConfiguration.Create(ComposableCatalog.Create(PartDiscovery.Combine(new AttributedPartDiscoveryV1(), new AttributedPartDiscovery()), this.parts));
+                        CompositionConfiguration.Create(ComposableCatalog.Create(PartDiscovery.Combine(new AttributedPartDiscoveryV1(), new AttributedPartDiscovery()), this.parts))
+                            .ThrowOnErrors();
                     }
                     else
                     {
