@@ -11,7 +11,8 @@
 
     public class InvalidGraphTests
     {
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithMissingImport), typeof(PartWithSatisfiedImports), typeof(SomePart))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat | CompositionEngines.V3AllowConfigurationWithErrors,
+            typeof(PartWithMissingImport), typeof(PartWithSatisfiedImports), typeof(SomePart))]
         public void UnsatisfiedImportRemovesPartAndRetainsUnrelatedParts(IContainer container)
         {
             var satisfiedPart = container.GetExportedValue<PartWithSatisfiedImports>();
@@ -20,7 +21,8 @@
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<PartWithMissingImport>());
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(PartThatOptionallyImportsPartWithMissingImport), typeof(PartThatRequiresPartWithMissingImport), typeof(PartWithMissingImport), typeof(PartWithSatisfiedImports), typeof(SomePart))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors,
+            typeof(PartThatOptionallyImportsPartWithMissingImport), typeof(PartThatRequiresPartWithMissingImport), typeof(PartWithMissingImport), typeof(PartWithSatisfiedImports), typeof(SomePart))]
         public void UnsatisfiedImportRemovesPartAndRequiringDependentsAndRetainsSalvageableParts(IContainer container)
         {
             var satisfiedPart = container.GetExportedValue<PartWithSatisfiedImports>();
@@ -33,7 +35,8 @@
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<PartThatRequiresPartWithMissingImport>());
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartThatRequiresPartWithMissingImport), typeof(PartWithMissingImport), typeof(PartWithSatisfiedImports), typeof(SomePart))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat | CompositionEngines.V3AllowConfigurationWithErrors,
+            typeof(PartThatRequiresPartWithMissingImport), typeof(PartWithMissingImport), typeof(PartWithSatisfiedImports), typeof(SomePart))]
         public void UnsatisfiedImportRemovesPartAndRequiringDependentsAndRetainsUnrelatedParts(IContainer container)
         {
             var satisfiedPart = container.GetExportedValue<PartWithSatisfiedImports>();
