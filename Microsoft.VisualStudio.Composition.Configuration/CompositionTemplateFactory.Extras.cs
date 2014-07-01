@@ -20,6 +20,19 @@
 
         private readonly HashSet<Type> relevantEmbeddedTypes = new HashSet<Type>();
 
+        /// <summary>
+        /// A collection of symbols defined at the level of the generated class.
+        /// </summary>
+        /// <remarks>
+        /// This is useful to ensure that any generated symbol is unique.
+        /// </remarks>
+        private readonly HashSet<string> classSymbols = new HashSet<string>();
+
+        /// <summary>
+        /// A lookup table of arbitrary objects to the symbols that have been reserved for them.
+        /// </summary>
+        private readonly Dictionary<object, string> reservedSymbols = new Dictionary<object, string>();
+
         public CompositionConfiguration Configuration { get; set; }
 
         /// <summary>
@@ -966,12 +979,9 @@
         {
             Requires.NotNull(metadataView, "metadataView");
 
-            if (metadataView.IsInterface)
-            {
-                return "ClassFor" + metadataView.Name;
-            }
-
-            return this.GetTypeName(metadataView);
+            return ReserveSymbolName(
+                metadataView.IsInterface ? "ClassFor" + metadataView.Name : this.GetTypeName(metadataView),
+                metadataView);
         }
 
         private string GetValueOrDefaultForMetadataView(PropertyInfo property, string sourceVarName)
@@ -1314,6 +1324,35 @@
                 CultureInfo.InvariantCulture,
                 "typeof(Tuple<,>).MakeGenericType({0}, typeof(System.Action))",
                 this.GetTypeExpression(constructedType));
+        }
+
+        private string ReserveSymbolName(string shortName, object namedValue)
+        {
+            string result;
+            if (this.reservedSymbols.TryGetValue(namedValue, out result))
+            {
+                return result;
+            }
+
+
+            if (this.classSymbols.Add(shortName))
+            {
+                result = shortName;
+            }
+            else
+            {
+                int i = 1;
+                string candidateName;
+                do
+                {
+                    candidateName = shortName + "_" + i.ToString(CultureInfo.InvariantCulture);
+                } while (!this.classSymbols.Add(candidateName));
+
+                result = candidateName;
+            }
+
+            this.reservedSymbols.Add(namedValue, result);
+            return result;
         }
 
         private IDisposable Indent(int count = 1, bool withBraces = false)

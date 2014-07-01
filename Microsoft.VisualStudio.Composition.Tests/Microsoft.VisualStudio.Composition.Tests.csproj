@@ -102,6 +102,7 @@
     <Compile Include="ClosedGenericExportedTypeTests.cs" />
     <Compile Include="DynamicImportTests.cs" />
     <Compile Include="EmbeddableTypesTests.cs" />
+    <Compile Include="ExportMetadataViewNameCollisionTests.cs" />
     <Compile Include="ExportProviderTests.cs" />
     <Compile Include="GenericImportTests.cs" />
     <Compile Include="GuidMetadataTests.cs" />
