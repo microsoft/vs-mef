@@ -48,39 +48,45 @@
   <ItemGroup>
     <Content Include="build\Microsoft.VisualStudio.Composition.targets" />
   </ItemGroup>
+  <Import Project="$(NuProjPath)\NuProj.targets" />
+
+  <PropertyGroup>
+    <BinariesSourceLocation>..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\</BinariesSourceLocation>
+    <BinariesSourceLocation Condition=" !Exists('$(BinariesSourceLocation)') ">$(OutDir)\</BinariesSourceLocation>
+  </PropertyGroup>
   <ItemGroup>
-    <Content Include="..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\Microsoft.CodeAnalysis.CSharp.dll">
+    <Content Include="$(BinariesSourceLocation)Microsoft.CodeAnalysis.CSharp.dll">
       <Link>build\Microsoft.CodeAnalysis.CSharp.dll</Link>
       <AlwaysInclude>true</AlwaysInclude>
     </Content>
-    <Content Include="..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\Microsoft.CodeAnalysis.dll">
+    <Content Include="$(BinariesSourceLocation)Microsoft.CodeAnalysis.dll">
       <Link>build\Microsoft.CodeAnalysis.dll</Link>
       <AlwaysInclude>true</AlwaysInclude>
     </Content>
-    <Content Include="..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\Microsoft.VisualStudio.Composition.Configuration.dll">
+    <Content Include="$(BinariesSourceLocation)Microsoft.VisualStudio.Composition.Configuration.dll">
       <Link>build\Microsoft.VisualStudio.Composition.Configuration.dll</Link>
     </Content>
-    <Content Include="..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\Microsoft.VisualStudio.Composition.dll">
+    <Content Include="$(BinariesSourceLocation)Microsoft.VisualStudio.Composition.dll">
       <Link>build\Microsoft.VisualStudio.Composition.dll</Link>
     </Content>
-    <Content Include="..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\System.Collections.Immutable.dll">
+    <Content Include="$(BinariesSourceLocation)System.Collections.Immutable.dll">
       <Link>build\System.Collections.Immutable.dll</Link>
       <AlwaysInclude>true</AlwaysInclude>
     </Content>
-    <Content Include="..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\System.Composition.AttributedModel.dll">
+    <Content Include="$(BinariesSourceLocation)System.Composition.AttributedModel.dll">
       <Link>build\System.Composition.AttributedModel.dll</Link>
       <AlwaysInclude>true</AlwaysInclude>
     </Content>
-    <Content Include="..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\System.Composition.Runtime.dll">
+    <Content Include="$(BinariesSourceLocation)System.Composition.Runtime.dll">
       <Link>build\System.Composition.Runtime.dll</Link>
       <AlwaysInclude>true</AlwaysInclude>
     </Content>
-    <Content Include="..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\Validation.dll">
+    <Content Include="$(BinariesSourceLocation)Validation.dll">
       <Link>build\Validation.dll</Link>
       <AlwaysInclude>true</AlwaysInclude>
     </Content>
   </ItemGroup>
-  <Import Project="$(NuProjPath)\NuProj.targets" />
+
   <Target Name="EnsureBuildFilesAreIncluded" AfterTargets="GetPackageFiles">
     <ItemGroup>
       <PackageFile Include="@(Content)" Condition=" '%(Content.AlwaysInclude)' == 'true' ">
