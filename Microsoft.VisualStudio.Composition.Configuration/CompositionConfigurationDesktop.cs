@@ -34,7 +34,7 @@
             return CompositionConfiguration.Load(Assembly.LoadFile(defaultCompositionFile));
         }
 
-        public static async Task SaveAsync(this CompositionConfiguration configuration, string assemblyPath, string pdbPath = null, string sourceFilePath = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task SaveAsync(this CompositionConfiguration configuration, string assemblyPath, string pdbPath = null, string sourceFilePath = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             string assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
             using (Stream assemblyStream = File.Open(assemblyPath, FileMode.Create))
@@ -48,6 +48,7 @@
                             assemblyStream,
                             pdbStream,
                             sourceFile,
+                            buildOutput,
                             cancellationToken: cancellationToken);
                         if (!result.Success)
                         {
