@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -88,12 +89,28 @@
                     {
                         if (diagnostic.Severity > DiagnosticSeverity.Info)
                         {
+                            string fileName = sourceFile is FileStream ? Path.GetFileName(((FileStream)sourceFile).Name) : assemblyName;
+                            string location = fileName;
                             if (diagnostic.Location != Location.None)
                             {
-                                await buildOutput.WriteAsync("Line " + (diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1) + ": ");
+                                location += string.Format(
+                                    CultureInfo.InvariantCulture,
+                                    "({0},{1},{2},{3})",
+                                    diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1,
+                                    diagnostic.Location.GetLineSpan().StartLinePosition.Character,
+                                    diagnostic.Location.GetLineSpan().EndLinePosition.Line + 1,
+                                    diagnostic.Location.GetLineSpan().EndLinePosition.Character);
                             }
 
-                            await buildOutput.WriteLineAsync(diagnostic.Category + " " + diagnostic.Severity + " " + diagnostic.Id + ": " + diagnostic.GetMessage());
+                            string formattedMessage = string.Format(
+                                CultureInfo.CurrentCulture,
+                                "{0}: {1} {2}: {3}",
+                                location,
+                                diagnostic.Severity,
+                                diagnostic.Id,
+                                diagnostic.GetMessage());
+
+                            await buildOutput.WriteLineAsync(formattedMessage);
                         }
                     }
                 }
