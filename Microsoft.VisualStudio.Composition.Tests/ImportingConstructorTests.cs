@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Composition;
     using System.Linq;
     using System.Text;
@@ -117,6 +118,43 @@
             }
         }
 
+        #region ImportMany Lazy with metadata test
+
+        [MefFact(CompositionEngines.V1Compat, typeof(RandomExport), typeof(ImportManyCollectionLazyWithMetadataConstructorPart), InvalidConfiguration = true)]
+        public void ImportManyCollectionLazyWithMetadataConstructor(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportManyCollectionLazyWithMetadataConstructorPart>();
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        internal class ImportManyCollectionLazyWithMetadataConstructorPart
+        {
+            [MefV1.ImportingConstructor]
+            public ImportManyCollectionLazyWithMetadataConstructorPart([MefV1.ImportMany] Collection<Lazy<IRandomExport, FeatureMetadata>> exports)
+            {
+                Assert.NotNull(exports);
+                Assert.Equal(1, exports.Count());
+                Assert.Equal("1", exports.First().Metadata.SomeMetadata);
+                Assert.IsType<RandomExport>(exports.First().Value);
+            }
+        }
+
+        public class FeatureMetadata
+        {
+            public string SomeMetadata { get; private set; }
+
+            public FeatureMetadata(IDictionary<string, object> data)
+            {
+                object value;
+                if (data.TryGetValue("SomeMetadata", out value))
+                {
+                    this.SomeMetadata = (string)value;
+                }
+            }
+        }
+
+        #endregion
+
         [Export]
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class SpecialImportingConstructorPart
@@ -146,11 +184,17 @@
         }
 
         [Export]
-        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
-        public class RandomExport { }
+        [MefV1.Export, MefV1.Export(typeof(IRandomExport))]
+        [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        [ExportMetadata("SomeMetadata", "1")]
+        [MefV1.ExportMetadata("SomeMetadata", "1")]
+        public class RandomExport : IRandomExport { }
 
         [Export("Special")]
         [MefV1.Export("Special"), MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class RandomExportWithContractName { }
+
+        // This type is intentionally internal to force specific code paths in code generation
+        internal interface IRandomExport { }
     }
 }
