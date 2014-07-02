@@ -1379,10 +1379,11 @@
             }
             else
             {
-                int i = 1;
+                int i = 0;
                 string candidateName;
                 do
                 {
+                    i++;
                     candidateName = shortName + "_" + i.ToString(CultureInfo.InvariantCulture);
                 } while (!this.classSymbols.Add(candidateName));
 
