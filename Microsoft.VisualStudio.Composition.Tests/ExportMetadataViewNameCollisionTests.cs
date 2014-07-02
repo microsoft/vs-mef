@@ -9,44 +9,43 @@
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
-    [Trait("Ambiguous", "MetadataName")]
     public class ExportMetadataViewNameCollisionTests
     {
         [MefFact(CompositionEngines.V1Compat)]
-        public void ExportMetadataViewNameCollision(IContainer container)
+        public void MetadataViewNameCollision(IContainer container)
         {
-            var importingPart = container.GetExportedValue<ImportingPart>();
-            IMetadata1 metadata1 = importingPart.ImportingProperty.Metadata;
-            IMetadata2 metadata2 = importingPart.ImportingProperty.Metadata;
-            Assert.Equal("SomeValue", metadata1.SomeName);
-            Assert.Equal("SomeValue", metadata2.SomeName);
+            var part1 = container.GetExportedValue<ImportingPart1>();
+            Assert.NotNull(part1.ImportingProperty.Metadata);
+
+            var part2 = container.GetExportedValue<ImportingPart2>();
+            Assert.NotNull(part2.ImportingProperty.Metadata);
         }
 
-        [Export]
         [MefV1.Export]
-        [ExportMetadata("SomeName", "SomeValue")]
-        [MefV1.ExportMetadata("SomeName", "SomeValue")]
-        public class ExportWithMetadata { }
-
-        [Export]
-        [MefV1.Export]
-        public class ImportingPart
+        public class ImportingPart1
         {
-            [Import]
             [MefV1.Import]
-            public Lazy<ExportWithMetadata, IMetadata> ImportingProperty { get; set; }
+            public Lazy<ExportingPart, SubNS1.IMetadata> ImportingProperty { get; set; }
         }
 
-        public interface IMetadata1
+        [MefV1.Export]
+        public class ImportingPart2
         {
-            string SomeName { get; }
+            [MefV1.Import]
+            public Lazy<ExportingPart, SubNS2.IMetadata> ImportingProperty { get; set; }
         }
 
-        public interface IMetadata2
-        {
-            string SomeName { get; }
-        }
+        [MefV1.Export]
+        public class ExportingPart { }
+    }
 
-        public interface IMetadata : IMetadata1, IMetadata2 { }
+    namespace SubNS1
+    {
+        public interface IMetadata { }
+    }
+
+    namespace SubNS2
+    {
+        public interface IMetadata { }
     }
 }

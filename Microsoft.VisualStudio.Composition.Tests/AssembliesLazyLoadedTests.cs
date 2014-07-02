@@ -5,6 +5,7 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.AppDomainTests;
@@ -96,6 +97,7 @@
                 Assert.True(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
+            [MethodImpl(MethodImplOptions.NoInlining)] // if this method is inlined, it defeats the point of it being a separate method in the test and causes test failure.
             private void CauseLazyLoad1(ExportProvider container)
             {
                 // Actually the lazy load happens before GetExport is actually called since this method
@@ -104,6 +106,7 @@
                 Assert.NotNull(export);
             }
 
+            [MethodImpl(MethodImplOptions.NoInlining)] // if this method is inlined, it defeats the point of it being a separate method in the test and causes test failure.
             private void CauseLazyLoad2(ExportProvider container)
             {
                 // Actually the lazy load happens before GetExport is actually called since this method

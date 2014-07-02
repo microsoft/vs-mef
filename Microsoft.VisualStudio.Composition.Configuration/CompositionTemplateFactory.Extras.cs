@@ -20,6 +20,19 @@
 
         private readonly HashSet<Type> relevantEmbeddedTypes = new HashSet<Type>();
 
+        /// <summary>
+        /// A collection of symbols defined at the level of the generated class.
+        /// </summary>
+        /// <remarks>
+        /// This is useful to ensure that any generated symbol is unique.
+        /// </remarks>
+        private readonly HashSet<string> classSymbols = new HashSet<string>();
+
+        /// <summary>
+        /// A lookup table of arbitrary objects to the symbols that have been reserved for them.
+        /// </summary>
+        private readonly Dictionary<object, string> reservedSymbols = new Dictionary<object, string>();
+
         public CompositionConfiguration Configuration { get; set; }
 
         /// <summary>
@@ -402,7 +415,9 @@
                     }
                     else
                     {
-                        var genericTypeArgs = (IReadOnlyList<Type>)import.ImportDefinition.Metadata.GetValueOrDefault(CompositionConstants.GenericParametersMetadataName, ImmutableList<Type>.Empty);
+                        var genericTypeArgs = export.PartDefinition.Type.GetTypeInfo().IsGenericType
+                            ? (IReadOnlyList<Type>)import.ImportDefinition.Metadata.GetValueOrDefault(CompositionConstants.GenericParametersMetadataName, ImmutableList<Type>.Empty)
+                            : Enumerable.Empty<Type>();
 
                         if (genericTypeArgs.All(arg => IsPublic(arg, true)))
                         {
@@ -458,6 +473,22 @@
             else if (typeof(bool).IsEquivalentTo(valueType))
             {
                 return (bool)value ? "true" : "false";
+            }
+            else if (valueType.IsEquivalentTo(typeof(double)) && (double)value == double.MaxValue)
+            {
+                return "double.MaxValue";
+            }
+            else if (valueType.IsEquivalentTo(typeof(double)) && (double)value == double.MinValue)
+            {
+                return "double.MinValue";
+            }
+            else if (valueType.IsEquivalentTo(typeof(float)) && (float)value == float.MaxValue)
+            {
+                return "float.MaxValue";
+            }
+            else if (valueType.IsEquivalentTo(typeof(float)) && (float)value == float.MinValue)
+            {
+                return "float.MinValue";
             }
             else if (valueType.IsPrimitive)
             {
@@ -545,7 +576,7 @@
                         GetTypeName(ctor.DeclaringType, evenNonPublic: true) + "." + ctor.Name);
                 }
 
-                this.Write("({0})({1}).Invoke(new object[] {{", (skipCast || !IsPublic(ctor.DeclaringType, true)) ? "object" : GetTypeName(ctor.DeclaringType), ctorExpression);
+                this.Write("({0})({1}).Invoke(new object[] {{", skipCast ? "object" : GetTypeName(ctor.DeclaringType), ctorExpression);
             }
             var indent = this.Indent();
 
@@ -571,29 +602,67 @@
                 return;
             }
 
-            this.Write("var {0} = ", InstantiatedPartLocalVarName);
-            using (this.EmitConstructorInvocationExpression(part.Definition))
+            this.WriteLine("{0} {1};", GetTypeName(part.Definition.Type), InstantiatedPartLocalVarName);
+            using (Indent(withBraces: true))
             {
-                if (part.Definition.ImportingConstructor.Count > 0)
+                const string argNamePattern = "arg{0}";
+                int importingConstructorArgIndex = 0;
+                foreach (var pair in part.GetImportingConstructorImports())
                 {
-                    this.WriteLine(string.Empty);
-                    bool first = true;
-                    foreach (var import in part.GetImportingConstructorImports())
-                    {
-                        if (!first)
-                        {
-                            this.WriteLine(",");
-                        }
+                    var import = pair.Key;
+                    var exports = pair.Value;
 
+                    string argName = string.Format(CultureInfo.InvariantCulture, argNamePattern, importingConstructorArgIndex++);
+                    this.Write("var {0} = ", argName);
+                    if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && !IsPublic(import.ImportingSiteType, true))
+                    {
+                        // This will require a multi-statement construction of the array.
+                        this.WriteLine("Array.CreateInstance({0}, {1});", this.GetTypeExpression(import.ImportingSiteTypeWithoutCollection), exports.Count);
+                        int arrayIndex = 0;
+                        foreach (var export in exports)
+                        {
+                            var valueWriter = new StringWriter();
+                            EmitValueFactory(import, export, valueWriter);
+                            this.WriteLine("{0}.SetValue({1}, {2});", argName, valueWriter, arrayIndex++);
+                        }
+                    }
+                    else if (import.ImportDefinition.Cardinality == ImportCardinality.OneOrZero && !exports.Any())
+                    {
+                        if (IsPublic(import.ImportingSiteType))
+                        {
+                            this.WriteLine("default({0});", GetTypeName(import.ImportingSiteType));
+                        }
+                        else if (import.ImportingSiteType.IsValueType)
+                        {
+                            // It's a non-public struct. We have to construct its default value by hand.
+                            this.WriteLine("Activator.CreateInstance({0});", GetTypeExpression(import.ImportingSiteType));
+                        }
+                        else
+                        {
+                            this.WriteLine("({0})null;", GetTypeName(import.ImportingSiteType));
+                        }
+                    }
+                    else
+                    {
                         var expressionWriter = new StringWriter();
-                        this.EmitImportSatisfyingExpression(import.Key, import.Value, expressionWriter);
+                        this.EmitImportSatisfyingExpression(import, exports, expressionWriter);
                         this.Write(expressionWriter.ToString());
-                        first = false;
+                        this.WriteLine(";");
                     }
                 }
+
+                this.Write("{0} = ", InstantiatedPartLocalVarName);
+                using (this.EmitConstructorInvocationExpression(part.Definition))
+                {
+                    this.Write(
+                        string.Join(
+                            ", ",
+                            Enumerable.Range(0, importingConstructorArgIndex).Select(i => string.Format(CultureInfo.InvariantCulture, argNamePattern, i))));
+                }
+
+                this.WriteLine(";");
             }
 
-            this.WriteLine(";");
             if (typeof(IDisposable).IsAssignableFrom(part.Definition.Type))
             {
                 this.WriteLine("this.TrackDisposableValue((IDisposable){0});", InstantiatedPartLocalVarName);
@@ -732,7 +801,7 @@
                                 "({0}){1}.CreateDelegate({2}, ",
                                 GetTypeName(import.ImportingSiteElementType),
                                 GetMethodInfoExpression((MethodInfo)export.ExportingMember),
-                                GetTypeExpression(export.ExportedValueType));
+                                GetTypeExpression(typeof(Delegate).IsAssignableFrom(import.ImportingSiteElementType) ? import.ImportingSiteElementType : export.ExportedValueType));
                             break;
                         case MemberTypes.Property:
                             writer.Write(
@@ -948,12 +1017,9 @@
         {
             Requires.NotNull(metadataView, "metadataView");
 
-            if (metadataView.IsInterface)
-            {
-                return "ClassFor" + metadataView.Name;
-            }
-
-            return this.GetTypeName(metadataView);
+            return ReserveSymbolName(
+                metadataView.IsInterface ? "ClassFor" + metadataView.Name : this.GetTypeName(metadataView),
+                metadataView);
         }
 
         private string GetValueOrDefaultForMetadataView(PropertyInfo property, string sourceVarName)
@@ -1296,6 +1362,35 @@
                 CultureInfo.InvariantCulture,
                 "typeof(Tuple<,>).MakeGenericType({0}, typeof(System.Action))",
                 this.GetTypeExpression(constructedType));
+        }
+
+        private string ReserveSymbolName(string shortName, object namedValue)
+        {
+            string result;
+            if (this.reservedSymbols.TryGetValue(namedValue, out result))
+            {
+                return result;
+            }
+
+
+            if (this.classSymbols.Add(shortName))
+            {
+                result = shortName;
+            }
+            else
+            {
+                int i = 1;
+                string candidateName;
+                do
+                {
+                    candidateName = shortName + "_" + i.ToString(CultureInfo.InvariantCulture);
+                } while (!this.classSymbols.Add(candidateName));
+
+                result = candidateName;
+            }
+
+            this.reservedSymbols.Add(namedValue, result);
+            return result;
         }
 
         private IDisposable Indent(int count = 1, bool withBraces = false)

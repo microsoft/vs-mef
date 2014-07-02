@@ -43,13 +43,40 @@
                 }
                 finally
                 {
+                    bool includeLineNumbers;
+                    TextWriter sourceFileWriter;
+                    if (sourceFileStream.Length < 200 * 1024) // the test results window doesn't do well with large output
+                    {
+                        includeLineNumbers = true;
+                        sourceFileWriter = Console.Out;
+                    }
+                    else
+                    {
+                        // Write to a file instead and then emit its path to the output window.
+                        string sourceFileName = Path.GetTempFileName() + ".cs";
+                        sourceFileWriter = new StreamWriter(File.OpenWrite(sourceFileName));
+                        Console.WriteLine("Source file written to: {0}", sourceFileName);
+                        includeLineNumbers = false;
+                    }
+
                     sourceFileStream.Position = 0;
                     var sourceFileReader = new StreamReader(sourceFileStream);
                     int lineNumber = 0;
                     string line;
                     while ((line = sourceFileReader.ReadLine()) != null)
                     {
-                        Console.WriteLine("Line {0,5}: {1}", ++lineNumber, line);
+                        if (includeLineNumbers)
+                        {
+                            sourceFileWriter.Write("Line {0,5}: ", ++lineNumber);
+                        }
+
+                        sourceFileWriter.WriteLine(line);
+                    }
+
+                    sourceFileWriter.Flush();
+                    if (sourceFileWriter != Console.Out)
+                    {
+                        sourceFileWriter.Close();
                     }
                 }
             }
@@ -128,7 +155,7 @@
                 catalog = ComposableCatalog.Create(catalog.Parts.Concat(typeCatalog.Parts));
             }
 
-            return CreateContainerV3(catalog, assemblies.ToImmutableHashSet());
+            return CreateContainerV3(catalog, attributesDiscovery, assemblies.ToImmutableHashSet());
         }
 
         private static PartDiscovery GetDiscoveryService(CompositionEngines attributesDiscovery)
@@ -153,18 +180,23 @@
             return PartDiscovery.Combine(discovery.ToArray());
         }
 
-        private static IContainer CreateContainerV3(ComposableCatalog catalog, ImmutableHashSet<Assembly> additionalAssemblies = null)
+        private static IContainer CreateContainerV3(ComposableCatalog catalog, CompositionEngines options, ImmutableHashSet<Assembly> additionalAssemblies = null)
         {
             var catalogWithCompositionService = catalog.WithCompositionService();
             var configuration = CompositionConfiguration.Create(catalogWithCompositionService)
                 .WithReferenceAssemblies(additionalAssemblies ?? ImmutableHashSet<Assembly>.Empty);
+            if (!options.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors))
+            {
+                configuration.ThrowOnErrors();
+            }
+
 #if DGML
             string dgmlFile = System.IO.Path.GetTempFileName() + ".dgml";
             configuration.CreateDgml().Save(dgmlFile);
             Console.WriteLine("DGML saved to: " + dgmlFile);
 #endif
             var container = configuration.CreateContainer();
-            return new V3ContainerWrapper(container);
+            return new V3ContainerWrapper(container, configuration);
         }
 
         internal static void RunMultiEngineTest(CompositionEngines attributesVersion, Type[] parts, Action<IContainer> test)
@@ -204,7 +236,7 @@
 
             if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1))
             {
-                test(CreateContainerV3(assemblies, CompositionEngines.V1, parts));
+                test(CreateContainerV3(assemblies, CompositionEngines.V1 | (CompositionEngines.V3OptionsMask & attributesVersion), parts));
             }
 
             if (attributesVersion.HasFlag(CompositionEngines.V2))
@@ -214,12 +246,12 @@
 
             if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV2))
             {
-                test(CreateContainerV3(assemblies, CompositionEngines.V2 | (CompositionEngines.V3NonPublicSupport & attributesVersion), parts));
+                test(CreateContainerV3(assemblies, CompositionEngines.V2 | (CompositionEngines.V3OptionsMask & attributesVersion), parts));
             }
 
             if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1AndV2AtOnce))
             {
-                test(CreateContainerV3(assemblies, CompositionEngines.V1 | CompositionEngines.V2 | (CompositionEngines.V3NonPublicSupport & attributesVersion), parts));
+                test(CreateContainerV3(assemblies, CompositionEngines.V1 | CompositionEngines.V2 | (CompositionEngines.V3OptionsMask & attributesVersion), parts));
             }
         }
 
@@ -551,16 +583,21 @@
         {
             private readonly ExportProvider container;
 
-            internal V3ContainerWrapper(ExportProvider container)
+            internal V3ContainerWrapper(ExportProvider container, CompositionConfiguration configuration)
             {
                 Requires.NotNull(container, "container");
+                Requires.NotNull(configuration, "configuration");
+
                 this.container = container;
+                this.Configuration = configuration;
             }
 
             internal ExportProvider ExportProvider
             {
                 get { return this.container; }
             }
+
+            internal CompositionConfiguration Configuration { get; private set; }
 
             public ILazy<T> GetExport<T>()
             {

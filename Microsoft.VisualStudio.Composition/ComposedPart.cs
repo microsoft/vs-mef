@@ -50,68 +50,75 @@
             }
         }
 
-        public void Validate()
+        public IEnumerable<ComposedPartDiagnostic> Validate()
         {
-            var exceptions = ImmutableList.Create<Exception>();
             foreach (var pair in this.SatisfyingExports)
             {
-                try
+                var importDefinition = pair.Key.ImportDefinition;
+                switch (importDefinition.Cardinality)
                 {
-                    var importDefinition = pair.Key.ImportDefinition;
-                    switch (importDefinition.Cardinality)
-                    {
-                        case ImportCardinality.ExactlyOne:
-                            if (pair.Value.Count != 1)
-                            {
-                                throw new CompositionFailedException(
-                                    string.Format(
-                                        CultureInfo.CurrentCulture,
-                                        "Import of {0} expected 1 export but found {1}.",
-                                        importDefinition.ContractName,
-                                        pair.Value.Count));
-                            }
-
-                            break;
-                        case ImportCardinality.OneOrZero:
-                            if (pair.Value.Count > 1)
-                            {
-                                throw new CompositionFailedException(
-                                    string.Format(
-                                        CultureInfo.CurrentCulture,
-                                        "Import of {0} expected 1 or 0 exports but found {1}.",
-                                        importDefinition.ContractName,
-                                        pair.Value.Count));
-                            }
-
-                            break;
-                    }
-
-                    foreach (var export in pair.Value)
-                    {
-                        if (!ReflectionHelpers.IsAssignableTo(pair.Key, export))
+                    case ImportCardinality.ExactlyOne:
+                        if (pair.Value.Count != 1)
                         {
-                            throw new CompositionFailedException(
-                                string.Format(
-                                    CultureInfo.CurrentCulture,
-                                    "Exported type {4} on MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
-                                    ReflectionHelpers.GetTypeName(export.PartDefinition.Type, false, true, null, null),
-                                    ReflectionHelpers.GetTypeName(pair.Key.ImportingSiteElementType, false, true, null, null),
-                                    ReflectionHelpers.GetTypeName(this.Definition.Type, false, true, null, null),
-                                    pair.Key.ImportingMember != null ? pair.Key.ImportingMember.Name : "ctor",
-                                    ReflectionHelpers.GetTypeName(export.ExportedValueType, false, true, null, null)));
+                            yield return new ComposedPartDiagnostic(
+                                this,
+                                "Import of {0} expected exactly 1 export but found {1}.",
+                                importDefinition.ContractName,
+                                pair.Value.Count);
                         }
+
+                        break;
+                    case ImportCardinality.OneOrZero:
+                        if (pair.Value.Count > 1)
+                        {
+                            yield return new ComposedPartDiagnostic(
+                                this,
+                                "Import of {0} expected 1 or 0 exports but found {1}.",
+                                importDefinition.ContractName,
+                                pair.Value.Count);
+                        }
+
+                        break;
+                }
+
+                foreach (var export in pair.Value)
+                {
+                    if (!ReflectionHelpers.IsAssignableTo(pair.Key, export))
+                    {
+                        yield return new ComposedPartDiagnostic(
+                            this,
+                            "Exported type {4} on MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
+                            ReflectionHelpers.GetTypeName(export.PartDefinition.Type, false, true, null, null),
+                            ReflectionHelpers.GetTypeName(pair.Key.ImportingSiteElementType, false, true, null, null),
+                            ReflectionHelpers.GetTypeName(this.Definition.Type, false, true, null, null),
+                            pair.Key.ImportingMember != null ? pair.Key.ImportingMember.Name : "ctor",
+                            ReflectionHelpers.GetTypeName(export.ExportedValueType, false, true, null, null));
                     }
                 }
-                catch (CompositionFailedException ex)
+
+                if (pair.Key.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && pair.Key.ImportingParameter != null && !IsAllowedImportManyParameterType(pair.Key.ImportingParameter.ParameterType))
                 {
-                    exceptions = exceptions.Add(new CompositionFailedException("Error validating MEF part: " + pair.Key.ComposablePartType.Name, ex));
+                    yield return new ComposedPartDiagnostic(
+                        this,
+                        "Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable<T> are supported.");
                 }
             }
+        }
 
-            if (!exceptions.IsEmpty)
+        private static bool IsAllowedImportManyParameterType(Type importSiteType)
+        {
+            Requires.NotNull(importSiteType, "importSiteType");
+            if (importSiteType.IsArray)
             {
-                throw new CompositionFailedException("Error validating MEF part: " + this.Definition.Type.FullName, new AggregateException(exceptions));
+                return true;
             }
+
+            if (importSiteType.GetTypeInfo().IsGenericType && importSiteType.GetTypeInfo().GetGenericTypeDefinition().IsEquivalentTo(typeof(IEnumerable<>)))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

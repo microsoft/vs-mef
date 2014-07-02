@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|AnyCPU">
+      <Configuration>Debug</Configuration>
+      <Platform>AnyCPU</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|AnyCPU">
+      <Configuration>Release</Configuration>
+      <Platform>AnyCPU</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>e0f18440-ca64-4fbd-bd55-e912b663ba16</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NuProjPackagePath>packages\NuProj.0.9.2-beta\tools</NuProjPackagePath>
+    <NuProjPath Condition=" '$(SolutionDir)' != '' ">$(SolutionDir)$(NuProjPackagePath)</NuProjPath>
+    <NuProjPath Condition=" '$(NuProjPath)' == '' ">..\$(NuProjPackagePath)</NuProjPath>
+    <!-- When it's available, the installed location is preferable because it includes XAML files that make content files appear. -->
+    <NuProjPath Condition=" Exists('$(MSBuildExtensionsPath)\NuProj') ">$(MSBuildExtensionsPath)\NuProj\</NuProjPath>
+  </PropertyGroup>
+  <Import Project="$(NuProjPath)\NuProj.props" Condition="Exists('$(NuProjPath)\NuProj.props')" />
+  <PropertyGroup Label="Configuration">
+    <Id>Microsoft.VisualStudio.Composition</Id>
+    <Version>0.1.0-alpha4</Version>
+    <Title>Visual Studio MEF</Title>
+    <Authors>Andrew Arnott</Authors>
+    <Owners>Andrew Arnott</Owners>
+    <Summary>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Summary>
+    <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
+    <ReleaseNotes>
+    </ReleaseNotes>
+    <ProjectUrl>
+    </ProjectUrl>
+    <LicenseUrl>
+    </LicenseUrl>
+    <Copyright>Copyright © Andrew Arnott</Copyright>
+    <Tags>mef</Tags>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="Readme.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.Configuration\Microsoft.VisualStudio.Composition.Configuration.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="build\Microsoft.VisualStudio.Composition.targets" />
+  </ItemGroup>
+  <Import Project="$(NuProjPath)\NuProj.targets" />
+
+  <PropertyGroup>
+    <BinariesSourceLocation>..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\</BinariesSourceLocation>
+    <BinariesSourceLocation Condition=" !Exists('$(BinariesSourceLocation)') ">$(OutDir)\</BinariesSourceLocation>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="$(BinariesSourceLocation)Microsoft.CodeAnalysis.CSharp.dll">
+      <Link>build\Microsoft.CodeAnalysis.CSharp.dll</Link>
+      <AlwaysInclude>true</AlwaysInclude>
+    </Content>
+    <Content Include="$(BinariesSourceLocation)Microsoft.CodeAnalysis.dll">
+      <Link>build\Microsoft.CodeAnalysis.dll</Link>
+      <AlwaysInclude>true</AlwaysInclude>
+    </Content>
+    <Content Include="$(BinariesSourceLocation)Microsoft.VisualStudio.Composition.Configuration.dll">
+      <Link>build\Microsoft.VisualStudio.Composition.Configuration.dll</Link>
+    </Content>
+    <Content Include="$(BinariesSourceLocation)Microsoft.VisualStudio.Composition.dll">
+      <Link>build\Microsoft.VisualStudio.Composition.dll</Link>
+    </Content>
+    <Content Include="$(BinariesSourceLocation)System.Collections.Immutable.dll">
+      <Link>build\System.Collections.Immutable.dll</Link>
+      <AlwaysInclude>true</AlwaysInclude>
+    </Content>
+    <Content Include="$(BinariesSourceLocation)System.Composition.AttributedModel.dll">
+      <Link>build\System.Composition.AttributedModel.dll</Link>
+      <AlwaysInclude>true</AlwaysInclude>
+    </Content>
+    <Content Include="$(BinariesSourceLocation)System.Composition.Runtime.dll">
+      <Link>build\System.Composition.Runtime.dll</Link>
+      <AlwaysInclude>true</AlwaysInclude>
+    </Content>
+    <Content Include="$(BinariesSourceLocation)Validation.dll">
+      <Link>build\Validation.dll</Link>
+      <AlwaysInclude>true</AlwaysInclude>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="EnsureBuildFilesAreIncluded" AfterTargets="GetPackageFiles">
+    <ItemGroup>
+      <PackageFile Include="@(Content)" Condition=" '%(Content.AlwaysInclude)' == 'true' ">
+        <TargetPath>%(Content.Link)</TargetPath>
+      </PackageFile>
+    </ItemGroup>
+  </Target>
+</Project>

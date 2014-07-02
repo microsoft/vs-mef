@@ -73,14 +73,14 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Xml" />
-    <Reference Include="Validation, Version=2.0.0.0, Culture=neutral, PublicKeyToken=2fc06f0d701809a7, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Validation">
       <HintPath>..\packages\Validation.2.0.3.13323\lib\portable-windows8+net40+sl5+windowsphone8+MonoAndroid+MonoTouch\Validation.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ComposableCatalog.cs" />
     <Compile Include="ComposedPart.cs" />
+    <Compile Include="ComposedPartDiagnostic.cs" />
     <Compile Include="CompositionConstants.cs" />
     <Compile Include="CompositionFailedException.cs" />
     <Compile Include="ContractNameServices.cs" />

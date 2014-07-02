@@ -167,6 +167,24 @@
             Assert.Equal(4, importer.ImportingProperty.Metadata.SomeInt);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportingPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataSomeStringArray))]
+        public void ImportWithMetadataViewAsFilterAndMetadatumWithStringArrayValue(IContainer container)
+        {
+            var importer = container.GetExportedValue<ImportingPartOfObjectWithMetadataInterface>();
+
+            Assert.IsType<PartWithExportMetadataSomeStringArray>(importer.ImportingProperty.Value);
+            Assert.Equal(new string[] { "alpha", "beta" }, importer.ImportingProperty.Metadata.SomeStringArray);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ImportingPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataSomeStringArray))]
+        public void ImportWithMetadataViewAsFilterOfObjectArrayAndMetadatumWithStringArrayValue(IContainer container)
+        {
+            var importer = container.GetExportedValue<ImportingPartOfObjectWithMetadataInterface>();
+
+            Assert.IsType<PartWithExportMetadataSomeStringArray>(importer.ImportingProperty.Value);
+            Assert.Equal(new object[] { "alpha", "beta" }, importer.ImportingProperty.Metadata.SomeObjectArrayOfStrings);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(ImportManyPartOfObjectWithMetadataInterface), typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB), typeof(PartWithExportMetadataAB))]
         public void ImportManyWithMetadataViewAsFilter(IContainer container)
         {
@@ -204,6 +222,12 @@
         [MefV1.ExportMetadata("a", "b")]
         [MefV1.ExportMetadata("B", "c")]
         public class PartWithExportMetadataAB { }
+
+        [MefV1.Export("ExportWithMetadata", typeof(object))]
+        [MefV1.ExportMetadata("a", "b")]
+        [MefV1.ExportMetadata("SomeStringArray", new string[] { "alpha", "beta" })]
+        [MefV1.ExportMetadata("SomeObjectArrayOfStrings", new object[] { "alpha", "beta" })]
+        public class PartWithExportMetadataSomeStringArray { }
 
         #endregion
 
@@ -314,7 +338,7 @@
             Assert.Equal(0, result.Count());
         }
 
-        [MefFact(CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V1, typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB), typeof(PartWithExportMetadataAB))]
         [Trait("Container.GetExport", "Plural")]
         public void GetNamedExportsTMetadata(IContainer container)
         {
@@ -410,6 +434,34 @@
 
         #endregion
 
+        #region Extreme values tests
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartImportingExtremeValues), typeof(PartWithExtremeValues))]
+        public void ExportMetadataExtremeValues(IContainer container)
+        {
+            var part = container.GetExportedValue<PartImportingExtremeValues>();
+            Assert.Equal(double.MaxValue, part.ImportingProperty.Metadata["doubleMaxValue"]);
+            Assert.Equal(double.MinValue, part.ImportingProperty.Metadata["doubleMinValue"]);
+            Assert.Equal(float.MaxValue, part.ImportingProperty.Metadata["floatMaxValue"]);
+            Assert.Equal(float.MinValue, part.ImportingProperty.Metadata["floatMinValue"]);
+        }
+
+        [MefV1.Export, Export]
+        [MefV1.ExportMetadata("doubleMaxValue", double.MaxValue), ExportMetadata("doubleMaxValue", double.MaxValue)]
+        [MefV1.ExportMetadata("doubleMinValue", double.MinValue), ExportMetadata("doubleMinValue", double.MinValue)]
+        [MefV1.ExportMetadata("floatMaxValue", float.MaxValue), ExportMetadata("floatMaxValue", float.MaxValue)]
+        [MefV1.ExportMetadata("floatMinValue", float.MinValue), ExportMetadata("floatMinValue", float.MinValue)]
+        public class PartWithExtremeValues { }
+
+        [MefV1.Export, Export]
+        public class PartImportingExtremeValues
+        {
+            [MefV1.Import, Import]
+            public Lazy<PartWithExtremeValues, IDictionary<string, object>> ImportingProperty { get; set; }
+        }
+
+        #endregion
+
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [MefV1.ExportMetadata("a", "b")]
         [Export]
@@ -476,6 +528,12 @@
 
             [DefaultValue(null)]
             IEnumerable<string> SomeStringEnum { get; }
+
+            [DefaultValue(null)]
+            string[] SomeStringArray { get; }
+
+            [DefaultValue(null)]
+            object[] SomeObjectArrayOfStrings { get; }
 
             [DefaultValue(4)]
             int SomeInt { get; }

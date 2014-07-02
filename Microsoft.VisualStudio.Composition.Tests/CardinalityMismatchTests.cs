@@ -13,8 +13,8 @@
         [Fact]
         public void MissingRequiredImport()
         {
-            // The configuration is invalid, so prevent its creation.
-            Assert.Throws<CompositionFailedException>(() => CompositionConfiguration.Create(new AttributedPartDiscovery(), typeof(RequiredImportMissing)));
+            var configuration = CompositionConfiguration.Create(new AttributedPartDiscovery(), typeof(RequiredImportMissing));
+            Assert.Throws<CompositionFailedException>(() => configuration.ThrowOnErrors());
         }
 
         [MefFact(CompositionEngines.V2Compat, typeof(OptionalImportMissing))]

@@ -220,5 +220,40 @@
         }
 
         #endregion
+
+        #region Automatic delegate type casting tests
+
+        [MefFact(CompositionEngines.V1Compat, typeof(EventHandlerExportingPart), typeof(EventHandlerImportingPart))]
+        public void EventHandlerImportExport(IContainer container)
+        {
+            var part = container.GetExportedValue<EventHandlerImportingPart>();
+            Assert.Equal(1, part.Handlers.Count);
+            Assert.Equal(1, part.LazyHandlers.Count);
+            part.Handlers[0](this, new MyEventArgs());
+            part.LazyHandlers[0].Value(this, new MyEventArgs());
+        }
+
+        internal class EventHandlerExportingPart
+        {
+            /// <summary>
+            /// MEF will see this as an Action{object, EventArgs} export.
+            /// </summary>
+            [MefV1.Export]
+            internal void SomeHandler(object sender, MyEventArgs e) { }
+        }
+
+        [MefV1.Export]
+        internal class EventHandlerImportingPart
+        {
+            [MefV1.ImportMany]
+            internal List<EventHandler<MyEventArgs>> Handlers { get; set; }
+
+            [MefV1.ImportMany]
+            internal List<Lazy<EventHandler<MyEventArgs>>> LazyHandlers { get; set; }
+        }
+
+        internal class MyEventArgs : EventArgs { }
+
+        #endregion
     }
 }
