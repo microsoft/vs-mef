@@ -52,7 +52,6 @@
 
         public IEnumerable<ComposedPartDiagnostic> Validate()
         {
-            var exceptions = ImmutableList.Create<Exception>();
             foreach (var pair in this.SatisfyingExports)
             {
                 var importDefinition = pair.Key.ImportDefinition;
@@ -96,7 +95,30 @@
                             ReflectionHelpers.GetTypeName(export.ExportedValueType, false, true, null, null));
                     }
                 }
+
+                if (pair.Key.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && pair.Key.ImportingParameter != null && !IsAllowedImportManyParameterType(pair.Key.ImportingParameter.ParameterType))
+                {
+                    yield return new ComposedPartDiagnostic(
+                        this,
+                        "Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable<T> are supported.");
+                }
             }
+        }
+
+        private static bool IsAllowedImportManyParameterType(Type importSiteType)
+        {
+            Requires.NotNull(importSiteType, "importSiteType");
+            if (importSiteType.IsArray)
+            {
+                return true;
+            }
+
+            if (importSiteType.GetTypeInfo().IsGenericType && importSiteType.GetTypeInfo().GetGenericTypeDefinition().IsEquivalentTo(typeof(IEnumerable<>)))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

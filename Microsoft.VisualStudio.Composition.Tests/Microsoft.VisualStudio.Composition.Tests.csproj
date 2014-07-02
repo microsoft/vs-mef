@@ -104,6 +104,7 @@
     <Compile Include="ClosedGenericExportedTypeTests.cs" />
     <Compile Include="DynamicImportTests.cs" />
     <Compile Include="EmbeddableTypesTests.cs" />
+    <Compile Include="ExportMetadataViewNameCollisionTests.cs" />
     <Compile Include="ExportProviderTests.cs" />
     <Compile Include="GenericImportTests.cs" />
     <Compile Include="GuidMetadataTests.cs" />
@@ -124,7 +125,7 @@
     <Compile Include="ExportFactoryTests.cs" />
     <Compile Include="ExportingMembersTests.cs" />
     <Compile Include="ExportMetadataNonStringValuesTests.cs" />
-    <Compile Include="ExportMetadataViewNameCollisionTests.cs" />
+    <Compile Include="ExportMetadataNameCollisionTests.cs" />
     <Compile Include="ImportingConstructorTests.cs" />
     <Compile Include="ExportMetadataMultipleTests.cs" />
     <Compile Include="ImportSiteCreationPolicyTests.cs" />

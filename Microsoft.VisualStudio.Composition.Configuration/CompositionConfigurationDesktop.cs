@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -29,7 +30,7 @@
             return CompositionConfiguration.Load(Assembly.LoadFile(defaultCompositionFile));
         }
 
-        public static async Task SaveAsync(this CompositionConfiguration configuration, string assemblyPath, string pdbPath = null, string sourceFilePath = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task SaveAsync(this CompositionConfiguration configuration, string assemblyPath, string pdbPath = null, string sourceFilePath = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             string assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
             using (Stream assemblyStream = File.Open(assemblyPath, FileMode.Create))
@@ -43,6 +44,7 @@
                             assemblyStream,
                             pdbStream,
                             sourceFile,
+                            buildOutput,
                             cancellationToken: cancellationToken);
                         if (!result.Success)
                         {
@@ -84,12 +86,28 @@
                     {
                         if (diagnostic.Severity > DiagnosticSeverity.Info)
                         {
+                            string fileName = sourceFile is FileStream ? Path.GetFileName(((FileStream)sourceFile).Name) : assemblyName;
+                            string location = fileName;
                             if (diagnostic.Location != Location.None)
                             {
-                                await buildOutput.WriteAsync("Line " + (diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1) + ": ");
+                                location += string.Format(
+                                    CultureInfo.InvariantCulture,
+                                    "({0},{1},{2},{3})",
+                                    diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1,
+                                    diagnostic.Location.GetLineSpan().StartLinePosition.Character,
+                                    diagnostic.Location.GetLineSpan().EndLinePosition.Line + 1,
+                                    diagnostic.Location.GetLineSpan().EndLinePosition.Character);
                             }
 
-                            await buildOutput.WriteLineAsync(diagnostic.Category + " " + diagnostic.Severity + " " + diagnostic.Id + ": " + diagnostic.GetMessage());
+                            string formattedMessage = string.Format(
+                                CultureInfo.CurrentCulture,
+                                "{0}: {1} {2}: {3}",
+                                location,
+                                diagnostic.Severity,
+                                diagnostic.Id,
+                                diagnostic.GetMessage());
+
+                            await buildOutput.WriteLineAsync(formattedMessage);
                         }
                     }
                 }
@@ -115,7 +133,8 @@
                 options: new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
                     optimize: !debug,
-                    debugInformationKind: debug ? DebugInformationKind.Full : DebugInformationKind.None));
+                    debugInformationKind: debug ? DebugInformationKind.Full : DebugInformationKind.None,
+                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default));
         }
 
         public static async Task<IExportProviderFactory> CreateContainerFactoryAsync(this CompositionConfiguration configuration, Stream sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))

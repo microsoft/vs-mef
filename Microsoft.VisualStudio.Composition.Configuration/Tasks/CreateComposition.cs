@@ -54,7 +54,7 @@
                     assemblyPath,
                     Path.GetFullPath(this.ConfigurationSymbolsPath),
                     Path.GetFullPath(this.ConfigurationSourcePath),
-                    this.cancellationSource.Token).GetAwaiter().GetResult();
+                    cancellationToken: this.cancellationSource.Token).GetAwaiter().GetResult();
             }
             catch (AggregateException ex)
             {
