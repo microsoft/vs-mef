@@ -65,6 +65,78 @@
             Assert.IsType<RandomExport>(part.ConstructorImports[0]);
         }
 
+        #region AllowDefault tests
+
+        [Trait("AllowDefault", "true")]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithAllowDefaultImportingConstructor))]
+        public void ImportingConstructorWithAllowDefaultAndNoExport(IContainer container)
+        {
+            var part = container.GetExportedValue<PartWithAllowDefaultImportingConstructor>();
+            Assert.Null(part.ConstructorArg);
+        }
+
+        [Trait("AllowDefault", "true")]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithAllowDefaultStructImportingConstructor))]
+        public void ImportingConstructorWithAllowDefaultStructAndNoExport(IContainer container)
+        {
+            var part = container.GetExportedValue<PartWithAllowDefaultStructImportingConstructor>();
+            Assert.Equal(0, part.ConstructorArg);
+        }
+
+        [Trait("AllowDefault", "true")]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithAllowDefaultNonPublicStructImportingConstructor))]
+        public void ImportingConstructorWithAllowDefaultNonPublicStructAndNoExport(IContainer container)
+        {
+            var part = container.GetExportedValue<PartWithAllowDefaultNonPublicStructImportingConstructor>();
+            Assert.Equal(new NonPublicStruct(), part.ConstructorArg);
+        }
+
+        [Trait("AllowDefault", "true")]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithAllowDefaultImportingConstructor), typeof(RandomExport))]
+        public void ImportingConstructorWithAllowDefaultAndAnExport(IContainer container)
+        {
+            var part = container.GetExportedValue<PartWithAllowDefaultImportingConstructor>();
+            Assert.NotNull(part.ConstructorArg);
+        }
+
+        [Export, MefV1.Export]
+        public class PartWithAllowDefaultImportingConstructor
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithAllowDefaultImportingConstructor([Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]RandomExport export)
+            {
+                this.ConstructorArg = export;
+            }
+
+            public RandomExport ConstructorArg { get; set; }
+        }
+
+        [Export, MefV1.Export]
+        public class PartWithAllowDefaultStructImportingConstructor
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithAllowDefaultStructImportingConstructor([Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]int export)
+            {
+                this.ConstructorArg = export;
+            }
+
+            public int ConstructorArg { get; set; }
+        }
+
+        [MefV1.Export]
+        public class PartWithAllowDefaultNonPublicStructImportingConstructor
+        {
+            [MefV1.ImportingConstructor]
+            internal PartWithAllowDefaultNonPublicStructImportingConstructor([MefV1.Import(AllowDefault = true)]NonPublicStruct export)
+            {
+                this.ConstructorArg = export;
+            }
+
+            internal NonPublicStruct ConstructorArg { get; set; }
+        }
+
+        #endregion
+
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class PrivateDefaultConstructorPart
         {
@@ -234,5 +306,7 @@
 
         // This type is intentionally internal to force specific code paths in code generation
         internal interface IRandomExport { }
+
+        internal struct NonPublicStruct { }
     }
 }

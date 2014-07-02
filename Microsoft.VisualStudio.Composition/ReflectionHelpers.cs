@@ -226,6 +226,13 @@
 
         internal static string GetTypeName(Type type, bool genericTypeDefinition, bool evenNonPublic, HashSet<Assembly> relevantAssemblies, HashSet<Type> relevantEmbeddedTypes)
         {
+            Requires.NotNull(type, "type");
+
+            if (type.IsArray)
+            {
+                return GetTypeName(type.GetElementType(), genericTypeDefinition, evenNonPublic, relevantAssemblies, relevantEmbeddedTypes) + "[]";
+            }
+
             if (relevantAssemblies != null)
             {
                 relevantAssemblies.Add(type.GetTypeInfo().Assembly);
@@ -245,6 +252,11 @@
             if (!IsPublic(type, checkGenericTypeArgs: true) && !evenNonPublic)
             {
                 return GetTypeName(type.GetTypeInfo().BaseType ?? typeof(object), genericTypeDefinition, evenNonPublic, relevantAssemblies, relevantEmbeddedTypes);
+            }
+
+            if (type.IsEquivalentTo(typeof(ValueType)))
+            {
+                return "object";
             }
 
             string result = string.Empty;

@@ -626,6 +626,22 @@
                             this.WriteLine("{0}.SetValue({1}, {2});", argName, valueWriter, arrayIndex++);
                         }
                     }
+                    else if (import.ImportDefinition.Cardinality == ImportCardinality.OneOrZero && !exports.Any())
+                    {
+                        if (IsPublic(import.ImportingSiteType))
+                        {
+                            this.WriteLine("default({0});", GetTypeName(import.ImportingSiteType));
+                        }
+                        else if (import.ImportingSiteType.IsValueType)
+                        {
+                            // It's a non-public struct. We have to construct its default value by hand.
+                            this.WriteLine("Activator.CreateInstance({0});", GetTypeExpression(import.ImportingSiteType));
+                        }
+                        else
+                        {
+                            this.WriteLine("({0})null;", GetTypeName(import.ImportingSiteType));
+                        }
+                    }
                     else
                     {
                         var expressionWriter = new StringWriter();
