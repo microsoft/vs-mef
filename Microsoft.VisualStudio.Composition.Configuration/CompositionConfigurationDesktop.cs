@@ -133,7 +133,8 @@
                     OutputKind.DynamicallyLinkedLibrary,
                     optimize: !debug,
                     debugInformationKind: debug ? DebugInformationKind.Full : DebugInformationKind.None,
-                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default));
+                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
+                    specificDiagnosticOptions: ImmutableDictionary.Create<string, ReportDiagnostic>().Add("CS1701", ReportDiagnostic.Suppress)));
         }
 
         public static async Task<IExportProviderFactory> CreateContainerFactoryAsync(this CompositionConfiguration configuration, Stream sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
