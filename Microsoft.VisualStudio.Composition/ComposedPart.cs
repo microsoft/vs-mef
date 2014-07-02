@@ -52,7 +52,6 @@
 
         public IEnumerable<ComposedPartDiagnostic> Validate()
         {
-            var exceptions = ImmutableList.Create<Exception>();
             foreach (var pair in this.SatisfyingExports)
             {
                 var importDefinition = pair.Key.ImportDefinition;
