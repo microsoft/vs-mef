@@ -136,7 +136,8 @@
                 options: new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
                     optimize: !debug,
-                    debugInformationKind: debug ? DebugInformationKind.Full : DebugInformationKind.None));
+                    debugInformationKind: debug ? DebugInformationKind.Full : DebugInformationKind.None,
+                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default));
         }
 
         public static async Task<IExportProviderFactory> CreateContainerFactoryAsync(this CompositionConfiguration configuration, Stream sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
