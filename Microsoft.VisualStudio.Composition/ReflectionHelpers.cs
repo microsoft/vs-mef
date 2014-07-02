@@ -338,6 +338,11 @@
                 return false;
             }
 
+            if (typeInfo.IsArray)
+            {
+                return IsPublic(typeInfo.GetElementType(), checkGenericTypeArgs);
+            }
+
             if (checkGenericTypeArgs && typeInfo.IsGenericType && !typeInfo.IsGenericTypeDefinition)
             {
                 if (typeInfo.GenericTypeArguments.Any(t => !IsPublic(t, true)))

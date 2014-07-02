@@ -576,7 +576,7 @@
                         GetTypeName(ctor.DeclaringType, evenNonPublic: true) + "." + ctor.Name);
                 }
 
-                this.Write("({0})({1}).Invoke(new object[] {{", (skipCast || !IsPublic(ctor.DeclaringType, true)) ? "object" : GetTypeName(ctor.DeclaringType), ctorExpression);
+                this.Write("({0})({1}).Invoke(new object[] {{", skipCast ? "object" : GetTypeName(ctor.DeclaringType), ctorExpression);
             }
             var indent = this.Indent();
 
@@ -602,29 +602,51 @@
                 return;
             }
 
-            this.Write("var {0} = ", InstantiatedPartLocalVarName);
-            using (this.EmitConstructorInvocationExpression(part.Definition))
+            this.WriteLine("{0} {1};", GetTypeName(part.Definition.Type), InstantiatedPartLocalVarName);
+            using (Indent(withBraces: true))
             {
-                if (part.Definition.ImportingConstructor.Count > 0)
+                const string argNamePattern = "arg{0}";
+                int importingConstructorArgIndex = 0;
+                foreach (var pair in part.GetImportingConstructorImports())
                 {
-                    this.WriteLine(string.Empty);
-                    bool first = true;
-                    foreach (var import in part.GetImportingConstructorImports())
-                    {
-                        if (!first)
-                        {
-                            this.WriteLine(",");
-                        }
+                    var import = pair.Key;
+                    var exports = pair.Value;
 
+                    string argName = string.Format(CultureInfo.InvariantCulture, argNamePattern, importingConstructorArgIndex++);
+                    this.Write("var {0} = ", argName);
+                    if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && !IsPublic(import.ImportingSiteType, true))
+                    {
+                        // This will require a multi-statement construction of the array.
+                        this.WriteLine("Array.CreateInstance({0}, {1});", this.GetTypeExpression(import.ImportingSiteTypeWithoutCollection), exports.Count);
+                        int arrayIndex = 0;
+                        foreach (var export in exports)
+                        {
+                            var valueWriter = new StringWriter();
+                            EmitValueFactory(import, export, valueWriter);
+                            this.WriteLine("{0}.SetValue({1}, {2});", argName, valueWriter, arrayIndex++);
+                        }
+                    }
+                    else
+                    {
                         var expressionWriter = new StringWriter();
-                        this.EmitImportSatisfyingExpression(import.Key, import.Value, expressionWriter);
+                        this.EmitImportSatisfyingExpression(import, exports, expressionWriter);
                         this.Write(expressionWriter.ToString());
-                        first = false;
+                        this.WriteLine(";");
                     }
                 }
+
+                this.Write("{0} = ", InstantiatedPartLocalVarName);
+                using (this.EmitConstructorInvocationExpression(part.Definition))
+                {
+                    this.Write(
+                        string.Join(
+                            ", ",
+                            Enumerable.Range(0, importingConstructorArgIndex).Select(i => string.Format(CultureInfo.InvariantCulture, argNamePattern, i))));
+                }
+
+                this.WriteLine(";");
             }
 
-            this.WriteLine(";");
             if (typeof(IDisposable).IsAssignableFrom(part.Definition.Type))
             {
                 this.WriteLine("this.TrackDisposableValue((IDisposable){0});", InstantiatedPartLocalVarName);

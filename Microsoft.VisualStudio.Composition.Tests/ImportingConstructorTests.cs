@@ -120,6 +120,44 @@
 
         #region ImportMany Lazy with metadata test
 
+        [MefFact(CompositionEngines.V1Compat, typeof(RandomExport), typeof(ImportManyEnumerableLazyWithMetadataConstructorPart))]
+        public void ImportManyEnumerableLazyWithMetadataConstructor(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportManyEnumerableLazyWithMetadataConstructorPart>();
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        internal class ImportManyEnumerableLazyWithMetadataConstructorPart
+        {
+            [MefV1.ImportingConstructor]
+            public ImportManyEnumerableLazyWithMetadataConstructorPart([MefV1.ImportMany] IEnumerable<Lazy<IRandomExport, FeatureMetadata>> exports)
+            {
+                Assert.NotNull(exports);
+                Assert.Equal(1, exports.Count());
+                Assert.Equal("1", exports.First().Metadata.SomeMetadata);
+                Assert.IsType<RandomExport>(exports.First().Value);
+            }
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(RandomExport), typeof(ImportManyArrayLazyWithMetadataConstructorPart))]
+        public void ImportManyArrayLazyWithMetadataConstructor(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportManyArrayLazyWithMetadataConstructorPart>();
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        internal class ImportManyArrayLazyWithMetadataConstructorPart
+        {
+            [MefV1.ImportingConstructor]
+            public ImportManyArrayLazyWithMetadataConstructorPart([MefV1.ImportMany] Lazy<IRandomExport, FeatureMetadata>[] exports)
+            {
+                Assert.NotNull(exports);
+                Assert.Equal(1, exports.Count());
+                Assert.Equal("1", exports.First().Metadata.SomeMetadata);
+                Assert.IsType<RandomExport>(exports.First().Value);
+            }
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(RandomExport), typeof(ImportManyCollectionLazyWithMetadataConstructorPart), InvalidConfiguration = true)]
         public void ImportManyCollectionLazyWithMetadataConstructor(IContainer container)
         {
