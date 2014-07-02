@@ -43,13 +43,40 @@
                 }
                 finally
                 {
+                    bool includeLineNumbers;
+                    TextWriter sourceFileWriter;
+                    if (sourceFileStream.Length < 200 * 1024) // the test results window doesn't do well with large output
+                    {
+                        includeLineNumbers = true;
+                        sourceFileWriter = Console.Out;
+                    }
+                    else
+                    {
+                        // Write to a file instead and then emit its path to the output window.
+                        string sourceFileName = Path.GetTempFileName() + ".cs";
+                        sourceFileWriter = new StreamWriter(File.OpenWrite(sourceFileName));
+                        Console.WriteLine("Source file written to: {0}", sourceFileName);
+                        includeLineNumbers = false;
+                    }
+
                     sourceFileStream.Position = 0;
                     var sourceFileReader = new StreamReader(sourceFileStream);
                     int lineNumber = 0;
                     string line;
                     while ((line = sourceFileReader.ReadLine()) != null)
                     {
-                        Console.WriteLine("Line {0,5}: {1}", ++lineNumber, line);
+                        if (includeLineNumbers)
+                        {
+                            sourceFileWriter.Write("Line {0,5}: ", ++lineNumber);
+                        }
+
+                        sourceFileWriter.WriteLine(line);
+                    }
+
+                    sourceFileWriter.Flush();
+                    if (sourceFileWriter != Console.Out)
+                    {
+                        sourceFileWriter.Close();
                     }
                 }
             }
