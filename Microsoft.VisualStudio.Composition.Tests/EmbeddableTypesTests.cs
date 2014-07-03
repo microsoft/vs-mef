@@ -45,7 +45,7 @@
         /// BUGBUG: The behavior we are testing for is broken in V2. It only works on V1.
         /// </remarks>
         [MefFact(
-            CompositionEngines.V1/*Compat | CompositionEngines.V3EmulatingV2*/,
+            CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2,
             typeof(PartThatImportsLazyOfEmbeddedType),
             typeof(PartThatExportsEmbeddedType))]
         public void EmbeddedGenericTypeArgument(IContainer container)
@@ -67,7 +67,7 @@
         }
 
         [MefFact(
-            CompositionEngines.V1/*Compat*/,
+            CompositionEngines.V1Compat,
             typeof(PartThatImportsLazyOfEmbeddedTypeNonPublic),
             typeof(PartThatExportsEmbeddedType))]
         public void EmbeddedGenericTypeArgumentNonPublicImportingProperty(IContainer container)

@@ -278,6 +278,8 @@
 
         private static IEnumerable<CSharpCompilation> CreateEmbeddedInteropAssemblies(IEnumerable<Type> embeddedTypes)
         {
+            embeddedTypes = embeddedTypes.Distinct(EquivalentTypesComparer.Instance);
+
             var sourceFile = CreateTemplateEmbeddableTypesFile()
                 .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(embeddedTypes.Select(iface => DefineEmbeddableType(iface))))
                 .NormalizeWhitespace();
@@ -298,6 +300,23 @@
             }
 
             return ImmutableList.Create(compilationUnit);
+        }
+
+        private class EquivalentTypesComparer : IEqualityComparer<Type>
+        {
+            private EquivalentTypesComparer() { }
+
+            internal static readonly EquivalentTypesComparer Instance = new EquivalentTypesComparer();
+
+            public bool Equals(Type x, Type y)
+            {
+                return x.IsEquivalentTo(y);
+            }
+
+            public int GetHashCode(Type obj)
+            {
+                return obj.FullName.GetHashCode();
+            }
         }
     }
 }

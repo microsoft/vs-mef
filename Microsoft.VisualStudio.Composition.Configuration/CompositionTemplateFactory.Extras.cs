@@ -981,7 +981,7 @@
         {
             Requires.NotNull(type, "type");
 
-            if (IsPublic(type, true))
+            if (IsPublic(type, true) && !type.IsEmbeddedType()) // embedded types need to be matched to their receiving assembly
             {
                 return string.Format(
                     CultureInfo.InvariantCulture,
@@ -1234,13 +1234,14 @@
                 case MemberTypes.Constructor:
                     return ((ConstructorInfo)memberInfo).IsPublic;
                 case MemberTypes.Field:
-                    return ((FieldInfo)memberInfo).IsPublic;
+                    var fieldInfo = (FieldInfo)memberInfo;
+                    return fieldInfo.IsPublic && IsPublic(fieldInfo.FieldType, true); // we have to check the type in case it contains embedded generic type arguments
                 case MemberTypes.Method:
                     return ((MethodInfo)memberInfo).IsPublic;
                 case MemberTypes.Property:
                     var property = (PropertyInfo)memberInfo;
                     var method = setter ? property.GetSetMethod(true) : property.GetGetMethod(true);
-                    return IsPublic(method, reflectedType);
+                    return IsPublic(method, reflectedType) && IsPublic(property.PropertyType, true); // we have to check the type in case it contains embedded generic type arguments
                 default:
                     throw new NotSupportedException();
             }
@@ -1249,7 +1250,10 @@
         private LazyConstructionResult EmitLazyConstruction(Type valueType, Type metadataType, TextWriter writer = null)
         {
             writer = writer ?? new SelfTextWriter(this);
-            if (IsPublic(valueType, true) && (metadataType == null || IsPublic(metadataType, true)))
+            Type lazyTypeDefinition = metadataType != null ? typeof(LazyPart<,>) : typeof(LazyPart<>);
+            Type[] lazyTypeArgs = metadataType != null ? new[] { valueType, metadataType } : new[] { valueType };
+            Type lazyType = lazyTypeDefinition.MakeGenericType(lazyTypeArgs);
+            if (IsPublic(lazyType, true))
             {
                 writer.Write("new LazyPart<{0}", GetTypeName(valueType));
                 if (metadataType != null)
@@ -1265,14 +1269,12 @@
             }
             else
             {
-                Type lazyType = metadataType != null ? typeof(LazyPart<,>) : typeof(LazyPart<>);
-                Type[] lazyTypeArgs = metadataType != null ? new[] { valueType, metadataType } : new[] { valueType };
-                var ctor = lazyType.GetConstructors().Single(c => c.GetParameters()[0].ParameterType.Equals(typeof(Func<object>)));
+                var ctor = lazyTypeDefinition.GetConstructors().Single(c => c.GetParameters()[0].ParameterType.Equals(typeof(Func<object>)));
                 writer.WriteLine(
                     "((ILazy<{4}>)((ConstructorInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}/*{3}*/).MethodHandle, {2})).Invoke(new object[] {{ (Func<object>)(() => ",
-                    GetAssemblyExpression(lazyType.Assembly),
+                    GetAssemblyExpression(lazyTypeDefinition.Assembly),
                     ctor.MetadataToken,
-                    this.GetClosedGenericTypeHandleExpression(lazyType.MakeGenericType(lazyTypeArgs)),
+                    this.GetClosedGenericTypeHandleExpression(lazyType),
                     GetTypeName(ctor.DeclaringType, evenNonPublic: true) + "." + ctor.Name,
                     GetTypeName(valueType) + (metadataType != null ? (", " + GetTypeName(metadataType)) : ""));
                 var indent = Indent();
