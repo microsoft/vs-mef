@@ -357,7 +357,9 @@
 
             if (checkGenericTypeArgs && typeInfo.IsGenericType && !typeInfo.IsGenericTypeDefinition)
             {
-                if (typeInfo.GenericTypeArguments.Any(t => !IsPublic(t, true)))
+                // We have to treat embedded types that appear as generic type arguments as non-public,
+                // because the CLR cannot assign Outer<TEmbedded> to Outer<TEmbedded> across assembly boundaries.
+                if (typeInfo.GenericTypeArguments.Any(t => !IsPublic(t, true) || t.IsEmbeddedType()))
                 {
                     return false;
                 }

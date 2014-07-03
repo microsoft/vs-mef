@@ -127,6 +127,10 @@
                 typeof(System.Composition.ExportFactory<>).Assembly,
                 typeof(ImmutableDictionary).Assembly);
 
+            var diagnosticOptions = ImmutableDictionary.Create<string, ReportDiagnostic>()
+                .Add("CS1701", ReportDiagnostic.Suppress)  // this is unavoidable. Roslyn doesn't let us supply runtime policy.
+                .Add("CS0618", ReportDiagnostic.Suppress); // calling obsolete code in generated code is how we roll.
+
             return CSharpCompilation.Create(
                 assemblyName,
                 references: referenceAssemblies.Select(a => MetadataFileReferenceProvider.Default.GetReference(a.Location, MetadataReferenceProperties.Assembly)),
@@ -134,7 +138,8 @@
                     OutputKind.DynamicallyLinkedLibrary,
                     optimize: !debug,
                     debugInformationKind: debug ? DebugInformationKind.Full : DebugInformationKind.None,
-                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default));
+                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
+                    specificDiagnosticOptions: diagnosticOptions));
         }
 
         public static async Task<IExportProviderFactory> CreateContainerFactoryAsync(this CompositionConfiguration configuration, Stream sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
@@ -274,6 +279,8 @@
 
         private static IEnumerable<CSharpCompilation> CreateEmbeddedInteropAssemblies(IEnumerable<Type> embeddedTypes)
         {
+            embeddedTypes = embeddedTypes.Distinct(EquivalentTypesComparer.Instance);
+
             var sourceFile = CreateTemplateEmbeddableTypesFile()
                 .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(embeddedTypes.Select(iface => DefineEmbeddableType(iface))))
                 .NormalizeWhitespace();
@@ -294,6 +301,23 @@
             }
 
             return ImmutableList.Create(compilationUnit);
+        }
+
+        private class EquivalentTypesComparer : IEqualityComparer<Type>
+        {
+            private EquivalentTypesComparer() { }
+
+            internal static readonly EquivalentTypesComparer Instance = new EquivalentTypesComparer();
+
+            public bool Equals(Type x, Type y)
+            {
+                return x.IsEquivalentTo(y);
+            }
+
+            public int GetHashCode(Type obj)
+            {
+                return obj.FullName.GetHashCode();
+            }
         }
     }
 }
