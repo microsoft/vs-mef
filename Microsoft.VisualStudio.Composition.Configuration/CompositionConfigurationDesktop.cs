@@ -126,6 +126,10 @@
                 typeof(System.Composition.ExportFactory<>).Assembly,
                 typeof(ImmutableDictionary).Assembly);
 
+            var diagnosticOptions = ImmutableDictionary.Create<string, ReportDiagnostic>()
+                .Add("CS1701", ReportDiagnostic.Suppress)  // this is unavoidable. Roslyn doesn't let us supply runtime policy.
+                .Add("CS0618", ReportDiagnostic.Suppress); // calling obsolete code in generated code is how we roll.
+
             return CSharpCompilation.Create(
                 assemblyName,
                 references: referenceAssemblies.Select(a => MetadataFileReferenceProvider.Default.GetReference(a.Location, MetadataReferenceProperties.Assembly)),
@@ -134,7 +138,7 @@
                     optimize: !debug,
                     debugInformationKind: debug ? DebugInformationKind.Full : DebugInformationKind.None,
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
-                    specificDiagnosticOptions: ImmutableDictionary.Create<string, ReportDiagnostic>().Add("CS1701", ReportDiagnostic.Suppress)));
+                    specificDiagnosticOptions: diagnosticOptions));
         }
 
         public static async Task<IExportProviderFactory> CreateContainerFactoryAsync(this CompositionConfiguration configuration, Stream sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
