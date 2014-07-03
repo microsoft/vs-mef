@@ -226,16 +226,7 @@
             Requires.NotNull(import, "import");
             Requires.NotNull(exports, "exports");
 
-            this.Write("new ");
-            if (import.ImportingSiteType.IsArray)
-            {
-                this.WriteLine("{0}[]", GetTypeName(import.ImportingSiteTypeWithoutCollection));
-            }
-            else
-            {
-                this.WriteLine("List<{0}>", GetTypeName(import.ImportingSiteTypeWithoutCollection));
-            }
-
+            this.WriteLine("new {0}[]", GetTypeName(import.ImportingSiteTypeWithoutCollection));
             this.WriteLine("{");
             using (Indent())
             {
