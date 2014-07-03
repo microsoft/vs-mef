@@ -128,7 +128,8 @@
 
             var diagnosticOptions = ImmutableDictionary.Create<string, ReportDiagnostic>()
                 .Add("CS1701", ReportDiagnostic.Suppress)  // this is unavoidable. Roslyn doesn't let us supply runtime policy.
-                .Add("CS0618", ReportDiagnostic.Suppress); // calling obsolete code in generated code is how we roll.
+                .Add("CS0618", ReportDiagnostic.Suppress)  // calling obsolete code in generated code is how we roll.
+                .Add("CS0162", ReportDiagnostic.Error);    // dead code emitted can be a sign of defects.
 
             return CSharpCompilation.Create(
                 assemblyName,
