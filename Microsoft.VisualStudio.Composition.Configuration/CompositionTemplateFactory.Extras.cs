@@ -175,75 +175,86 @@
             var importingMember = satisfyingExport.Key.ImportingMember;
             var exports = satisfyingExport.Value;
 
-            var right = new StringWriter();
-            EmitImportSatisfyingExpression(import, exports, right);
-            string rightString = right.ToString();
-            if (rightString.Length > 0)
+            string expression = GetImportSatisfyingExpression(import, exports);
+            using (this.EmitMemberAssignment(import))
             {
-                using (this.EmitMemberAssignment(import))
-                {
-                    this.Write(rightString);
-                }
+                this.Write(expression);
             }
         }
 
-        private void EmitImportSatisfyingExpression(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports, StringWriter writer)
+        private string GetImportSatisfyingExpression(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports)
         {
             if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
             {
                 Type enumerableOfTType = typeof(IEnumerable<>).MakeGenericType(import.ImportingSiteTypeWithoutCollection);
                 if (import.ImportingSiteType.IsArray || import.ImportingSiteType.IsEquivalentTo(enumerableOfTType))
                 {
-                    this.EmitSatisfyImportManyArrayOrEnumerable(import, exports);
+                    return this.GetSatisfyImportManyArrayExpression(import, exports);
                 }
                 else
                 {
-                    this.EmitSatisfyImportManyCollection(import, exports);
+                    return this.GetSatisfyImportManyCollectionExpression(import, exports);
                 }
             }
             else if (exports.Any())
             {
-                this.EmitValueFactory(import, exports.Single(), writer);
+                return this.GetValueFactoryExpression(import, exports.Single());
+            }
+            else
+            {
+                if (IsPublic(import.ImportingSiteType))
+                {
+                    return string.Format(CultureInfo.InvariantCulture, "default({0})", GetTypeName(import.ImportingSiteType));
+                }
+                else if (import.ImportingSiteType.IsValueType)
+                {
+                    // It's a non-public struct. We have to construct its default value by hand.
+                    return string.Format(CultureInfo.InvariantCulture, "Activator.CreateInstance({0})", GetTypeExpression(import.ImportingSiteType));
+                }
+                else
+                {
+                    return string.Format(CultureInfo.InvariantCulture, "({0})null", GetTypeName(import.ImportingSiteType));
+                }
             }
         }
 
-        private void EmitSatisfyImportManyArrayOrEnumerable(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports)
+        private string GetSatisfyImportManyArrayExpression(ImportDefinitionBinding import, IEnumerable<ExportDefinitionBinding> exports)
         {
             Requires.NotNull(import, "import");
             Requires.NotNull(exports, "exports");
 
-            IDisposable memberAssignment = null;
-            if (import.ImportingMember != null)
+            string localVarName = ReserveLocalVarName(import.ImportingMember != null ? import.ImportingMember.Name : "tmp");
+            this.Write("var {0} = ", localVarName);
+            if (IsPublic(import.ImportingSiteType, true))
             {
-                memberAssignment = this.EmitMemberAssignment(import);
+                this.WriteLine("new {0}[]", GetTypeName(import.ImportingSiteTypeWithoutCollection));
+                this.WriteLine("{");
+                using (Indent())
+                {
+                    foreach (var export in exports)
+                    {
+                        this.WriteLine("{0},", this.GetValueFactoryExpression(import, export));
+                    }
+                }
+
+                this.WriteLine("};");
             }
-
-            this.EmitSatisfyImportManyArrayOrEnumerableExpression(import, exports);
-
-            if (memberAssignment != null)
+            else
             {
-                memberAssignment.Dispose();
-            }
-        }
-
-        private void EmitSatisfyImportManyArrayOrEnumerableExpression(ImportDefinitionBinding import, IEnumerable<ExportDefinitionBinding> exports)
-        {
-            Requires.NotNull(import, "import");
-            Requires.NotNull(exports, "exports");
-
-            this.WriteLine("new {0}[]", GetTypeName(import.ImportingSiteTypeWithoutCollection));
-            this.WriteLine("{");
-            using (Indent())
-            {
+                // This will require a multi-statement construction of the array.
+                this.WriteLine("Array.CreateInstance({0}, {1});", this.GetTypeExpression(import.ImportingSiteTypeWithoutCollection), exports.Count());
+                int arrayIndex = 0;
                 foreach (var export in exports)
                 {
-                    var valueWriter = new StringWriter();
-                    EmitValueFactory(import, export, valueWriter);
-                    this.WriteLine("{0},", valueWriter);
+                    this.WriteLine(
+                        "{0}.SetValue({1}, {2});",
+                        localVarName,
+                        this.GetValueFactoryExpression(import, export),
+                        arrayIndex++);
                 }
             }
 
-            this.Write("}");
+            return localVarName;
         }
 
         private string EmitOpenGenericExportCollection(ImportDefinition importDefinition, IEnumerable<ExportDefinitionBinding> exports)
@@ -263,7 +274,7 @@
             return localVarName;
         }
 
-        private void EmitSatisfyImportManyCollection(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports)
+        private string GetSatisfyImportManyCollectionExpression(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports)
         {
             Requires.NotNull(import, "import");
             var importDefinition = import.ImportDefinition;
@@ -272,20 +283,21 @@
             bool stronglyTypedCollection = IsPublic(elementType, true);
             Type icollectionType = typeof(ICollection<>).MakeGenericType(elementType);
             string importManyLocalVarTypeName = stronglyTypedCollection ? GetTypeName(icollectionType) : "object";
+            string tempVarName = ReserveLocalVarName(import.ImportingMember.Name);
 
             // Casting the collection to ICollection<T> instead of the concrete type guarantees
             // that we'll be able to call Add(T) and Clear() on it even if the type is NonPublic
             // or its methods are explicit interface implementations.
             if (import.ImportingMember is FieldInfo)
             {
-                this.WriteLine("var {0} = ({3}){1}.GetValue({2});", import.ImportingMember.Name, GetFieldInfoExpression((FieldInfo)import.ImportingMember), InstantiatedPartLocalVarName, importManyLocalVarTypeName);
+                this.WriteLine("var {0} = ({3}){1}.GetValue({2});", tempVarName, GetFieldInfoExpression((FieldInfo)import.ImportingMember), InstantiatedPartLocalVarName, importManyLocalVarTypeName);
             }
             else
             {
-                this.WriteLine("var {0} = ({3}){1}.Invoke({2}, new object[0]);", import.ImportingMember.Name, GetMethodInfoExpression(((PropertyInfo)import.ImportingMember).GetGetMethod(true)), InstantiatedPartLocalVarName, importManyLocalVarTypeName);
+                this.WriteLine("var {0} = ({3}){1}.Invoke({2}, new object[0]);", tempVarName, GetMethodInfoExpression(((PropertyInfo)import.ImportingMember).GetGetMethod(true)), InstantiatedPartLocalVarName, importManyLocalVarTypeName);
             }
 
-            this.WriteLine("if ({0} == null)", import.ImportingMember.Name);
+            this.WriteLine("if ({0} == null)", tempVarName);
             using (Indent(withBraces: true))
             {
                 if (PartDiscovery.IsImportManyCollectionTypeCreateable(import))
@@ -295,18 +307,18 @@
                         if (stronglyTypedCollection)
                         {
                             string elementTypeName = GetTypeName(elementType);
-                            this.WriteLine("{0} = new List<{1}>();", import.ImportingMember.Name, elementTypeName);
+                            this.WriteLine("{0} = new List<{1}>();", tempVarName, elementTypeName);
                         }
                         else
                         {
-                            this.Write("{0} = ", import.ImportingMember.Name);
+                            this.Write("{0} = ", tempVarName);
                             EmitConstructorInvocationExpression(typeof(List<>).MakeGenericType(elementType).GetConstructor(new Type[0]), alwaysUseReflection: true, skipCast: true).Dispose();
                             this.WriteLine(";");
                         }
                     }
                     else
                     {
-                        this.Write("{0} = ({1})(", import.ImportingMember.Name, importManyLocalVarTypeName);
+                        this.Write("{0} = ({1})(", tempVarName, importManyLocalVarTypeName);
                         using (this.EmitConstructorInvocationExpression(import.ImportingSiteType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null)))
                         {
                             // no arguments to constructor
@@ -317,11 +329,11 @@
 
                     if (import.ImportingMember is FieldInfo)
                     {
-                        this.WriteLine("{0}.SetValue({1}, {2});", GetFieldInfoExpression((FieldInfo)import.ImportingMember), InstantiatedPartLocalVarName, import.ImportingMember.Name);
+                        this.WriteLine("{0}.SetValue({1}, {2});", GetFieldInfoExpression((FieldInfo)import.ImportingMember), InstantiatedPartLocalVarName, tempVarName);
                     }
                     else
                     {
-                        this.WriteLine("{0}.Invoke({1}, new object[] {{ {2} }});", GetMethodInfoExpression(((PropertyInfo)import.ImportingMember).GetSetMethod(true)), InstantiatedPartLocalVarName, import.ImportingMember.Name);
+                        this.WriteLine("{0}.Invoke({1}, new object[] {{ {2} }});", GetMethodInfoExpression(((PropertyInfo)import.ImportingMember).GetSetMethod(true)), InstantiatedPartLocalVarName, tempVarName);
                     }
                 }
                 else
@@ -338,14 +350,14 @@
             {
                 if (stronglyTypedCollection)
                 {
-                    this.WriteLine("{0}.Clear();", import.ImportingMember.Name);
+                    this.WriteLine("{0}.Clear();", tempVarName);
                 }
                 else
                 {
                     this.WriteLine(
                         "{0}.Invoke({1}, new object[0]);",
                         GetMethodInfoExpression(icollectionType.GetMethod("Clear")),
-                        import.ImportingMember.Name);
+                        tempVarName);
                 }
             }
 
@@ -353,25 +365,27 @@
 
             foreach (var export in exports)
             {
-                var valueWriter = new StringWriter();
-                EmitValueFactory(import, export, valueWriter);
                 if (stronglyTypedCollection)
                 {
-                    this.WriteLine("{0}.Add({1});", import.ImportingMember.Name, valueWriter);
+                    this.WriteLine("{0}.Add({1});", tempVarName, this.GetValueFactoryExpression(import, export));
                 }
                 else
                 {
                     this.WriteLine(
                         "{0}.Invoke({1}, new object[] {{ {2} }});",
                         GetMethodInfoExpression(icollectionType.GetMethod("Add")),
-                        import.ImportingMember.Name,
-                        valueWriter);
+                        tempVarName,
+                        this.GetValueFactoryExpression(import, export));
                 }
             }
+
+            return string.Format(CultureInfo.InvariantCulture, "({0}){1}", GetTypeName(import.ImportingSiteType), tempVarName);
         }
 
-        private void EmitValueFactory(ImportDefinitionBinding import, ExportDefinitionBinding export, StringWriter writer)
+        private string GetValueFactoryExpression(ImportDefinitionBinding import, ExportDefinitionBinding export)
         {
+            var writer = new StringWriter();
+
             using (this.ValueFactoryWrapper(import, export, writer))
             {
                 if (export.PartDefinition.Type.IsEquivalentTo(import.ComposablePartType) && !import.IsExportFactory)
@@ -433,6 +447,8 @@
                     }
                 }
             }
+
+            return writer.ToString();
         }
 
         private string GetExportMetadata(ExportDefinitionBinding export)
@@ -611,47 +627,10 @@
                 var importingConstructorArgNames = new string[part.Definition.ImportingConstructor.Count];
                 foreach (var pair in part.GetImportingConstructorImports())
                 {
-                    var import = pair.Key;
-                    var exports = pair.Value;
-
-                    string argName = ReserveLocalVarName("arg");
-                    importingConstructorArgNames[importingConstructorArgIndex++] = argName;
-                    this.Write("var {0} = ", argName);
-                    if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && !IsPublic(import.ImportingSiteType, true))
-                    {
-                        // This will require a multi-statement construction of the array.
-                        this.WriteLine("Array.CreateInstance({0}, {1});", this.GetTypeExpression(import.ImportingSiteTypeWithoutCollection), exports.Count);
-                        int arrayIndex = 0;
-                        foreach (var export in exports)
-                        {
-                            var valueWriter = new StringWriter();
-                            EmitValueFactory(import, export, valueWriter);
-                            this.WriteLine("{0}.SetValue({1}, {2});", argName, valueWriter, arrayIndex++);
-                        }
-                    }
-                    else if (import.ImportDefinition.Cardinality == ImportCardinality.OneOrZero && !exports.Any())
-                    {
-                        if (IsPublic(import.ImportingSiteType))
-                        {
-                            this.WriteLine("default({0});", GetTypeName(import.ImportingSiteType));
-                        }
-                        else if (import.ImportingSiteType.IsValueType)
-                        {
-                            // It's a non-public struct. We have to construct its default value by hand.
-                            this.WriteLine("Activator.CreateInstance({0});", GetTypeExpression(import.ImportingSiteType));
-                        }
-                        else
-                        {
-                            this.WriteLine("({0})null;", GetTypeName(import.ImportingSiteType));
-                        }
-                    }
-                    else
-                    {
-                        var expressionWriter = new StringWriter();
-                        this.EmitImportSatisfyingExpression(import, exports, expressionWriter);
-                        this.Write(expressionWriter.ToString());
-                        this.WriteLine(";");
-                    }
+                    this.WriteLine(
+                        "var {0} = {1};",
+                        importingConstructorArgNames[importingConstructorArgIndex++] = ReserveLocalVarName("arg"),
+                        this.GetImportSatisfyingExpression(pair.Key, pair.Value));
                 }
 
                 this.Write("{0} = ", InstantiatedPartLocalVarName);
@@ -911,9 +890,10 @@
                     {
                         foreach (var export in exports)
                         {
-                            var valueWriter = new StringWriter();
-                            EmitValueFactory(synthesizedImport, export, valueWriter);
-                            this.WriteLine("new Export(importDefinition.ContractName, {1}, () => ({0}).Value),", valueWriter, GetExportMetadata(export));
+                            this.WriteLine(
+                                "new Export(importDefinition.ContractName, {1}, () => ({0}).Value),",
+                                this.GetValueFactoryExpression(synthesizedImport, export),
+                                GetExportMetadata(export));
                         }
                     }
 
