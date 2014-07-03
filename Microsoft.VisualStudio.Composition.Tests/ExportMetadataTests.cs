@@ -63,6 +63,16 @@
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Value);
         }
 
+        [MefFact(CompositionEngines.V3EmulatingV2WithNonPublic | CompositionEngines.V1Compat, typeof(ImportingPartWithNonPublicMetadataClass), typeof(PartWithExportMetadata))]
+        public void ImportWithNonPublicMetadataClass(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<ImportingPartWithNonPublicMetadataClass>();
+            Assert.NotNull(importingPart.ImportingProperty);
+            Assert.Equal("b", importingPart.ImportingProperty.Metadata.a);
+            Assert.False(importingPart.ImportingProperty.IsValueCreated);
+            Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Value);
+        }
+
         [MefFact(CompositionEngines.V2Compat | CompositionEngines.V1Compat, typeof(ImportManyPartWithMetadataClass), typeof(PartWithExportMetadata))]
         public void ImportManyWithMetadataClass(IContainer container)
         {
@@ -494,6 +504,14 @@
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [Export]
+        public class ImportingPartWithNonPublicMetadataClass
+        {
+            [Import, MefV1.Import]
+            internal Lazy<PartWithExportMetadata, NonPublicMetadataClass> ImportingProperty { get; set; }
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        [Export]
         public class ImportManyPartWithMetadataDictionary
         {
             [ImportMany, MefV1.ImportMany]
@@ -552,6 +570,14 @@
             }
 
             public string a { get; set; }
+        }
+
+        internal class NonPublicMetadataClass : MetadataClass
+        {
+            public NonPublicMetadataClass(IDictionary<string, object> data)
+                : base(data)
+            {
+            }
         }
 
         public enum MetadataEnum
