@@ -109,5 +109,38 @@
 
             public void Dispose() { }
         }
+
+        #region Tests for embedded types with base types that are also embedded
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartThatExportsIVsProjectReference))]
+        public void EmbeddedTypeWithBaseEmbeddedType(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatExportsIVsProjectReference>();
+            Assert.NotNull(part);
+        }
+
+        public class BaseClassForPartThatExportsIVsProjectReference<TInterface, TClass>
+            where TInterface : IVsReference
+            where TClass : TInterface
+        {
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        internal class PartThatExportsIVsProjectReference : BaseClassForPartThatExportsIVsProjectReference<IVsProjectReference, VsProjectReference>
+        {
+        }
+
+        public class VsProjectReference : IVsProjectReference
+        {
+            public bool AlreadyReferenced { get; set; }
+            public string FullPath { get; set; }
+            public string Identity { get; set; }
+            public string Name { get; set; }
+            public string ReferenceSpecification { get; set; }
+        }
+
+
+        #endregion
     }
 }
