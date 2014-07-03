@@ -29,6 +29,11 @@
         private readonly HashSet<string> classSymbols = new HashSet<string>();
 
         /// <summary>
+        /// A set of local variable names that have already been used in the currently generating part factory method.
+        /// </summary>
+        private readonly HashSet<string> localSymbols = new HashSet<string>();
+
+        /// <summary>
         /// A lookup table of arbitrary objects to the symbols that have been reserved for them.
         /// </summary>
         private readonly Dictionary<object, string> reservedSymbols = new Dictionary<object, string>();
@@ -591,6 +596,8 @@
 
         private void EmitInstantiatePart(ComposedPart part)
         {
+            localSymbols.Clear();
+
             if (!part.Definition.IsInstantiable)
             {
                 this.WriteLine("return CannotInstantiatePartWithNoImportingConstructor();");
@@ -600,14 +607,15 @@
             this.WriteLine("{0} {1};", GetTypeName(part.Definition.Type), InstantiatedPartLocalVarName);
             using (Indent(withBraces: true))
             {
-                const string argNamePattern = "arg{0}";
                 int importingConstructorArgIndex = 0;
+                var importingConstructorArgNames = new string[part.Definition.ImportingConstructor.Count];
                 foreach (var pair in part.GetImportingConstructorImports())
                 {
                     var import = pair.Key;
                     var exports = pair.Value;
 
-                    string argName = string.Format(CultureInfo.InvariantCulture, argNamePattern, importingConstructorArgIndex++);
+                    string argName = ReserveLocalVarName("arg");
+                    importingConstructorArgNames[importingConstructorArgIndex++] = argName;
                     this.Write("var {0} = ", argName);
                     if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && !IsPublic(import.ImportingSiteType, true))
                     {
@@ -649,10 +657,7 @@
                 this.Write("{0} = ", InstantiatedPartLocalVarName);
                 using (this.EmitConstructorInvocationExpression(part.Definition))
                 {
-                    this.Write(
-                        string.Join(
-                            ", ",
-                            Enumerable.Range(0, importingConstructorArgIndex).Select(i => string.Format(CultureInfo.InvariantCulture, argNamePattern, i))));
+                    this.Write(string.Join(", ", importingConstructorArgNames));
                 }
 
                 this.WriteLine(";");
@@ -1020,7 +1025,7 @@
         {
             Requires.NotNull(metadataView, "metadataView");
 
-            return ReserveSymbolName(
+            return ReserveClassSymbolName(
                 metadataView.IsInterface ? "ClassFor" + metadataView.Name : this.GetTypeName(metadataView),
                 metadataView);
         }
@@ -1369,14 +1374,31 @@
                 this.GetTypeExpression(constructedType));
         }
 
-        private string ReserveSymbolName(string shortName, object namedValue)
+        private string ReserveLocalVarName(string desiredName)
+        {
+            if (this.localSymbols.Add(desiredName))
+            {
+                return desiredName;
+            }
+
+            int i = 0;
+            string candidateName;
+            do
+            {
+                i++;
+                candidateName = desiredName + "_" + i.ToString(CultureInfo.InvariantCulture);
+            } while (!this.localSymbols.Add(candidateName));
+
+            return candidateName;
+        }
+
+        private string ReserveClassSymbolName(string shortName, object namedValue)
         {
             string result;
             if (this.reservedSymbols.TryGetValue(namedValue, out result))
             {
                 return result;
             }
-
 
             if (this.classSymbols.Add(shortName))
             {
