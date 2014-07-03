@@ -508,11 +508,14 @@
             }
             else if (typeof(Type).IsAssignableFrom(valueType))
             {
+                // assumeNonPublic=true because typeof() would result in the JIT compiler
+                // loading the assembly containing the type itself even before this
+                // part is activated.
                 return string.Format(
                     CultureInfo.InvariantCulture,
-                    "({1})typeof({0})",
-                    GetTypeName((Type)value),
-                    GetTypeName(valueType));
+                    "({1}){0}",
+                    GetTypeExpression((Type)value, assumeNonPublic: true),
+                    GetTypeName(valueType)); // Cast as TypeInfo to avoid some compilation errors.
             }
             else if (valueType.IsArray)
             {
@@ -977,11 +980,11 @@
         /// <summary>
         /// Gets a C# expression that evaluates to a System.Type instance for the specified type.
         /// </summary>
-        private string GetTypeExpression(Type type, bool genericTypeDefinition = false)
+        private string GetTypeExpression(Type type, bool genericTypeDefinition = false, bool assumeNonPublic = false)
         {
             Requires.NotNull(type, "type");
 
-            if (IsPublic(type, true) && !type.IsEmbeddedType()) // embedded types need to be matched to their receiving assembly
+            if (!assumeNonPublic && IsPublic(type, true) && !type.IsEmbeddedType()) // embedded types need to be matched to their receiving assembly
             {
                 return string.Format(
                     CultureInfo.InvariantCulture,

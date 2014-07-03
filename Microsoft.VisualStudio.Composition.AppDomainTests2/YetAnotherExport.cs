@@ -8,7 +8,10 @@
     using System.Threading.Tasks;
 
     [Export, Export("YetAnotherExport", typeof(object))]
+    [ExportMetadata("SomeMetadata", typeof(SomeOtherType))]
     public class YetAnotherExport
     {
     }
+
+    public class SomeOtherType { }
 }
