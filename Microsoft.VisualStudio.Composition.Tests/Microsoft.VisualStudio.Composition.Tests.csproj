@@ -102,6 +102,7 @@
     <Compile Include="ClosedGenericExportedTypeTests.cs" />
     <Compile Include="DynamicImportTests.cs" />
     <Compile Include="EmbeddableTypesTests.cs" />
+    <Compile Include="EmbeddedableTypesMixedTests.cs" />
     <Compile Include="ExportMetadataViewNameCollisionTests.cs" />
     <Compile Include="ExportProviderTests.cs" />
     <Compile Include="GenericImportTests.cs" />
@@ -184,6 +185,10 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver\Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver.csproj">
       <Project>{843db118-c15b-48b5-a9dc-b815cc788cef}</Project>
       <Name>Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver\Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver.csproj">
+      <Project>{3e996534-55e8-428d-8668-2c49e8770f32}</Project>
+      <Name>Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver</Name>
     </ProjectReference>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj">
       <Project>{1ca6a92c-5dd9-4be5-b5b7-ee4a1318b4c2}</Project>

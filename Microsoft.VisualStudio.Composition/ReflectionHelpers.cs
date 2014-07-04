@@ -278,16 +278,43 @@
             return result;
         }
 
-        private static void AddEmbeddedInterfaces(Type type, HashSet<Type> relevantEmbeddedTypes)
+        private static void AddEmbeddedInterfaces(Type type, HashSet<Type> relevantEmbeddedTypes, HashSet<Type> observedTypes = null)
         {
+            Requires.NotNull(type, "type");
+            Requires.NotNull(relevantEmbeddedTypes, "relevantEmbeddedTypes");
+
+            if (observedTypes == null)
+            {
+                observedTypes = new HashSet<Type>();
+            }
+
+            if (!observedTypes.Add(type))
+            {
+                // avoid stackoverflow (when T implements IComparable<T>, for example).
+                return;
+            }
+
             if (type.IsEmbeddedType())
             {
                 relevantEmbeddedTypes.Add(type);
             }
 
+            if (type.GetTypeInfo().BaseType != null)
+            {
+                AddEmbeddedInterfaces(type.GetTypeInfo().BaseType, relevantEmbeddedTypes, observedTypes);
+            }
+
             foreach (Type iface in type.GetTypeInfo().ImplementedInterfaces)
             {
-                AddEmbeddedInterfaces(iface, relevantEmbeddedTypes);
+                AddEmbeddedInterfaces(iface, relevantEmbeddedTypes, observedTypes);
+            }
+
+            if (type.GetTypeInfo().IsGenericType)
+            {
+                foreach (Type typeArg in type.GenericTypeArguments)
+                {
+                    AddEmbeddedInterfaces(typeArg, relevantEmbeddedTypes, observedTypes);
+                }
             }
         }
 
@@ -396,13 +423,22 @@
 
             if (typeInfo.IsInterface)
             {
-                if (typeInfo.GetCustomAttribute<TypeIdentifierAttribute>() != null)
+                if (typeInfo.GetCustomAttribute<ComImportAttribute>() != null)
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        internal static bool IsEmbeddableAssembly(this Assembly assembly)
+        {
+            Requires.NotNull(assembly, "assembly");
+
+            return assembly.GetCustomAttributes()
+                .Any(a => a.GetType().FullName == "System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute"
+                    || a.GetType().FullName == "System.Runtime.InteropServices.ImportedFromTypeLibAttribute");
         }
 
         private static string FilterTypeNameForGenericTypeDefinition(Type type, bool fullName)
