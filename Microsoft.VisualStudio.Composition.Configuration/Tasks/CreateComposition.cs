@@ -38,8 +38,16 @@
 
                 var parts = discovery.CreateParts(this.CatalogAssemblies.Select(item => Assembly.LoadFile(item.ItemSpec)));
                 var catalog = ComposableCatalog.Create(parts);
-                var configuration = CompositionConfiguration.Create(catalog)
-                    .ThrowOnErrors();
+                var configuration = CompositionConfiguration.Create(catalog);
+                if (!configuration.CompositionErrors.IsEmpty)
+                {
+                    foreach (var error in configuration.CompositionErrors.Peek())
+                    {
+                        this.Log.LogError("MEF part(s) {0}: {1}", string.Join(", ", error.Parts.Select(p => p.Definition.Type.FullName)), error.Message);
+                    }
+
+                    return false;
+                }
 
                 if (!string.IsNullOrEmpty(this.DgmlOutputPath))
                 {
