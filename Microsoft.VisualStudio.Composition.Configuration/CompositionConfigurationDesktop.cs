@@ -8,6 +8,7 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -180,7 +181,7 @@
                 await writer.WriteAsync(source);
                 await writer.FlushAsync();
                 sourceFile.Position = 0;
-                syntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceFile, encoding), path:  sourceFilePath ?? string.Empty, cancellationToken: cancellationToken);
+                syntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceFile, encoding), path: sourceFilePath ?? string.Empty, cancellationToken: cancellationToken);
             }
             else
             {
@@ -190,9 +191,17 @@
             var assemblies = ImmutableHashSet.Create<Assembly>()
                 .Union(configuration.AdditionalReferenceAssemblies)
                 .Union(templateFactory.RelevantAssemblies);
-            var embeddedInteropAssemblies = CreateEmbeddedInteropAssemblies(templateFactory.RelevantEmbeddedTypes);
+            var embeddedInteropAssemblies = CreateEmbeddedInteropAssemblies(templateFactory.RelevantEmbeddedTypes, assemblies);
+
+            // We don't actually embed interop types on referenced assemblies because if we do, some of our tests fails due to
+            // the CLR's inability to type cast Lazy<NoPIA> objects across assembly boundaries.
+            var embedInteropTypesOptions = MetadataReferenceProperties.Assembly; // new MetadataReferenceProperties(embedInteropTypes: true);
+
             return compilationTemplate
-                .AddReferences(assemblies.Select(r => MetadataFileReferenceProvider.Default.GetReference(r.Location, MetadataReferenceProperties.Assembly)))
+                .AddReferences(assemblies.Select(r =>
+                    MetadataFileReferenceProvider.Default.GetReference(
+                        r.Location,
+                        r.IsEmbeddableAssembly() ? embedInteropTypesOptions : MetadataReferenceProperties.Assembly)))
                 .AddReferences(embeddedInteropAssemblies.Select(r => r.ToMetadataReference(embedInteropTypes: true)))
                 .AddSyntaxTrees(syntaxTree);
         }
@@ -278,9 +287,19 @@
                         .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))));
         }
 
-        private static IEnumerable<CSharpCompilation> CreateEmbeddedInteropAssemblies(IEnumerable<Type> embeddedTypes)
+        private static IEnumerable<CSharpCompilation> CreateEmbeddedInteropAssemblies(IEnumerable<Type> embeddedTypes, IEnumerable<Assembly> referencedAssemblies)
         {
-            embeddedTypes = embeddedTypes.Distinct(EquivalentTypesComparer.Instance);
+            Requires.NotNull(embeddedTypes, "embeddedTypes");
+            Requires.NotNull(referencedAssemblies, "referencedAssemblies");
+
+            // Collect a set of all embeddable types from referenced assemblies.
+            var referencedEmbeddableTypes = new HashSet<string>(from assembly in referencedAssemblies
+                                                                where assembly.IsEmbeddableAssembly()
+                                                                from type in assembly.GetExportedTypes()
+                                                                select type.FullName);
+
+            embeddedTypes = embeddedTypes.Distinct(EquivalentTypesComparer.Instance)
+                .Where(t => !referencedEmbeddableTypes.Contains(t.FullName));
 
             var sourceFile = CreateTemplateEmbeddableTypesFile()
                 .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(embeddedTypes.Select(iface => DefineEmbeddableType(iface))))
