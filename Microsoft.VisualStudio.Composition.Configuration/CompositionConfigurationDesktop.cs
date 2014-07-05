@@ -291,9 +291,8 @@
             Requires.NotNull(embeddedTypes, "embeddedTypes");
             Requires.NotNull(referencedAssemblies, "referencedAssemblies");
 
-            // Collect a set of all embeddable types from referenced assemblies.
+            // Collect a set of all types from referenced assemblies. We don't want to synthesize embeddable types that are already available elsewhere.
             var referencedEmbeddableTypes = new HashSet<string>(from assembly in referencedAssemblies
-                                                                where assembly.IsEmbeddableAssembly()
                                                                 from type in assembly.GetExportedTypes()
                                                                 select type.FullName);
 

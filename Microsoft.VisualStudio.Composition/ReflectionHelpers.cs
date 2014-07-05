@@ -425,7 +425,7 @@
             {
                 // TypeIdentifierAttribute signifies an embeddED type.
                 // ComImportAttribute suggests an embeddABLE type.
-                if (typeInfo.GetCustomAttribute<TypeIdentifierAttribute>() != null)
+                if (typeInfo.GetCustomAttribute<TypeIdentifierAttribute>() != null && typeInfo.GetCustomAttribute<GuidAttribute>() != null)
                 {
                     return true;
                 }
