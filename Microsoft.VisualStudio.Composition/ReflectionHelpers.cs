@@ -423,7 +423,9 @@
 
             if (typeInfo.IsInterface)
             {
-                if (typeInfo.GetCustomAttribute<ComImportAttribute>() != null)
+                // TypeIdentifierAttribute signifies an embeddED type.
+                // ComImportAttribute suggests an embeddABLE type.
+                if (typeInfo.GetCustomAttribute<TypeIdentifierAttribute>() != null)
                 {
                     return true;
                 }
