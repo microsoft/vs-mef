@@ -454,16 +454,32 @@
             return writer.ToString();
         }
 
-        private string GetExportMetadata(ExportDefinitionBinding export)
+        private ExpressionSyntax GetExportMetadata(ExportDefinitionBinding export)
         {
-            var builder = new StringBuilder();
-            builder.Append("new Dictionary<string, object> {");
-            foreach (var metadatum in export.ExportDefinition.Metadata)
-            {
-                builder.AppendFormat(" {{ \"{0}\", {1} }}, ", metadatum.Key, GetExportMetadataValueExpression(metadatum.Value).NormalizeWhitespace());
-            }
-            builder.Append("}.ToImmutableDictionary()");
-            return builder.ToString();
+            return SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.ObjectCreationExpression(
+                        SyntaxFactory.GenericName("Dictionary")
+                            .WithTypeArgumentList(
+                                SyntaxFactory.TypeArgumentList(CodeGen.JoinSyntaxNodes<TypeSyntax>(
+                                    SyntaxKind.CommaToken,
+                                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))))))
+                        .WithNewKeywordTrivia()
+                        .WithInitializer(
+                            SyntaxFactory.InitializerExpression(
+                                SyntaxKind.CollectionInitializerExpression,
+                                CodeGen.JoinSyntaxNodes<ExpressionSyntax>(
+                                    SyntaxKind.CommaToken,
+                                    export.ExportDefinition.Metadata.Select(kv => SyntaxFactory.InitializerExpression(
+                                        SyntaxKind.ComplexElementInitializerExpression,
+                                        SyntaxFactory.SeparatedList<ExpressionSyntax>(new SyntaxNodeOrToken[] { 
+                                            SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(kv.Key)),
+                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                            GetExportMetadataValueExpression(kv.Value),
+                                        }))).ToArray()))),
+                    SyntaxFactory.IdentifierName("ToImmutableDictionary")));
         }
 
         private ExpressionSyntax GetExportMetadataValueExpression(object value)
@@ -562,7 +578,8 @@
                     SyntaxFactory.InitializerExpression(
                         SyntaxKind.ArrayInitializerExpression,
                         SyntaxFactory.SeparatedList<ExpressionSyntax>(
-                            array.Cast<object>().Select(GetExportMetadataValueExpression))));
+                            array.Cast<object>().Select(GetExportMetadataValueExpression))))
+                    .WithNewKeywordTrivia();
             }
 
             throw new NotSupportedException();
@@ -1044,7 +1061,7 @@
                     this.GetTypeName(property.PropertyType),
                     sourceVarName,
                     property.Name,
-                    GetExportMetadataValueExpression(defaultValueAttribute.Value).NormalizeWhitespace(),
+                    GetExportMetadataValueExpression(defaultValueAttribute.Value),
                     property.PropertyType.IsValueType ? string.Empty : (" as " + this.GetTypeName(property.PropertyType)));
             }
             else
