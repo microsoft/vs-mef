@@ -41,7 +41,16 @@
         /// </summary>
         /// <param name="assembly">The assembly to search for MEF parts.</param>
         /// <returns>A set of generated parts.</returns>
-        public abstract IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly);
+        public IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly)
+        {
+            Requires.NotNull(assembly, "assembly");
+
+            var parts = from type in this.GetTypes(assembly)
+                        let part = this.CreatePart(type)
+                        where part != null
+                        select part;
+            return parts.ToImmutableList();
+        }
 
         public abstract bool IsExportFactoryType(Type type);
 
@@ -186,6 +195,13 @@
             return newValue;
         }
 
+        /// <summary>
+        /// Gets the types to consider for MEF parts.
+        /// </summary>
+        /// <param name="assembly">The assembly to read.</param>
+        /// <returns>A sequence of types.</returns>
+        protected abstract IEnumerable<Type> GetTypes(Assembly assembly);
+
         internal static bool IsImportManyCollectionTypeCreateable(ImportDefinitionBinding import)
         {
             Requires.NotNull(import, "import");
@@ -260,18 +276,18 @@
                 return null;
             }
 
-            public override IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly)
-            {
-                Requires.NotNull(assembly, "assembly");
-
-                return this.discoveryMechanisms.SelectMany(discovery => discovery.CreateParts(assembly)).ToImmutableList();
-            }
-
             public override bool IsExportFactoryType(Type type)
             {
                 Requires.NotNull(type, "type");
 
                 return this.discoveryMechanisms.Any(discovery => discovery.IsExportFactoryType(type));
+            }
+
+            protected override IEnumerable<Type> GetTypes(Assembly assembly)
+            {
+                return this.discoveryMechanisms
+                    .SelectMany(discovery => discovery.GetTypes(assembly))
+                    .Distinct();
             }
         }
     }

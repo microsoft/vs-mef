@@ -161,6 +161,13 @@
             return false;
         }
 
+        protected override IEnumerable<Type> GetTypes(Assembly assembly)
+        {
+            Requires.NotNull(assembly, "assembly");
+
+            return assembly.GetTypes().Where(type => type.GetCustomAttribute<PartNotDiscoverableAttribute>() == null);
+        }
+
         private static bool TryCreateImportDefinition(Type importingType, IEnumerable<Attribute> attributes, out ImportDefinition importDefinition)
         {
             Requires.NotNull(importingType, "importingType");
@@ -268,18 +275,6 @@
             }
 
             return result.ToImmutable();
-        }
-
-        public override IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly)
-        {
-            Requires.NotNull(assembly, "assembly");
-
-            var parts = from type in assembly.GetTypes()
-                        where type.GetCustomAttribute<PartNotDiscoverableAttribute>() == null
-                        let part = this.CreatePart(type)
-                        where part != null
-                        select part;
-            return parts.ToImmutableList();
         }
     }
 }
