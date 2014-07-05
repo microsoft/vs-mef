@@ -126,6 +126,15 @@
             Assert.IsType<MetadataEnum>(metadataValue);
         }
 
+        [MefFact(CompositionEngines.V1, typeof(ExportWithNonPublicEnumMetadata))]
+        public void NonPublicMetadataEnumValue(IContainer container)
+        {
+            var part = container.GetExport<ExportWithNonPublicEnumMetadata, IDictionary<string, object>>();
+            object metadataValue = part.Metadata["SomeName"];
+            Assert.Equal(MetadataEnumNonPublic.Value2, metadataValue);
+            Assert.IsType<MetadataEnumNonPublic>(metadataValue);
+        }
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportWithTypeMetadata), typeof(PartThatImportsTypeMetadata))]
         public void MetadataTypeValue(IContainer container)
         {
@@ -586,11 +595,23 @@
             Value2
         }
 
+        internal enum MetadataEnumNonPublic
+        {
+            Value1,
+            Value2,
+        }
+
         [Export]
         [MefV1.Export]
         [ExportMetadata("SomeName", MetadataEnum.Value2)]
         [MefV1.ExportMetadata("SomeName", MetadataEnum.Value2)]
         public class ExportWithEnumMetadata { }
+
+        [Export]
+        [MefV1.Export]
+        [ExportMetadata("SomeName", MetadataEnumNonPublic.Value2)]
+        [MefV1.ExportMetadata("SomeName", MetadataEnumNonPublic.Value2)]
+        public class ExportWithNonPublicEnumMetadata { }
 
         [Export]
         [MefV1.Export]
