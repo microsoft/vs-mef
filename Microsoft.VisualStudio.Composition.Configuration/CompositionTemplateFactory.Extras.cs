@@ -11,6 +11,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Validation;
 
     partial class CompositionTemplateFactory
@@ -464,93 +465,115 @@
             return builder.ToString();
         }
 
-        private string GetExportMetadataValueExpression(object value)
+        private ExpressionSyntax GetExportMetadataValueExpression(object value)
         {
             if (value == null)
             {
-                return "null";
+                return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
             }
 
             Type valueType = value.GetType();
             if (value is string)
             {
-                return SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal((string)value)).ToString();
+                return SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal((string)value));
             }
             else if (typeof(char).IsEquivalentTo(valueType))
             {
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "'{0}'",
-                    (char)value == '\'' ? "\\'" : value);
+                return SyntaxFactory.LiteralExpression(SyntaxKind.CharacterLiteralExpression, SyntaxFactory.Literal((char)value));
             }
             else if (typeof(bool).IsEquivalentTo(valueType))
             {
-                return (bool)value ? "true" : "false";
+                return (bool)value
+                    ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
+                    : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression);
             }
             else if (valueType.IsEquivalentTo(typeof(double)) && (double)value == double.MaxValue)
             {
-                return "double.MaxValue";
+                return SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword)),
+                    SyntaxFactory.IdentifierName("MaxValue"));
             }
             else if (valueType.IsEquivalentTo(typeof(double)) && (double)value == double.MinValue)
             {
-                return "double.MinValue";
+                return SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword)),
+                    SyntaxFactory.IdentifierName("MinValue"));
             }
             else if (valueType.IsEquivalentTo(typeof(float)) && (float)value == float.MaxValue)
             {
-                return "float.MaxValue";
+                return SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.FloatKeyword)),
+                    SyntaxFactory.IdentifierName("MaxValue"));
             }
             else if (valueType.IsEquivalentTo(typeof(float)) && (float)value == float.MinValue)
             {
-                return "float.MinValue";
+                return SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.FloatKeyword)),
+                    SyntaxFactory.IdentifierName("MinValue"));
             }
             else if (valueType.IsPrimitive)
             {
-                return string.Format(CultureInfo.InvariantCulture, "({0})({1})", GetTypeName(valueType), value);
+                return SyntaxFactory.CastExpression(
+                    SyntaxFactory.ParseTypeName(GetTypeName(valueType)),
+                    SyntaxFactory.ParenthesizedExpression(SyntaxFactory.ParseExpression(value.ToString())));
             }
             else if (valueType.IsEquivalentTo(typeof(Guid)))
             {
-                return string.Format(CultureInfo.InvariantCulture, "Guid.Parse(\"{0}\")", value);
+                return SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName("Guid"),
+                        SyntaxFactory.IdentifierName("Parse")),
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(((Guid)value).ToString()))))));
             }
             else if (valueType.IsEnum)
             {
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "({0}){1}",
-                    GetTypeName(valueType),
-                    Convert.ChangeType(value, Enum.GetUnderlyingType(valueType)));
+                return SyntaxFactory.CastExpression(
+                    GetTypeSyntax(valueType), // TODO: for non-public enum types, we can emit code to call Convert.ChangeType(underlyingTypeValue, actualTypeExpression) at runtime.
+                    SyntaxFactory.ParseExpression(Convert.ChangeType(value, Enum.GetUnderlyingType(valueType)).ToString()));
             }
             else if (typeof(Type).IsAssignableFrom(valueType))
             {
                 // assumeNonPublic=true because typeof() would result in the JIT compiler
                 // loading the assembly containing the type itself even before this
                 // part is activated.
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "({1}){0}",
-                    GetTypeExpression((Type)value, assumeNonPublic: true),
-                    GetTypeName(valueType)); // Cast as TypeInfo to avoid some compilation errors.
+                return SyntaxFactory.CastExpression(
+                    GetTypeSyntax(valueType), // Cast as TypeInfo to avoid some compilation errors.
+                    SyntaxFactory.ParseExpression(GetTypeExpression((Type)value, assumeNonPublic: true)));
             }
             else if (valueType.IsArray)
             {
-                var builder = new StringBuilder();
-                builder.AppendFormat("new {0}[] {{ ", GetTypeName(valueType.GetElementType()));
-                bool firstValue = true;
-                foreach (object element in (Array)value)
-                {
-                    if (!firstValue)
-                    {
-                        builder.Append(", ");
-                    }
-
-                    builder.Append(GetExportMetadataValueExpression(element));
-                    firstValue = false;
-                }
-
-                builder.Append("}");
-                return builder.ToString();
+                var array = (Array)value;
+                return SyntaxFactory.ArrayCreationExpression(
+                    SyntaxFactory.ArrayType(GetTypeSyntax(valueType.GetElementType()))
+                        .WithRankSpecifiers(
+                            SyntaxFactory.SingletonList(
+                            SyntaxFactory.ArrayRankSpecifier(
+                                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                    SyntaxFactory.OmittedArraySizeExpression())))),
+                    SyntaxFactory.InitializerExpression(
+                        SyntaxKind.ArrayInitializerExpression,
+                        SyntaxFactory.SeparatedList<ExpressionSyntax>(
+                            array.Cast<object>().Select(GetExportMetadataValueExpression))))
+                    .WithNewKeyword(
+                        SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.NewKeyword, SyntaxFactory.TriviaList(SyntaxFactory.Space)));
             }
 
             throw new NotSupportedException();
+        }
+
+        private TypeSyntax GetTypeSyntax(Type type)
+        {
+            Requires.NotNull(type, "type");
+
+            return SyntaxFactory.ParseTypeName(this.GetTypeName(type));
         }
 
         private IDisposable EmitConstructorInvocationExpression(ComposablePartDefinition partDefinition)
