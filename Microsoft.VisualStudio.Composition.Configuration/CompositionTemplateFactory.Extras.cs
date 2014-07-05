@@ -1408,13 +1408,19 @@
                 return null;
             }
 
+            if (count > 1)
+            {
+                // Push all but the last level *before* printing the curly braces.
+                this.PushIndent(new string(' ', (count - 1) * 4));
+            }
+
             writer = writer ?? new SelfTextWriter(this);
             if (withBraces)
             {
                 writer.WriteLine("{");
             }
 
-            this.PushIndent(new string(' ', count * 4));
+            this.PushIndent(new string(' ', 4));
 
             return new DisposableWithAction(delegate
             {
@@ -1426,6 +1432,12 @@
                     {
                         writer.WriteLine();
                     }
+                }
+
+                if (count > 1)
+                {
+                    // Pop the extra outer-indent.
+                    this.PopIndent();
                 }
             });
         }
