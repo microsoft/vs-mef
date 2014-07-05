@@ -10,6 +10,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.CodeAnalysis.CSharp;
     using Validation;
 
     partial class CompositionTemplateFactory
@@ -473,7 +474,7 @@
             Type valueType = value.GetType();
             if (value is string)
             {
-                return "\"" + value + "\"";
+                return SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal((string)value)).ToString();
             }
             else if (typeof(char).IsEquivalentTo(valueType))
             {
