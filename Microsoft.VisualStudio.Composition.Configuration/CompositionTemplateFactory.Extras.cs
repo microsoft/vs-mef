@@ -1401,8 +1401,13 @@
             return result;
         }
 
-        private IDisposable Indent(int count = 1, bool withBraces = false, TextWriter writer = null)
+        private IDisposable Indent(int count = 1, bool withBraces = false, bool noLineFeedAfterClosingBrace = false, TextWriter writer = null)
         {
+            if (count == 0)
+            {
+                return null;
+            }
+
             writer = writer ?? new SelfTextWriter(this);
             if (withBraces)
             {
@@ -1416,7 +1421,11 @@
                 this.PopIndent();
                 if (withBraces)
                 {
-                    writer.WriteLine("}");
+                    writer.Write("}");
+                    if (!noLineFeedAfterClosingBrace)
+                    {
+                        writer.WriteLine();
+                    }
                 }
             });
         }
@@ -1443,6 +1452,21 @@
             public override void Write(string value)
             {
                 this.factory.Write(value);
+            }
+
+            public override void WriteLine()
+            {
+                this.factory.WriteLine(string.Empty);
+            }
+
+            public override void WriteLine(string value)
+            {
+                this.factory.WriteLine(value);
+            }
+
+            public override void WriteLine(string format, params object[] arg)
+            {
+                this.factory.WriteLine(format, arg);
             }
         }
 
