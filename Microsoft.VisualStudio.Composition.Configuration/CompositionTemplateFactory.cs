@@ -88,7 +88,7 @@ foreach (var exportsByContract in this.ExportsByContract)
             
             #line 50 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.Configuration\CompositionTemplateFactory.tt"
 
-        using(Indent()) EmitGetExportsReturnExpression(exportsByContract);
+    EmitGetExportsReturnExpression(exportsByContract);
 }
 
             

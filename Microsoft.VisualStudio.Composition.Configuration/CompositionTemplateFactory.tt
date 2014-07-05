@@ -48,7 +48,7 @@ foreach (var exportsByContract in this.ExportsByContract)
 #>
             case "<#= exportsByContract.Key #>":
 <#
-        using(Indent()) EmitGetExportsReturnExpression(exportsByContract);
+    EmitGetExportsReturnExpression(exportsByContract);
 }
 #>
         }
