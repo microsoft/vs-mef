@@ -62,9 +62,11 @@
                         {
                             yield return new ComposedPartDiagnostic(
                                 this,
-                                "Import of {0} expected exactly 1 export but found {1}.",
-                                importDefinition.ContractName,
-                                pair.Value.Count);
+                                "{0}: expected exactly 1 export of {1} but found {2}.{3}",
+                                GetDiagnosticLocation(pair.Key),
+                                pair.Key.ImportingSiteElementType,
+                                pair.Value.Count,
+                                GetExportsList(pair.Value));
                         }
 
                         break;
@@ -73,9 +75,10 @@
                         {
                             yield return new ComposedPartDiagnostic(
                                 this,
-                                "Import of {0} expected 1 or 0 exports but found {1}.",
-                                importDefinition.ContractName,
-                                pair.Value.Count);
+                                "{0}: expected 1 or 0 exports but found {1}.{2}",
+                                GetDiagnosticLocation(pair.Key),
+                                pair.Value.Count,
+                                GetExportsList(pair.Value));
                         }
 
                         break;
@@ -87,12 +90,9 @@
                     {
                         yield return new ComposedPartDiagnostic(
                             this,
-                            "Exported type {4} on MEF part {0} is not assignable to {1}, as required by import found on {2}.{3}",
-                            ReflectionHelpers.GetTypeName(export.PartDefinition.Type, false, true, null, null),
-                            ReflectionHelpers.GetTypeName(pair.Key.ImportingSiteElementType, false, true, null, null),
-                            ReflectionHelpers.GetTypeName(this.Definition.Type, false, true, null, null),
-                            pair.Key.ImportingMember != null ? pair.Key.ImportingMember.Name : "ctor",
-                            ReflectionHelpers.GetTypeName(export.ExportedValueType, false, true, null, null));
+                            "{0}: is not assignable from exported MEF value {1}.",
+                            GetDiagnosticLocation(pair.Key),
+                            GetDiagnosticLocation(export));
                     }
                 }
 
@@ -103,6 +103,44 @@
                         "Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable<T> are supported.");
                 }
             }
+        }
+
+        private static string GetDiagnosticLocation(ImportDefinitionBinding import)
+        {
+            Requires.NotNull(import, "import");
+
+            return string.Format(
+                CultureInfo.CurrentCulture,
+                "{0}.{1}",
+                import.ComposablePartType.FullName,
+                import.ImportingMember == null ? ("ctor(" + import.ImportingParameter.Name + ")") : import.ImportingMember.Name);
+        }
+
+        private static string GetDiagnosticLocation(ExportDefinitionBinding export)
+        {
+            Requires.NotNull(export, "export");
+
+            if (export.ExportingMember != null)
+            {
+                return string.Format(
+                    CultureInfo.CurrentCulture,
+                    "{0}.{1}",
+                    export.PartDefinition.Type.FullName,
+                    export.ExportingMember.Name);
+            }
+            else
+            {
+                return export.PartDefinition.Type.FullName;
+            }
+        }
+
+        private static string GetExportsList(IEnumerable<ExportDefinitionBinding> exports)
+        {
+            Requires.NotNull(exports, "exports");
+
+            return exports.Any()
+                ? Environment.NewLine + string.Join(Environment.NewLine, exports.Select(export => "    " + GetDiagnosticLocation(export)))
+                : string.Empty;
         }
 
         private static bool IsAllowedImportManyParameterType(Type importSiteType)

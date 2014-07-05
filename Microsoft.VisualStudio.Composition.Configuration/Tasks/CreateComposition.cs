@@ -43,7 +43,7 @@
                 {
                     foreach (var error in configuration.CompositionErrors.Peek())
                     {
-                        this.Log.LogError("MEF part(s) {0}: {1}", string.Join(", ", error.Parts.Select(p => p.Definition.Type.FullName)), error.Message);
+                        this.Log.LogError(error.Message);
                     }
 
                     return false;
