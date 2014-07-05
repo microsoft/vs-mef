@@ -10,6 +10,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Validation;
@@ -459,7 +460,7 @@
             builder.Append("new Dictionary<string, object> {");
             foreach (var metadatum in export.ExportDefinition.Metadata)
             {
-                builder.AppendFormat(" {{ \"{0}\", {1} }}, ", metadatum.Key, GetExportMetadataValueExpression(metadatum.Value));
+                builder.AppendFormat(" {{ \"{0}\", {1} }}, ", metadatum.Key, GetExportMetadataValueExpression(metadatum.Value).NormalizeWhitespace());
             }
             builder.Append("}.ToImmutableDictionary()");
             return builder.ToString();
@@ -561,9 +562,7 @@
                     SyntaxFactory.InitializerExpression(
                         SyntaxKind.ArrayInitializerExpression,
                         SyntaxFactory.SeparatedList<ExpressionSyntax>(
-                            array.Cast<object>().Select(GetExportMetadataValueExpression))))
-                    .WithNewKeyword(
-                        SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.NewKeyword, SyntaxFactory.TriviaList(SyntaxFactory.Space)));
+                            array.Cast<object>().Select(GetExportMetadataValueExpression))));
             }
 
             throw new NotSupportedException();
@@ -1045,7 +1044,7 @@
                     this.GetTypeName(property.PropertyType),
                     sourceVarName,
                     property.Name,
-                    GetExportMetadataValueExpression(defaultValueAttribute.Value),
+                    GetExportMetadataValueExpression(defaultValueAttribute.Value).NormalizeWhitespace(),
                     property.PropertyType.IsValueType ? string.Empty : (" as " + this.GetTypeName(property.PropertyType)));
             }
             else
