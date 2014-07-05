@@ -129,7 +129,7 @@ foreach (var part in this.Configuration.Parts)
             
             #line default
             #line hidden
-            this.Write("            return this.NonDisposableWrapper;\r\n");
+            this.Write("        return this.NonDisposableWrapper;\r\n");
             
             #line 70 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.Configuration\CompositionTemplateFactory.tt"
 
@@ -185,7 +185,7 @@ foreach (var part in this.Configuration.Parts)
             
             #line 89 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.Configuration\CompositionTemplateFactory.tt"
  using (EmitLazyConstruction(part.Definition.Type, null)) {
-                using(Indent(5, withBraces: true, noLineFeedAfterClosingBrace: true))
+                using(Indent(4, withBraces: true, noLineFeedAfterClosingBrace: true))
                 {
                     EmitInstantiatePart(part);
                 }
@@ -216,7 +216,7 @@ foreach (var part in this.Configuration.Parts)
             
             #line 106 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.Configuration\CompositionTemplateFactory.tt"
  using (EmitLazyConstruction(part.Definition.Type, null)) {
-            using(Indent(4, withBraces: true, noLineFeedAfterClosingBrace: true))
+            using(Indent(3, withBraces: true, noLineFeedAfterClosingBrace: true))
             {
                 EmitInstantiatePart(part);
             }
