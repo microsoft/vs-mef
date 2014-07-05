@@ -37,8 +37,18 @@
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
 
                 var parts = discovery.CreateParts(this.CatalogAssemblies.Select(item => Assembly.LoadFile(item.ItemSpec)));
+                this.cancellationSource.Token.ThrowIfCancellationRequested();
                 var catalog = ComposableCatalog.Create(parts);
+                this.cancellationSource.Token.ThrowIfCancellationRequested();
                 var configuration = CompositionConfiguration.Create(catalog);
+                this.cancellationSource.Token.ThrowIfCancellationRequested();
+
+                if (!string.IsNullOrEmpty(this.DgmlOutputPath))
+                {
+                    configuration.CreateDgml().Save(this.DgmlOutputPath);
+                }
+
+                this.cancellationSource.Token.ThrowIfCancellationRequested();
                 if (!configuration.CompositionErrors.IsEmpty)
                 {
                     foreach (var error in configuration.CompositionErrors.Peek())
@@ -47,11 +57,6 @@
                     }
 
                     return false;
-                }
-
-                if (!string.IsNullOrEmpty(this.DgmlOutputPath))
-                {
-                    configuration.CreateDgml().Save(this.DgmlOutputPath);
                 }
 
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
