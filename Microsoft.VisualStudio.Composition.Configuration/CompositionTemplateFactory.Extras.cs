@@ -456,30 +456,40 @@
 
         private ExpressionSyntax GetExportMetadata(ExportDefinitionBinding export)
         {
+            return this.GetSyntaxToReconstructValue(export.ExportDefinition.Metadata);
+        }
+
+        private ExpressionSyntax GetSyntaxToReconstructValue<TKey, TValue>(IReadOnlyDictionary<TKey, TValue> value)
+        {
+            if (value == null)
+            {
+                return GetSyntaxToReconstructValue((object)null);
+            }
+
             return SyntaxFactory.InvocationExpression(
-                SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.ObjectCreationExpression(
-                        SyntaxFactory.GenericName("Dictionary")
-                            .WithTypeArgumentList(
-                                SyntaxFactory.TypeArgumentList(CodeGen.JoinSyntaxNodes<TypeSyntax>(
-                                    SyntaxKind.CommaToken,
-                                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))))))
-                        .WithNewKeywordTrivia()
-                        .WithInitializer(
-                            SyntaxFactory.InitializerExpression(
-                                SyntaxKind.CollectionInitializerExpression,
-                                CodeGen.JoinSyntaxNodes<ExpressionSyntax>(
-                                    SyntaxKind.CommaToken,
-                                    export.ExportDefinition.Metadata.Select(kv => SyntaxFactory.InitializerExpression(
-                                        SyntaxKind.ComplexElementInitializerExpression,
-                                        SyntaxFactory.SeparatedList<ExpressionSyntax>(new SyntaxNodeOrToken[] { 
-                                            SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(kv.Key)),
+             SyntaxFactory.MemberAccessExpression(
+                 SyntaxKind.SimpleMemberAccessExpression,
+                 SyntaxFactory.ObjectCreationExpression(
+                     SyntaxFactory.GenericName("Dictionary")
+                         .WithTypeArgumentList(
+                             SyntaxFactory.TypeArgumentList(CodeGen.JoinSyntaxNodes<TypeSyntax>(
+                                 SyntaxKind.CommaToken,
+                                 GetTypeSyntax(typeof(TKey)),
+                                 GetTypeSyntax(typeof(TValue))))))
+                     .WithNewKeywordTrivia()
+                     .WithInitializer(
+                         SyntaxFactory.InitializerExpression(
+                             SyntaxKind.CollectionInitializerExpression,
+                             CodeGen.JoinSyntaxNodes<ExpressionSyntax>(
+                                 SyntaxKind.CommaToken,
+                                 value.Select(kv => SyntaxFactory.InitializerExpression(
+                                     SyntaxKind.ComplexElementInitializerExpression,
+                                     SyntaxFactory.SeparatedList<ExpressionSyntax>(new SyntaxNodeOrToken[] { 
+                                            GetSyntaxToReconstructValue(kv.Key),
                                             SyntaxFactory.Token(SyntaxKind.CommaToken),
                                             GetSyntaxToReconstructValue(kv.Value),
                                         }))).ToArray()))),
-                    SyntaxFactory.IdentifierName("ToImmutableDictionary")));
+                 SyntaxFactory.IdentifierName("ToImmutableDictionary")));
         }
 
         private ExpressionSyntax GetSyntaxToReconstructValue(object value)
@@ -588,6 +598,15 @@
         private TypeSyntax GetTypeSyntax(Type type)
         {
             Requires.NotNull(type, "type");
+
+            if (type.IsEquivalentTo(typeof(string)))
+            {
+                return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword));
+            }
+            else if (type.IsEquivalentTo(typeof(object)))
+            {
+                return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
+            }
 
             return SyntaxFactory.ParseTypeName(this.GetTypeName(type));
         }
