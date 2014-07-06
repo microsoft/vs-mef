@@ -36,7 +36,7 @@
 
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
 
-                var parts = discovery.CreateParts(this.CatalogAssemblies.Select(item => Assembly.LoadFile(item.ItemSpec)));
+                var parts = discovery.CreatePartsAsync(this.CatalogAssemblies.Select(item => Assembly.LoadFile(item.ItemSpec))).GetAwaiter().GetResult();
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
                 var catalog = ComposableCatalog.Create(parts);
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
