@@ -562,9 +562,23 @@
             }
             else if (valueType.IsEnum)
             {
-                return SyntaxFactory.CastExpression(
-                    GetTypeSyntax(valueType), // TODO: for non-public enum types, we can emit code to call Convert.ChangeType(underlyingTypeValue, actualTypeExpression) at runtime.
-                    SyntaxFactory.ParseExpression(Convert.ChangeType(value, Enum.GetUnderlyingType(valueType)).ToString()));
+                ExpressionSyntax underlyingTypeValue = GetSyntaxToReconstructValue(Convert.ChangeType(value, Enum.GetUnderlyingType(valueType)));
+                if (IsPublic(valueType, true))
+                {
+                    return SyntaxFactory.CastExpression(GetTypeSyntax(valueType), underlyingTypeValue);
+                }
+                else
+                {
+                    return SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName("Enum"),
+                            SyntaxFactory.IdentifierName("ToObject")),
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes<ArgumentSyntax>(
+                            SyntaxKind.CommaToken,
+                            SyntaxFactory.Argument(GetTypeExpressionSyntax(valueType)),
+                            SyntaxFactory.Argument(underlyingTypeValue))));
+                }
             }
             else if (typeof(Type).IsAssignableFrom(valueType))
             {
@@ -1010,6 +1024,11 @@
         private string GetTypeName(Type type, bool genericTypeDefinition = false, bool evenNonPublic = false)
         {
             return ReflectionHelpers.GetTypeName(type, genericTypeDefinition, evenNonPublic, this.relevantAssemblies, this.relevantEmbeddedTypes);
+        }
+
+        private ExpressionSyntax GetTypeExpressionSyntax(Type type, bool genericTypeDefinition = false, bool assumeNonPublic = false)
+        {
+            return SyntaxFactory.ParseExpression(this.GetTypeExpression(type, genericTypeDefinition, assumeNonPublic));
         }
 
         /// <summary>

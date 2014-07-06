@@ -126,7 +126,7 @@
             Assert.IsType<MetadataEnum>(metadataValue);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(ExportWithNonPublicEnumMetadata))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportWithNonPublicEnumMetadata))]
         public void NonPublicMetadataEnumValue(IContainer container)
         {
             var part = container.GetExport<ExportWithNonPublicEnumMetadata, IDictionary<string, object>>();
