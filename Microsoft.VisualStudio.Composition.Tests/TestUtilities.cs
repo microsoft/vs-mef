@@ -147,7 +147,7 @@
         internal static IContainer CreateContainerV3(IReadOnlyList<Assembly> assemblies, CompositionEngines attributesDiscovery, Type[] parts = null)
         {
             PartDiscovery discovery = GetDiscoveryService(attributesDiscovery);
-            var assemblyParts = discovery.CreateParts(assemblies);
+            var assemblyParts = discovery.CreatePartsAsync(assemblies).GetAwaiter().GetResult();
             var catalog = ComposableCatalog.Create(assemblyParts);
             if (parts != null && parts.Length != 0)
             {

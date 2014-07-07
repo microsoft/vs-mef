@@ -152,6 +152,14 @@
             return false;
         }
 
+        protected override IEnumerable<Type> GetTypes(Assembly assembly)
+        {
+            Requires.NotNull(assembly, "assembly");
+
+            return (this.IsNonPublicSupported ? assembly.GetTypes() : assembly.GetExportedTypes())
+                .Where(type => type.GetCustomAttribute<PartNotDiscoverableAttribute>() == null);
+        }
+
         private ImmutableDictionary<string, object> GetExportMetadata(IEnumerable<Attribute> attributes)
         {
             Requires.NotNull(attributes, "attributes");
@@ -278,18 +286,6 @@
                 select new ExportMetadataValueImportConstraint(importConstraint.Name, importConstraint.Value));
 
             return constraints;
-        }
-
-        public override IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly)
-        {
-            Requires.NotNull(assembly, "assembly");
-
-            var parts = from type in this.IsNonPublicSupported ? assembly.GetTypes() : assembly.GetExportedTypes()
-                        where type.GetCustomAttribute<PartNotDiscoverableAttribute>() == null
-                        let part = this.CreatePart(type)
-                        where part != null
-                        select part;
-            return parts.ToImmutableList();
         }
     }
 }

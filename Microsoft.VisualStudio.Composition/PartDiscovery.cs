@@ -6,7 +6,9 @@
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
+    using System.Threading.Tasks.Dataflow;
     using Validation;
 
     public abstract class PartDiscovery
@@ -41,7 +43,20 @@
         /// </summary>
         /// <param name="assembly">The assembly to search for MEF parts.</param>
         /// <returns>A set of generated parts.</returns>
-        public abstract IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly);
+        public async Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(Assembly assembly, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Requires.NotNull(assembly, "assembly");
+
+            var tuple = this.CreateDiscoveryBlockChain(cancellationToken);
+            foreach (Type type in this.GetTypes(assembly))
+            {
+                await tuple.Item1.SendAsync(type);
+            }
+
+            tuple.Item1.Complete();
+            var parts = await tuple.Item2;
+            return parts;
+        }
 
         public abstract bool IsExportFactoryType(Type type);
 
@@ -50,17 +65,28 @@
         /// </summary>
         /// <param name="assemblies">The assemblies to search for MEF parts.</param>
         /// <returns>A set of generated parts.</returns>
-        public IReadOnlyCollection<ComposablePartDefinition> CreateParts(IEnumerable<Assembly> assemblies)
+        public async Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(IEnumerable<Assembly> assemblies, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(assemblies, "assemblies");
 
-            var parts = ImmutableHashSet.CreateBuilder<ComposablePartDefinition>();
+            var tuple = this.CreateDiscoveryBlockChain(cancellationToken);
+            var assemblyBlock = new TransformManyBlock<Assembly, Type>(
+                a => this.GetTypes(a),
+                new ExecutionDataflowBlockOptions
+                {
+                    MaxDegreeOfParallelism = Environment.ProcessorCount,
+                    CancellationToken = cancellationToken,
+                });
+            assemblyBlock.LinkTo(tuple.Item1, new DataflowLinkOptions { PropagateCompletion = true });
+
             foreach (var assembly in assemblies)
             {
-                parts.UnionWith(this.CreateParts(assembly));
+                await assemblyBlock.SendAsync(assembly);
             }
 
-            return parts.ToImmutable();
+            assemblyBlock.Complete();
+            var parts = await tuple.Item2;
+            return parts;
         }
 
         protected internal static string GetContractName(Type type)
@@ -186,6 +212,13 @@
             return newValue;
         }
 
+        /// <summary>
+        /// Gets the types to consider for MEF parts.
+        /// </summary>
+        /// <param name="assembly">The assembly to read.</param>
+        /// <returns>A sequence of types.</returns>
+        protected abstract IEnumerable<Type> GetTypes(Assembly assembly);
+
         internal static bool IsImportManyCollectionTypeCreateable(ImportDefinitionBinding import)
         {
             Requires.NotNull(import, "import");
@@ -234,6 +267,38 @@
             return null;
         }
 
+        private Tuple<ITargetBlock<Type>, Task<ImmutableHashSet<ComposablePartDefinition>>> CreateDiscoveryBlockChain(CancellationToken cancellationToken)
+        {
+            var transformBlock = new TransformBlock<Type, ComposablePartDefinition>(
+                type => this.CreatePart(type),
+                new ExecutionDataflowBlockOptions
+                {
+                    MaxDegreeOfParallelism = Environment.ProcessorCount,
+                    CancellationToken = cancellationToken,
+                    MaxMessagesPerTask = 10,
+                    BoundedCapacity = 100,
+                });
+            var parts = ImmutableHashSet.CreateBuilder<ComposablePartDefinition>();
+            var aggregatingBlock = new ActionBlock<ComposablePartDefinition>(part => { if (part != null) parts.Add(part); });
+            transformBlock.LinkTo(aggregatingBlock, new DataflowLinkOptions { PropagateCompletion = true });
+
+            var tcs = new TaskCompletionSource<ImmutableHashSet<ComposablePartDefinition>>();
+            Task.Run(async delegate
+            {
+                try
+                {
+                    await aggregatingBlock.Completion;
+                    tcs.SetResult(parts.ToImmutable());
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                }
+            });
+
+            return Tuple.Create<ITargetBlock<Type>, Task<ImmutableHashSet<ComposablePartDefinition>>>(transformBlock, tcs.Task);
+        }
+
         private class CombinedPartDiscovery : PartDiscovery
         {
             private readonly IReadOnlyList<PartDiscovery> discoveryMechanisms;
@@ -260,18 +325,18 @@
                 return null;
             }
 
-            public override IReadOnlyCollection<ComposablePartDefinition> CreateParts(Assembly assembly)
-            {
-                Requires.NotNull(assembly, "assembly");
-
-                return this.discoveryMechanisms.SelectMany(discovery => discovery.CreateParts(assembly)).ToImmutableList();
-            }
-
             public override bool IsExportFactoryType(Type type)
             {
                 Requires.NotNull(type, "type");
 
                 return this.discoveryMechanisms.Any(discovery => discovery.IsExportFactoryType(type));
+            }
+
+            protected override IEnumerable<Type> GetTypes(Assembly assembly)
+            {
+                return this.discoveryMechanisms
+                    .SelectMany(discovery => discovery.GetTypes(assembly))
+                    .Distinct();
             }
         }
     }

@@ -48,7 +48,7 @@ foreach (var exportsByContract in this.ExportsByContract)
 #>
             case "<#= exportsByContract.Key #>":
 <#
-        using(Indent()) EmitGetExportsReturnExpression(exportsByContract);
+    EmitGetExportsReturnExpression(exportsByContract);
 }
 #>
         }
@@ -66,7 +66,7 @@ foreach (var part in this.Configuration.Parts)
         {
             // Special case for our synthesized part that acts as a placeholder for *this* export provider.
 #>
-            return this.NonDisposableWrapper;
+        return this.NonDisposableWrapper;
 <#
         }
         else
@@ -86,15 +86,12 @@ foreach (var part in this.Configuration.Parts)
 #>
         if (nonSharedInstanceRequired || !this.TryGetSharedInstanceFactory(@"<#= this.Configuration.GetEffectiveSharingBoundary(part.Definition) #>", partType, out lazyResult))
         {
-            lazyResult = <# using (EmitLazyConstruction(part.Definition.Type, null)) { #>
-                {
-<#
-                using(Indent(5))
+            lazyResult = <# using (EmitLazyConstruction(part.Definition.Type, null)) {
+                using(Indent(4, withBraces: true, noLineFeedAfterClosingBrace: true))
                 {
                     EmitInstantiatePart(part);
                 }
-#>
-                }<# } #>;
+            } #>;
 
             if (!nonSharedInstanceRequired)
             {
@@ -106,15 +103,12 @@ foreach (var part in this.Configuration.Parts)
         else
         {
 #>
-        lazyResult = <# using (EmitLazyConstruction(part.Definition.Type, null)) { #>
+        lazyResult = <# using (EmitLazyConstruction(part.Definition.Type, null)) {
+            using(Indent(3, withBraces: true, noLineFeedAfterClosingBrace: true))
             {
-<#
-                using(Indent(4))
-                {
-                    EmitInstantiatePart(part);
-                }
-#>
-            }<# } #>;
+                EmitInstantiatePart(part);
+            }
+        } #>;
 <#
         }
 #>

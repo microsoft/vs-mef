@@ -10,6 +10,9 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp;
+    using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Validation;
 
     partial class CompositionTemplateFactory
@@ -451,105 +454,175 @@
             return writer.ToString();
         }
 
-        private string GetExportMetadata(ExportDefinitionBinding export)
+        private ExpressionSyntax GetExportMetadata(ExportDefinitionBinding export)
         {
-            var builder = new StringBuilder();
-            builder.Append("new Dictionary<string, object> {");
-            foreach (var metadatum in export.ExportDefinition.Metadata)
-            {
-                builder.AppendFormat(" {{ \"{0}\", {1} }}, ", metadatum.Key, GetExportMetadataValueExpression(metadatum.Value));
-            }
-            builder.Append("}.ToImmutableDictionary()");
-            return builder.ToString();
+            return this.GetSyntaxToReconstructValue(export.ExportDefinition.Metadata);
         }
 
-        private string GetExportMetadataValueExpression(object value)
+        private ExpressionSyntax GetSyntaxToReconstructValue<TKey, TValue>(IReadOnlyDictionary<TKey, TValue> value)
         {
             if (value == null)
             {
-                return "null";
+                return GetSyntaxToReconstructValue((object)null);
+            }
+
+            return SyntaxFactory.InvocationExpression(
+             SyntaxFactory.MemberAccessExpression(
+                 SyntaxKind.SimpleMemberAccessExpression,
+                 SyntaxFactory.ObjectCreationExpression(
+                     SyntaxFactory.GenericName("Dictionary")
+                         .WithTypeArgumentList(
+                             SyntaxFactory.TypeArgumentList(CodeGen.JoinSyntaxNodes<TypeSyntax>(
+                                 SyntaxKind.CommaToken,
+                                 GetTypeSyntax(typeof(TKey)),
+                                 GetTypeSyntax(typeof(TValue))))))
+                     .WithNewKeywordTrivia()
+                     .WithInitializer(
+                         SyntaxFactory.InitializerExpression(
+                             SyntaxKind.CollectionInitializerExpression,
+                             CodeGen.JoinSyntaxNodes<ExpressionSyntax>(
+                                 SyntaxKind.CommaToken,
+                                 value.Select(kv => SyntaxFactory.InitializerExpression(
+                                     SyntaxKind.ComplexElementInitializerExpression,
+                                     SyntaxFactory.SeparatedList<ExpressionSyntax>(new SyntaxNodeOrToken[] { 
+                                            GetSyntaxToReconstructValue(kv.Key),
+                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
+                                            GetSyntaxToReconstructValue(kv.Value),
+                                        }))).ToArray()))),
+                 SyntaxFactory.IdentifierName("ToImmutableDictionary")));
+        }
+
+        private ExpressionSyntax GetSyntaxToReconstructValue(object value)
+        {
+            if (value == null)
+            {
+                return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
             }
 
             Type valueType = value.GetType();
             if (value is string)
             {
-                return "\"" + value + "\"";
+                return SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal((string)value));
             }
             else if (typeof(char).IsEquivalentTo(valueType))
             {
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "'{0}'",
-                    (char)value == '\'' ? "\\'" : value);
+                return SyntaxFactory.LiteralExpression(SyntaxKind.CharacterLiteralExpression, SyntaxFactory.Literal((char)value));
             }
             else if (typeof(bool).IsEquivalentTo(valueType))
             {
-                return (bool)value ? "true" : "false";
+                return (bool)value
+                    ? SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression)
+                    : SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression);
             }
             else if (valueType.IsEquivalentTo(typeof(double)) && (double)value == double.MaxValue)
             {
-                return "double.MaxValue";
+                return SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword)),
+                    SyntaxFactory.IdentifierName("MaxValue"));
             }
             else if (valueType.IsEquivalentTo(typeof(double)) && (double)value == double.MinValue)
             {
-                return "double.MinValue";
+                return SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword)),
+                    SyntaxFactory.IdentifierName("MinValue"));
             }
             else if (valueType.IsEquivalentTo(typeof(float)) && (float)value == float.MaxValue)
             {
-                return "float.MaxValue";
+                return SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.FloatKeyword)),
+                    SyntaxFactory.IdentifierName("MaxValue"));
             }
             else if (valueType.IsEquivalentTo(typeof(float)) && (float)value == float.MinValue)
             {
-                return "float.MinValue";
+                return SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.FloatKeyword)),
+                    SyntaxFactory.IdentifierName("MinValue"));
             }
             else if (valueType.IsPrimitive)
             {
-                return string.Format(CultureInfo.InvariantCulture, "({0})({1})", GetTypeName(valueType), value);
+                return SyntaxFactory.CastExpression(
+                    SyntaxFactory.ParseTypeName(GetTypeName(valueType)),
+                    SyntaxFactory.ParenthesizedExpression(SyntaxFactory.ParseExpression(value.ToString())));
             }
             else if (valueType.IsEquivalentTo(typeof(Guid)))
             {
-                return string.Format(CultureInfo.InvariantCulture, "Guid.Parse(\"{0}\")", value);
+                return SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName("Guid"),
+                        SyntaxFactory.IdentifierName("Parse")),
+                    SyntaxFactory.ArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(((Guid)value).ToString()))))));
             }
             else if (valueType.IsEnum)
             {
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "({0}){1}",
-                    GetTypeName(valueType),
-                    Convert.ChangeType(value, Enum.GetUnderlyingType(valueType)));
+                ExpressionSyntax underlyingTypeValue = GetSyntaxToReconstructValue(Convert.ChangeType(value, Enum.GetUnderlyingType(valueType)));
+                if (IsPublic(valueType, true))
+                {
+                    return SyntaxFactory.CastExpression(GetTypeSyntax(valueType), underlyingTypeValue);
+                }
+                else
+                {
+                    return SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName("Enum"),
+                            SyntaxFactory.IdentifierName("ToObject")),
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes<ArgumentSyntax>(
+                            SyntaxKind.CommaToken,
+                            SyntaxFactory.Argument(GetTypeExpressionSyntax(valueType)),
+                            SyntaxFactory.Argument(underlyingTypeValue))));
+                }
             }
             else if (typeof(Type).IsAssignableFrom(valueType))
             {
                 // assumeNonPublic=true because typeof() would result in the JIT compiler
                 // loading the assembly containing the type itself even before this
                 // part is activated.
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "({1}){0}",
-                    GetTypeExpression((Type)value, assumeNonPublic: true),
-                    GetTypeName(valueType)); // Cast as TypeInfo to avoid some compilation errors.
+                return SyntaxFactory.CastExpression(
+                    GetTypeSyntax(valueType), // Cast as TypeInfo to avoid some compilation errors.
+                    SyntaxFactory.ParseExpression(GetTypeExpression((Type)value, assumeNonPublic: true)));
             }
             else if (valueType.IsArray)
             {
-                var builder = new StringBuilder();
-                builder.AppendFormat("new {0}[] {{ ", GetTypeName(valueType.GetElementType()));
-                bool firstValue = true;
-                foreach (object element in (Array)value)
-                {
-                    if (!firstValue)
-                    {
-                        builder.Append(", ");
-                    }
-
-                    builder.Append(GetExportMetadataValueExpression(element));
-                    firstValue = false;
-                }
-
-                builder.Append("}");
-                return builder.ToString();
+                var array = (Array)value;
+                return SyntaxFactory.ArrayCreationExpression(
+                    SyntaxFactory.ArrayType(GetTypeSyntax(valueType.GetElementType()))
+                        .WithRankSpecifiers(
+                            SyntaxFactory.SingletonList(
+                            SyntaxFactory.ArrayRankSpecifier(
+                                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                    SyntaxFactory.OmittedArraySizeExpression())))),
+                    SyntaxFactory.InitializerExpression(
+                        SyntaxKind.ArrayInitializerExpression,
+                        SyntaxFactory.SeparatedList<ExpressionSyntax>(
+                            array.Cast<object>().Select(GetSyntaxToReconstructValue))))
+                    .WithNewKeywordTrivia();
             }
 
             throw new NotSupportedException();
+        }
+
+        private TypeSyntax GetTypeSyntax(Type type)
+        {
+            Requires.NotNull(type, "type");
+
+            if (type.IsEquivalentTo(typeof(string)))
+            {
+                return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword));
+            }
+            else if (type.IsEquivalentTo(typeof(object)))
+            {
+                return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
+            }
+
+            return SyntaxFactory.ParseTypeName(this.GetTypeName(type));
         }
 
         private IDisposable EmitConstructorInvocationExpression(ComposablePartDefinition partDefinition)
@@ -953,6 +1026,11 @@
             return ReflectionHelpers.GetTypeName(type, genericTypeDefinition, evenNonPublic, this.relevantAssemblies, this.relevantEmbeddedTypes);
         }
 
+        private ExpressionSyntax GetTypeExpressionSyntax(Type type, bool genericTypeDefinition = false, bool assumeNonPublic = false)
+        {
+            return SyntaxFactory.ParseExpression(this.GetTypeExpression(type, genericTypeDefinition, assumeNonPublic));
+        }
+
         /// <summary>
         /// Gets a C# expression that evaluates to a System.Type instance for the specified type.
         /// </summary>
@@ -1021,7 +1099,7 @@
                     this.GetTypeName(property.PropertyType),
                     sourceVarName,
                     property.Name,
-                    GetExportMetadataValueExpression(defaultValueAttribute.Value),
+                    GetSyntaxToReconstructValue(defaultValueAttribute.Value),
                     property.PropertyType.IsValueType ? string.Empty : (" as " + this.GetTypeName(property.PropertyType)));
             }
             else
@@ -1401,22 +1479,43 @@
             return result;
         }
 
-        private IDisposable Indent(int count = 1, bool withBraces = false, TextWriter writer = null)
+        private IDisposable Indent(int count = 1, bool withBraces = false, bool noLineFeedAfterClosingBrace = false, TextWriter writer = null)
         {
+            if (count == 0)
+            {
+                return null;
+            }
+
+            if (count > 1)
+            {
+                // Push all but the last level *before* printing the curly braces.
+                this.PushIndent(new string(' ', (count - 1) * 4));
+            }
+
             writer = writer ?? new SelfTextWriter(this);
             if (withBraces)
             {
                 writer.WriteLine("{");
             }
 
-            this.PushIndent(new string(' ', count * 4));
+            this.PushIndent(new string(' ', 4));
 
             return new DisposableWithAction(delegate
             {
                 this.PopIndent();
                 if (withBraces)
                 {
-                    writer.WriteLine("}");
+                    writer.Write("}");
+                    if (!noLineFeedAfterClosingBrace)
+                    {
+                        writer.WriteLine();
+                    }
+                }
+
+                if (count > 1)
+                {
+                    // Pop the extra outer-indent.
+                    this.PopIndent();
                 }
             });
         }
@@ -1443,6 +1542,21 @@
             public override void Write(string value)
             {
                 this.factory.Write(value);
+            }
+
+            public override void WriteLine()
+            {
+                this.factory.WriteLine(string.Empty);
+            }
+
+            public override void WriteLine(string value)
+            {
+                this.factory.WriteLine(value);
+            }
+
+            public override void WriteLine(string format, params object[] arg)
+            {
+                this.factory.WriteLine(format, arg);
             }
         }
 
