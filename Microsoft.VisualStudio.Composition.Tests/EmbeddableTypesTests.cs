@@ -88,6 +88,26 @@
             Assert.Same(exporter, importer.RetargetProject);
         }
 
+        [MefFact(
+            CompositionEngines.V1Compat,
+            typeof(PartThatImportsExportFactoryOfEmbeddedTypeV1),
+            typeof(PartThatExportsEmbeddedType))]
+        public void EmbeddedTypePublicExportFactoryImportingPropertyV1(IContainer container)
+        {
+            var importer = container.GetExportedValue<PartThatImportsExportFactoryOfEmbeddedTypeV1>();
+            Assert.NotNull(importer.CreateExport());
+        }
+
+        [MefFact(
+            CompositionEngines.V3EmulatingV2,
+            typeof(PartThatImportsExportFactoryOfEmbeddedTypeV2),
+            typeof(PartThatExportsEmbeddedType))]
+        public void EmbeddedTypePublicExportFactoryImportingPropertyV2(IContainer container)
+        {
+            var importer = container.GetExportedValue<PartThatImportsExportFactoryOfEmbeddedTypeV2>();
+            Assert.NotNull(importer.CreateExport());
+        }
+
         [Export(typeof(TEmbedded)), Shared]
         [MefV1.Export(typeof(TEmbedded))]
         public class PartThatExportsEmbeddedType : TEmbedded

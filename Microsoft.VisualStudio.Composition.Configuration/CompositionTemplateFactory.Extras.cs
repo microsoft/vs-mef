@@ -1353,7 +1353,7 @@
         {
             writer = writer ?? new SelfTextWriter(this);
 
-            if (IsPublic(exportFactoryImport.ImportingSiteElementType))
+            if (IsPublic(exportFactoryImport.ImportingSiteType, true))
             {
                 writer.Write("new {0}(", GetTypeName(exportFactoryImport.ExportFactoryType));
                 return new DisposableWithAction(delegate
@@ -1395,7 +1395,8 @@
 
         private IDisposable EmitExportFactoryTupleConstruction(Type firstArgType, string valueExpression, TextWriter writer)
         {
-            if (IsPublic(firstArgType))
+            Type tupleType = typeof(Tuple<,>).MakeGenericType(firstArgType, typeof(Action));
+            if (IsPublic(tupleType, true))
             {
                 writer.Write(
                     "Tuple.Create<{0}, Action>(({0})({1}), ",

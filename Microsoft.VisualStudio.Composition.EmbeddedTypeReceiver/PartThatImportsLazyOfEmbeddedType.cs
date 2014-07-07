@@ -63,4 +63,36 @@
         [MefV1.Import, MefV2.Import]
         public TEmbedded RetargetProject { get; set; }
     }
+
+    /// <summary>
+    /// The type must appear in a different assembly from the exporting part
+    /// so that the two assemblies have distinct Type instances for the embeddable interface.
+    /// </summary>
+    [MefV1.Export]
+    public class PartThatImportsExportFactoryOfEmbeddedTypeV1
+    {
+        [MefV1.Import]
+        public MefV1.ExportFactory<TEmbedded> RetargetProjectFactory { get; set; }
+
+        public TEmbedded CreateExport()
+        {
+            return this.RetargetProjectFactory.CreateExport().Value;
+        }
+    }
+
+    /// <summary>
+    /// The type must appear in a different assembly from the exporting part
+    /// so that the two assemblies have distinct Type instances for the embeddable interface.
+    /// </summary>
+    [MefV2.Export]
+    public class PartThatImportsExportFactoryOfEmbeddedTypeV2
+    {
+        [MefV2.Import]
+        public MefV2.ExportFactory<TEmbedded> RetargetProjectFactory { get; set; }
+
+        public TEmbedded CreateExport()
+        {
+            return this.RetargetProjectFactory.CreateExport().Value;
+        }
+    }
 }
