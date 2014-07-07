@@ -474,8 +474,8 @@
                          .WithTypeArgumentList(
                              SyntaxFactory.TypeArgumentList(CodeGen.JoinSyntaxNodes<TypeSyntax>(
                                  SyntaxKind.CommaToken,
-                                 GetTypeSyntax(typeof(TKey)),
-                                 GetTypeSyntax(typeof(TValue))))))
+                                 GetTypeNameSyntax(typeof(TKey)),
+                                 GetTypeNameSyntax(typeof(TValue))))))
                      .WithNewKeywordTrivia()
                      .WithInitializer(
                          SyntaxFactory.InitializerExpression(
@@ -565,7 +565,7 @@
                 ExpressionSyntax underlyingTypeValue = GetSyntaxToReconstructValue(Convert.ChangeType(value, Enum.GetUnderlyingType(valueType)));
                 if (IsPublic(valueType, true))
                 {
-                    return SyntaxFactory.CastExpression(GetTypeSyntax(valueType), underlyingTypeValue);
+                    return SyntaxFactory.CastExpression(GetTypeNameSyntax(valueType), underlyingTypeValue);
                 }
                 else
                 {
@@ -586,14 +586,14 @@
                 // loading the assembly containing the type itself even before this
                 // part is activated.
                 return SyntaxFactory.CastExpression(
-                    GetTypeSyntax(valueType), // Cast as TypeInfo to avoid some compilation errors.
+                    GetTypeNameSyntax(valueType), // Cast as TypeInfo to avoid some compilation errors.
                     SyntaxFactory.ParseExpression(GetTypeExpression((Type)value, assumeNonPublic: true)));
             }
             else if (valueType.IsArray)
             {
                 var array = (Array)value;
                 return SyntaxFactory.ArrayCreationExpression(
-                    SyntaxFactory.ArrayType(GetTypeSyntax(valueType.GetElementType()))
+                    SyntaxFactory.ArrayType(GetTypeNameSyntax(valueType.GetElementType()))
                         .WithRankSpecifiers(
                             SyntaxFactory.SingletonList(
                             SyntaxFactory.ArrayRankSpecifier(
@@ -609,7 +609,7 @@
             throw new NotSupportedException();
         }
 
-        private TypeSyntax GetTypeSyntax(Type type)
+        private TypeSyntax GetTypeNameSyntax(Type type, bool genericTypeDefinition = false, bool evenNonPublic = false)
         {
             Requires.NotNull(type, "type");
 
@@ -622,7 +622,7 @@
                 return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
             }
 
-            return SyntaxFactory.ParseTypeName(this.GetTypeName(type));
+            return SyntaxFactory.ParseTypeName(this.GetTypeName(type, genericTypeDefinition, evenNonPublic));
         }
 
         private IDisposable EmitConstructorInvocationExpression(ComposablePartDefinition partDefinition)
@@ -1028,7 +1028,42 @@
 
         private ExpressionSyntax GetTypeExpressionSyntax(Type type, bool genericTypeDefinition = false, bool assumeNonPublic = false)
         {
-            return SyntaxFactory.ParseExpression(this.GetTypeExpression(type, genericTypeDefinition, assumeNonPublic));
+            Requires.NotNull(type, "type");
+
+            if (!assumeNonPublic && IsPublic(type, true) && !type.IsEmbeddedType()) // embedded types need to be matched to their receiving assembly
+            {
+                return SyntaxFactory.TypeOfExpression(this.GetTypeNameSyntax(type, genericTypeDefinition));
+            }
+            else
+            {
+                var targetType = (genericTypeDefinition && type.IsGenericType) ? type.GetGenericTypeDefinition() : type;
+                var typeExpression = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName("Type"),
+                        SyntaxFactory.IdentifierName("GetType")),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(targetType.AssemblyQualifiedName))))));
+
+                if (!genericTypeDefinition && targetType.IsGenericTypeDefinition)
+                {
+                    // Concatenate on the generic type arguments if the caller didn't explicitly want the generic type definition.
+                    // Note that the type itself may be a generic type definition, in which case the concatenated types might be
+                    // T1, T2. That's fine. In fact that's what we want because it causes the types from the caller's caller to
+                    // propagate.
+                    var constructedTypeExpression = SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            typeExpression,
+                            SyntaxFactory.IdentifierName("MakeGenericType")),
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes<ArgumentSyntax>(
+                            SyntaxKind.CommaToken,
+                            targetType.GetGenericArguments().Select(arg => SyntaxFactory.Argument(this.GetTypeExpressionSyntax(arg, false))).ToArray())));
+                    return constructedTypeExpression;
+                }
+
+                return typeExpression;
+            }
         }
 
         /// <summary>
@@ -1036,42 +1071,8 @@
         /// </summary>
         private string GetTypeExpression(Type type, bool genericTypeDefinition = false, bool assumeNonPublic = false)
         {
-            Requires.NotNull(type, "type");
-
-            if (!assumeNonPublic && IsPublic(type, true) && !type.IsEmbeddedType()) // embedded types need to be matched to their receiving assembly
-            {
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "typeof({0})",
-                    this.GetTypeName(type, genericTypeDefinition));
-            }
-            else
-            {
-                var targetType = (genericTypeDefinition && type.IsGenericType) ? type.GetGenericTypeDefinition() : type;
-                var expression = new StringBuilder();
-                expression.AppendFormat(
-                    CultureInfo.InvariantCulture,
-                    "Type.GetType({0})",
-                    Quote(targetType.AssemblyQualifiedName));
-                if (!genericTypeDefinition && targetType.IsGenericTypeDefinition)
-                {
-                    // Concatenate on the generic type arguments if the caller didn't explicitly want the generic type definition.
-                    // Note that the type itself may be a generic type definition, in which case the concatenated types might be
-                    // T1, T2. That's fine. In fact that's what we want because it causes the types from the caller's caller to
-                    // propagate.
-                    expression.Append(".MakeGenericType(");
-                    foreach (Type typeArg in targetType.GetGenericArguments())
-                    {
-                        expression.Append(this.GetTypeExpression(typeArg, false));
-                        expression.Append(", ");
-                    }
-
-                    expression.Length -= 2;
-                    expression.Append(")");
-                }
-
-                return expression.ToString();
-            }
+            return this.GetTypeExpressionSyntax(type, genericTypeDefinition, assumeNonPublic)
+                .NormalizeWhitespace().ToString();
         }
 
         private static bool IsPublic(Type type, bool checkGenericTypeArgs = false)
