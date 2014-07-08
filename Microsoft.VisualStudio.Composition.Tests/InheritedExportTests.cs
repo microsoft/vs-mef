@@ -20,6 +20,18 @@
             Assert.IsType<DerivedOfAbstractClass>(derived);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(AbstractBaseClass), typeof(DerivedOfAbstractClass))]
+        public void ExportMetadataOnlyVisibleAtExportSite(IContainer container)
+        {
+            var derived = container.GetExport<AbstractBaseClass, IDictionary<string, object>>();
+            Assert.Equal(1, derived.Metadata["a"]);
+            Assert.False(derived.Metadata.ContainsKey("b"));
+
+            derived = container.GetExport<AbstractBaseClass, IDictionary<string, object>>("InheritedExportOnBoth");
+            Assert.False(derived.Metadata.ContainsKey("a"));
+            Assert.Equal(2, derived.Metadata["b"]);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(AbstractBaseClass))]
         public void MetadataOnAbstractClassExportIsInaccessible(IContainer container)
         {
@@ -27,9 +39,12 @@
         }
 
         [MefV1.InheritedExport]
+        [MefV1.InheritedExport("InheritedExportOnBoth")]
         [MefV1.ExportMetadata("a", 1)]
         public abstract class AbstractBaseClass { }
 
+        [MefV1.InheritedExport("InheritedExportOnBoth", typeof(AbstractBaseClass))]
+        [MefV1.ExportMetadata("b", 2)]
         public class DerivedOfAbstractClass : AbstractBaseClass { }
 
         #endregion
@@ -66,6 +81,52 @@
         public class BaseClassWithExport { }
 
         public class DerivedTypeOfExportedClass : BaseClassWithExport { }
+
+        #endregion
+
+        #region ExportAttribute does not double up in inheritance tree.
+
+        [MefFact(CompositionEngines.V1Compat, typeof(BaseClassWithCustomExport), typeof(DerivedTypeOfExportedClassWithItsOwnExport), typeof(PartWithImportManyOfBaseClassWithCustomExport))]
+        public void MultipleInheritedExportsAlongInheritanceTree(IContainer container)
+        {
+            var part = container.GetExportedValue<PartWithImportManyOfBaseClassWithCustomExport>();
+            Assert.Equal(2, part.InheritedExportBothPlaces.Count);
+            Assert.Equal(1, part.InheritedExportBothPlaces.Select(v => v.Value).OfType<DerivedTypeOfExportedClassWithItsOwnExport>().Count());
+
+            var derivedPart = container.GetExportedValue<DerivedTypeOfExportedClassWithItsOwnExport>();
+            Assert.NotNull(derivedPart);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(BaseClassWithCustomExport), typeof(DerivedTypeOfExportedClassWithItsOwnExport), typeof(PartWithImportManyOfBaseClassWithCustomExport))]
+        public void InheritedExportsInBaseAndExportInDerived(IContainer container)
+        {
+            var part = container.GetExportedValue<PartWithImportManyOfBaseClassWithCustomExport>();
+            Assert.Equal(3, part.InheritedExportOnBaseType.Count);
+            Assert.Equal(2, part.InheritedExportOnBaseType.Select(v => v.Value).OfType<DerivedTypeOfExportedClassWithItsOwnExport>().Count());
+        }
+
+        [MefV1.InheritedExport("InheritedExportBothPlaces", typeof(BaseClassWithCustomExport))]
+        [MefV1.InheritedExport("InheritedExportOnBaseOnly", typeof(BaseClassWithCustomExport))]
+        [MefV1.ExportMetadata("DefinedOn", "Base")]
+        [MefV1.ExportMetadata("UniqueToBase", "true")]
+        public class BaseClassWithCustomExport { }
+
+        [MefV1.InheritedExport("InheritedExportBothPlaces", typeof(BaseClassWithCustomExport))]
+        [MefV1.Export("InheritedExportOnBaseOnly", typeof(BaseClassWithCustomExport))]
+        [MefV1.Export] // also export its own contract type
+        [MefV1.ExportMetadata("DefinedOn", "Derived")]
+        [MefV1.ExportMetadata("UniqueToDerived", "true")]
+        public class DerivedTypeOfExportedClassWithItsOwnExport : BaseClassWithCustomExport { }
+
+        [MefV1.Export]
+        public class PartWithImportManyOfBaseClassWithCustomExport
+        {
+            [MefV1.ImportMany("InheritedExportBothPlaces")]
+            public List<Lazy<BaseClassWithCustomExport, IDictionary<string, object>>> InheritedExportBothPlaces { get; set; }
+
+            [MefV1.ImportMany("InheritedExportOnBaseOnly")]
+            public List<Lazy<BaseClassWithCustomExport, IDictionary<string, object>>> InheritedExportOnBaseType { get; set; }
+        }
 
         #endregion
 

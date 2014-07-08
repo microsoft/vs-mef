@@ -32,18 +32,26 @@
 
             var allExportsMetadata = ImmutableDictionary.CreateRange(PartCreationPolicyConstraint.GetExportMetadata(partCreationPolicy));
 
+            var exportedContractNamesOnTypeFromInheritedExport = ImmutableHashSet.CreateBuilder<string>();
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
             var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
-            var exportMetadataOnType = allExportsMetadata.AddRange(GetExportMetadata(partType.GetCustomAttributes()));
 
             foreach (var exportAttributes in partType.GetCustomAttributesByType<ExportAttribute>())
             {
+                var exportMetadataOnType = allExportsMetadata.AddRange(GetExportMetadata(exportAttributes.Key.GetCustomAttributes()));
                 foreach (var exportAttribute in exportAttributes)
                 {
                     var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
                     Type exportedType = exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? exportAttributes.Key;
                     string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
+                    if (exportAttribute is InheritedExportAttribute && !exportedContractNamesOnTypeFromInheritedExport.Add(contractName))
+                    {
+                        // We already have an export with this contract name on this type (from a more derived type)
+                        // using InheritedExportAttribute.
+                        continue;
+                    }
+
                     var exportMetadata = exportMetadataOnType
                         .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
                     var exportDefinition = new ExportDefinition(contractName, exportMetadata);

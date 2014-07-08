@@ -97,6 +97,9 @@
             return types.SelectMany(t => t.GetTypeInfo().DeclaredProperties);
         }
 
+        /// <summary>
+        /// Produces a sequence of this type, and each of its base types, in order of ascending the type hierarchy.
+        /// </summary>
         internal static IEnumerable<Type> EnumTypeAndBaseTypes(this Type type)
         {
             Requires.NotNull(type, "type");
@@ -108,6 +111,14 @@
             }
         }
 
+        /// <summary>
+        /// Produces a sequence of attributes, grouped by the type that they are declared on.
+        /// The first group of attributes are those found on the type itself.
+        /// Each successive group contains the set of attributes on the next type up the inheritance hierarchy.
+        /// </summary>
+        /// <typeparam name="T">The type of attribute sought for.</typeparam>
+        /// <param name="type">The type to being searching for attributes to be applied to.</param>
+        /// <returns>A sequence of groups.</returns>
         internal static IEnumerable<IGrouping<Type, T>> GetCustomAttributesByType<T>(this Type type)
             where T : Attribute
         {
