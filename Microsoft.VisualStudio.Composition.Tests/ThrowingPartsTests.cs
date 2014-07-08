@@ -17,5 +17,8 @@
         //  * throwing part is imported lazily by another part.
         //  * throwing part is retrieved via ExportProvider.GetExportedValue<T>
         //  * throwing part is retrieved via ExportProvider.GetExport<T> (Lazy return value)
+        // DESIGN: throw an exception type consistent with the library that owns the [Import] site
+        //         or the ExportProvider that threw the exception.
+
     }
 }
