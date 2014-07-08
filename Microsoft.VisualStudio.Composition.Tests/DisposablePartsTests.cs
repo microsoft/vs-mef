@@ -7,24 +7,24 @@
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
-    using MefV3 = System.ComponentModel.Composition;
+    using MefV1 = System.ComponentModel.Composition;
 
     public class DisposablePartsTests
     {
-        #region Dispoable part happy path test
+        #region Disposable part happy path test
 
-        [MefFact(CompositionEngines.V2Compat | CompositionEngines.V1Compat, typeof(DisposablePart), typeof(UninstantiatedPart))]
-        public void DisposablePartDisposedWithContainer(IContainer container)
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(DisposableNonSharedPart), typeof(UninstantiatedNonSharedPart))]
+        public void DisposableNonSharedPartDisposedWithContainer(IContainer container)
         {
-            var part = container.GetExportedValue<DisposablePart>();
+            var part = container.GetExportedValue<DisposableNonSharedPart>();
             Assert.False(part.IsDisposed);
             container.Dispose();
             Assert.True(part.IsDisposed);
         }
 
         [Export]
-        [MefV3.Export, MefV3.PartCreationPolicy(MefV3.CreationPolicy.NonShared)]
-        public class DisposablePart : IDisposable
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class DisposableNonSharedPart : IDisposable
         {
             public bool IsDisposed { get; private set; }
 
@@ -35,10 +35,10 @@
         }
 
         [Export]
-        [MefV3.Export, MefV3.PartCreationPolicy(MefV3.CreationPolicy.NonShared)]
-        public class UninstantiatedPart : IDisposable
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class UninstantiatedNonSharedPart : IDisposable
         {
-            public UninstantiatedPart()
+            public UninstantiatedNonSharedPart()
             {
                 Assert.False(true, "This should never be instantiated.");
             }
@@ -57,6 +57,9 @@
         {
             ThrowingPart.InstantiatedCounter = 0;
             ThrowingPart.DisposedCounter = 0;
+
+            // We don't use Assert.Throws<T> for this next bit because the containers vary in what
+            // exception type they throw, and this test isn't about verifying which exception is thrown.
             try
             {
                 container.GetExportedValue<ThrowingPart>();
@@ -64,13 +67,16 @@
             }
             catch { }
 
+            Assert.Equal(1, ThrowingPart.InstantiatedCounter);
+            Assert.Equal(0, ThrowingPart.DisposedCounter);
+
             container.Dispose();
             Assert.Equal(1, ThrowingPart.InstantiatedCounter);
             Assert.Equal(1, ThrowingPart.DisposedCounter);
         }
 
         [Export]
-        [MefV3.Export, MefV3.PartCreationPolicy(MefV3.CreationPolicy.NonShared)]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class ThrowingPart : IDisposable
         {
             internal static int InstantiatedCounter;
@@ -82,7 +88,7 @@
             }
 
             [Import]
-            [MefV3.Import]
+            [MefV1.Import]
             public ImportToThrowingPart ImportProperty
             {
                 set { throw new ApplicationException(); }
@@ -95,14 +101,14 @@
         }
 
         [Export]
-        [MefV3.Export, MefV3.PartCreationPolicy(MefV3.CreationPolicy.NonShared)]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class ImportToThrowingPart
         {
         }
 
         #endregion
 
-        #region Internal Dispoable part test
+        #region Internal Disposable part test
 
         [Trait("Access", "NonPublic")]
         [MefFact(CompositionEngines.V1Compat, typeof(InternalDisposablePart))]
@@ -114,7 +120,7 @@
             Assert.True(part.IsDisposed);
         }
 
-        [MefV3.Export]
+        [MefV1.Export]
         internal class InternalDisposablePart : IDisposable
         {
             public bool IsDisposed { get; private set; }
