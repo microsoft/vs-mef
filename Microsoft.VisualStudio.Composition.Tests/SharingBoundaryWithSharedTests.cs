@@ -101,7 +101,7 @@
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<PartWithImportManyOfScopedExports>());
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void DisposeExportDisposesContainer(IContainer container)
         {
             var root = container.GetExportedValue<RootPart>();
