@@ -249,7 +249,7 @@
             contractName = string.IsNullOrEmpty(contractName) ? ContractNameServices.GetTypeIdentity(typeof(T)) : contractName;
 
             var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty
-                .Add(new ExportTypeIdentityConstraint(typeof(T)));
+                .Union(PartDiscovery.GetExportTypeIdentityConstraints(typeof(T)));
 
             if (typeof(TMetadataView) != typeof(DefaultMetadataType))
             {

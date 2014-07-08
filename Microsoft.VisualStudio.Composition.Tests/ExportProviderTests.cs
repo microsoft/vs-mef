@@ -51,7 +51,7 @@
             Assert.Equal(0, exports.Count());
         }
 
-        [MefFact(CompositionEngines.V1/*Compat*/, typeof(Apple))]
+        [MefFact(CompositionEngines.V1Compat, typeof(Apple))]
         public void GetExportOfTypeByObjectAndContractName(IContainer container)
         {
             var apple = container.GetExportedValue<object>("SomeContract");

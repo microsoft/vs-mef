@@ -173,7 +173,7 @@
             return result;
         }
 
-        protected static ImmutableHashSet<IImportSatisfiabilityConstraint> GetExportTypeIdentityConstraints(Type contractType)
+        protected internal static ImmutableHashSet<IImportSatisfiabilityConstraint> GetExportTypeIdentityConstraints(Type contractType)
         {
             Requires.NotNull(contractType, "contractType");
 
