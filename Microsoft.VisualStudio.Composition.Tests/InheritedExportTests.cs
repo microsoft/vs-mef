@@ -11,6 +11,8 @@
     [Trait("Export", "Inherited")]
     public class InheritedExportTests
     {
+        // TODO: add tests for InheritedExportAttribute that appears on interfaces
+
         #region Abstract base class tests
 
         [MefFact(CompositionEngines.V1Compat, typeof(AbstractBaseClass), typeof(DerivedOfAbstractClass))]
@@ -84,7 +86,7 @@
 
         #endregion
 
-        #region ExportAttribute does not double up in inheritance tree.
+        #region InheritedExportAttribute does not double up in inheritance tree.
 
         [MefFact(CompositionEngines.V1Compat, typeof(BaseClassWithCustomExport), typeof(DerivedTypeOfExportedClassWithItsOwnExport), typeof(PartWithImportManyOfBaseClassWithCustomExport))]
         public void MultipleInheritedExportsAlongInheritanceTree(IContainer container)
@@ -105,14 +107,24 @@
             Assert.Equal(2, part.InheritedExportOnBaseType.Select(v => v.Value).OfType<DerivedTypeOfExportedClassWithItsOwnExport>().Count());
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(BaseClassWithCustomExport), typeof(DerivedTypeOfExportedClassWithItsOwnExport))]
+        public void InheritedExportsInBaseAndDerivedWithSameContractNameButDifferentExportedTypes(IContainer container)
+        {
+            var parts = container.GetExportedValues<object>("CommonContractName");
+            Assert.Equal(2, parts.Count());
+            Assert.Equal(1, parts.OfType<DerivedTypeOfExportedClassWithItsOwnExport>().Count());
+        }
+
         [MefV1.InheritedExport("InheritedExportBothPlaces", typeof(BaseClassWithCustomExport))]
         [MefV1.InheritedExport("InheritedExportOnBaseOnly", typeof(BaseClassWithCustomExport))]
+        [MefV1.InheritedExport("CommonContractName")]
         [MefV1.ExportMetadata("DefinedOn", "Base")]
         [MefV1.ExportMetadata("UniqueToBase", "true")]
         public class BaseClassWithCustomExport { }
 
         [MefV1.InheritedExport("InheritedExportBothPlaces", typeof(BaseClassWithCustomExport))]
         [MefV1.Export("InheritedExportOnBaseOnly", typeof(BaseClassWithCustomExport))]
+        [MefV1.InheritedExport("CommonContractName")]
         [MefV1.Export] // also export its own contract type
         [MefV1.ExportMetadata("DefinedOn", "Derived")]
         [MefV1.ExportMetadata("UniqueToDerived", "true")]
@@ -157,6 +169,65 @@
         public abstract class GenericBase<T> { }
 
         public class ClosedDerivedOfGeneric : GenericBase<int> { }
+
+        #endregion
+
+        #region Custom Export/InheritedExport attributes
+
+        [MefFact(CompositionEngines.V1Compat, typeof(DerivedFromBaseTypeWithCustomAttributes))]
+        public void CustomExportAttributeTypeHierarchy(IContainer container)
+        {
+            IEnumerable<BaseTypeWithCustomAttributes> parts;
+            parts = container.GetExportedValues<BaseTypeWithCustomAttributes>("MyExportInheriting");
+            Assert.Equal(0, parts.Count());
+            parts = container.GetExportedValues<BaseTypeWithCustomAttributes>("MyExportNonInheriting");
+            Assert.Equal(0, parts.Count());
+            parts = container.GetExportedValues<BaseTypeWithCustomAttributes>("MyInheritedExportInheriting");
+            Assert.Equal(1, parts.Count());
+            parts = container.GetExportedValues<BaseTypeWithCustomAttributes>("MyInheritedExportNonInheriting");
+            Assert.Equal(1, parts.Count());
+        }
+
+        [MyExportInheriting("MyExportInheriting", typeof(BaseTypeWithCustomAttributes))]
+        [MyExportNonInheriting("MyExportNonInheriting", typeof(BaseTypeWithCustomAttributes))]
+        [MyInheritedExportInheriting("MyInheritedExportInheriting", typeof(BaseTypeWithCustomAttributes))]
+        [MyInheritedExportNonInheriting("MyInheritedExportNonInheriting", typeof(BaseTypeWithCustomAttributes))]
+
+        public class BaseTypeWithCustomAttributes { }
+
+        public class DerivedFromBaseTypeWithCustomAttributes : BaseTypeWithCustomAttributes { }
+
+        [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+        public class MyExportNonInheritingAttribute : MefV1.ExportAttribute
+        {
+            public MyExportNonInheritingAttribute(string contractName, Type exportTypeIdentity)
+                : base(contractName, exportTypeIdentity)
+            { }
+        }
+
+        [AttributeUsage(AttributeTargets.Class, Inherited = true)]
+        public class MyExportInheritingAttribute : MefV1.ExportAttribute
+        {
+            public MyExportInheritingAttribute(string contractName, Type exportTypeIdentity)
+                : base(contractName, exportTypeIdentity)
+            { }
+        }
+
+        [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+        public class MyInheritedExportNonInheritingAttribute : MefV1.InheritedExportAttribute
+        {
+            public MyInheritedExportNonInheritingAttribute(string contractName, Type exportTypeIdentity)
+                : base(contractName, exportTypeIdentity)
+            { }
+        }
+
+        [AttributeUsage(AttributeTargets.Class, Inherited = true)]
+        public class MyInheritedExportInheritingAttribute : MefV1.InheritedExportAttribute
+        {
+            public MyInheritedExportInheritingAttribute(string contractName, Type exportTypeIdentity)
+                : base(contractName, exportTypeIdentity)
+            { }
+        }
 
         #endregion
     }

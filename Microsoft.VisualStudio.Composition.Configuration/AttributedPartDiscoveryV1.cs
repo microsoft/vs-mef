@@ -42,6 +42,15 @@
                 var exportMetadataOnType = allExportsMetadata.AddRange(GetExportMetadata(exportAttributes.Key.GetCustomAttributes()));
                 foreach (var exportAttribute in exportAttributes)
                 {
+                    if (exportAttributes.Key != partType && !(exportAttribute is InheritedExportAttribute))
+                    {
+                        // We only look at base types when the attribute we're considering is
+                        // or derives from InheritedExportAttribute.
+                        // Not it isn't the AttributeUsage.Inherits property.
+                        // To match MEFv1 behavior, it's these two special attributes themselves that define the semantics.
+                        continue;
+                    }
+
                     var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
                     Type exportedType = exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? exportAttributes.Key;
                     string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;

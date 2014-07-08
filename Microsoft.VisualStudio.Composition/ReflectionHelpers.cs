@@ -126,8 +126,6 @@
 
             return from t in EnumTypeAndBaseTypes(type)
                    from attribute in t.GetTypeInfo().GetCustomAttributes<T>(false)
-                   let usage = attribute.GetType().GetTypeInfo().GetCustomAttribute<AttributeUsageAttribute>()
-                   where t.Equals(type) || (usage != null && usage.Inherited)
                    group attribute by t into attributesByType
                    select attributesByType;
         }
