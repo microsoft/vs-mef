@@ -32,18 +32,43 @@
 
             var allExportsMetadata = ImmutableDictionary.CreateRange(PartCreationPolicyConstraint.GetExportMetadata(partCreationPolicy));
 
+            var inheritedExportContractNamesFromNonInterfaces = ImmutableHashSet.CreateBuilder<string>();
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
             var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
-            var exportMetadataOnType = allExportsMetadata.AddRange(GetExportMetadata(partType.GetCustomAttributes()));
 
             foreach (var exportAttributes in partType.GetCustomAttributesByType<ExportAttribute>())
             {
+                var exportMetadataOnType = allExportsMetadata.AddRange(GetExportMetadata(exportAttributes.Key.GetCustomAttributes()));
                 foreach (var exportAttribute in exportAttributes)
                 {
+                    if (exportAttributes.Key != partType && !(exportAttribute is InheritedExportAttribute))
+                    {
+                        // We only look at base types when the attribute we're considering is
+                        // or derives from InheritedExportAttribute.
+                        // Not it isn't the AttributeUsage.Inherits property.
+                        // To match MEFv1 behavior, it's these two special attributes themselves that define the semantics.
+                        continue;
+                    }
+
                     var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
                     Type exportedType = exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? exportAttributes.Key;
                     string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
+                    if (exportAttribute is InheritedExportAttribute)
+                    {
+                        if (inheritedExportContractNamesFromNonInterfaces.Contains(contractName))
+                        {
+                            // We already have an export with this contract name on this type (from a more derived type)
+                            // using InheritedExportAttribute.
+                            continue;
+                        }
+
+                        if (!exportAttributes.Key.IsInterface)
+                        {
+                            inheritedExportContractNamesFromNonInterfaces.Add(contractName);
+                        }
+                    }
+
                     var exportMetadata = exportMetadataOnType
                         .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
                     var exportDefinition = new ExportDefinition(contractName, exportMetadata);

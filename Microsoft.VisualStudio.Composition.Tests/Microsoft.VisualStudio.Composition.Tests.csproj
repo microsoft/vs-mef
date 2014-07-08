@@ -162,6 +162,7 @@
     <Compile Include="SimpleImportExportTests.cs" />
     <Compile Include="StaticMemberExportsTests.cs" />
     <Compile Include="TestUtilities.cs" />
+    <Compile Include="ThrowingPartsTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

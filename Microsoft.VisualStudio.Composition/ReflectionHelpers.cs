@@ -97,6 +97,9 @@
             return types.SelectMany(t => t.GetTypeInfo().DeclaredProperties);
         }
 
+        /// <summary>
+        /// Produces a sequence of this type, and each of its base types, in order of ascending the type hierarchy.
+        /// </summary>
         internal static IEnumerable<Type> EnumTypeAndBaseTypes(this Type type)
         {
             Requires.NotNull(type, "type");
@@ -108,17 +111,37 @@
             }
         }
 
+        /// <summary>
+        /// Produces a sequence of attributes, grouped by the type that they are declared on.
+        /// The first group of attributes are those found on the type itself.
+        /// Each successive group contains the set of attributes on the next type up the inheritance hierarchy.
+        /// After walking up the type hierarchy, all attributes on interfaces are produced.
+        /// </summary>
+        /// <typeparam name="T">The type of attribute sought for.</typeparam>
+        /// <param name="type">The type to being searching for attributes to be applied to.</param>
+        /// <returns>A sequence of groups.</returns>
         internal static IEnumerable<IGrouping<Type, T>> GetCustomAttributesByType<T>(this Type type)
             where T : Attribute
         {
             Requires.NotNull(type, "type");
 
-            return from t in EnumTypeAndBaseTypes(type)
-                   from attribute in t.GetTypeInfo().GetCustomAttributes<T>(false)
-                   let usage = attribute.GetType().GetTypeInfo().GetCustomAttribute<AttributeUsageAttribute>()
-                   where t.Equals(type) || (usage != null && usage.Inherited)
-                   group attribute by t into attributesByType
-                   select attributesByType;
+            var byType = from t in EnumTypeAndBaseTypes(type)
+                         from attribute in t.GetTypeInfo().GetCustomAttributes<T>(false)
+                         group attribute by t into attributesByType
+                         select attributesByType;
+            foreach (var group in byType)
+            {
+                yield return group;
+            }
+
+            var byInterface = from t in type.GetTypeInfo().ImplementedInterfaces
+                              from attribute in t.GetTypeInfo().GetCustomAttributes<T>(false)
+                              group attribute by t into attributesByType
+                              select attributesByType;
+            foreach (var group in byInterface)
+            {
+                yield return group;
+            }
         }
 
         internal static IEnumerable<PropertyInfo> WherePublicInstance(this IEnumerable<PropertyInfo> infos)

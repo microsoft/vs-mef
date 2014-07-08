@@ -15,12 +15,12 @@
         internal const string Namespace = "http://schemas.microsoft.com/vs/2009/dgml";
 
         [Fact]
-        public void CreateDgmlFromConfiguration()
+        public async Task CreateDgmlFromConfiguration()
         {
             var configuration = CompositionConfiguration.Create(
-                new AttributedPartDiscovery(),
-                typeof(Exporter),
-                typeof(Importer));
+                await new AttributedPartDiscovery().CreatePartsAsync(
+                    typeof(Exporter),
+                    typeof(Importer)));
             XDocument dgml = configuration.CreateDgml();
             Assert.NotNull(dgml);
 

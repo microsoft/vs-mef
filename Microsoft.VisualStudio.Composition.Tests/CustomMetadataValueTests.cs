@@ -12,6 +12,9 @@
     [Trait("Metadata", "CustomValue")]
     public class CustomMetadataValueTests
     {
+        // Consider: do we want MEFv3 to follow V1's lead or V2's lead?
+        // We could follow V2's lead by recognizing when we need to instantiate the attribute
+        // at runtime in order to construct the metadata value.
         [MefFact(CompositionEngines.V1, InvalidConfiguration = true)]
         public void CustomMetadataValueV1(IContainer container)
         {

@@ -70,12 +70,8 @@
             Assert.IsType<ProjectPartB>(project2.Value.GetApplicableExtensions().Single().Value);
         }
 
-        /// <summary>
-        /// This test documents the V2 behavior of disposing all values in the immediate container
-        /// of a scoping part when its export is disposed of, but not doing so recursively.
-        /// </summary>
-        [MefFact(CompositionEngines.V2, NoCompatGoal = true)]
-        public void DisposeExportDisposesAllSubContainersV2(IContainer container)
+        [MefFact(CompositionEngines.V2Compat)]
+        public void DisposeExportDisposesImmediateContainerOnly(IContainer container)
         {
             var projectService = container.GetExportedValue<ProjectService>();
             var projectExport = projectService.ProjectFactory.CreateExport();
@@ -92,30 +88,6 @@
             Assert.Equal(1, projectExport.Value.ActiveConfiguration.DisposalCount);
             Assert.Equal(0, configuredProjectExport.Value.DisposalCount);
             Assert.Equal(0, configuredProjectExport.Value.SubscriptionService.DisposalCount);
-        }
-
-        /// <summary>
-        /// This test documents the V3 behavior of disposing all values in the immediate container
-        /// of a scoping part when its export is disposed of, and also recursively disposing of descendent containers.
-        /// </summary>
-        [MefFact(CompositionEngines.Unspecified/*V3EmulatingV2*/)]
-        public void DisposeExportDisposesAllSubContainersV3AsV2(IContainer container)
-        {
-            var projectService = container.GetExportedValue<ProjectService>();
-            var projectExport = projectService.ProjectFactory.CreateExport();
-            var configuredProjectExport = projectExport.Value.ConfiguredProjectFactory.CreateExport();
-
-            Assert.Equal(0, projectExport.Value.DisposalCount);
-            Assert.Equal(0, projectExport.Value.ActiveConfiguration.DisposalCount);
-            Assert.Equal(0, configuredProjectExport.Value.DisposalCount);
-            Assert.Equal(0, configuredProjectExport.Value.SubscriptionService.DisposalCount);
-
-            projectExport.Dispose();
-
-            Assert.Equal(1, projectExport.Value.DisposalCount);
-            Assert.Equal(1, projectExport.Value.ActiveConfiguration.DisposalCount);
-            Assert.Equal(1, configuredProjectExport.Value.DisposalCount);
-            Assert.Equal(1, configuredProjectExport.Value.SubscriptionService.DisposalCount);
         }
 
         [MefFact(CompositionEngines.V3EmulatingV2WithNonPublic)]

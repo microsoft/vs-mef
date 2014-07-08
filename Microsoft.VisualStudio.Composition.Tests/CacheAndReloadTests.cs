@@ -17,7 +17,8 @@
         [Fact]
         public async Task CacheAndReload()
         {
-            var configuration = CompositionConfiguration.Create(new AttributedPartDiscovery(), typeof(SomeExport));
+            var configuration = CompositionConfiguration.Create(
+                new[] { new AttributedPartDiscovery().CreatePart(typeof(SomeExport)) });
             string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             await configuration.SaveAsync(path);
             configuration = null;

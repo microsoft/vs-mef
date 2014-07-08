@@ -790,24 +790,29 @@
             else if (import.IsExportFactory)
             {
                 var exportFactoryEmitClose = this.EmitExportFactoryConstruction(import, writer);
-                writer.Write("() => { var temp = ");
+                bool newSharingScope = importDefinition.ExportFactorySharingBoundaries.Count > 0;
 
-                if (importDefinition.ExportFactorySharingBoundaries.Count > 0)
+                if (newSharingScope)
                 {
+                    writer.Write("() => { var scope = ");
                     writer.Write("new CompiledExportProvider(this, new [] { ");
                     writer.Write(string.Join(", ", importDefinition.ExportFactorySharingBoundaries.Select(Quote)));
-                    writer.Write(" }).");
+                    writer.Write(" }); var part = scope.");
+                }
+                else
+                {
+                    writer.Write("() => { var part = ");
                 }
 
                 return new DisposableWithAction(delegate
                 {
                     writer.Write(".Value; return ");
-                    using (this.EmitExportFactoryTupleConstruction(import.ImportingSiteElementType, "temp", writer))
+                    using (this.EmitExportFactoryTupleConstruction(import.ImportingSiteElementType, "part", writer))
                     {
                         writer.Write("() => { ");
-                        if (typeof(IDisposable).IsAssignableFrom(export.PartDefinition.Type))
+                        if (newSharingScope || typeof(IDisposable).IsAssignableFrom(export.PartDefinition.Type))
                         {
-                            writer.Write("((IDisposable)temp).Dispose(); ");
+                            writer.Write("((IDisposable){0}).Dispose(); ", newSharingScope ? "scope" : "part");
                         }
 
                         writer.Write("}");

@@ -84,7 +84,14 @@
 
         internal static ExportProvider CreateContainer(params Type[] parts)
         {
-            return CompositionConfiguration.Create(new AttributedPartDiscovery(), parts).CreateContainer();
+            return CreateContainerAsync(parts).GetAwaiter().GetResult();
+        }
+
+        internal static async Task<ExportProvider> CreateContainerAsync(params Type[] parts)
+        {
+            return CompositionConfiguration.Create(
+                await new AttributedPartDiscovery().CreatePartsAsync(parts))
+                .CreateContainer();
         }
 
         internal static IContainer CreateContainerV1(params Type[] parts)
@@ -151,7 +158,7 @@
             var catalog = ComposableCatalog.Create(assemblyParts);
             if (parts != null && parts.Length != 0)
             {
-                var typeCatalog = ComposableCatalog.Create(discovery, parts);
+                var typeCatalog = ComposableCatalog.Create(discovery.CreatePartsAsync(parts).GetAwaiter().GetResult());
                 catalog = ComposableCatalog.Create(catalog.Parts.Concat(typeCatalog.Parts));
             }
 

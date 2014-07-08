@@ -12,17 +12,19 @@
     public class CompositionCatalogTests
     {
         [Fact]
-        public void CreateFromTypesOmitsNonPartsV1()
+        public async Task CreateFromTypesOmitsNonPartsV1()
         {
-            var catalog = ComposableCatalog.Create(new AttributedPartDiscoveryV1(), new[] { typeof(NonExportingType), typeof(ExportingType) });
+            var catalog = ComposableCatalog.Create(
+                await new AttributedPartDiscoveryV1().CreatePartsAsync(typeof(NonExportingType), typeof(ExportingType)));
             Assert.Equal(1, catalog.Parts.Count);
             Assert.Equal(typeof(ExportingType), catalog.Parts.Single().Type);
         }
 
         [Fact]
-        public void CreateFromTypesOmitsNonPartsV2()
+        public async Task CreateFromTypesOmitsNonPartsV2()
         {
-            var catalog = ComposableCatalog.Create(new AttributedPartDiscovery(), new[] { typeof(NonExportingType), typeof(ExportingType) });
+            var catalog = ComposableCatalog.Create(
+                await new AttributedPartDiscovery().CreatePartsAsync(typeof(NonExportingType), typeof(ExportingType)));
             Assert.Equal(1, catalog.Parts.Count);
             Assert.Equal(typeof(ExportingType), catalog.Parts.Single().Type);
         }

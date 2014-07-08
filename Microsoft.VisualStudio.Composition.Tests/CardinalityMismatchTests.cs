@@ -13,7 +13,7 @@
         [Fact]
         public void MissingRequiredImport()
         {
-            var configuration = CompositionConfiguration.Create(new AttributedPartDiscovery(), typeof(RequiredImportMissing));
+            var configuration = CompositionConfiguration.Create(new[] { new AttributedPartDiscovery().CreatePart(typeof(RequiredImportMissing)) });
             Assert.Throws<CompositionFailedException>(() => configuration.ThrowOnErrors());
         }
 

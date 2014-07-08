@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -38,17 +39,17 @@
         /// represents a MEF part; otherwise <c>null</c>.</returns>
         public abstract ComposablePartDefinition CreatePart(Type partType);
 
-        /// <summary>
-        /// Reflects over an assembly and produces MEF parts for every applicable type.
-        /// </summary>
-        /// <param name="assembly">The assembly to search for MEF parts.</param>
-        /// <returns>A set of generated parts.</returns>
-        public async Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(Assembly assembly, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(params Type[] partTypes)
         {
-            Requires.NotNull(assembly, "assembly");
+            return this.CreatePartsAsync(partTypes, CancellationToken.None);
+        }
+
+        public async Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(IEnumerable<Type> partTypes, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Requires.NotNull(partTypes, "partTypes");
 
             var tuple = this.CreateDiscoveryBlockChain(cancellationToken);
-            foreach (Type type in this.GetTypes(assembly))
+            foreach (Type type in partTypes)
             {
                 await tuple.Item1.SendAsync(type);
             }
@@ -56,6 +57,17 @@
             tuple.Item1.Complete();
             var parts = await tuple.Item2;
             return parts;
+        }
+
+        /// <summary>
+        /// Reflects over an assembly and produces MEF parts for every applicable type.
+        /// </summary>
+        /// <param name="assembly">The assembly to search for MEF parts.</param>
+        /// <returns>A set of generated parts.</returns>
+        public Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(Assembly assembly, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Requires.NotNull(assembly, "assembly");
+            return this.CreatePartsAsync(this.GetTypes(assembly), cancellationToken);
         }
 
         public abstract bool IsExportFactoryType(Type type);
@@ -74,7 +86,7 @@
                 a => this.GetTypes(a),
                 new ExecutionDataflowBlockOptions
                 {
-                    MaxDegreeOfParallelism = Environment.ProcessorCount,
+                    MaxDegreeOfParallelism = Debugger.IsAttached ? 1 : Environment.ProcessorCount,
                     CancellationToken = cancellationToken,
                 });
             assemblyBlock.LinkTo(tuple.Item1, new DataflowLinkOptions { PropagateCompletion = true });
@@ -162,7 +174,7 @@
             return result;
         }
 
-        protected static ImmutableHashSet<IImportSatisfiabilityConstraint> GetExportTypeIdentityConstraints(Type contractType)
+        protected internal static ImmutableHashSet<IImportSatisfiabilityConstraint> GetExportTypeIdentityConstraints(Type contractType)
         {
             Requires.NotNull(contractType, "contractType");
 
@@ -280,7 +292,7 @@
                 type => this.CreatePart(type),
                 new ExecutionDataflowBlockOptions
                 {
-                    MaxDegreeOfParallelism = Environment.ProcessorCount,
+                    MaxDegreeOfParallelism = Debugger.IsAttached ? 1 : Environment.ProcessorCount,
                     CancellationToken = cancellationToken,
                     MaxMessagesPerTask = 10,
                     BoundedCapacity = 100,
