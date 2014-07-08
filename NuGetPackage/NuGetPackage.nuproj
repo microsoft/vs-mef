@@ -89,6 +89,10 @@
       <Link>build\Validation.dll</Link>
       <AlwaysInclude>true</AlwaysInclude>
     </Content>
+    <Content Include="$(BinariesSourceLocation)System.Threading.Tasks.Dataflow.dll">
+      <Link>build\System.Threading.Tasks.Dataflow.dll</Link>
+      <AlwaysInclude>true</AlwaysInclude>
+    </Content>
   </ItemGroup>
   <Target Name="EnsureBuildFilesAreIncluded" AfterTargets="GetPackageFiles">
     <ItemGroup>

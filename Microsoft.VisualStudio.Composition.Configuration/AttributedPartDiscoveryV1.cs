@@ -249,7 +249,7 @@
                 {
                     if (exportMetadataAttribute.IsMultiple)
                     {
-                        result[exportMetadataAttribute.Name] = AddElement(result.GetValueOrDefault(exportMetadataAttribute.Name) as Array, exportMetadataAttribute.Value);
+                        result[exportMetadataAttribute.Name] = AddElement(result.GetValueOrDefault(exportMetadataAttribute.Name) as Array, exportMetadataAttribute.Value, null);
                     }
                     else
                     {
@@ -264,7 +264,7 @@
                     {
                         if (usage != null && usage.AllowMultiple)
                         {
-                            result[property.Name] = AddElement(result.GetValueOrDefault(property.Name) as Array, property.GetValue(attribute));
+                            result[property.Name] = AddElement(result.GetValueOrDefault(property.Name) as Array, property.GetValue(attribute), property.PropertyType);
                         }
                         else
                         {

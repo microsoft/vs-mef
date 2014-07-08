@@ -11,7 +11,7 @@
 
     public class CustomMetadataAttributeTests
     {
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ImportingPart), typeof(ExportedTypeWithMetadata), typeof(TypeWithExportingMemberAndMetadata))]
         public void CustomMetadataOnExportedType(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPart>();
@@ -19,7 +19,17 @@
             Assert.Equal("4", part.ImportOfType.Metadata["Age"]);
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        // BUGBUG: MEFv2 throws NullReferenceException in this case.
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2)]
+        public void MultipleCustomMetadataOnExportedType(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportingPart>();
+            Assert.IsType<string[]>(part.ImportOfTypeWithMultipleMetadata.Metadata["Name"]);
+            Assert.Equal(null, ((string[])part.ImportOfTypeWithMultipleMetadata.Metadata["Name"])[0]);
+            Assert.Equal(null, ((string[])part.ImportOfTypeWithMultipleMetadata.Metadata["Name"])[1]);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ImportingPart), typeof(ExportedTypeWithMetadata), typeof(TypeWithExportingMemberAndMetadata))]
         public void CustomMetadataOnExportedProperty(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPart>();
@@ -27,7 +37,7 @@
             Assert.Equal("4", part.ImportOfProperty.Metadata["Age"]);
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ImportingPart), typeof(ExportedTypeWithMetadata), typeof(TypeWithExportingMemberAndMetadata))]
         public void CustomMetadataDictionaryCaseSensitive(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPart>();
@@ -39,6 +49,9 @@
         {
             [Import, MefV1.Import]
             public Lazy<ExportedTypeWithMetadata, IDictionary<string, object>> ImportOfType { get; set; }
+
+            [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
+            public Lazy<ExportedTypeWithMultipleMetadata, IDictionary<string, object>> ImportOfTypeWithMultipleMetadata { get; set; }
 
             [Import, MefV1.Import]
             public Lazy<string, IDictionary<string, object>> ImportOfProperty { get; set; }
@@ -58,6 +71,23 @@
             {
                 get { return "Foo"; }
             }
+        }
+
+        [MefV1.Export]
+        [Export]
+        [NameMultiple(Name = null)] // these metadata values are intentionally NULL...
+        [NameMultiple(Name = null)] // ...they test typing of the metadata value array when values are all null.
+        public class ExportedTypeWithMultipleMetadata { }
+
+        /// <summary>
+        /// An attribute that exports "Name" metadata with IsMultiple=true (meaning the value is string[] instead of just string).
+        /// </summary>
+        [MetadataAttribute]
+        [MefV1.MetadataAttribute]
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
+        public class NameMultipleAttribute : Attribute
+        {
+            public string Name { get; set; }
         }
     }
 }

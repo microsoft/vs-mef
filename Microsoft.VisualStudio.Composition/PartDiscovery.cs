@@ -191,7 +191,14 @@
             }
         }
 
-        protected static Array AddElement(Array priorArray, object value)
+        /// <summary>
+        /// Creates an array that contains the contents of a prior array (if any) and one additional element.
+        /// </summary>
+        /// <param name="priorArray">The previous version of the array. May be <c>null</c>. This will not be modified by this method.</param>
+        /// <param name="value">The value to add to the array. May be <c>null</c>.</param>
+        /// <param name="elementType">The element type for the array, if it is created fresh. May be <c>null</c>.</param>
+        /// <returns>A new array.</returns>
+        protected static Array AddElement(Array priorArray, object value, Type elementType)
         {
             Type valueType;
             Array newValue;
@@ -204,7 +211,7 @@
             }
             else
             {
-                valueType = value != null ? value.GetType() : typeof(object);
+                valueType = elementType ?? (value != null ? value.GetType() : typeof(object));
                 newValue = Array.CreateInstance(valueType, 1);
             }
 
