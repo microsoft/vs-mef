@@ -145,12 +145,9 @@
             return new CompositionConfiguration(catalog, parts, ImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>>.Empty, sharingBoundaryOverrides);
         }
 
-        public static CompositionConfiguration Create(PartDiscovery partDiscovery, params Type[] parts)
+        public static CompositionConfiguration Create(IEnumerable<ComposablePartDefinition> parts)
         {
-            Requires.NotNull(partDiscovery, "partDiscovery");
-            Requires.NotNull(parts, "parts");
-
-            return Create(ComposableCatalog.Create(partDiscovery, parts));
+            return Create(ComposableCatalog.Create(parts));
         }
 
         public static IExportProviderFactory Load(AssemblyName assemblyRef)

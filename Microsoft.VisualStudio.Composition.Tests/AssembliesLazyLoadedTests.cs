@@ -21,7 +21,7 @@
         [Fact]
         public async Task ComposableAssembliesLazyLoadedWhenQueried()
         {
-            var configuration = CompositionConfiguration.Create(new AttributedPartDiscovery(), typeof(ExternalExport), typeof(YetAnotherExport));
+            var configuration = CompositionConfiguration.Create(await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExternalExport), typeof(YetAnotherExport)));
             string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             await configuration.SaveAsync(path);
 
@@ -46,7 +46,8 @@
         [Fact]
         public async Task ComposableAssembliesLazyLoadedByLazyImport()
         {
-            var configuration = CompositionConfiguration.Create(new AttributedPartDiscovery(), typeof(ExternalExportWithLazy), typeof(YetAnotherExport));
+            var configuration = CompositionConfiguration.Create(
+                await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExternalExportWithLazy), typeof(YetAnotherExport)));
             string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             await configuration.SaveAsync(path);
 

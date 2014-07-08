@@ -136,10 +136,10 @@
         {
             // There is no way to resolve this catalog. It would instantiate parts forever.
             Assert.Throws<CompositionFailedException>(() => CompositionConfiguration.Create(
-                new AttributedPartDiscovery(), 
-                typeof(NonSharedPart1),
-                typeof(NonSharedPart2),
-                typeof(NonSharedPart3)));
+                new AttributedPartDiscovery().CreatePartsAsync(
+                    typeof(NonSharedPart1),
+                    typeof(NonSharedPart2),
+                    typeof(NonSharedPart3)).GetAwaiter().GetResult()));
         }
 
         [Export]
@@ -245,14 +245,13 @@
         #region No loop, but with multiple paths to a common import
 
         [Fact]
-        public void ValidMultiplePaths()
+        public async Task ValidMultiplePaths()
         {
-            CompositionConfiguration.Create(
-                new AttributedPartDiscovery(), 
+            CompositionConfiguration.Create(await new AttributedPartDiscovery().CreatePartsAsync( 
                 typeof(ValidMultiplePathRoot),
                 typeof(ValidMultiplePathTrail1),
                 typeof(ValidMultiplePathTrail2),
-                typeof(ValidMultiplePathCommonImport));
+                typeof(ValidMultiplePathCommonImport)));
         }
 
         [Export]

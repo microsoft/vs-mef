@@ -38,17 +38,17 @@
         /// represents a MEF part; otherwise <c>null</c>.</returns>
         public abstract ComposablePartDefinition CreatePart(Type partType);
 
-        /// <summary>
-        /// Reflects over an assembly and produces MEF parts for every applicable type.
-        /// </summary>
-        /// <param name="assembly">The assembly to search for MEF parts.</param>
-        /// <returns>A set of generated parts.</returns>
-        public async Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(Assembly assembly, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(params Type[] partTypes)
         {
-            Requires.NotNull(assembly, "assembly");
+            return this.CreatePartsAsync(partTypes, CancellationToken.None);
+        }
+
+        public async Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(IEnumerable<Type> partTypes, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Requires.NotNull(partTypes, "partTypes");
 
             var tuple = this.CreateDiscoveryBlockChain(cancellationToken);
-            foreach (Type type in this.GetTypes(assembly))
+            foreach (Type type in partTypes)
             {
                 await tuple.Item1.SendAsync(type);
             }
@@ -56,6 +56,17 @@
             tuple.Item1.Complete();
             var parts = await tuple.Item2;
             return parts;
+        }
+
+        /// <summary>
+        /// Reflects over an assembly and produces MEF parts for every applicable type.
+        /// </summary>
+        /// <param name="assembly">The assembly to search for MEF parts.</param>
+        /// <returns>A set of generated parts.</returns>
+        public Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(Assembly assembly, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Requires.NotNull(assembly, "assembly");
+            return this.CreatePartsAsync(this.GetTypes(assembly), cancellationToken);
         }
 
         public abstract bool IsExportFactoryType(Type type);
