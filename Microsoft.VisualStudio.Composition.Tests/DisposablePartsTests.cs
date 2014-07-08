@@ -202,5 +202,26 @@
         }
 
         #endregion
+
+        [MefFact(CompositionEngines.V1Compat, new Type[0])]
+        public void ContainerThrowsAfterDisposal(IContainer container)
+        {
+            container.Dispose();
+            Assert.Throws<ObjectDisposedException>(() => container.GetExport<string>());
+            Assert.Throws<ObjectDisposedException>(() => container.GetExport<string>(null));
+            Assert.Throws<ObjectDisposedException>(() => container.GetExport<string, IDictionary<string, object>>());
+            Assert.Throws<ObjectDisposedException>(() => container.GetExport<string, IDictionary<string, object>>(null));
+            Assert.Throws<ObjectDisposedException>(() => container.GetExportedValue<string>());
+            Assert.Throws<ObjectDisposedException>(() => container.GetExportedValue<string>(null));
+            Assert.Throws<ObjectDisposedException>(() => container.GetExportedValues<string>());
+            Assert.Throws<ObjectDisposedException>(() => container.GetExportedValues<string>(null));
+            Assert.Throws<ObjectDisposedException>(() => container.GetExports<string>());
+            Assert.Throws<ObjectDisposedException>(() => container.GetExports<string>(null));
+            Assert.Throws<ObjectDisposedException>(() => container.GetExports<string, IDictionary<string, object>>());
+            Assert.Throws<ObjectDisposedException>(() => container.GetExports<string, IDictionary<string, object>>(null));
+            container.Dispose();
+            container.ToString();
+            container.GetHashCode();
+        }
     }
 }

@@ -12,7 +12,7 @@
     using Validation;
     using DefaultMetadataType = System.Collections.Generic.IDictionary<string, object>;
 
-    public abstract class ExportProvider : IDisposable
+    public abstract class ExportProvider : IDisposableObservable
     {
         internal static readonly ExportDefinition ExportProviderExportDefinition = new ExportDefinition(
             ContractNameServices.GetTypeIdentity(typeof(ExportProvider)),
@@ -40,6 +40,8 @@
         /// </summary>
         private readonly HashSet<IDisposable> disposableInstantiatedParts = new HashSet<IDisposable>();
 
+        private bool isDisposed;
+
         protected ExportProvider(ExportProvider parent, string[] freshSharingBoundaries)
         {
             if (parent == null)
@@ -61,6 +63,11 @@
 
             var nonDisposableWrapper = this is ExportProviderAsExport ? this : new ExportProviderAsExport(this, null, null);
             this.NonDisposableWrapper = LazyPart.Wrap(nonDisposableWrapper);
+        }
+
+        bool IDisposableObservable.IsDisposed
+        {
+            get { return this.isDisposed; }
         }
 
         protected ILazy<ExportProvider> NonDisposableWrapper { get; private set; }
@@ -162,6 +169,8 @@
         {
             if (disposing)
             {
+                this.isDisposed = true;
+
                 // Snapshot the contents of the collection within the lock,
                 // then dispose of the values outside the lock to avoid
                 // executing arbitrary 3rd-party code within our lock.
@@ -246,6 +255,7 @@
 
         private IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName, ImportCardinality cardinality)
         {
+            Verify.NotDisposed(this);
             contractName = string.IsNullOrEmpty(contractName) ? ContractNameServices.GetTypeIdentity(typeof(T)) : contractName;
 
             var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty
