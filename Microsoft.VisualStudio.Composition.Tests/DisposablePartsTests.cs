@@ -14,7 +14,7 @@
         #region Disposable part happy path test
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(DisposableNonSharedPart), typeof(UninstantiatedNonSharedPart))]
-        public void DisposableNonSharedPartDisposedWithContainer(IContainer container)
+        public void DisposableNonSharedPartDisposedWithContainerAfterDirectAcquisition(IContainer container)
         {
             var part = container.GetExportedValue<DisposableNonSharedPart>();
             Assert.False(part.IsDisposed);
@@ -22,9 +22,79 @@
             Assert.True(part.IsDisposed);
         }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(DisposableNonSharedPart))]
+        public void DisposableNonSharedPartDisposedWithContainerForAllInstancesAndThenReleased(IContainer container)
+        {
+            // The allocations have to happen in another method so that any references held by locals
+            // that the compiler creates and we can't directly clear are definitely released.
+            var weakRefs = DisposableNonSharedPartDisposedWithContainerForAllInstancesAndThenReleased_Helper(container);
+            GC.Collect();
+            Assert.True(weakRefs.All(r => !r.IsAlive));
+        }
+
+        private static WeakReference[] DisposableNonSharedPartDisposedWithContainerForAllInstancesAndThenReleased_Helper(IContainer container)
+        {
+            var weakRefs = new WeakReference[3];
+            var parts = new DisposableNonSharedPart[weakRefs.Length];
+            for (int i = 0; i < parts.Length; i++)
+            {
+                parts[i] = container.GetExportedValue<DisposableNonSharedPart>();
+            }
+
+            Assert.True(parts.All(p => !p.IsDisposed));
+            container.Dispose();
+            Assert.True(parts.All(p => p.IsDisposed));
+
+            // Verify that the container is not holding references any more.
+            for (int i = 0; i < parts.Length; i++)
+            {
+                weakRefs[i] = new WeakReference(parts[i]);
+            }
+
+            return weakRefs;
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(DisposableSharedPart))]
+        public void DisposableSharedPartDisposedWithContainerAfterDirectAcquisition(IContainer container)
+        {
+            var part = container.GetExportedValue<DisposableSharedPart>();
+            Assert.False(part.IsDisposed);
+            container.Dispose();
+            Assert.True(part.IsDisposed);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(DisposableNonSharedPart), typeof(UninstantiatedNonSharedPart), typeof(NonSharedPartThatImportsDisposableNonSharedPart))]
+        public void DisposableNonSharedPartDisposedWithContainerAfterImportToAnotherPart(IContainer container)
+        {
+            var part = container.GetExportedValue<NonSharedPartThatImportsDisposableNonSharedPart>();
+            Assert.False(part.ImportOfDisposableNonSharedPart.IsDisposed);
+            container.Dispose();
+            Assert.True(part.ImportOfDisposableNonSharedPart.IsDisposed);
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class NonSharedPartThatImportsDisposableNonSharedPart
+        {
+            [Import, MefV1.Import]
+            public DisposableNonSharedPart ImportOfDisposableNonSharedPart { get; set; }
+        }
+
         [Export]
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class DisposableNonSharedPart : IDisposable
+        {
+            public bool IsDisposed { get; private set; }
+
+            public void Dispose()
+            {
+                this.IsDisposed = true;
+            }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class DisposableSharedPart : IDisposable
         {
             public bool IsDisposed { get; private set; }
 
