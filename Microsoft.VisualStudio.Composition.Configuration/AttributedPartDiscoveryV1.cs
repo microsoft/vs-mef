@@ -32,7 +32,7 @@
 
             var allExportsMetadata = ImmutableDictionary.CreateRange(PartCreationPolicyConstraint.GetExportMetadata(partCreationPolicy));
 
-            var exportedContractNamesOnTypeFromInheritedExport = ImmutableHashSet.CreateBuilder<string>();
+            var inheritedExportContractNamesFromNonInterfaces = ImmutableHashSet.CreateBuilder<string>();
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
             var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
@@ -54,11 +54,19 @@
                     var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
                     Type exportedType = exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? exportAttributes.Key;
                     string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
-                    if (exportAttribute is InheritedExportAttribute && !exportedContractNamesOnTypeFromInheritedExport.Add(contractName))
+                    if (exportAttribute is InheritedExportAttribute)
                     {
-                        // We already have an export with this contract name on this type (from a more derived type)
-                        // using InheritedExportAttribute.
-                        continue;
+                        if (inheritedExportContractNamesFromNonInterfaces.Contains(contractName))
+                        {
+                            // We already have an export with this contract name on this type (from a more derived type)
+                            // using InheritedExportAttribute.
+                            continue;
+                        }
+
+                        if (!exportAttributes.Key.IsInterface)
+                        {
+                            inheritedExportContractNamesFromNonInterfaces.Add(contractName);
+                        }
                     }
 
                     var exportMetadata = exportMetadataOnType

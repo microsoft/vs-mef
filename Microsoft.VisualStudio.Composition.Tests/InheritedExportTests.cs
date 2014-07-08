@@ -11,8 +11,6 @@
     [Trait("Export", "Inherited")]
     public class InheritedExportTests
     {
-        // TODO: add tests for InheritedExportAttribute that appears on interfaces
-
         #region Abstract base class tests
 
         [MefFact(CompositionEngines.V1Compat, typeof(AbstractBaseClass), typeof(DerivedOfAbstractClass))]
@@ -228,6 +226,54 @@
                 : base(contractName, exportTypeIdentity)
             { }
         }
+
+        #endregion
+
+        #region InheritedExport on interfaces
+
+        [MefFact(CompositionEngines.V1Compat, typeof(SomeClassImplementingSelfExportingInterface))]
+        public void InterfaceWithInheritedExport(IContainer container)
+        {
+            var part = container.GetExportedValue<ISelfExporting>();
+            Assert.IsType<SomeClassImplementingSelfExportingInterface>(part);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(SomeExportingClassImplementingSelfExportingInterface))]
+        public void InterfaceWithInheritedExportOnSelfAndImplementingClass(IContainer container)
+        {
+            var parts = container.GetExportedValues<ISelfExporting>();
+            Assert.Equal(1, parts.Count());
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(SomeClassImplementingSelfExportingAndDerivedInterfaceAndExporting))]
+        public void InterfaceWithInheritedExportOnSelfDerivedAndImplementingClass(IContainer container)
+        {
+            var parts = container.GetExportedValues<ISelfExporting>();
+            Assert.Equal(1, parts.Count());
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(SomeClassImplementingSelfExportingAndDerivedInterface))]
+        public void InterfaceWithInheritedExportOnSelfAndDerivedInterface(IContainer container)
+        {
+            var parts = container.GetExportedValues<ISelfExporting>();
+            Assert.Equal(2, parts.Count());
+        }
+
+        [MefV1.InheritedExport]
+        public interface ISelfExporting { }
+
+        [MefV1.InheritedExport(typeof(ISelfExporting))]
+        public interface ISelfExportingDerived : ISelfExporting { }
+
+        public class SomeClassImplementingSelfExportingInterface : ISelfExporting { }
+
+        public class SomeClassImplementingSelfExportingAndDerivedInterface : ISelfExportingDerived { }
+
+        [MefV1.InheritedExport(typeof(ISelfExporting))]
+        public class SomeClassImplementingSelfExportingAndDerivedInterfaceAndExporting : ISelfExportingDerived { }
+
+        [MefV1.InheritedExport(typeof(ISelfExporting))]
+        public class SomeExportingClassImplementingSelfExportingInterface : ISelfExporting { }
 
         #endregion
     }
