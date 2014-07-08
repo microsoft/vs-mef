@@ -348,7 +348,7 @@
 
         #region GetExports (plural) tests
 
-        [MefFact(CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V1Compat, new Type[0])]
         [Trait("Container.GetExport", "Plural")]
         public void GetNamedExportsTMetadataEmpty(IContainer container)
         {
