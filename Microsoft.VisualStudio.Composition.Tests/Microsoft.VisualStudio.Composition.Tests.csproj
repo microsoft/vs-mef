@@ -113,6 +113,7 @@
     <Compile Include="MefV1ExportProviderAdapterTests.cs" />
     <Compile Include="MixedGenericExportsTests.cs" />
     <Compile Include="NestedTypeTests.cs" />
+    <Compile Include="NonSharedPartTests.cs" />
     <Compile Include="ObsoleteAttributeTests.cs" />
     <Compile Include="CompositionCatalogTests.cs" />
     <Compile Include="CompositionServiceTests.cs" />

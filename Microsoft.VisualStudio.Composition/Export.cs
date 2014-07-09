@@ -11,14 +11,14 @@
 
     public class Export
     {
-        private readonly Func<object> exportedValueGetter;
+        private readonly ILazy<object> exportedValueGetter;
 
         public Export(string contractName, IReadOnlyDictionary<string, object> metadata, Func<object> exportedValueGetter)
-            : this(new ExportDefinition(contractName, metadata), exportedValueGetter)
+            : this(new ExportDefinition(contractName, metadata), new LazyPart<object>(exportedValueGetter))
         {
         }
 
-        public Export(ExportDefinition definition, Func<object> exportedValueGetter)
+        public Export(ExportDefinition definition, ILazy<object> exportedValueGetter)
         {
             Requires.NotNull(definition, "definition");
             Requires.NotNull(exportedValueGetter, "exportedValueGetter");
@@ -45,7 +45,7 @@
         /// </remarks>
         public object Value
         {
-            get { return this.exportedValueGetter(); }
+            get { return this.exportedValueGetter.Value; }
         }
 
         internal Export CloseGenericExport(Type[] genericTypeArguments)
@@ -61,7 +61,7 @@
             string contractName = this.Definition.ContractName == openGenericExportTypeIdentity
                 ? closedTypeIdentity : this.Definition.ContractName;
 
-            return new Export(contractName, metadata, this.exportedValueGetter);
+            return new Export(new ExportDefinition(contractName, metadata), this.exportedValueGetter);
         }
     }
 }
