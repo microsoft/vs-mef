@@ -98,5 +98,121 @@
         [Export("SomeContract")]
         [MefV1.Export("SomeContract")]
         public class Apple : Fruit { }
+
+        #region Lazy activation tests
+
+        /// <summary>
+        /// Documents MEF v1 and v2 behavior that all parts are activated even before the enumeration is fully realized.
+        /// See <see cref="GetExportedValuesActivatesPartsWithEnumeration"/> for V3 behavior.
+        /// </summary>
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(Foo1), typeof(Foo2), NoCompatGoal = true)]
+        public void GetExportedValuesActivatesAllReturnedParts(IContainer container)
+        {
+            Foo1.ActivationCounter = 0;
+            Foo2.ActivationCounter = 0;
+            var values = container.GetExportedValues<IFoo>();
+            Assert.Equal(1, Foo1.ActivationCounter);
+            Assert.Equal(1, Foo2.ActivationCounter);
+        }
+
+        /// <summary>
+        /// Verifies that V3 emulates V1 correctly when using the V1 ExportProvider shim.
+        /// </summary>
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Foo1), typeof(Foo2))]
+        public void GetExportedValuesActivatesAllReturnedPartsWithV1Shim(IContainer container)
+        {
+            var shim = container.GetExportedValue<ExportProvider>().AsExportProvider();
+
+            Foo1.ActivationCounter = 0;
+            Foo2.ActivationCounter = 0;
+            var values = shim.GetExportedValues<IFoo>();
+            Assert.Equal(1, Foo1.ActivationCounter);
+            Assert.Equal(1, Foo2.ActivationCounter);
+        }
+
+        /// <summary>
+        /// MEFv3 is more lazy at activating parts than MEFv1 and MEFv2.
+        /// See <see cref="GetExportedValuesActivatesAllReturnedParts"/> for V1/V2 behavior.
+        /// </summary>
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Foo1), typeof(Foo2))]
+        public void GetExportedValuesActivatesPartsWithEnumeration(IContainer container)
+        {
+            var ep = container.GetExportedValue<ExportProvider>();
+
+            Foo1.ActivationCounter = 0;
+            Foo2.ActivationCounter = 0;
+            var values = container.GetExportedValues<IFoo>();
+            Assert.Equal(0, Foo1.ActivationCounter);
+            Assert.Equal(0, Foo2.ActivationCounter);
+
+            // We don't know what order these exports are in, but between the two of them,
+            // exactly one should be activated when we enumerate one element.
+            values.First();
+            Assert.Equal(1, Foo1.ActivationCounter + Foo2.ActivationCounter);
+
+            values.Skip(1).First();
+            Assert.Equal(1, Foo1.ActivationCounter);
+            Assert.Equal(1, Foo2.ActivationCounter);
+
+            values.ToList(); // Enumerate everything again.
+            Assert.Equal(1, Foo1.ActivationCounter);
+            Assert.Equal(1, Foo2.ActivationCounter);
+        }
+
+        public interface IFoo { }
+
+        [Export(typeof(IFoo)), Shared]
+        [MefV1.Export(typeof(IFoo))]
+        public class Foo1 : IFoo
+        {
+            public Foo1()
+            {
+                ActivationCounter++;
+            }
+
+            public static int ActivationCounter;
+        }
+
+        [Export(typeof(IFoo)), Shared]
+        [MefV1.Export(typeof(IFoo))]
+        public class Foo2 : IFoo
+        {
+            public Foo2()
+            {
+                ActivationCounter++;
+            }
+
+            public static int ActivationCounter;
+        }
+
+        #endregion
+
+        #region NonShared parts activated once per query
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(NonSharedPart))]
+        public void NonSharedPartActivatedOncePerNonLazyQuery(IContainer container)
+        {
+            var result = container.GetExportedValues<NonSharedPart>();
+
+            var partInstanceFirst = result.Single();
+            var partInstanceSecond = result.Single();
+            Assert.Same(partInstanceFirst, partInstanceSecond);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(NonSharedPart))]
+        public void NonSharedPartActivatedOncePerLazyQuery(IContainer container)
+        {
+            var result = container.GetExports<NonSharedPart>();
+
+            var partInstanceFirst = result.Single().Value;
+            var partInstanceSecond = result.Single().Value;
+            Assert.Same(partInstanceFirst, partInstanceSecond);
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class NonSharedPart { }
+
+        #endregion
     }
 }
