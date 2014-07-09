@@ -151,12 +151,14 @@
             var filteredExports = from export in exports
                                   where importDefinition.ExportContraints.All(c => c.IsSatisfiedBy(export.Definition))
                                   select export;
-            if (importDefinition.Cardinality == ImportCardinality.ExactlyOne && filteredExports.Count() != 1)
+
+            var exportsSnapshot = filteredExports.ToArray(); // avoid redoing the above work during multiple enumerations of our result.
+            if (importDefinition.Cardinality == ImportCardinality.ExactlyOne && exportsSnapshot.Length != 1)
             {
                 throw new CompositionFailedException();
             }
 
-            return filteredExports;
+            return exportsSnapshot;
         }
 
         public void Dispose()
