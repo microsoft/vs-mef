@@ -11,7 +11,9 @@
 
     public class NonSharedPartTests
     {
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        #region ImportManyOfNonSharedExportsActivatesPartJustOnce
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(EnumerableImportManyOfNonSharedPart), typeof(NonSharedPart))]
         public void ImportManyOfNonSharedExportsActivatesPartJustOnce(IContainer container)
         {
             var part = container.GetExportedValue<EnumerableImportManyOfNonSharedPart>();
@@ -33,5 +35,29 @@
         [Export]
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class NonSharedPart { }
+
+        #endregion
+
+        #region Non-shared open generic export test
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(NonSharedOpenGenericPart<>))]
+        public void GetExportedValuesOfNonSharedOpenGenericExportActivatesPartJustOnce(IContainer container)
+        {
+            var results = container.GetExportedValues<NonSharedOpenGenericPart<int>>();
+            Assert.Same(results.Single(), results.Single());
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(NonSharedOpenGenericPart<>))]
+        public void GetExportsOfNonSharedOpenGenericExportActivatesPartJustOnce(IContainer container)
+        {
+            var results = container.GetExports<NonSharedOpenGenericPart<int>>();
+            Assert.Same(results.Single().Value, results.Single().Value);
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class NonSharedOpenGenericPart<T> { }
+
+        #endregion
     }
 }
