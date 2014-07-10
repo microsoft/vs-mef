@@ -36,7 +36,7 @@
         [Trait("Container.GetExport", "Plural")]
         public void AcquireSingleExportViaGetExports(IContainer container)
         {
-            ILazy<Apple> apple = container.GetExports<Apple>().Single();
+            var apple = container.GetExports<Apple>().Single();
             Assert.NotNull(apple);
             Assert.NotNull(apple.Value);
         }
@@ -44,7 +44,7 @@
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void AcquireSingleLazyExport(IContainer container)
         {
-            ILazy<Apple> appleLazy = container.GetExport<Apple>();
+            Lazy<Apple> appleLazy = container.GetExport<Apple>();
             Assert.NotNull(appleLazy);
 
             // Make sure the Apple hasn't been created yet.

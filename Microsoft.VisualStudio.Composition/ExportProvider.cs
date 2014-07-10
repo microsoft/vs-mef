@@ -72,22 +72,22 @@
 
         protected ILazy<DelegatingExportProvider> NonDisposableWrapper { get; private set; }
 
-        public ILazy<T> GetExport<T>()
+        public Lazy<T> GetExport<T>()
         {
             return this.GetExport<T>(null);
         }
 
-        public ILazy<T> GetExport<T>(string contractName)
+        public Lazy<T> GetExport<T>(string contractName)
         {
             return this.GetExport<T, DefaultMetadataType>(contractName);
         }
 
-        public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
+        public Lazy<T, TMetadataView> GetExport<T, TMetadataView>()
         {
             return this.GetExport<T, TMetadataView>(null);
         }
 
-        public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
+        public Lazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
         {
             return this.GetExports<T, TMetadataView>(contractName, ImportCardinality.ExactlyOne).Single();
         }
@@ -102,22 +102,22 @@
             return this.GetExport<T>(contractName).Value;
         }
 
-        public IEnumerable<ILazy<T>> GetExports<T>()
+        public IEnumerable<Lazy<T>> GetExports<T>()
         {
             return this.GetExports<T>(null);
         }
 
-        public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
+        public IEnumerable<Lazy<T>> GetExports<T>(string contractName)
         {
             return this.GetExports<T, DefaultMetadataType>(contractName);
         }
 
-        public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
+        public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>()
         {
             return this.GetExports<T, TMetadataView>(null);
         }
 
-        public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
+        public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
         {
             return this.GetExports<T, TMetadataView>(contractName, ImportCardinality.ZeroOrMore);
         }
@@ -255,7 +255,7 @@
                 .Single(m => m.GetGenericArguments().Length == arity);
         }
 
-        private IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName, ImportCardinality cardinality)
+        private IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName, ImportCardinality cardinality)
         {
             Verify.NotDisposed(this);
             contractName = string.IsNullOrEmpty(contractName) ? ContractNameServices.GetTypeIdentity(typeof(T)) : contractName;

@@ -16,20 +16,20 @@
 
         IEnumerable<T> GetExportedValues<T>(string contractName);
 
-        ILazy<T> GetExport<T>();
+        Lazy<T> GetExport<T>();
 
-        ILazy<T> GetExport<T>(string contractName);
+        Lazy<T> GetExport<T>(string contractName);
 
-        ILazy<T, TMetadataView> GetExport<T, TMetadataView>();
+        Lazy<T, TMetadataView> GetExport<T, TMetadataView>();
 
-        ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName);
+        Lazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName);
 
-        IEnumerable<ILazy<T>> GetExports<T>();
+        IEnumerable<Lazy<T>> GetExports<T>();
 
-        IEnumerable<ILazy<T>> GetExports<T>(string contractName);
+        IEnumerable<Lazy<T>> GetExports<T>(string contractName);
 
-        IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>();
+        IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>();
 
-        IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName);
+        IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName);
     }
 }

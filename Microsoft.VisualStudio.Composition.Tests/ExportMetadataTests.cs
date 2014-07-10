@@ -352,7 +352,7 @@
         [Trait("Container.GetExport", "Plural")]
         public void GetNamedExportsTMetadataEmpty(IContainer container)
         {
-            IEnumerable<ILazy<object, IDictionary<string, object>>> result =
+            IEnumerable<Lazy<object, IDictionary<string, object>>> result =
                 container.GetExports<object, IDictionary<string, object>>("NoOneExportsThis");
             Assert.Equal(0, result.Count());
         }
@@ -361,7 +361,7 @@
         [Trait("Container.GetExport", "Plural")]
         public void GetNamedExportsTMetadata(IContainer container)
         {
-            IEnumerable<ILazy<object, IDictionary<string, object>>> result =
+            IEnumerable<Lazy<object, IDictionary<string, object>>> result =
                 container.GetExports<object, IDictionary<string, object>>("ExportWithMetadata");
             Assert.Equal(3, result.Count());
             var a = result.Single(e => !e.Metadata.ContainsKey("B") && e.Metadata.ContainsKey("a") && "b".Equals(e.Metadata["a"]));
@@ -376,7 +376,7 @@
         [Trait("Container.GetExport", "Plural")]
         public void GetExportsTMetadataEmpty(IContainer container)
         {
-            IEnumerable<ILazy<object, IDictionary<string, object>>> result =
+            IEnumerable<Lazy<object, IDictionary<string, object>>> result =
                 container.GetExports<object, IDictionary<string, object>>();
             Assert.Equal(0, result.Count());
         }
@@ -385,7 +385,7 @@
         [Trait("Container.GetExport", "Plural")]
         public void GetExportsTMetadata(IContainer container)
         {
-            IEnumerable<ILazy<IFoo, IMetadataBase>> result =
+            IEnumerable<Lazy<IFoo, IMetadataBase>> result =
                 container.GetExports<IFoo, IMetadataBase>();
             Assert.Equal(2, result.Count());
 
@@ -400,7 +400,7 @@
         [Trait("Container.GetExport", "Plural")]
         public void GetExportsDictionaryMetadata(IContainer container)
         {
-            IEnumerable<ILazy<IFoo, IDictionary<string, object>>> result =
+            IEnumerable<Lazy<IFoo, IDictionary<string, object>>> result =
                 container.GetExports<IFoo, IDictionary<string, object>>();
             Assert.Equal(2, result.Count());
 
