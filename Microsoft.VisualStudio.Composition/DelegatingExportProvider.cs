@@ -42,7 +42,7 @@
         /// <summary>
         /// Throws <see cref="NotImplementedException"/>.
         /// </summary>
-        protected override IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition)
+        protected sealed override IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition)
         {
             // This should never be called, because our GetExports override calls the inner one instead,
             // which IS implemented.
