@@ -61,7 +61,7 @@
                 }
             }
 
-            var nonDisposableWrapper = this is ExportProviderAsExport ? this : new ExportProviderAsExport(this, null, null);
+            var nonDisposableWrapper = (this as ExportProviderAsExport) ?? new ExportProviderAsExport(this);
             this.NonDisposableWrapper = LazyPart.Wrap(nonDisposableWrapper);
         }
 
@@ -70,7 +70,7 @@
             get { return this.isDisposed; }
         }
 
-        protected ILazy<ExportProvider> NonDisposableWrapper { get; private set; }
+        protected ILazy<DelegatingExportProvider> NonDisposableWrapper { get; private set; }
 
         public ILazy<T> GetExport<T>()
         {
@@ -132,7 +132,7 @@
             return this.GetExports<T>(contractName).Select(l => l.Value);
         }
 
-        public IEnumerable<Export> GetExports(ImportDefinition importDefinition)
+        public virtual IEnumerable<Export> GetExports(ImportDefinition importDefinition)
         {
             Requires.NotNull(importDefinition, "importDefinition");
 
@@ -289,21 +289,11 @@
             return sharingBoundary;
         }
 
-        private class ExportProviderAsExport : ExportProvider
+        private class ExportProviderAsExport : DelegatingExportProvider
         {
-            private readonly ExportProvider inner;
-
-            internal ExportProviderAsExport(ExportProvider inner, ExportProvider parent, string[] freshSharingBoundaries)
-                : base(parent, freshSharingBoundaries)
+            internal ExportProviderAsExport(ExportProvider inner)
+                : base(inner)
             {
-                Requires.NotNull(inner, "inner");
-
-                this.inner = inner;
-            }
-
-            protected override IEnumerable<Export> GetExportsCore(ImportDefinition definition)
-            {
-                return this.inner.GetExportsCore(definition);
             }
 
             protected override void Dispose(bool disposing)

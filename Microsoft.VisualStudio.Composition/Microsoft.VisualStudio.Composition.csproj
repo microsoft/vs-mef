@@ -88,6 +88,7 @@
     <Compile Include="CompositionFailedException.cs" />
     <Compile Include="ContractNameServices.cs" />
     <Compile Include="CreationPolicy.cs" />
+    <Compile Include="DelegatingExportProvider.cs" />
     <Compile Include="Dgml.cs" />
     <Compile Include="DisposableWithAction.cs" />
     <Compile Include="ExportDefinitionBinding.cs" />
