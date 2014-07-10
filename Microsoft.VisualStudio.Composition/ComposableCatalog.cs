@@ -50,7 +50,7 @@
             }
 
             var filteredExports = from export in exports
-                                  where importDefinition.ExportContraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
+                                  where importDefinition.ExportConstraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
                                   select export;
 
             return ImmutableList.CreateRange(filteredExports);

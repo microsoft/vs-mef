@@ -142,14 +142,14 @@
             Type[] genericTypeArguments;
             if (ComposableCatalog.TryGetOpenGenericExport(importDefinition, out genericTypeDefinitionContractName, out genericTypeArguments))
             {
-                var genericTypeImportDefinition = new ImportDefinition(genericTypeDefinitionContractName, importDefinition.Cardinality, importDefinition.Metadata, importDefinition.ExportContraints);
+                var genericTypeImportDefinition = new ImportDefinition(genericTypeDefinitionContractName, importDefinition.Cardinality, importDefinition.Metadata, importDefinition.ExportConstraints);
                 var openGenericExports = this.GetExportsCore(genericTypeImportDefinition);
                 var closedGenericExports = openGenericExports.Select(export => export.CloseGenericExport(genericTypeArguments));
                 exports = exports.Concat(closedGenericExports);
             }
 
             var filteredExports = from export in exports
-                                  where importDefinition.ExportContraints.All(c => c.IsSatisfiedBy(export.Definition))
+                                  where importDefinition.ExportConstraints.All(c => c.IsSatisfiedBy(export.Definition))
                                   select export;
 
             var exportsSnapshot = filteredExports.ToArray(); // avoid redoing the above work during multiple enumerations of our result.

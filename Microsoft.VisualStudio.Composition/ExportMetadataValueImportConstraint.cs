@@ -7,12 +7,12 @@
     using System.Threading.Tasks;
     using Validation;
 
-    internal class ExportMetadataValueImportConstraint : IImportSatisfiabilityConstraint
+    public class ExportMetadataValueImportConstraint : IImportSatisfiabilityConstraint
     {
         private readonly string name;
         private readonly object value;
 
-        internal ExportMetadataValueImportConstraint(string name, object value)
+        public ExportMetadataValueImportConstraint(string name, object value)
         {
             Requires.NotNullOrEmpty(name, "name");
 
