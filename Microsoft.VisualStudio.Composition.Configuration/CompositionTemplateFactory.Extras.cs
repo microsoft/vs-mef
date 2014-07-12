@@ -436,7 +436,12 @@
                         {
                             writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, genericTypeArgs.Select(GetTypeName).ToArray()));
                             writer.Write(provisionalSharedObjectsExpression);
-                            writer.Write(", nonSharedInstanceRequired: {0})", nonSharedInstanceRequired ? "true" : "false");
+                            if (nonSharedInstanceRequired) // code gen size optimization: take advantage of the optional parameter.
+                            {
+                                writer.Write(", nonSharedInstanceRequired: {0}", nonSharedInstanceRequired ? "true" : "false");
+                            }
+
+                            writer.Write(")");
                         }
                         else
                         {
