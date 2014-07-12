@@ -466,30 +466,22 @@
                 return GetSyntaxToReconstructValue((object)null);
             }
 
-            return SyntaxFactory.InvocationExpression(
-             SyntaxFactory.MemberAccessExpression(
-                 SyntaxKind.SimpleMemberAccessExpression,
-                 SyntaxFactory.ObjectCreationExpression(
-                     SyntaxFactory.GenericName("Dictionary")
-                         .WithTypeArgumentList(
-                             SyntaxFactory.TypeArgumentList(CodeGen.JoinSyntaxNodes<TypeSyntax>(
-                                 SyntaxKind.CommaToken,
-                                 GetTypeNameSyntax(typeof(TKey)),
-                                 GetTypeNameSyntax(typeof(TValue))))))
-                     .WithNewKeywordTrivia()
-                     .WithInitializer(
-                         SyntaxFactory.InitializerExpression(
-                             SyntaxKind.CollectionInitializerExpression,
-                             CodeGen.JoinSyntaxNodes<ExpressionSyntax>(
-                                 SyntaxKind.CommaToken,
-                                 value.Select(kv => SyntaxFactory.InitializerExpression(
-                                     SyntaxKind.ComplexElementInitializerExpression,
-                                     SyntaxFactory.SeparatedList<ExpressionSyntax>(new SyntaxNodeOrToken[] { 
-                                            GetSyntaxToReconstructValue(kv.Key),
-                                            SyntaxFactory.Token(SyntaxKind.CommaToken),
-                                            GetSyntaxToReconstructValue(kv.Value),
-                                        }))).ToArray()))),
-                 SyntaxFactory.IdentifierName("ToImmutableDictionary")));
+            ExpressionSyntax populatingExpression = SyntaxFactory.IdentifierName("EmptyMetadata");
+            foreach (var pair in value)
+            {
+                populatingExpression = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        populatingExpression,
+                        SyntaxFactory.IdentifierName("Add")),
+                        SyntaxFactory.ArgumentList(
+                            SyntaxFactory.SeparatedList<ArgumentSyntax>(new ArgumentSyntax[] { 
+                                SyntaxFactory.Argument(GetSyntaxToReconstructValue(pair.Key)),
+                                SyntaxFactory.Argument(GetSyntaxToReconstructValue(pair.Value)),
+                            })));
+            }
+
+            return populatingExpression;
         }
 
         private ExpressionSyntax GetSyntaxToReconstructValue(object value)

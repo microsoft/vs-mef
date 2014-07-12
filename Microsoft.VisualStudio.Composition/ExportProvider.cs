@@ -27,6 +27,11 @@
             null,
             CreationPolicy.Shared);
 
+        /// <summary>
+        /// A metadata template used by the generated code.
+        /// </summary>
+        protected static readonly ImmutableDictionary<string, object> EmptyMetadata = ImmutableDictionary.Create<string, object>();
+
         private readonly object syncObject = new object();
 
         /// <summary>
