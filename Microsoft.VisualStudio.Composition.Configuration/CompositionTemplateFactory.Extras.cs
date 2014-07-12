@@ -116,7 +116,7 @@
                 return string.Format(
                     CultureInfo.InvariantCulture,
                     "{0}.ManifestModule.ResolveField({1}/*{2}*/)",
-                    this.GetAssemblyExpression(fieldInfo.DeclaringType.Assembly),
+                    CodeGen.GetAssemblySyntax(fieldInfo.DeclaringType.Assembly),
                     fieldInfo.MetadataToken,
                     GetTypeName(fieldInfo.DeclaringType, evenNonPublic: true) + "." + fieldInfo.Name);
             }
@@ -131,7 +131,7 @@
                 return string.Format(
                     CultureInfo.InvariantCulture,
                     "((MethodInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}/*{3}*/).MethodHandle, {2}))",
-                    this.GetAssemblyExpression(methodInfo.DeclaringType.Assembly),
+                    CodeGen.GetAssemblySyntax(methodInfo.DeclaringType.Assembly),
                     methodInfo.MetadataToken,
                     this.GetClosedGenericTypeHandleExpression(methodInfo.DeclaringType),
                     GetTypeName(methodInfo.DeclaringType, evenNonPublic: true) + "." + methodInfo.Name);
@@ -141,7 +141,7 @@
                 return string.Format(
                     CultureInfo.InvariantCulture,
                     "((MethodInfo){0}.ManifestModule.ResolveMethod({1}/*{2}*/))",
-                    this.GetAssemblyExpression(methodInfo.DeclaringType.Assembly),
+                    CodeGen.GetAssemblySyntax(methodInfo.DeclaringType.Assembly),
                     methodInfo.MetadataToken,
                     GetTypeName(methodInfo.DeclaringType, evenNonPublic: true) + "." + methodInfo.Name);
             }
@@ -153,7 +153,7 @@
             return string.Format(
                 CultureInfo.InvariantCulture,
                 "{0}.ManifestModule.ResolveType({1}/*{3}*/).MakeGenericType({2})",
-                this.GetAssemblyExpression(type.Assembly),
+                CodeGen.GetAssemblySyntax(type.Assembly),
                 type.GetGenericTypeDefinition().MetadataToken,
                 string.Join(", ", type.GetGenericArguments().Select(t => t.IsGenericType && t.ContainsGenericParameters ? GetClosedGenericTypeExpression(t) : GetTypeExpression(t))),
                 type.ContainsGenericParameters ? "incomplete" : this.GetTypeName(type, evenNonPublic: true));
@@ -162,13 +162,6 @@
         private string GetClosedGenericTypeHandleExpression(Type type)
         {
             return GetClosedGenericTypeExpression(type) + ".TypeHandle";
-        }
-
-        private string GetAssemblyExpression(Assembly assembly)
-        {
-            Requires.NotNull(assembly, "assembly");
-
-            return string.Format(CultureInfo.InvariantCulture, "Assembly.Load({0})", Quote(assembly.FullName));
         }
 
         private void EmitImportSatisfyingAssignment(KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExport)
@@ -640,7 +633,8 @@
             }
             else
             {
-                string assemblyExpression = GetAssemblyExpression(ctor.DeclaringType.Assembly);
+                var assemblyExpression = CodeGen.GetAssemblySyntax(ctor.DeclaringType.Assembly);
+                var typeName = GetTypeNameSyntax(ctor.DeclaringType, evenNonPublic: true).ToString() + "." + ctor.Name;
                 string ctorExpression;
                 if (ctor.DeclaringType.IsGenericType)
                 {
@@ -649,17 +643,17 @@
                         "(ConstructorInfo)MethodInfo.GetMethodFromHandle({2}.ManifestModule.ResolveMethod({0}/*{3}*/).MethodHandle, {1})",
                         ctor.MetadataToken,
                         this.GetClosedGenericTypeHandleExpression(ctor.DeclaringType),
-                        GetAssemblyExpression(ctor.DeclaringType.Assembly),
-                        GetTypeName(ctor.DeclaringType, evenNonPublic: true) + "." + ctor.Name);
+                        assemblyExpression,
+                        typeName);
                 }
                 else
                 {
                     ctorExpression = string.Format(
                         CultureInfo.InvariantCulture,
                         "(ConstructorInfo){0}.ManifestModule.ResolveMethod({1}/*{2}*/)",
-                        GetAssemblyExpression(ctor.DeclaringType.Assembly),
+                        assemblyExpression,
                         ctor.MetadataToken,
-                        GetTypeName(ctor.DeclaringType, evenNonPublic: true) + "." + ctor.Name);
+                        typeName);
                 }
 
                 writer.Write("({0})({1}).Invoke(new object[] {{", skipCast ? "object" : GetTypeName(ctor.DeclaringType), ctorExpression);
@@ -1332,7 +1326,7 @@
                 var ctor = lazyTypeDefinition.GetConstructors().Single(c => c.GetParameters()[0].ParameterType.Equals(typeof(Func<object>)));
                 writer.WriteLine(
                     "((ILazy<{4}>)((ConstructorInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}/*{3}*/).MethodHandle, {2})).Invoke(new object[] {{ (Func<object>)(() => ",
-                    GetAssemblyExpression(lazyTypeDefinition.Assembly),
+                    CodeGen.GetAssemblySyntax(lazyTypeDefinition.Assembly),
                     ctor.MetadataToken,
                     this.GetClosedGenericTypeHandleExpression(lazyType),
                     GetTypeName(ctor.DeclaringType, evenNonPublic: true) + "." + ctor.Name,
@@ -1368,7 +1362,7 @@
                 var ctor = exportFactoryImport.ExportFactoryType.GetConstructors().Single();
                 writer.WriteLine(
                     "((ConstructorInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}/*{3}*/).MethodHandle, {2})).Invoke(new object[] {{ ",
-                    GetAssemblyExpression(exportFactoryImport.ExportFactoryType.Assembly),
+                    CodeGen.GetAssemblySyntax(exportFactoryImport.ExportFactoryType.Assembly),
                     ctor.MetadataToken,
                     this.GetClosedGenericTypeHandleExpression(exportFactoryImport.ExportFactoryType),
                     ReflectionHelpers.GetTypeName(ctor.DeclaringType, false, true, null, null) + "." + ctor.Name);
