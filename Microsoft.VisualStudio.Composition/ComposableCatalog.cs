@@ -12,8 +12,14 @@
 
     public class ComposableCatalog
     {
+        /// <summary>
+        /// The types behind the parts in the catalog.
+        /// </summary>
         private ImmutableHashSet<Type> types;
 
+        /// <summary>
+        /// The parts in the catalog.
+        /// </summary>
         private ImmutableHashSet<ComposablePartDefinition> parts;
 
         private ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract;
@@ -72,11 +78,17 @@
             return false;
         }
 
+        /// <summary>
+        /// Gets the assemblies within which parts are defined.
+        /// </summary>
         public IEnumerable<Assembly> Assemblies
         {
             get { return this.types.Select(t => t.GetTypeInfo().Assembly).Distinct(); }
         }
 
+        /// <summary>
+        /// Gets the set of parts that belong to the catalog.
+        /// </summary>
         public IImmutableSet<ComposablePartDefinition> Parts
         {
             get { return this.parts; }
