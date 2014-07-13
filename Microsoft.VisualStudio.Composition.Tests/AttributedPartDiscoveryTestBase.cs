@@ -37,24 +37,24 @@
         [Fact]
         public async Task AssemblyDiscoveryFindsTopLevelParts()
         {
-            var parts = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).Assembly);
-            Assert.True(parts.Any(p => p.Type.IsEquivalentTo(typeof(DiscoverablePart1))));
-            Assert.True(parts.Any(p => p.Type.IsEquivalentTo(typeof(DiscoverablePart2))));
+            var result = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).Assembly);
+            Assert.True(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(DiscoverablePart1))));
+            Assert.True(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(DiscoverablePart2))));
         }
 
         [Fact]
         public async Task AssemblyDiscoveryOmitsNonDiscoverableParts()
         {
-            var parts = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).Assembly);
-            Assert.False(parts.Any(p => p.Type.IsEquivalentTo(typeof(NonPart))));
-            Assert.False(parts.Any(p => p.Type.IsEquivalentTo(typeof(NonDiscoverablePart))));
+            var result = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).Assembly);
+            Assert.False(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(NonPart))));
+            Assert.False(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(NonDiscoverablePart))));
         }
 
         [Fact]
         public async Task AssemblyDiscoveryFindsNestedParts()
         {
-            var parts = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).Assembly);
-            Assert.True(parts.Any(p => p.Type.IsEquivalentTo(typeof(OuterClass.NestedPart))));
+            var result = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).Assembly);
+            Assert.True(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(OuterClass.NestedPart))));
         }
 
         [Export]

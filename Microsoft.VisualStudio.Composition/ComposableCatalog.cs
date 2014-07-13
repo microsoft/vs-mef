@@ -24,15 +24,17 @@
 
         private ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract;
 
-        private ComposableCatalog(ImmutableHashSet<Type> types, ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract)
+        private ComposableCatalog(ImmutableHashSet<Type> types, ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, DiscoveredParts discoveredParts)
         {
             Requires.NotNull(types, "types");
             Requires.NotNull(parts, "parts");
             Requires.NotNull(exportsByContract, "exportsByContract");
+            Requires.NotNull(discoveredParts, "discoveredParts");
 
             this.types = types;
             this.parts = parts;
             this.exportsByContract = exportsByContract;
+            this.DiscoveredParts = discoveredParts;
         }
 
         public IReadOnlyList<ExportDefinitionBinding> GetExports(ImportDefinition importDefinition)
@@ -94,17 +96,30 @@
             get { return this.parts; }
         }
 
+        /// <summary>
+        /// Gets the parts that were added to the catalog via a <see cref="PartDiscovery"/> class.
+        /// </summary>
+        public DiscoveredParts DiscoveredParts { get; private set; }
+
         public static ComposableCatalog Create()
         {
             return new ComposableCatalog(
                 ImmutableHashSet.Create<Type>(),
                 ImmutableHashSet.Create<ComposablePartDefinition>(),
-                ImmutableDictionary.Create<string, ImmutableList<ExportDefinitionBinding>>());
+                ImmutableDictionary.Create<string, ImmutableList<ExportDefinitionBinding>>(),
+                DiscoveredParts.Empty);
         }
 
         public static ComposableCatalog Create(IEnumerable<ComposablePartDefinition> parts)
         {
+            Requires.NotNull(parts, "parts");
             return parts.Aggregate(Create(), (catalog, part) => catalog.WithPart(part));
+        }
+
+        public static ComposableCatalog Create(DiscoveredParts parts)
+        {
+            Requires.NotNull(parts, "parts");
+            return Create().WithParts(parts);
         }
 
         public ComposableCatalog WithPart(ComposablePartDefinition partDefinition)
@@ -137,7 +152,22 @@
                 }
             }
 
-            return new ComposableCatalog(types, parts, exportsByContract);
+            return new ComposableCatalog(types, parts, exportsByContract, this.DiscoveredParts);
+        }
+
+        public ComposableCatalog WithParts(IEnumerable<ComposablePartDefinition> parts)
+        {
+            Requires.NotNull(parts, "parts");
+
+            return parts.Aggregate(this, (catalog, part) => catalog.WithPart(part));
+        }
+
+        public ComposableCatalog WithParts(DiscoveredParts parts)
+        {
+            Requires.NotNull(parts, "parts");
+
+            var catalog = this.WithParts(parts.Parts);
+            return new ComposableCatalog(catalog.types, catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts));
         }
     }
 }

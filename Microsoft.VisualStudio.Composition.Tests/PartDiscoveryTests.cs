@@ -16,7 +16,8 @@
         {
             var discovery = new SketchyPartDiscovery();
             var parts = await discovery.CreatePartsAsync(typeof(string), typeof(int));
-            Assert.Equal(1, parts.Count);
+            Assert.Equal(1, parts.DiscoveryErrors.Count);
+            Assert.Equal(1, parts.Parts.Count);
         }
 
         [Fact]
@@ -24,7 +25,8 @@
         {
             var discovery = new SketchyPartDiscovery();
             var parts = await discovery.CreatePartsAsync(this.GetType().Assembly);
-            Assert.Equal(0, parts.Count);
+            Assert.Equal(1, parts.DiscoveryErrors.Count);
+            Assert.Equal(0, parts.Parts.Count);
         }
 
         private class SketchyPartDiscovery : PartDiscovery

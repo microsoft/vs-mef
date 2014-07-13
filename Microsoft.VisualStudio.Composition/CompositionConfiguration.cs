@@ -150,6 +150,11 @@
             return Create(ComposableCatalog.Create(parts));
         }
 
+        public static CompositionConfiguration Create(DiscoveredParts parts)
+        {
+            return Create(ComposableCatalog.Create(parts));
+        }
+
         public static IExportProviderFactory Load(AssemblyName assemblyRef)
         {
             return new CompiledExportProviderFactory(Assembly.Load(assemblyRef));
@@ -188,6 +193,8 @@
         /// </remarks>
         public CompositionConfiguration ThrowOnErrors()
         {
+            this.Catalog.DiscoveredParts.ThrowOnErrors();
+
             if (this.CompositionErrors.IsEmpty)
             {
                 return this;
