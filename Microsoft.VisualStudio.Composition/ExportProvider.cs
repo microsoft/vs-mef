@@ -32,6 +32,15 @@
         /// </summary>
         protected static readonly ImmutableDictionary<string, object> EmptyMetadata = ImmutableDictionary.Create<string, object>();
 
+        /// <summary>
+        /// An array of manifest modules required for access by reflection.
+        /// </summary>
+        /// <remarks>
+        /// This field is initialized to an array of appropriate size by the derived code-gen'd class.
+        /// Its elements are individually lazily initialized.
+        /// </remarks>
+        protected Module[] cachedManifests;
+
         private readonly object syncObject = new object();
 
         /// <summary>
@@ -258,6 +267,34 @@
         {
             return this.GetType().GetTypeInfo().GetDeclaredMethods(methodName)
                 .Single(m => m.GetGenericArguments().Length == arity);
+        }
+
+        /// <summary>
+        /// Gets the manifest module for an assembly.
+        /// </summary>
+        /// <param name="assemblyId">The index into the cached manifest array.</param>
+        /// <returns>The manifest module.</returns>
+        protected Module GetAssemblyManifest(int assemblyId)
+        {
+            Module result = cachedManifests[assemblyId];
+            if (result == null)
+            {
+                // We don't need to worry about thread-safety here because if two threads assign the
+                // reference to the loaded assembly to the array slot, that's just fine.
+                result = Assembly.Load(new AssemblyName(this.GetAssemblyName(assemblyId))).ManifestModule;
+                cachedManifests[assemblyId] = result;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// When overridden in the derived code-gen'd class, this method gets the full name
+        /// of an assembly for an integer that the code-gen knows about.
+        /// </summary>
+        protected virtual string GetAssemblyName(int assemblyId)
+        {
+            throw new NotImplementedException();
         }
 
         private IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName, ImportCardinality cardinality)

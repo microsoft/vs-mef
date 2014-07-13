@@ -27,16 +27,6 @@ using CompositionFailedException = Microsoft.VisualStudio.Composition.Compositio
 
 internal class CompiledExportProvider : ExportProvider
 {
-    public CompiledExportProvider()
-        : this(null, null)
-    {
-    }
-
-    public CompiledExportProvider(ExportProvider parent, string[] freshSharingBoundaries)
-        : base(parent, freshSharingBoundaries)
-    {
-    }
-
     protected override IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition)
     {
         var provisionalSharedObjects = new Dictionary<Type, object>();
@@ -178,5 +168,21 @@ foreach (var part in this.Configuration.Parts)
     }
 <#
     }
+
+    using (Indent())
+    {
+        this.EmitAdditionalMembers();
+    }
 #>
+
+    public CompiledExportProvider()
+        : this(null, null)
+    {
+    }
+
+    public CompiledExportProvider(ExportProvider parent, string[] freshSharingBoundaries)
+        : base(parent, freshSharingBoundaries)
+    {
+        this.cachedManifests = new Module[<#= reflectionLoadedAssemblies.Count #>];
+    }
 }

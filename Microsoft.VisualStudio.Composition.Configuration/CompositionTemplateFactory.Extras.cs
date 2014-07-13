@@ -24,6 +24,16 @@
         private readonly HashSet<Type> relevantEmbeddedTypes = new HashSet<Type>();
 
         /// <summary>
+        /// Additional members of the generated ExportProvider-derived type to emit.
+        /// </summary>
+        private readonly List<MemberDeclarationSyntax> extraMembers = new List<MemberDeclarationSyntax>();
+
+        /// <summary>
+        /// The list of assemblies that need to be referenced by the generated code.
+        /// </summary>
+        private readonly List<Assembly> reflectionLoadedAssemblies = new List<Assembly>();
+
+        /// <summary>
         /// A collection of symbols defined at the level of the generated class.
         /// </summary>
         /// <remarks>
@@ -115,8 +125,8 @@
             {
                 return string.Format(
                     CultureInfo.InvariantCulture,
-                    "{0}.ManifestModule.ResolveField({1}/*{2}*/)",
-                    CodeGen.GetAssemblySyntax(fieldInfo.DeclaringType.Assembly),
+                    "{0}.ResolveField({1}/*{2}*/)",
+                    this.GetManifestModuleSyntax(fieldInfo.DeclaringType.Assembly),
                     fieldInfo.MetadataToken,
                     GetTypeName(fieldInfo.DeclaringType, evenNonPublic: true) + "." + fieldInfo.Name);
             }
@@ -130,8 +140,8 @@
             {
                 return string.Format(
                     CultureInfo.InvariantCulture,
-                    "((MethodInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}/*{3}*/).MethodHandle, {2}))",
-                    CodeGen.GetAssemblySyntax(methodInfo.DeclaringType.Assembly),
+                    "((MethodInfo)MethodInfo.GetMethodFromHandle({0}.ResolveMethod({1}/*{3}*/).MethodHandle, {2}))",
+                    this.GetManifestModuleSyntax(methodInfo.DeclaringType.Assembly),
                     methodInfo.MetadataToken,
                     this.GetClosedGenericTypeHandleExpression(methodInfo.DeclaringType),
                     GetTypeName(methodInfo.DeclaringType, evenNonPublic: true) + "." + methodInfo.Name);
@@ -140,8 +150,8 @@
             {
                 return string.Format(
                     CultureInfo.InvariantCulture,
-                    "((MethodInfo){0}.ManifestModule.ResolveMethod({1}/*{2}*/))",
-                    CodeGen.GetAssemblySyntax(methodInfo.DeclaringType.Assembly),
+                    "((MethodInfo){0}.ResolveMethod({1}/*{2}*/))",
+                    this.GetManifestModuleSyntax(methodInfo.DeclaringType.Assembly),
                     methodInfo.MetadataToken,
                     GetTypeName(methodInfo.DeclaringType, evenNonPublic: true) + "." + methodInfo.Name);
             }
@@ -152,8 +162,8 @@
             Requires.NotNull(type, "type");
             return string.Format(
                 CultureInfo.InvariantCulture,
-                "{0}.ManifestModule.ResolveType({1}/*{3}*/).MakeGenericType({2})",
-                CodeGen.GetAssemblySyntax(type.Assembly),
+                "{0}.ResolveType({1}/*{3}*/).MakeGenericType({2})",
+                this.GetManifestModuleSyntax(type.Assembly),
                 type.GetGenericTypeDefinition().MetadataToken,
                 string.Join(", ", type.GetGenericArguments().Select(t => t.IsGenericType && t.ContainsGenericParameters ? GetClosedGenericTypeExpression(t) : GetTypeExpression(t))),
                 type.ContainsGenericParameters ? "incomplete" : this.GetTypeName(type, evenNonPublic: true));
@@ -633,25 +643,25 @@
             }
             else
             {
-                var assemblyExpression = CodeGen.GetAssemblySyntax(ctor.DeclaringType.Assembly);
+                var manifestModuleSyntax = this.GetManifestModuleSyntax(ctor.DeclaringType.Assembly);
                 var typeName = GetTypeNameSyntax(ctor.DeclaringType, evenNonPublic: true).ToString() + "." + ctor.Name;
                 string ctorExpression;
                 if (ctor.DeclaringType.IsGenericType)
                 {
                     ctorExpression = string.Format(
                         CultureInfo.InvariantCulture,
-                        "(ConstructorInfo)MethodInfo.GetMethodFromHandle({2}.ManifestModule.ResolveMethod({0}/*{3}*/).MethodHandle, {1})",
+                        "(ConstructorInfo)MethodInfo.GetMethodFromHandle({2}.ResolveMethod({0}/*{3}*/).MethodHandle, {1})",
                         ctor.MetadataToken,
                         this.GetClosedGenericTypeHandleExpression(ctor.DeclaringType),
-                        assemblyExpression,
+                        manifestModuleSyntax,
                         typeName);
                 }
                 else
                 {
                     ctorExpression = string.Format(
                         CultureInfo.InvariantCulture,
-                        "(ConstructorInfo){0}.ManifestModule.ResolveMethod({1}/*{2}*/)",
-                        assemblyExpression,
+                        "(ConstructorInfo){0}.ResolveMethod({1}/*{2}*/)",
+                        manifestModuleSyntax,
                         ctor.MetadataToken,
                         typeName);
                 }
@@ -1325,8 +1335,8 @@
             {
                 var ctor = lazyTypeDefinition.GetConstructors().Single(c => c.GetParameters()[0].ParameterType.Equals(typeof(Func<object>)));
                 writer.WriteLine(
-                    "((ILazy<{4}>)((ConstructorInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}/*{3}*/).MethodHandle, {2})).Invoke(new object[] {{ (Func<object>)(() => ",
-                    CodeGen.GetAssemblySyntax(lazyTypeDefinition.Assembly),
+                    "((ILazy<{4}>)((ConstructorInfo)MethodInfo.GetMethodFromHandle({0}.ResolveMethod({1}/*{3}*/).MethodHandle, {2})).Invoke(new object[] {{ (Func<object>)(() => ",
+                    this.GetManifestModuleSyntax(lazyTypeDefinition.Assembly),
                     ctor.MetadataToken,
                     this.GetClosedGenericTypeHandleExpression(lazyType),
                     GetTypeName(ctor.DeclaringType, evenNonPublic: true) + "." + ctor.Name,
@@ -1361,8 +1371,8 @@
             {
                 var ctor = exportFactoryImport.ExportFactoryType.GetConstructors().Single();
                 writer.WriteLine(
-                    "((ConstructorInfo)MethodInfo.GetMethodFromHandle({0}.ManifestModule.ResolveMethod({1}/*{3}*/).MethodHandle, {2})).Invoke(new object[] {{ ",
-                    CodeGen.GetAssemblySyntax(exportFactoryImport.ExportFactoryType.Assembly),
+                    "((ConstructorInfo)MethodInfo.GetMethodFromHandle({0}.ResolveMethod({1}/*{3}*/).MethodHandle, {2})).Invoke(new object[] {{ ",
+                    this.GetManifestModuleSyntax(exportFactoryImport.ExportFactoryType.Assembly),
                     ctor.MetadataToken,
                     this.GetClosedGenericTypeHandleExpression(exportFactoryImport.ExportFactoryType),
                     ReflectionHelpers.GetTypeName(ctor.DeclaringType, false, true, null, null) + "." + ctor.Name);
@@ -1428,6 +1438,90 @@
                 CultureInfo.InvariantCulture,
                 "typeof(Tuple<,>).MakeGenericType({0}, typeof(System.Action))",
                 this.GetTypeExpression(constructedType));
+        }
+
+        /// <summary>
+        /// Gets the expression syntax for the manifest module of the given assembly.
+        /// </summary>
+        /// <param name="assembly">The assembly for which the manifest module is required by the generated code.</param>
+        /// <returns>The expression syntax.</returns>
+        private ExpressionSyntax GetManifestModuleSyntax(Assembly assembly)
+        {
+            // Ensure that this assembly has been assigned an index, which we'll use in the generated code.
+            int index = this.reflectionLoadedAssemblies.IndexOf(assembly);
+            if (index < 0)
+            {
+                this.reflectionLoadedAssemblies.Add(assembly);
+                index = this.reflectionLoadedAssemblies.Count - 1;
+            }
+
+            // CODE: this.GetAssemblyManifest(index)
+            return SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.ThisExpression(),
+                    SyntaxFactory.IdentifierName("GetAssemblyManifest")),
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                        SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(index))))));
+        }
+
+        private void EmitAdditionalMembers()
+        {
+            this.extraMembers.Add(this.CreateGetAssemblyNameMethod());
+
+            foreach (var member in this.extraMembers)
+            {
+                this.WriteLine(string.Empty);
+                this.WriteLine(member.NormalizeWhitespace().ToString());
+            }
+        }
+
+        /// <summary>
+        /// Creates the syntax for the <see cref="ExportProvider.GetAssemblyName"/> method override.
+        /// </summary>
+        private MemberDeclarationSyntax CreateGetAssemblyNameMethod()
+        {
+            var assemblyIdParameter = SyntaxFactory.IdentifierName("assemblyId");
+            var method = SyntaxFactory.MethodDeclaration(
+                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                "GetAssemblyName")
+                .AddModifiers(
+                    SyntaxFactory.Token(SyntaxKind.ProtectedKeyword),
+                    SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
+                .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
+                    SyntaxFactory.Parameter(
+                        SyntaxFactory.List<AttributeListSyntax>(),
+                        SyntaxFactory.TokenList(),
+                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+                        assemblyIdParameter.Identifier,
+                        null))));
+
+            var switchStatement = SyntaxFactory.SwitchStatement(assemblyIdParameter);
+
+            for (int i = 0; i < this.reflectionLoadedAssemblies.Count; i++)
+            {
+                Assembly assembly = this.reflectionLoadedAssemblies[i];
+                var label = SyntaxFactory.SingletonList<SwitchLabelSyntax>(
+                    SyntaxFactory.SwitchLabel(
+                        SyntaxKind.CaseSwitchLabel,
+                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i))));
+                var statement = SyntaxFactory.ReturnStatement(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(assembly.FullName)));
+                var section = SyntaxFactory.SwitchSection(label, SyntaxFactory.SingletonList<StatementSyntax>(statement));
+                switchStatement = switchStatement.AddSections(section);
+            }
+
+            switchStatement = switchStatement.AddSections(SyntaxFactory.SwitchSection(
+                SyntaxFactory.SingletonList<SwitchLabelSyntax>(
+                    SyntaxFactory.SwitchLabel(SyntaxKind.DefaultSwitchLabel)),
+                SyntaxFactory.SingletonList<StatementSyntax>(
+                    SyntaxFactory.ThrowStatement(
+                        SyntaxFactory.ObjectCreationExpression(this.GetTypeNameSyntax(typeof(ArgumentOutOfRangeException)))
+                            .WithArgumentList(SyntaxFactory.ArgumentList())))));
+
+            method = method.WithBody(SyntaxFactory.Block(switchStatement));
+            return method;
         }
 
         private string ReserveLocalVarName(string desiredName)
