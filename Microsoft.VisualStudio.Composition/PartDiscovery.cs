@@ -289,7 +289,17 @@
         private Tuple<ITargetBlock<Type>, Task<ImmutableHashSet<ComposablePartDefinition>>> CreateDiscoveryBlockChain(CancellationToken cancellationToken)
         {
             var transformBlock = new TransformBlock<Type, ComposablePartDefinition>(
-                type => this.CreatePart(type),
+                type =>
+                {
+                    try
+                    {
+                        return this.CreatePart(type);
+                    }
+                    catch
+                    {
+                        return null;
+                    }
+                },
                 new ExecutionDataflowBlockOptions
                 {
                     MaxDegreeOfParallelism = Debugger.IsAttached ? 1 : Environment.ProcessorCount,
