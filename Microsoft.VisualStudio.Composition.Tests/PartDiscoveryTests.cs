@@ -19,6 +19,14 @@
             Assert.Equal(1, parts.Count);
         }
 
+        [Fact]
+        public async Task CreatePartsAsync_Assembly_ResilientAgainstReflectionErrors()
+        {
+            var discovery = new SketchyPartDiscovery();
+            var parts = await discovery.CreatePartsAsync(this.GetType().Assembly);
+            Assert.Equal(0, parts.Count);
+        }
+
         private class SketchyPartDiscovery : PartDiscovery
         {
             public override ComposablePartDefinition CreatePart(Type partType)
@@ -45,7 +53,7 @@
 
             protected override IEnumerable<Type> GetTypes(System.Reflection.Assembly assembly)
             {
-                return assembly.GetTypes();
+                throw new ArgumentException();
             }
         }
     }

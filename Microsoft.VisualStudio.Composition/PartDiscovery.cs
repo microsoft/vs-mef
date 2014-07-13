@@ -64,10 +64,18 @@
         /// </summary>
         /// <param name="assembly">The assembly to search for MEF parts.</param>
         /// <returns>A set of generated parts.</returns>
-        public Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(Assembly assembly, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(Assembly assembly, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(assembly, "assembly");
-            return this.CreatePartsAsync(this.GetTypes(assembly), cancellationToken);
+
+            try
+            {
+                return await this.CreatePartsAsync(this.GetTypes(assembly), cancellationToken);
+            }
+            catch
+            {
+                return ImmutableHashSet<ComposablePartDefinition>.Empty;
+            }
         }
 
         public abstract bool IsExportFactoryType(Type type);
