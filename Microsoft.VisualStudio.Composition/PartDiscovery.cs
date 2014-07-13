@@ -39,12 +39,12 @@
         /// represents a MEF part; otherwise <c>null</c>.</returns>
         public abstract ComposablePartDefinition CreatePart(Type partType);
 
-        public Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(params Type[] partTypes)
+        public Task<DiscoveredParts> CreatePartsAsync(params Type[] partTypes)
         {
             return this.CreatePartsAsync(partTypes, CancellationToken.None);
         }
 
-        public async Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(IEnumerable<Type> partTypes, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<Type> partTypes, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(partTypes, "partTypes");
 
@@ -64,10 +64,18 @@
         /// </summary>
         /// <param name="assembly">The assembly to search for MEF parts.</param>
         /// <returns>A set of generated parts.</returns>
-        public Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(Assembly assembly, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<DiscoveredParts> CreatePartsAsync(Assembly assembly, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(assembly, "assembly");
-            return this.CreatePartsAsync(this.GetTypes(assembly), cancellationToken);
+
+            try
+            {
+                return await this.CreatePartsAsync(this.GetTypes(assembly), cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                return new DiscoveredParts(ImmutableHashSet<ComposablePartDefinition>.Empty, ImmutableList.Create(ex));
+            }
         }
 
         public abstract bool IsExportFactoryType(Type type);
@@ -77,7 +85,7 @@
         /// </summary>
         /// <param name="assemblies">The assemblies to search for MEF parts.</param>
         /// <returns>A set of generated parts.</returns>
-        public async Task<IReadOnlyCollection<ComposablePartDefinition>> CreatePartsAsync(IEnumerable<Assembly> assemblies, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<Assembly> assemblies, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(assemblies, "assemblies");
 
@@ -286,10 +294,20 @@
             return null;
         }
 
-        private Tuple<ITargetBlock<Type>, Task<ImmutableHashSet<ComposablePartDefinition>>> CreateDiscoveryBlockChain(CancellationToken cancellationToken)
+        private Tuple<ITargetBlock<Type>, Task<DiscoveredParts>> CreateDiscoveryBlockChain(CancellationToken cancellationToken)
         {
-            var transformBlock = new TransformBlock<Type, ComposablePartDefinition>(
-                type => this.CreatePart(type),
+            var transformBlock = new TransformBlock<Type, object>(
+                type =>
+                {
+                    try
+                    {
+                        return this.CreatePart(type);
+                    }
+                    catch (Exception ex)
+                    {
+                        return ex;
+                    }
+                },
                 new ExecutionDataflowBlockOptions
                 {
                     MaxDegreeOfParallelism = Debugger.IsAttached ? 1 : Environment.ProcessorCount,
@@ -298,16 +316,29 @@
                     BoundedCapacity = 100,
                 });
             var parts = ImmutableHashSet.CreateBuilder<ComposablePartDefinition>();
-            var aggregatingBlock = new ActionBlock<ComposablePartDefinition>(part => { if (part != null) parts.Add(part); });
+            var errors = ImmutableList.CreateBuilder<Exception>();
+            var aggregatingBlock = new ActionBlock<object>(partOrException =>
+            {
+                var part = partOrException as ComposablePartDefinition;
+                var error = partOrException as Exception;
+                if (part != null)
+                {
+                    parts.Add(part);
+                }
+                else if (error != null)
+                {
+                    errors.Add(error);
+                }
+            });
             transformBlock.LinkTo(aggregatingBlock, new DataflowLinkOptions { PropagateCompletion = true });
 
-            var tcs = new TaskCompletionSource<ImmutableHashSet<ComposablePartDefinition>>();
+            var tcs = new TaskCompletionSource<DiscoveredParts>();
             Task.Run(async delegate
             {
                 try
                 {
                     await aggregatingBlock.Completion;
-                    tcs.SetResult(parts.ToImmutable());
+                    tcs.SetResult(new DiscoveredParts(parts.ToImmutable(), errors.ToImmutable()));
                 }
                 catch (Exception ex)
                 {
@@ -315,7 +346,7 @@
                 }
             });
 
-            return Tuple.Create<ITargetBlock<Type>, Task<ImmutableHashSet<ComposablePartDefinition>>>(transformBlock, tcs.Task);
+            return Tuple.Create<ITargetBlock<Type>, Task<DiscoveredParts>>(transformBlock, tcs.Task);
         }
 
         private class CombinedPartDiscovery : PartDiscovery

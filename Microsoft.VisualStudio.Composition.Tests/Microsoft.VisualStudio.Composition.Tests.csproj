@@ -150,6 +150,7 @@
     <Compile Include="OnImportsSatisfiedTests.cs" />
     <Compile Include="OpenGenericExportTests.cs" />
     <Compile Include="NamedTypedExportTests.cs" />
+    <Compile Include="PartDiscoveryTests.cs" />
     <Compile Include="ProjectSystemMockTests.cs" />
     <Compile Include="SharedNoBoundaryExportsTests.cs" />
     <Compile Include="SharingBoundaryInvalidTests.cs" />
