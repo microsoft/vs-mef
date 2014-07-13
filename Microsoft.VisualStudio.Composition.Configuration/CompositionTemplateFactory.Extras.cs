@@ -1479,7 +1479,7 @@
         }
 
         /// <summary>
-        /// Creates the syntax for the <see cref="ExportProvider.GetAssemblyName"/> method override.
+        /// Creates the syntax for the ExportProvider.GetAssemblyName method override.
         /// </summary>
         private MemberDeclarationSyntax CreateGetAssemblyNameMethod()
         {
