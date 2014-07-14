@@ -969,10 +969,22 @@
                     {
                         foreach (var export in exports)
                         {
-                            this.WriteLine(
-                                "new Export(importDefinition.ContractName, {1}, () => ({0}).Value),",
-                                this.GetValueFactoryExpression(synthesizedImport, export),
+                            this.Write("new Export(importDefinition.ContractName, {0}, ",
                                 GetExportMetadata(export));
+                            if (export.ExportingMember == null && !export.PartDefinition.Type.IsGenericType)
+                            {
+                                this.Write(
+                                    "GetValueFactoryFunc({0}, provisionalSharedObjects)",
+                                    GetPartFactoryMethodName(export.PartDefinition));
+                            }
+                            else
+                            {
+                                this.Write(
+                                    "() => ({0}).Value",
+                                    this.GetValueFactoryExpression(synthesizedImport, export));
+                            }
+
+                            this.WriteLine("),");
                         }
                     }
 

@@ -218,6 +218,11 @@
         /// </remarks>
         protected abstract IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition);
 
+        protected Func<object> GetValueFactoryFunc(Func<Dictionary<Type, object>, bool, ILazy<object>> valueFactory, Dictionary<Type, object> provisionalSharedObjects, bool nonSharedInstanceRequired = false)
+        {
+            return () => valueFactory(provisionalSharedObjects, nonSharedInstanceRequired).Value;
+        }
+
         protected bool TryGetSharedInstanceFactory<T>(string partSharingBoundary, Type type, out ILazy<T> value)
         {
             Requires.NotNull(type, "type");
