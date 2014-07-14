@@ -155,6 +155,7 @@
                 buildOutput: buildOutput);
             if (result.Success)
             {
+                await buildOutput.WriteLineAsync("Generated assembly size: " + assemblyStream.Length);
                 var compositionAssembly = Assembly.Load(assemblyStream.ToArray());
                 return CompositionConfiguration.Load(compositionAssembly);
             }
