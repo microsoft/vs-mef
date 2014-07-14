@@ -1124,13 +1124,8 @@
 
         private static string GetPartFactoryMethodNameNoTypeArgs(ComposablePartDefinition part)
         {
-            string name = GetPartFactoryMethodName(part);
-            int indexOfTypeArgs = name.IndexOf('<');
-            if (indexOfTypeArgs >= 0)
-            {
-                return name.Substring(0, indexOfTypeArgs);
-            }
-
+            Requires.NotNull(part, "part");
+            string name = "GetOrCreate" + part.Id;
             return name;
         }
 
@@ -1141,7 +1136,15 @@
                 typeArguments = part.Type.GetGenericArguments().Select(t => t.Name).ToArray();
             }
 
-            string name = "GetOrCreate" + ReflectionHelpers.ReplaceBackTickWithTypeArgs(part.Id, typeArguments);
+            string name = GetPartFactoryMethodNameNoTypeArgs(part);
+
+            if (typeArguments.Length > 0)
+            {
+                name += "<";
+                name += string.Join(",", typeArguments);
+                name += ">";
+            }
+
             return name;
         }
 

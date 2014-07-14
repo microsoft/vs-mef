@@ -24,6 +24,9 @@
 
             [MefV1.Export]
             public class NestedType { }
+
+            [MefV1.Export]
+            public class NestedType2 { }
         }
 
         [MefV1.Export]
