@@ -22,6 +22,7 @@
 
             if (Debugger.IsAttached)
             {
+                bool debug = true;
                 string basePath = Path.GetTempFileName();
                 string assemblyPath = basePath + ".dll";
                 string pdbPath = basePath + ".pdb";
@@ -29,7 +30,8 @@
                 configuration.SaveAsync(
                     assemblyPath,
                     pdbPath,
-                    sourcePath).GetAwaiter().GetResult();
+                    sourcePath,
+                    debug: debug).GetAwaiter().GetResult();
                 var exportProviderFactory = CompositionConfiguration.Load(Assembly.LoadFile(assemblyPath));
                 return exportProviderFactory.CreateExportProvider();
             }

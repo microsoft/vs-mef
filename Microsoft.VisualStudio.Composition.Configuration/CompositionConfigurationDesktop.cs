@@ -30,7 +30,7 @@
             return CompositionConfiguration.Load(Assembly.LoadFile(defaultCompositionFile));
         }
 
-        public static async Task SaveAsync(this CompositionConfiguration configuration, string assemblyPath, string pdbPath = null, string sourceFilePath = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task SaveAsync(this CompositionConfiguration configuration, string assemblyPath, string pdbPath = null, string sourceFilePath = null, TextWriter buildOutput = null, bool debug = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             string assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
             using (Stream assemblyStream = File.Open(assemblyPath, FileMode.Create))
@@ -45,6 +45,7 @@
                             pdbStream,
                             sourceFile,
                             buildOutput,
+                            debug,
                             cancellationToken: cancellationToken);
                         if (!result.Success)
                         {
@@ -55,7 +56,7 @@
             }
         }
 
-        public static Task<EmitResult> SaveCompilationAsync(this CompositionConfiguration configuration, string assemblyName, Stream assemblyStream, Stream pdbStream = null, Stream sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<EmitResult> SaveCompilationAsync(this CompositionConfiguration configuration, string assemblyName, Stream assemblyStream, Stream pdbStream = null, Stream sourceFile = null, TextWriter buildOutput = null, bool debug = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(configuration, "configuration");
             Requires.NotNullOrEmpty(assemblyName, "assemblyName");
@@ -65,7 +66,6 @@
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                bool debug = pdbStream != null;
                 CSharpCompilation templateCompilation = CreateTemplateCompilation(assemblyName, debug);
 
                 var compilation = await AddGeneratedCodeAndDependenciesAsync(templateCompilation, configuration, sourceFile, cancellationToken);
