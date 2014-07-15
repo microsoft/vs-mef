@@ -952,45 +952,37 @@
         {
             using (Indent(4))
             {
-                ////if (contract.Type.IsGenericTypeDefinition)
-                ////{
-                ////    string localVarName = this.EmitOpenGenericExportCollection(WrapContractAsImportDefinition(contract), exports);
-                ////    this.WriteLine("return (IEnumerable<object>){0};", localVarName);
-                ////}
-                ////else
+                var synthesizedImport = new ImportDefinitionBinding(
+                    new ImportDefinition(exports.Key, ImportCardinality.ZeroOrMore, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty),
+                    typeof(object));
+
+                this.WriteLine("return new Export[]");
+                this.WriteLine("{");
+                using (Indent())
                 {
-                    var synthesizedImport = new ImportDefinitionBinding(
-                        new ImportDefinition(exports.Key, ImportCardinality.ZeroOrMore, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty),
-                        typeof(object));
-
-                    this.WriteLine("return new Export[]");
-                    this.WriteLine("{");
-                    using (Indent())
+                    foreach (var export in exports)
                     {
-                        foreach (var export in exports)
+                        this.Write("new Export(importDefinition.ContractName, {0}, ",
+                            GetExportMetadata(export));
+                        if (export.ExportingMember == null && !export.PartDefinition.Type.IsGenericType)
                         {
-                            this.Write("new Export(importDefinition.ContractName, {0}, ",
-                                GetExportMetadata(export));
-                            if (export.ExportingMember == null && !export.PartDefinition.Type.IsGenericType)
-                            {
-                                this.Write(
-                                    "GetValueFactoryFunc({0}, provisionalSharedObjects)",
-                                    GetPartFactoryMethodName(export.PartDefinition));
-                            }
-                            else
-                            {
-                                this.Write(
-                                    "() => ({0}).Value",
-                                    this.GetValueFactoryExpression(synthesizedImport, export));
-                            }
-
-                            this.WriteLine("),");
+                            this.Write(
+                                "GetValueFactoryFunc({0}, provisionalSharedObjects)",
+                                GetPartFactoryMethodName(export.PartDefinition));
                         }
-                    }
+                        else
+                        {
+                            this.Write(
+                                "() => ({0}).Value",
+                                this.GetValueFactoryExpression(synthesizedImport, export));
+                        }
 
-                    this.Write("}");
-                    this.WriteLine(";");
+                        this.WriteLine("),");
+                    }
                 }
+
+                this.Write("}");
+                this.WriteLine(";");
             }
         }
 
