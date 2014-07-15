@@ -68,11 +68,7 @@ foreach (var part in this.Configuration.Parts)
         {
             return lazyResult;
         }
-<#      }
 
-        if (part.Definition.IsShared)
-        {
-#>
         if (nonSharedInstanceRequired || !this.TryGetSharedInstanceFactory(@"<#= this.Configuration.GetEffectiveSharingBoundary(part.Definition) #>", partType, out lazyResult))
         {
             lazyResult = <# using (EmitLazyConstruction(part.Definition.Type, null)) {
@@ -109,21 +105,7 @@ foreach (var part in this.Configuration.Parts)
     }
 <#
 }
-#>
 
-    private static bool TryGetProvisionalSharedExport<T>(IReadOnlyDictionary<Type, object> provisionalSharedObjects, Type type, out ILazy<T> value)
-    {
-        object valueObject;
-        if (provisionalSharedObjects.TryGetValue(type, out valueObject))
-        {
-            value = LazyPart.Wrap((T)valueObject);
-            return true;
-        }
-
-        value = null;
-        return false;
-    }
-<#
     // Emit concrete types for each metadataview interface.
     foreach (Type interfaceType in GetMetadataViewInterfaces())
     {

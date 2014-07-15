@@ -209,6 +209,19 @@
             throw new CompositionFailedException("No importing constructor");
         }
 
+        protected static bool TryGetProvisionalSharedExport<T>(IReadOnlyDictionary<Type, object> provisionalSharedObjects, Type type, out ILazy<T> value)
+        {
+            object valueObject;
+            if (provisionalSharedObjects.TryGetValue(type, out valueObject))
+            {
+                value = LazyPart.Wrap((T)valueObject);
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
+
         /// <summary>
         /// When implemented by a derived class, returns an <see cref="IEnumerable&lt;ILazy&lt;T&gt;&gt;"/> of values that
         /// satisfy the contract name of the specified <see cref="ImportDefinition"/>.
