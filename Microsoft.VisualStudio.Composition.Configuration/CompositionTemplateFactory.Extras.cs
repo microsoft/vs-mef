@@ -388,7 +388,7 @@
             return string.Format(CultureInfo.InvariantCulture, "({0}){1}", GetTypeName(import.ImportingSiteType), tempVarName);
         }
 
-        private string GetValueFactoryExpression(ImportDefinitionBinding import, ExportDefinitionBinding export)
+        private string GetValueFactoryExpression(ImportDefinitionBinding import, ExportDefinitionBinding export, ExpressionSyntax provisionalSharedObjectsSyntax = null)
         {
             var writer = new StringWriter();
 
@@ -413,9 +413,18 @@
                 }
                 else
                 {
-                    string provisionalSharedObjectsExpression = import.IsExportFactory
-                        ? "new Dictionary<Type, object>()"
-                        : "provisionalSharedObjects";
+                    string provisionalSharedObjectsExpression;
+                    if (provisionalSharedObjectsSyntax != null)
+                    {
+                        provisionalSharedObjectsExpression = provisionalSharedObjectsSyntax.NormalizeWhitespace().ToString();
+                    }
+                    else
+                    {
+                        provisionalSharedObjectsExpression = import.IsExportFactory
+                            ? "new Dictionary<Type, object>()"
+                            : "provisionalSharedObjects";
+                    }
+
                     bool nonSharedInstanceRequired = PartCreationPolicyConstraint.IsNonSharedInstanceRequired(import.ImportDefinition);
                     if (import.ComposablePartType == null && export.PartDefinition.Type.IsGenericType)
                     {
@@ -948,41 +957,98 @@
             });
         }
 
+        private MethodDeclarationSyntax CreateGetExportsCoreHelperMethod(IGrouping<string, ExportDefinitionBinding> exports)
+        {
+            Requires.NotNull(exports, "exports");
+
+            var importDefinitionIdentifierName = SyntaxFactory.IdentifierName("importDefinition");
+
+            var synthesizedImport = new ImportDefinitionBinding(
+                new ImportDefinition(exports.Key, ImportCardinality.ZeroOrMore, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty),
+                typeof(object));
+
+            var newDictionaryTypeObjectExpression = SyntaxFactory.ObjectCreationExpression(
+                SyntaxFactory.GenericName("Dictionary")
+                    .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(CodeGen.JoinSyntaxNodes<TypeSyntax>(
+                        SyntaxKind.CommaToken,
+                        SyntaxFactory.IdentifierName("Type"),
+                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))))),
+                SyntaxFactory.ArgumentList(),
+                null);
+
+            var exportExpressions = new List<ExpressionSyntax>();
+            foreach (var export in exports)
+            {
+                ExpressionSyntax valueFactoryExpression;
+                if (export.ExportingMember == null && !export.PartDefinition.Type.IsGenericType)
+                {
+                    // GetValueFactoryFunc(GetOrCreate..., provisionalSharedObjects)
+                    valueFactoryExpression = SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.IdentifierName("GetValueFactoryFunc"),
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes<ArgumentSyntax>(
+                            SyntaxKind.CommaToken,
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(GetPartFactoryMethodName(export.PartDefinition))),
+                            SyntaxFactory.Argument(newDictionaryTypeObjectExpression))));
+                }
+                else
+                {
+                    // () => (GetOrCreate...).Value
+                    var inner = SyntaxFactory.ParseExpression(this.GetValueFactoryExpression(synthesizedImport, export, newDictionaryTypeObjectExpression));
+                    valueFactoryExpression = SyntaxFactory.ParenthesizedLambdaExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.ParenthesizedExpression(inner),
+                            SyntaxFactory.IdentifierName("Value")));
+                }
+
+                // new Export(importDefinition.ContractName, metadata, valueFactory)
+                var exportExpression = SyntaxFactory.ObjectCreationExpression(
+                    SyntaxFactory.IdentifierName("Export"),
+                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes<ArgumentSyntax>(
+                        SyntaxKind.CommaToken,
+                        SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            importDefinitionIdentifierName,
+                            SyntaxFactory.IdentifierName("ContractName"))),
+                        SyntaxFactory.Argument(GetExportMetadata(export)),
+                        SyntaxFactory.Argument(valueFactoryExpression))),
+                    null);
+
+                exportExpressions.Add(exportExpression);
+            }
+
+            var exportArrayType = SyntaxFactory.ArrayType(
+                    SyntaxFactory.IdentifierName("Export"),
+                    SyntaxFactory.SingletonList<ArrayRankSpecifierSyntax>(
+                        SyntaxFactory.ArrayRankSpecifier(
+                            SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                SyntaxFactory.OmittedArraySizeExpression()))));
+
+            var exportArrayExpression = SyntaxFactory.ArrayCreationExpression(exportArrayType)
+                .WithInitializer(SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, CodeGen.JoinSyntaxNodes<ExpressionSyntax>(SyntaxKind.CommaToken, exportExpressions.ToArray())));
+
+            var method = SyntaxFactory.MethodDeclaration(
+                exportArrayType,
+                ReserveClassSymbolName("GetExportsCore_" + Utilities.MakeIdentifierNameSafe(exports.Key), null))
+                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
+                .AddParameterListParameters(
+                    SyntaxFactory.Parameter(importDefinitionIdentifierName.Identifier)
+                    .WithType(SyntaxFactory.IdentifierName("ImportDefinition")))
+                .AddBodyStatements(SyntaxFactory.ReturnStatement(exportArrayExpression));
+            return method;
+        }
+
         private void EmitGetExportsReturnExpression(IGrouping<string, ExportDefinitionBinding> exports)
         {
             using (Indent(4))
             {
-                var synthesizedImport = new ImportDefinitionBinding(
-                    new ImportDefinition(exports.Key, ImportCardinality.ZeroOrMore, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty),
-                    typeof(object));
-
-                this.WriteLine("return new Export[]");
-                this.WriteLine("{");
-                using (Indent())
-                {
-                    foreach (var export in exports)
-                    {
-                        this.Write("new Export(importDefinition.ContractName, {0}, ",
-                            GetExportMetadata(export));
-                        if (export.ExportingMember == null && !export.PartDefinition.Type.IsGenericType)
-                        {
-                            this.Write(
-                                "GetValueFactoryFunc({0}, provisionalSharedObjects)",
-                                GetPartFactoryMethodName(export.PartDefinition));
-                        }
-                        else
-                        {
-                            this.Write(
-                                "() => ({0}).Value",
-                                this.GetValueFactoryExpression(synthesizedImport, export));
-                        }
-
-                        this.WriteLine("),");
-                    }
-                }
-
-                this.Write("}");
-                this.WriteLine(";");
+                var method = CreateGetExportsCoreHelperMethod(exports);
+                this.extraMembers.Add(method);
+                var returnStatement = SyntaxFactory.ReturnStatement(
+                    SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.IdentifierName(method.Identifier),
+                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("importDefinition"))))));
+                this.WriteLine(returnStatement.NormalizeWhitespace().ToString());
             }
         }
 
@@ -1552,7 +1618,7 @@
         private string ReserveClassSymbolName(string shortName, object namedValue)
         {
             string result;
-            if (this.reservedSymbols.TryGetValue(namedValue, out result))
+            if (namedValue != null && this.reservedSymbols.TryGetValue(namedValue, out result))
             {
                 return result;
             }
@@ -1574,7 +1640,11 @@
                 result = candidateName;
             }
 
-            this.reservedSymbols.Add(namedValue, result);
+            if (namedValue != null)
+            {
+                this.reservedSymbols.Add(namedValue, result);
+            }
+
             return result;
         }
 

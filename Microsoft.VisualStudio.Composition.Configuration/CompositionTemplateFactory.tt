@@ -29,7 +29,6 @@ internal class CompiledExportProvider : ExportProvider
 {
     protected override IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition)
     {
-        var provisionalSharedObjects = new Dictionary<Type, object>();
         switch (importDefinition.ContractName)
         {
 <#

@@ -61,5 +61,18 @@
             value = default(TValue);
             return false;
         }
+
+        internal static string MakeIdentifierNameSafe(string value)
+        {
+            return value
+                .Replace('`', '_')
+                .Replace('.', '_')
+                .Replace('+', '_')
+                .Replace('{', '_')
+                .Replace('}', '_')
+                .Replace('(', '_')
+                .Replace(')', '_')
+                .Replace(',', '_');
+        }
     }
 }
