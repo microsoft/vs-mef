@@ -1165,16 +1165,16 @@
                     }
                     else
                     {
-                        // Delegate.CreateDelegate(delegateType, memberValue)
+                        // memberValue.CreateDelegate(delegateType, partInstance)
                         memberValue = SyntaxFactory.InvocationExpression(
                             SyntaxFactory.MemberAccessExpression(
                                 SyntaxKind.SimpleMemberAccessExpression,
-                                SyntaxFactory.IdentifierName("Delegate"),
+                                memberValue,
                                 SyntaxFactory.IdentifierName("CreateDelegate")),
                             SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
                                 SyntaxKind.CommaToken,
                                 SyntaxFactory.Argument(this.GetTypeExpressionSyntax(delegateType)),
-                                SyntaxFactory.Argument(memberValue))));
+                                SyntaxFactory.Argument(partInstance))));
                     }
 
                     break;
