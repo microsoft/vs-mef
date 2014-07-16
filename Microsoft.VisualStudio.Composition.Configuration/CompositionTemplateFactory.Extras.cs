@@ -123,18 +123,33 @@
             var field = member as FieldInfo;
             if (field != null)
             {
+                // fieldInfo.GetValue(instance)
+                return SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        this.GetFieldInfoExpressionSyntax(field),
+                        SyntaxFactory.IdentifierName("GetValue")),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(declaringTypeInstance))));
             }
 
             var property = member as PropertyInfo;
             if (property != null)
             {
-
+                return SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        GetMethodInfoExpression(property.GetGetMethod(true)),
+                        SyntaxFactory.IdentifierName("Invoke")),
+                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                        SyntaxKind.CommaToken,
+                        SyntaxFactory.Argument(declaringTypeInstance),
+                        GetObjectArrayArgument())));
             }
 
             var method = member as MethodInfo;
             if (method != null)
             {
-
+                return this.GetMethodInfoExpression(method);
             }
 
             throw new NotSupportedException();
