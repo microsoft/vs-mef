@@ -65,16 +65,15 @@ foreach (var part in this.Configuration.Parts)
         else
         {
 #>
-        Type partType = <#= this.GetTypeExpression(part.Definition.Type) #>;
-        ILazy<<#= GetTypeName(part.Definition.Type) #>> lazyResult;
 <#      if (part.Definition.IsShared) { #>
-        lazyResult = (ILazy<<#= GetTypeName(part.Definition.Type) #>>)GetOrCreateShareableValue(partType, <#=createMethod.Identifier#>, pso, @"<#= this.Configuration.GetEffectiveSharingBoundary(part.Definition) #>", nonSharedInstanceRequired);
+        Type partType = <#= this.GetTypeExpression(part.Definition.Type) #>;
+        return (ILazy<<#= GetTypeName(part.Definition.Type) #>>)GetOrCreateShareableValue(partType, <#=createMethod.Identifier#>, pso, @"<#= this.Configuration.GetEffectiveSharingBoundary(part.Definition) #>", nonSharedInstanceRequired);
 <#
         }
         else
         {
 #>
-        lazyResult = <# using (EmitLazyConstruction(part.Definition.Type, null)) {
+        return <# using (EmitLazyConstruction(part.Definition.Type, null)) {
             using(Indent(3, withBraces: true, noLineFeedAfterClosingBrace: true))
             {
                 this.WriteLine("return {0}(pso);", createMethod.Identifier);
@@ -83,8 +82,6 @@ foreach (var part in this.Configuration.Parts)
 <#
         }
 #>
-
-        return lazyResult;
 <#
         } // else block for the !specialcase
 #>
