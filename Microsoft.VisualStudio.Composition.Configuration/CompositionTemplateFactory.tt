@@ -29,7 +29,6 @@ internal class CompiledExportProvider : ExportProvider
 {
     protected override IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition)
     {
-        var provisionalSharedObjects = new Dictionary<Type, object>();
         switch (importDefinition.ContractName)
         {
 <#
@@ -50,7 +49,7 @@ foreach (var part in this.Configuration.Parts)
 {
 #>
 
-    protected ILazy<<#= GetTypeName(part.Definition.Type) #>> <#= GetPartFactoryMethodName(part.Definition) #>(Dictionary<Type, object> provisionalSharedObjects, bool nonSharedInstanceRequired = false)
+    protected ILazy<<#= GetTypeName(part.Definition.Type) #>> <#= GetPartFactoryMethodName(part.Definition, false) #>(Dictionary<Type, object> pso, bool nonSharedInstanceRequired = false)
     {
 <#      if (part.Definition.Equals(ExportProvider.ExportProviderPartDefinition))
         {
@@ -65,34 +64,22 @@ foreach (var part in this.Configuration.Parts)
         Type partType = <#= this.GetTypeExpression(part.Definition.Type) #>;
         ILazy<<#= GetTypeName(part.Definition.Type) #>> lazyResult;
 <#      if (part.Definition.IsShared) { #>
-        if (!nonSharedInstanceRequired && TryGetProvisionalSharedExport(provisionalSharedObjects, partType, out lazyResult))
+        Func<Dictionary<Type, object>, object> valueFactory = new Func<Dictionary<Type, object>, object>(provisionalSharedObjects =>
         {
-            return lazyResult;
-        }
-<#      }
-
-        if (part.Definition.IsShared)
-        {
-#>
-        if (nonSharedInstanceRequired || !this.TryGetSharedInstanceFactory(@"<#= this.Configuration.GetEffectiveSharingBoundary(part.Definition) #>", partType, out lazyResult))
-        {
-            lazyResult = <# using (EmitLazyConstruction(part.Definition.Type, null)) {
-                using(Indent(4, withBraces: true, noLineFeedAfterClosingBrace: true))
-                {
-                    EmitInstantiatePart(part);
-                }
-            } #>;
-
-            if (!nonSharedInstanceRequired)
+<#
+            using(Indent(4, withBraces: true, noLineFeedAfterClosingBrace: true))
             {
-                lazyResult = this.GetOrAddSharedInstanceFactory(@"<#= this.Configuration.GetEffectiveSharingBoundary(part.Definition) #>", partType, lazyResult);
+                EmitInstantiatePart(part);
             }
-        }
+#>
+        });
+        lazyResult = (ILazy<<#= GetTypeName(part.Definition.Type) #>>)GetOrCreateShareableValue(partType, valueFactory, pso, @"<#= this.Configuration.GetEffectiveSharingBoundary(part.Definition) #>", nonSharedInstanceRequired);
 <#
         }
         else
         {
 #>
+        var provisionalSharedObjects = pso;
         lazyResult = <# using (EmitLazyConstruction(part.Definition.Type, null)) {
             using(Indent(3, withBraces: true, noLineFeedAfterClosingBrace: true))
             {
@@ -110,21 +97,7 @@ foreach (var part in this.Configuration.Parts)
     }
 <#
 }
-#>
 
-    private static bool TryGetProvisionalSharedExport<T>(IReadOnlyDictionary<Type, object> provisionalSharedObjects, Type type, out ILazy<T> value)
-    {
-        object valueObject;
-        if (provisionalSharedObjects.TryGetValue(type, out valueObject))
-        {
-            value = LazyPart.Wrap((T)valueObject);
-            return true;
-        }
-
-        value = null;
-        return false;
-    }
-<#
     // Emit concrete types for each metadataview interface.
     foreach (Type interfaceType in GetMetadataViewInterfaces())
     {

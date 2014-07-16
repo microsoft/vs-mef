@@ -85,5 +85,12 @@
 
             throw new ArgumentException();
         }
+
+        internal static ILazy<object> Wrap(object value, Type typeArg)
+        {
+            return (ILazy<object>)Activator.CreateInstance(
+                typeof(LazyPart<>).MakeGenericType(typeArg),
+                new object[] { new Func<object>(() => value) });
+        }
     }
 }

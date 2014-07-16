@@ -218,6 +218,36 @@
         /// </remarks>
         protected abstract IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition);
 
+        protected Func<object> GetValueFactoryFunc(Func<Dictionary<Type, object>, bool, ILazy<object>> valueFactory, Dictionary<Type, object> provisionalSharedObjects, bool nonSharedInstanceRequired = false)
+        {
+            return () => valueFactory(provisionalSharedObjects, nonSharedInstanceRequired).Value;
+        }
+
+        protected ILazy<object> GetOrCreateShareableValue(Type partType, Func<Dictionary<Type, object>, object> valueFactory, Dictionary<Type, object> provisionalSharedObjects, string partSharingBoundary, bool nonSharedInstanceRequired)
+        {
+            ILazy<System.Object> lazyResult;
+            if (!nonSharedInstanceRequired)
+            {
+                if (TryGetProvisionalSharedExport(provisionalSharedObjects, partType, out lazyResult) ||
+                    this.TryGetSharedInstanceFactory(partSharingBoundary, partType, out lazyResult))
+                {
+                    return lazyResult;
+                }
+            }
+
+            // PERF: we should replace this Activator.CreateInstance with a direct ctor invocation the way codegen used to.
+            lazyResult = (ILazy<object>)Activator.CreateInstance(
+                typeof(LazyPart<>).MakeGenericType(partType),
+                new object[] { new Func<object>(() => valueFactory(provisionalSharedObjects)) });
+
+            if (!nonSharedInstanceRequired)
+            {
+                lazyResult = this.GetOrAddSharedInstanceFactory(partSharingBoundary, partType, lazyResult);
+            }
+
+            return lazyResult;
+        }
+
         protected bool TryGetSharedInstanceFactory<T>(string partSharingBoundary, Type type, out ILazy<T> value)
         {
             Requires.NotNull(type, "type");
@@ -295,6 +325,19 @@
         protected virtual string GetAssemblyName(int assemblyId)
         {
             throw new NotImplementedException();
+        }
+
+        private static bool TryGetProvisionalSharedExport(IReadOnlyDictionary<Type, object> provisionalSharedObjects, Type type, out ILazy<object> value)
+        {
+            object valueObject;
+            if (provisionalSharedObjects.TryGetValue(type, out valueObject))
+            {
+                value = LazyPart.Wrap(valueObject, type);
+                return true;
+            }
+
+            value = null;
+            return false;
         }
 
         private IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName, ImportCardinality cardinality)
