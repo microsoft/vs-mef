@@ -97,6 +97,49 @@
             return statement;
         }
 
+        private ExpressionSyntax CreateMemberRetrieval(MemberInfo member, ExpressionSyntax declaringTypeInstance)
+        {
+            Requires.NotNull(member, "member");
+            Requires.NotNull(declaringTypeInstance, "declaringTypeInstance");
+
+            var type = member as Type;
+            if (type != null)
+            {
+                // The member is the type itself.
+                return declaringTypeInstance;
+            }
+
+            if (IsPublic(member, member.DeclaringType))
+            {
+                // Cast to make sure we succeed even if the member is an explicit interface implementation.
+                return SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
+                        this.GetTypeNameSyntax(member.DeclaringType),
+                        declaringTypeInstance)),
+                    SyntaxFactory.IdentifierName(member.Name));
+            }
+
+            var field = member as FieldInfo;
+            if (field != null)
+            {
+            }
+
+            var property = member as PropertyInfo;
+            if (property != null)
+            {
+
+            }
+
+            var method = member as MethodInfo;
+            if (method != null)
+            {
+
+            }
+
+            throw new NotSupportedException();
+        }
+
         private StatementSyntax CreateMemberAssignment(MemberInfo member, ExpressionSyntax value, IdentifierNameSyntax partInstanceVar)
         {
             Requires.NotNull(member, "member");
@@ -1053,7 +1096,7 @@
                             throw new NotImplementedException();
                         case ValueFactoryType.FuncOfObject:
                             // () => value
-                            throw new NotImplementedException();
+                            return SyntaxFactory.ParenthesizedLambdaExpression(value);
                         default:
                             throw new ArgumentOutOfRangeException("target");
                     }
@@ -1100,121 +1143,21 @@
                 return this.ConvertValue(lazyPart, this.GetTypeNameSyntax(export.PartDefinition.Type), ValueFactoryType.LazyOfT, lazyType);
             }
 
-            throw new NotImplementedException();
+            // To retrieve a member, we must have the actual instance that hosts it.
+            var partInstance = this.ConvertValue(lazyPart, this.GetTypeNameSyntax(export.PartDefinition.Type), ValueFactoryType.LazyOfT, ValueFactoryType.ActualValue);
 
-            //    if (IsPublic(export.ExportingMember, export.PartDefinition.Type))
-            //    {
-            //        switch (export.ExportingMember.MemberType)
-            //        {
-            //            case MemberTypes.Method:
-            //                var methodInfo = (MethodInfo)export.ExportingMember;
-            //                writer.Write("new {0}(", GetTypeName(typeof(Delegate).IsAssignableFrom(import.ImportingSiteElementType) ? import.ImportingSiteElementType : export.ExportedValueType));
-            //                break;
-            //        }
-            //    }
-            //    else
-            //    {
-            //        closeParenthesis = true;
+            var memberValue = CreateMemberRetrieval(export.ExportingMember, partInstance);
+            switch (export.ExportingMember.MemberType)
+            {
+                case MemberTypes.Method:
+                    var delegateType = typeof(Delegate).IsAssignableFrom(import.ImportingSiteElementType) ? import.ImportingSiteElementType : export.ExportedValueType;
+                    memberValue = this.ObjectCreationExpression(
+                        delegateType.GetConstructors().Single(),
+                        new ExpressionSyntax[] { memberValue });
+                    break;
+            }
 
-            //        switch (export.ExportingMember.MemberType)
-            //        {
-            //            case MemberTypes.Field:
-            //                writer.Write(
-            //                    "({0}){1}.GetValue(",
-            //                    GetTypeName(import.ImportingSiteElementType),
-            //                    GetFieldInfoExpressionSyntax((FieldInfo)export.ExportingMember));
-            //                break;
-            //            case MemberTypes.Method:
-            //                writer.Write(
-            //                    "({0}){1}.CreateDelegate({2}, ",
-            //                    GetTypeName(import.ImportingSiteElementType),
-            //                    GetMethodInfoExpression((MethodInfo)export.ExportingMember),
-            //                    GetTypeExpression(typeof(Delegate).IsAssignableFrom(import.ImportingSiteElementType) ? import.ImportingSiteElementType : export.ExportedValueType));
-            //                break;
-            //            case MemberTypes.Property:
-            //                writer.Write(
-            //                    "({0}){1}.Invoke(",
-            //                    GetTypeName(import.ImportingSiteElementType),
-            //                    GetMethodInfoExpression(((PropertyInfo)export.ExportingMember).GetGetMethod(true)));
-            //                break;
-            //            default:
-            //                throw new NotSupportedException();
-            //        }
-            //    }
-
-            //return new DisposableWithAction(() =>
-            //{
-            //    string memberModifier = string.Empty;
-            //    if (export.ExportingMember != null)
-            //    {
-            //        if (IsPublic(export.ExportingMember, export.PartDefinition.Type))
-            //        {
-            //            memberModifier = "." + export.ExportingMember.Name;
-            //            switch (export.ExportingMember.MemberType)
-            //            {
-            //                case MemberTypes.Method:
-            //                    memberModifier += ")";
-            //                    break;
-            //            }
-            //        }
-            //        else
-            //        {
-            //            switch (export.ExportingMember.MemberType)
-            //            {
-            //                case MemberTypes.Field:
-            //                    memberModifier = ")";
-            //                    break;
-            //                case MemberTypes.Property:
-            //                    memberModifier = ", new object[0])";
-            //                    break;
-            //                case MemberTypes.Method:
-            //                    memberModifier = ")";
-            //                    break;
-            //            }
-            //        }
-            //    }
-
-            //    string memberAccessor = memberModifier;
-            //    if ((!export.PartDefinition.Type.IsEquivalentTo(import.ComposablePartType) || import.IsExportFactory) && !export.IsStaticExport)
-            //    {
-            //        memberAccessor = ".Value" + memberAccessor;
-            //    }
-
-            //    if (import.IsLazy)
-            //    {
-            //        if (import.MetadataType != null)
-            //        {
-            //            writer.Write(memberAccessor);
-            //            if (closeLazy != null)
-            //            {
-            //                closeLazy.OnBeforeWriteMetadata();
-            //            }
-
-            //            this.WriteExportMetadataReference(export, import, writer);
-            //        }
-            //        else if (import.IsLazyConcreteType && !export.ExportedValueType.IsEquivalentTo(export.PartDefinition.Type))
-            //        {
-            //            writer.Write(memberAccessor);
-            //        }
-            //        else if (closeLazy != null || (export.ExportingMember != null && import.IsLazy))
-            //        {
-            //            writer.Write(memberAccessor);
-            //        }
-
-            //        if (closeLazy != null)
-            //        {
-            //            closeLazy.Dispose();
-            //        }
-            //        else if (closeParenthesis)
-            //        {
-            //            writer.Write(")");
-            //        }
-            //    }
-            //    else if (import.ComposablePartType != export.PartDefinition.Type)
-            //    {
-            //        writer.Write(memberAccessor);
-            //    }
-            //});
+            return this.ConvertValue(memberValue, this.GetTypeNameSyntax(import.ImportingSiteElementType), ValueFactoryType.ActualValue, lazyType);
         }
 
         private ExpressionSyntax GetImportAssignableValueForExport(ImportDefinitionBinding import, ExportDefinitionBinding export, ExpressionSyntax provisionalSharedObjects, ExpressionSyntax scope = null)
