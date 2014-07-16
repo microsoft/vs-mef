@@ -231,39 +231,45 @@
                 SyntaxFactory.IdentifierName("TypeHandle"));
         }
 
-        private StatementSyntax[] GetImportSatisfyingAssignmentSyntax(KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExport)
+        private StatementSyntax[] GetImportSatisfyingAssignmentSyntax(KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExport, ExpressionSyntax provisionalSharedObjects)
         {
             Requires.Argument(satisfyingExport.Key.ImportingMember != null, "satisfyingExport", "No member to satisfy.");
+            Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
+
             var import = satisfyingExport.Key;
             var importingMember = satisfyingExport.Key.ImportingMember;
             var exports = satisfyingExport.Value;
             var partInstanceVar = SyntaxFactory.IdentifierName(InstantiatedPartLocalVarName);
 
             IReadOnlyList<StatementSyntax> prereqs;
-            var expression = GetImportSatisfyingExpression(import, exports, out prereqs);
+            var expression = GetImportSatisfyingExpression(import, exports, provisionalSharedObjects, out prereqs);
             var statements = new List<StatementSyntax>(prereqs);
             statements.Add(CreateMemberAssignment(import, expression, partInstanceVar));
             return statements.ToArray();
         }
 
-        private ExpressionSyntax GetImportSatisfyingExpression(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports, out IReadOnlyList<StatementSyntax> prerequisiteStatements)
+        private ExpressionSyntax GetImportSatisfyingExpression(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports, ExpressionSyntax provisionalSharedObjects, out IReadOnlyList<StatementSyntax> prerequisiteStatements)
         {
+            Requires.NotNull(import, "import");
+            Requires.NotNull(exports, "exports");
+            Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
+
             if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
             {
                 Type enumerableOfTType = typeof(IEnumerable<>).MakeGenericType(import.ImportingSiteTypeWithoutCollection);
                 if (import.ImportingSiteType.IsArray || import.ImportingSiteType.IsEquivalentTo(enumerableOfTType))
                 {
-                    return this.GetSatisfyImportManyArrayExpression(import, exports, out prerequisiteStatements);
+                    return this.GetSatisfyImportManyArrayExpression(import, exports, provisionalSharedObjects, out prerequisiteStatements);
                 }
                 else
                 {
-                    return this.GetSatisfyImportManyCollectionExpression(import, exports, out prerequisiteStatements);
+                    return this.GetSatisfyImportManyCollectionExpression(import, exports, provisionalSharedObjects, out prerequisiteStatements);
                 }
             }
             else if (exports.Any())
             {
                 prerequisiteStatements = ImmutableList<StatementSyntax>.Empty;
-                return this.GetValueFactoryExpressionSyntax(import, exports.Single());
+                return this.GetImportAssignableValueForExport(import, exports.Single(), provisionalSharedObjects);
             }
             else
             {
@@ -291,10 +297,11 @@
             }
         }
 
-        private ExpressionSyntax GetSatisfyImportManyArrayExpression(ImportDefinitionBinding import, IEnumerable<ExportDefinitionBinding> exports, out IReadOnlyList<StatementSyntax> prerequisiteStatements)
+        private ExpressionSyntax GetSatisfyImportManyArrayExpression(ImportDefinitionBinding import, IEnumerable<ExportDefinitionBinding> exports, ExpressionSyntax provisionalSharedObjects, out IReadOnlyList<StatementSyntax> prerequisiteStatements)
         {
             Requires.NotNull(import, "import");
             Requires.NotNull(exports, "exports");
+            Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
 
             var prereqs = new List<StatementSyntax>();
             prerequisiteStatements = prereqs;
@@ -312,7 +319,7 @@
                     SyntaxKind.ArrayInitializerExpression,
                     CodeGen.JoinSyntaxNodes<ExpressionSyntax>(
                         SyntaxKind.CommaToken,
-                        exports.Select(export => this.GetValueFactoryExpressionSyntax(import, export)).ToArray())));
+                        exports.Select(export => this.GetImportAssignableValueForExport(import, export, provisionalSharedObjects)).ToArray())));
             }
             else
             {
@@ -342,7 +349,7 @@
                             SyntaxFactory.IdentifierName("SetValue")),
                         SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
                             SyntaxKind.CommaToken,
-                            SyntaxFactory.Argument(this.GetValueFactoryExpressionSyntax(import, export)),
+                            SyntaxFactory.Argument(this.GetImportAssignableValueForExport(import, export, provisionalSharedObjects)),
                             SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(arrayIndex++))))))));
                 }
 
@@ -350,9 +357,11 @@
             }
         }
 
-        private ExpressionSyntax GetSatisfyImportManyCollectionExpression(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports, out IReadOnlyList<StatementSyntax> prerequisiteStatements)
+        private ExpressionSyntax GetSatisfyImportManyCollectionExpression(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports, ExpressionSyntax provisionalSharedObjects, out IReadOnlyList<StatementSyntax> prerequisiteStatements)
         {
             Requires.NotNull(import, "import");
+            Requires.NotNull(exports, "exports");
+            Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
 
             var importDefinition = import.ImportDefinition;
             Type elementType = import.ImportingSiteTypeWithoutCollection;
@@ -491,7 +500,8 @@
                     // tempVar.Add(export);
                     addExpression = SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, tempVar, SyntaxFactory.IdentifierName("Add")),
-                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(this.GetValueFactoryExpressionSyntax(import, export)))));
+                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
+                            this.GetImportAssignableValueForExport(import, export, provisionalSharedObjects)))));
                 }
                 else
                 {
@@ -501,7 +511,7 @@
                         SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
                             SyntaxKind.CommaToken,
                             SyntaxFactory.Argument(tempVar),
-                            GetObjectArrayArgument(this.GetValueFactoryExpressionSyntax(import, export)))));
+                            GetObjectArrayArgument(this.GetImportAssignableValueForExport(import, export, provisionalSharedObjects)))));
                 }
 
                 prereqs.Add(SyntaxFactory.ExpressionStatement(addExpression));
@@ -513,96 +523,6 @@
                 tempVar);
 
             return castExpression;
-        }
-
-        private ExpressionSyntax GetValueFactoryExpressionSyntax(ImportDefinitionBinding import, ExportDefinitionBinding export, ExpressionSyntax provisionalSharedObjectsSyntax = null)
-        {
-            return SyntaxFactory.ParseExpression(GetValueFactoryExpression(import, export, provisionalSharedObjectsSyntax));
-        }
-
-        private string GetValueFactoryExpression(ImportDefinitionBinding import, ExportDefinitionBinding export, ExpressionSyntax provisionalSharedObjectsSyntax = null)
-        {
-            var writer = new StringWriter();
-
-            using (this.ValueFactoryWrapper(import, export, writer))
-            {
-                if (export.PartDefinition.Type.IsEquivalentTo(import.ComposablePartType) && !import.IsExportFactory)
-                {
-                    // The part is importing itself. So just assign it directly.
-                    writer.Write(InstantiatedPartLocalVarName);
-                }
-                else if (export.IsStaticExport)
-                {
-                    if (IsPublic(export.ExportingMember, export.PartDefinition.Type))
-                    {
-                        writer.Write(GetTypeName(export.PartDefinition.Type));
-                    }
-                    else
-                    {
-                        // What we write here will be emitted as the argument to a reflection GetValue method call.
-                        writer.Write("null");
-                    }
-                }
-                else
-                {
-                    string provisionalSharedObjectsExpression;
-                    if (provisionalSharedObjectsSyntax != null)
-                    {
-                        provisionalSharedObjectsExpression = provisionalSharedObjectsSyntax.NormalizeWhitespace().ToString();
-                    }
-                    else
-                    {
-                        provisionalSharedObjectsExpression = import.IsExportFactory
-                            ? "new Dictionary<Type, object>()"
-                            : "provisionalSharedObjects";
-                    }
-
-                    bool nonSharedInstanceRequired = PartCreationPolicyConstraint.IsNonSharedInstanceRequired(import.ImportDefinition);
-                    if (import.ComposablePartType == null && export.PartDefinition.Type.IsGenericType)
-                    {
-                        // We're constructing an open generic export using generic type args that are only known at runtime.
-                        const string TypeArgsPlaceholder = "***PLACEHOLDER***";
-                        throw new NotImplementedException();
-                        //string expressionTemplate = GetGenericPartFactoryMethodInvokeExpression(
-                        //    export.PartDefinition,
-                        //    TypeArgsPlaceholder,
-                        //    provisionalSharedObjectsExpression,
-                        //    nonSharedInstanceRequired);
-                        //string expression = expressionTemplate.Replace(TypeArgsPlaceholder, "(Type[])importDefinition.Metadata[\"" + CompositionConstants.GenericParametersMetadataName + "\"]");
-                        //writer.Write("((ILazy<object>)({0}))", expression);
-                    }
-                    else
-                    {
-                        var genericTypeArgs = export.PartDefinition.Type.GetTypeInfo().IsGenericType
-                            ? (IReadOnlyList<Type>)import.ImportDefinition.Metadata.GetValueOrDefault(CompositionConstants.GenericParametersMetadataName, ImmutableList<Type>.Empty)
-                            : Enumerable.Empty<Type>();
-
-                        if (genericTypeArgs.All(arg => IsPublic(arg, true)))
-                        {
-                            writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, genericTypeArgs.Select(GetTypeName).ToArray()));
-                            writer.Write(provisionalSharedObjectsExpression);
-                            if (nonSharedInstanceRequired) // code gen size optimization: take advantage of the optional parameter.
-                            {
-                                writer.Write(", nonSharedInstanceRequired: {0}", nonSharedInstanceRequired ? "true" : "false");
-                            }
-
-                            writer.Write(")");
-                        }
-                        else
-                        {
-                            throw new NotImplementedException();
-                            //string expression = GetGenericPartFactoryMethodInvokeExpression(
-                            //    export.PartDefinition,
-                            //    string.Join(", ", genericTypeArgs.Select(t => GetTypeExpression(t))),
-                            //    provisionalSharedObjectsExpression,
-                            //    nonSharedInstanceRequired);
-                            //writer.Write("((ILazy<object>)({0}))", expression);
-                        }
-                    }
-                }
-            }
-
-            return writer.ToString();
         }
 
         private ExpressionSyntax GetExportMetadata(ExportDefinitionBinding export)
@@ -893,7 +813,7 @@
                 foreach (var pair in part.GetImportingConstructorImports())
                 {
                     IReadOnlyList<StatementSyntax> prereqStatements;
-                    var importSatisfyingExpression = this.GetImportSatisfyingExpression(pair.Key, pair.Value, out prereqStatements);
+                    var importSatisfyingExpression = this.GetImportSatisfyingExpression(pair.Key, pair.Value, provisionalSharedObjectsIdentifier, out prereqStatements);
                     if (prereqStatements.Count > 0)
                     {
                         block = block.AddStatements(prereqStatements.ToArray());
@@ -946,7 +866,7 @@
 
                 foreach (var satisfyingExport in part.SatisfyingExports.Where(i => i.Key.ImportingMember != null))
                 {
-                    statements.AddRange(this.GetImportSatisfyingAssignmentSyntax(satisfyingExport));
+                    statements.AddRange(this.GetImportSatisfyingAssignmentSyntax(satisfyingExport, provisionalSharedObjectsIdentifier));
                 }
 
                 if (part.Definition.OnImportsSatisfied != null)
@@ -1008,190 +928,324 @@
             return set;
         }
 
-        private IDisposable ValueFactoryWrapper(ImportDefinitionBinding import, ExportDefinitionBinding export, TextWriter writer)
+        private ExpressionSyntax ExportFactoryCreationSyntax(ImportDefinitionBinding import, ExportDefinitionBinding export)
         {
-            var importDefinition = import.ImportDefinition;
+            Requires.NotNull(import, "import");
+            Requires.Argument(import.IsExportFactory, "import", "IsExportFactory is expected to be true.");
+            Requires.NotNull(export, "export");
 
-            LazyConstructionResult closeLazy = null;
-            bool closeParenthesis = false;
-            if (import.IsLazyConcreteType || (export.ExportingMember != null && import.IsLazy))
+            // ExportFactory<T>.ctor(Func<Tuple<T, Action>>)
+            // ExportFactory<T, TMetadata>.ctor(Func<Tuple<T, Action>>, TMetadata)
+            var exportFactoryCtorArguments = new List<ExpressionSyntax>();
+
+            // Prepare the export factory delegate.
+            var statements = new List<StatementSyntax>();
+            bool newSharingScope = import.ImportDefinition.ExportFactorySharingBoundaries.Count > 0;
+            ExpressionSyntax scope;
+
+            if (newSharingScope)
             {
-                if (IsPublic(import.ImportingSiteTypeWithoutCollection, true) && export.ExportedValueType.IsEquivalentTo(import.ImportingSiteElementType))
-                {
-                    string lazyTypeName = GetTypeName(LazyPart.FromLazy(import.ImportingSiteTypeWithoutCollection));
-                    if (import.MetadataType == null && export.ExportedValueType.IsEquivalentTo(export.PartDefinition.Type) && import.ComposablePartType != export.PartDefinition.Type)
-                    {
-                        writer.Write("({0})", lazyTypeName);
-                    }
-                    else
-                    {
-                        writer.Write("new {0}(() => ", lazyTypeName);
-                        closeParenthesis = true;
-                    }
-                }
-                else
-                {
-                    closeLazy = this.EmitLazyConstruction(import.ImportingSiteElementType, import.MetadataType, writer);
-                }
+                // var scope = new CompiledExportProvider(this, new [] { "sharing", "boundaries" });
+                var scopeLocalVar = SyntaxFactory.IdentifierName("scope");
+                statements.Add(
+                    SyntaxFactory.LocalDeclarationStatement(
+                        SyntaxFactory.VariableDeclaration(
+                            SyntaxFactory.IdentifierName("var"),
+                            SyntaxFactory.SingletonSeparatedList(
+                                SyntaxFactory.VariableDeclarator(scopeLocalVar.Identifier)
+                                    .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                        SyntaxFactory.ObjectCreationExpression(
+                                            SyntaxFactory.IdentifierName("CompiledExportProvider"),
+                                            SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                                                SyntaxKind.CommaToken,
+                                                SyntaxFactory.Argument(SyntaxFactory.ThisExpression()),
+                                                SyntaxFactory.Argument(SyntaxFactory.ImplicitArrayCreationExpression(
+                                                    SyntaxFactory.InitializerExpression(
+                                                        SyntaxKind.ArrayInitializerExpression,
+                                                        CodeGen.JoinSyntaxNodes<ExpressionSyntax>(SyntaxKind.CommaToken, import.ImportDefinition.ExportFactorySharingBoundaries.Select(sb => SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(sb))).ToArray())))))),
+                                            null)))))));
+                scope = scopeLocalVar;
             }
-            else if (import.IsExportFactory)
+            else
             {
-                var exportFactoryEmitClose = this.EmitExportFactoryConstruction(import, writer);
-                bool newSharingScope = importDefinition.ExportFactorySharingBoundaries.Count > 0;
-
-                if (newSharingScope)
-                {
-                    writer.Write("() => { var scope = ");
-                    writer.Write("new CompiledExportProvider(this, new [] { ");
-                    writer.Write(string.Join(", ", importDefinition.ExportFactorySharingBoundaries.Select(Quote)));
-                    writer.Write(" }); var part = scope.");
-                }
-                else
-                {
-                    writer.Write("() => { var part = ");
-                }
-
-                return new DisposableWithAction(delegate
-                {
-                    writer.Write(".Value; return ");
-                    using (this.EmitExportFactoryTupleConstruction(import.ImportingSiteElementType, "part", writer))
-                    {
-                        writer.Write("() => { ");
-                        if (newSharingScope || typeof(IDisposable).IsAssignableFrom(export.PartDefinition.Type))
-                        {
-                            writer.Write("((IDisposable){0}).Dispose(); ", newSharingScope ? "scope" : "part");
-                        }
-
-                        writer.Write("}");
-                    }
-
-                    writer.Write("; }");
-                    this.WriteExportMetadataReference(export, import, writer);
-                    exportFactoryEmitClose.Dispose();
-                });
-            }
-            else if (!IsPublic(export.PartDefinition.Type) && IsPublic(import.ImportingSiteTypeWithoutCollection, true))
-            {
-                writer.Write("({0})", GetTypeName(import.ImportingSiteTypeWithoutCollection));
+                // var scope = this;
+                scope = SyntaxFactory.ThisExpression();
             }
 
-            if (export.ExportingMember != null)
-            {
-                if (IsPublic(export.ExportingMember, export.PartDefinition.Type))
-                {
-                    switch (export.ExportingMember.MemberType)
-                    {
-                        case MemberTypes.Method:
-                            closeParenthesis = true;
-                            var methodInfo = (MethodInfo)export.ExportingMember;
-                            writer.Write("new {0}(", GetTypeName(typeof(Delegate).IsAssignableFrom(import.ImportingSiteElementType) ? import.ImportingSiteElementType : export.ExportedValueType));
-                            break;
-                    }
-                }
-                else
-                {
-                    closeParenthesis = true;
+            // ILazy<T> part = GetOrCreateShareableValue(typeof(Part), ...);
+            TypeSyntax[] typeArgs = null; // TODO: set this to the right value.
+            var partLocalVar = SyntaxFactory.IdentifierName("part");
+            statements.Add(
+                SyntaxFactory.LocalDeclarationStatement(
+                    SyntaxFactory.VariableDeclaration(
+                        SyntaxFactory.IdentifierName("var"),
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.VariableDeclarator(partLocalVar.Identifier)
+                                .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                    GetPartInstanceLazy(export.PartDefinition, dictionaryOfTypeObject, true, typeArgs, scope)))))));
 
-                    switch (export.ExportingMember.MemberType)
+            // var value = part.Value.SomeMember;
+            var exportedValueLocalVar = SyntaxFactory.IdentifierName("value");
+            statements.Add(
+                SyntaxFactory.LocalDeclarationStatement(
+                    SyntaxFactory.VariableDeclaration(
+                        SyntaxFactory.IdentifierName("var"),
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.VariableDeclarator(partLocalVar.Identifier)
+                                .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                    GetExportedValueFromPart(partLocalVar, import, export, ValueFactoryType.ActualValue)))))));
+
+            ExpressionSyntax disposeReceiver = null;
+            if (newSharingScope)
+            {
+                disposeReceiver = scope;
+            }
+            else if (typeof(IDisposable).IsAssignableFrom(export.PartDefinition.Type))
+            {
+                disposeReceiver = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
+                    SyntaxFactory.IdentifierName("IDisposable"),
+                    partLocalVar));
+            }
+
+            ExpressionSyntax disposeAction = disposeReceiver != null
+                ? (ExpressionSyntax)SyntaxFactory.ParenthesizedLambdaExpression(SyntaxFactory.InvocationExpression(
+                    disposeReceiver,
+                    SyntaxFactory.ArgumentList()))
+                : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+
+            var tupleType = typeof(Tuple<,>).MakeGenericType(import.ImportingSiteElementType, typeof(Action));
+            var tupleExpression = this.ObjectCreationExpression(
+                tupleType.GetConstructors().Single(),
+                new ExpressionSyntax[] { exportedValueLocalVar, disposeAction });
+            statements.Add(SyntaxFactory.ReturnStatement(tupleExpression));
+
+            exportFactoryCtorArguments.Add(SyntaxFactory.ParenthesizedLambdaExpression(SyntaxFactory.Block(statements)));
+
+            // Add the metadata argument if applicable.
+            if (import.ExportFactoryType.GenericTypeArguments.Length > 1)
+            {
+                exportFactoryCtorArguments.Add(GetExportMetadata(export, import));
+            }
+
+            return this.ObjectCreationExpression(
+                import.ExportFactoryType.GetConstructors().Single(),
+                exportFactoryCtorArguments.ToArray());
+        }
+
+        private enum ValueFactoryType
+        {
+            ActualValue,
+            LazyOfT,
+            FuncOfObject,
+        }
+
+        private ExpressionSyntax ConvertValue(ExpressionSyntax value, TypeSyntax valueType, ValueFactoryType current, ValueFactoryType target)
+        {
+            switch (current)
+            {
+                case ValueFactoryType.ActualValue:
+                    switch (target)
                     {
-                        case MemberTypes.Field:
-                            writer.Write(
-                                "({0}){1}.GetValue(",
-                                GetTypeName(import.ImportingSiteElementType),
-                                GetFieldInfoExpressionSyntax((FieldInfo)export.ExportingMember));
-                            break;
-                        case MemberTypes.Method:
-                            writer.Write(
-                                "({0}){1}.CreateDelegate({2}, ",
-                                GetTypeName(import.ImportingSiteElementType),
-                                GetMethodInfoExpression((MethodInfo)export.ExportingMember),
-                                GetTypeExpression(typeof(Delegate).IsAssignableFrom(import.ImportingSiteElementType) ? import.ImportingSiteElementType : export.ExportedValueType));
-                            break;
-                        case MemberTypes.Property:
-                            writer.Write(
-                                "({0}){1}.Invoke(",
-                                GetTypeName(import.ImportingSiteElementType),
-                                GetMethodInfoExpression(((PropertyInfo)export.ExportingMember).GetGetMethod(true)));
-                            break;
+                        case ValueFactoryType.ActualValue:
+                            return value;
+                        case ValueFactoryType.LazyOfT:
+                            // new Lazy<T>(() => value)
+                            throw new NotImplementedException();
+                        case ValueFactoryType.FuncOfObject:
+                            // () => value
+                            throw new NotImplementedException();
                         default:
-                            throw new NotSupportedException();
+                            throw new ArgumentOutOfRangeException("target");
                     }
-                }
+                case ValueFactoryType.LazyOfT:
+                    switch (target)
+                    {
+                        case ValueFactoryType.ActualValue:
+                            // value.Value;
+                            return SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, value, SyntaxFactory.IdentifierName("Value"));
+                        case ValueFactoryType.LazyOfT:
+                            return value;
+                        case ValueFactoryType.FuncOfObject:
+                            // value.ValueFactory;
+                            return SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, value, SyntaxFactory.IdentifierName("ValueFactory"));
+                        default:
+                            throw new ArgumentOutOfRangeException("target");
+                    }
+                case ValueFactoryType.FuncOfObject:
+                    switch (target)
+                    {
+                        case ValueFactoryType.ActualValue:
+                            return SyntaxFactory.InvocationExpression(value, SyntaxFactory.ArgumentList());
+                        case ValueFactoryType.LazyOfT:
+                            // new Lazy<T>(value)
+                            throw new NotImplementedException();
+                        case ValueFactoryType.FuncOfObject:
+                            return value;
+                        default:
+                            throw new ArgumentOutOfRangeException("target");
+                    }
+                default:
+                    throw new ArgumentOutOfRangeException("current");
+            }
+        }
+
+        private ExpressionSyntax GetExportedValueFromPart(ExpressionSyntax lazyPart, ImportDefinitionBinding import, ExportDefinitionBinding export, ValueFactoryType lazyType)
+        {
+            Requires.NotNull(lazyPart, "lazyPart");
+            Requires.NotNull(import, "import");
+            Requires.NotNull(export, "export");
+
+            if (export.ExportingMember == null)
+            {
+                return this.ConvertValue(lazyPart, this.GetTypeNameSyntax(export.PartDefinition.Type), ValueFactoryType.LazyOfT, lazyType);
             }
 
-            return new DisposableWithAction(() =>
+            throw new NotImplementedException();
+
+            //    if (IsPublic(export.ExportingMember, export.PartDefinition.Type))
+            //    {
+            //        switch (export.ExportingMember.MemberType)
+            //        {
+            //            case MemberTypes.Method:
+            //                var methodInfo = (MethodInfo)export.ExportingMember;
+            //                writer.Write("new {0}(", GetTypeName(typeof(Delegate).IsAssignableFrom(import.ImportingSiteElementType) ? import.ImportingSiteElementType : export.ExportedValueType));
+            //                break;
+            //        }
+            //    }
+            //    else
+            //    {
+            //        closeParenthesis = true;
+
+            //        switch (export.ExportingMember.MemberType)
+            //        {
+            //            case MemberTypes.Field:
+            //                writer.Write(
+            //                    "({0}){1}.GetValue(",
+            //                    GetTypeName(import.ImportingSiteElementType),
+            //                    GetFieldInfoExpressionSyntax((FieldInfo)export.ExportingMember));
+            //                break;
+            //            case MemberTypes.Method:
+            //                writer.Write(
+            //                    "({0}){1}.CreateDelegate({2}, ",
+            //                    GetTypeName(import.ImportingSiteElementType),
+            //                    GetMethodInfoExpression((MethodInfo)export.ExportingMember),
+            //                    GetTypeExpression(typeof(Delegate).IsAssignableFrom(import.ImportingSiteElementType) ? import.ImportingSiteElementType : export.ExportedValueType));
+            //                break;
+            //            case MemberTypes.Property:
+            //                writer.Write(
+            //                    "({0}){1}.Invoke(",
+            //                    GetTypeName(import.ImportingSiteElementType),
+            //                    GetMethodInfoExpression(((PropertyInfo)export.ExportingMember).GetGetMethod(true)));
+            //                break;
+            //            default:
+            //                throw new NotSupportedException();
+            //        }
+            //    }
+
+            //return new DisposableWithAction(() =>
+            //{
+            //    string memberModifier = string.Empty;
+            //    if (export.ExportingMember != null)
+            //    {
+            //        if (IsPublic(export.ExportingMember, export.PartDefinition.Type))
+            //        {
+            //            memberModifier = "." + export.ExportingMember.Name;
+            //            switch (export.ExportingMember.MemberType)
+            //            {
+            //                case MemberTypes.Method:
+            //                    memberModifier += ")";
+            //                    break;
+            //            }
+            //        }
+            //        else
+            //        {
+            //            switch (export.ExportingMember.MemberType)
+            //            {
+            //                case MemberTypes.Field:
+            //                    memberModifier = ")";
+            //                    break;
+            //                case MemberTypes.Property:
+            //                    memberModifier = ", new object[0])";
+            //                    break;
+            //                case MemberTypes.Method:
+            //                    memberModifier = ")";
+            //                    break;
+            //            }
+            //        }
+            //    }
+
+            //    string memberAccessor = memberModifier;
+            //    if ((!export.PartDefinition.Type.IsEquivalentTo(import.ComposablePartType) || import.IsExportFactory) && !export.IsStaticExport)
+            //    {
+            //        memberAccessor = ".Value" + memberAccessor;
+            //    }
+
+            //    if (import.IsLazy)
+            //    {
+            //        if (import.MetadataType != null)
+            //        {
+            //            writer.Write(memberAccessor);
+            //            if (closeLazy != null)
+            //            {
+            //                closeLazy.OnBeforeWriteMetadata();
+            //            }
+
+            //            this.WriteExportMetadataReference(export, import, writer);
+            //        }
+            //        else if (import.IsLazyConcreteType && !export.ExportedValueType.IsEquivalentTo(export.PartDefinition.Type))
+            //        {
+            //            writer.Write(memberAccessor);
+            //        }
+            //        else if (closeLazy != null || (export.ExportingMember != null && import.IsLazy))
+            //        {
+            //            writer.Write(memberAccessor);
+            //        }
+
+            //        if (closeLazy != null)
+            //        {
+            //            closeLazy.Dispose();
+            //        }
+            //        else if (closeParenthesis)
+            //        {
+            //            writer.Write(")");
+            //        }
+            //    }
+            //    else if (import.ComposablePartType != export.PartDefinition.Type)
+            //    {
+            //        writer.Write(memberAccessor);
+            //    }
+            //});
+        }
+
+        private ExpressionSyntax GetImportAssignableValueForExport(ImportDefinitionBinding import, ExportDefinitionBinding export, ExpressionSyntax provisionalSharedObjects, ExpressionSyntax scope = null)
+        {
+            Requires.NotNull(import, "import");
+            Requires.NotNull(export, "export");
+            Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
+
+            if (import.IsExportFactory)
             {
-                string memberModifier = string.Empty;
-                if (export.ExportingMember != null)
-                {
-                    if (IsPublic(export.ExportingMember, export.PartDefinition.Type))
-                    {
-                        memberModifier = "." + export.ExportingMember.Name;
-                        switch (export.ExportingMember.MemberType)
-                        {
-                            case MemberTypes.Method:
-                                memberModifier += ")";
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        switch (export.ExportingMember.MemberType)
-                        {
-                            case MemberTypes.Field:
-                                memberModifier = ")";
-                                break;
-                            case MemberTypes.Property:
-                                memberModifier = ", new object[0])";
-                                break;
-                            case MemberTypes.Method:
-                                memberModifier = ")";
-                                break;
-                        }
-                    }
-                }
+                return this.ExportFactoryCreationSyntax(import, export);
+            }
 
-                string memberAccessor = memberModifier;
-                if ((!export.PartDefinition.Type.IsEquivalentTo(import.ComposablePartType) || import.IsExportFactory) && !export.IsStaticExport)
-                {
-                    memberAccessor = ".Value" + memberAccessor;
-                }
+            bool isNonSharedInstanceRequired = PartCreationPolicyConstraint.IsNonSharedInstanceRequired(import.ImportDefinition);
+            IEnumerable<TypeSyntax> typeArgs = ImmutableList<TypeSyntax>.Empty; // TODO: fix this
+            var exportedValueSyntax = GetExportedValueFromPart(
+                    GetPartInstanceLazy(export.PartDefinition, provisionalSharedObjects, isNonSharedInstanceRequired, typeArgs, scope),
+                    import,
+                    export,
+                    import.IsLazy ? ValueFactoryType.FuncOfObject : ValueFactoryType.ActualValue);
 
-                if (import.IsLazy)
-                {
-                    if (import.MetadataType != null)
-                    {
-                        writer.Write(memberAccessor);
-                        if (closeLazy != null)
-                        {
-                            closeLazy.OnBeforeWriteMetadata();
-                        }
+            if (import.IsLazy)
+            {
+                return CreateLazyConstruction(
+                    import.ImportingSiteElementType,
+                    exportedValueSyntax,
+                    import.MetadataType,
+                    GetExportMetadata(export, import));
+            }
 
-                        this.WriteExportMetadataReference(export, import, writer);
-                    }
-                    else if (import.IsLazyConcreteType && !export.ExportedValueType.IsEquivalentTo(export.PartDefinition.Type))
-                    {
-                        writer.Write(memberAccessor);
-                    }
-                    else if (closeLazy != null || (export.ExportingMember != null && import.IsLazy))
-                    {
-                        writer.Write(memberAccessor);
-                    }
-
-                    if (closeLazy != null)
-                    {
-                        closeLazy.Dispose();
-                    }
-                    else if (closeParenthesis)
-                    {
-                        writer.Write(")");
-                    }
-                }
-                else if (import.ComposablePartType != export.PartDefinition.Type)
-                {
-                    writer.Write(memberAccessor);
-                }
-            });
+            return exportedValueSyntax;
         }
 
         private MethodDeclarationSyntax CreateGetExportsCoreHelperMethod(IGrouping<string, ExportDefinitionBinding> exports)
@@ -1212,25 +1266,8 @@
             var exportExpressions = new List<ExpressionSyntax>();
             foreach (var export in exports)
             {
-                ExpressionSyntax valueFactoryExpression;
-                if (export.ExportingMember == null && !export.PartDefinition.Type.IsGenericType)
-                {
-                    // GetValueFactoryFunc(GetOrCreate..., provisionalSharedObjects)
-                    valueFactoryExpression = SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        this.GetPartInstanceLazy(export.PartDefinition, newDictionaryTypeObjectExpression, false, null),
-                        SyntaxFactory.IdentifierName("ValueFactory"));
-                }
-                else
-                {
-                    // () => (GetOrCreate...).Value
-                    var inner = this.GetValueFactoryExpressionSyntax(synthesizedImport, export, newDictionaryTypeObjectExpression);
-                    valueFactoryExpression = SyntaxFactory.ParenthesizedLambdaExpression(
-                        SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            SyntaxFactory.ParenthesizedExpression(inner),
-                            SyntaxFactory.IdentifierName("Value")));
-                }
+                var partExpression = this.GetPartInstanceLazy(export.PartDefinition, newDictionaryTypeObjectExpression, false, null);
+                ExpressionSyntax valueFactoryExpression = GetExportedValueFromPart(partExpression, synthesizedImport, export, ValueFactoryType.FuncOfObject);
 
                 // new Export(importDefinition.ContractName, metadata, valueFactory)
                 var exportExpression = SyntaxFactory.ObjectCreationExpression(
@@ -1283,28 +1320,27 @@
             }
         }
 
-        private void WriteExportMetadataReference(ExportDefinitionBinding export, ImportDefinitionBinding import, TextWriter writer)
+        private ExpressionSyntax GetExportMetadata(ExportDefinitionBinding export, ImportDefinitionBinding import)
         {
-            if (import.MetadataType != null)
-            {
-                writer.Write(", ");
+            Requires.NotNull(export, "export");
 
-                if (import.MetadataType == typeof(IDictionary<string, object>))
-                {
-                    writer.Write(GetExportMetadata(export).NormalizeWhitespace());
-                }
-                else if (import.MetadataType.IsInterface)
-                {
-                    writer.Write("new {0}(", GetClassNameForMetadataView(import.MetadataType));
-                    writer.Write(GetExportMetadata(export).NormalizeWhitespace());
-                    writer.Write(")");
-                }
-                else
-                {
-                    writer.Write(ObjectCreationExpression(
-                        import.MetadataType.GetConstructor(new Type[] { typeof(IDictionary<string, object>) }),
-                        new ExpressionSyntax[] { GetExportMetadata(export) }).NormalizeWhitespace());
-                }
+            var metadataDictionary = this.GetExportMetadata(export);
+            if (import == null || import.MetadataType == typeof(IDictionary<string, object>))
+            {
+                return metadataDictionary;
+            }
+            else if (import.MetadataType.IsInterface)
+            {
+                return SyntaxFactory.ObjectCreationExpression(
+                    SyntaxFactory.IdentifierName(GetClassNameForMetadataView(import.MetadataType)),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(metadataDictionary))),
+                    null);
+            }
+            else
+            {
+                return this.ObjectCreationExpression(
+                    import.MetadataType.GetConstructor(new Type[] { typeof(IDictionary<string, object>) }),
+                    new ExpressionSyntax[] { metadataDictionary });
             }
         }
 
@@ -1683,11 +1719,15 @@
         /// <summary>
         /// Creates an expression that evaluates to an <see cref="ILazy{T}"/>.
         /// </summary>
-        private ExpressionSyntax GetPartInstanceLazy(ComposablePartDefinition partDefinition, ExpressionSyntax provisionalSharedObjects, bool nonSharedInstanceRequired, IEnumerable<TypeSyntax> typeArgs)
+        private ExpressionSyntax GetPartInstanceLazy(ComposablePartDefinition partDefinition, ExpressionSyntax provisionalSharedObjects, bool nonSharedInstanceRequired, IEnumerable<TypeSyntax> typeArgs, ExpressionSyntax scope = null)
         {
             Requires.NotNull(partDefinition, "partDefinition");
             Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
             typeArgs = typeArgs ?? Enumerable.Empty<TypeSyntax>();
+            scope = scope ?? SyntaxFactory.ThisExpression();
+
+            // Force the query to be for an isolated instance if the instance is never shared.
+            nonSharedInstanceRequired |= !partDefinition.IsShared;
 
             if (partDefinition.Equals(ExportProvider.ExportProviderPartDefinition))
             {
@@ -1695,12 +1735,12 @@
                 // this.NonDisposableWrapper
                 return SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.ThisExpression(),
+                    scope,
                     SyntaxFactory.IdentifierName("NonDisposableWrapper"));
             }
 
             ExpressionSyntax partTypeExpression = this.GetTypeExpressionSyntax(partDefinition.Type);
-            SimpleNameSyntax partFactoryMethod = SyntaxFactory.IdentifierName(GetPartFactoryMethodName(partDefinition));
+            SimpleNameSyntax partFactoryMethodName = SyntaxFactory.IdentifierName(GetPartFactoryMethodName(partDefinition));
             if (typeArgs.Any())
             {
                 partTypeExpression = SyntaxFactory.InvocationExpression(
@@ -1708,20 +1748,28 @@
                     SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
                         SyntaxKind.CommaToken,
                         typeArgs.Select(SyntaxFactory.Argument).ToArray())));
-                partFactoryMethod = SyntaxFactory.GenericName(
-                    partFactoryMethod.Identifier,
+                partFactoryMethodName = SyntaxFactory.GenericName(
+                    partFactoryMethodName.Identifier,
                     SyntaxFactory.TypeArgumentList(CodeGen.JoinSyntaxNodes(
                         SyntaxKind.CommaToken,
                         typeArgs.ToArray())));
             }
 
+            var partFactoryMethod = SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    scope,
+                    partFactoryMethodName);
+
             ExpressionSyntax sharingBoundary = partDefinition.IsShared
                 ? SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(this.Configuration.GetEffectiveSharingBoundary(partDefinition)))
                 : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
-            // GetOrCreateShareableValue(typeof(Part), CreatePart, pso, "sharingBoundaries", true)
+            // this.GetOrCreateShareableValue(typeof(Part), this.CreatePart, pso, "sharingBoundaries", true)
             var invocation = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.IdentifierName("GetOrCreateShareableValue"),
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    scope,
+                    SyntaxFactory.IdentifierName("GetOrCreateShareableValue")),
                 SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
                     SyntaxKind.CommaToken,
                     SyntaxFactory.Argument(partTypeExpression),
