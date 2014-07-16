@@ -1157,9 +1157,26 @@
             {
                 case MemberTypes.Method:
                     var delegateType = typeof(Delegate).IsAssignableFrom(import.ImportingSiteElementType) ? import.ImportingSiteElementType : export.ExportedValueType;
-                    memberValue = this.ObjectCreationExpression(
-                        delegateType.GetConstructors().Single(),
-                        new ExpressionSyntax[] { memberValue });
+                    if (IsPublic(delegateType, true) && IsPublic(export.ExportingMember, export.PartDefinition.Type))
+                    {
+                        memberValue = this.ObjectCreationExpression(
+                            delegateType.GetConstructors().Single(),
+                            new ExpressionSyntax[] { memberValue });
+                    }
+                    else
+                    {
+                        // Delegate.CreateDelegate(delegateType, memberValue)
+                        memberValue = SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                SyntaxFactory.IdentifierName("Delegate"),
+                                SyntaxFactory.IdentifierName("CreateDelegate")),
+                            SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                                SyntaxKind.CommaToken,
+                                SyntaxFactory.Argument(this.GetTypeExpressionSyntax(delegateType)),
+                                SyntaxFactory.Argument(memberValue))));
+                    }
+
                     break;
             }
 
