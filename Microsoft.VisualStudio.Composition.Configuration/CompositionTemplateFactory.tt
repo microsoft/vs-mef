@@ -50,43 +50,6 @@ foreach (var part in this.Configuration.Parts)
     this.localSymbols.Clear();
     var createMethod = this.CreateInstantiatePartMethod(part);
     this.extraMembers.Add(createMethod);
-
-#>
-
-    protected ILazy<<#= GetTypeName(part.Definition.Type) #>> <#= GetPartFactoryMethodName(part.Definition, false) #>(Dictionary<Type, object> pso, bool nonSharedInstanceRequired = false)
-    {
-<#      if (part.Definition.Equals(ExportProvider.ExportProviderPartDefinition))
-        {
-            // Special case for our synthesized part that acts as a placeholder for *this* export provider.
-#>
-        return this.NonDisposableWrapper;
-<#
-        }
-        else
-        {
-#>
-<#      if (part.Definition.IsShared) { #>
-        Type partType = <#= this.GetTypeExpression(part.Definition.Type) #>;
-        return (ILazy<<#= GetTypeName(part.Definition.Type) #>>)GetOrCreateShareableValue(partType, <#=createMethod.Identifier#>, pso, @"<#= this.Configuration.GetEffectiveSharingBoundary(part.Definition) #>", nonSharedInstanceRequired);
-<#
-        }
-        else
-        {
-#>
-        return <# using (EmitLazyConstruction(part.Definition.Type, null)) {
-            using(Indent(3, withBraces: true, noLineFeedAfterClosingBrace: true))
-            {
-                this.WriteLine("return {0}(pso);", createMethod.Identifier);
-            }
-        } #>;
-<#
-        }
-#>
-<#
-        } // else block for the !specialcase
-#>
-    }
-<#
 }
 
     // Emit concrete types for each metadataview interface.

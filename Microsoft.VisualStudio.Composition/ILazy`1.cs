@@ -11,5 +11,7 @@
         bool IsValueCreated { get; }
 
         T Value { get; }
+
+        Func<T> ValueFactory { get; }
     }
 }

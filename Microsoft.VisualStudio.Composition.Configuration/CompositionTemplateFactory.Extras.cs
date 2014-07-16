@@ -350,23 +350,6 @@
             }
         }
 
-        private string EmitOpenGenericExportCollection(ImportDefinition importDefinition, IEnumerable<ExportDefinitionBinding> exports)
-        {
-            Requires.NotNull(importDefinition, "importDefinition");
-            Requires.NotNull(exports, "exports");
-
-            const string localVarName = "temp";
-            this.WriteLine("Array {0} = Array.CreateInstance(typeof(ILazy<>).MakeGenericType(compositionContract.Type), {1});", localVarName, exports.Count().ToString(CultureInfo.InvariantCulture));
-
-            int index = 0;
-            foreach (var export in exports)
-            {
-                this.WriteLine("{0}.SetValue({1}, {2});", localVarName, GetPartOrMemberLazy(export), index++);
-            }
-
-            return localVarName;
-        }
-
         private ExpressionSyntax GetSatisfyImportManyCollectionExpression(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports, out IReadOnlyList<StatementSyntax> prerequisiteStatements)
         {
             Requires.NotNull(import, "import");
@@ -579,13 +562,14 @@
                     {
                         // We're constructing an open generic export using generic type args that are only known at runtime.
                         const string TypeArgsPlaceholder = "***PLACEHOLDER***";
-                        string expressionTemplate = GetGenericPartFactoryMethodInvokeExpression(
-                            export.PartDefinition,
-                            TypeArgsPlaceholder,
-                            provisionalSharedObjectsExpression,
-                            nonSharedInstanceRequired);
-                        string expression = expressionTemplate.Replace(TypeArgsPlaceholder, "(Type[])importDefinition.Metadata[\"" + CompositionConstants.GenericParametersMetadataName + "\"]");
-                        writer.Write("((ILazy<object>)({0}))", expression);
+                        throw new NotImplementedException();
+                        //string expressionTemplate = GetGenericPartFactoryMethodInvokeExpression(
+                        //    export.PartDefinition,
+                        //    TypeArgsPlaceholder,
+                        //    provisionalSharedObjectsExpression,
+                        //    nonSharedInstanceRequired);
+                        //string expression = expressionTemplate.Replace(TypeArgsPlaceholder, "(Type[])importDefinition.Metadata[\"" + CompositionConstants.GenericParametersMetadataName + "\"]");
+                        //writer.Write("((ILazy<object>)({0}))", expression);
                     }
                     else
                     {
@@ -595,7 +579,7 @@
 
                         if (genericTypeArgs.All(arg => IsPublic(arg, true)))
                         {
-                            writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, false, genericTypeArgs.Select(GetTypeName).ToArray()));
+                            writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, genericTypeArgs.Select(GetTypeName).ToArray()));
                             writer.Write(provisionalSharedObjectsExpression);
                             if (nonSharedInstanceRequired) // code gen size optimization: take advantage of the optional parameter.
                             {
@@ -606,12 +590,13 @@
                         }
                         else
                         {
-                            string expression = GetGenericPartFactoryMethodInvokeExpression(
-                                export.PartDefinition,
-                                string.Join(", ", genericTypeArgs.Select(t => GetTypeExpression(t))),
-                                provisionalSharedObjectsExpression,
-                                nonSharedInstanceRequired);
-                            writer.Write("((ILazy<object>)({0}))", expression);
+                            throw new NotImplementedException();
+                            //string expression = GetGenericPartFactoryMethodInvokeExpression(
+                            //    export.PartDefinition,
+                            //    string.Join(", ", genericTypeArgs.Select(t => GetTypeExpression(t))),
+                            //    provisionalSharedObjectsExpression,
+                            //    nonSharedInstanceRequired);
+                            //writer.Write("((ILazy<object>)({0}))", expression);
                         }
                     }
                 }
@@ -887,7 +872,7 @@
 
             var method = SyntaxFactory.MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
-                GetPartFactoryMethodName(part.Definition, true))
+                GetPartFactoryMethodName(part.Definition))
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
                 .AddParameterListParameters(SyntaxFactory.Parameter(provisionalSharedObjectsIdentifier.Identifier).WithType(dictionaryOfTypeObject));
 
@@ -1231,12 +1216,10 @@
                 if (export.ExportingMember == null && !export.PartDefinition.Type.IsGenericType)
                 {
                     // GetValueFactoryFunc(GetOrCreate..., provisionalSharedObjects)
-                    valueFactoryExpression = SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.IdentifierName("GetValueFactoryFunc"),
-                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes<ArgumentSyntax>(
-                            SyntaxKind.CommaToken,
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(GetPartFactoryMethodName(export.PartDefinition, false))),
-                            SyntaxFactory.Argument(newDictionaryTypeObjectExpression))));
+                    valueFactoryExpression = SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        this.GetPartInstanceLazy(export.PartDefinition, newDictionaryTypeObjectExpression, false, null),
+                        SyntaxFactory.IdentifierName("ValueFactory"));
                 }
                 else
                 {
@@ -1439,22 +1422,21 @@
 
         private static void Test<T>() { }
 
-        private static string GetPartFactoryMethodNameNoTypeArgs(ComposablePartDefinition part, bool createOnly)
+        private static string GetPartFactoryMethodNameNoTypeArgs(ComposablePartDefinition part)
         {
             Requires.NotNull(part, "part");
-            string prefix = createOnly ? "Create" : "GetOrCreate";
-            string name = prefix + part.Id;
+            string name = "Create" + part.Id;
             return name;
         }
 
-        private static string GetPartFactoryMethodName(ComposablePartDefinition part, bool createOnly, params string[] typeArguments)
+        private static string GetPartFactoryMethodName(ComposablePartDefinition part, params string[] typeArguments)
         {
             if (typeArguments == null || typeArguments.Length == 0)
             {
                 typeArguments = part.Type.GetGenericArguments().Select(t => t.Name).ToArray();
             }
 
-            string name = GetPartFactoryMethodNameNoTypeArgs(part, createOnly);
+            string name = GetPartFactoryMethodNameNoTypeArgs(part);
 
             if (typeArguments.Length > 0)
             {
@@ -1464,131 +1446,6 @@
             }
 
             return name;
-        }
-
-        private static string GetPartFactoryMethodInvokeExpression(
-            ComposablePartDefinition part,
-            string typeArgsParamsArrayExpression,
-            string provisionalSharedObjectsExpression,
-            bool nonSharedInstanceRequired)
-        {
-            if (part.Type.IsGenericType)
-            {
-                return GetGenericPartFactoryMethodInvokeExpression(
-                    part,
-                    typeArgsParamsArrayExpression,
-                    provisionalSharedObjectsExpression,
-                    false);
-            }
-            else
-            {
-                return "this." + GetPartFactoryMethodName(part, false) + "(" + provisionalSharedObjectsExpression + ", " + (nonSharedInstanceRequired ? "true" : "false") + ")";
-            }
-        }
-
-        private static string GetGenericPartFactoryMethodInfoExpression(ComposablePartDefinition part, string typeArgsParamsArrayExpression)
-        {
-            return string.Format(
-                CultureInfo.InvariantCulture,
-                "this.GetMethodWithArity(\"{0}\", {1})"
-                + ".MakeGenericMethod({2})",
-                GetPartFactoryMethodNameNoTypeArgs(part, false),
-                part.Type.GetGenericArguments().Length,
-                typeArgsParamsArrayExpression);
-        }
-
-        private static string GetGenericPartFactoryMethodInvokeExpression(
-            ComposablePartDefinition part,
-            string typeArgsParamsArrayExpression,
-            string provisionalSharedObjectsExpression,
-            bool nonSharedInstanceRequired)
-        {
-            return GetGenericPartFactoryMethodInfoExpression(part, typeArgsParamsArrayExpression) +
-                ".Invoke(this, new object[] { " + provisionalSharedObjectsExpression + ", /* nonSharedInstanceRequired: */ " + (nonSharedInstanceRequired ? "true" : "false") + " })";
-        }
-
-        private string GetPartOrMemberLazy(ExportDefinitionBinding export)
-        {
-            Requires.NotNull(export, "export");
-
-            MemberInfo member = export.ExportingMember;
-            ExportDefinition exportDefinition = export.ExportDefinition;
-
-            string partExpression = GetPartFactoryMethodInvokeExpression(
-                export.PartDefinition,
-                "compositionContract.Type.GetGenericArguments()",
-                "provisionalSharedObjects",
-                false);
-
-            if (member == null)
-            {
-                return partExpression;
-            }
-
-            string valueFactoryExpression;
-            if (IsPublic(member, export.PartDefinition.Type))
-            {
-                string memberExpression = string.Format(
-                    CultureInfo.InvariantCulture,
-                    "({0}).Value.{1}",
-                    partExpression,
-                    member.Name);
-                switch (member.MemberType)
-                {
-                    case MemberTypes.Method:
-                        valueFactoryExpression = string.Format(
-                            CultureInfo.InvariantCulture,
-                            "new {0}({1})",
-                            GetTypeName(export.ExportedValueType),
-                            memberExpression);
-                        break;
-                    case MemberTypes.Field:
-                    case MemberTypes.Property:
-                        valueFactoryExpression = memberExpression;
-                        break;
-                    default:
-                        throw new NotSupportedException();
-                }
-            }
-            else
-            {
-                switch (member.MemberType)
-                {
-                    case MemberTypes.Method:
-                        valueFactoryExpression = string.Format(
-                            CultureInfo.InvariantCulture,
-                            "({0}){1}.CreateDelegate({3}, ({2}).Value)",
-                            GetTypeName(export.ExportedValueType),
-                            GetMethodInfoExpression((MethodInfo)member),
-                            partExpression,
-                            GetTypeExpression(export.ExportedValueType));
-                        break;
-                    case MemberTypes.Field:
-                        valueFactoryExpression = string.Format(
-                            CultureInfo.InvariantCulture,
-                            "({0}){1}.GetValue(({2}).Value)",
-                            GetTypeName(((FieldInfo)member).FieldType),
-                            GetFieldInfoExpressionSyntax((FieldInfo)member),
-                            partExpression);
-                        break;
-                    case MemberTypes.Property:
-                        valueFactoryExpression = string.Format(
-                            CultureInfo.InvariantCulture,
-                            "({0}){1}.Invoke(({2}).Value, new object[0])",
-                            GetTypeName(((PropertyInfo)member).PropertyType),
-                            GetMethodInfoExpression(((PropertyInfo)member).GetGetMethod(true)),
-                            partExpression);
-                        break;
-                    default:
-                        throw new NotSupportedException();
-                }
-            }
-
-            return string.Format(
-                CultureInfo.InvariantCulture,
-                "new LazyPart<{0}>(() => {1})",
-                GetTypeName(export.ExportedValueType),
-                valueFactoryExpression);
         }
 
         private static string Quote(string value)
@@ -1629,6 +1486,41 @@
                     return IsPublic(method, reflectedType) && IsPublic(property.PropertyType, true); // we have to check the type in case it contains embedded generic type arguments
                 default:
                     throw new NotSupportedException();
+            }
+        }
+
+        /// <summary>
+        /// Creates an expression that creates a <see cref="LazyPart{T, TMetadata}"/> instance.
+        /// </summary>
+        /// <param name="valueType">The type for T.</param>
+        /// <param name="valueFactory">The value factory, including the lambda when applicable.</param>
+        /// <param name="metadataType">The type for TMetadata.</param>
+        /// <param name="metadata">The metadata.</param>
+        /// <returns>The object creation expression.</returns>
+        private ExpressionSyntax CreateLazyConstruction(Type valueType, ExpressionSyntax valueFactory, Type metadataType, ExpressionSyntax metadata)
+        {
+            Requires.NotNull(valueType, "valueType");
+            Requires.NotNull(valueFactory, "valueFactory");
+
+            // Consider: can most of this be replaced with just using this.ObjectCreationExpression in both code paths?
+            Type lazyTypeDefinition = metadataType != null ? typeof(LazyPart<,>) : typeof(LazyPart<>);
+            Type[] lazyTypeArgs = metadataType != null ? new[] { valueType, metadataType } : new[] { valueType };
+            Type lazyType = lazyTypeDefinition.MakeGenericType(lazyTypeArgs);
+            ExpressionSyntax[] lazyArgs = metadata == null ? new[] { valueFactory } : new[] { valueFactory, metadata };
+
+            if (IsPublic(lazyType, true))
+            {
+                // new LazyPart<T, TMetadata>
+                return SyntaxFactory.ObjectCreationExpression(
+                    SyntaxFactory.GenericName("LazyPart").WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
+                        CodeGen.JoinSyntaxNodes(SyntaxKind.CommaToken, lazyTypeArgs.Select(t => this.GetTypeNameSyntax(t)).ToArray()))),
+                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(SyntaxKind.CommaToken, lazyArgs.Select(SyntaxFactory.Argument).ToArray())),
+                    null);
+            }
+            else
+            {
+                var ctor = lazyTypeDefinition.GetConstructors().Single(c => c.GetParameters()[0].ParameterType.Equals(typeof(Func<object>)));
+                return ObjectCreationExpression(ctor, lazyArgs);
             }
         }
 
@@ -1786,6 +1678,61 @@
                     SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
                         SyntaxFactory.Argument(
                             SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(index))))));
+        }
+
+        /// <summary>
+        /// Creates an expression that evaluates to an <see cref="ILazy{T}"/>.
+        /// </summary>
+        private ExpressionSyntax GetPartInstanceLazy(ComposablePartDefinition partDefinition, ExpressionSyntax provisionalSharedObjects, bool nonSharedInstanceRequired, IEnumerable<TypeSyntax> typeArgs)
+        {
+            Requires.NotNull(partDefinition, "partDefinition");
+            Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
+            typeArgs = typeArgs ?? Enumerable.Empty<TypeSyntax>();
+
+            if (partDefinition.Equals(ExportProvider.ExportProviderPartDefinition))
+            {
+                // Special case for our synthesized part that acts as a placeholder for *this* export provider.
+                // this.NonDisposableWrapper
+                return SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.ThisExpression(),
+                    SyntaxFactory.IdentifierName("NonDisposableWrapper"));
+            }
+
+            ExpressionSyntax partTypeExpression = this.GetTypeExpressionSyntax(partDefinition.Type);
+            SimpleNameSyntax partFactoryMethod = SyntaxFactory.IdentifierName(GetPartFactoryMethodName(partDefinition));
+            if (typeArgs.Any())
+            {
+                partTypeExpression = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, partTypeExpression, SyntaxFactory.IdentifierName("MakeGenericType")),
+                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                        SyntaxKind.CommaToken,
+                        typeArgs.Select(SyntaxFactory.Argument).ToArray())));
+                partFactoryMethod = SyntaxFactory.GenericName(
+                    partFactoryMethod.Identifier,
+                    SyntaxFactory.TypeArgumentList(CodeGen.JoinSyntaxNodes(
+                        SyntaxKind.CommaToken,
+                        typeArgs.ToArray())));
+            }
+
+            ExpressionSyntax sharingBoundary = partDefinition.IsShared
+                ? SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(this.Configuration.GetEffectiveSharingBoundary(partDefinition)))
+                : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+
+            // GetOrCreateShareableValue(typeof(Part), CreatePart, pso, "sharingBoundaries", true)
+            var invocation = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.IdentifierName("GetOrCreateShareableValue"),
+                SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                    SyntaxKind.CommaToken,
+                    SyntaxFactory.Argument(partTypeExpression),
+                    SyntaxFactory.Argument(partFactoryMethod),
+                    SyntaxFactory.Argument(provisionalSharedObjects),
+                    SyntaxFactory.Argument(sharingBoundary),
+                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(nonSharedInstanceRequired ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression)))));
+            var invocationCast = SyntaxFactory.CastExpression(
+                SyntaxFactory.GenericName("ILazy").WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(this.GetTypeNameSyntax(partDefinition.Type)))),
+                invocation);
+            return SyntaxFactory.ParenthesizedExpression(invocationCast);
         }
 
         private void EmitAdditionalMembers()
