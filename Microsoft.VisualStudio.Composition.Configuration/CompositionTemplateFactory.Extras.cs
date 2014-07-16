@@ -1283,7 +1283,7 @@
             Requires.NotNull(export, "export");
 
             var metadataDictionary = this.GetExportMetadata(export);
-            if (import == null || import.MetadataType == typeof(IDictionary<string, object>))
+            if (import == null || import.MetadataType == null || import.MetadataType == typeof(IDictionary<string, object>))
             {
                 return metadataDictionary;
             }
@@ -1500,7 +1500,7 @@
             Type lazyTypeDefinition = metadataType != null ? typeof(LazyPart<,>) : typeof(LazyPart<>);
             Type[] lazyTypeArgs = metadataType != null ? new[] { valueType, metadataType } : new[] { valueType };
             Type lazyType = lazyTypeDefinition.MakeGenericType(lazyTypeArgs);
-            ExpressionSyntax[] lazyArgs = metadata == null ? new[] { valueFactory } : new[] { valueFactory, metadata };
+            ExpressionSyntax[] lazyArgs = metadataType == null ? new[] { valueFactory } : new[] { valueFactory, metadata };
 
             if (IsPublic(lazyType, true))
             {
