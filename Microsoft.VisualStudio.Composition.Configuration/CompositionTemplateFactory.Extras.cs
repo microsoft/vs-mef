@@ -91,7 +91,33 @@
             }
             else
             {
-                statement = this.CreateMemberAssignment(import.ImportingMember, value, partInstanceVar);
+                ExpressionSyntax expression;
+                var importingField = import.ImportingMember as FieldInfo;
+                var importingProperty = import.ImportingMember as PropertyInfo;
+                Assumes.True(importingField != null || importingProperty != null);
+
+                if (importingField != null)
+                {
+                    // fieldInfo.SetValue(result, value);
+                    expression = SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, this.GetFieldInfoExpressionSyntax(importingField), SyntaxFactory.IdentifierName("SetValue")),
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                            SyntaxKind.CommaToken,
+                            SyntaxFactory.Argument(partInstanceVar),
+                            SyntaxFactory.Argument(value))));
+                }
+                else // property
+                {
+                    // propertyInfo.SetValue(result, value);
+                    expression = SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, this.GetMethodInfoExpression(importingProperty.GetSetMethod(true)), SyntaxFactory.IdentifierName("Invoke")),
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                            SyntaxKind.CommaToken,
+                            SyntaxFactory.Argument(partInstanceVar),
+                            GetObjectArrayArgument(value))));
+                }
+
+                return SyntaxFactory.ExpressionStatement(expression);
             }
 
             return statement;
@@ -153,41 +179,6 @@
             }
 
             throw new NotSupportedException();
-        }
-
-        private StatementSyntax CreateMemberAssignment(MemberInfo member, ExpressionSyntax value, IdentifierNameSyntax partInstanceVar)
-        {
-            Requires.NotNull(member, "member");
-            Requires.NotNull(value, "value");
-            Requires.NotNull(partInstanceVar, "partInstanceVar");
-
-            ExpressionSyntax expression;
-            var importingField = member as FieldInfo;
-            var importingProperty = member as PropertyInfo;
-            Assumes.True(importingField != null || importingProperty != null);
-
-            if (importingField != null)
-            {
-                // fieldInfo.SetValue(result, value);
-                expression = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, this.GetFieldInfoExpressionSyntax(importingField), SyntaxFactory.IdentifierName("SetValue")),
-                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
-                        SyntaxKind.CommaToken,
-                        SyntaxFactory.Argument(partInstanceVar),
-                        SyntaxFactory.Argument(value))));
-            }
-            else // property
-            {
-                // propertyInfo.SetValue(result, value);
-                expression = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, this.GetMethodInfoExpression(importingProperty.GetSetMethod(true)), SyntaxFactory.IdentifierName("Invoke")),
-                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
-                        SyntaxKind.CommaToken,
-                        SyntaxFactory.Argument(partInstanceVar),
-                        GetObjectArrayArgument(value))));
-            }
-
-            return SyntaxFactory.ExpressionStatement(expression);
         }
 
         private ExpressionSyntax GetFieldInfoExpressionSyntax(FieldInfo fieldInfo)
@@ -1196,14 +1187,19 @@
 
             if (import.IsLazy)
             {
-                return CreateLazyConstruction(
+                var lazyExportedValueSyntax = CreateLazyConstruction(
                     import.ImportingSiteElementType,
                     exportedValueSyntax,
                     import.MetadataType,
                     GetExportMetadata(export, import));
+                return lazyExportedValueSyntax;
             }
-
-            return exportedValueSyntax;
+            else
+            {
+                return SyntaxFactory.CastExpression(
+                    this.GetTypeNameSyntax(import.ImportingSiteElementType),
+                    exportedValueSyntax);
+            }
         }
 
         private MethodDeclarationSyntax CreateGetExportsCoreHelperMethod(IGrouping<string, ExportDefinitionBinding> exports)
