@@ -103,7 +103,7 @@ foreach (var part in this.Configuration.Parts)
             this.Write("> ");
             
             #line 52 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.Configuration\CompositionTemplateFactory.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(GetPartFactoryMethodName(part.Definition)));
+            this.Write(this.ToStringHelper.ToStringWithCulture(GetPartFactoryMethodName(part.Definition, false)));
             
             #line default
             #line hidden

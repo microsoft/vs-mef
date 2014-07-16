@@ -19,6 +19,12 @@
     {
         private const string InstantiatedPartLocalVarName = "result";
 
+        private static readonly TypeSyntax dictionaryOfTypeObject = SyntaxFactory.GenericName("Dictionary")
+                    .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(CodeGen.JoinSyntaxNodes<TypeSyntax>(
+                        SyntaxKind.CommaToken,
+                        SyntaxFactory.IdentifierName("Type"),
+                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))));
+
         private readonly HashSet<Assembly> relevantAssemblies = new HashSet<Assembly>();
 
         private readonly HashSet<Type> relevantEmbeddedTypes = new HashSet<Type>();
@@ -69,198 +75,279 @@
             get { return this.relevantEmbeddedTypes; }
         }
 
-        private IDisposable EmitMemberAssignment(ImportDefinitionBinding import)
+        private StatementSyntax CreateMemberAssignment(ImportDefinitionBinding import, ExpressionSyntax value, IdentifierNameSyntax partInstanceVar)
         {
             Requires.NotNull(import, "import");
+            Requires.NotNull(value, "value");
 
-            var importingField = import.ImportingMember as FieldInfo;
-            var importingProperty = import.ImportingMember as PropertyInfo;
-            Assumes.True(importingField != null || importingProperty != null);
-
-            string tail;
+            StatementSyntax statement;
             if (IsPublic(import.ImportingMember, import.ComposablePartType, setter: true))
             {
-                this.Write("{0}.{1} = ", InstantiatedPartLocalVarName, import.ImportingMember.Name);
-                tail = ";";
+                // result.Property = value;
+                statement = SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, partInstanceVar, SyntaxFactory.IdentifierName(import.ImportingMember.Name)),
+                    value));
             }
             else
             {
-                if (importingField != null)
-                {
-                    this.Write(
-                        "{0}.SetValue({1}, ",
-                        this.GetFieldInfoExpression(importingField),
-                        InstantiatedPartLocalVarName);
-                    tail = ");";
-                }
-                else // property
-                {
-                    this.Write(
-                        "{0}.Invoke({1}, new object[] {{ ",
-                        this.GetMethodInfoExpression(importingProperty.GetSetMethod(true)),
-                        InstantiatedPartLocalVarName);
-                    tail = " });";
-                }
+                statement = this.CreateMemberAssignment(import.ImportingMember, value, partInstanceVar);
             }
 
-            return new DisposableWithAction(delegate
-            {
-                this.WriteLine(tail);
-            });
+            return statement;
         }
 
-        private string GetFieldInfoExpression(FieldInfo fieldInfo)
+        private StatementSyntax CreateMemberAssignment(MemberInfo member, ExpressionSyntax value, IdentifierNameSyntax partInstanceVar)
+        {
+            Requires.NotNull(member, "member");
+            Requires.NotNull(value, "value");
+            Requires.NotNull(partInstanceVar, "partInstanceVar");
+
+            ExpressionSyntax expression;
+            var importingField = member as FieldInfo;
+            var importingProperty = member as PropertyInfo;
+            Assumes.True(importingField != null || importingProperty != null);
+
+            if (importingField != null)
+            {
+                // fieldInfo.SetValue(result, value);
+                expression = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, this.GetFieldInfoExpressionSyntax(importingField), SyntaxFactory.IdentifierName("SetValue")),
+                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                        SyntaxKind.CommaToken,
+                        SyntaxFactory.Argument(partInstanceVar),
+                        SyntaxFactory.Argument(value))));
+            }
+            else // property
+            {
+                // propertyInfo.SetValue(result, value);
+                expression = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, this.GetMethodInfoExpression(importingProperty.GetSetMethod(true)), SyntaxFactory.IdentifierName("Invoke")),
+                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                        SyntaxKind.CommaToken,
+                        SyntaxFactory.Argument(partInstanceVar),
+                        GetObjectArrayArgument(value))));
+            }
+
+            return SyntaxFactory.ExpressionStatement(expression);
+        }
+
+        private ExpressionSyntax GetFieldInfoExpressionSyntax(FieldInfo fieldInfo)
         {
             Requires.NotNull(fieldInfo, "fieldInfo");
 
             if (fieldInfo.DeclaringType.IsGenericType)
             {
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "{0}.GetField({1}, BindingFlags.Instance | BindingFlags.NonPublic)",
-                    this.GetClosedGenericTypeExpression(fieldInfo.DeclaringType),
-                    Quote(fieldInfo.Name));
+                return SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        this.GetClosedGenericTypeExpression(fieldInfo.DeclaringType),
+                        SyntaxFactory.IdentifierName("GetField")),
+                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                        SyntaxKind.CommaToken,
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(fieldInfo.Name))),
+                        SyntaxFactory.Argument(SyntaxFactory.BinaryExpression(
+                            SyntaxKind.BitwiseOrExpression,
+                            SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("BindingFlags"), SyntaxFactory.IdentifierName("Instance")),
+                            SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("BindingFlags"), SyntaxFactory.IdentifierName("NonPublic")))))));
             }
             else
             {
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "{0}.ResolveField({1}/*{2}*/)",
-                    this.GetManifestModuleSyntax(fieldInfo.DeclaringType.Assembly),
-                    fieldInfo.MetadataToken,
-                    GetTypeName(fieldInfo.DeclaringType, evenNonPublic: true) + "." + fieldInfo.Name);
+                return SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        this.GetManifestModuleSyntax(fieldInfo.DeclaringType.Assembly),
+                        SyntaxFactory.IdentifierName("ResolveField")),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
+                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(fieldInfo.MetadataToken))
+                            .WithTrailingTrivia(SyntaxFactory.Comment("/*" + GetTypeName(fieldInfo.DeclaringType, evenNonPublic: true) + "." + fieldInfo.Name + "*/"))))));
             }
         }
 
-        private string GetMethodInfoExpression(MethodInfo methodInfo)
+        private ExpressionSyntax GetMethodInfoExpression(MethodInfo methodInfo)
         {
             Requires.NotNull(methodInfo, "methodInfo");
 
+            // manifest.ResolveMethod(metadataToken/*description*/)
+            var resolveMethod = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    this.GetManifestModuleSyntax(methodInfo.DeclaringType.Assembly),
+                    SyntaxFactory.IdentifierName("ResolveMethod")),
+                SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(methodInfo.MetadataToken))
+                        .WithTrailingTrivia(SyntaxFactory.Comment("/*" + GetTypeName(methodInfo.DeclaringType, evenNonPublic: true) + "." + methodInfo.Name + "*/"))))));
+
+            ExpressionSyntax methodInfoSyntax;
             if (methodInfo.DeclaringType.IsGenericType)
             {
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "((MethodInfo)MethodInfo.GetMethodFromHandle({0}.ResolveMethod({1}/*{3}*/).MethodHandle, {2}))",
-                    this.GetManifestModuleSyntax(methodInfo.DeclaringType.Assembly),
-                    methodInfo.MetadataToken,
-                    this.GetClosedGenericTypeHandleExpression(methodInfo.DeclaringType),
-                    GetTypeName(methodInfo.DeclaringType, evenNonPublic: true) + "." + methodInfo.Name);
+                // MethodInfo.GetMethodFromHandle({0}.ResolveMethod({1}/*{3}*/).MethodHandle, {2})
+                methodInfoSyntax = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("MethodInfo"), SyntaxFactory.IdentifierName("GetMethodFromHandle")),
+                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                        SyntaxKind.CommaToken,
+                        SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, resolveMethod, SyntaxFactory.IdentifierName("MethodHandle"))),
+                        SyntaxFactory.Argument(this.GetClosedGenericTypeHandleExpression(methodInfo.DeclaringType)))));
             }
             else
             {
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "((MethodInfo){0}.ResolveMethod({1}/*{2}*/))",
-                    this.GetManifestModuleSyntax(methodInfo.DeclaringType.Assembly),
-                    methodInfo.MetadataToken,
-                    GetTypeName(methodInfo.DeclaringType, evenNonPublic: true) + "." + methodInfo.Name);
+                methodInfoSyntax = resolveMethod;
             }
+
+            var castExpression = SyntaxFactory.ParenthesizedExpression(
+                SyntaxFactory.CastExpression(
+                    SyntaxFactory.IdentifierName("MethodInfo"),
+                    methodInfoSyntax));
+            return castExpression;
         }
 
-        private string GetClosedGenericTypeExpression(Type type)
+        private ExpressionSyntax GetClosedGenericTypeExpression(Type type)
         {
             Requires.NotNull(type, "type");
-            return string.Format(
-                CultureInfo.InvariantCulture,
-                "{0}.ResolveType({1}/*{3}*/).MakeGenericType({2})",
-                this.GetManifestModuleSyntax(type.Assembly),
-                type.GetGenericTypeDefinition().MetadataToken,
-                string.Join(", ", type.GetGenericArguments().Select(t => t.IsGenericType && t.ContainsGenericParameters ? GetClosedGenericTypeExpression(t) : GetTypeExpression(t))),
-                type.ContainsGenericParameters ? "incomplete" : this.GetTypeName(type, evenNonPublic: true));
+
+            // {0}.ResolveType({1}/*{3}*/).MakeGenericType({2})
+            return SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            this.GetManifestModuleSyntax(type.Assembly),
+                            SyntaxFactory.IdentifierName("ResolveType")),
+                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
+                            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(type.GetGenericTypeDefinition().MetadataToken)))
+                                .WithTrailingTrivia(SyntaxFactory.Comment("/*" + (type.ContainsGenericParameters ? "incomplete" : this.GetTypeName(type, evenNonPublic: true)) + "*/"))))),
+                    SyntaxFactory.IdentifierName("MakeGenericType")),
+                SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                    SyntaxKind.CommaToken,
+                    type.GetGenericArguments().Select(t => SyntaxFactory.Argument(t.IsGenericType && t.ContainsGenericParameters ? GetClosedGenericTypeExpression(t) : GetTypeExpressionSyntax(t))).ToArray())));
         }
 
-        private string GetClosedGenericTypeHandleExpression(Type type)
+        private ExpressionSyntax GetClosedGenericTypeHandleExpression(Type type)
         {
-            return GetClosedGenericTypeExpression(type) + ".TypeHandle";
+            return SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                GetClosedGenericTypeExpression(type),
+                SyntaxFactory.IdentifierName("TypeHandle"));
         }
 
-        private void EmitImportSatisfyingAssignment(KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExport)
+        private StatementSyntax[] GetImportSatisfyingAssignmentSyntax(KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExport)
         {
             Requires.Argument(satisfyingExport.Key.ImportingMember != null, "satisfyingExport", "No member to satisfy.");
             var import = satisfyingExport.Key;
             var importingMember = satisfyingExport.Key.ImportingMember;
             var exports = satisfyingExport.Value;
+            var partInstanceVar = SyntaxFactory.IdentifierName(InstantiatedPartLocalVarName);
 
-            string expression = GetImportSatisfyingExpression(import, exports);
-            using (this.EmitMemberAssignment(import))
-            {
-                this.Write(expression);
-            }
+            IReadOnlyList<StatementSyntax> prereqs;
+            var expression = GetImportSatisfyingExpression(import, exports, out prereqs);
+            var statements = new List<StatementSyntax>(prereqs);
+            statements.Add(CreateMemberAssignment(import, expression, partInstanceVar));
+            return statements.ToArray();
         }
 
-        private string GetImportSatisfyingExpression(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports)
+        private ExpressionSyntax GetImportSatisfyingExpression(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports, out IReadOnlyList<StatementSyntax> prerequisiteStatements)
         {
             if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
             {
                 Type enumerableOfTType = typeof(IEnumerable<>).MakeGenericType(import.ImportingSiteTypeWithoutCollection);
                 if (import.ImportingSiteType.IsArray || import.ImportingSiteType.IsEquivalentTo(enumerableOfTType))
                 {
-                    return this.GetSatisfyImportManyArrayExpression(import, exports);
+                    return this.GetSatisfyImportManyArrayExpression(import, exports, out prerequisiteStatements);
                 }
                 else
                 {
-                    return this.GetSatisfyImportManyCollectionExpression(import, exports);
+                    return this.GetSatisfyImportManyCollectionExpression(import, exports, out prerequisiteStatements);
                 }
             }
             else if (exports.Any())
             {
-                return this.GetValueFactoryExpression(import, exports.Single());
+                prerequisiteStatements = ImmutableList<StatementSyntax>.Empty;
+                return this.GetValueFactoryExpressionSyntax(import, exports.Single());
             }
             else
             {
+                prerequisiteStatements = ImmutableList<StatementSyntax>.Empty;
                 if (IsPublic(import.ImportingSiteType))
                 {
-                    return string.Format(CultureInfo.InvariantCulture, "default({0})", GetTypeName(import.ImportingSiteType));
+                    return SyntaxFactory.DefaultExpression(this.GetTypeNameSyntax(import.ImportingSiteType));
                 }
                 else if (import.ImportingSiteType.IsValueType)
                 {
                     // It's a non-public struct. We have to construct its default value by hand.
-                    return string.Format(CultureInfo.InvariantCulture, "Activator.CreateInstance({0})", GetTypeExpression(import.ImportingSiteType));
+                    return SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName("Activator"),
+                            SyntaxFactory.IdentifierName("CreateInstance")),
+                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(GetTypeExpressionSyntax(import.ImportingSiteType)))));
                 }
                 else
                 {
-                    return string.Format(CultureInfo.InvariantCulture, "({0})null", GetTypeName(import.ImportingSiteType));
+                    return SyntaxFactory.CastExpression(
+                        this.GetTypeNameSyntax(import.ImportingSiteType),
+                        SyntaxFactory.LiteralExpression(SyntaxKind.NullKeyword));
                 }
             }
         }
 
-        private string GetSatisfyImportManyArrayExpression(ImportDefinitionBinding import, IEnumerable<ExportDefinitionBinding> exports)
+        private ExpressionSyntax GetSatisfyImportManyArrayExpression(ImportDefinitionBinding import, IEnumerable<ExportDefinitionBinding> exports, out IReadOnlyList<StatementSyntax> prerequisiteStatements)
         {
             Requires.NotNull(import, "import");
             Requires.NotNull(exports, "exports");
 
-            string localVarName = ReserveLocalVarName(import.ImportingMember != null ? import.ImportingMember.Name : "tmp");
-            this.Write("var {0} = ", localVarName);
+            var prereqs = new List<StatementSyntax>();
+            prerequisiteStatements = prereqs;
+
             if (IsPublic(import.ImportingSiteType, true))
             {
-                this.WriteLine("new {0}[]", GetTypeName(import.ImportingSiteTypeWithoutCollection));
-                this.WriteLine("{");
-                using (Indent())
-                {
-                    foreach (var export in exports)
-                    {
-                        this.WriteLine("{0},", this.GetValueFactoryExpression(import, export));
-                    }
-                }
-
-                this.WriteLine("};");
+                var arrayType = SyntaxFactory.ArrayType(
+                    this.GetTypeNameSyntax(import.ImportingSiteTypeWithoutCollection),
+                    SyntaxFactory.SingletonList<ArrayRankSpecifierSyntax>(
+                        SyntaxFactory.ArrayRankSpecifier(
+                            SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression()))));
+                return SyntaxFactory.ArrayCreationExpression(
+                    arrayType,
+                    SyntaxFactory.InitializerExpression(
+                    SyntaxKind.ArrayInitializerExpression,
+                    CodeGen.JoinSyntaxNodes<ExpressionSyntax>(
+                        SyntaxKind.CommaToken,
+                        exports.Select(export => this.GetValueFactoryExpressionSyntax(import, export)).ToArray())));
             }
             else
             {
                 // This will require a multi-statement construction of the array.
-                this.WriteLine("Array.CreateInstance({0}, {1});", this.GetTypeExpression(import.ImportingSiteTypeWithoutCollection), exports.Count());
+                // var localVarName = Array.CreateInstance(typeof(...), exports.Count);
+                var localVar = SyntaxFactory.IdentifierName(ReserveLocalVarName(import.ImportingMember != null ? import.ImportingMember.Name : "tmp"));
+                prereqs.Add(SyntaxFactory.LocalDeclarationStatement(
+                    SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                        .AddVariables(SyntaxFactory.VariableDeclarator(localVar.Identifier)
+                            .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.InvocationExpression(
+                                    SyntaxFactory.MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        SyntaxFactory.IdentifierName("Array"),
+                                        SyntaxFactory.IdentifierName("CreateInstance")),
+                                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                                        SyntaxKind.CommaToken,
+                                        SyntaxFactory.Argument(this.GetTypeExpressionSyntax(import.ImportingSiteTypeWithoutCollection)),
+                                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(exports.Count())))))))))));
                 int arrayIndex = 0;
                 foreach (var export in exports)
                 {
-                    this.WriteLine(
-                        "{0}.SetValue({1}, {2});",
-                        localVarName,
-                        this.GetValueFactoryExpression(import, export),
-                        arrayIndex++);
+                    prereqs.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            localVar,
+                            SyntaxFactory.IdentifierName("SetValue")),
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                            SyntaxKind.CommaToken,
+                            SyntaxFactory.Argument(this.GetValueFactoryExpressionSyntax(import, export)),
+                            SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(arrayIndex++))))))));
                 }
-            }
 
-            return localVarName;
+                return localVar;
+            }
         }
 
         private string EmitOpenGenericExportCollection(ImportDefinition importDefinition, IEnumerable<ExportDefinitionBinding> exports)
@@ -280,112 +367,174 @@
             return localVarName;
         }
 
-        private string GetSatisfyImportManyCollectionExpression(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports)
+        private ExpressionSyntax GetSatisfyImportManyCollectionExpression(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports, out IReadOnlyList<StatementSyntax> prerequisiteStatements)
         {
             Requires.NotNull(import, "import");
+
             var importDefinition = import.ImportDefinition;
             Type elementType = import.ImportingSiteTypeWithoutCollection;
             Type listType = typeof(List<>).MakeGenericType(elementType);
             bool stronglyTypedCollection = IsPublic(elementType, true);
             Type icollectionType = typeof(ICollection<>).MakeGenericType(elementType);
-            string importManyLocalVarTypeName = stronglyTypedCollection ? GetTypeName(icollectionType) : "object";
-            string tempVarName = ReserveLocalVarName(import.ImportingMember.Name);
+            var importManyLocalVarType = stronglyTypedCollection ? GetTypeNameSyntax(icollectionType) : SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
+            var tempVar = SyntaxFactory.IdentifierName(ReserveLocalVarName(import.ImportingMember.Name));
+            var instantiatedPartLocalVar = SyntaxFactory.IdentifierName(InstantiatedPartLocalVarName);
+
+            var prereqs = new List<StatementSyntax>();
+            prerequisiteStatements = prereqs;
 
             // Casting the collection to ICollection<T> instead of the concrete type guarantees
             // that we'll be able to call Add(T) and Clear() on it even if the type is NonPublic
             // or its methods are explicit interface implementations.
+            ExpressionSyntax tempVarAssignedValue;
             if (import.ImportingMember is FieldInfo)
             {
-                this.WriteLine("var {0} = ({3}){1}.GetValue({2});", tempVarName, GetFieldInfoExpression((FieldInfo)import.ImportingMember), InstantiatedPartLocalVarName, importManyLocalVarTypeName);
+                // fieldInfo.GetValue(result);
+                tempVarAssignedValue = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        this.GetFieldInfoExpressionSyntax((FieldInfo)import.ImportingMember),
+                        SyntaxFactory.IdentifierName("GetValue")),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(instantiatedPartLocalVar))));
             }
             else
             {
-                this.WriteLine("var {0} = ({3}){1}.Invoke({2}, new object[0]);", tempVarName, GetMethodInfoExpression(((PropertyInfo)import.ImportingMember).GetGetMethod(true)), InstantiatedPartLocalVarName, importManyLocalVarTypeName);
+                // methodInfo.Invoke(result, new object[0])
+                tempVarAssignedValue = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        GetMethodInfoExpression(((PropertyInfo)import.ImportingMember).GetGetMethod(true)),
+                        SyntaxFactory.IdentifierName("Invoke")),
+                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                        SyntaxKind.CommaToken,
+                        SyntaxFactory.Argument(instantiatedPartLocalVar),
+                        GetObjectArrayArgument())));
             }
 
-            this.WriteLine("if ({0} == null)", tempVarName);
-            using (Indent(withBraces: true))
+            // var tempVar = (ICollection<T>)...
+            prereqs.Add(SyntaxFactory.LocalDeclarationStatement(SyntaxFactory.VariableDeclaration(
+                    SyntaxFactory.IdentifierName("var"),
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.VariableDeclarator(tempVar.Identifier)
+                            .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                SyntaxFactory.CastExpression(importManyLocalVarType, tempVarAssignedValue)))))));
+
+            var initBlock = SyntaxFactory.Block();
+            var clearBlock = SyntaxFactory.Block();
+
+            // if (tempVar == null)
             {
                 if (PartDiscovery.IsImportManyCollectionTypeCreateable(import))
                 {
+                    ConstructorInfo collectionCtor;
                     if (import.ImportingSiteType.IsAssignableFrom(listType))
                     {
-                        if (stronglyTypedCollection)
-                        {
-                            string elementTypeName = GetTypeName(elementType);
-                            this.WriteLine("{0} = new List<{1}>();", tempVarName, elementTypeName);
-                        }
-                        else
-                        {
-                            this.Write("{0} = ", tempVarName);
-                            EmitConstructorInvocationExpression(typeof(List<>).MakeGenericType(elementType).GetConstructor(new Type[0]), alwaysUseReflection: true, skipCast: true).Dispose();
-                            this.WriteLine(";");
-                        }
+                        collectionCtor = typeof(List<>).MakeGenericType(elementType).GetConstructor(new Type[0]);
                     }
                     else
                     {
-                        this.Write("{0} = ({1})(", tempVarName, importManyLocalVarTypeName);
-                        using (this.EmitConstructorInvocationExpression(import.ImportingSiteType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null)))
-                        {
-                            // no arguments to constructor
-                        }
-
-                        this.WriteLine(");");
+                        collectionCtor = import.ImportingSiteType.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null);
                     }
 
-                    if (import.ImportingMember is FieldInfo)
-                    {
-                        this.WriteLine("{0}.SetValue({1}, {2});", GetFieldInfoExpression((FieldInfo)import.ImportingMember), InstantiatedPartLocalVarName, tempVarName);
-                    }
-                    else
-                    {
-                        this.WriteLine("{0}.Invoke({1}, new object[] {{ {2} }});", GetMethodInfoExpression(((PropertyInfo)import.ImportingMember).GetSetMethod(true)), InstantiatedPartLocalVarName, tempVarName);
-                    }
+                    initBlock = initBlock.AddStatements(
+                        // tempVar = new List<T>();
+                        SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
+                            SyntaxKind.SimpleAssignmentExpression,
+                            tempVar,
+                            SyntaxFactory.CastExpression(
+                                importManyLocalVarType,
+                                this.ObjectCreationExpression(collectionCtor, new ExpressionSyntax[0])))),
+
+                        // result.Member = tempVar
+                        this.CreateMemberAssignment(
+                            import,
+                            SyntaxFactory.CastExpression(this.GetTypeNameSyntax(import.ImportingSiteType), tempVar),
+                            instantiatedPartLocalVar));
                 }
                 else
                 {
-                    this.WriteLine(
-                        "throw new InvalidOperationException(\"The {0}.{1} collection must be instantiated by the importing constructor.\");",
-                        import.ComposablePartType.Name,
-                        import.ImportingMember.Name);
+                    initBlock = initBlock.AddStatements(
+                        SyntaxFactory.ThrowStatement(
+                            SyntaxFactory.ObjectCreationExpression(
+                                SyntaxFactory.IdentifierName("InvalidOperationException"),
+                                SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                                    SyntaxKind.StringLiteralExpression,
+                                    SyntaxFactory.Literal(string.Format(
+                                        CultureInfo.InvariantCulture,
+                                        "throw new InvalidOperationException(\"The {0}.{1} collection must be instantiated by the importing constructor.\");",
+                                        import.ComposablePartType.Name,
+                                        import.ImportingMember.Name)))))),
+                                null)));
                 }
             }
 
-            this.WriteLine("else");
-            using (Indent(withBraces: true))
+            // else tempVar != null
             {
+                InvocationExpressionSyntax clearInvocation;
                 if (stronglyTypedCollection)
                 {
-                    this.WriteLine("{0}.Clear();", tempVarName);
+                    // tempVar.Clear();
+                    clearInvocation = SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, tempVar, SyntaxFactory.IdentifierName("Clear")),
+                            SyntaxFactory.ArgumentList());
                 }
                 else
                 {
-                    this.WriteLine(
-                        "{0}.Invoke({1}, new object[0]);",
-                        GetMethodInfoExpression(icollectionType.GetMethod("Clear")),
-                        tempVarName);
+                    // clearMethodInfo.Invoke(tempVar, new object[0])
+                    clearInvocation = SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            GetMethodInfoExpression(icollectionType.GetMethod("Clear")),
+                            SyntaxFactory.IdentifierName("Invoke")),
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                            SyntaxKind.CommaToken,
+                            SyntaxFactory.Argument(tempVar),
+                            GetObjectArrayArgument())));
                 }
+
+                clearBlock = clearBlock.AddStatements(SyntaxFactory.ExpressionStatement(clearInvocation));
             }
 
-            this.WriteLine(string.Empty);
+            prereqs.Add(SyntaxFactory.IfStatement(
+                SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, tempVar, SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)),
+                initBlock,
+                SyntaxFactory.ElseClause(clearBlock)));
 
             foreach (var export in exports)
             {
+                InvocationExpressionSyntax addExpression;
                 if (stronglyTypedCollection)
                 {
-                    this.WriteLine("{0}.Add({1});", tempVarName, this.GetValueFactoryExpression(import, export));
+                    // tempVar.Add(export);
+                    addExpression = SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, tempVar, SyntaxFactory.IdentifierName("Add")),
+                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(this.GetValueFactoryExpressionSyntax(import, export)))));
                 }
                 else
                 {
-                    this.WriteLine(
-                        "{0}.Invoke({1}, new object[] {{ {2} }});",
-                        GetMethodInfoExpression(icollectionType.GetMethod("Add")),
-                        tempVarName,
-                        this.GetValueFactoryExpression(import, export));
+                    // addMethodInfo.Invoke(tempVar, new object[] { export })
+                    addExpression = SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, GetMethodInfoExpression(icollectionType.GetMethod("Add")), SyntaxFactory.IdentifierName("Invoke")),
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                            SyntaxKind.CommaToken,
+                            SyntaxFactory.Argument(tempVar),
+                            GetObjectArrayArgument(this.GetValueFactoryExpressionSyntax(import, export)))));
                 }
+
+                prereqs.Add(SyntaxFactory.ExpressionStatement(addExpression));
             }
 
-            return string.Format(CultureInfo.InvariantCulture, "({0}){1}", GetTypeName(import.ImportingSiteType), tempVarName);
+            // (TCollection)tempVar
+            var castExpression = SyntaxFactory.CastExpression(
+                this.GetTypeNameSyntax(import.ImportingSiteType),
+                tempVar);
+
+            return castExpression;
+        }
+
+        private ExpressionSyntax GetValueFactoryExpressionSyntax(ImportDefinitionBinding import, ExportDefinitionBinding export, ExpressionSyntax provisionalSharedObjectsSyntax = null)
+        {
+            return SyntaxFactory.ParseExpression(GetValueFactoryExpression(import, export, provisionalSharedObjectsSyntax));
         }
 
         private string GetValueFactoryExpression(ImportDefinitionBinding import, ExportDefinitionBinding export, ExpressionSyntax provisionalSharedObjectsSyntax = null)
@@ -446,7 +595,7 @@
 
                         if (genericTypeArgs.All(arg => IsPublic(arg, true)))
                         {
-                            writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, genericTypeArgs.Select(GetTypeName).ToArray()));
+                            writer.Write("{0}(", GetPartFactoryMethodName(export.PartDefinition, false, genericTypeArgs.Select(GetTypeName).ToArray()));
                             writer.Write(provisionalSharedObjectsExpression);
                             if (nonSharedInstanceRequired) // code gen size optimization: take advantage of the optional parameter.
                             {
@@ -492,7 +641,7 @@
                         populatingExpression,
                         SyntaxFactory.IdentifierName("Add")),
                         SyntaxFactory.ArgumentList(
-                            SyntaxFactory.SeparatedList<ArgumentSyntax>(new ArgumentSyntax[] { 
+                            SyntaxFactory.SeparatedList<ArgumentSyntax>(new ArgumentSyntax[] {
                                 SyntaxFactory.Argument(GetSyntaxToReconstructValue(pair.Key)),
                                 SyntaxFactory.Argument(GetSyntaxToReconstructValue(pair.Value)),
                             })));
@@ -634,126 +783,238 @@
             return SyntaxFactory.ParseTypeName(this.GetTypeName(type, genericTypeDefinition, evenNonPublic));
         }
 
-        private IDisposable EmitConstructorInvocationExpression(ComposablePartDefinition partDefinition)
+        private ExpressionSyntax ObjectCreationExpression(ComposablePartDefinition partDefinition, ExpressionSyntax[] arguments, bool alwaysUseReflection = false)
         {
             Requires.NotNull(partDefinition, "partDefinition");
-            return this.EmitConstructorInvocationExpression(partDefinition.ImportingConstructorInfo);
+            return this.ObjectCreationExpression(partDefinition.ImportingConstructorInfo, arguments, alwaysUseReflection);
         }
 
-        private IDisposable EmitConstructorInvocationExpression(ConstructorInfo ctor, bool alwaysUseReflection = false, bool skipCast = false, TextWriter writer = null)
+        private ExpressionSyntax ObjectCreationExpression(ConstructorInfo ctor, ExpressionSyntax[] arguments, bool alwaysUseReflection = false)
         {
             Requires.NotNull(ctor, "ctor");
+            Requires.NotNull(arguments, "arguments");
 
-            writer = writer ?? new SelfTextWriter(this);
             bool publicCtor = !alwaysUseReflection && IsPublic(ctor, ctor.DeclaringType);
             if (publicCtor)
             {
-                writer.Write("new {0}(", GetTypeName(ctor.DeclaringType));
+                return SyntaxFactory.ObjectCreationExpression(
+                    this.GetTypeNameSyntax(ctor.DeclaringType),
+                    SyntaxFactory.ArgumentList(
+                        CodeGen.JoinSyntaxNodes<ArgumentSyntax>(
+                            SyntaxKind.CommaToken,
+                            arguments.Select(SyntaxFactory.Argument).ToArray())),
+                    null);
             }
             else
             {
                 var manifestModuleSyntax = this.GetManifestModuleSyntax(ctor.DeclaringType.Assembly);
                 var typeName = GetTypeNameSyntax(ctor.DeclaringType, evenNonPublic: true).ToString() + "." + ctor.Name;
-                string ctorExpression;
+
+                // manifestModule.ResolveMethod(ctorMetadataToken/*typeName.ctor*/)
+                var resolveMethodSyntax = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        manifestModuleSyntax,
+                        SyntaxFactory.IdentifierName("ResolveMethod")),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(ctor.MetadataToken))
+                        .WithTrailingTrivia(SyntaxFactory.Comment("/*" + typeName + "*/"))))));
+
+                ExpressionSyntax ctorSyntax;
                 if (ctor.DeclaringType.IsGenericType)
                 {
-                    ctorExpression = string.Format(
-                        CultureInfo.InvariantCulture,
-                        "(ConstructorInfo)MethodInfo.GetMethodFromHandle({2}.ResolveMethod({0}/*{3}*/).MethodHandle, {1})",
-                        ctor.MetadataToken,
-                        this.GetClosedGenericTypeHandleExpression(ctor.DeclaringType),
-                        manifestModuleSyntax,
-                        typeName);
+                    // "(ConstructorInfo)MethodInfo.GetMethodFromHandle({2}.ResolveMethod({0}/*{3}*/).MethodHandle, {1})"
+                    ctorSyntax = SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName("MethodInfo"),
+                            SyntaxFactory.IdentifierName("GetMethodFromHandle")),
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes<ArgumentSyntax>(
+                            SyntaxKind.CommaToken,
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    resolveMethodSyntax,
+                                    SyntaxFactory.IdentifierName("MethodHandle"))),
+                            SyntaxFactory.Argument(this.GetClosedGenericTypeHandleExpression(ctor.DeclaringType)))));
                 }
                 else
                 {
-                    ctorExpression = string.Format(
-                        CultureInfo.InvariantCulture,
-                        "(ConstructorInfo){0}.ResolveMethod({1}/*{2}*/)",
-                        manifestModuleSyntax,
-                        ctor.MetadataToken,
-                        typeName);
+                    // (ConstructorInfo){0}.ResolveMethod({1}/*{2}*/) 
+                    ctorSyntax = resolveMethodSyntax;
                 }
 
-                writer.Write("({0})({1}).Invoke(new object[] {{", skipCast ? "object" : GetTypeName(ctor.DeclaringType), ctorExpression);
+                ctorSyntax = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
+                    SyntaxFactory.IdentifierName("ConstructorInfo"),
+                    ctorSyntax));
+
+                // (Type)ctor.Invoke(new object[] { ... })
+                var invokeArg = GetObjectArrayArgument(arguments);
+                var invokeExpression = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        ctorSyntax,
+                        SyntaxFactory.IdentifierName("Invoke")),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(invokeArg)));
+                var castExpression = SyntaxFactory.CastExpression(
+                    this.GetTypeNameSyntax(ctor.DeclaringType),
+                    invokeExpression);
+                return castExpression;
             }
-            var indent = this.Indent(writer: writer);
+        }
 
-            return new DisposableWithAction(delegate
+        /// <summary>
+        /// Creates a <c>new object[] { arg1, arg2 }</c> style syntax for a list of arguments.
+        /// </summary>
+        /// <param name="arguments">The list of arguments to format as an object array.</param>
+        /// <returns>The object[] creation syntax.</returns>
+        private static ArgumentSyntax GetObjectArrayArgument(params ExpressionSyntax[] arguments)
+        {
+            return SyntaxFactory.Argument(SyntaxFactory.ArrayCreationExpression(
+                SyntaxFactory.ArrayType(
+                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
+                    SyntaxFactory.SingletonList<ArrayRankSpecifierSyntax>(
+                        SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression())))),
+                SyntaxFactory.InitializerExpression(
+                    SyntaxKind.ArrayInitializerExpression,
+                    CodeGen.JoinSyntaxNodes(SyntaxKind.CommaToken, arguments))));
+        }
+
+        private MethodDeclarationSyntax CreateInstantiatePartMethod(ComposedPart part)
+        {
+            var provisionalSharedObjectsIdentifier = SyntaxFactory.IdentifierName("provisionalSharedObjects");
+            var partInstanceIdentifier = SyntaxFactory.IdentifierName("result");
+
+            var method = SyntaxFactory.MethodDeclaration(
+                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
+                GetPartFactoryMethodName(part.Definition, true))
+                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
+                .AddParameterListParameters(SyntaxFactory.Parameter(provisionalSharedObjectsIdentifier.Identifier).WithType(dictionaryOfTypeObject));
+
+            var statements = new List<StatementSyntax>();
+            if (part.Definition.IsInstantiable)
             {
-                indent.Dispose();
-                if (publicCtor)
+                // TPart result;
+                statements.Add(SyntaxFactory.LocalDeclarationStatement(
+                    SyntaxFactory.VariableDeclaration(
+                        this.GetTypeNameSyntax(part.Definition.Type),
+                        SyntaxFactory.SingletonSeparatedList<VariableDeclaratorSyntax>(
+                            SyntaxFactory.VariableDeclarator(partInstanceIdentifier.Identifier)))));
+
+                var localSymbols = new HashSet<string>();
+                var block = SyntaxFactory.Block();
+                int importingConstructorArgIndex = 0;
+                var importingConstructorArgNames = new string[part.Definition.ImportingConstructor.Count];
+                foreach (var pair in part.GetImportingConstructorImports())
                 {
-                    writer.Write(")");
+                    IReadOnlyList<StatementSyntax> prereqStatements;
+                    var importSatisfyingExpression = this.GetImportSatisfyingExpression(pair.Key, pair.Value, out prereqStatements);
+                    if (prereqStatements.Count > 0)
+                    {
+                        block = block.AddStatements(prereqStatements.ToArray());
+                    }
+
+                    block = block.AddStatements(SyntaxFactory.LocalDeclarationStatement(
+                        SyntaxFactory.VariableDeclaration(
+                            SyntaxFactory.IdentifierName("var"),
+                            SyntaxFactory.SingletonSeparatedList<VariableDeclaratorSyntax>(
+                                SyntaxFactory.VariableDeclarator(
+                                    importingConstructorArgNames[importingConstructorArgIndex++] = ReserveLocalVarName("arg", localSymbols))
+                                    .WithInitializer(SyntaxFactory.EqualsValueClause(
+                                        importSatisfyingExpression))))));
                 }
-                else
+
+                block = block.AddStatements(SyntaxFactory.ExpressionStatement(
+                    SyntaxFactory.BinaryExpression(
+                        SyntaxKind.SimpleAssignmentExpression,
+                        partInstanceIdentifier,
+                        this.ObjectCreationExpression(part.Definition, importingConstructorArgNames.Select(SyntaxFactory.IdentifierName).ToArray()))));
+
+                statements.Add(block);
+
+
+                if (typeof(IDisposable).IsAssignableFrom(part.Definition.Type))
                 {
-                    writer.Write(" })");
+                    // this.TrackDisposableValue((IDisposable)result);
+                    statements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.IdentifierName("TrackDisposableValue"),
+                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
+                            SyntaxFactory.CastExpression(
+                                SyntaxFactory.IdentifierName("IDisposable"),
+                                partInstanceIdentifier)))))));
                 }
-            });
+
+                if (part.Definition.IsShared)
+                {
+                    // provisionalSharedObjects.Add(partType, result);
+                    var partTypeSyntax = this.GetTypeExpressionSyntax(part.Definition.Type);
+                    statements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            provisionalSharedObjectsIdentifier,
+                            SyntaxFactory.IdentifierName("Add")),
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                            SyntaxKind.CommaToken,
+                            SyntaxFactory.Argument(partTypeSyntax),
+                            SyntaxFactory.Argument(partInstanceIdentifier))))));
+                }
+
+                foreach (var satisfyingExport in part.SatisfyingExports.Where(i => i.Key.ImportingMember != null))
+                {
+                    statements.AddRange(this.GetImportSatisfyingAssignmentSyntax(satisfyingExport));
+                }
+
+                if (part.Definition.OnImportsSatisfied != null)
+                {
+                    ExpressionSyntax receiver;
+                    if (part.Definition.OnImportsSatisfied.DeclaringType.IsInterface)
+                    {
+                        var iface = SyntaxFactory.IdentifierName("onImportsSatisfiedInterface");
+                        statements.Add(SyntaxFactory.LocalDeclarationStatement(
+                            SyntaxFactory.VariableDeclaration(SyntaxFactory.IdentifierName("var"))
+                                .AddVariables(SyntaxFactory.VariableDeclarator(iface.Identifier).WithInitializer(
+                                    SyntaxFactory.EqualsValueClause(
+                                        SyntaxFactory.CastExpression(
+                                            this.GetTypeNameSyntax(part.Definition.OnImportsSatisfied.DeclaringType),
+                                            partInstanceIdentifier))))));
+                        receiver = iface;
+                    }
+                    else
+                    {
+                        receiver = partInstanceIdentifier;
+                    }
+
+                    statements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            receiver,
+                            SyntaxFactory.IdentifierName(part.Definition.OnImportsSatisfied.Name)),
+                        SyntaxFactory.ArgumentList())));
+                }
+
+                // return result;
+                statements.Add(SyntaxFactory.ReturnStatement(partInstanceIdentifier));
+            }
+            else
+            {
+                statements.Add(SyntaxFactory.ReturnStatement(
+                    SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.IdentifierName("CannotInstantiatePartWithNoImportingConstructor"),
+                        SyntaxFactory.ArgumentList())));
+            }
+
+            method = method.AddBodyStatements(statements.ToArray());
+
+            return method;
         }
 
         private void EmitInstantiatePart(ComposedPart part)
         {
             localSymbols.Clear();
 
-            if (!part.Definition.IsInstantiable)
-            {
-                this.WriteLine("return CannotInstantiatePartWithNoImportingConstructor();");
-                return;
-            }
-
-            this.WriteLine("{0} {1};", GetTypeName(part.Definition.Type), InstantiatedPartLocalVarName);
-            using (Indent(withBraces: true))
-            {
-                int importingConstructorArgIndex = 0;
-                var importingConstructorArgNames = new string[part.Definition.ImportingConstructor.Count];
-                foreach (var pair in part.GetImportingConstructorImports())
-                {
-                    this.WriteLine(
-                        "var {0} = {1};",
-                        importingConstructorArgNames[importingConstructorArgIndex++] = ReserveLocalVarName("arg"),
-                        this.GetImportSatisfyingExpression(pair.Key, pair.Value));
-                }
-
-                this.Write("{0} = ", InstantiatedPartLocalVarName);
-                using (this.EmitConstructorInvocationExpression(part.Definition))
-                {
-                    this.Write(string.Join(", ", importingConstructorArgNames));
-                }
-
-                this.WriteLine(";");
-            }
-
-            if (typeof(IDisposable).IsAssignableFrom(part.Definition.Type))
-            {
-                this.WriteLine("this.TrackDisposableValue((IDisposable){0});", InstantiatedPartLocalVarName);
-            }
-
-            if (part.Definition.IsShared)
-            {
-                this.WriteLine("provisionalSharedObjects.Add(partType, {0});", InstantiatedPartLocalVarName);
-            }
-
-            foreach (var satisfyingExport in part.SatisfyingExports.Where(i => i.Key.ImportingMember != null))
-            {
-                this.EmitImportSatisfyingAssignment(satisfyingExport);
-            }
-
-            if (part.Definition.OnImportsSatisfied != null)
-            {
-                if (part.Definition.OnImportsSatisfied.DeclaringType.IsInterface)
-                {
-                    this.WriteLine("var onImportsSatisfiedInterface = ({0}){1};", part.Definition.OnImportsSatisfied.DeclaringType.FullName, InstantiatedPartLocalVarName);
-                    this.WriteLine("onImportsSatisfiedInterface.{0}();", part.Definition.OnImportsSatisfied.Name);
-                }
-                else
-                {
-                    this.WriteLine("{0}.{1}();", InstantiatedPartLocalVarName, part.Definition.OnImportsSatisfied.Name);
-                }
-            }
-
-            this.WriteLine("return {0};", InstantiatedPartLocalVarName);
+            var createMethod = this.CreateInstantiatePartMethod(part);
+            this.extraMembers.Add(createMethod);
+            this.Write("return {0}(provisionalSharedObjects);", createMethod.Identifier);
         }
 
         private HashSet<Type> GetMetadataViewInterfaces()
@@ -861,7 +1122,7 @@
                             writer.Write(
                                 "({0}){1}.GetValue(",
                                 GetTypeName(import.ImportingSiteElementType),
-                                GetFieldInfoExpression((FieldInfo)export.ExportingMember));
+                                GetFieldInfoExpressionSyntax((FieldInfo)export.ExportingMember));
                             break;
                         case MemberTypes.Method:
                             writer.Write(
@@ -968,11 +1229,7 @@
                 typeof(object));
 
             var newDictionaryTypeObjectExpression = SyntaxFactory.ObjectCreationExpression(
-                SyntaxFactory.GenericName("Dictionary")
-                    .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(CodeGen.JoinSyntaxNodes<TypeSyntax>(
-                        SyntaxKind.CommaToken,
-                        SyntaxFactory.IdentifierName("Type"),
-                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))))),
+                dictionaryOfTypeObject,
                 SyntaxFactory.ArgumentList(),
                 null);
 
@@ -987,13 +1244,13 @@
                         SyntaxFactory.IdentifierName("GetValueFactoryFunc"),
                         SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes<ArgumentSyntax>(
                             SyntaxKind.CommaToken,
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(GetPartFactoryMethodName(export.PartDefinition))),
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(GetPartFactoryMethodName(export.PartDefinition, false))),
                             SyntaxFactory.Argument(newDictionaryTypeObjectExpression))));
                 }
                 else
                 {
                     // () => (GetOrCreate...).Value
-                    var inner = SyntaxFactory.ParseExpression(this.GetValueFactoryExpression(synthesizedImport, export, newDictionaryTypeObjectExpression));
+                    var inner = this.GetValueFactoryExpressionSyntax(synthesizedImport, export, newDictionaryTypeObjectExpression);
                     valueFactoryExpression = SyntaxFactory.ParenthesizedLambdaExpression(
                         SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
@@ -1060,20 +1317,19 @@
 
                 if (import.MetadataType == typeof(IDictionary<string, object>))
                 {
-                    writer.Write(GetExportMetadata(export));
+                    writer.Write(GetExportMetadata(export).NormalizeWhitespace());
                 }
                 else if (import.MetadataType.IsInterface)
                 {
                     writer.Write("new {0}(", GetClassNameForMetadataView(import.MetadataType));
-                    writer.Write(GetExportMetadata(export));
+                    writer.Write(GetExportMetadata(export).NormalizeWhitespace());
                     writer.Write(")");
                 }
                 else
                 {
-                    using (EmitConstructorInvocationExpression(import.MetadataType.GetConstructor(new Type[] { typeof(IDictionary<string, object>) }), writer: writer))
-                    {
-                        writer.Write(GetExportMetadata(export));
-                    }
+                    writer.Write(ObjectCreationExpression(
+                        import.MetadataType.GetConstructor(new Type[] { typeof(IDictionary<string, object>) }),
+                        new ExpressionSyntax[] { GetExportMetadata(export) }).NormalizeWhitespace());
                 }
             }
         }
@@ -1192,21 +1448,22 @@
 
         private static void Test<T>() { }
 
-        private static string GetPartFactoryMethodNameNoTypeArgs(ComposablePartDefinition part)
+        private static string GetPartFactoryMethodNameNoTypeArgs(ComposablePartDefinition part, bool createOnly)
         {
             Requires.NotNull(part, "part");
-            string name = "GetOrCreate" + part.Id;
+            string prefix = createOnly ? "Create" : "GetOrCreate";
+            string name = prefix + part.Id;
             return name;
         }
 
-        private static string GetPartFactoryMethodName(ComposablePartDefinition part, params string[] typeArguments)
+        private static string GetPartFactoryMethodName(ComposablePartDefinition part, bool createOnly, params string[] typeArguments)
         {
             if (typeArguments == null || typeArguments.Length == 0)
             {
                 typeArguments = part.Type.GetGenericArguments().Select(t => t.Name).ToArray();
             }
 
-            string name = GetPartFactoryMethodNameNoTypeArgs(part);
+            string name = GetPartFactoryMethodNameNoTypeArgs(part, createOnly);
 
             if (typeArguments.Length > 0)
             {
@@ -1234,7 +1491,7 @@
             }
             else
             {
-                return "this." + GetPartFactoryMethodName(part) + "(" + provisionalSharedObjectsExpression + ", " + (nonSharedInstanceRequired ? "true" : "false") + ")";
+                return "this." + GetPartFactoryMethodName(part, false) + "(" + provisionalSharedObjectsExpression + ", " + (nonSharedInstanceRequired ? "true" : "false") + ")";
             }
         }
 
@@ -1244,7 +1501,7 @@
                 CultureInfo.InvariantCulture,
                 "this.GetMethodWithArity(\"{0}\", {1})"
                 + ".MakeGenericMethod({2})",
-                GetPartFactoryMethodNameNoTypeArgs(part),
+                GetPartFactoryMethodNameNoTypeArgs(part, false),
                 part.Type.GetGenericArguments().Length,
                 typeArgsParamsArrayExpression);
         }
@@ -1320,7 +1577,7 @@
                             CultureInfo.InvariantCulture,
                             "({0}){1}.GetValue(({2}).Value)",
                             GetTypeName(((FieldInfo)member).FieldType),
-                            GetFieldInfoExpression((FieldInfo)member),
+                            GetFieldInfoExpressionSyntax((FieldInfo)member),
                             partExpression);
                         break;
                     case MemberTypes.Property:
@@ -1489,7 +1746,7 @@
             }
             else
             {
-                string create = GetMethodInfoExpression(
+                var create = GetMethodInfoExpression(
                     new Func<object, object, Tuple<object, object>>(Tuple.Create<object, object>)
                     .GetMethodInfo().GetGenericMethodDefinition());
                 writer.Write(
@@ -1597,9 +1854,11 @@
             return method;
         }
 
-        private string ReserveLocalVarName(string desiredName)
+        private string ReserveLocalVarName(string desiredName, HashSet<string> localSymbols = null)
         {
-            if (this.localSymbols.Add(desiredName))
+            localSymbols = localSymbols ?? this.localSymbols;
+
+            if (localSymbols.Add(desiredName))
             {
                 return desiredName;
             }
@@ -1610,7 +1869,7 @@
             {
                 i++;
                 candidateName = desiredName + "_" + i.ToString(CultureInfo.InvariantCulture);
-            } while (!this.localSymbols.Add(candidateName));
+            } while (!localSymbols.Add(candidateName));
 
             return candidateName;
         }

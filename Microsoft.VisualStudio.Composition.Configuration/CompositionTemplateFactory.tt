@@ -49,7 +49,7 @@ foreach (var part in this.Configuration.Parts)
 {
 #>
 
-    protected ILazy<<#= GetTypeName(part.Definition.Type) #>> <#= GetPartFactoryMethodName(part.Definition) #>(Dictionary<Type, object> pso, bool nonSharedInstanceRequired = false)
+    protected ILazy<<#= GetTypeName(part.Definition.Type) #>> <#= GetPartFactoryMethodName(part.Definition, false) #>(Dictionary<Type, object> pso, bool nonSharedInstanceRequired = false)
     {
 <#      if (part.Definition.Equals(ExportProvider.ExportProviderPartDefinition))
         {
