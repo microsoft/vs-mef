@@ -1008,15 +1008,6 @@
             return method;
         }
 
-        private void EmitInstantiatePart(ComposedPart part)
-        {
-            localSymbols.Clear();
-
-            var createMethod = this.CreateInstantiatePartMethod(part);
-            this.extraMembers.Add(createMethod);
-            this.Write("return {0}(provisionalSharedObjects);", createMethod.Identifier);
-        }
-
         private HashSet<Type> GetMetadataViewInterfaces()
         {
             var set = new HashSet<Type>();

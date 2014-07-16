@@ -47,6 +47,10 @@ foreach (var exportsByContract in this.ExportsByContract)
 <#
 foreach (var part in this.Configuration.Parts) 
 {
+    this.localSymbols.Clear();
+    var createMethod = this.CreateInstantiatePartMethod(part);
+    this.extraMembers.Add(createMethod);
+
 #>
 
     protected ILazy<<#= GetTypeName(part.Definition.Type) #>> <#= GetPartFactoryMethodName(part.Definition, false) #>(Dictionary<Type, object> pso, bool nonSharedInstanceRequired = false)
@@ -64,26 +68,16 @@ foreach (var part in this.Configuration.Parts)
         Type partType = <#= this.GetTypeExpression(part.Definition.Type) #>;
         ILazy<<#= GetTypeName(part.Definition.Type) #>> lazyResult;
 <#      if (part.Definition.IsShared) { #>
-        Func<Dictionary<Type, object>, object> valueFactory = new Func<Dictionary<Type, object>, object>(provisionalSharedObjects =>
-        {
-<#
-            using(Indent(4, withBraces: true, noLineFeedAfterClosingBrace: true))
-            {
-                EmitInstantiatePart(part);
-            }
-#>
-        });
-        lazyResult = (ILazy<<#= GetTypeName(part.Definition.Type) #>>)GetOrCreateShareableValue(partType, valueFactory, pso, @"<#= this.Configuration.GetEffectiveSharingBoundary(part.Definition) #>", nonSharedInstanceRequired);
+        lazyResult = (ILazy<<#= GetTypeName(part.Definition.Type) #>>)GetOrCreateShareableValue(partType, <#=createMethod.Identifier#>, pso, @"<#= this.Configuration.GetEffectiveSharingBoundary(part.Definition) #>", nonSharedInstanceRequired);
 <#
         }
         else
         {
 #>
-        var provisionalSharedObjects = pso;
         lazyResult = <# using (EmitLazyConstruction(part.Definition.Type, null)) {
             using(Indent(3, withBraces: true, noLineFeedAfterClosingBrace: true))
             {
-                EmitInstantiatePart(part);
+                this.WriteLine("return {0}(pso);", createMethod.Identifier);
             }
         } #>;
 <#
