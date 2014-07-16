@@ -25,6 +25,9 @@
                         SyntaxFactory.IdentifierName("Type"),
                         SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))));
 
+        private static readonly ObjectCreationExpressionSyntax newDictionaryOfTypeObjectExpression =
+            SyntaxFactory.ObjectCreationExpression(dictionaryOfTypeObject, SyntaxFactory.ArgumentList(), null);
+
         private readonly HashSet<Assembly> relevantAssemblies = new HashSet<Assembly>();
 
         private readonly HashSet<Type> relevantEmbeddedTypes = new HashSet<Type>();
@@ -1031,7 +1034,7 @@
                         SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.VariableDeclarator(partLocalVar.Identifier)
                                 .WithInitializer(SyntaxFactory.EqualsValueClause(
-                                    GetPartInstanceLazy(export.PartDefinition, dictionaryOfTypeObject, true, typeArgs, scope)))))));
+                                    GetPartInstanceLazy(export.PartDefinition, newDictionaryOfTypeObjectExpression, true, typeArgs, scope)))))));
 
             // var value = part.Value.SomeMember;
             var exportedValueLocalVar = SyntaxFactory.IdentifierName("value");
@@ -1229,15 +1232,10 @@
                 new ImportDefinition(exports.Key, ImportCardinality.ZeroOrMore, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty),
                 typeof(object));
 
-            var newDictionaryTypeObjectExpression = SyntaxFactory.ObjectCreationExpression(
-                dictionaryOfTypeObject,
-                SyntaxFactory.ArgumentList(),
-                null);
-
             var exportExpressions = new List<ExpressionSyntax>();
             foreach (var export in exports)
             {
-                var partExpression = this.GetPartInstanceLazy(export.PartDefinition, newDictionaryTypeObjectExpression, false, null);
+                var partExpression = this.GetPartInstanceLazy(export.PartDefinition, newDictionaryOfTypeObjectExpression, false, null);
                 ExpressionSyntax valueFactoryExpression = GetExportedValueFromPart(partExpression, synthesizedImport, export, ValueFactoryType.FuncOfObject);
 
                 // new Export(importDefinition.ContractName, metadata, valueFactory)
