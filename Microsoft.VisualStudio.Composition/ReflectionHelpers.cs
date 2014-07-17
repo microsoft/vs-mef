@@ -291,7 +291,12 @@
             string result = string.Empty;
             if (type.DeclaringType != null)
             {
-                result = GetTypeName(type.DeclaringType, genericTypeDefinition, false, relevantAssemblies, relevantEmbeddedTypes) + ".";
+                // Take care to propagate generic type arguments to the declaring type.
+                var declaringTypeInfo = type.DeclaringType.GetTypeInfo();
+                var declaringType = declaringTypeInfo.ContainsGenericParameters && type.GenericTypeArguments.Length > declaringTypeInfo.GenericTypeArguments.Length
+                    ? type.DeclaringType.MakeGenericType(type.GenericTypeArguments.Take(declaringTypeInfo.GenericTypeParameters.Length).ToArray())
+                    : type.DeclaringType;
+                result = GetTypeName(declaringType, genericTypeDefinition, false, relevantAssemblies, relevantEmbeddedTypes) + ".";
             }
 
             if (genericTypeDefinition)
