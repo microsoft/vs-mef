@@ -232,29 +232,31 @@
                 member = favorPropertySetter ? property.GetSetMethod(true) : property.GetGetMethod(true);
             }
 
-            IdentifierNameSyntax infoClass, methodHandle, getMethodFromHandle;
+            IdentifierNameSyntax infoClass, memberHandle, getMemberFromHandle, resolveMember;
             switch (member.MemberType)
             {
                 case MemberTypes.Field:
                     infoClass = SyntaxFactory.IdentifierName("FieldInfo");
-                    methodHandle = SyntaxFactory.IdentifierName("FieldHandle");
-                    getMethodFromHandle = SyntaxFactory.IdentifierName("GetFieldFromHandle");
+                    memberHandle = SyntaxFactory.IdentifierName("FieldHandle");
+                    getMemberFromHandle = SyntaxFactory.IdentifierName("GetFieldFromHandle");
+                    resolveMember = SyntaxFactory.IdentifierName("ResolveField");
                     break;
                 case MemberTypes.Method:
                     infoClass = SyntaxFactory.IdentifierName("MethodInfo");
-                    methodHandle = SyntaxFactory.IdentifierName("MethodHandle");
-                    getMethodFromHandle = SyntaxFactory.IdentifierName("GetMethodFromHandle");
+                    memberHandle = SyntaxFactory.IdentifierName("MethodHandle");
+                    getMemberFromHandle = SyntaxFactory.IdentifierName("GetMethodFromHandle");
+                    resolveMember = SyntaxFactory.IdentifierName("ResolveMethod");
                     break;
                 default:
                     throw new NotSupportedException();
             }
 
             // manifest.ResolveMember(metadataToken/*description*/)
-            var resolveMember = SyntaxFactory.InvocationExpression(
+            var resolveMemberInvocation = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     this.GetManifestModuleSyntax(member.DeclaringType.Assembly),
-                    SyntaxFactory.IdentifierName("ResolveMember")),
+                    resolveMember),
                 SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
                     SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(member.MetadataToken))
                         .WithTrailingTrivia(SyntaxFactory.Comment("/*" + GetTypeName(member.DeclaringType, evenNonPublic: true) + "." + member.Name + "*/"))))));
@@ -264,15 +266,15 @@
             {
                 // MethodInfo.GetMethodFromHandle({0}.ResolveMethod({1}/*{3}*/).MethodHandle, {2})
                 memberInfoSyntax = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, infoClass, getMethodFromHandle),
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, infoClass, getMemberFromHandle),
                     SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
                         SyntaxKind.CommaToken,
-                        SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, resolveMember, methodHandle)),
+                        SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, resolveMemberInvocation, memberHandle)),
                         SyntaxFactory.Argument(this.GetClosedGenericTypeHandleExpression(member.DeclaringType)))));
             }
             else
             {
-                memberInfoSyntax = resolveMember;
+                memberInfoSyntax = resolveMemberInvocation;
             }
 
             var castExpression = SyntaxFactory.ParenthesizedExpression(
@@ -1663,7 +1665,7 @@
         {
             Requires.NotNull(partDefinition, "partDefinition");
             Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
-            
+
             // typeArgs may be supplied to us for an import of "Func<object>" even though the exporter is just a method.
             if (typeArgs == null || !partDefinition.Type.IsGenericTypeDefinition)
             {
