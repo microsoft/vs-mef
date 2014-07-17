@@ -1104,7 +1104,7 @@
             {
                 disposeReceiver = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
                     SyntaxFactory.IdentifierName("IDisposable"),
-                    partLocalVar));
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, partLocalVar, SyntaxFactory.IdentifierName("Value"))));
             }
 
             ExpressionSyntax disposeAction = disposeReceiver != null
