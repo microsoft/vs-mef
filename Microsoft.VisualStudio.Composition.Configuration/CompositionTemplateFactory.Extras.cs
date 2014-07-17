@@ -1761,14 +1761,14 @@
                 var funcOfDictionaryObject = SyntaxFactory.ParseTypeName("Func<Dictionary<Type, object>, object>");
                 var createDelegate = SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.CommaToken,
+                        SyntaxKind.SimpleMemberAccessExpression,
                         makeGenericMethod,
                         SyntaxFactory.IdentifierName("CreateDelegate")),
                     SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
                         SyntaxKind.CommaToken,
                         SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(funcOfDictionaryObject)),
                         SyntaxFactory.Argument(scope))));
-                partFactoryMethod = createDelegate;
+                partFactoryMethod = SyntaxFactory.CastExpression(funcOfDictionaryObject, createDelegate);
             }
 
             ExpressionSyntax sharingBoundary = partDefinition.IsShared
