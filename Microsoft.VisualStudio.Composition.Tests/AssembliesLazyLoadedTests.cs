@@ -48,15 +48,18 @@
         {
             var configuration = CompositionConfiguration.Create(
                 await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExternalExportWithLazy), typeof(YetAnotherExport)));
-            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            await configuration.SaveAsync(path);
+            string rootpath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            string dllPath = rootpath + ".dll";
+            string pdbPath = rootpath + ".pdb";
+            string csPath = rootpath + ".cs";
+            await configuration.SaveAsync(dllPath, pdbPath, csPath, debug: true);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
             var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
             try
             {
                 var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
-                driver.Initialize(path);
+                driver.Initialize(dllPath);
                 driver.TestExternalExportWithLazy(typeof(YetAnotherExport).Assembly.Location);
             }
             finally
