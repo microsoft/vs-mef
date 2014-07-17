@@ -1663,7 +1663,13 @@
         {
             Requires.NotNull(partDefinition, "partDefinition");
             Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
-            typeArgs = typeArgs ?? ImmutableList<Type>.Empty;
+            
+            // typeArgs may be supplied to us for an import of "Func<object>" even though the exporter is just a method.
+            if (typeArgs == null || !partDefinition.Type.IsGenericTypeDefinition)
+            {
+                typeArgs = ImmutableList<Type>.Empty;
+            }
+
             scope = scope ?? SyntaxFactory.ThisExpression();
 
             // Force the query to be for an isolated instance if the instance is never shared.
