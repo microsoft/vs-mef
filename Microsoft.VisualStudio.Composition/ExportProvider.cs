@@ -7,6 +7,7 @@
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
@@ -26,6 +27,8 @@
             null,
             null,
             CreationPolicy.Shared);
+
+        protected static readonly object[] EmptyObjectArray = new object[0];
 
         /// <summary>
         /// A metadata template used by the generated code.
@@ -272,6 +275,12 @@
             var method = member as MethodInfo;
             if (method != null)
             {
+                // If the method came from a property, return the result of the property getter rather than return the delegate.
+                if (method.IsSpecialName && method.GetParameters().Length == 0 && method.Name.StartsWith("get_"))
+                {
+                    return method.Invoke(instance, EmptyObjectArray);
+                }
+
                 return method.CreateDelegate(ExportDefinitionBinding.GetContractTypeForDelegate(method), instance);
             }
 

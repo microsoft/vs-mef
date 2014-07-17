@@ -216,9 +216,21 @@
             }
         }
 
-        private ExpressionSyntax GetMemberInfoSyntax(MemberInfo member)
+        /// <summary>
+        /// Gets syntax that will reconstruct the MemberInfo for a given member.
+        /// </summary>
+        /// <param name="member">A field or method. If a property, either the getter or the setter will be retrieved.</param>
+        /// <param name="favorPropertySetter"><c>true</c> to create syntax to reconstruct the property setter method; <c>false</c> to reconstruct the getter method.</param>
+        /// <returns>The reconstruction syntax.</returns>
+        private ExpressionSyntax GetMemberInfoSyntax(MemberInfo member, bool favorPropertySetter = false)
         {
             Requires.NotNull(member, "member");
+
+            var property = member as PropertyInfo;
+            if (property != null)
+            {
+                member = favorPropertySetter ? property.GetSetMethod(true) : property.GetGetMethod(true);
+            }
 
             IdentifierNameSyntax infoClass, methodHandle, getMethodFromHandle;
             switch (member.MemberType)
@@ -232,11 +244,6 @@
                     infoClass = SyntaxFactory.IdentifierName("MethodInfo");
                     methodHandle = SyntaxFactory.IdentifierName("MethodHandle");
                     getMethodFromHandle = SyntaxFactory.IdentifierName("GetMethodFromHandle");
-                    break;
-                case MemberTypes.Property:
-                    infoClass = SyntaxFactory.IdentifierName("PropertyInfo");
-                    methodHandle = SyntaxFactory.IdentifierName("PropertyHandle");
-                    getMethodFromHandle = SyntaxFactory.IdentifierName("GetPropertyFromHandle");
                     break;
                 default:
                     throw new NotSupportedException();
