@@ -1121,9 +1121,13 @@
                 : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
             var tupleType = typeof(Tuple<,>).MakeGenericType(import.ImportingSiteElementType, typeof(Action));
+            var tupleValue = !IsPublic(export.PartDefinition.Type, true) && IsPublic(tupleType, true)
+                ? (ExpressionSyntax)SyntaxFactory.CastExpression(this.GetTypeNameSyntax(import.ImportingSiteElementType), exportedValueLocalVar)
+                : exportedValueLocalVar;
+
             var tupleExpression = this.ObjectCreationExpression(
                 tupleType.GetConstructors().Single(),
-                new ExpressionSyntax[] { exportedValueLocalVar, disposeAction });
+                new ExpressionSyntax[] { tupleValue, disposeAction });
             statements.Add(SyntaxFactory.ReturnStatement(tupleExpression));
 
             var tupleFactoryLambda = SyntaxFactory.ParenthesizedLambdaExpression(SyntaxFactory.Block(statements));
