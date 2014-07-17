@@ -581,13 +581,13 @@
             foreach (var export in exports)
             {
                 InvocationExpressionSyntax addExpression;
+                var exportValue = this.GetImportAssignableValueForExport(import, export, provisionalSharedObjects);
                 if (stronglyTypedCollection)
                 {
                     // tempVar.Add(export);
                     addExpression = SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, tempVar, SyntaxFactory.IdentifierName("Add")),
-                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
-                            this.GetImportAssignableValueForExport(import, export, provisionalSharedObjects)))));
+                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(exportValue))));
                 }
                 else
                 {
@@ -597,7 +597,7 @@
                         SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
                             SyntaxKind.CommaToken,
                             SyntaxFactory.Argument(tempVar),
-                            GetObjectArrayArgument(this.GetImportAssignableValueForExport(import, export, provisionalSharedObjects)))));
+                            GetObjectArrayArgument(exportValue))));
                 }
 
                 prereqs.Add(SyntaxFactory.ExpressionStatement(addExpression));
@@ -1155,8 +1155,12 @@
                             // new Lazy<T>(() => value)
                             throw new NotImplementedException();
                         case ValueFactoryType.FuncOfObject:
-                            // () => value
-                            return SyntaxFactory.ParenthesizedLambdaExpression(value);
+                            // new Func<object>(() => value)
+                            var lambda = SyntaxFactory.ParenthesizedLambdaExpression(value);
+                            return SyntaxFactory.ObjectCreationExpression(
+                                SyntaxFactory.GenericName("Func").AddTypeArgumentListArguments(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))),
+                                SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(lambda))),
+                                null);
                         default:
                             throw new ArgumentOutOfRangeException("target");
                     }
