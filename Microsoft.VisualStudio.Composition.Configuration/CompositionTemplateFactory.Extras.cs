@@ -1082,7 +1082,7 @@
                         SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.VariableDeclarator(partLocalVar.Identifier)
                                 .WithInitializer(SyntaxFactory.EqualsValueClause(
-                                    GetPartInstanceLazy(export.PartDefinition, newDictionaryOfTypeObjectExpression, !newSharingScope, typeArgs, scope)))))));
+                                    GetPartInstanceLazy(export.PartDefinition, newDictionaryOfTypeObjectExpression, false, typeArgs, scope)))))));
 
             // var value = part.Value.SomeMember;
             var exportedValueLocalVar = SyntaxFactory.IdentifierName("value");
