@@ -28,6 +28,8 @@
         private static readonly ObjectCreationExpressionSyntax newDictionaryOfTypeObjectExpression =
             SyntaxFactory.ObjectCreationExpression(dictionaryOfTypeObject, SyntaxFactory.ArgumentList(), null);
 
+        private static readonly LiteralExpressionSyntax NullSyntax = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+
         private readonly HashSet<Assembly> relevantAssemblies = new HashSet<Assembly>();
 
         private readonly HashSet<Type> relevantEmbeddedTypes = new HashSet<Type>();
@@ -138,14 +140,18 @@
                 return declaringTypeInstance;
             }
 
+            bool isStatic = member.IsStatic();
             if (IsPublic(member, member.DeclaringType))
             {
                 // Cast to make sure we succeed even if the member is an explicit interface implementation.
+                var typeOrInstance = isStatic
+                    ? (ExpressionSyntax)this.GetTypeNameSyntax(member.DeclaringType)
+                    : SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
+                        this.GetTypeNameSyntax(member.DeclaringType),
+                        declaringTypeInstance));
                 return SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
-                        this.GetTypeNameSyntax(member.DeclaringType),
-                        declaringTypeInstance)),
+                    typeOrInstance,
                     SyntaxFactory.IdentifierName(member.Name));
             }
 
@@ -158,7 +164,8 @@
                         SyntaxKind.SimpleMemberAccessExpression,
                         this.GetFieldInfoExpressionSyntax(field),
                         SyntaxFactory.IdentifierName("GetValue")),
-                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(declaringTypeInstance))));
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
+                        isStatic ? NullSyntax : declaringTypeInstance))));
             }
 
             var property = member as PropertyInfo;
@@ -171,7 +178,7 @@
                         SyntaxFactory.IdentifierName("Invoke")),
                     SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
                         SyntaxKind.CommaToken,
-                        SyntaxFactory.Argument(declaringTypeInstance),
+                        SyntaxFactory.Argument(isStatic ? NullSyntax : declaringTypeInstance),
                         GetObjectArrayArgument())));
             }
 

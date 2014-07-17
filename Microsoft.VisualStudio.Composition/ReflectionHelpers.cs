@@ -201,7 +201,7 @@
             return true;
         }
 
-        internal static bool IsStaticExport(this MemberInfo exportingMember)
+        internal static bool IsStatic(this MemberInfo exportingMember)
         {
             if (exportingMember == null)
             {
