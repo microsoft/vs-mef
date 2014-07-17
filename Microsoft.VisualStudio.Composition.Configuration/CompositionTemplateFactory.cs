@@ -87,7 +87,7 @@ foreach (var exportsByContract in this.ExportsByContract)
             
             #line 47 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.Configuration\CompositionTemplateFactory.tt"
 
-foreach (var part in this.Configuration.Parts) 
+foreach (var part in this.Configuration.Parts.Where(p => p.Definition.IsInstantiable))
 {
     this.localSymbols.Clear();
     var createMethod = this.CreateInstantiatePartMethod(part);

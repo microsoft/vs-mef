@@ -80,6 +80,8 @@
 
             var nonDisposableWrapper = (this as ExportProviderAsExport) ?? new ExportProviderAsExport(this);
             this.NonDisposableWrapper = LazyPart.Wrap(nonDisposableWrapper);
+            this.NonDisposableWrapperExportAsListOfOne = ImmutableList.Create(
+                new Export(ExportProviderExportDefinition, this.NonDisposableWrapper));
         }
 
         bool IDisposableObservable.IsDisposed
@@ -88,6 +90,8 @@
         }
 
         protected ILazy<DelegatingExportProvider> NonDisposableWrapper { get; private set; }
+
+        protected ImmutableList<Export> NonDisposableWrapperExportAsListOfOne { get; private set; }
 
         public Lazy<T> GetExport<T>()
         {
@@ -153,7 +157,9 @@
         {
             Requires.NotNull(importDefinition, "importDefinition");
 
-            IEnumerable<Export> exports = this.GetExportsCore(importDefinition);
+            IEnumerable<Export> exports = importDefinition.ContractName == ExportProviderExportDefinition.ContractName
+                ? this.NonDisposableWrapperExportAsListOfOne
+                : this.GetExportsCore(importDefinition);
 
             string genericTypeDefinitionContractName;
             Type[] genericTypeArguments;
