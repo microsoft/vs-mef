@@ -868,14 +868,21 @@
         /// <returns>The object[] creation syntax.</returns>
         private static ArgumentSyntax GetObjectArrayArgument(params ExpressionSyntax[] arguments)
         {
-            return SyntaxFactory.Argument(SyntaxFactory.ArrayCreationExpression(
-                SyntaxFactory.ArrayType(
-                    SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
-                    SyntaxFactory.SingletonList<ArrayRankSpecifierSyntax>(
-                        SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression())))),
-                SyntaxFactory.InitializerExpression(
-                    SyntaxKind.ArrayInitializerExpression,
-                    CodeGen.JoinSyntaxNodes(SyntaxKind.CommaToken, arguments))));
+            if (arguments.Length == 0)
+            {
+                return SyntaxFactory.Argument(SyntaxFactory.IdentifierName("EmptyObjectArray"));
+            }
+            else
+            {
+                return SyntaxFactory.Argument(SyntaxFactory.ArrayCreationExpression(
+                    SyntaxFactory.ArrayType(
+                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
+                        SyntaxFactory.SingletonList<ArrayRankSpecifierSyntax>(
+                            SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(SyntaxFactory.OmittedArraySizeExpression())))),
+                    SyntaxFactory.InitializerExpression(
+                        SyntaxKind.ArrayInitializerExpression,
+                        CodeGen.JoinSyntaxNodes(SyntaxKind.CommaToken, arguments))));
+            }
         }
 
         private MethodDeclarationSyntax CreateInstantiatePartMethod(ComposedPart part)
