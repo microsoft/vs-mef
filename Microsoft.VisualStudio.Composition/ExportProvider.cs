@@ -46,6 +46,15 @@
         /// </remarks>
         protected Module[] cachedManifests;
 
+        /// <summary>
+        /// An array of types required for access by reflection.
+        /// </summary>
+        /// <remarks>
+        /// This field is initialized to an array of appropriate size by the derived code-gen'd class.
+        /// Its elements are individually lazily initialized.
+        /// </remarks>
+        protected Type[] cachedTypes;
+
         private readonly object syncObject = new object();
 
         /// <summary>
@@ -391,10 +400,38 @@
         }
 
         /// <summary>
+        /// Gets a type for reflection.
+        /// </summary>
+        /// <param name="typeId">The index into the cached type array.</param>
+        /// <returns>The type.</returns>
+        protected Type GetType(int typeId)
+        {
+            Type result = cachedTypes[typeId];
+            if (result == null)
+            {
+                // We don't need to worry about thread-safety here because if two threads assign the
+                // reference to the type to the array slot, that's just fine.
+                result = this.GetTypeCore(typeId);
+                cachedTypes[typeId] = result;
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// When overridden in the derived code-gen'd class, this method gets the full name
         /// of an assembly for an integer that the code-gen knows about.
         /// </summary>
         protected virtual string GetAssemblyName(int assemblyId)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// When overridden in the derived code-gen'd class, this method gets the type
+        /// for an integer that the code-gen knows about.
+        /// </summary>
+        protected virtual Type GetTypeCore(int typeId)
         {
             throw new NotImplementedException();
         }

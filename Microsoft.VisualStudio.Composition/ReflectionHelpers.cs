@@ -486,7 +486,8 @@
             {
                 name = name.Substring(0, name.IndexOf('`'));
                 name += "<";
-                name += new String(',', type.GetTypeInfo().GenericTypeParameters.Length - 1);
+                int genericPositions = Math.Max(type.GenericTypeArguments.Length, type.GetTypeInfo().GenericTypeParameters.Length);
+                name += new String(',', genericPositions - 1);
                 name += ">";
             }
 

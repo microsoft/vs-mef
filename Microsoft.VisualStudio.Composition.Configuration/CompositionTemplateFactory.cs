@@ -266,6 +266,13 @@ foreach (var part in this.Configuration.Parts.Where(p => p.Definition.IsInstanti
             
             #line default
             #line hidden
+            this.Write("];\r\n        this.cachedTypes = new Type[");
+            
+            #line 114 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.Configuration\CompositionTemplateFactory.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(reflectionLoadedTypes.Count));
+            
+            #line default
+            #line hidden
             this.Write("];\r\n    }\r\n}\r\n");
             return this.GenerationEnvironment.ToString();
         }

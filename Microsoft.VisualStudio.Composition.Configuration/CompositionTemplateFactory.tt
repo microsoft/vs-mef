@@ -111,5 +111,6 @@ foreach (var part in this.Configuration.Parts.Where(p => p.Definition.IsInstanti
         : base(parent, freshSharingBoundaries)
     {
         this.cachedManifests = new Module[<#= reflectionLoadedAssemblies.Count #>];
+        this.cachedTypes = new Type[<#= reflectionLoadedTypes.Count #>];
     }
 }

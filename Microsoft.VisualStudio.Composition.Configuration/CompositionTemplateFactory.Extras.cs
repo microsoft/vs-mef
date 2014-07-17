@@ -45,6 +45,11 @@
         private readonly List<Assembly> reflectionLoadedAssemblies = new List<Assembly>();
 
         /// <summary>
+        /// The list of types that need to be referenced by the generated code.
+        /// </summary>
+        private readonly List<Type> reflectionLoadedTypes = new List<Type>();
+
+        /// <summary>
         /// A collection of symbols defined at the level of the generated class.
         /// </summary>
         /// <remarks>
@@ -1413,15 +1418,10 @@
             else
             {
                 var targetType = (genericTypeDefinition && type.IsGenericType) ? type.GetGenericTypeDefinition() : type;
-                var typeExpression = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName("Type"),
-                        SyntaxFactory.IdentifierName("GetType")),
-                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
-                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(targetType.AssemblyQualifiedName))))));
 
-                if (!genericTypeDefinition && targetType.IsGenericTypeDefinition)
+                var deterministicTypeExpression = this.GetTypeSyntax(targetType);
+
+                if (!genericTypeDefinition && targetType.GetTypeInfo().ContainsGenericParameters)
                 {
                     // Concatenate on the generic type arguments if the caller didn't explicitly want the generic type definition.
                     // Note that the type itself may be a generic type definition, in which case the concatenated types might be
@@ -1430,7 +1430,7 @@
                     var constructedTypeExpression = SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
-                            typeExpression,
+                            deterministicTypeExpression,
                             SyntaxFactory.IdentifierName("MakeGenericType")),
                         SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes<ArgumentSyntax>(
                             SyntaxKind.CommaToken,
@@ -1438,7 +1438,7 @@
                     return constructedTypeExpression;
                 }
 
-                return typeExpression;
+                return deterministicTypeExpression;
             }
         }
 
@@ -1626,13 +1626,10 @@
             }
         }
 
-        /// <summary>
-        /// Gets the expression syntax for the manifest module of the given assembly.
-        /// </summary>
-        /// <param name="assembly">The assembly for which the manifest module is required by the generated code.</param>
-        /// <returns>The expression syntax.</returns>
-        private ExpressionSyntax GetManifestModuleSyntax(Assembly assembly)
+        private LiteralExpressionSyntax GetManifestModuleId(Assembly assembly)
         {
+            Requires.NotNull(assembly, "assembly");
+
             // Ensure that this assembly has been assigned an index, which we'll use in the generated code.
             int index = this.reflectionLoadedAssemblies.IndexOf(assembly);
             if (index < 0)
@@ -1640,6 +1637,21 @@
                 this.reflectionLoadedAssemblies.Add(assembly);
                 index = this.reflectionLoadedAssemblies.Count - 1;
             }
+
+            var indexExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(index))
+                .WithTrailingTrivia(SyntaxFactory.Comment("/* " + assembly.GetName().Name + "*/"));
+
+            return indexExpression;
+        }
+
+        /// <summary>
+        /// Gets the expression syntax for the manifest module of the given assembly.
+        /// </summary>
+        /// <param name="assembly">The assembly for which the manifest module is required by the generated code.</param>
+        /// <returns>The expression syntax.</returns>
+        private ExpressionSyntax GetManifestModuleSyntax(Assembly assembly)
+        {
+            var index = this.GetManifestModuleId(assembly);
 
             // CODE: this.GetAssemblyManifest(index)
             return SyntaxFactory.InvocationExpression(
@@ -1650,7 +1662,44 @@
                 SyntaxFactory.ArgumentList(
                     SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
                         SyntaxFactory.Argument(
-                            SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(index))))));
+                            index))));
+        }
+
+        private LiteralExpressionSyntax GetTypeId(Type type)
+        {
+            Requires.NotNull(type, "type");
+
+            // Ensure that this type has been assigned an index, which we'll use in the generated code.
+            int index = this.reflectionLoadedTypes.IndexOf(type);
+            if (index < 0)
+            {
+                this.reflectionLoadedTypes.Add(type);
+                index = this.reflectionLoadedTypes.Count - 1;
+            }
+
+            var indexExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(index))
+                .WithTrailingTrivia(SyntaxFactory.Comment("/* " + this.GetTypeName(type, evenNonPublic: true) + "*/"));
+
+            return indexExpression;
+        }
+
+        private ExpressionSyntax GetTypeSyntax(Type type)
+        {
+            Requires.NotNull(type, "type");
+
+            var index = this.GetTypeId(type);
+
+            // this.GetType(index)
+            var typeExpression = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.ThisExpression(),
+                    SyntaxFactory.IdentifierName("GetType")),
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                        SyntaxFactory.Argument(index))));
+
+            return typeExpression;
         }
 
         private ExpressionSyntax ExportCreationSyntax(ExportDefinitionBinding export, IdentifierNameSyntax importDefinition)
@@ -1813,6 +1862,7 @@
 
         private void EmitAdditionalMembers()
         {
+            this.extraMembers.Add(this.CreateGetTypeCoreMethod());
             this.extraMembers.Add(this.CreateGetAssemblyNameMethod());
 
             foreach (var member in this.extraMembers)
@@ -1852,6 +1902,69 @@
                         SyntaxKind.CaseSwitchLabel,
                         SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i))));
                 var statement = SyntaxFactory.ReturnStatement(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(assembly.FullName)));
+                var section = SyntaxFactory.SwitchSection(label, SyntaxFactory.SingletonList<StatementSyntax>(statement));
+                switchStatement = switchStatement.AddSections(section);
+            }
+
+            switchStatement = switchStatement.AddSections(SyntaxFactory.SwitchSection(
+                SyntaxFactory.SingletonList<SwitchLabelSyntax>(
+                    SyntaxFactory.SwitchLabel(SyntaxKind.DefaultSwitchLabel)),
+                SyntaxFactory.SingletonList<StatementSyntax>(
+                    SyntaxFactory.ThrowStatement(
+                        SyntaxFactory.ObjectCreationExpression(this.GetTypeNameSyntax(typeof(ArgumentOutOfRangeException)))
+                            .WithArgumentList(SyntaxFactory.ArgumentList())))));
+
+            method = method.WithBody(SyntaxFactory.Block(switchStatement));
+            return method;
+        }
+
+        private MemberDeclarationSyntax CreateGetTypeCoreMethod()
+        {
+            var typeIdParameter = SyntaxFactory.IdentifierName("typeId");
+            var method = SyntaxFactory.MethodDeclaration(SyntaxFactory.IdentifierName("Type"), "GetTypeCore")
+                .AddModifiers(
+                    SyntaxFactory.Token(SyntaxKind.ProtectedKeyword),
+                    SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
+                .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
+                    SyntaxFactory.Parameter(
+                        SyntaxFactory.List<AttributeListSyntax>(),
+                        SyntaxFactory.TokenList(),
+                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+                        typeIdParameter.Identifier,
+                        null))));
+
+            var switchStatement = SyntaxFactory.SwitchStatement(typeIdParameter);
+
+            for (int i = 0; i < this.reflectionLoadedTypes.Count; i++)
+            {
+                Type type = this.reflectionLoadedTypes[i];
+                var label = SyntaxFactory.SingletonList<SwitchLabelSyntax>(
+                    SyntaxFactory.SwitchLabel(
+                        SyntaxKind.CaseSwitchLabel,
+                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i))));
+
+                // manifestModule.ResolveType(token)
+                var typeDefinition = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        GetManifestModuleSyntax(type.Assembly),
+                        SyntaxFactory.IdentifierName("ResolveType")),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
+                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(type.MetadataToken))
+                        .WithTrailingTrivia(SyntaxFactory.Comment("/*" + this.GetTypeName(type, genericTypeDefinition: true, evenNonPublic: true) + "*/"))))));
+
+                var actualTypeExpression = !type.IsGenericType || type.IsGenericTypeDefinition
+                    ? typeDefinition
+                    : SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            typeDefinition,
+                            SyntaxFactory.IdentifierName("MakeGenericType")),
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                            SyntaxKind.CommaToken,
+                            type.GenericTypeArguments.Select(this.GetTypeSyntax).Select(SyntaxFactory.Argument).ToArray())));
+
+                var statement = SyntaxFactory.ReturnStatement(actualTypeExpression);
                 var section = SyntaxFactory.SwitchSection(label, SyntaxFactory.SingletonList<StatementSyntax>(statement));
                 switchStatement = switchStatement.AddSections(section);
             }
