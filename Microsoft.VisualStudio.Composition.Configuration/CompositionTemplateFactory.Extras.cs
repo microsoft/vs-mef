@@ -854,17 +854,10 @@
                         ctorSyntax,
                         SyntaxFactory.IdentifierName("Invoke")),
                     SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(invokeArg)));
-                if (IsPublic(ctor.DeclaringType))
-                {
-                    var castExpression = SyntaxFactory.CastExpression(
-                        this.GetTypeNameSyntax(ctor.DeclaringType),
-                        invokeExpression);
-                    return castExpression;
-                }
-                else
-                {
-                    return invokeExpression;
-                }
+                var castExpression = SyntaxFactory.CastExpression(
+                    this.GetTypeNameSyntax(ctor.DeclaringType),
+                    invokeExpression);
+                return castExpression;
             }
         }
 
