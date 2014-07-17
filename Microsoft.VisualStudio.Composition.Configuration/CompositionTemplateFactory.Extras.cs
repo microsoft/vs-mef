@@ -1043,7 +1043,7 @@
                     SyntaxFactory.VariableDeclaration(
                         SyntaxFactory.IdentifierName("var"),
                         SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.VariableDeclarator(partLocalVar.Identifier)
+                            SyntaxFactory.VariableDeclarator(exportedValueLocalVar.Identifier)
                                 .WithInitializer(SyntaxFactory.EqualsValueClause(
                                     GetExportedValueFromPart(partLocalVar, import, export, ValueFactoryType.ActualValue)))))));
 
@@ -1061,7 +1061,10 @@
 
             ExpressionSyntax disposeAction = disposeReceiver != null
                 ? (ExpressionSyntax)SyntaxFactory.ParenthesizedLambdaExpression(SyntaxFactory.InvocationExpression(
-                    disposeReceiver,
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        disposeReceiver,
+                        SyntaxFactory.IdentifierName("Dispose")),
                     SyntaxFactory.ArgumentList()))
                 : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
@@ -1571,91 +1574,6 @@
                         writer.Write(" }))");
                     });
             }
-        }
-
-        private IDisposable EmitExportFactoryConstruction(ImportDefinitionBinding exportFactoryImport, TextWriter writer = null)
-        {
-            writer = writer ?? new SelfTextWriter(this);
-
-            if (IsPublic(exportFactoryImport.ImportingSiteType, true))
-            {
-                writer.Write("new {0}(", GetTypeName(exportFactoryImport.ExportFactoryType));
-                return new DisposableWithAction(delegate
-                {
-                    writer.Write(")");
-                });
-            }
-            else
-            {
-                var ctor = exportFactoryImport.ExportFactoryType.GetConstructors().Single();
-                writer.WriteLine(
-                    "((ConstructorInfo)MethodInfo.GetMethodFromHandle({0}.ResolveMethod({1}/*{3}*/).MethodHandle, {2})).Invoke(new object[] {{ ",
-                    this.GetManifestModuleSyntax(exportFactoryImport.ExportFactoryType.Assembly),
-                    ctor.MetadataToken,
-                    this.GetClosedGenericTypeHandleExpression(exportFactoryImport.ExportFactoryType),
-                    ReflectionHelpers.GetTypeName(ctor.DeclaringType, false, true, null, null) + "." + ctor.Name);
-                using (Indent())
-                {
-                    writer.WriteLine(
-                        "{0}.CreateFuncOfType(",
-                        typeof(ReflectionHelpers).FullName);
-                    using (Indent())
-                    {
-                        writer.WriteLine(
-                            "{0},",
-                            this.GetExportFactoryTupleTypeExpression(exportFactoryImport.ImportingSiteElementType));
-                    }
-                }
-
-                var indent = Indent(3);
-                return new DisposableWithAction(delegate
-                {
-                    indent.Dispose();
-                    writer.WriteLine();
-                    writer.Write(") })");
-                });
-            }
-        }
-
-        private IDisposable EmitExportFactoryTupleConstruction(Type firstArgType, string valueExpression, TextWriter writer)
-        {
-            Type tupleType = typeof(Tuple<,>).MakeGenericType(firstArgType, typeof(Action));
-            if (IsPublic(tupleType, true))
-            {
-                writer.Write(
-                    "Tuple.Create<{0}, Action>(({0})({1}), ",
-                    this.GetTypeName(firstArgType),
-                    valueExpression);
-
-                return new DisposableWithAction(delegate
-                {
-                    writer.Write(")");
-                });
-            }
-            else
-            {
-                var create = GetMethodInfoExpression(
-                    new Func<object, object, Tuple<object, object>>(Tuple.Create<object, object>)
-                    .GetMethodInfo().GetGenericMethodDefinition());
-                writer.Write(
-                    "{0}.MakeGenericMethod({2}, typeof(Action)).Invoke(null, new object[] {{ {1}, (Action)(",
-                    create,
-                    valueExpression,
-                    GetTypeExpression(firstArgType));
-
-                return new DisposableWithAction(delegate
-                {
-                    writer.Write(") })");
-                });
-            }
-        }
-
-        private string GetExportFactoryTupleTypeExpression(Type constructedType)
-        {
-            return string.Format(
-                CultureInfo.InvariantCulture,
-                "typeof(Tuple<,>).MakeGenericType({0}, typeof(System.Action))",
-                this.GetTypeExpression(constructedType));
         }
 
         /// <summary>
