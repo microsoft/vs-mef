@@ -37,7 +37,7 @@ foreach (var exportsByContract in this.ExportsByContract)
 #>
             case "<#= exportsByContract.Key #>":
 <#
-    EmitGetExportsReturnExpression(exportsByContract);
+    EmitGetExportsReturnExpression(exportsByContract, "importDefinition");
 }
 #>
         }

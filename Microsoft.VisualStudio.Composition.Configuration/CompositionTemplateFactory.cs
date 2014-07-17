@@ -77,7 +77,7 @@ foreach (var exportsByContract in this.ExportsByContract)
             
             #line 39 "D:\Users\andarno\git\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.Configuration\CompositionTemplateFactory.tt"
 
-    EmitGetExportsReturnExpression(exportsByContract);
+    EmitGetExportsReturnExpression(exportsByContract, "importDefinition");
 }
 
             

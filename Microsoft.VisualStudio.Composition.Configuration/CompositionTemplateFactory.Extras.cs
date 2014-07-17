@@ -216,41 +216,66 @@
             }
         }
 
-        private ExpressionSyntax GetMethodInfoExpression(MethodInfo methodInfo)
+        private ExpressionSyntax GetMemberInfoSyntax(MemberInfo member)
         {
-            Requires.NotNull(methodInfo, "methodInfo");
+            Requires.NotNull(member, "member");
 
-            // manifest.ResolveMethod(metadataToken/*description*/)
-            var resolveMethod = SyntaxFactory.InvocationExpression(
+            IdentifierNameSyntax infoClass, methodHandle, getMethodFromHandle;
+            switch (member.MemberType)
+            {
+                case MemberTypes.Field:
+                    infoClass = SyntaxFactory.IdentifierName("FieldInfo");
+                    methodHandle = SyntaxFactory.IdentifierName("FieldHandle");
+                    getMethodFromHandle = SyntaxFactory.IdentifierName("GetFieldFromHandle");
+                    break;
+                case MemberTypes.Method:
+                    infoClass = SyntaxFactory.IdentifierName("MethodInfo");
+                    methodHandle = SyntaxFactory.IdentifierName("MethodHandle");
+                    getMethodFromHandle = SyntaxFactory.IdentifierName("GetMethodFromHandle");
+                    break;
+                case MemberTypes.Property:
+                    infoClass = SyntaxFactory.IdentifierName("PropertyInfo");
+                    methodHandle = SyntaxFactory.IdentifierName("PropertyHandle");
+                    getMethodFromHandle = SyntaxFactory.IdentifierName("GetPropertyFromHandle");
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+
+            // manifest.ResolveMember(metadataToken/*description*/)
+            var resolveMember = SyntaxFactory.InvocationExpression(
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    this.GetManifestModuleSyntax(methodInfo.DeclaringType.Assembly),
-                    SyntaxFactory.IdentifierName("ResolveMethod")),
+                    this.GetManifestModuleSyntax(member.DeclaringType.Assembly),
+                    SyntaxFactory.IdentifierName("ResolveMember")),
                 SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(methodInfo.MetadataToken))
-                        .WithTrailingTrivia(SyntaxFactory.Comment("/*" + GetTypeName(methodInfo.DeclaringType, evenNonPublic: true) + "." + methodInfo.Name + "*/"))))));
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(member.MetadataToken))
+                        .WithTrailingTrivia(SyntaxFactory.Comment("/*" + GetTypeName(member.DeclaringType, evenNonPublic: true) + "." + member.Name + "*/"))))));
 
-            ExpressionSyntax methodInfoSyntax;
-            if (methodInfo.DeclaringType.IsGenericType)
+            ExpressionSyntax memberInfoSyntax;
+            if (member.DeclaringType.IsGenericType)
             {
                 // MethodInfo.GetMethodFromHandle({0}.ResolveMethod({1}/*{3}*/).MethodHandle, {2})
-                methodInfoSyntax = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("MethodInfo"), SyntaxFactory.IdentifierName("GetMethodFromHandle")),
+                memberInfoSyntax = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, infoClass, getMethodFromHandle),
                     SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
                         SyntaxKind.CommaToken,
-                        SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, resolveMethod, SyntaxFactory.IdentifierName("MethodHandle"))),
-                        SyntaxFactory.Argument(this.GetClosedGenericTypeHandleExpression(methodInfo.DeclaringType)))));
+                        SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, resolveMember, methodHandle)),
+                        SyntaxFactory.Argument(this.GetClosedGenericTypeHandleExpression(member.DeclaringType)))));
             }
             else
             {
-                methodInfoSyntax = resolveMethod;
+                memberInfoSyntax = resolveMember;
             }
 
             var castExpression = SyntaxFactory.ParenthesizedExpression(
-                SyntaxFactory.CastExpression(
-                    SyntaxFactory.IdentifierName("MethodInfo"),
-                    methodInfoSyntax));
+                SyntaxFactory.CastExpression(infoClass, memberInfoSyntax));
             return castExpression;
+        }
+
+        private ExpressionSyntax GetMethodInfoExpression(MethodInfo methodInfo)
+        {
+            return this.GetMemberInfoSyntax(methodInfo);
         }
 
         private ExpressionSyntax GetClosedGenericTypeExpression(Type type)
@@ -1225,37 +1250,11 @@
             }
         }
 
-        private MethodDeclarationSyntax CreateGetExportsCoreHelperMethod(IGrouping<string, ExportDefinitionBinding> exports)
+        private MethodDeclarationSyntax CreateGetExportsCoreHelperMethod(IGrouping<string, ExportDefinitionBinding> exports, IdentifierNameSyntax importDefinition)
         {
             Requires.NotNull(exports, "exports");
 
-            var importDefinitionIdentifierName = SyntaxFactory.IdentifierName("importDefinition");
-
-            var synthesizedImport = new ImportDefinitionBinding(
-                new ImportDefinition(exports.Key, ImportCardinality.ZeroOrMore, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty),
-                typeof(object));
-
-            var exportExpressions = new List<ExpressionSyntax>();
-            foreach (var export in exports)
-            {
-                var partExpression = this.GetPartInstanceLazy(export.PartDefinition, newDictionaryOfTypeObjectExpression, false, null);
-                ExpressionSyntax valueFactoryExpression = GetExportedValueFromPart(partExpression, synthesizedImport, export, ValueFactoryType.FuncOfObject);
-
-                // new Export(importDefinition.ContractName, metadata, valueFactory)
-                var exportExpression = SyntaxFactory.ObjectCreationExpression(
-                    SyntaxFactory.IdentifierName("Export"),
-                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes<ArgumentSyntax>(
-                        SyntaxKind.CommaToken,
-                        SyntaxFactory.Argument(SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            importDefinitionIdentifierName,
-                            SyntaxFactory.IdentifierName("ContractName"))),
-                        SyntaxFactory.Argument(GetExportMetadata(export)),
-                        SyntaxFactory.Argument(valueFactoryExpression))),
-                    null);
-
-                exportExpressions.Add(exportExpression);
-            }
+            var exportExpressions = exports.Select(e => this.ExportCreationSyntax(e, importDefinition)).ToArray();
 
             var exportArrayType = SyntaxFactory.ArrayType(
                     SyntaxFactory.IdentifierName("Export"),
@@ -1265,24 +1264,24 @@
                                 SyntaxFactory.OmittedArraySizeExpression()))));
 
             var exportArrayExpression = SyntaxFactory.ArrayCreationExpression(exportArrayType)
-                .WithInitializer(SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, CodeGen.JoinSyntaxNodes<ExpressionSyntax>(SyntaxKind.CommaToken, exportExpressions.ToArray())));
+                .WithInitializer(SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression, CodeGen.JoinSyntaxNodes<ExpressionSyntax>(SyntaxKind.CommaToken, exportExpressions)));
 
             var method = SyntaxFactory.MethodDeclaration(
                 exportArrayType,
                 ReserveClassSymbolName("GetExportsCore_" + Utilities.MakeIdentifierNameSafe(exports.Key), null))
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
                 .AddParameterListParameters(
-                    SyntaxFactory.Parameter(importDefinitionIdentifierName.Identifier)
+                    SyntaxFactory.Parameter(importDefinition.Identifier)
                     .WithType(SyntaxFactory.IdentifierName("ImportDefinition")))
                 .AddBodyStatements(SyntaxFactory.ReturnStatement(exportArrayExpression));
             return method;
         }
 
-        private void EmitGetExportsReturnExpression(IGrouping<string, ExportDefinitionBinding> exports)
+        private void EmitGetExportsReturnExpression(IGrouping<string, ExportDefinitionBinding> exports, string importDefinitionVarName)
         {
             using (Indent(4))
             {
-                var method = CreateGetExportsCoreHelperMethod(exports);
+                var method = CreateGetExportsCoreHelperMethod(exports, SyntaxFactory.IdentifierName(importDefinitionVarName));
                 this.extraMembers.Add(method);
                 var returnStatement = SyntaxFactory.ReturnStatement(
                     SyntaxFactory.InvocationExpression(
@@ -1601,6 +1600,53 @@
                     SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
                         SyntaxFactory.Argument(
                             SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(index))))));
+        }
+
+        private ExpressionSyntax ExportCreationSyntax(ExportDefinitionBinding export, IdentifierNameSyntax importDefinition)
+        {
+            Requires.NotNull(export, "export");
+            Requires.NotNull(importDefinition, "importDefinition");
+
+            bool isOpenGenericExport = export.ExportedValueType.ContainsGenericParameters;
+            var partDefinition = export.PartDefinition;
+            ExpressionSyntax partTypeExpression = this.GetTypeExpressionSyntax(partDefinition.Type, isOpenGenericExport);
+
+            ExpressionSyntax partFactoryMethod;
+            if (isOpenGenericExport)
+            {
+                partFactoryMethod = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(GetPartFactoryMethodNameNoTypeArgs(partDefinition)));
+            }
+            else
+            {
+                partFactoryMethod = SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.ThisExpression(),
+                    SyntaxFactory.IdentifierName(GetPartFactoryMethodName(partDefinition)));
+            }
+
+            ExpressionSyntax sharingBoundary = partDefinition.IsShared
+                ? SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(this.Configuration.GetEffectiveSharingBoundary(partDefinition)))
+                : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+
+            bool nonSharedInstanceRequired = !partDefinition.IsShared;
+
+            ExpressionSyntax exportingMemberExpression = export.ExportingMember != null
+                ? this.GetMemberInfoSyntax(export.ExportingMember)
+                : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
+
+            var createExport = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.IdentifierName("CreateExport"),
+                SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                    SyntaxKind.CommaToken,
+                    SyntaxFactory.Argument(importDefinition),
+                    SyntaxFactory.Argument(GetExportMetadata(export)),
+                    SyntaxFactory.Argument(partTypeExpression),
+                    SyntaxFactory.Argument(partFactoryMethod),
+                    SyntaxFactory.Argument(sharingBoundary),
+                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(nonSharedInstanceRequired ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression)),
+                    SyntaxFactory.Argument(exportingMemberExpression))));
+
+            return createExport;
         }
 
         /// <summary>

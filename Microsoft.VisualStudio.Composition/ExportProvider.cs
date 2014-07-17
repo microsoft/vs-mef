@@ -218,6 +218,66 @@
         /// </remarks>
         protected abstract IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition);
 
+        protected Export CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, Type partOpenGenericType, string valueFactoryMethodName, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
+        {
+            Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(partOpenGenericType, "partOpenGenericType");
+
+            var typeArgs = (Type[])importDefinition.Metadata[CompositionConstants.GenericParametersMetadataName];
+            var valueFactoryOpenGenericMethodInfo = this.GetMethodWithArity(valueFactoryMethodName, typeArgs.Length);
+            var valueFactoryMethodInfo = valueFactoryOpenGenericMethodInfo.MakeGenericMethod(typeArgs);
+            var valueFactory = (Func<Dictionary<Type, object>, object>)valueFactoryMethodInfo.CreateDelegate(typeof(Func<Dictionary<Type, object>, object>), this);
+            var partType = partOpenGenericType.MakeGenericType(typeArgs);
+            return this.CreateExport(importDefinition, metadata, partType, valueFactory, partSharingBoundary, nonSharedInstanceRequired, exportingMember);
+        }
+
+        protected Export CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, Type partType, Func<Dictionary<Type, object>, object> valueFactory, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
+        {
+            Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(partType, "partType");
+            Requires.NotNull(valueFactory, "valueFactory");
+
+            var provisionalSharedObjects = new Dictionary<Type, object>();
+            ILazy<object> lazy = this.GetOrCreateShareableValue(partType, valueFactory, provisionalSharedObjects, partSharingBoundary, nonSharedInstanceRequired);
+            Func<object> memberValueFactory;
+            if (exportingMember == null)
+            {
+                memberValueFactory = lazy.ValueFactory;
+            }
+            else
+            {
+                memberValueFactory = () => GetValueFromMember(lazy.Value, exportingMember);
+            }
+
+            return new Export(importDefinition.ContractName, metadata, memberValueFactory);
+        }
+
+        private object GetValueFromMember(object instance, MemberInfo member)
+        {
+            Requires.NotNull(instance, "instance");
+            Requires.NotNull(member, "member");
+
+            var field = member as FieldInfo;
+            if (field != null) {
+                return field.GetValue(instance);
+            }
+
+            var property = member as PropertyInfo;
+            if (property != null) {
+                return property.GetValue(instance);
+            }
+
+            var method = member as MethodInfo;
+            if (method != null)
+            {
+                return method.CreateDelegate(ExportDefinitionBinding.GetContractTypeForDelegate(method), instance);
+            }
+
+            throw new NotSupportedException();
+        }
+
         protected ILazy<object> GetOrCreateShareableValue(Type partType, Func<Dictionary<Type, object>, object> valueFactory, Dictionary<Type, object> provisionalSharedObjects, string partSharingBoundary, bool nonSharedInstanceRequired)
         {
             ILazy<System.Object> lazyResult;
