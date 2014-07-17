@@ -1108,12 +1108,16 @@
             }
 
             ExpressionSyntax disposeAction = disposeReceiver != null
-                ? (ExpressionSyntax)SyntaxFactory.ParenthesizedLambdaExpression(SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        disposeReceiver,
-                        SyntaxFactory.IdentifierName("Dispose")),
-                    SyntaxFactory.ArgumentList()))
+                ? (ExpressionSyntax)SyntaxFactory.ObjectCreationExpression(
+                    SyntaxFactory.IdentifierName("Action"),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
+                        SyntaxFactory.ParenthesizedLambdaExpression(SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                disposeReceiver,
+                                SyntaxFactory.IdentifierName("Dispose")),
+                            SyntaxFactory.ArgumentList()))))),
+                    null)
                 : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
             var tupleType = typeof(Tuple<,>).MakeGenericType(import.ImportingSiteElementType, typeof(Action));
@@ -1122,7 +1126,26 @@
                 new ExpressionSyntax[] { exportedValueLocalVar, disposeAction });
             statements.Add(SyntaxFactory.ReturnStatement(tupleExpression));
 
-            exportFactoryCtorArguments.Add(SyntaxFactory.ParenthesizedLambdaExpression(SyntaxFactory.Block(statements)));
+            var tupleFactoryLambda = SyntaxFactory.ParenthesizedLambdaExpression(SyntaxFactory.Block(statements));
+            if (IsPublic(import.ExportFactoryType, true))
+            {
+                exportFactoryCtorArguments.Add(tupleFactoryLambda);
+            }
+            else
+            {
+                // Since we'll be using reflection to pass in the tuple factory, we have to
+                // explicitly give the lambda a delegate shape or the C# compiler won't know what to do with it.
+                var tupleFactoryDelegate = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName("ReflectionHelpers"),
+                        SyntaxFactory.IdentifierName("CreateFuncOfType")),
+                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                        SyntaxKind.CommaToken,
+                        SyntaxFactory.Argument(this.GetTypeExpressionSyntax(tupleType)),
+                        SyntaxFactory.Argument(tupleFactoryLambda))));
+                exportFactoryCtorArguments.Add(tupleFactoryDelegate);
+            }
 
             // Add the metadata argument if applicable.
             if (import.ExportFactoryType.GenericTypeArguments.Length > 1)
