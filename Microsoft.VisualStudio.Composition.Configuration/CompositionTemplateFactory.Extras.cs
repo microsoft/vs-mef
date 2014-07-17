@@ -1057,7 +1057,7 @@
             }
 
             // ILazy<T> part = GetOrCreateShareableValue(typeof(Part), ...);
-            TypeSyntax[] typeArgs = null; // TODO: set this to the right value.
+            Type[] typeArgs = import.ImportingSiteElementType.GetGenericArguments();
             var partLocalVar = SyntaxFactory.IdentifierName("part");
             statements.Add(
                 SyntaxFactory.LocalDeclarationStatement(
@@ -1233,7 +1233,7 @@
             }
 
             bool isNonSharedInstanceRequired = PartCreationPolicyConstraint.IsNonSharedInstanceRequired(import.ImportDefinition);
-            IEnumerable<TypeSyntax> typeArgs = ImmutableList<TypeSyntax>.Empty; // TODO: fix this
+            Type[] typeArgs = import.ImportingSiteElementType.GetGenericArguments();
             var exportedValueSyntax = GetExportedValueFromPart(
                     GetPartInstanceLazy(export.PartDefinition, provisionalSharedObjects, isNonSharedInstanceRequired, typeArgs, scope),
                     import,
@@ -1659,11 +1659,11 @@
         /// <summary>
         /// Creates an expression that evaluates to an <see cref="ILazy{T}"/>.
         /// </summary>
-        private ExpressionSyntax GetPartInstanceLazy(ComposablePartDefinition partDefinition, ExpressionSyntax provisionalSharedObjects, bool nonSharedInstanceRequired, IEnumerable<TypeSyntax> typeArgs, ExpressionSyntax scope = null)
+        private ExpressionSyntax GetPartInstanceLazy(ComposablePartDefinition partDefinition, ExpressionSyntax provisionalSharedObjects, bool nonSharedInstanceRequired, IReadOnlyList<Type> typeArgs, ExpressionSyntax scope = null)
         {
             Requires.NotNull(partDefinition, "partDefinition");
             Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
-            typeArgs = typeArgs ?? Enumerable.Empty<TypeSyntax>();
+            typeArgs = typeArgs ?? ImmutableList<Type>.Empty;
             scope = scope ?? SyntaxFactory.ThisExpression();
 
             // Force the query to be for an isolated instance if the instance is never shared.
@@ -1679,26 +1679,56 @@
                     SyntaxFactory.IdentifierName("NonDisposableWrapper"));
             }
 
-            ExpressionSyntax partTypeExpression = this.GetTypeExpressionSyntax(partDefinition.Type);
-            SimpleNameSyntax partFactoryMethodName = SyntaxFactory.IdentifierName(GetPartFactoryMethodName(partDefinition));
-            if (typeArgs.Any())
+            Type partType = typeArgs.Count == 0 ? partDefinition.Type : partDefinition.Type.MakeGenericType(typeArgs.ToArray());
+            ExpressionSyntax partTypeExpression = this.GetTypeExpressionSyntax(partType);
+            SimpleNameSyntax partFactoryMethodName = SyntaxFactory.IdentifierName(GetPartFactoryMethodNameNoTypeArgs(partDefinition));
+            ExpressionSyntax partFactoryMethod;
+            bool publicInvocation = typeArgs.All(t => IsPublic(t, true));
+            if (publicInvocation)
             {
-                partTypeExpression = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, partTypeExpression, SyntaxFactory.IdentifierName("MakeGenericType")),
+                var typeArgsSyntax = typeArgs.Select(t => this.GetTypeNameSyntax(t)).ToArray();
+                if (typeArgs.Count > 0)
+                {
+                    partFactoryMethodName = SyntaxFactory.GenericName(
+                        partFactoryMethodName.Identifier,
+                        SyntaxFactory.TypeArgumentList(CodeGen.JoinSyntaxNodes(SyntaxKind.CommaToken, typeArgsSyntax)));
+                }
+
+                // scope.CreateSomePart<T1, T2>
+                partFactoryMethod = SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        scope,
+                        partFactoryMethodName);
+            }
+            else
+            {
+                var typeArgsExpressionSyntax = typeArgs.Select(t => this.GetTypeExpressionSyntax(t)).ToArray();
+
+                // GetMethodWithArity("CreateSomePart", 2).MakeGenericMethod(typeof(T1), typeof(T2)).CreateDelegate(typeof(Func<Dictionary<Type, object>, object>), scope)
+                var getMethodWithArity = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.IdentifierName("GetMethodWithArity"),
                     SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
                         SyntaxKind.CommaToken,
-                        typeArgs.Select(SyntaxFactory.Argument).ToArray())));
-                partFactoryMethodName = SyntaxFactory.GenericName(
-                    partFactoryMethodName.Identifier,
-                    SyntaxFactory.TypeArgumentList(CodeGen.JoinSyntaxNodes(
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(partFactoryMethodName.Identifier.ToString()))),
+                        SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(typeArgs.Count))))));
+                var makeGenericMethod = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        getMethodWithArity,
+                        SyntaxFactory.IdentifierName("MakeGenericMethod")),
+                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(SyntaxKind.CommaToken, typeArgsExpressionSyntax.Select(SyntaxFactory.Argument).ToArray())));
+                var funcOfDictionaryObject = SyntaxFactory.ParseTypeName("Func<Dictionary<Type, object>, object>");
+                var createDelegate = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.CommaToken,
-                        typeArgs.ToArray())));
+                        makeGenericMethod,
+                        SyntaxFactory.IdentifierName("CreateDelegate")),
+                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                        SyntaxKind.CommaToken,
+                        SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(funcOfDictionaryObject)),
+                        SyntaxFactory.Argument(scope))));
+                partFactoryMethod = createDelegate;
             }
-
-            var partFactoryMethod = SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    scope,
-                    partFactoryMethodName);
 
             ExpressionSyntax sharingBoundary = partDefinition.IsShared
                 ? SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(this.Configuration.GetEffectiveSharingBoundary(partDefinition)))
@@ -1717,10 +1747,18 @@
                     SyntaxFactory.Argument(provisionalSharedObjects),
                     SyntaxFactory.Argument(sharingBoundary),
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(nonSharedInstanceRequired ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression)))));
-            var invocationCast = SyntaxFactory.CastExpression(
-                SyntaxFactory.GenericName("ILazy").WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(this.GetTypeNameSyntax(partDefinition.Type)))),
-                invocation);
-            return SyntaxFactory.ParenthesizedExpression(invocationCast);
+
+            if (publicInvocation)
+            {
+                var invocationCast = SyntaxFactory.CastExpression(
+                    SyntaxFactory.GenericName("ILazy").WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(this.GetTypeNameSyntax(partType)))),
+                    invocation);
+                return SyntaxFactory.ParenthesizedExpression(invocationCast);
+            }
+            else
+            {
+                return invocation;
+            }
         }
 
         private void EmitAdditionalMembers()
