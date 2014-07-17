@@ -22,15 +22,14 @@
         public async Task ComposableAssembliesLazyLoadedWhenQueried()
         {
             var configuration = CompositionConfiguration.Create(await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExternalExport), typeof(YetAnotherExport)));
-            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            await configuration.SaveAsync(path);
+            string dllPath = await SaveConfigurationAsync(configuration);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
             var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
             try
             {
                 var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
-                driver.Initialize(path);
+                driver.Initialize(dllPath);
                 driver.TestExternalExport(typeof(ExternalExport).Assembly.Location);
                 driver.TestYetAnotherExport(typeof(YetAnotherExport).Assembly.Location);
             }
@@ -48,11 +47,7 @@
         {
             var configuration = CompositionConfiguration.Create(
                 await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExternalExportWithLazy), typeof(YetAnotherExport)));
-            string rootpath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            string dllPath = rootpath + ".dll";
-            string pdbPath = rootpath + ".pdb";
-            string csPath = rootpath + ".cs";
-            await configuration.SaveAsync(dllPath, pdbPath, csPath, debug: true);
+            string dllPath = await SaveConfigurationAsync(configuration);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
             var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
@@ -66,6 +61,16 @@
             {
                 AppDomain.Unload(appDomain);
             }
+        }
+
+        private static async Task<string> SaveConfigurationAsync(CompositionConfiguration configuration)
+        {
+            string rootpath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            string dllPath = rootpath + ".dll";
+            string pdbPath = rootpath + ".pdb";
+            string csPath = rootpath + ".cs";
+            await configuration.SaveAsync(dllPath, pdbPath, csPath, debug: true);
+            return dllPath;
         }
 
         private class AppDomainTestDriver : MarshalByRefObject
