@@ -18,7 +18,7 @@
         {
         }
 
-        Func<T> ILazy<T>.ValueFactory
+        public Func<T> ValueFactory
         {
             get { return () => this.Value; }
         }

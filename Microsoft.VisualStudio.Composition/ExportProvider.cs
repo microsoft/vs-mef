@@ -28,6 +28,8 @@
             null,
             CreationPolicy.Shared);
 
+        protected static readonly LazyPart<object> NotInstantiablePartLazy = new LazyPart<object>(() => CannotInstantiatePartWithNoImportingConstructor());
+
         protected static readonly object[] EmptyObjectArray = new object[0];
 
         /// <summary>

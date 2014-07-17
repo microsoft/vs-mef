@@ -1289,6 +1289,15 @@
 
             if (import.IsLazy)
             {
+                if (!export.IsStaticExport && !export.PartDefinition.IsInstantiable)
+                {
+                    // Don't bother with code for generating a part we can't access. Just emit code to throw.
+                    exportedValueSyntax = SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.IdentifierName("NotInstantiablePartLazy"),
+                        SyntaxFactory.IdentifierName("ValueFactory"));
+                }
+
                 var lazyExportedValueSyntax = CreateLazyConstruction(
                     import.ImportingSiteElementType,
                     exportedValueSyntax,
