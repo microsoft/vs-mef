@@ -847,10 +847,17 @@
                         ctorSyntax,
                         SyntaxFactory.IdentifierName("Invoke")),
                     SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(invokeArg)));
-                var castExpression = SyntaxFactory.CastExpression(
-                    this.GetTypeNameSyntax(ctor.DeclaringType),
-                    invokeExpression);
-                return castExpression;
+                if (IsPublic(ctor.DeclaringType))
+                {
+                    var castExpression = SyntaxFactory.CastExpression(
+                        this.GetTypeNameSyntax(ctor.DeclaringType),
+                        invokeExpression);
+                    return castExpression;
+                }
+                else
+                {
+                    return invokeExpression;
+                }
             }
         }
 
@@ -1518,26 +1525,14 @@
             Requires.NotNull(valueType, "valueType");
             Requires.NotNull(valueFactory, "valueFactory");
 
-            // Consider: can most of this be replaced with just using this.ObjectCreationExpression in both code paths?
             Type lazyTypeDefinition = metadataType != null ? typeof(LazyPart<,>) : typeof(LazyPart<>);
             Type[] lazyTypeArgs = metadataType != null ? new[] { valueType, metadataType } : new[] { valueType };
             Type lazyType = lazyTypeDefinition.MakeGenericType(lazyTypeArgs);
             ExpressionSyntax[] lazyArgs = metadataType == null ? new[] { valueFactory } : new[] { valueFactory, metadata };
 
-            if (IsPublic(lazyType, true))
-            {
-                // new LazyPart<T, TMetadata>
-                return SyntaxFactory.ObjectCreationExpression(
-                    SyntaxFactory.GenericName("LazyPart").WithTypeArgumentList(SyntaxFactory.TypeArgumentList(
-                        CodeGen.JoinSyntaxNodes(SyntaxKind.CommaToken, lazyTypeArgs.Select(t => this.GetTypeNameSyntax(t)).ToArray()))),
-                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(SyntaxKind.CommaToken, lazyArgs.Select(SyntaxFactory.Argument).ToArray())),
-                    null);
-            }
-            else
-            {
-                var ctor = lazyTypeDefinition.GetConstructors().Single(c => c.GetParameters()[0].ParameterType.Equals(typeof(Func<object>)));
-                return ObjectCreationExpression(ctor, lazyArgs);
-            }
+            var ctor = lazyType.GetConstructors().First(c => c.GetParameters()[0].ParameterType.Equals(typeof(Func<object>)));
+            var lazyConstruction = this.ObjectCreationExpression(ctor, lazyArgs);
+            return lazyConstruction;
         }
 
         private LazyConstructionResult EmitLazyConstruction(Type valueType, Type metadataType, TextWriter writer = null)
