@@ -21,7 +21,7 @@
         #region V1 tests
 
         [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(NonSharedPart))]
-        public void ExportFactoryForNonSharedPartV1(IContainer container)
+        public void ExportFactoryForNonSharedPartCreationDisposalV1(IContainer container)
         {
             var partFactory = container.GetExportedValue<PartFactoryV1>();
             Assert.NotNull(partFactory.Factory);
@@ -38,6 +38,15 @@
             }
 
             Assert.Equal(1, NonSharedPart.DisposalCounter);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(NonSharedPart))]
+        public void ExportFactoryForNonSharedPartInstantiatesMultiplePartsV1(IContainer container)
+        {
+            var partFactory = container.GetExportedValue<PartFactoryV1>();
+            var value1 = partFactory.Factory.CreateExport().Value;
+            var value2 = partFactory.Factory.CreateExport().Value;
+            Assert.NotSame(value1, value2);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1WithExplicitContractType), typeof(NonSharedPart))]
@@ -191,7 +200,7 @@
         #region V2 tests
 
         [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryV2), typeof(NonSharedPart))]
-        public void ExportFactoryForNonSharedPartV2(IContainer container)
+        public void ExportFactoryForNonSharedPartCreationDisposalV2(IContainer container)
         {
             var partFactory = container.GetExportedValue<PartFactoryV2>();
             Assert.NotNull(partFactory.Factory);
@@ -208,6 +217,15 @@
             }
 
             Assert.Equal(1, NonSharedPart.DisposalCounter);
+        }
+
+        [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryV2), typeof(NonSharedPart))]
+        public void ExportFactoryForNonSharedPartInstantiatesMultiplePartsV2(IContainer container)
+        {
+            var partFactory = container.GetExportedValue<PartFactoryV2>();
+            var value1 = partFactory.Factory.CreateExport().Value;
+            var value2 = partFactory.Factory.CreateExport().Value;
+            Assert.NotSame(value1, value2);
         }
 
         [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryManyV2), typeof(NonSharedPart), typeof(NonSharedPart2))]
