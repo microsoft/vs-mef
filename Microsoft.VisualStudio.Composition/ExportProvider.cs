@@ -56,6 +56,22 @@
         protected Type[] cachedTypes;
 
         /// <summary>
+        /// A list of built-in metadata view providers that should be used before trying to get additional ones
+        /// from the extensions.
+        /// </summary>
+        private static readonly ImmutableList<IMetadataViewProvider> BuiltInMetadataViewProviders = ImmutableList.Create(
+            PassthroughMetadataViewProvider.Default,
+            MetadataViewClassProvider.Default);
+
+        /// <summary>
+        /// The metadata view providers available to this ExportProvider.
+        /// </summary>
+        /// <remarks>
+        /// This field is lazy to avoid a chicken-and-egg problem with initializing it in our constructor.
+        /// </remarks>
+        private readonly Lazy<ImmutableList<Lazy<IMetadataViewProvider>>> metadataViewProviders;
+
+        /// <summary>
         /// An array of types 
         /// </summary>
         private List<Type> runtimeCreatedTypes = new List<Type>();
@@ -98,6 +114,8 @@
             this.NonDisposableWrapper = LazyPart.Wrap(nonDisposableWrapper);
             this.NonDisposableWrapperExportAsListOfOne = ImmutableList.Create(
                 new Export(ExportProviderExportDefinition, this.NonDisposableWrapper));
+            this.metadataViewProviders = new Lazy<ImmutableList<Lazy<IMetadataViewProvider>>>(
+                () => ImmutableList.CreateRange(this.GetExports<IMetadataViewProvider>()));
         }
 
         bool IDisposableObservable.IsDisposed
@@ -505,6 +523,7 @@
         {
             Verify.NotDisposed(this);
             contractName = string.IsNullOrEmpty(contractName) ? ContractNameServices.GetTypeIdentity(typeof(T)) : contractName;
+            IMetadataViewProvider metadataViewProvider = GetMetadataViewProvider(typeof(TMetadataView));
 
             var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty
                 .Union(PartDiscovery.GetExportTypeIdentityConstraints(typeof(T)));
@@ -517,7 +536,37 @@
             var importMetadata = PartDiscovery.GetImportMetadataForGenericTypeImport(typeof(T));
             var importDefinition = new ImportDefinition(contractName, cardinality, importMetadata, constraints);
             IEnumerable<Export> results = this.GetExports(importDefinition);
-            return results.Select(result => new LazyPart<T, TMetadataView>(() => result.Value, (TMetadataView)result.Metadata));
+            return results.Select(result => new LazyPart<T, TMetadataView>(
+                () => result.Value,
+                metadataViewProvider.CreateProxy<TMetadataView>(result.Metadata)));
+        }
+
+        /// <summary>
+        /// Gets a provider that can create a metadata view of a specified type over a dictionary of metadata.
+        /// </summary>
+        /// <param name="metadataView">The type of metadata view required.</param>
+        /// <returns>A metadata view provider.</returns>
+        /// <exception cref="NotSupportedException">Thrown if no metadata view provider available is compatible with the type.</exception>
+        private IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
+        {
+            Requires.NotNull(metadataView, "metadataView");
+
+            IMetadataViewProvider metadataViewProvider = BuiltInMetadataViewProviders
+                .FirstOrDefault(vp => vp.IsMetadataViewSupported(metadataView));
+            if (metadataViewProvider != null)
+            {
+                return metadataViewProvider;
+            }
+
+            metadataViewProvider = this.metadataViewProviders.Value
+                    .Select(vp => vp.Value)
+                    .FirstOrDefault(vp => vp.IsMetadataViewSupported(metadataView));
+            if (metadataViewProvider == null)
+            {
+                throw new NotSupportedException("Type of metadata view is unsupported.");
+            }
+
+            return metadataViewProvider;
         }
 
         private Dictionary<int, object> AcquireSharingBoundaryInstances(string sharingBoundaryName)
@@ -545,6 +594,71 @@
             protected override void Dispose(bool disposing)
             {
                 throw new InvalidOperationException("This instance is an import and cannot be directly disposed.");
+            }
+        }
+
+        /// <summary>
+        /// Supports metadata views that are any type that <see cref="ImmutableDictionary{TKey, TValue}"/>
+        /// could be assigned to, including <see cref="IDictionary`2"/> and <see cref="IReadOnlyDictionary`2"/>.
+        /// </summary>
+        private class PassthroughMetadataViewProvider : IMetadataViewProvider
+        {
+            private PassthroughMetadataViewProvider() { }
+
+            internal static readonly IMetadataViewProvider Default = new PassthroughMetadataViewProvider();
+
+            public bool IsMetadataViewSupported(Type metadataType)
+            {
+                Requires.NotNull(metadataType, "metadataType");
+
+                return metadataType.GetTypeInfo().IsAssignableFrom(typeof(ImmutableDictionary<string, object>).GetTypeInfo());
+            }
+
+            public TMetadata CreateProxy<TMetadata>(IReadOnlyDictionary<string, object> metadata)
+            {
+                Requires.NotNull(metadata, "metadata");
+
+                // This cast should work because our IsMetadataViewSupported method filters to those that do.
+                return (TMetadata)(object)ImmutableDictionary.CreateRange(metadata);
+            }
+        }
+
+        /// <summary>
+        /// Supports metadata views that are concrete classes with a public constructor
+        /// that accepts the metadata dictionary as its only parameter.
+        /// </summary>
+        private class MetadataViewClassProvider : IMetadataViewProvider
+        {
+            private MetadataViewClassProvider() { }
+
+            internal static readonly IMetadataViewProvider Default = new MetadataViewClassProvider();
+
+            public bool IsMetadataViewSupported(Type metadataType)
+            {
+                Requires.NotNull(metadataType, "metadataType");
+                var typeInfo = metadataType.GetTypeInfo();
+
+                return typeInfo.IsClass && !typeInfo.IsAbstract && FindConstructor(typeInfo) != null;
+            }
+
+            public TMetadata CreateProxy<TMetadata>(IReadOnlyDictionary<string, object> metadata)
+            {
+                return (TMetadata)FindConstructor(typeof(TMetadata).GetTypeInfo())
+                    .Invoke(new object[] { ImmutableDictionary.CreateRange(metadata) });
+            }
+
+            private static ConstructorInfo FindConstructor(TypeInfo metadataType)
+            {
+                Requires.NotNull(metadataType, "metadataType");
+
+                var publicCtorsWithOneParameter = from ctor in metadataType.DeclaredConstructors
+                                                  where ctor.IsPublic
+                                                  let parameters = ctor.GetParameters()
+                                                  where parameters.Length == 1
+                                                  let paramInfo = parameters[0].ParameterType.GetTypeInfo()
+                                                  where paramInfo.IsAssignableFrom(typeof(ImmutableDictionary<string, object>).GetTypeInfo())
+                                                  select ctor;
+                return publicCtorsWithOneParameter.FirstOrDefault();
             }
         }
     }

@@ -12,6 +12,7 @@
     public static class NetFxAdapters
     {
         private static readonly ComposablePartDefinition compositionServicePart = (new AttributedPartDiscoveryV1()).CreatePart(typeof(CompositionService));
+
         /// <summary>
         /// Creates an instance of a <see cref="MefV1.Hosting.ExportProvider"/>
         /// for purposes of compatibility with the version of MEF found in the .NET Framework.

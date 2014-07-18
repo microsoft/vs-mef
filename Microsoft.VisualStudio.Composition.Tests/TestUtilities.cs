@@ -191,7 +191,9 @@
 
         private static IContainer CreateContainerV3(ComposableCatalog catalog, CompositionEngines options, ImmutableHashSet<Assembly> additionalAssemblies = null)
         {
-            var catalogWithCompositionService = catalog.WithCompositionService();
+            var catalogWithCompositionService = catalog
+                .WithCompositionService()
+                .WithMetadataViewProxySupport();
             var configuration = CompositionConfiguration.Create(catalogWithCompositionService)
                 .WithReferenceAssemblies(additionalAssemblies ?? ImmutableHashSet<Assembly>.Empty);
             if (!options.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors))
