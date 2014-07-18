@@ -12,7 +12,7 @@
     [Trait("Static", "")]
     public class StaticMemberExportsTests
     {
-        [MefFact(CompositionEngines.V1, typeof(StaticPartWithStaticExports), typeof(ImportingPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(StaticPartWithStaticExports), typeof(ImportingPart))]
         public void ExportingStaticPartStaticProperty(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPart>();
@@ -32,7 +32,7 @@
             Assert.Equal(PartWithStaticExports.ExportingMethod(), part.ImportOfMethod());
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithStaticExports), typeof(ImportingPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithStaticExports), typeof(ImportingPart))]
         public void GetExportsOfExportingStaticMembers(IContainer container)
         {
             Assert.Equal(PartWithStaticExports.ExportingProperty, container.GetExportedValue<string>("Property"));

@@ -18,7 +18,10 @@
         {
             Requires.NotNull(partType, "partType");
 
-            if (partType.IsAbstract)
+            // We want to ignore abstract classes, but we want to consider static classes.
+            // Static classes claim to be both abstract and sealed. So to ignore just abstract
+            // ones, we check that they are not sealed.
+            if (partType.IsAbstract && !partType.IsSealed)
             {
                 return null;
             }

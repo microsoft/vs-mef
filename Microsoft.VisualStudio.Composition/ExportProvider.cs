@@ -307,7 +307,7 @@
                     return method.Invoke(instance, EmptyObjectArray);
                 }
 
-                return method.CreateDelegate(ExportDefinitionBinding.GetContractTypeForDelegate(method), instance);
+                return method.CreateDelegate(ExportDefinitionBinding.GetContractTypeForDelegate(method), method.IsStatic ? null : instance);
             }
 
             throw new NotSupportedException();
