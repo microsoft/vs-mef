@@ -1756,7 +1756,7 @@
         }
 
         /// <summary>
-        /// Creates an expression that evaluates to an <see cref="ILazy{object}"/>.
+        /// Creates an expression that evaluates to an <see cref="ILazy{Object}"/>.
         /// </summary>
         private ExpressionSyntax GetPartInstanceLazy(ComposablePartDefinition partDefinition, ExpressionSyntax provisionalSharedObjects, bool nonSharedInstanceRequired, IReadOnlyList<Type> typeArgs, ExpressionSyntax scope = null)
         {
