@@ -69,7 +69,7 @@
     <Compile Include="NestedPart.cs" />
     <Compile Include="NonDiscoverablePart.cs" />
     <Compile Include="NonPart.cs" />
-    <Compile Include="PartWithMissingAttribute.cs" />
+    <Compile Include="TypeWithMissingAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
