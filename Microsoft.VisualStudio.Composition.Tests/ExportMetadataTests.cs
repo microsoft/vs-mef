@@ -359,6 +359,7 @@
 
         [MefFact(CompositionEngines.V1, typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB), typeof(PartWithExportMetadataAB))]
         [Trait("Container.GetExport", "Plural")]
+        [Trait("Metadata", "TMetadata")]
         public void GetNamedExportsTMetadata(IContainer container)
         {
             IEnumerable<Lazy<object, IMetadata>> result =
@@ -381,6 +382,7 @@
 
         [MefFact(CompositionEngines.V1, typeof(FooExport1), typeof(FooExport2))]
         [Trait("Container.GetExport", "Plural")]
+        [Trait("Metadata", "TMetadata")]
         public void GetExportsTMetadata(IContainer container)
         {
             IEnumerable<Lazy<IFoo, IMetadataBase>> result =
