@@ -12,10 +12,19 @@
     using System.Threading.Tasks;
     using Validation;
 
-    public static class ExportMetadataViewProxy
+    /// <summary>
+    /// Extension that adds support for dynamic interface metadata view generation.
+    /// </summary>
+    public static class ExportMetadataViewInterfaceProxy
     {
         private static readonly ComposablePartDefinition proxySupportPartDefinition = new AttributedPartDiscovery().CreatePart(typeof(MetadataViewProxyProvider));
 
+        /// <summary>
+        /// Adds support for queries to <see cref="ExportProvider.GetExports{T, TMetadata}"/> where
+        /// <c>TMetadata</c> is an interface.
+        /// </summary>
+        /// <param name="catalog">The catalog from which constructed ExportProviders may have this support added.</param>
+        /// <returns>The catalog with the additional support.</returns>
         public static ComposableCatalog WithMetadataViewProxySupport(this ComposableCatalog catalog)
         {
             Requires.NotNull(catalog, "catalog");

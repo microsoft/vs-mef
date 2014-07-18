@@ -100,7 +100,7 @@
       <DependentUpon>CompositionTemplateFactory.tt</DependentUpon>
     </Compile>
     <Compile Include="CompositionTemplateFactory.Extras.cs" />
-    <Compile Include="ExportMetadataViewProxy.cs" />
+    <Compile Include="ExportMetadataViewInterfaceProxy.cs" />
     <Compile Include="NetFxAdapters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tasks\ExceptionHelpers.cs" />
