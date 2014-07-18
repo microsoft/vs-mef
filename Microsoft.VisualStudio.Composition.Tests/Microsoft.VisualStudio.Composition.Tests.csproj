@@ -163,6 +163,7 @@
     <Compile Include="SharingBoundaryWithSharedTests.cs" />
     <Compile Include="SimpleImportExportTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SkippableFactAttribute.cs" />
     <Compile Include="StaticMemberExportsTests.cs" />
     <Compile Include="TestUtilities.cs" />
     <Compile Include="ThrowingPartsTests.cs" />
@@ -182,6 +183,10 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests.csproj">
       <Project>{37e36aec-3319-4219-974f-d258fbe8d143}</Project>
       <Name>Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.BrokenAssemblyTests\Microsoft.VisualStudio.Composition.BrokenAssemblyTests.csproj">
+      <Project>{0fd27327-ebfd-459a-887d-349bc3835c20}</Project>
+      <Name>Microsoft.VisualStudio.Composition.BrokenAssemblyTests</Name>
     </ProjectReference>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.Configuration\Microsoft.VisualStudio.Composition.Configuration.csproj">
       <Project>{2285f0b1-0b9e-43c5-9ba5-0cb293c9bc63}</Project>

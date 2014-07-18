@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30421.0
+VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition", "Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj", "{1CA6A92C-5DD9-4BE5-B5B7-EE4A1318B4C2}"
 EndProject
@@ -20,6 +20,10 @@ EndProject
 Project("{FF286327-C783-4F7A-AB73-9BCBAD0D4460}") = "NuGetPackage", "NuGetPackage\NuGetPackage.nuproj", "{E0F18440-CA64-4FBD-BD55-E912B663BA16}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver", "Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver\Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver.csproj", "{3E996534-55E8-428D-8668-2C49E8770F32}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.MissingAssemblyTests", "Microsoft.VisualStudio.Composition.MissingAssemblyTests\Microsoft.VisualStudio.Composition.MissingAssemblyTests.csproj", "{635A4876-52BA-47C7-874C-8DFB125C020A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.BrokenAssemblyTests", "Microsoft.VisualStudio.Composition.BrokenAssemblyTests\Microsoft.VisualStudio.Composition.BrokenAssemblyTests.csproj", "{0FD27327-EBFD-459A-887D-349BC3835C20}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,6 +67,14 @@ Global
 		{3E996534-55E8-428D-8668-2C49E8770F32}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E996534-55E8-428D-8668-2C49E8770F32}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3E996534-55E8-428D-8668-2C49E8770F32}.Release|Any CPU.Build.0 = Release|Any CPU
+		{635A4876-52BA-47C7-874C-8DFB125C020A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{635A4876-52BA-47C7-874C-8DFB125C020A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{635A4876-52BA-47C7-874C-8DFB125C020A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{635A4876-52BA-47C7-874C-8DFB125C020A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FD27327-EBFD-459A-887D-349BC3835C20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FD27327-EBFD-459A-887D-349BC3835C20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FD27327-EBFD-459A-887D-349BC3835C20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FD27327-EBFD-459A-887D-349BC3835C20}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -156,8 +156,17 @@
         {
             Requires.NotNull(assembly, "assembly");
 
-            return (this.IsNonPublicSupported ? assembly.GetTypes() : assembly.GetExportedTypes())
-                .Where(type => type.GetCustomAttribute<PartNotDiscoverableAttribute>() == null);
+            return (this.IsNonPublicSupported ? assembly.GetTypes() : assembly.GetExportedTypes()).Where(type =>
+            {
+                try
+                {
+                    return type.GetCustomAttribute<PartNotDiscoverableAttribute>() == null;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            });
         }
 
         private ImmutableDictionary<string, object> GetExportMetadata(IEnumerable<Attribute> attributes)
