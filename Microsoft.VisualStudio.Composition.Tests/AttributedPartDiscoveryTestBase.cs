@@ -2,12 +2,14 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Composition;
+    using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests;
     using Xunit;
-    using System.Composition;
     using MefV1 = System.ComponentModel.Composition;
 
     public abstract class AttributedPartDiscoveryTestBase
@@ -55,6 +57,21 @@
         {
             var result = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).Assembly);
             Assert.True(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(OuterClass.NestedPart))));
+        }
+
+        [Fact]
+        public async Task AssemblyDiscoveryDropsProblematicTypes()
+        {
+            // If this assert fails, it means that the assembly that is supposed to be undiscoverable
+            // by this unit test is actually discoverable. Check that CopyLocal=false for all references
+            // to Microsoft.VisualStudio.Composition.MissingAssemblyTests and that the assembly
+            // is not building to the same directory as the test assemblies.
+            Assert.Throws<FileNotFoundException>(() => typeof(TypeWithMissingAttribute).GetCustomAttributes(false));
+
+            var result = await this.DiscoveryService.CreatePartsAsync(typeof(TypeWithMissingAttribute).Assembly);
+            
+            // Verify that we still found parts.
+            Assert.NotEqual(0, result.Parts.Count);
         }
 
         [Export]
