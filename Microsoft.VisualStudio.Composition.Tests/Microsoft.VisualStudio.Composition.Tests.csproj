@@ -163,6 +163,7 @@
     <Compile Include="SharingBoundaryWithSharedTests.cs" />
     <Compile Include="SimpleImportExportTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SkippableFactAttribute.cs" />
     <Compile Include="StaticMemberExportsTests.cs" />
     <Compile Include="TestUtilities.cs" />
     <Compile Include="ThrowingPartsTests.cs" />
