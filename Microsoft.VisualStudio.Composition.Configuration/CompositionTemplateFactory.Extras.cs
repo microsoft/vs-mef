@@ -1077,7 +1077,7 @@
                 scope = SyntaxFactory.ThisExpression();
             }
 
-            // ILazy<T> part = GetOrCreateShareableValue(typeof(Part), ...);
+            // ILazy<object> part = GetOrCreateShareableValue(typeof(Part), ...);
             Type[] typeArgs = import.ImportingSiteElementType.GetGenericArguments();
             var partLocalVar = SyntaxFactory.IdentifierName("part");
             statements.Add(
@@ -1126,9 +1126,7 @@
                 : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
             var tupleType = typeof(Tuple<,>).MakeGenericType(import.ImportingSiteElementType, typeof(Action));
-            var tupleValue = !IsPublic(export.PartDefinition.Type, true) && IsPublic(tupleType, true)
-                ? (ExpressionSyntax)SyntaxFactory.CastExpression(this.GetTypeNameSyntax(import.ImportingSiteElementType), exportedValueLocalVar)
-                : exportedValueLocalVar;
+            var tupleValue = (ExpressionSyntax)SyntaxFactory.CastExpression(this.GetTypeNameSyntax(import.ImportingSiteElementType), exportedValueLocalVar);
 
             var tupleExpression = this.ObjectCreationExpression(
                 tupleType.GetConstructors().Single(),
@@ -1750,7 +1748,7 @@
         }
 
         /// <summary>
-        /// Creates an expression that evaluates to an <see cref="ILazy{T}"/>.
+        /// Creates an expression that evaluates to an <see cref="ILazy{object}"/>.
         /// </summary>
         private ExpressionSyntax GetPartInstanceLazy(ComposablePartDefinition partDefinition, ExpressionSyntax provisionalSharedObjects, bool nonSharedInstanceRequired, IReadOnlyList<Type> typeArgs, ExpressionSyntax scope = null)
         {
@@ -1847,17 +1845,7 @@
                     SyntaxFactory.Argument(sharingBoundary),
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(nonSharedInstanceRequired ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression)))));
 
-            if (publicInvocation)
-            {
-                var invocationCast = SyntaxFactory.CastExpression(
-                    SyntaxFactory.GenericName("ILazy").WithTypeArgumentList(SyntaxFactory.TypeArgumentList(SyntaxFactory.SingletonSeparatedList(this.GetTypeNameSyntax(partType)))),
-                    invocation);
-                return SyntaxFactory.ParenthesizedExpression(invocationCast);
-            }
-            else
-            {
-                return invocation;
-            }
+            return invocation;
         }
 
         private void EmitAdditionalMembers()

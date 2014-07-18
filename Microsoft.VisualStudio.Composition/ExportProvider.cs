@@ -316,10 +316,7 @@
                 }
             }
 
-            // PERF: we should replace this Activator.CreateInstance with a direct ctor invocation the way codegen used to.
-            lazyResult = (ILazy<object>)Activator.CreateInstance(
-                typeof(LazyPart<>).MakeGenericType(partType),
-                new object[] { new Func<object>(() => valueFactory(provisionalSharedObjects)) });
+            lazyResult = new LazyPart<object>(() => valueFactory(provisionalSharedObjects));
 
             if (!nonSharedInstanceRequired)
             {
