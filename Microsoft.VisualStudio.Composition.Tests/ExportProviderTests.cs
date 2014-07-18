@@ -36,7 +36,7 @@
             Assert.NotNull(export.Value);
         }
 
-        [MefFact(CompositionEngines.V1/*Compat | CompositionEngines.V3EmulatingV2*/, typeof(SomeOtherPart))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
         public void GetExportWithMetadataView(IContainer container)
         {
             var export = container.GetExport<SomeOtherPart, SomeOtherPartMetadataView>();
