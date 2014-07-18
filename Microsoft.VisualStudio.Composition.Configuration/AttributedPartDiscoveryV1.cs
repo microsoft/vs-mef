@@ -190,7 +190,25 @@
         {
             Requires.NotNull(assembly, "assembly");
 
-            return assembly.GetTypes().Where(type => type.GetCustomAttribute<PartNotDiscoverableAttribute>() == null);
+            try
+            {
+                return assembly.GetTypes().Where(type =>
+                    {
+                        object customAttribute = null;
+                        try
+                        {
+                            customAttribute = type.GetCustomAttribute<PartNotDiscoverableAttribute>();
+                        }
+                        catch (Exception)
+                        {
+                        }
+                        return customAttribute == null;
+                    });
+            }
+            catch (Exception)
+            {
+                return ImmutableList<Type>.Empty;
+            }
         }
 
         private static bool TryCreateImportDefinition(Type importingType, IEnumerable<Attribute> attributes, out ImportDefinition importDefinition)
