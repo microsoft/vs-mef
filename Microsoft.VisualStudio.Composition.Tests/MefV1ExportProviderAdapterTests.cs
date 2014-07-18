@@ -56,26 +56,26 @@
             Assert.NotNull(tree);
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Tree<>), Skip = "Not yet implemented")]
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Tree), typeof(Apple))]
         [Trait("Metadata", "")]
         public void GetExportWithMetadataDictionary(IContainer container)
         {
             var v3Container = (TestUtilities.V3ContainerWrapper)container;
 
             var v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
-            var tree = v1Container.GetExport<Tree<int>, IDictionary<string, object>>();
+            var tree = v1Container.GetExport<Tree, IDictionary<string, object>>();
             Assert.Equal("b", tree.Metadata["A"]);
             Assert.False(tree.Metadata.ContainsKey("B"));
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Tree<>), Skip = "Not yet implemented")]
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Tree), typeof(Apple))]
         [Trait("Metadata", "TMetadata")]
         public void GetExportWithTMetadata(IContainer container)
         {
             var v3Container = (TestUtilities.V3ContainerWrapper)container;
 
             var v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
-            var tree = v1Container.GetExport<Tree<int>, IMetadata>();
+            var tree = v1Container.GetExport<Tree, IMetadata>();
             Assert.Equal("b", tree.Metadata.A);
             Assert.Equal("c", tree.Metadata.B);
         }
