@@ -13,7 +13,9 @@
     public class MefV1ExportProviderAdapterTests
     {
         // Test backlog:
-        // Test that all thrown exceptions are MEFv1 exception types.
+        //  * Test that all thrown exceptions are MEFv1 exception types.
+        //  * All the other methods on MefV1.ExportProvider: ReleaseExport, Compose, etc.
+        //    Some we may throw for, but these should be verified.
 
         // When we support this, we should have a flag that automatically creates an IContainer around a MEFv1 container
         // that uses a v3 export provider. That way we can just run ALL our tests through that mechanism to ensure
