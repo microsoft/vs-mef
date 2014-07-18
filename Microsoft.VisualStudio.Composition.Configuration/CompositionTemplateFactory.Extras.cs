@@ -19,14 +19,14 @@
     {
         private const string InstantiatedPartLocalVarName = "result";
 
-        private static readonly TypeSyntax dictionaryOfTypeObject = SyntaxFactory.GenericName("Dictionary")
+        private static readonly TypeSyntax dictionaryOfIntObject = SyntaxFactory.GenericName("Dictionary")
                     .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(CodeGen.JoinSyntaxNodes<TypeSyntax>(
                         SyntaxKind.CommaToken,
-                        SyntaxFactory.IdentifierName("Type"),
+                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
                         SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)))));
 
         private static readonly ObjectCreationExpressionSyntax newDictionaryOfTypeObjectExpression =
-            SyntaxFactory.ObjectCreationExpression(dictionaryOfTypeObject, SyntaxFactory.ArgumentList(), null);
+            SyntaxFactory.ObjectCreationExpression(dictionaryOfIntObject, SyntaxFactory.ArgumentList(), null);
 
         private static readonly LiteralExpressionSyntax NullSyntax = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
@@ -899,7 +899,7 @@
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
                 GetPartFactoryMethodName(part.Definition))
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
-                .AddParameterListParameters(SyntaxFactory.Parameter(provisionalSharedObjectsIdentifier.Identifier).WithType(dictionaryOfTypeObject));
+                .AddParameterListParameters(SyntaxFactory.Parameter(provisionalSharedObjectsIdentifier.Identifier).WithType(dictionaryOfIntObject));
 
             var statements = new List<StatementSyntax>();
             if (part.Definition.IsInstantiable)
@@ -942,7 +942,6 @@
 
                 statements.Add(block);
 
-
                 if (typeof(IDisposable).IsAssignableFrom(part.Definition.Type))
                 {
                     // this.TrackDisposableValue((IDisposable)result);
@@ -956,8 +955,16 @@
 
                 if (part.Definition.IsShared)
                 {
-                    // provisionalSharedObjects.Add(partType, result);
-                    var partTypeSyntax = this.GetTypeExpressionSyntax(part.Definition.Type);
+                    // Getting the typeId for this part takes extra care if it's a generic type since
+                    // we only know it's final type at runtime.
+                    ExpressionSyntax partTypeSyntax = part.Definition.Type.IsGenericType
+                        ? (ExpressionSyntax)SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.IdentifierName("GetTypeId"),
+                            SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
+                                partInstanceIdentifier))))
+                        : this.GetTypeId(part.Definition.Type);
+
+                    // provisionalSharedObjects.Add(partTypeId, result);
                     statements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
@@ -1707,7 +1714,8 @@
 
             bool isOpenGenericExport = export.ExportedValueType.ContainsGenericParameters;
             var partDefinition = export.PartDefinition;
-            ExpressionSyntax partTypeExpression = this.GetTypeExpressionSyntax(partDefinition.Type, isOpenGenericExport);
+            ExpressionSyntax partTypeExpression = this.GetTypeId(
+                isOpenGenericExport ? partDefinition.Type.GetGenericTypeDefinition() : partDefinition.Type);
 
             ExpressionSyntax partFactoryMethod;
             if (isOpenGenericExport)
@@ -1777,7 +1785,7 @@
             }
 
             Type partType = typeArgs.Count == 0 ? partDefinition.Type : partDefinition.Type.MakeGenericType(typeArgs.ToArray());
-            ExpressionSyntax partTypeExpression = this.GetTypeExpressionSyntax(partType);
+            ExpressionSyntax partTypeExpression = this.GetTypeId(partType);
             SimpleNameSyntax partFactoryMethodName = SyntaxFactory.IdentifierName(GetPartFactoryMethodNameNoTypeArgs(partDefinition));
             ExpressionSyntax partFactoryMethod;
             bool publicInvocation = typeArgs.All(t => IsPublic(t, true));
@@ -1814,7 +1822,8 @@
                         getMethodWithArity,
                         SyntaxFactory.IdentifierName("MakeGenericMethod")),
                     SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(SyntaxKind.CommaToken, typeArgsExpressionSyntax.Select(SyntaxFactory.Argument).ToArray())));
-                var funcOfDictionaryObject = SyntaxFactory.ParseTypeName("Func<Dictionary<Type, object>, object>");
+                var funcOfDictionaryObject = SyntaxFactory.GenericName("Func")
+                    .AddTypeArgumentListArguments(dictionaryOfIntObject, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)));
                 var createDelegate = SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
@@ -1850,6 +1859,7 @@
 
         private void EmitAdditionalMembers()
         {
+            this.extraMembers.Add(this.CreateGetTypeIdCoreMethod());
             this.extraMembers.Add(this.CreateGetTypeCoreMethod());
             this.extraMembers.Add(this.CreateGetAssemblyNameMethod());
 
@@ -1901,6 +1911,50 @@
                     SyntaxFactory.ThrowStatement(
                         SyntaxFactory.ObjectCreationExpression(this.GetTypeNameSyntax(typeof(ArgumentOutOfRangeException)))
                             .WithArgumentList(SyntaxFactory.ArgumentList())))));
+
+            method = method.WithBody(SyntaxFactory.Block(switchStatement));
+            return method;
+        }
+
+        private MemberDeclarationSyntax CreateGetTypeIdCoreMethod()
+        {
+            var typeFullNameParameter = SyntaxFactory.IdentifierName("assemblyQualifiedTypeName");
+            var method = SyntaxFactory.MethodDeclaration(
+                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
+                "GetTypeIdCore")
+                .AddModifiers(
+                    SyntaxFactory.Token(SyntaxKind.ProtectedKeyword),
+                    SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
+                .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
+                    SyntaxFactory.Parameter(
+                        SyntaxFactory.List<AttributeListSyntax>(),
+                        SyntaxFactory.TokenList(),
+                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                        typeFullNameParameter.Identifier,
+                        null))));
+
+            var switchStatement = SyntaxFactory.SwitchStatement(typeFullNameParameter);
+
+            for (int i = 0; i < this.reflectionLoadedTypes.Count; i++)
+            {
+                Type type = this.reflectionLoadedTypes[i];
+                var label = SyntaxFactory.SingletonList<SwitchLabelSyntax>(
+                    SyntaxFactory.SwitchLabel(
+                        SyntaxKind.CaseSwitchLabel,
+                        SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(type.AssemblyQualifiedName))));
+
+                var statement = SyntaxFactory.ReturnStatement(
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i)));
+                var section = SyntaxFactory.SwitchSection(label, SyntaxFactory.SingletonList<StatementSyntax>(statement));
+                switchStatement = switchStatement.AddSections(section);
+            }
+
+            switchStatement = switchStatement.AddSections(SyntaxFactory.SwitchSection(
+                SyntaxFactory.SingletonList<SwitchLabelSyntax>(
+                    SyntaxFactory.SwitchLabel(SyntaxKind.DefaultSwitchLabel)),
+                SyntaxFactory.SingletonList<StatementSyntax>(
+                    SyntaxFactory.ReturnStatement(
+                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(-1))))));
 
             method = method.WithBody(SyntaxFactory.Block(switchStatement));
             return method;
