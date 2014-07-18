@@ -18,7 +18,7 @@
             container.GetExportedValue<ImportingPart>();
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithStaticExports), typeof(ImportingPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithStaticExports), typeof(ImportingPart))]
         public void ExportingStaticMembers(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPart>();
@@ -27,7 +27,7 @@
             Assert.Equal(PartWithStaticExports.ExportingMethod(), part.ImportOfMethod());
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithStaticExports), typeof(ImportManyWithMetadataPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithStaticExports), typeof(ImportManyWithMetadataPart))]
         public void ImportManyMetadataStaticPropertyExport(IContainer container)
         {
             var part = container.GetExportedValue<ImportManyWithMetadataPart>();
