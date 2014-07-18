@@ -18,6 +18,11 @@
         {
         }
 
+        public Func<T> ValueFactory
+        {
+            get { return () => this.Value; }
+        }
+
         object IHasValueAndMetadata.Value
         {
             get { return this.Value; }

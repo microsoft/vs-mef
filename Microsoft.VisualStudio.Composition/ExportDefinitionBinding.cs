@@ -36,7 +36,7 @@
         /// </summary>
         public bool IsStaticExport
         {
-            get { return this.ExportingMember.IsStaticExport(); }
+            get { return this.ExportingMember.IsStatic(); }
         }
 
         public Type ExportedValueType
