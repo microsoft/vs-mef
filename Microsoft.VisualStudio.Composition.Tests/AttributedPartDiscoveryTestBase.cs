@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests;
@@ -57,6 +58,13 @@
             Assert.True(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(OuterClass.NestedPart))));
         }
 
+        [Fact]
+        public async Task AssemblyGetTypesError()
+        {
+            var assembly = new SketchyAssembly();
+            var result = await this.DiscoveryService.CreatePartsAsync(assembly);
+        }
+
         [Export]
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class NonSharedPart { }
@@ -99,5 +107,30 @@
         }
 
         #endregion
+
+        
+        [AttributeUsage(AttributeTargets.All)]
+        private class SketchyAttribute : Attribute
+        {
+            public SketchyAttribute() { throw new ArgumentException(); }
+
+            public Attribute GetCustomAttribute(MemberInfo info, Type attributeType)
+            {
+                throw new ArgumentException();
+            }
+        }
+
+        [Sketchy]
+        private class SketchyType
+        {
+        }
+
+        private class SketchyAssembly : Assembly
+        {
+            public override System.Type[] GetTypes()
+            {
+                return new Type[] { typeof(SketchyType) };
+            }
+        }
     }
 }
