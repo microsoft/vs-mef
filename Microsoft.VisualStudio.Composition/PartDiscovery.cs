@@ -91,7 +91,16 @@
 
             var tuple = this.CreateDiscoveryBlockChain(cancellationToken);
             var assemblyBlock = new TransformManyBlock<Assembly, Type>(
-                a => this.GetTypes(a),
+                a => {
+                    try
+                    {
+                        return this.GetTypes(a);
+                    }
+                    catch (Exception)
+                    {
+                        return Enumerable.Empty<Type>();
+                    }
+                },
                 new ExecutionDataflowBlockOptions
                 {
                     MaxDegreeOfParallelism = Debugger.IsAttached ? 1 : Environment.ProcessorCount,

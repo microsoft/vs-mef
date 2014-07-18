@@ -9,6 +9,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests;
+    using Microsoft.VisualStudio.Composition.BrokenAssemblyTests;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
@@ -60,7 +61,7 @@
         }
 
         [SkippableFact]
-        public async Task AssemblyDiscoveryDropsProblematicTypes()
+        public async Task AssemblyDiscoveryDropsTypesWithProblematicAttributes()
         {
             // If this assert fails, it means that the assembly that is supposed to be undiscoverable
             // by this unit test is actually discoverable. Check that CopyLocal=false for all references
@@ -74,6 +75,29 @@
             catch (FileNotFoundException) { }
 
             var result = await this.DiscoveryService.CreatePartsAsync(typeof(TypeWithMissingAttribute).Assembly);
+
+            // Verify that we still found parts.
+            Assert.NotEqual(0, result.Parts.Count);
+        }
+
+        [SkippableFact]
+        public async Task AssemblyDiscoveryDropsAssembliesWithProblematicTypes()
+        {
+            // If this assert fails, it means that the assembly that is supposed to be undiscoverable
+            // by this unit test is actually discoverable. Check that CopyLocal=false for all references
+            // to Microsoft.VisualStudio.Composition.MissingAssemblyTests and that the assembly
+            // is not building to the same directory as the test assemblies.
+            try
+            {
+                typeof(TypeWithMissingAttribute).GetCustomAttributes(false);
+                throw new SkippableFactAttribute.SkipException("The missing assembly is present. Test cannot verify proper operation.");
+            }
+            catch (FileNotFoundException) { }
+
+            var result = await this.DiscoveryService.CreatePartsAsync(
+                new List<Assembly>{ 
+                    typeof(TypeWithMissingAttribute).Assembly, 
+                    typeof(GoodType).Assembly });
 
             // Verify that we still found parts.
             Assert.NotEqual(0, result.Parts.Count);
