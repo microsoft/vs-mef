@@ -360,7 +360,7 @@
         [MefFact(CompositionEngines.V1, typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB), typeof(PartWithExportMetadataAB))]
         [Trait("Container.GetExport", "Plural")]
         [Trait("Metadata", "TMetadata")]
-        public void GetNamedExportsTMetadata(IContainer container)
+        public void GetNamedExportsTMetadataInterface(IContainer container)
         {
             IEnumerable<Lazy<object, IMetadata>> result =
                 container.GetExports<object, IMetadata>("ExportWithMetadata");
@@ -369,6 +369,24 @@
             var ab = result.Single(e => e.Metadata.a == "b" && e.Metadata.B == "c");
             Assert.IsType<PartWithExportMetadataA>(a.Value);
             Assert.IsType<PartWithExportMetadataAB>(ab.Value);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB), typeof(PartWithExportMetadataAB))]
+        [Trait("Container.GetExport", "Plural")]
+        [Trait("Metadata", "TMetadata")]
+        public void GetNamedExportsTMetadataClass(IContainer container)
+        {
+            IEnumerable<Lazy<object, MetadataClass>> result =
+                container.GetExports<object, MetadataClass>("ExportWithMetadata");
+
+            // Evidently MEF doesn't apply metadata view filters to exports when the metadata view is a class.
+            Assert.Equal(3, result.Count());
+            
+            var aAndAB = result.Where(e => e.Metadata.a == "b");
+            var b = result.Single(e => e.Metadata.a == null);
+            aAndAB.Single(a => a.Value is PartWithExportMetadataA);
+            aAndAB.Single(a => a.Value is PartWithExportMetadataAB);
+            Assert.IsType<PartWithExportMetadataB>(b.Value);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(FooExport1), typeof(FooExport2))]
