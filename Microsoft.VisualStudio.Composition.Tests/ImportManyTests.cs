@@ -227,7 +227,7 @@
             Assert.Equal(1, extension.Metadata["a"]);
         }
 
-        [MefFact(CompositionEngines.Unspecified /*.V3EmulatingV1 | CompositionEngines.V3EmulatingV2*/, typeof(ExtendableCustomCollectionOfConcreteTypeWithILazyMetadata), typeof(ExtensionOne))]
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(ExtendableCustomCollectionOfConcreteTypeWithILazyMetadata), typeof(ExtensionOne))]
         public void ImportManyCustomCollectionConcreteTypeWithILazyMetadata(IContainer container)
         {
             var extendable = container.GetExportedValue<ExtendableCustomCollectionOfConcreteTypeWithILazyMetadata>();
