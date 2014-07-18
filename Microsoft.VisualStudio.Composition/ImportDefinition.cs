@@ -13,6 +13,8 @@
     [DebuggerDisplay("{ContractName,nq} ({Cardinality})")]
     public class ImportDefinition : IEquatable<ImportDefinition>
     {
+        private readonly ImmutableHashSet<IImportSatisfiabilityConstraint> exportConstraints;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportDefinition"/> class
         /// based on MEF v2 attributes.
@@ -26,9 +28,9 @@
 
             this.ContractName = contractName;
             this.Cardinality = cardinality;
-            this.Metadata = metadata;
-            this.ExportContraints = additionalConstraints;
-            this.ExportFactorySharingBoundaries = exportFactorySharingBoundaries;
+            this.Metadata = metadata.ToImmutableDictionary();
+            this.exportConstraints = additionalConstraints.ToImmutableHashSet();
+            this.ExportFactorySharingBoundaries = exportFactorySharingBoundaries.ToImmutableHashSet();
         }
 
         /// <summary>
@@ -51,7 +53,26 @@
 
         public IReadOnlyDictionary<string, object> Metadata { get; private set; }
 
-        public IReadOnlyCollection<IImportSatisfiabilityConstraint> ExportContraints { get; private set; }
+        public IReadOnlyCollection<IImportSatisfiabilityConstraint> ExportConstraints
+        {
+            get { return this.exportConstraints; }
+        }
+
+        public ImportDefinition WithExportConstraints(IReadOnlyCollection<IImportSatisfiabilityConstraint> constraints)
+        {
+            return new ImportDefinition(
+                this.ContractName,
+                this.Cardinality,
+                this.Metadata,
+                constraints,
+                this.ExportFactorySharingBoundaries);
+        }
+
+        public ImportDefinition AddExportConstraint(IImportSatisfiabilityConstraint constraint)
+        {
+            Requires.NotNull(constraint, "constraint");
+            return this.WithExportConstraints(this.exportConstraints.Add(constraint));
+        }
 
         public override int GetHashCode()
         {

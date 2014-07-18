@@ -14,9 +14,15 @@
     {
         private static readonly MethodInfo CastAsFuncMethodInfo = new Func<Func<object>, Delegate>(CastAsFunc<object>).GetMethodInfo().GetGenericMethodDefinition();
 
-        public static object CreateFuncOfType(Type typeArg, Func<object> func)
+        /// <summary>
+        /// Creates a <see cref="Func{T}"/> delegate for a given <see cref="Func{Object}"/> delegate.
+        /// </summary>
+        /// <param name="typeArg">The <c>T</c> type argument for the returned function's return type.</param>
+        /// <param name="func">The function that produces the T value typed as <see cref="object"/>.</param>
+        /// <returns>An instance of <see cref="Func{T}"/>, typed as <see cref="Func{Object}"/>.</returns>
+        public static Func<object> CreateFuncOfType(Type typeArg, Func<object> func)
         {
-            return CastAsFuncMethodInfo.MakeGenericMethod(typeArg).Invoke(null, new object[] { func });
+            return (Func<object>)CastAsFuncMethodInfo.MakeGenericMethod(typeArg).Invoke(null, new object[] { func });
         }
 
         internal static bool IsEquivalentTo(this Type type1, Type type2)
@@ -195,7 +201,7 @@
             return true;
         }
 
-        internal static bool IsStaticExport(this MemberInfo exportingMember)
+        internal static bool IsStatic(this MemberInfo exportingMember)
         {
             if (exportingMember == null)
             {
@@ -285,7 +291,12 @@
             string result = string.Empty;
             if (type.DeclaringType != null)
             {
-                result = GetTypeName(type.DeclaringType, genericTypeDefinition, false, relevantAssemblies, relevantEmbeddedTypes) + ".";
+                // Take care to propagate generic type arguments to the declaring type.
+                var declaringTypeInfo = type.DeclaringType.GetTypeInfo();
+                var declaringType = declaringTypeInfo.ContainsGenericParameters && type.GenericTypeArguments.Length > declaringTypeInfo.GenericTypeArguments.Length
+                    ? type.DeclaringType.MakeGenericType(type.GenericTypeArguments.Take(declaringTypeInfo.GenericTypeParameters.Length).ToArray())
+                    : type.DeclaringType;
+                result = GetTypeName(declaringType, genericTypeDefinition, false, relevantAssemblies, relevantEmbeddedTypes) + ".";
             }
 
             if (genericTypeDefinition)
@@ -475,7 +486,8 @@
             {
                 name = name.Substring(0, name.IndexOf('`'));
                 name += "<";
-                name += new String(',', type.GetTypeInfo().GenericTypeParameters.Length - 1);
+                int genericPositions = Math.Max(type.GenericTypeArguments.Length, type.GetTypeInfo().GenericTypeParameters.Length);
+                name += new String(',', genericPositions - 1);
                 name += ">";
             }
 

@@ -7,6 +7,7 @@
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
@@ -27,13 +28,45 @@
             null,
             CreationPolicy.Shared);
 
+        protected static readonly LazyPart<object> NotInstantiablePartLazy = new LazyPart<object>(() => CannotInstantiatePartWithNoImportingConstructor());
+
+        protected static readonly object[] EmptyObjectArray = new object[0];
+
+        /// <summary>
+        /// A metadata template used by the generated code.
+        /// </summary>
+        protected static readonly ImmutableDictionary<string, object> EmptyMetadata = ImmutableDictionary.Create<string, object>();
+
+        /// <summary>
+        /// An array of manifest modules required for access by reflection.
+        /// </summary>
+        /// <remarks>
+        /// This field is initialized to an array of appropriate size by the derived code-gen'd class.
+        /// Its elements are individually lazily initialized.
+        /// </remarks>
+        protected Module[] cachedManifests;
+
+        /// <summary>
+        /// An array of types required for access by reflection.
+        /// </summary>
+        /// <remarks>
+        /// This field is initialized to an array of appropriate size by the derived code-gen'd class.
+        /// Its elements are individually lazily initialized.
+        /// </remarks>
+        protected Type[] cachedTypes;
+
+        /// <summary>
+        /// An array of types 
+        /// </summary>
+        private List<Type> runtimeCreatedTypes = new List<Type>();
+
         private readonly object syncObject = new object();
 
         /// <summary>
         /// A map of shared boundary names to their shared instances.
         /// The value is a dictionary of types to their Lazy{T} factories.
         /// </summary>
-        private readonly ImmutableDictionary<string, Dictionary<Type, object>> sharedInstantiatedExports = ImmutableDictionary.Create<string, Dictionary<Type, object>>();
+        private readonly ImmutableDictionary<string, Dictionary<int, object>> sharedInstantiatedExports = ImmutableDictionary.Create<string, Dictionary<int, object>>();
 
         /// <summary>
         /// The disposable objects whose lifetimes are controlled by this instance.
@@ -46,7 +79,7 @@
         {
             if (parent == null)
             {
-                this.sharedInstantiatedExports = this.sharedInstantiatedExports.Add(string.Empty, new Dictionary<Type, object>());
+                this.sharedInstantiatedExports = this.sharedInstantiatedExports.Add(string.Empty, new Dictionary<int, object>());
             }
             else
             {
@@ -57,12 +90,14 @@
             {
                 foreach (string freshSharingBoundary in freshSharingBoundaries)
                 {
-                    this.sharedInstantiatedExports = this.sharedInstantiatedExports.SetItem(freshSharingBoundary, new Dictionary<Type, object>());
+                    this.sharedInstantiatedExports = this.sharedInstantiatedExports.SetItem(freshSharingBoundary, new Dictionary<int, object>());
                 }
             }
 
-            var nonDisposableWrapper = this is ExportProviderAsExport ? this : new ExportProviderAsExport(this, null, null);
+            var nonDisposableWrapper = (this as ExportProviderAsExport) ?? new ExportProviderAsExport(this);
             this.NonDisposableWrapper = LazyPart.Wrap(nonDisposableWrapper);
+            this.NonDisposableWrapperExportAsListOfOne = ImmutableList.Create(
+                new Export(ExportProviderExportDefinition, this.NonDisposableWrapper));
         }
 
         bool IDisposableObservable.IsDisposed
@@ -70,24 +105,26 @@
             get { return this.isDisposed; }
         }
 
-        protected ILazy<ExportProvider> NonDisposableWrapper { get; private set; }
+        protected ILazy<DelegatingExportProvider> NonDisposableWrapper { get; private set; }
 
-        public ILazy<T> GetExport<T>()
+        protected ImmutableList<Export> NonDisposableWrapperExportAsListOfOne { get; private set; }
+
+        public Lazy<T> GetExport<T>()
         {
             return this.GetExport<T>(null);
         }
 
-        public ILazy<T> GetExport<T>(string contractName)
+        public Lazy<T> GetExport<T>(string contractName)
         {
             return this.GetExport<T, DefaultMetadataType>(contractName);
         }
 
-        public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
+        public Lazy<T, TMetadataView> GetExport<T, TMetadataView>()
         {
             return this.GetExport<T, TMetadataView>(null);
         }
 
-        public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
+        public Lazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
         {
             return this.GetExports<T, TMetadataView>(contractName, ImportCardinality.ExactlyOne).Single();
         }
@@ -102,22 +139,22 @@
             return this.GetExport<T>(contractName).Value;
         }
 
-        public IEnumerable<ILazy<T>> GetExports<T>()
+        public IEnumerable<Lazy<T>> GetExports<T>()
         {
             return this.GetExports<T>(null);
         }
 
-        public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
+        public IEnumerable<Lazy<T>> GetExports<T>(string contractName)
         {
             return this.GetExports<T, DefaultMetadataType>(contractName);
         }
 
-        public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
+        public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>()
         {
             return this.GetExports<T, TMetadataView>(null);
         }
 
-        public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
+        public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
         {
             return this.GetExports<T, TMetadataView>(contractName, ImportCardinality.ZeroOrMore);
         }
@@ -132,24 +169,26 @@
             return this.GetExports<T>(contractName).Select(l => l.Value);
         }
 
-        public IEnumerable<Export> GetExports(ImportDefinition importDefinition)
+        public virtual IEnumerable<Export> GetExports(ImportDefinition importDefinition)
         {
             Requires.NotNull(importDefinition, "importDefinition");
 
-            IEnumerable<Export> exports = this.GetExportsCore(importDefinition);
+            IEnumerable<Export> exports = importDefinition.ContractName == ExportProviderExportDefinition.ContractName
+                ? this.NonDisposableWrapperExportAsListOfOne
+                : this.GetExportsCore(importDefinition);
 
             string genericTypeDefinitionContractName;
             Type[] genericTypeArguments;
             if (ComposableCatalog.TryGetOpenGenericExport(importDefinition, out genericTypeDefinitionContractName, out genericTypeArguments))
             {
-                var genericTypeImportDefinition = new ImportDefinition(genericTypeDefinitionContractName, importDefinition.Cardinality, importDefinition.Metadata, importDefinition.ExportContraints);
+                var genericTypeImportDefinition = new ImportDefinition(genericTypeDefinitionContractName, importDefinition.Cardinality, importDefinition.Metadata, importDefinition.ExportConstraints);
                 var openGenericExports = this.GetExportsCore(genericTypeImportDefinition);
                 var closedGenericExports = openGenericExports.Select(export => export.CloseGenericExport(genericTypeArguments));
                 exports = exports.Concat(closedGenericExports);
             }
 
             var filteredExports = from export in exports
-                                  where importDefinition.ExportContraints.All(c => c.IsSatisfiedBy(export.Definition))
+                                  where importDefinition.ExportConstraints.All(c => c.IsSatisfiedBy(export.Definition))
                                   select export;
 
             var exportsSnapshot = filteredExports.ToArray(); // avoid redoing the above work during multiple enumerations of our result.
@@ -204,37 +243,124 @@
         /// </remarks>
         protected abstract IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition);
 
-        protected bool TryGetSharedInstanceFactory<T>(string partSharingBoundary, Type type, out ILazy<T> value)
+        protected Export CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, int partOpenGenericTypeId, string valueFactoryMethodName, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
         {
-            Requires.NotNull(type, "type");
-            Assumes.True(typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()));
+            Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(metadata, "metadata");
 
+            var typeArgs = (Type[])importDefinition.Metadata[CompositionConstants.GenericParametersMetadataName];
+            var valueFactoryOpenGenericMethodInfo = this.GetMethodWithArity(valueFactoryMethodName, typeArgs.Length);
+            var valueFactoryMethodInfo = valueFactoryOpenGenericMethodInfo.MakeGenericMethod(typeArgs);
+            var valueFactory = (Func<Dictionary<int, object>, object>)valueFactoryMethodInfo.CreateDelegate(typeof(Func<Dictionary<int, object>, object>), this);
+
+            Type partOpenGenericType = this.GetType(partOpenGenericTypeId);
+            Type partType = partOpenGenericType.MakeGenericType(typeArgs);
+            int partTypeId = this.GetTypeId(partType);
+
+            return this.CreateExport(importDefinition, metadata, partTypeId, valueFactory, partSharingBoundary, nonSharedInstanceRequired, exportingMember);
+        }
+
+        protected Export CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, int partTypeId, Func<Dictionary<int, object>, object> valueFactory, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
+        {
+            Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(valueFactory, "valueFactory");
+
+            var provisionalSharedObjects = new Dictionary<int, object>();
+            ILazy<object> lazy = this.GetOrCreateShareableValue(partTypeId, valueFactory, provisionalSharedObjects, partSharingBoundary, nonSharedInstanceRequired);
+            Func<object> memberValueFactory;
+            if (exportingMember == null)
+            {
+                memberValueFactory = lazy.ValueFactory;
+            }
+            else
+            {
+                memberValueFactory = () => GetValueFromMember(lazy.Value, exportingMember);
+            }
+
+            return new Export(importDefinition.ContractName, metadata, memberValueFactory);
+        }
+
+        private object GetValueFromMember(object instance, MemberInfo member)
+        {
+            Requires.NotNull(instance, "instance");
+            Requires.NotNull(member, "member");
+
+            var field = member as FieldInfo;
+            if (field != null)
+            {
+                return field.GetValue(instance);
+            }
+
+            var property = member as PropertyInfo;
+            if (property != null)
+            {
+                return property.GetValue(instance);
+            }
+
+            var method = member as MethodInfo;
+            if (method != null)
+            {
+                // If the method came from a property, return the result of the property getter rather than return the delegate.
+                if (method.IsSpecialName && method.GetParameters().Length == 0 && method.Name.StartsWith("get_"))
+                {
+                    return method.Invoke(instance, EmptyObjectArray);
+                }
+
+                return method.CreateDelegate(ExportDefinitionBinding.GetContractTypeForDelegate(method), method.IsStatic ? null : instance);
+            }
+
+            throw new NotSupportedException();
+        }
+
+        protected ILazy<object> GetOrCreateShareableValue(int partTypeId, Func<Dictionary<int, object>, object> valueFactory, Dictionary<int, object> provisionalSharedObjects, string partSharingBoundary, bool nonSharedInstanceRequired)
+        {
+            ILazy<System.Object> lazyResult;
+            if (!nonSharedInstanceRequired)
+            {
+                if (this.TryGetProvisionalSharedExport(provisionalSharedObjects, partTypeId, out lazyResult) ||
+                    this.TryGetSharedInstanceFactory(partSharingBoundary, partTypeId, out lazyResult))
+                {
+                    return lazyResult;
+                }
+            }
+
+            lazyResult = new LazyPart<object>(() => valueFactory(provisionalSharedObjects));
+
+            if (!nonSharedInstanceRequired)
+            {
+                lazyResult = this.GetOrAddSharedInstanceFactory(partSharingBoundary, partTypeId, lazyResult);
+            }
+
+            return lazyResult;
+        }
+
+        private bool TryGetSharedInstanceFactory<T>(string partSharingBoundary, int partTypeId, out ILazy<T> value)
+        {
             lock (this.syncObject)
             {
                 var sharingBoundary = AcquireSharingBoundaryInstances(partSharingBoundary);
                 object valueObject;
-                bool result = sharingBoundary.TryGetValue(type, out valueObject);
+                bool result = sharingBoundary.TryGetValue(partTypeId, out valueObject);
                 value = (ILazy<T>)valueObject;
                 return result;
             }
         }
 
-        protected ILazy<T> GetOrAddSharedInstanceFactory<T>(string partSharingBoundary, Type type, ILazy<T> value)
+        private ILazy<object> GetOrAddSharedInstanceFactory(string partSharingBoundary, int partTypeId, ILazy<object> value)
         {
-            Requires.NotNull(type, "type");
             Requires.NotNull(value, "value");
-            Assumes.True(typeof(T).GetTypeInfo().IsAssignableFrom(type.GetTypeInfo()));
 
             lock (this.syncObject)
             {
                 var sharingBoundary = AcquireSharingBoundaryInstances(partSharingBoundary);
                 object priorValue;
-                if (sharingBoundary.TryGetValue(type, out priorValue))
+                if (sharingBoundary.TryGetValue(partTypeId, out priorValue))
                 {
-                    return (ILazy<T>)priorValue;
+                    return (ILazy<object>)priorValue;
                 }
 
-                sharingBoundary.Add(type, value);
+                sharingBoundary.Add(partTypeId, value);
                 return value;
             }
         }
@@ -255,7 +381,127 @@
                 .Single(m => m.GetGenericArguments().Length == arity);
         }
 
-        private IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName, ImportCardinality cardinality)
+        /// <summary>
+        /// Gets the manifest module for an assembly.
+        /// </summary>
+        /// <param name="assemblyId">The index into the cached manifest array.</param>
+        /// <returns>The manifest module.</returns>
+        protected Module GetAssemblyManifest(int assemblyId)
+        {
+            Module result = cachedManifests[assemblyId];
+            if (result == null)
+            {
+                // We don't need to worry about thread-safety here because if two threads assign the
+                // reference to the loaded assembly to the array slot, that's just fine.
+                result = Assembly.Load(new AssemblyName(this.GetAssemblyName(assemblyId))).ManifestModule;
+                cachedManifests[assemblyId] = result;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gets a type for reflection.
+        /// </summary>
+        /// <param name="typeId">The index into the cached type array.</param>
+        /// <returns>The type.</returns>
+        protected Type GetType(int typeId)
+        {
+            Type result = typeId < this.cachedTypes.Length
+                ? this.cachedTypes[typeId]
+                : this.runtimeCreatedTypes[typeId - this.cachedTypes.Length];
+            if (result == null)
+            {
+                // We don't need to worry about thread-safety here because if two threads assign the
+                // reference to the type to the array slot, that's just fine.
+                result = this.GetTypeCore(typeId);
+                this.cachedTypes[typeId] = result;
+            }
+
+            return result;
+        }
+
+        protected int GetTypeId(object value)
+        {
+            Requires.NotNull(value, "value");
+            return this.GetTypeId(value.GetType());
+        }
+
+        protected int GetTypeId(Type type)
+        {
+            Requires.NotNull(type, "type");
+
+            int index = this.GetTypeIdCore(type.AssemblyQualifiedName);
+            if (index < 0)
+            {
+                // This type isn't one that the precompiled code knew about.
+                // This can happen when an open generic export is queried for
+                // using ExportProvider.GetExportedValue<SomePart<T>>().
+                // Is this an extra type we have already seen and have an index for?
+                int privateIndex = this.runtimeCreatedTypes.IndexOf(type);
+                if (privateIndex < 0)
+                {
+                    lock (this.syncObject)
+                    {
+                        privateIndex = this.runtimeCreatedTypes.IndexOf(type);
+                        if (privateIndex < 0)
+                        {
+                            // We need to add the type to some array and assign a dedicated index for it
+                            // that does not overlap with anything the precompiled assembly has.
+                            this.runtimeCreatedTypes.Add(type);
+                            privateIndex = this.runtimeCreatedTypes.Count - 1;
+                        }
+                    }
+                }
+
+                return this.cachedTypes.Length + privateIndex;
+            }
+
+            return index;
+        }
+
+        /// <summary>
+        /// When overridden in the derived code-gen'd class, this method gets the full name
+        /// of an assembly for an integer that the code-gen knows about.
+        /// </summary>
+        protected virtual string GetAssemblyName(int assemblyId)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// When overridden in the derived code-gen'd class, this method gets the type
+        /// for an integer that the code-gen knows about.
+        /// </summary>
+        protected virtual Type GetTypeCore(int typeId)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// When overridden in the derived code-gen'd class, this method gets the index
+        /// into the array that is designated for the specified type.
+        /// </summary>
+        /// <returns>A non-negative integer if a type match is found; otherwise a negative integer.</returns>
+        protected virtual int GetTypeIdCore(string assemblyQualifiedTypeName)
+        {
+            throw new NotImplementedException();
+        }
+
+        private bool TryGetProvisionalSharedExport(IReadOnlyDictionary<int, object> provisionalSharedObjects, int partTypeId, out ILazy<object> value)
+        {
+            object valueObject;
+            if (provisionalSharedObjects.TryGetValue(partTypeId, out valueObject))
+            {
+                value = LazyPart.Wrap(valueObject, this.GetType(partTypeId));
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
+
+        private IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName, ImportCardinality cardinality)
         {
             Verify.NotDisposed(this);
             contractName = string.IsNullOrEmpty(contractName) ? ContractNameServices.GetTypeIdentity(typeof(T)) : contractName;
@@ -274,7 +520,7 @@
             return results.Select(result => new LazyPart<T, TMetadataView>(() => result.Value, (TMetadataView)result.Metadata));
         }
 
-        private Dictionary<Type, object> AcquireSharingBoundaryInstances(string sharingBoundaryName)
+        private Dictionary<int, object> AcquireSharingBoundaryInstances(string sharingBoundaryName)
         {
             Requires.NotNull(sharingBoundaryName, "sharingBoundaryName");
 
@@ -289,21 +535,11 @@
             return sharingBoundary;
         }
 
-        private class ExportProviderAsExport : ExportProvider
+        private class ExportProviderAsExport : DelegatingExportProvider
         {
-            private readonly ExportProvider inner;
-
-            internal ExportProviderAsExport(ExportProvider inner, ExportProvider parent, string[] freshSharingBoundaries)
-                : base(parent, freshSharingBoundaries)
+            internal ExportProviderAsExport(ExportProvider inner)
+                : base(inner)
             {
-                Requires.NotNull(inner, "inner");
-
-                this.inner = inner;
-            }
-
-            protected override IEnumerable<Export> GetExportsCore(ImportDefinition definition)
-            {
-                return this.inner.GetExportsCore(definition);
             }
 
             protected override void Dispose(bool disposing)

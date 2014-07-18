@@ -77,7 +77,7 @@
         {
             Requires.NotNull(importDefinition, "importDefinition");
 
-            return importDefinition.ExportContraints.Contains(NonSharedPartRequired);
+            return importDefinition.ExportConstraints.Contains(NonSharedPartRequired);
         }
 
         public bool IsSatisfiedBy(ExportDefinition exportDefinition)

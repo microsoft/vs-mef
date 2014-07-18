@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Trait("Container.GetExport", "Plural")]
         public void GetExportsNamed(IContainer container)
         {
-            IEnumerable<ILazy<Fruit>> result = container.GetExports<Fruit>("Pear");
+            IEnumerable<Lazy<Fruit>> result = container.GetExports<Fruit>("Pear");
             Assert.Equal(1, result.Count());
             Assert.IsType<Pear>(result.Single().Value);
         }

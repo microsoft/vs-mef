@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.CodeAnalysis;
@@ -12,6 +13,21 @@
 
     internal static class CodeGen
     {
+        internal static ExpressionSyntax GetAssemblySyntax(Assembly assembly)
+        {
+            Requires.NotNull(assembly, "assembly");
+
+            return SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("Assembly"),
+                    SyntaxFactory.IdentifierName("Load")),
+                SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(
+                    SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(
+                        SyntaxKind.StringLiteralExpression,
+                        SyntaxFactory.Literal(assembly.FullName))))));
+        }
+
         internal static ObjectCreationExpressionSyntax WithNewKeywordTrivia(this ObjectCreationExpressionSyntax syntax)
         {
             return syntax

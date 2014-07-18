@@ -22,6 +22,7 @@
 
             if (Debugger.IsAttached)
             {
+                bool debug = true;
                 string basePath = Path.GetTempFileName();
                 string assemblyPath = basePath + ".dll";
                 string pdbPath = basePath + ".pdb";
@@ -29,7 +30,8 @@
                 configuration.SaveAsync(
                     assemblyPath,
                     pdbPath,
-                    sourcePath).GetAwaiter().GetResult();
+                    sourcePath,
+                    debug: debug).GetAwaiter().GetResult();
                 var exportProviderFactory = CompositionConfiguration.Load(Assembly.LoadFile(assemblyPath));
                 return exportProviderFactory.CreateExportProvider();
             }
@@ -296,11 +298,11 @@
                 this.container = container;
             }
 
-            public ILazy<T> GetExport<T>()
+            public Lazy<T> GetExport<T>()
             {
                 try
                 {
-                    return new LazyWrapper<T>(this.container.GetExport<T>());
+                    return this.container.GetExport<T>();
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
                 {
@@ -308,11 +310,11 @@
                 }
             }
 
-            public ILazy<T> GetExport<T>(string contractName)
+            public Lazy<T> GetExport<T>(string contractName)
             {
                 try
                 {
-                    return new LazyWrapper<T>(this.container.GetExport<T>(contractName));
+                    return this.container.GetExport<T>(contractName);
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
                 {
@@ -320,11 +322,11 @@
                 }
             }
 
-            public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
+            public Lazy<T, TMetadataView> GetExport<T, TMetadataView>()
             {
                 try
                 {
-                    return new LazyWrapper<T, TMetadataView>(this.container.GetExport<T, TMetadataView>());
+                    return this.container.GetExport<T, TMetadataView>();
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
                 {
@@ -332,11 +334,11 @@
                 }
             }
 
-            public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
+            public Lazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
             {
                 try
                 {
-                    return new LazyWrapper<T, TMetadataView>(this.container.GetExport<T, TMetadataView>(contractName));
+                    return this.container.GetExport<T, TMetadataView>(contractName);
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
                 {
@@ -344,11 +346,11 @@
                 }
             }
 
-            public IEnumerable<ILazy<T>> GetExports<T>()
+            public IEnumerable<Lazy<T>> GetExports<T>()
             {
                 try
                 {
-                    return this.container.GetExports<T>().Select(l => new LazyWrapper<T>(l));
+                    return this.container.GetExports<T>();
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
                 {
@@ -356,11 +358,11 @@
                 }
             }
 
-            public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
+            public IEnumerable<Lazy<T>> GetExports<T>(string contractName)
             {
                 try
                 {
-                    return this.container.GetExports<T>(contractName).Select(l => new LazyWrapper<T>(l));
+                    return this.container.GetExports<T>(contractName);
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
                 {
@@ -368,11 +370,11 @@
                 }
             }
 
-            public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
+            public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>()
             {
                 try
                 {
-                    return this.container.GetExports<T, TMetadataView>().Select(l => (ILazy<T, TMetadataView>)new LazyWrapper<T, TMetadataView>(l));
+                    return this.container.GetExports<T, TMetadataView>();
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
                 {
@@ -380,11 +382,11 @@
                 }
             }
 
-            public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
+            public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
             {
                 try
                 {
-                    return this.container.GetExports<T, TMetadataView>(contractName).Select(l => (ILazy<T, TMetadataView>)new LazyWrapper<T, TMetadataView>(l));
+                    return this.container.GetExports<T, TMetadataView>(contractName);
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
                 {
@@ -456,7 +458,7 @@
                 this.container = container;
             }
 
-            public ILazy<T> GetExport<T>()
+            public Lazy<T> GetExport<T>()
             {
                 // MEF v2 doesn't support this, so emulate it.
                 return new LazyPart<T>(() =>
@@ -472,7 +474,7 @@
                 });
             }
 
-            public ILazy<T> GetExport<T>(string contractName)
+            public Lazy<T> GetExport<T>(string contractName)
             {
                 // MEF v2 doesn't support this, so emulate it.
                 return new LazyPart<T>(() =>
@@ -488,12 +490,12 @@
                 });
             }
 
-            public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
+            public Lazy<T, TMetadataView> GetExport<T, TMetadataView>()
             {
                 throw new NotSupportedException("Not supported by System.Composition.");
             }
 
-            public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
+            public Lazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
             {
                 throw new NotSupportedException("Not supported by System.Composition.");
             }
@@ -522,11 +524,11 @@
                 }
             }
 
-            public IEnumerable<ILazy<T>> GetExports<T>()
+            public IEnumerable<Lazy<T>> GetExports<T>()
             {
                 try
                 {
-                    return this.container.GetExports<T>().Select(v => LazyPart.Wrap(v));
+                    return this.container.GetExports<T>().Select(v => new Lazy<T>(() => v));
                 }
                 catch (System.Composition.Hosting.CompositionFailedException ex)
                 {
@@ -534,11 +536,11 @@
                 }
             }
 
-            public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
+            public IEnumerable<Lazy<T>> GetExports<T>(string contractName)
             {
                 try
                 {
-                    return this.container.GetExports<T>(contractName).Select(v => LazyPart.Wrap(v));
+                    return this.container.GetExports<T>(contractName).Select(v => new Lazy<T>(() => v));
                 }
                 catch (System.Composition.Hosting.CompositionFailedException ex)
                 {
@@ -546,12 +548,12 @@
                 }
             }
 
-            public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
+            public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>()
             {
                 throw new NotSupportedException();
             }
 
-            public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
+            public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
             {
                 throw new NotSupportedException();
             }
@@ -606,22 +608,22 @@
 
             internal CompositionConfiguration Configuration { get; private set; }
 
-            public ILazy<T> GetExport<T>()
+            public Lazy<T> GetExport<T>()
             {
                 return this.container.GetExport<T>();
             }
 
-            public ILazy<T> GetExport<T>(string contractName)
+            public Lazy<T> GetExport<T>(string contractName)
             {
                 return this.container.GetExport<T>(contractName);
             }
 
-            public ILazy<T, TMetadataView> GetExport<T, TMetadataView>()
+            public Lazy<T, TMetadataView> GetExport<T, TMetadataView>()
             {
                 return this.container.GetExport<T, TMetadataView>();
             }
 
-            public ILazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
+            public Lazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
             {
                 return this.container.GetExport<T, TMetadataView>(contractName);
             }
@@ -636,22 +638,22 @@
                 return this.container.GetExportedValue<T>(contractName);
             }
 
-            public IEnumerable<ILazy<T>> GetExports<T>()
+            public IEnumerable<Lazy<T>> GetExports<T>()
             {
                 return this.container.GetExports<T>();
             }
 
-            public IEnumerable<ILazy<T>> GetExports<T>(string contractName)
+            public IEnumerable<Lazy<T>> GetExports<T>(string contractName)
             {
                 return this.container.GetExports<T>(contractName);
             }
 
-            public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>()
+            public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>()
             {
                 return this.container.GetExports<T, TMetadataView>();
             }
 
-            public IEnumerable<ILazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
+            public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
             {
                 return this.container.GetExports<T, TMetadataView>(contractName);
             }
@@ -669,53 +671,6 @@
             public void Dispose()
             {
                 this.container.Dispose();
-            }
-        }
-
-        private class LazyWrapper<T> : ILazy<T>
-        {
-            private readonly Lazy<T> inner;
-
-            internal LazyWrapper(Lazy<T> lazy)
-            {
-                Requires.NotNull(lazy, "lazy");
-                this.inner = lazy;
-            }
-
-            public bool IsValueCreated
-            {
-                get { return this.inner.IsValueCreated; }
-            }
-
-            public T Value
-            {
-                get { return this.inner.Value; }
-            }
-        }
-
-        private class LazyWrapper<T, TMetadata> : ILazy<T, TMetadata>, ILazy<T>
-        {
-            private readonly Lazy<T, TMetadata> inner;
-
-            internal LazyWrapper(Lazy<T, TMetadata> lazy)
-            {
-                Requires.NotNull(lazy, "lazy");
-                this.inner = lazy;
-            }
-
-            public bool IsValueCreated
-            {
-                get { return this.inner.IsValueCreated; }
-            }
-
-            public TMetadata Metadata
-            {
-                get { return this.inner.Metadata; }
-            }
-
-            public T Value
-            {
-                get { return this.inner.Value; }
             }
         }
     }
