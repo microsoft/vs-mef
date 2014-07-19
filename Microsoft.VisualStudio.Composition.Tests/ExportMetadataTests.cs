@@ -357,7 +357,7 @@
             Assert.Equal(0, result.Count());
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB), typeof(PartWithExportMetadataAB))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB), typeof(PartWithExportMetadataAB))]
         [Trait("Container.GetExport", "Plural")]
         [Trait("Metadata", "TMetadata")]
         public void GetNamedExportsTMetadataInterface(IContainer container)

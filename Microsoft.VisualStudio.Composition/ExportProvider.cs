@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.ComponentModel;
     using System.Diagnostics;
     using System.Globalization;
     using System.Linq;
@@ -506,6 +507,33 @@
             throw new NotImplementedException();
         }
 
+        private static IReadOnlyDictionary<string, object> AddMissingValueDefaults(Type metadataView, IReadOnlyDictionary<string, object> metadata)
+        {
+            Requires.NotNull(metadataView, "metadataView");
+            Requires.NotNull(metadata, "metadata");
+
+            if (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>)))
+            {
+                var metadataBuilder = metadata.ToImmutableDictionary().ToBuilder();
+                foreach (var property in metadataView.EnumProperties().WherePublicInstance())
+                {
+                    if (!metadataBuilder.ContainsKey(property.Name))
+                    {
+                        var defaultValueAttribute = property.GetCustomAttributes<DefaultValueAttribute>().FirstOrDefault();
+                        if (defaultValueAttribute != null)
+                        {
+                            metadataBuilder.Add(property.Name, defaultValueAttribute.Value);
+                        }
+                    }
+                }
+
+                return metadataBuilder.ToImmutable();
+            }
+
+            // No changes since the metadata view type doesn't provide any.
+            return metadata;
+        }
+
         private bool TryGetProvisionalSharedExport(IReadOnlyDictionary<int, object> provisionalSharedObjects, int partTypeId, out ILazy<object> value)
         {
             object valueObject;
@@ -538,7 +566,7 @@
             IEnumerable<Export> results = this.GetExports(importDefinition);
             return results.Select(result => new LazyPart<T, TMetadataView>(
                 () => result.Value,
-                metadataViewProvider.CreateProxy<TMetadataView>(result.Metadata)))
+                metadataViewProvider.CreateProxy<TMetadataView>(AddMissingValueDefaults(typeof(TMetadataView), result.Metadata))))
                 .ToImmutableHashSet();
         }
 
