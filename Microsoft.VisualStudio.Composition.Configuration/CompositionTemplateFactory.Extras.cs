@@ -1106,7 +1106,9 @@
             var method = SyntaxFactory.MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
                 GetPartFactoryMethodNameNoTypeArgs(part.Definition))
-                .AddTypeParameterListParameters(part.Definition.Type.GetGenericArguments().Select(t => SyntaxFactory.TypeParameter(t.Name)).ToArray())
+                .WithTypeParameterList(part.Definition.Type.IsGenericType ? SyntaxFactory.TypeParameterList(CodeGen.JoinSyntaxNodes(
+                    SyntaxKind.CommaToken,
+                    part.Definition.Type.GetGenericArguments().Select(t => SyntaxFactory.TypeParameter(t.Name)).ToArray())) : null)
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
                 .AddParameterListParameters(SyntaxFactory.Parameter(provisionalSharedObjectsIdentifier.Identifier).WithType(dictionaryOfIntObject));
 
