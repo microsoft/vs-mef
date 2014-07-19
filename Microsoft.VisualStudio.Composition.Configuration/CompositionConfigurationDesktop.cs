@@ -187,10 +187,6 @@
             else
             {
                 syntaxTree = source.SyntaxTree;
-
-                // For some bizarre reason, the above line leads to a compilation failure. Instead,
-                // I have to parse the whole tree over again. :(
-                syntaxTree = SyntaxFactory.ParseSyntaxTree(source.ToFullString());
             }
 
             var assemblies = ImmutableHashSet.Create<Assembly>()

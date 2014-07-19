@@ -228,16 +228,16 @@
 
             var unit = SyntaxFactory.CompilationUnit()
                 .WithUsings(SyntaxFactory.List(new[] {
-                    SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System")),
-                    SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System.Collections.Generic")),
-                    SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System.Collections.Immutable")),
-                    SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System.Composition.Hosting")),
-                    SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System.Diagnostics")),
-                    SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System.Linq")),
-                    SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("System.Reflection")),
-                    SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("Microsoft.VisualStudio")),
-                    SyntaxFactory.UsingDirective(SyntaxFactory.IdentifierName("Microsoft.VisualStudio.Composition")),
-                    SyntaxFactory.UsingDirective(SyntaxFactory.NameEquals("CompositionFailedException"), SyntaxFactory.IdentifierName("Microsoft.VisualStudio.Composition.CompositionFailedException")),
+                    SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System")),
+                    SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic")),
+                    SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Immutable")),
+                    SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Composition.Hosting")),
+                    SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Diagnostics")),
+                    SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Linq")),
+                    SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Reflection")),
+                    SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("Microsoft.VisualStudio")),
+                    SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("Microsoft.VisualStudio.Composition")),
+                    SyntaxFactory.UsingDirective(SyntaxFactory.NameEquals("CompositionFailedException"), SyntaxFactory.ParseName("Microsoft.VisualStudio.Composition.CompositionFailedException")),
                     }))
                 .WithMembers(SyntaxFactory.SingletonList<MemberDeclarationSyntax>(compiledExportProviderType));
 
