@@ -2087,42 +2087,70 @@
 
             var statements = new List<StatementSyntax>();
 
-            var assemblyQualifiedName = SyntaxFactory.IdentifierName("assemblyQualifiedName");
+            var fullTypeName = SyntaxFactory.IdentifierName("fullTypeName");
             statements.Add(SyntaxFactory.LocalDeclarationStatement(SyntaxFactory.VariableDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
                 SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(
-                    assemblyQualifiedName.Identifier,
+                    fullTypeName.Identifier,
                     null,
                     SyntaxFactory.EqualsValueClause(
                         SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
                             typeParameter,
-                            SyntaxFactory.IdentifierName("AssemblyQualifiedName"))))))));
+                            SyntaxFactory.IdentifierName("FullName"))))))));
+            var assemblyFullName = SyntaxFactory.IdentifierName("assemblyFullName");
+            statements.Add(SyntaxFactory.LocalDeclarationStatement(SyntaxFactory.VariableDeclaration(
+                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(
+                    assemblyFullName.Identifier,
+                    null,
+                    SyntaxFactory.EqualsValueClause(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                SyntaxFactory.InvocationExpression(
+                                    SyntaxFactory.MemberAccessExpression(
+                                        SyntaxKind.SimpleMemberAccessExpression,
+                                        typeParameter,
+                                        SyntaxFactory.IdentifierName("GetTypeInfo")),
+                                    SyntaxFactory.ArgumentList()),
+                                SyntaxFactory.IdentifierName("Assembly")),
+                            SyntaxFactory.IdentifierName("FullName"))))))));
 
-            var switchStatement = SyntaxFactory.SwitchStatement(assemblyQualifiedName);
-
-            for (int i = 0; i < this.reflectionLoadedTypes.Count; i++)
-            {
-                Type type = this.reflectionLoadedTypes[i];
-                var label = SyntaxFactory.SingletonList<SwitchLabelSyntax>(
-                    SyntaxFactory.SwitchLabel(
-                        SyntaxKind.CaseSwitchLabel,
-                        SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(type.AssemblyQualifiedName))));
-
-                var statement = SyntaxFactory.ReturnStatement(
-                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i)));
-                var section = SyntaxFactory.SwitchSection(label, SyntaxFactory.SingletonList<StatementSyntax>(statement));
-                switchStatement = switchStatement.AddSections(section);
-            }
-
-            switchStatement = switchStatement.AddSections(SyntaxFactory.SwitchSection(
+            var returnMinusOneSection = SyntaxFactory.SwitchSection(
                 SyntaxFactory.SingletonList<SwitchLabelSyntax>(
                     SyntaxFactory.SwitchLabel(SyntaxKind.DefaultSwitchLabel)),
                 SyntaxFactory.SingletonList<StatementSyntax>(
                     SyntaxFactory.ReturnStatement(
-                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(-1))))));
+                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(-1)))));
 
-            statements.Add(switchStatement);
+            Func<string, StatementSyntax, SwitchSectionSyntax> createSection = (label, statement) => SyntaxFactory.SwitchSection(
+                SyntaxFactory.SingletonList(SyntaxFactory.SwitchLabel(SyntaxKind.CaseSwitchLabel, SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(label)))),
+                SyntaxFactory.SingletonList(statement));
+
+            var assemblySwitchStatement = SyntaxFactory.SwitchStatement(assemblyFullName);
+            foreach (var assembly in this.reflectionLoadedTypes.Select(t => t.Assembly).Distinct())
+            {
+                var typeSwitchStatement = SyntaxFactory.SwitchStatement(fullTypeName);
+                for (int i = 0; i < this.reflectionLoadedTypes.Count; i++)
+                {
+                    Type type = this.reflectionLoadedTypes[i];
+                    if (type.Assembly == assembly)
+                    {
+                        typeSwitchStatement = typeSwitchStatement.AddSections(createSection(
+                            type.FullName,
+                            SyntaxFactory.ReturnStatement(SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i)))));
+                    }
+                }
+
+                typeSwitchStatement = typeSwitchStatement.AddSections(returnMinusOneSection);
+                assemblySwitchStatement = assemblySwitchStatement.AddSections(createSection(assembly.FullName, typeSwitchStatement));
+            }
+
+            assemblySwitchStatement = assemblySwitchStatement.AddSections(returnMinusOneSection);
+
+            statements.Add(assemblySwitchStatement);
             method = method.WithBody(SyntaxFactory.Block(statements));
             return method;
         }
