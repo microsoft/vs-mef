@@ -381,7 +381,7 @@
 
             // Evidently MEF doesn't apply metadata view filters to exports when the metadata view is a class.
             Assert.Equal(3, result.Count());
-            
+
             var aAndAB = result.Where(e => e.Metadata.a == "b");
             var b = result.Single(e => e.Metadata.a == null);
             aAndAB.Single(a => a.Value is PartWithExportMetadataA);
@@ -412,6 +412,18 @@
 
             Assert.IsType<FooExport1>(a.Value);
             Assert.IsType<FooExport2>(b.Value);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(FooExport1))]
+        [Trait("Container.GetExport", "Plural")]
+        [Trait("Metadata", "TMetadata")]
+        public void MetadataViewProxyHandlesObjectMethods(IContainer container)
+        {
+            var result = container.GetExports<IFoo, IMetadataBase>().First();
+            Assert.True(result.Metadata.Equals(result.Metadata));
+            result.Metadata.GetHashCode();
+            Assert.NotNull(result.Metadata.GetType());
+            Assert.NotNull(result.Metadata.ToString());
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(FooExport1), typeof(FooExport2))]

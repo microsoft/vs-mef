@@ -17,6 +17,8 @@
     /// </summary>
     public static class ExportMetadataViewInterfaceProxy
     {
+        private static readonly MethodInfo EqualsMethodInfo = typeof(object).GetMethod("Equals", BindingFlags.Instance | BindingFlags.Public);
+
         private static readonly ComposablePartDefinition proxySupportPartDefinition = new AttributedPartDiscovery().CreatePart(typeof(MetadataViewProxyProvider));
 
         /// <summary>
@@ -43,6 +45,7 @@
         private class MetadataProxy<TMetadata> : RealProxy
         {
             private readonly IReadOnlyDictionary<string, object> metadata;
+            private object transparentProxy;
 
             internal MetadataProxy(IReadOnlyDictionary<string, object> metadata)
                 : base(typeof(TMetadata))
@@ -51,14 +54,35 @@
                 this.metadata = metadata;
             }
 
+            public override object GetTransparentProxy()
+            {
+                return this.transparentProxy = base.GetTransparentProxy();
+            }
+
             public override IMessage Invoke(IMessage msg)
             {
                 var methodCall = (IMethodCallMessage)msg;
+                var methodInfo = (MethodInfo)methodCall.MethodBase;
 
-                string propertyName = methodCall.MethodName.Substring(4);
+                object result;
+                if (methodInfo.GetParameters().Length == 0 && methodInfo.IsSpecialName && methodInfo.Name.StartsWith("get_"))
+                {
+                    string propertyName = methodCall.MethodName.Substring(4);
+                    result = this.metadata[propertyName];
+                }
+                else if (methodInfo == EqualsMethodInfo)
+                {
+                    // Specially handle Equals so it returns true appropriately.
+                    // In particular, if the caller passed in this proxy as the argument,
+                    // substitute in the underlying value so that it recognizes it according to its own equality check.
+                    result = methodInfo.Invoke(this, new object[] { methodCall.InArgs[0] == this.transparentProxy ? this : methodCall.InArgs[0] });
+                }
+                else
+                {
+                    result = methodInfo.Invoke(this, methodCall.InArgs);
+                }
 
-                object propertyValue = this.metadata[propertyName];
-                return new ReturnMessage(propertyValue, null, 0, methodCall.LogicalCallContext, methodCall);
+                return new ReturnMessage(result, null, 0, methodCall.LogicalCallContext, methodCall);
             }
         }
 
