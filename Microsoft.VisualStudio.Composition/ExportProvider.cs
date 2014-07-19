@@ -449,7 +449,7 @@
         {
             Requires.NotNull(type, "type");
 
-            int index = this.GetTypeIdCore(type.AssemblyQualifiedName);
+            int index = this.GetTypeIdCore(type);
             if (index < 0)
             {
                 // This type isn't one that the precompiled code knew about.
@@ -501,7 +501,7 @@
         /// into the array that is designated for the specified type.
         /// </summary>
         /// <returns>A non-negative integer if a type match is found; otherwise a negative integer.</returns>
-        protected virtual int GetTypeIdCore(string assemblyQualifiedTypeName)
+        protected virtual int GetTypeIdCore(Type type)
         {
             throw new NotImplementedException();
         }

@@ -2070,7 +2070,7 @@
 
         private MemberDeclarationSyntax CreateGetTypeIdCoreMethod()
         {
-            var typeFullNameParameter = SyntaxFactory.IdentifierName("assemblyQualifiedTypeName");
+            var typeParameter = SyntaxFactory.IdentifierName("type");
             var method = SyntaxFactory.MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
                 "GetTypeIdCore")
@@ -2081,11 +2081,25 @@
                     SyntaxFactory.Parameter(
                         SyntaxFactory.List<AttributeListSyntax>(),
                         SyntaxFactory.TokenList(),
-                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                        typeFullNameParameter.Identifier,
+                        this.GetTypeNameSyntax(typeof(Type)),
+                        typeParameter.Identifier,
                         null))));
 
-            var switchStatement = SyntaxFactory.SwitchStatement(typeFullNameParameter);
+            var statements = new List<StatementSyntax>();
+
+            var assemblyQualifiedName = SyntaxFactory.IdentifierName("assemblyQualifiedName");
+            statements.Add(SyntaxFactory.LocalDeclarationStatement(SyntaxFactory.VariableDeclaration(
+                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(
+                    assemblyQualifiedName.Identifier,
+                    null,
+                    SyntaxFactory.EqualsValueClause(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            typeParameter,
+                            SyntaxFactory.IdentifierName("AssemblyQualifiedName"))))))));
+
+            var switchStatement = SyntaxFactory.SwitchStatement(assemblyQualifiedName);
 
             for (int i = 0; i < this.reflectionLoadedTypes.Count; i++)
             {
@@ -2108,7 +2122,8 @@
                     SyntaxFactory.ReturnStatement(
                         SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(-1))))));
 
-            method = method.WithBody(SyntaxFactory.Block(switchStatement));
+            statements.Add(switchStatement);
+            method = method.WithBody(SyntaxFactory.Block(statements));
             return method;
         }
 
