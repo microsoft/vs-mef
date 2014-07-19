@@ -94,11 +94,6 @@
     <Compile Include="AttributedPartDiscoveryV1.cs" />
     <Compile Include="CodeGen.cs" />
     <Compile Include="CompositionConfigurationDesktop.cs" />
-    <Compile Include="CompositionTemplateFactory.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CompositionTemplateFactory.tt</DependentUpon>
-    </Compile>
     <Compile Include="CompositionTemplateFactory.Extras.cs" />
     <Compile Include="ExportMetadataViewInterfaceProxy.cs" />
     <Compile Include="NetFxAdapters.cs" />
@@ -109,10 +104,6 @@
     <Compile Include="Tasks\CreateContainerFactoryBootstrapFile.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="CompositionTemplateFactory.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>CompositionTemplateFactory.cs</LastGenOutput>
-    </None>
     <None Include="packages.config" />
     <None Include="signing.snk" />
   </ItemGroup>
