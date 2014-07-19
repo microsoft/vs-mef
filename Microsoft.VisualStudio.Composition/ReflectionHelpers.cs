@@ -296,7 +296,7 @@
                 var declaringType = declaringTypeInfo.ContainsGenericParameters && type.GenericTypeArguments.Length > declaringTypeInfo.GenericTypeArguments.Length
                     ? type.DeclaringType.MakeGenericType(type.GenericTypeArguments.Take(declaringTypeInfo.GenericTypeParameters.Length).ToArray())
                     : type.DeclaringType;
-                result = GetTypeName(declaringType, genericTypeDefinition, false, relevantAssemblies, relevantEmbeddedTypes) + ".";
+                result = GetTypeName(declaringType, genericTypeDefinition, evenNonPublic, relevantAssemblies, relevantEmbeddedTypes) + ".";
             }
 
             if (genericTypeDefinition)
