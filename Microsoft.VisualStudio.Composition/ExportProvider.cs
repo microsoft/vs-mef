@@ -538,7 +538,8 @@
             IEnumerable<Export> results = this.GetExports(importDefinition);
             return results.Select(result => new LazyPart<T, TMetadataView>(
                 () => result.Value,
-                metadataViewProvider.CreateProxy<TMetadataView>(result.Metadata)));
+                metadataViewProvider.CreateProxy<TMetadataView>(result.Metadata)))
+                .ToImmutableHashSet();
         }
 
         /// <summary>
