@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
@@ -12,6 +13,7 @@
     public static class NetFxAdapters
     {
         private static readonly ComposablePartDefinition compositionServicePart = (new AttributedPartDiscoveryV1()).CreatePart(typeof(CompositionService));
+        private static readonly ComposablePartDefinition metadataViewImplProxyPart = (new AttributedPartDiscoveryV1()).CreatePart(typeof(MetadataViewImplProxy));
 
         /// <summary>
         /// Creates an instance of a <see cref="MefV1.Hosting.ExportProvider"/>
@@ -37,6 +39,13 @@
 
             var modifiedCatalog = catalog.WithPart(compositionServicePart);
             return modifiedCatalog;
+        }
+
+        public static ComposableCatalog WithMetadataViewImplementationAttributeSupport(this ComposableCatalog catalog)
+        {
+            Requires.NotNull(catalog, "catalog");
+
+            return catalog.WithPart(metadataViewImplProxyPart);
         }
 
         private class MefV1ExportProvider : MefV1.Hosting.ExportProvider
@@ -122,6 +131,49 @@
             public void Dispose()
             {
                 this.container.Dispose();
+            }
+        }
+
+        [MefV1.Export(typeof(IMetadataViewProvider))]
+        [MefV1.ExportMetadata("OrderPrecedence", 100)] // should take precedence over the transparent proxy
+        private class MetadataViewImplProxy : IMetadataViewProvider
+        {
+            public bool IsDefaultMetadataRequired
+            {
+                get { return false; }
+            }
+
+            public bool IsMetadataViewSupported(Type metadataType)
+            {
+                return FindImplClassConstructor(metadataType) != null;
+            }
+
+            public TMetadata CreateProxy<TMetadata>(IReadOnlyDictionary<string, object> metadata)
+            {
+                var ctor = FindImplClassConstructor(typeof(TMetadata));
+                return (TMetadata)ctor.Invoke(new object[] { metadata });
+            }
+
+            private static ConstructorInfo FindImplClassConstructor(Type metadataType)
+            {
+                Requires.NotNull(metadataType, "metadataType");
+                var attr = (MefV1.MetadataViewImplementationAttribute)metadataType.GetCustomAttributes(typeof(MefV1.MetadataViewImplementationAttribute), false)
+                    .FirstOrDefault();
+                if (attr != null)
+                {
+                    if (metadataType.IsAssignableFrom(attr.ImplementationType))
+                    {
+                        var ctors = from ctor in attr.ImplementationType.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+                                    let parameters = ctor.GetParameters()
+                                    where parameters.Length == 1 && (
+                                        parameters[0].ParameterType.IsAssignableFrom(typeof(IDictionary<string, object>)) ||
+                                        parameters[0].ParameterType.IsAssignableFrom(typeof(IReadOnlyDictionary<string, object>)))
+                                    select ctor;
+                        return ctors.FirstOrDefault();
+                    }
+                }
+
+                return null;
             }
         }
     }

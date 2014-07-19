@@ -90,6 +90,11 @@
         [Export(typeof(IMetadataViewProvider))]
         private class MetadataViewProxyProvider : IMetadataViewProvider
         {
+            public bool IsDefaultMetadataRequired
+            {
+                get { return true; }
+            }
+
             public bool IsMetadataViewSupported(Type metadataType)
             {
                 if (metadataType.IsInterface &&

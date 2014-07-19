@@ -70,7 +70,7 @@
         /// <remarks>
         /// This field is lazy to avoid a chicken-and-egg problem with initializing it in our constructor.
         /// </remarks>
-        private readonly Lazy<ImmutableList<Lazy<IMetadataViewProvider>>> metadataViewProviders;
+        private readonly Lazy<ImmutableList<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>> metadataViewProviders;
 
         /// <summary>
         /// An array of types 
@@ -115,8 +115,9 @@
             this.NonDisposableWrapper = LazyPart.Wrap(nonDisposableWrapper);
             this.NonDisposableWrapperExportAsListOfOne = ImmutableList.Create(
                 new Export(ExportProviderExportDefinition, this.NonDisposableWrapper));
-            this.metadataViewProviders = new Lazy<ImmutableList<Lazy<IMetadataViewProvider>>>(
-                () => ImmutableList.CreateRange(this.GetExports<IMetadataViewProvider>()));
+            this.metadataViewProviders = new Lazy<ImmutableList<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>>(
+                () => ImmutableList.CreateRange(this.GetExports<IMetadataViewProvider, IReadOnlyDictionary<string, object>>())
+                    .Sort((first, second) => -GetOrderMetadata(first.Metadata).CompareTo(GetOrderMetadata(second.Metadata))));
         }
 
         bool IDisposableObservable.IsDisposed
@@ -534,6 +535,14 @@
             return metadata;
         }
 
+        private static int GetOrderMetadata(IReadOnlyDictionary<string, object> metadata)
+        {
+            Requires.NotNull(metadata, "metadata");
+
+            object value = metadata.GetValueOrDefault("OrderPrecedence");
+            return value is int ? (int)value : 0;
+        }
+
         private bool TryGetProvisionalSharedExport(IReadOnlyDictionary<int, object> provisionalSharedObjects, int partTypeId, out ILazy<object> value)
         {
             object valueObject;
@@ -566,7 +575,7 @@
             IEnumerable<Export> results = this.GetExports(importDefinition);
             return results.Select(result => new LazyPart<T, TMetadataView>(
                 () => result.Value,
-                metadataViewProvider.CreateProxy<TMetadataView>(AddMissingValueDefaults(typeof(TMetadataView), result.Metadata))))
+                metadataViewProvider.CreateProxy<TMetadataView>(metadataViewProvider.IsDefaultMetadataRequired ? AddMissingValueDefaults(typeof(TMetadataView), result.Metadata) : result.Metadata)))
                 .ToImmutableHashSet();
         }
 
@@ -636,6 +645,11 @@
 
             internal static readonly IMetadataViewProvider Default = new PassthroughMetadataViewProvider();
 
+            public bool IsDefaultMetadataRequired
+            {
+                get { return false; }
+            }
+
             public bool IsMetadataViewSupported(Type metadataType)
             {
                 Requires.NotNull(metadataType, "metadataType");
@@ -661,6 +675,11 @@
             private MetadataViewClassProvider() { }
 
             internal static readonly IMetadataViewProvider Default = new MetadataViewClassProvider();
+
+            public bool IsDefaultMetadataRequired
+            {
+                get { return false; }
+            }
 
             public bool IsMetadataViewSupported(Type metadataType)
             {

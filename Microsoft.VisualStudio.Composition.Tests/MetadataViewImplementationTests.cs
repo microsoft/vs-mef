@@ -11,7 +11,7 @@
 
     public class MetadataViewImplementationTests
     {
-        [MefFact(CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V1Compat)]
         public void MetadataViewImplementationDirectQuery(IContainer container)
         {
             var export = container.GetExport<ExportingPart, IMetadataView>();

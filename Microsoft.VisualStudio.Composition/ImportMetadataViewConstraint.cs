@@ -103,7 +103,7 @@
         {
             Requires.NotNull(metadataView, "metadataView");
 
-            if (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>)))
+            if (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>)) && !metadataView.Equals(typeof(IReadOnlyDictionary<string, object>)))
             {
                 var requiredMetadata = ImmutableDictionary.CreateBuilder<string, MetadatumRequirement>();
 
