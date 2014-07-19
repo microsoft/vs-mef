@@ -16,6 +16,8 @@
         {
             var export = container.GetExport<ExportingPart, IMetadataView>();
             Assert.IsType<MetadataViewClass>(export.Metadata);
+            Assert.Equal("1", export.Metadata.A);
+            Assert.Null(export.Metadata.B);
         }
 
         [MefFact(CompositionEngines.V1)]
@@ -23,6 +25,8 @@
         {
             var importingPart = container.GetExportedValue<ImportingPart>();
             Assert.IsType<MetadataViewClass>(importingPart.ImportingProperty.Metadata);
+            Assert.Equal("1", importingPart.ImportingProperty.Metadata.A);
+            Assert.Null(importingPart.ImportingProperty.Metadata.B);
         }
 
         [MefV1.Export]
@@ -49,6 +53,8 @@
         {
             public MetadataViewClass(IDictionary<string, object> metadata)
             {
+                this.A = (string)(metadata.ContainsKey("A") ? metadata["A"] : null);
+                this.B = (string)(metadata.ContainsKey("B") ? metadata["B"] : null);
             }
 
             public string A { get; set; }
