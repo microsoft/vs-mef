@@ -1101,11 +1101,12 @@
         private MethodDeclarationSyntax CreateInstantiatePartMethod(ComposedPart part)
         {
             var provisionalSharedObjectsIdentifier = SyntaxFactory.IdentifierName("provisionalSharedObjects");
-            var partInstanceIdentifier = SyntaxFactory.IdentifierName("result");
+            var partInstanceIdentifier = SyntaxFactory.IdentifierName(InstantiatedPartLocalVarName);
 
             var method = SyntaxFactory.MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)),
-                GetPartFactoryMethodName(part.Definition))
+                GetPartFactoryMethodNameNoTypeArgs(part.Definition))
+                .AddTypeParameterListParameters(part.Definition.Type.GetGenericArguments().Select(t => SyntaxFactory.TypeParameter(t.Name)).ToArray())
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
                 .AddParameterListParameters(SyntaxFactory.Parameter(provisionalSharedObjectsIdentifier.Identifier).WithType(dictionaryOfIntObject));
 

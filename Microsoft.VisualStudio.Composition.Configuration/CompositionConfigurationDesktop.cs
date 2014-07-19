@@ -172,7 +172,7 @@
             templateFactory.Configuration = configuration;
             var source = templateFactory.CreateSourceFile().NormalizeWhitespace();
 
-            SyntaxTree syntaxTree;
+            SyntaxTree syntaxTree = source.SyntaxTree;
             if (sourceFile != null)
             {
                 FileStream sourceFileStream = sourceFile as FileStream;
@@ -181,14 +181,14 @@
                 var writer = new StreamWriter(sourceFile, encoding);
                 source.WriteTo(writer);
                 await writer.FlushAsync();
-                sourceFile.Position = 0;
-                syntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceFile, encoding), path: sourceFilePath ?? string.Empty, cancellationToken: cancellationToken);
-            }
-            else
-            {
-                syntaxTree = source.SyntaxTree;
+
+                if (sourceFilePath != null)
+                {
+                    syntaxTree = SyntaxFactory.SyntaxTree(syntaxTree.GetRoot(), sourceFilePath);
+                }
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             var assemblies = ImmutableHashSet.Create<Assembly>()
                 .Union(configuration.AdditionalReferenceAssemblies)
                 .Union(templateFactory.RelevantAssemblies);
