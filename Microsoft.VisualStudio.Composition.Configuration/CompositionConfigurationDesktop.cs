@@ -182,10 +182,10 @@
                 source.WriteTo(writer);
                 await writer.FlushAsync();
 
-                if (sourceFilePath != null)
-                {
-                    syntaxTree = SyntaxFactory.SyntaxTree(syntaxTree.GetRoot(), path: sourceFilePath);
-                }
+                // Unfortunately, we have to reparse the file in order to get the encoding into Roslyn
+                // so its compiler doesn't fail with a CS8055 error.
+                sourceFile.Position = 0;
+                syntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceFile, encoding), path: sourceFilePath ?? string.Empty, cancellationToken: cancellationToken);
             }
 
             cancellationToken.ThrowIfCancellationRequested();
