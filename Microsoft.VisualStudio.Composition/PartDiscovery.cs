@@ -92,14 +92,20 @@
             Requires.NotNull(assemblies, "assemblies");
 
             var tuple = this.CreateDiscoveryBlockChain(cancellationToken);
+            var exceptions = new List<Exception>();
             var assemblyBlock = new TransformManyBlock<Assembly, Type>(
                 a => {
                     try
                     {
                         return this.GetTypes(a);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        lock (exceptions)
+                        {
+                            exceptions.Add(ex);
+                        }
+
                         return Enumerable.Empty<Type>();
                     }
                 },
@@ -117,7 +123,7 @@
 
             assemblyBlock.Complete();
             var parts = await tuple.Item2;
-            return parts;
+            return parts.Merge(new DiscoveredParts(Enumerable.Empty<ComposablePartDefinition>(), exceptions));
         }
 
         protected internal static string GetContractName(Type type)

@@ -29,6 +29,33 @@
             Assert.Equal(0, parts.Parts.Count);
         }
 
+        [Fact]
+        public async Task Combined_CreatePartsAsync_TypeArray_ResilientAgainstReflectionErrors()
+        {
+            var discovery = PartDiscovery.Combine(new SketchyPartDiscovery());
+            var parts = await discovery.CreatePartsAsync(typeof(string), typeof(int));
+            Assert.Equal(1, parts.DiscoveryErrors.Count);
+            Assert.Equal(1, parts.Parts.Count);
+        }
+
+        [Fact]
+        public async Task Combined_CreatePartsAsync_Assembly_ResilientAgainstReflectionErrors()
+        {
+            var discovery = PartDiscovery.Combine(new SketchyPartDiscovery());
+            var parts = await discovery.CreatePartsAsync(this.GetType().Assembly);
+            Assert.Equal(1, parts.DiscoveryErrors.Count);
+            Assert.Equal(0, parts.Parts.Count);
+        }
+
+        [Fact]
+        public async Task Combined_CreatePartsAsync_AssemblyEnumerable_ResilientAgainstReflectionErrors()
+        {
+            var discovery = PartDiscovery.Combine(new SketchyPartDiscovery());
+            var parts = await discovery.CreatePartsAsync(new[] { this.GetType().Assembly });
+            Assert.Equal(1, parts.DiscoveryErrors.Count);
+            Assert.Equal(0, parts.Parts.Count);
+        }
+
         private class SketchyPartDiscovery : PartDiscovery
         {
             public override ComposablePartDefinition CreatePart(Type partType)
