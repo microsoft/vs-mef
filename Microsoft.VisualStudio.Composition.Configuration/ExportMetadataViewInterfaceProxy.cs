@@ -22,7 +22,7 @@
         private static readonly ComposablePartDefinition proxySupportPartDefinition = new AttributedPartDiscovery().CreatePart(typeof(MetadataViewProxyProvider));
 
         /// <summary>
-        /// Adds support for queries to <see cref="ExportProvider.GetExports{T, TMetadata}"/> where
+        /// Adds support for queries to <see cref="ExportProvider.GetExports{T, TMetadata}()"/> where
         /// <c>TMetadata</c> is an interface.
         /// </summary>
         /// <param name="catalog">The catalog from which constructed ExportProviders may have this support added.</param>
