@@ -63,6 +63,7 @@
         /// Reflects over an assembly and produces MEF parts for every applicable type.
         /// </summary>
         /// <param name="assembly">The assembly to search for MEF parts.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A set of generated parts.</returns>
         public async Task<DiscoveredParts> CreatePartsAsync(Assembly assembly, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -84,20 +85,29 @@
         /// Reflects over a set of assemblies and produces MEF parts for every applicable type.
         /// </summary>
         /// <param name="assemblies">The assemblies to search for MEF parts.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A set of generated parts.</returns>
         public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<Assembly> assemblies, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(assemblies, "assemblies");
 
             var tuple = this.CreateDiscoveryBlockChain(cancellationToken);
+            var exceptions = new List<Exception>();
             var assemblyBlock = new TransformManyBlock<Assembly, Type>(
                 a => {
                     try
                     {
-                        return this.GetTypes(a);
+                        // Fully realize any enumerable now so that we can catch the exception rather than
+                        // leave it to dataflow to catch it.
+                        return this.GetTypes(a).ToList();
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        lock (exceptions)
+                        {
+                            exceptions.Add(ex);
+                        }
+
                         return Enumerable.Empty<Type>();
                     }
                 },
@@ -115,7 +125,7 @@
 
             assemblyBlock.Complete();
             var parts = await tuple.Item2;
-            return parts;
+            return parts.Merge(new DiscoveredParts(Enumerable.Empty<ComposablePartDefinition>(), exceptions));
         }
 
         protected internal static string GetContractName(Type type)
@@ -286,7 +296,7 @@
         /// Gets the Type of the interface that serves as a metadata view for a given import.
         /// </summary>
         /// <param name="receivingType">The type of the importing member or parameter, without its ImportMany collection if it had one.</param>
-        /// <returns>The metadata view, IDictionary&lt;string, object&gt;, or <c>null</c> if there is none.</returns>
+        /// <returns>The metadata view, <see cref="IDictionary{String, Object}"/>, or <c>null</c> if there is none.</returns>
         private static Type GetMetadataType(Type receivingType)
         {
             Requires.NotNull(receivingType, "receivingType");
