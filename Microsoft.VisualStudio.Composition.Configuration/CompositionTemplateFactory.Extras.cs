@@ -598,7 +598,7 @@
                 {
                     return SyntaxFactory.CastExpression(
                         this.GetTypeNameSyntax(import.ImportingSiteType),
-                        SyntaxFactory.LiteralExpression(SyntaxKind.NullKeyword));
+                        SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression));
                 }
             }
         }
