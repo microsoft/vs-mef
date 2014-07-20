@@ -97,7 +97,9 @@
                 a => {
                     try
                     {
-                        return this.GetTypes(a);
+                        // Fully realize any enumerable now so that we can catch the exception rather than
+                        // leave it to dataflow to catch it.
+                        return this.GetTypes(a).ToList();
                     }
                     catch (Exception ex)
                     {
