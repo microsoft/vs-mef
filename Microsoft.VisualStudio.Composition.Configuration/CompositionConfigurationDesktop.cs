@@ -171,25 +171,25 @@
         {
             var templateFactory = new CompositionTemplateFactory();
             templateFactory.Configuration = configuration;
-            string source = templateFactory.TransformText();
+            var source = templateFactory.CreateSourceFile().NormalizeWhitespace();
 
-            SyntaxTree syntaxTree;
+            SyntaxTree syntaxTree = source.SyntaxTree;
             if (sourceFile != null)
             {
                 FileStream sourceFileStream = sourceFile as FileStream;
                 string sourceFilePath = sourceFileStream != null ? sourceFileStream.Name : null;
                 Encoding encoding = new UTF8Encoding(true);
                 var writer = new StreamWriter(sourceFile, encoding);
-                await writer.WriteAsync(source);
+                source.WriteTo(writer);
                 await writer.FlushAsync();
-                sourceFile.Position = 0;
-                syntaxTree = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceFile, encoding), path: sourceFilePath ?? string.Empty, cancellationToken: cancellationToken);
-            }
-            else
-            {
-                syntaxTree = SyntaxFactory.ParseSyntaxTree(source);
+
+                if (sourceFilePath != null)
+                {
+                    syntaxTree = SyntaxFactory.SyntaxTree(syntaxTree.GetRoot(), sourceFilePath);
+                }
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             var assemblies = ImmutableHashSet.Create<Assembly>()
                 .Union(configuration.AdditionalReferenceAssemblies)
                 .Union(templateFactory.RelevantAssemblies);

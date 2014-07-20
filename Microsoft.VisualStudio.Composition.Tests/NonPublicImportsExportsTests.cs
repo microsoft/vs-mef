@@ -269,7 +269,7 @@
             Assert.NotNull(importingPart.ImportingProperty.Value);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithLazyImportMetadataOfInternalPartViaInternalInterface), typeof(InternalPartWithPublicExport))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithLazyImportMetadataOfInternalPartViaInternalInterface), typeof(InternalPartWithPublicExport))]
         public void LazyImportMetadataOfInternalPartViaInternalInterface(IContainer container)
         {
             var importingPart = container.GetExportedValue<PartWithLazyImportMetadataOfInternalPartViaInternalInterface>();
