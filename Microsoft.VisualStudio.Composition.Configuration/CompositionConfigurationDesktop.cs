@@ -185,7 +185,7 @@
 
                 if (sourceFilePath != null)
                 {
-                    syntaxTree = SyntaxFactory.SyntaxTree(syntaxTree.GetRoot(), sourceFilePath);
+                    syntaxTree = SyntaxFactory.SyntaxTree(syntaxTree.GetRoot(), path: sourceFilePath);
                 }
             }
 
