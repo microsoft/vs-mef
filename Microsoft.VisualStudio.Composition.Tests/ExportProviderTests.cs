@@ -214,5 +214,18 @@
         public class NonSharedPart { }
 
         #endregion
+
+        #region GUID contract name
+
+        [MefFact(CompositionEngines.V2Compat, typeof(SomeExportedPartWithGuidContractName))]
+        public void GuidContractName(IContainer container)
+        {
+            var part = container.GetExportedValue<SomeExportedPartWithGuidContractName>("{C18E5D73-E6D1-43AA-AC5E-58D82E44DA9C}");
+        }
+
+        [Export("{C18E5D73-E6D1-43AA-AC5E-58D82E44DA9C}")]
+        public class SomeExportedPartWithGuidContractName { }
+
+        #endregion
     }
 }
