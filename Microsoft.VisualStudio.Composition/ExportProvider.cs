@@ -637,7 +637,7 @@
 
         /// <summary>
         /// Supports metadata views that are any type that <see cref="ImmutableDictionary{TKey, TValue}"/>
-        /// could be assigned to, including <see cref="IDictionary`2"/> and <see cref="IReadOnlyDictionary`2"/>.
+        /// could be assigned to, including <see cref="IDictionary{TKey, TValue}"/> and <see cref="IReadOnlyDictionary{TKey, TValue}"/>.
         /// </summary>
         private class PassthroughMetadataViewProvider : IMetadataViewProvider
         {
