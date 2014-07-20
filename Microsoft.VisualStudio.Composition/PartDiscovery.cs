@@ -63,6 +63,7 @@
         /// Reflects over an assembly and produces MEF parts for every applicable type.
         /// </summary>
         /// <param name="assembly">The assembly to search for MEF parts.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A set of generated parts.</returns>
         public async Task<DiscoveredParts> CreatePartsAsync(Assembly assembly, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -84,6 +85,7 @@
         /// Reflects over a set of assemblies and produces MEF parts for every applicable type.
         /// </summary>
         /// <param name="assemblies">The assemblies to search for MEF parts.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A set of generated parts.</returns>
         public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<Assembly> assemblies, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -286,7 +288,7 @@
         /// Gets the Type of the interface that serves as a metadata view for a given import.
         /// </summary>
         /// <param name="receivingType">The type of the importing member or parameter, without its ImportMany collection if it had one.</param>
-        /// <returns>The metadata view, <see cref="IDictionary{string, object}"/>, or <c>null</c> if there is none.</returns>
+        /// <returns>The metadata view, <see cref="IDictionary{String, Object}"/>, or <c>null</c> if there is none.</returns>
         private static Type GetMetadataType(Type receivingType)
         {
             Requires.NotNull(receivingType, "receivingType");
