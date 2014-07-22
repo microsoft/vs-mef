@@ -75,7 +75,12 @@ using Xunit;
             Assert.Same(firstInstance.SharedExport, secondInstance.SharedExport);
         }
 
-        [Fact(Skip = "Functionality not yet implemented.")]
+        /// <remarks>
+        /// This design goal has been retired. There are too many other concerns that are more impactful,
+        /// and getting this just right is quite tricky, and often Lazy's really can't be shared
+        /// across importers for various reasons.
+        /// </remarks>
+        ////[Fact(Skip = "Functionality not yet implemented.")]
         public void LazyImportOfSharedExportHasCreatedValueWhenCreatedByOtherMeans()
         {
             var container = TestUtilities.CreateContainer(typeof(ExportWithLazyImportOfSharedExport), typeof(SharedExport));
