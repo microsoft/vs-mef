@@ -46,6 +46,13 @@
         }
 
         [Fact]
+        public void TypeDiscoveryIgnoresPartNotDiscoverableAttribute()
+        {
+            var result = this.DiscoveryService.CreatePart(typeof(NonDiscoverablePart));
+            Assert.NotNull(result);
+        }
+
+        [Fact]
         public async Task AssemblyDiscoveryOmitsNonDiscoverableParts()
         {
             var result = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).Assembly);
