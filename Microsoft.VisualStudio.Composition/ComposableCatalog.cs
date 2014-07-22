@@ -127,7 +127,7 @@
             Requires.NotNull(partDefinition, "partDefinition");
 
             var parts = this.parts.Add(partDefinition);
-            if (parts.SetEquals(this.parts))
+            if (parts == this.parts)
             {
                 // This part is already in the catalog.
                 return this;
