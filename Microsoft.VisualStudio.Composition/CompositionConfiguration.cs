@@ -210,8 +210,11 @@
             return new CompositionConfiguration(this.Catalog, this.Parts, this.CompositionErrors.Push(errors), this.effectiveSharingBoundaryOverrides);
         }
 
-        private static bool IsLoopPresent(ImmutableHashSet<ComposedPart> parts)
+        private static bool IsLoopPresent(IEnumerable<ComposedPart> parts)
         {
+            Requires.NotNull(parts, "parts");
+
+            var partByPartDefinition = parts.ToDictionary(p => p.Definition);
             var partsAndDirectImports = new Dictionary<ComposedPart, ImmutableHashSet<ComposedPart>>();
 
             // First create a map of each NonShared part and the NonShared parts it directly imports.
@@ -219,7 +222,7 @@
             {
                 var directlyImportedParts = (from exportList in part.SatisfyingExports.Values
                                              from export in exportList
-                                             let exportingPart = parts.Single(p => p.Definition == export.PartDefinition)
+                                             let exportingPart = partByPartDefinition[export.PartDefinition]
                                              where !exportingPart.Definition.IsShared
                                              select exportingPart).ToImmutableHashSet();
                 partsAndDirectImports.Add(part, directlyImportedParts);
