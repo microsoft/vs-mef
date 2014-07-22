@@ -14,7 +14,7 @@
 
     public class AttributedPartDiscoveryV1 : PartDiscovery
     {
-        public override ComposablePartDefinition CreatePart(Type partType)
+        protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
         {
             Requires.NotNull(partType, "partType");
 
@@ -22,6 +22,11 @@
             // Static classes claim to be both abstract and sealed. So to ignore just abstract
             // ones, we check that they are not sealed.
             if (partType.IsAbstract && !partType.IsSealed)
+            {
+                return null;
+            }
+
+            if (!typeExplicitlyRequested && partType.GetCustomAttribute<PartNotDiscoverableAttribute>() != null)
             {
                 return null;
             }
@@ -193,17 +198,7 @@
         {
             Requires.NotNull(assembly, "assembly");
 
-            return assembly.GetTypes().Where(type =>
-            {
-                try
-                {
-                    return type.GetCustomAttribute<PartNotDiscoverableAttribute>() == null;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            });
+            return assembly.GetTypes();
         }
 
         private static bool TryCreateImportDefinition(Type importingType, IEnumerable<Attribute> attributes, out ImportDefinition importDefinition)

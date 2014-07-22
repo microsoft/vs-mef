@@ -173,7 +173,7 @@
         /// </summary>
         private class PartDiscoveryAllTypesMock : PartDiscovery
         {
-            public override ComposablePartDefinition CreatePart(Type partType)
+            protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
             {
                 return null;
             }
