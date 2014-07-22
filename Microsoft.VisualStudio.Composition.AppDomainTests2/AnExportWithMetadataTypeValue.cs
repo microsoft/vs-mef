@@ -9,6 +9,8 @@
 
     [Export("AnExportWithMetadataTypeValue")]
     [ExportMetadata("SomeType", typeof(YetAnotherExport))]
+    [ExportMetadata("SomeTypes", typeof(YetAnotherExport))]
+    [ExportMetadata("SomeTypes", typeof(string))]
     public class AnExportWithMetadataTypeValue
     {
     }

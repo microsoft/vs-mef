@@ -19,6 +19,8 @@ using System.Threading.Tasks;
     {
         Type SomeType { get; }
 
+        Type[] SomeTypes { get; }
+
         [DefaultValue("default")]
         string SomeProperty { get; }
     }
