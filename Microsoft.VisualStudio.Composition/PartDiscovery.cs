@@ -192,7 +192,7 @@
             Type metadataType = GetMetadataType(elementType);
             if (metadataType != null)
             {
-                result = result.Add(new ImportMetadataViewConstraint(metadataType));
+                result = result.Add(ImportMetadataViewConstraint.GetConstraint(metadataType));
             }
 
             return result;

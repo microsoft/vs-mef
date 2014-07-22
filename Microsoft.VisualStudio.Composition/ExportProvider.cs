@@ -573,7 +573,7 @@
 
             if (typeof(TMetadataView) != typeof(DefaultMetadataType))
             {
-                constraints = constraints.Add(new ImportMetadataViewConstraint(typeof(TMetadataView)));
+                constraints = constraints.Add(ImportMetadataViewConstraint.GetConstraint(typeof(TMetadataView)));
             }
 
             var importMetadata = PartDiscovery.GetImportMetadataForGenericTypeImport(typeof(T));
