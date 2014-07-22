@@ -113,7 +113,7 @@
         public static ComposableCatalog Create(IEnumerable<ComposablePartDefinition> parts)
         {
             Requires.NotNull(parts, "parts");
-            return parts.Aggregate(Create(), (catalog, part) => catalog.WithPart(part));
+            return Create().WithParts(parts);
         }
 
         public static ComposableCatalog Create(DiscoveredParts parts)
