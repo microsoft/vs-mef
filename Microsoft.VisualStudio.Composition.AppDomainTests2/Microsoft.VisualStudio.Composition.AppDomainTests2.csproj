@@ -63,6 +63,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnExportWithMetadataTypeValue.cs" />
     <Compile Include="YetAnotherExport.cs" />
   </ItemGroup>
   <ItemGroup>

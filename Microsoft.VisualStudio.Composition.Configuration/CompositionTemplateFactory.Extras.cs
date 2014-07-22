@@ -833,10 +833,10 @@
 
         private ExpressionSyntax GetExportMetadata(ExportDefinitionBinding export)
         {
-            return this.GetSyntaxToReconstructValue(export.ExportDefinition.Metadata);
+            return this.GetSyntaxToReconstructMetadata(export.ExportDefinition.Metadata);
         }
 
-        private ExpressionSyntax GetSyntaxToReconstructValue<TKey, TValue>(IReadOnlyDictionary<TKey, TValue> value)
+        private ExpressionSyntax GetSyntaxToReconstructMetadata(IReadOnlyDictionary<string, object> value)
         {
             if (value == null)
             {
@@ -844,8 +844,10 @@
             }
 
             ExpressionSyntax populatingExpression = SyntaxFactory.IdentifierName("EmptyMetadata");
+            bool substitutionRequiredByAnyValue = false;
             foreach (var pair in value)
             {
+                bool substitutionRequired;
                 populatingExpression = SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
@@ -854,11 +856,68 @@
                         SyntaxFactory.ArgumentList(
                             SyntaxFactory.SeparatedList<ArgumentSyntax>(new ArgumentSyntax[] {
                                 SyntaxFactory.Argument(GetSyntaxToReconstructValue(pair.Key)),
-                                SyntaxFactory.Argument(GetSyntaxToReconstructValue(pair.Value)),
+                                SyntaxFactory.Argument(GetSyntaxToReconstructValueWithTypeRefSubstitution(pair.Value, out substitutionRequired)),
                             })));
+                substitutionRequiredByAnyValue |= substitutionRequired;
             }
 
-            return populatingExpression;
+            if (substitutionRequiredByAnyValue)
+            {
+                // this.GetTypeRefResolvingMetadata(...)
+                var lazyResolvingExpression = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.ThisExpression(),
+                        SyntaxFactory.IdentifierName("GetTypeRefResolvingMetadata")),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(populatingExpression))));
+                return lazyResolvingExpression;
+            }
+            else
+            {
+                return populatingExpression;
+            }
+        }
+
+        private ExpressionSyntax GetSyntaxToReconstructValueWithTypeRefSubstitution(object value, out bool substitutionRequired)
+        {
+            if (value is Type)
+            {
+                substitutionRequired = true;
+
+                // new TypeRef(15)
+                return SyntaxFactory.ObjectCreationExpression(
+                    SyntaxFactory.IdentifierName("TypeRef"),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(this.GetTypeId((Type)value)))),
+                    null);
+            }
+            else if (value is Type[])
+            {
+                var valueAsTypeArray = (Type[])value;
+                substitutionRequired = true;
+                var typeRefs = new ExpressionSyntax[valueAsTypeArray.Length];
+                for (int i = 0; i < valueAsTypeArray.Length; i++)
+                {
+                    typeRefs[i] = GetSyntaxToReconstructValueWithTypeRefSubstitution(valueAsTypeArray[i], out substitutionRequired);
+                }
+
+                // new TypeRef[] { new TypeRef(15), new TypeRef(18) }
+                return SyntaxFactory.ArrayCreationExpression(
+                    SyntaxFactory.ArrayType(SyntaxFactory.IdentifierName("TypeRef"))
+                        .WithRankSpecifiers(
+                            SyntaxFactory.SingletonList(
+                            SyntaxFactory.ArrayRankSpecifier(
+                                SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                    SyntaxFactory.OmittedArraySizeExpression())))),
+                    SyntaxFactory.InitializerExpression(
+                        SyntaxKind.ArrayInitializerExpression,
+                        SyntaxFactory.SeparatedList<ExpressionSyntax>(typeRefs)))
+                    .WithNewKeywordTrivia();
+            }
+            else
+            {
+                substitutionRequired = false;
+                return this.GetSyntaxToReconstructValue(value);
+            }
         }
 
         private ExpressionSyntax GetSyntaxToReconstructValue(object value)

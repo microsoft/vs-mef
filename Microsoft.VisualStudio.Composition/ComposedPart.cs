@@ -94,6 +94,22 @@
                             GetDiagnosticLocation(pair.Key),
                             GetDiagnosticLocation(export));
                     }
+
+                    // Some parts exist exclusively for their metadata and the parts themselves are not instantiable.
+                    // But that only makes sense if all importers do it lazily. If this part imports one of these
+                    // non-instantiable parts in a non-lazy fashion, it's doomed to fail at runtime, so call it a graph error.
+                    if (!pair.Key.IsLazy && !export.IsStaticExport && !export.PartDefinition.IsInstantiable)
+                    {
+                        // Special case around our export provider.
+                        if (export.ExportDefinition != ExportProvider.ExportProviderExportDefinition)
+                        {
+                            yield return new ComposedPartDiagnostic(
+                                this,
+                                "{0}: cannot import exported value from {1} because the exporting part cannot be instantiated. Is it missing an importing constructor?",
+                                GetDiagnosticLocation(pair.Key),
+                                GetDiagnosticLocation(export));
+                        }
+                    }
                 }
 
                 if (pair.Key.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && pair.Key.ImportingParameter != null && !IsAllowedImportManyParameterType(pair.Key.ImportingParameter.ParameterType))

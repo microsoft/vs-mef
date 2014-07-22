@@ -63,6 +63,56 @@
             }
         }
 
+        /// <summary>
+        /// Verifies that the assemblies that MEF parts belong to are only loaded when
+        /// their metadata is actually retrieved.
+        /// </summary>
+        [Fact]
+        public async Task ComposableAssembliesLazyLoadedByLazyMetadataDictionary()
+        {
+            var configuration = CompositionConfiguration.Create(
+                await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaDictionary), typeof(AnExportWithMetadataTypeValue)));
+            string dllPath = await SaveConfigurationAsync(configuration);
+
+            // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
+            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
+            try
+            {
+                var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
+                driver.Initialize(dllPath);
+                driver.TestPartThatImportsExportWithTypeMetadataViaDictionary(typeof(YetAnotherExport).Assembly.Location);
+            }
+            finally
+            {
+                AppDomain.Unload(appDomain);
+            }
+        }
+
+        /// <summary>
+        /// Verifies that the assemblies that MEF parts belong to are only loaded when
+        /// their metadata is actually retrieved.
+        /// </summary>
+        [Fact]
+        public async Task ComposableAssembliesLazyLoadedByLazyTMetadata()
+        {
+            var configuration = CompositionConfiguration.Create(
+                await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaTMetadata), typeof(AnExportWithMetadataTypeValue)));
+            string dllPath = await SaveConfigurationAsync(configuration);
+
+            // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
+            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
+            try
+            {
+                var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
+                driver.Initialize(dllPath);
+                driver.TestPartThatImportsExportWithTypeMetadataViaTMetadata(typeof(YetAnotherExport).Assembly.Location);
+            }
+            finally
+            {
+                AppDomain.Unload(appDomain);
+            }
+        }
+
         private static async Task<string> SaveConfigurationAsync(CompositionConfiguration configuration)
         {
             string rootpath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
@@ -103,6 +153,36 @@
                 var exportWithLazy = container.GetExportedValue<ExternalExportWithLazy>();
                 Assert.False(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 Assert.NotNull(exportWithLazy.YetAnotherExport.Value);
+                Assert.True(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            internal void TestPartThatImportsExportWithTypeMetadataViaDictionary(string lazyLoadedAssemblyPath)
+            {
+                Assert.False(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                var exportWithLazy = container.GetExportedValue<PartThatLazyImportsExportWithTypeMetadataViaDictionary>();
+                Assert.False(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                Assert.NotNull(exportWithLazy.ImportWithDictionary.Metadata.ContainsKey("foo"));
+                Assert.False(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                Type type = (Type)exportWithLazy.ImportWithDictionary.Metadata["SomeType"];
+                Type[] types = (Type[])exportWithLazy.ImportWithDictionary.Metadata["SomeTypes"];
+                Assert.Equal("YetAnotherExport", type.Name);
+                types.Single(t => t.Name == "String");
+                types.Single(t => t.Name == "YetAnotherExport");
+                Assert.True(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            internal void TestPartThatImportsExportWithTypeMetadataViaTMetadata(string lazyLoadedAssemblyPath)
+            {
+                Assert.False(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                var exportWithLazy = container.GetExportedValue<PartThatLazyImportsExportWithTypeMetadataViaTMetadata>();
+                Assert.False(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                Assert.Equal("default", exportWithLazy.ImportWithTMetadata.Metadata.SomeProperty);
+                Assert.False(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                Type type = exportWithLazy.ImportWithTMetadata.Metadata.SomeType;
+                Type[] types = exportWithLazy.ImportWithTMetadata.Metadata.SomeTypes;
+                Assert.Equal("YetAnotherExport", type.Name);
+                types.Single(t => t.Name == "String");
+                types.Single(t => t.Name == "YetAnotherExport");
                 Assert.True(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 

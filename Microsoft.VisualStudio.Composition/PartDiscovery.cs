@@ -37,7 +37,10 @@
         /// <param name="partType">The type to reflect over.</param>
         /// <returns>A new instance of <see cref="ComposablePartDefinition"/> if <paramref name="partType"/>
         /// represents a MEF part; otherwise <c>null</c>.</returns>
-        public abstract ComposablePartDefinition CreatePart(Type partType);
+        public ComposablePartDefinition CreatePart(Type partType)
+        {
+            return this.CreatePart(partType, true);
+        }
 
         public Task<DiscoveredParts> CreatePartsAsync(params Type[] partTypes)
         {
@@ -48,7 +51,7 @@
         {
             Requires.NotNull(partTypes, "partTypes");
 
-            var tuple = this.CreateDiscoveryBlockChain(cancellationToken);
+            var tuple = this.CreateDiscoveryBlockChain(true, cancellationToken);
             foreach (Type type in partTypes)
             {
                 await tuple.Item1.SendAsync(type);
@@ -65,18 +68,11 @@
         /// <param name="assembly">The assembly to search for MEF parts.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A set of generated parts.</returns>
-        public async Task<DiscoveredParts> CreatePartsAsync(Assembly assembly, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<DiscoveredParts> CreatePartsAsync(Assembly assembly, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(assembly, "assembly");
 
-            try
-            {
-                return await this.CreatePartsAsync(this.GetTypes(assembly), cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                return new DiscoveredParts(ImmutableHashSet<ComposablePartDefinition>.Empty, ImmutableList.Create(ex));
-            }
+            return this.CreatePartsAsync(new[] { assembly }, cancellationToken);
         }
 
         public abstract bool IsExportFactoryType(Type type);
@@ -91,10 +87,11 @@
         {
             Requires.NotNull(assemblies, "assemblies");
 
-            var tuple = this.CreateDiscoveryBlockChain(cancellationToken);
+            var tuple = this.CreateDiscoveryBlockChain(false, cancellationToken);
             var exceptions = new List<Exception>();
             var assemblyBlock = new TransformManyBlock<Assembly, Type>(
-                a => {
+                a =>
+                {
                     try
                     {
                         // Fully realize any enumerable now so that we can catch the exception rather than
@@ -265,6 +262,15 @@
         /// <returns>A sequence of types.</returns>
         protected abstract IEnumerable<Type> GetTypes(Assembly assembly);
 
+        /// <summary>
+        /// Reflects on a type and returns metadata on its role as a MEF part, if applicable.
+        /// </summary>
+        /// <param name="partType">The type to reflect over.</param>
+        /// <param name="typeExplicitlyRequested">A value indicating whether this type was explicitly requested for inclusion in the catalog.</param>
+        /// <returns>A new instance of <see cref="ComposablePartDefinition"/> if <paramref name="partType"/>
+        /// represents a MEF part; otherwise <c>null</c>.</returns>
+        protected abstract ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested);
+
         internal static bool IsImportManyCollectionTypeCreateable(ImportDefinitionBinding import)
         {
             Requires.NotNull(import, "import");
@@ -313,14 +319,14 @@
             return null;
         }
 
-        private Tuple<ITargetBlock<Type>, Task<DiscoveredParts>> CreateDiscoveryBlockChain(CancellationToken cancellationToken)
+        private Tuple<ITargetBlock<Type>, Task<DiscoveredParts>> CreateDiscoveryBlockChain(bool typeExplicitlyRequested, CancellationToken cancellationToken)
         {
             var transformBlock = new TransformBlock<Type, object>(
                 type =>
                 {
                     try
                     {
-                        return this.CreatePart(type);
+                        return this.CreatePart(type, typeExplicitlyRequested);
                     }
                     catch (Exception ex)
                     {
@@ -378,13 +384,13 @@
                 this.discoveryMechanisms = discoveryMechanisms;
             }
 
-            public override ComposablePartDefinition CreatePart(Type partType)
+            protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
             {
                 Requires.NotNull(partType, "partType");
 
                 foreach (var discovery in this.discoveryMechanisms)
                 {
-                    var result = discovery.CreatePart(partType);
+                    var result = discovery.CreatePart(partType, typeExplicitlyRequested);
                     if (result != null)
                     {
                         return result;
