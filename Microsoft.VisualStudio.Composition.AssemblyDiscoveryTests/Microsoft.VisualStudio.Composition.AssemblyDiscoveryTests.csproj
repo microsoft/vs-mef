@@ -67,6 +67,8 @@
     <Compile Include="DiscoverablePart2.cs" />
     <Compile Include="ISomeInterface.cs" />
     <Compile Include="NestedPart.cs" />
+    <Compile Include="NonDiscoverablePartV2.cs" />
+    <Compile Include="NonDiscoverablePartV1.cs" />
     <Compile Include="NonDiscoverablePart.cs" />
     <Compile Include="NonPart.cs" />
     <Compile Include="TypeWithMissingAttribute.cs" />

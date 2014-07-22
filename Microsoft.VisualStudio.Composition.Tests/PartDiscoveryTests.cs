@@ -58,7 +58,7 @@
 
         private class SketchyPartDiscovery : PartDiscovery
         {
-            public override ComposablePartDefinition CreatePart(Type partType)
+            protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
             {
                 if (partType == typeof(string))
                 {
@@ -88,7 +88,7 @@
 
         private class NoOpDiscovery : PartDiscovery
         {
-            public override ComposablePartDefinition CreatePart(Type partType)
+            protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
             {
                 return null;
             }

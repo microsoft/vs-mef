@@ -37,9 +37,14 @@
             }
         }
 
-        public override ComposablePartDefinition CreatePart(Type partType)
+        protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
         {
             Requires.NotNull(partType, "partType");
+
+            if (!typeExplicitlyRequested && partType.GetCustomAttribute<PartNotDiscoverableAttribute>() != null)
+            {
+                return null;
+            }
 
             var sharedAttribute = partType.GetCustomAttribute<SharedAttribute>();
             string sharingBoundary = null;
@@ -156,17 +161,7 @@
         {
             Requires.NotNull(assembly, "assembly");
 
-            return (this.IsNonPublicSupported ? assembly.GetTypes() : assembly.GetExportedTypes()).Where(type =>
-            {
-                try
-                {
-                    return type.GetCustomAttribute<PartNotDiscoverableAttribute>() == null;
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
-            });
+            return this.IsNonPublicSupported ? assembly.GetTypes() : assembly.GetExportedTypes();
         }
 
         private ImmutableDictionary<string, object> GetExportMetadata(IEnumerable<Attribute> attributes)
