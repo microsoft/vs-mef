@@ -54,7 +54,12 @@ using Xunit;
         /// <summary>
         /// Verifies that the Lazy{T} instance itself is shared across all importers.
         /// </summary>
-        [MefFact(CompositionEngines.Unspecified, typeof(ExportWithLazyImportOfSharedExport), typeof(SharedExport))]
+        /// <remarks>
+        /// This design goal has been retired. There are too many other concerns that are more impactful,
+        /// and getting this just right is quite tricky, and often Lazy's really can't be shared
+        /// across importers for various reasons.
+        /// </remarks>
+        ////[MefFact(CompositionEngines.Unspecified, typeof(ExportWithLazyImportOfSharedExport), typeof(SharedExport))]
         [Trait("Efficiency", "InstanceReuse")]
         public void LazyImportOfSharedExportHasSharedLazy(IContainer container)
         {
