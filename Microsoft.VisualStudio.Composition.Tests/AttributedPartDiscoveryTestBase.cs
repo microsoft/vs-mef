@@ -61,6 +61,21 @@
         }
 
         [Fact]
+        public async Task AssemblyDiscoveryOmitsNonDiscoverableParts_Combined()
+        {
+            var combined = PartDiscovery.Combine(this.DiscoveryService, new PartDiscoveryAllTypesMock());
+            var result = await combined.CreatePartsAsync(typeof(NonDiscoverablePart).Assembly);
+
+            Assert.False(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(NonPart))));
+            Assert.False(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(NonDiscoverablePart))));
+            Assert.False(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(NonDiscoverablePartV1))));
+            Assert.False(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(NonDiscoverablePartV2))));
+
+            Assert.True(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(DiscoverablePart1))));
+            Assert.True(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(DiscoverablePart2))));
+        }
+
+        [Fact]
         public async Task AssemblyDiscoveryFindsNestedParts()
         {
             var result = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).Assembly);
@@ -152,5 +167,26 @@
         }
 
         #endregion
+
+        /// <summary>
+        /// A discovery mock that produces no parts, but includes all types for consideration.
+        /// </summary>
+        private class PartDiscoveryAllTypesMock : PartDiscovery
+        {
+            public override ComposablePartDefinition CreatePart(Type partType)
+            {
+                return null;
+            }
+
+            public override bool IsExportFactoryType(Type type)
+            {
+                return false;
+            }
+
+            protected override IEnumerable<Type> GetTypes(Assembly assembly)
+            {
+                return assembly.GetTypes();
+            }
+        }
     }
 }
