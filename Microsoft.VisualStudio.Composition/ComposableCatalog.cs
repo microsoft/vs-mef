@@ -159,6 +159,9 @@
         {
             Requires.NotNull(parts, "parts");
 
+            // PERF: This has shown up on ETL traces as inefficient and expensive
+            //       WithPart should call WithParts instead, and WithParts should
+            //       execute a more efficient batch operation.
             return parts.Aggregate(this, (catalog, part) => catalog.WithPart(part));
         }
 
