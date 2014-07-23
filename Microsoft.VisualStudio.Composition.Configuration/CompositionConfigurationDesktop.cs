@@ -68,7 +68,7 @@
 
                 CSharpCompilation templateCompilation = CreateTemplateCompilation(assemblyName, debug);
 
-                var compilation = await AddGeneratedCodeAndDependenciesAsync(templateCompilation, configuration, sourceFile, cancellationToken);
+                var compilation = await AddGeneratedCodeAndDependenciesAsync(templateCompilation, configuration, sourceFile, debug, cancellationToken);
 
                 var result = compilation.Emit(
                     assemblyStream,
@@ -166,7 +166,7 @@
             }
         }
 
-        private static async Task<CSharpCompilation> AddGeneratedCodeAndDependenciesAsync(CSharpCompilation compilationTemplate, CompositionConfiguration configuration, Stream sourceFile = null, CancellationToken cancellationToken = default(CancellationToken))
+        private static async Task<CSharpCompilation> AddGeneratedCodeAndDependenciesAsync(CSharpCompilation compilationTemplate, CompositionConfiguration configuration, Stream sourceFile, bool debug, CancellationToken cancellationToken = default(CancellationToken))
         {
             var templateFactory = new CompositionTemplateFactory();
             templateFactory.Configuration = configuration;
@@ -193,7 +193,7 @@
             var assemblies = ImmutableHashSet.Create<Assembly>()
                 .Union(configuration.AdditionalReferenceAssemblies)
                 .Union(templateFactory.RelevantAssemblies);
-            var embeddedInteropAssemblies = CreateEmbeddedInteropAssemblies(templateFactory.RelevantEmbeddedTypes, assemblies);
+            var embeddedInteropAssemblies = CreateEmbeddedInteropAssemblies(templateFactory.RelevantEmbeddedTypes, assemblies, debug);
 
             // We don't actually embed interop types on referenced assemblies because if we do, some of our tests fails due to
             // the CLR's inability to type cast Lazy<NoPIA> objects across assembly boundaries.
@@ -289,7 +289,7 @@
                         .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))));
         }
 
-        private static IEnumerable<CSharpCompilation> CreateEmbeddedInteropAssemblies(IEnumerable<Type> embeddedTypes, IEnumerable<Assembly> referencedAssemblies)
+        private static IEnumerable<CSharpCompilation> CreateEmbeddedInteropAssemblies(IEnumerable<Type> embeddedTypes, IEnumerable<Assembly> referencedAssemblies, bool debug)
         {
             Requires.NotNull(embeddedTypes, "embeddedTypes");
             Requires.NotNull(referencedAssemblies, "referencedAssemblies");
@@ -304,6 +304,11 @@
             embeddedTypes = embeddedTypes.Distinct(EquivalentTypesComparer.Instance)
                 .Where(t => !referencedEmbeddableTypes.Contains(t.FullName));
 
+            if (!embeddedTypes.Any())
+            {
+                return Enumerable.Empty<CSharpCompilation>();
+            }
+
             var sourceFile = CreateTemplateEmbeddableTypesFile()
                 .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(embeddedTypes.Select(iface => DefineEmbeddableType(iface))));
 
@@ -316,10 +321,15 @@
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .AddReferences(assemblies.Select(r => MetadataFileReferenceProvider.Default.GetReference(r.Location, MetadataReferenceProperties.Assembly)));
 
-            var result = compilationUnit.Emit(Stream.Null);
-            if (!result.Success)
+            // We don't actually need to emit the assembly. We only do that if we think diagnostics will come out of a failed build and we need to know why.
+            // Perf wise, Emit is expensive even for something small like this, so we skip it when we can.
+            if (debug)
             {
-                throw new CompositionFailedException("Failed to generate embeddable types.");
+                var result = compilationUnit.Emit(Stream.Null);
+                if (!result.Success)
+                {
+                    throw new CompositionFailedException("Failed to generate embeddable types.");
+                }
             }
 
             return ImmutableList.Create(compilationUnit);
