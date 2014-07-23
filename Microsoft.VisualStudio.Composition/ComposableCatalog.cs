@@ -113,7 +113,7 @@
         public static ComposableCatalog Create(IEnumerable<ComposablePartDefinition> parts)
         {
             Requires.NotNull(parts, "parts");
-            return parts.Aggregate(Create(), (catalog, part) => catalog.WithPart(part));
+            return Create().WithParts(parts);
         }
 
         public static ComposableCatalog Create(DiscoveredParts parts)
@@ -127,7 +127,7 @@
             Requires.NotNull(partDefinition, "partDefinition");
 
             var parts = this.parts.Add(partDefinition);
-            if (parts.SetEquals(this.parts))
+            if (parts == this.parts)
             {
                 // This part is already in the catalog.
                 return this;
@@ -159,6 +159,9 @@
         {
             Requires.NotNull(parts, "parts");
 
+            // PERF: This has shown up on ETL traces as inefficient and expensive
+            //       WithPart should call WithParts instead, and WithParts should
+            //       execute a more efficient batch operation.
             return parts.Aggregate(this, (catalog, part) => catalog.WithPart(part));
         }
 

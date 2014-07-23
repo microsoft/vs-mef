@@ -12,12 +12,9 @@
 
     public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint
     {
-        private readonly ImmutableDictionary<string, MetadatumRequirement> metadataNamesAndTypes;
+        private static readonly ImportMetadataViewConstraint EmptyInstance = new ImportMetadataViewConstraint(ImmutableDictionary<string, MetadatumRequirement>.Empty);
 
-        public ImportMetadataViewConstraint(Type metadataView)
-            : this(GetRequiredMetadata(metadataView))
-        {
-        }
+        private readonly ImmutableDictionary<string, MetadatumRequirement> metadataNamesAndTypes;
 
         private ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> metadataNamesAndTypes)
         {
@@ -26,9 +23,36 @@
             this.metadataNamesAndTypes = ImmutableDictionary.CreateRange(metadataNamesAndTypes);
         }
 
+        /// <summary>
+        /// Creates a constraint for the specified metadata type.
+        /// </summary>
+        /// <param name="metadataType">The metadata type.</param>
+        /// <returns>A constraint to match the metadata type.</returns>
+        public static ImportMetadataViewConstraint GetConstraint(Type metadataType)
+        {
+            if (metadataType == null)
+            {
+                return EmptyInstance;
+            }
+
+            var requirements = GetRequiredMetadata(metadataType);
+            if (requirements.IsEmpty)
+            {
+                return EmptyInstance;
+            }
+
+            return new ImportMetadataViewConstraint(requirements);
+        }
+
         public bool IsSatisfiedBy(ExportDefinition exportDefinition)
         {
             Requires.NotNull(exportDefinition, "exportDefinition");
+
+            // Fast path since immutable dictionaries are slow to enumerate.
+            if (this.metadataNamesAndTypes.IsEmpty)
+            {
+                return true;
+            }
 
             foreach (var entry in this.metadataNamesAndTypes)
             {
@@ -109,8 +133,8 @@
 
                 foreach (var property in metadataView.EnumProperties().WherePublicInstance())
                 {
-                    bool required = property.GetCustomAttribute<DefaultValueAttribute>() == null;
-                    requiredMetadata.Add(property.Name, new MetadatumRequirement(property.PropertyType, required));
+                    bool required = !property.GetCustomAttributesCached<DefaultValueAttribute>().Any();
+                    requiredMetadata.Add(property.Name, new MetadatumRequirement(ReflectionHelpers.GetMemberType(property), required));
                 }
 
                 return requiredMetadata.ToImmutable();

@@ -37,7 +37,10 @@
             }
             else
             {
-                var sourceFileStream = new MemoryStream();
+                Stream sourceFileStream = null;
+#if DEBUG
+                sourceFileStream = new MemoryStream();
+#endif
                 try
                 {
                     var exportProvider = configuration.CreateContainerFactoryAsync(sourceFileStream, Console.Out).Result.CreateExportProvider();
@@ -45,40 +48,43 @@
                 }
                 finally
                 {
-                    bool includeLineNumbers;
-                    TextWriter sourceFileWriter;
-                    if (sourceFileStream.Length < 200 * 1024) // the test results window doesn't do well with large output
+                    if (sourceFileStream != null)
                     {
-                        includeLineNumbers = true;
-                        sourceFileWriter = Console.Out;
-                    }
-                    else
-                    {
-                        // Write to a file instead and then emit its path to the output window.
-                        string sourceFileName = Path.GetTempFileName() + ".cs";
-                        sourceFileWriter = new StreamWriter(File.OpenWrite(sourceFileName));
-                        Console.WriteLine("Source file written to: {0}", sourceFileName);
-                        includeLineNumbers = false;
-                    }
-
-                    sourceFileStream.Position = 0;
-                    var sourceFileReader = new StreamReader(sourceFileStream);
-                    int lineNumber = 0;
-                    string line;
-                    while ((line = sourceFileReader.ReadLine()) != null)
-                    {
-                        if (includeLineNumbers)
+                        bool includeLineNumbers;
+                        TextWriter sourceFileWriter;
+                        if (sourceFileStream.Length < 200 * 1024) // the test results window doesn't do well with large output
                         {
-                            sourceFileWriter.Write("Line {0,5}: ", ++lineNumber);
+                            includeLineNumbers = true;
+                            sourceFileWriter = Console.Out;
+                        }
+                        else
+                        {
+                            // Write to a file instead and then emit its path to the output window.
+                            string sourceFileName = Path.GetTempFileName() + ".cs";
+                            sourceFileWriter = new StreamWriter(File.OpenWrite(sourceFileName));
+                            Console.WriteLine("Source file written to: {0}", sourceFileName);
+                            includeLineNumbers = false;
                         }
 
-                        sourceFileWriter.WriteLine(line);
-                    }
+                        sourceFileStream.Position = 0;
+                        var sourceFileReader = new StreamReader(sourceFileStream);
+                        int lineNumber = 0;
+                        string line;
+                        while ((line = sourceFileReader.ReadLine()) != null)
+                        {
+                            if (includeLineNumbers)
+                            {
+                                sourceFileWriter.Write("Line {0,5}: ", ++lineNumber);
+                            }
 
-                    sourceFileWriter.Flush();
-                    if (sourceFileWriter != Console.Out)
-                    {
-                        sourceFileWriter.Close();
+                            sourceFileWriter.WriteLine(line);
+                        }
+
+                        sourceFileWriter.Flush();
+                        if (sourceFileWriter != Console.Out)
+                        {
+                            sourceFileWriter.Close();
+                        }
                     }
                 }
             }

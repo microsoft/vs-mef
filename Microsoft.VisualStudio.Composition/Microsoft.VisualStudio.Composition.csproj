@@ -114,7 +114,8 @@
     <Compile Include="ExportDefinition.cs" />
     <Compile Include="ExportProvider.cs" />
     <Compile Include="ImportDefinition.cs" />
-    <Compile Include="Properties\assemblyInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReflectionCache.cs" />
     <Compile Include="ReflectionHelpers.cs" />
     <Compile Include="UniquePropertyNameComparer.cs" />
     <Compile Include="Utilities.cs" />

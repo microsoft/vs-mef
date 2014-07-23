@@ -41,12 +41,12 @@
         {
             Requires.NotNull(partType, "partType");
 
-            if (!typeExplicitlyRequested && partType.GetCustomAttribute<PartNotDiscoverableAttribute>() != null)
+            if (!typeExplicitlyRequested && partType.GetCustomAttributesCached<PartNotDiscoverableAttribute>().Any())
             {
                 return null;
             }
 
-            var sharedAttribute = partType.GetCustomAttribute<SharedAttribute>();
+            var sharedAttribute = partType.GetCustomAttributesCached<SharedAttribute>().FirstOrDefault();
             string sharingBoundary = null;
             if (sharedAttribute != null)
             {
@@ -59,9 +59,9 @@
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
             var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
-            var exportMetadataOnType = allExportsMetadata.AddRange(this.GetExportMetadata(partType.GetCustomAttributes()));
+            var exportMetadataOnType = allExportsMetadata.AddRange(this.GetExportMetadata(partType.GetCustomAttributesCached()));
 
-            foreach (var exportAttribute in partType.GetCustomAttributes<ExportAttribute>())
+            foreach (var exportAttribute in partType.GetCustomAttributesCached<ExportAttribute>())
             {
                 var partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
                 Type exportedType = exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? partType;
@@ -74,26 +74,26 @@
 
             foreach (var member in partType.GetProperties(BindingFlags.Instance | this.PublicVsNonPublicFlags))
             {
-                var importAttribute = member.GetCustomAttribute<ImportAttribute>(inherit: false);
-                var importManyAttribute = member.GetCustomAttribute<ImportManyAttribute>(inherit: false);
-                var exportAttributes = member.GetCustomAttributes<ExportAttribute>(inherit: false);
+                var importAttribute = member.GetCustomAttributesCached<ImportAttribute>().FirstOrDefault();
+                var importManyAttribute = member.GetCustomAttributesCached<ImportManyAttribute>().FirstOrDefault();
+                var exportAttributes = member.GetCustomAttributesCached<ExportAttribute>();
                 Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", "Member \"{0}\" contains both ImportAttribute and ImportManyAttribute.", member.Name);
                 Requires.Argument(!(exportAttributes.Any() && (importAttribute != null || importManyAttribute != null)), "partType", "Member \"{0}\" contains both import and export attributes.", member.Name);
 
-                var importConstraints = GetImportConstraints(member.GetCustomAttributes<ImportMetadataConstraintAttribute>(inherit: false));
+                var importConstraints = GetImportConstraints(member.GetCustomAttributesCached<ImportMetadataConstraintAttribute>());
                 ImportDefinition importDefinition;
-                if (TryCreateImportDefinition(member.PropertyType, member.GetCustomAttributes(inherit: false).OfType<Attribute>(), importConstraints, out importDefinition))
+                if (TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member.GetCustomAttributesCached(), importConstraints, out importDefinition))
                 {
                     imports.Add(new ImportDefinitionBinding(importDefinition, partType, member));
                 }
                 else if (exportAttributes.Any())
                 {
                     Verify.Operation(!partType.IsGenericTypeDefinition, "Exports on members not allowed when the declaring type is generic.");
-                    var exportMetadataOnMember = allExportsMetadata.AddRange(this.GetExportMetadata(member.GetCustomAttributes()));
+                    var exportMetadataOnMember = allExportsMetadata.AddRange(this.GetExportMetadata(member.GetCustomAttributesCached()));
                     var exportDefinitions = ImmutableList.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
-                        Type exportedType = exportAttribute.ContractType ?? member.PropertyType;
+                        Type exportedType = exportAttribute.ContractType ?? ReflectionHelpers.GetMemberType(member);
                         string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
                         var exportMetadata = exportMetadataOnMember
                             .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
@@ -108,7 +108,7 @@
             MethodInfo onImportsSatisfied = null;
             foreach (var method in partType.GetMethods(this.PublicVsNonPublicFlags | BindingFlags.Instance))
             {
-                if (method.GetCustomAttribute<OnImportsSatisfiedAttribute>() != null)
+                if (method.GetCustomAttributesCached<OnImportsSatisfiedAttribute>().Any())
                 {
                     Verify.Operation(method.GetParameters().Length == 0, "OnImportsSatisfied method should take no parameters.");
                     Verify.Operation(onImportsSatisfied == null, "Only one OnImportsSatisfied method is supported.");
@@ -119,14 +119,14 @@
             if (exportsOnMembers.Count > 0 || exportsOnType.Count > 0)
             {
                 var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
-                var importingCtor = GetImportingConstructor(partType, typeof(ImportingConstructorAttribute), publicOnly: !this.IsNonPublicSupported);
+                var importingCtor = GetImportingConstructor<ImportingConstructorAttribute>(partType, publicOnly: !this.IsNonPublicSupported);
                 Verify.Operation(importingCtor != null, "No importing constructor found.");
                 foreach (var parameter in importingCtor.GetParameters())
                 {
                     var import = CreateImport(
                             parameter,
-                            parameter.GetCustomAttributes(),
-                            GetImportConstraints(parameter.GetCustomAttributes()));
+                            parameter.GetCustomAttributesCached(),
+                            GetImportConstraints(parameter.GetCustomAttributesCached()));
                     if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
                     {
                         Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(import), "Collection must be public with a public constructor when used with an [ImportingConstructor].");
@@ -177,12 +177,12 @@
                 {
                     UpdateMetadataDictionary(result, namesOfMetadataWithMultipleValues, exportMetadataAttribute.Name, exportMetadataAttribute.Value, null);
                 }
-                else if (attribute.GetType().GetCustomAttribute<MetadataAttributeAttribute>() != null)
+                else if (attribute.GetType().GetCustomAttributesCached<MetadataAttributeAttribute>().Any())
                 {
                     var properties = attribute.GetType().GetProperties(this.PublicVsNonPublicFlags | BindingFlags.Instance);
                     foreach (var property in properties.Where(p => p.DeclaringType != typeof(Attribute)))
                     {
-                        UpdateMetadataDictionary(result, namesOfMetadataWithMultipleValues, property.Name, property.GetValue(attribute), property.PropertyType);
+                        UpdateMetadataDictionary(result, namesOfMetadataWithMultipleValues, property.Name, property.GetValue(attribute), ReflectionHelpers.GetMemberType(property));
                     }
                 }
             }
