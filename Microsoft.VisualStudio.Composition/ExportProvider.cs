@@ -39,8 +39,16 @@
         /// </summary>
         protected static readonly ImmutableDictionary<string, object> EmptyMetadata = ImmutableDictionary.Create<string, object>();
 
+        /// <summary>
+        /// An array initialized by the generated code derived class that contains the value of 
+        /// AssemblyName.FullName for each assembly that must be reflected into.
+        /// </summary>
         protected string[] assemblyNames;
 
+        /// <summary>
+        /// An array initialized by the generated code derived class that contains the value of 
+        /// AssemblyName.CodeBasePath for each assembly that must be reflected into.
+        /// </summary>
         protected string[] assemblyCodeBasePaths;
 
         /// <summary>
