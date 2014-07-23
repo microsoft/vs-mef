@@ -267,7 +267,7 @@
                                 SyntaxFactory.LiteralExpression(
                                     SyntaxKind.StringLiteralExpression,
                                     SyntaxFactory.Literal(iface.GUID.ToString())))))));
-            var ifaceType = iface.GetCustomAttribute<System.Runtime.InteropServices.InterfaceTypeAttribute>();
+            var ifaceType = iface.GetCustomAttributesCached<System.Runtime.InteropServices.InterfaceTypeAttribute>().FirstOrDefault();
             if (ifaceType != null)
             {
                 attributes.Add(SyntaxFactory.Attribute(SyntaxFactory.IdentifierName(@"InterfaceType"))
@@ -297,7 +297,7 @@
             var referencedEmbeddableTypes = new HashSet<string>(from assembly in referencedAssemblies
                                                                 where assembly.IsEmbeddableAssembly()
                                                                 from type in assembly.GetExportedTypes()
-                                                                where type.GetCustomAttribute<TypeIdentifierAttribute>() == null // embedded types are not embeddable -- we'll have to synthesize them ourselves
+                                                                where !type.GetCustomAttributesCached<TypeIdentifierAttribute>().Any() // embedded types are not embeddable -- we'll have to synthesize them ourselves
                                                                 select type.FullName);
 
             embeddedTypes = embeddedTypes.Distinct(EquivalentTypesComparer.Instance)

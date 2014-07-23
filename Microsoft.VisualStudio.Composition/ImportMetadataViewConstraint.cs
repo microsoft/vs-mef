@@ -133,8 +133,8 @@
 
                 foreach (var property in metadataView.EnumProperties().WherePublicInstance())
                 {
-                    bool required = property.GetCustomAttribute<DefaultValueAttribute>() == null;
-                    requiredMetadata.Add(property.Name, new MetadatumRequirement(property.PropertyType, required));
+                    bool required = !property.GetCustomAttributesCached<DefaultValueAttribute>().Any();
+                    requiredMetadata.Add(property.Name, new MetadatumRequirement(ReflectionHelpers.GetMemberType(property), required));
                 }
 
                 return requiredMetadata.ToImmutable();

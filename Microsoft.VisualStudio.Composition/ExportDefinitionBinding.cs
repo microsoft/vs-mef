@@ -48,16 +48,9 @@
                     return this.PartDefinition.Type;
                 }
 
-                var exportingField = this.ExportingMember as FieldInfo;
-                if (exportingField != null)
+                if (this.ExportingMember is FieldInfo || this.ExportingMember is PropertyInfo)
                 {
-                    return exportingField.FieldType;
-                }
-
-                var exportingProperty = this.ExportingMember as PropertyInfo;
-                if (exportingProperty != null)
-                {
-                    return exportingProperty.PropertyType;
+                    return ReflectionHelpers.GetMemberType(this.ExportingMember);
                 }
 
                 var exportingMethod = this.ExportingMember as MethodInfo;

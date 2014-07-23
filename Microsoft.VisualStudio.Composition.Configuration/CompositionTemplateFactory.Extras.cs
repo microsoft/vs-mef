@@ -281,7 +281,7 @@
                                 metadataDictionary)))))
                 .AddMembers(
                     interfaceType.EnumProperties().WherePublicInstance().Select(member =>
-                        SyntaxFactory.PropertyDeclaration(this.GetTypeNameSyntax(member.PropertyType), member.Name)
+                        SyntaxFactory.PropertyDeclaration(this.GetTypeNameSyntax(ReflectionHelpers.GetMemberType(member)), member.Name)
                             .WithExplicitInterfaceSpecifier(SyntaxFactory.ExplicitInterfaceSpecifier(SyntaxFactory.ParseName(member.DeclaringType.FullName.Replace('+', '.'))))
                             .AddAccessorListAccessors(
                                 SyntaxFactory.AccessorDeclaration(
@@ -1735,15 +1735,15 @@
                 metadata,
                 SyntaxFactory.BracketedArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
                     SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(property.Name))))));
-            var elementAccessWithCast = property.PropertyType.IsValueType
-                ? (ExpressionSyntax)SyntaxFactory.CastExpression(this.GetTypeNameSyntax(property.PropertyType), elementAccess)
-                : SyntaxFactory.BinaryExpression(SyntaxKind.AsExpression, elementAccess, this.GetTypeNameSyntax(property.PropertyType));
+            var elementAccessWithCast = ReflectionHelpers.GetMemberType(property).IsValueType
+                ? (ExpressionSyntax)SyntaxFactory.CastExpression(this.GetTypeNameSyntax(ReflectionHelpers.GetMemberType(property)), elementAccess)
+                : SyntaxFactory.BinaryExpression(SyntaxKind.AsExpression, elementAccess, this.GetTypeNameSyntax(ReflectionHelpers.GetMemberType(property)));
 
-            var defaultValueAttribute = property.GetCustomAttribute<DefaultValueAttribute>();
+            var defaultValueAttribute = property.GetCustomAttributesCached<DefaultValueAttribute>().FirstOrDefault();
             if (defaultValueAttribute != null)
             {
                 var defaultValue = SyntaxFactory.CastExpression(
-                    this.GetTypeNameSyntax(property.PropertyType),
+                    this.GetTypeNameSyntax(ReflectionHelpers.GetMemberType(property)),
                     GetSyntaxToReconstructValue(defaultValueAttribute.Value));
 
                 return SyntaxFactory.ConditionalExpression(
@@ -1807,7 +1807,7 @@
                 return false;
             }
 
-            var obsoleteAttribute = memberInfo.GetCustomAttribute<ObsoleteAttribute>();
+            var obsoleteAttribute = memberInfo.GetCustomAttributesCached<ObsoleteAttribute>().FirstOrDefault();
             if (obsoleteAttribute != null && obsoleteAttribute.IsError)
             {
                 // It would generate a compile error if we referenced this member directly, so consider it non-public.
@@ -1820,13 +1820,13 @@
                     return ((ConstructorInfo)memberInfo).IsPublic;
                 case MemberTypes.Field:
                     var fieldInfo = (FieldInfo)memberInfo;
-                    return fieldInfo.IsPublic && IsPublic(fieldInfo.FieldType, true); // we have to check the type in case it contains embedded generic type arguments
+                    return fieldInfo.IsPublic && IsPublic(ReflectionHelpers.GetMemberType(fieldInfo), true); // we have to check the type in case it contains embedded generic type arguments
                 case MemberTypes.Method:
                     return ((MethodInfo)memberInfo).IsPublic;
                 case MemberTypes.Property:
                     var property = (PropertyInfo)memberInfo;
                     var method = setter ? property.GetSetMethod(true) : property.GetGetMethod(true);
-                    return IsPublic(method, reflectedType) && IsPublic(property.PropertyType, true); // we have to check the type in case it contains embedded generic type arguments
+                    return IsPublic(method, reflectedType) && IsPublic(ReflectionHelpers.GetMemberType(property), true); // we have to check the type in case it contains embedded generic type arguments
                 default:
                     throw new NotSupportedException();
             }

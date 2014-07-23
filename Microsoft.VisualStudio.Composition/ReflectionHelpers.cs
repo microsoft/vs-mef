@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
@@ -13,6 +14,8 @@
     public static class ReflectionHelpers
     {
         private static readonly MethodInfo CastAsFuncMethodInfo = new Func<Func<object>, Delegate>(CastAsFunc<object>).GetMethodInfo().GetGenericMethodDefinition();
+
+        internal static readonly ReflectionCache Cache = new ReflectionCache();
 
         /// <summary>
         /// Creates a <see cref="Func{T}"/> delegate for a given <see cref="Func{Object}"/> delegate.
@@ -132,7 +135,7 @@
             Requires.NotNull(type, "type");
 
             var byType = from t in EnumTypeAndBaseTypes(type)
-                         from attribute in t.GetTypeInfo().GetCustomAttributes<T>(false)
+                         from attribute in Cache.GetCustomAttributes(t.GetTypeInfo()).OfType<T>()
                          group attribute by t into attributesByType
                          select attributesByType;
             foreach (var group in byType)
@@ -141,13 +144,29 @@
             }
 
             var byInterface = from t in type.GetTypeInfo().ImplementedInterfaces
-                              from attribute in t.GetTypeInfo().GetCustomAttributes<T>(false)
+                              from attribute in Cache.GetCustomAttributes(t.GetTypeInfo()).OfType<T>()
                               group attribute by t into attributesByType
                               select attributesByType;
             foreach (var group in byInterface)
             {
                 yield return group;
             }
+        }
+
+        internal static ImmutableArray<Attribute> GetCustomAttributesCached(this MemberInfo member)
+        {
+            return Cache.GetCustomAttributes(member);
+        }
+
+        internal static ImmutableArray<Attribute> GetCustomAttributesCached(this ParameterInfo parameter)
+        {
+            return Cache.GetCustomAttributes(parameter);
+        }
+
+        internal static IEnumerable<T> GetCustomAttributesCached<T>(this MemberInfo member)
+            where T : Attribute
+        {
+            return Cache.GetCustomAttributes(member).OfType<T>();
         }
 
         internal static IEnumerable<PropertyInfo> WherePublicInstance(this IEnumerable<PropertyInfo> infos)
@@ -231,21 +250,7 @@
 
         internal static Type GetMemberType(MemberInfo fieldOrProperty)
         {
-            Requires.NotNull(fieldOrProperty, "fieldOrProperty");
-
-            var property = fieldOrProperty as PropertyInfo;
-            if (property != null)
-            {
-                return property.PropertyType;
-            }
-
-            var field = fieldOrProperty as FieldInfo;
-            if (field != null)
-            {
-                return field.FieldType;
-            }
-
-            throw new ArgumentException("Unexpected member type.");
+            return Cache.GetMemberType(fieldOrProperty);
         }
 
         internal static bool IsPublicInstance(this MethodInfo methodInfo)
@@ -459,7 +464,7 @@
             {
                 // TypeIdentifierAttribute signifies an embeddED type.
                 // ComImportAttribute suggests an embeddABLE type.
-                if (typeInfo.GetCustomAttribute<TypeIdentifierAttribute>() != null && typeInfo.GetCustomAttribute<GuidAttribute>() != null)
+                if (typeInfo.GetCustomAttributesCached<TypeIdentifierAttribute>().Any() && typeInfo.GetCustomAttributesCached<GuidAttribute>().Any())
                 {
                     return true;
                 }
@@ -472,7 +477,7 @@
         {
             Requires.NotNull(assembly, "assembly");
 
-            return assembly.GetCustomAttributes()
+            return Cache.GetCustomAttributes(assembly)
                 .Any(a => a.GetType().FullName == "System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute"
                     || a.GetType().FullName == "System.Runtime.InteropServices.ImportedFromTypeLibAttribute");
         }
