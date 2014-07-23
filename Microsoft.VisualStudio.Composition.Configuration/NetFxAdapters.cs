@@ -14,6 +14,7 @@
     {
         private static readonly ComposablePartDefinition compositionServicePart = (new AttributedPartDiscoveryV1()).CreatePart(typeof(CompositionService));
         private static readonly ComposablePartDefinition metadataViewImplProxyPart = (new AttributedPartDiscoveryV1()).CreatePart(typeof(MetadataViewImplProxy));
+        private static readonly ComposablePartDefinition assemblyNameCodeBasePathPath = (new AttributedPartDiscoveryV1()).CreatePart(typeof(AssemblyLoadCodeBasePathLoader));
 
         /// <summary>
         /// Creates an instance of a <see cref="MefV1.Hosting.ExportProvider"/>
@@ -46,6 +47,19 @@
             Requires.NotNull(catalog, "catalog");
 
             return catalog.WithPart(metadataViewImplProxyPart);
+        }
+
+        /// <summary>
+        /// Adds the ability to load assemblies on demand based on their known location on disk when the
+        /// catalog is initially created.
+        /// </summary>
+        /// <param name="catalog">The catalog to add the capability to.</param>
+        /// <returns>The catalog with the added capability.</returns>
+        public static ComposableCatalog WithAssemblyCodeBasePathLoading(this ComposableCatalog catalog)
+        {
+            Requires.NotNull(catalog, "catalog");
+
+            return catalog.WithPart(assemblyNameCodeBasePathPath);
         }
 
         private class MefV1ExportProvider : MefV1.Hosting.ExportProvider
@@ -174,6 +188,27 @@
                 }
 
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// An assembly loader that includes the code base path so we can load assemblies by path when necessary.
+        /// </summary>
+        [MefV1.Export(typeof(IAssemblyLoader))]
+        [MefV1.ExportMetadata("OrderPrecedence", 100)] // should take precedence over one without codebase path handling
+        private class AssemblyLoadCodeBasePathLoader : IAssemblyLoader
+        {
+            public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
+            {
+                Requires.NotNullOrEmpty(assemblyFullName, "assemblyFullName");
+
+                var assemblyName = new AssemblyName(assemblyFullName);
+                if (!string.IsNullOrEmpty(codeBasePath))
+                {
+                    assemblyName.CodeBase = codeBasePath;
+                }
+
+                return Assembly.Load(assemblyName);
             }
         }
     }

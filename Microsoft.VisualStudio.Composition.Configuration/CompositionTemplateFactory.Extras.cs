@@ -185,6 +185,38 @@
                                 SyntaxFactory.Argument(parentIdentifier),
                                 SyntaxFactory.Argument(freshSharingBoundaries))))))
                 .WithBody(SyntaxFactory.Block(
+                // this.assemblyNames
+                    SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
+                        SyntaxKind.SimpleAssignmentExpression,
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.ThisExpression(),
+                            SyntaxFactory.IdentifierName("assemblyNames")),
+                        SyntaxFactory.ArrayCreationExpression(SyntaxFactory.ArrayType(
+                            this.GetTypeNameSyntax(typeof(string)),
+                            SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(this.reflectionLoadedAssemblies.Count)))))),
+                            SyntaxFactory.InitializerExpression(
+                                SyntaxKind.ArrayInitializerExpression,
+                                CodeGen.JoinSyntaxNodes(
+                                    SyntaxKind.CommaToken,
+                                    this.reflectionLoadedAssemblies.Select(a => GetSyntaxToReconstructValue(a.FullName)).ToArray()))))),
+                // this.assemblyCodeBasePaths
+                    SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
+                        SyntaxKind.SimpleAssignmentExpression,
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.ThisExpression(),
+                            SyntaxFactory.IdentifierName("assemblyCodeBasePaths")),
+                        SyntaxFactory.ArrayCreationExpression(SyntaxFactory.ArrayType(
+                            this.GetTypeNameSyntax(typeof(string)),
+                            SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
+                                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(this.reflectionLoadedAssemblies.Count)))))),
+                            SyntaxFactory.InitializerExpression(
+                                SyntaxKind.ArrayInitializerExpression,
+                                CodeGen.JoinSyntaxNodes(
+                                    SyntaxKind.CommaToken,
+                                    this.reflectionLoadedAssemblies.Select(a => GetSyntaxToReconstructValue(a.CodeBase)).ToArray()))))),
                 // this.cachedManifests = new Module[<#= reflectionLoadedAssemblies.Count #>];
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
@@ -222,7 +254,6 @@
                 .AddMembers(
                     this.CreateGetTypeIdCoreMethod(),
                     this.CreateGetTypeCoreMethod(),
-                    this.CreateGetAssemblyNameMethod(),
                     this.CreateDefaultConstructor(),
                     this.CreateScopingConstructor());
 
@@ -2079,52 +2110,6 @@
                     SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(nonSharedInstanceRequired ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression)))));
 
             return invocation;
-        }
-
-        /// <summary>
-        /// Creates the syntax for the ExportProvider.GetAssemblyName method override.
-        /// </summary>
-        private MemberDeclarationSyntax CreateGetAssemblyNameMethod()
-        {
-            var assemblyIdParameter = SyntaxFactory.IdentifierName("assemblyId");
-            var method = SyntaxFactory.MethodDeclaration(
-                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                "GetAssemblyName")
-                .AddModifiers(
-                    SyntaxFactory.Token(SyntaxKind.ProtectedKeyword),
-                    SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
-                .WithParameterList(SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList<ParameterSyntax>(
-                    SyntaxFactory.Parameter(
-                        SyntaxFactory.List<AttributeListSyntax>(),
-                        SyntaxFactory.TokenList(),
-                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
-                        assemblyIdParameter.Identifier,
-                        null))));
-
-            var switchStatement = SyntaxFactory.SwitchStatement(assemblyIdParameter);
-
-            for (int i = 0; i < this.reflectionLoadedAssemblies.Count; i++)
-            {
-                Assembly assembly = this.reflectionLoadedAssemblies[i];
-                var label = SyntaxFactory.SingletonList<SwitchLabelSyntax>(
-                    SyntaxFactory.SwitchLabel(
-                        SyntaxKind.CaseSwitchLabel,
-                        SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(i))));
-                var statement = SyntaxFactory.ReturnStatement(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(assembly.FullName)));
-                var section = SyntaxFactory.SwitchSection(label, SyntaxFactory.SingletonList<StatementSyntax>(statement));
-                switchStatement = switchStatement.AddSections(section);
-            }
-
-            switchStatement = switchStatement.AddSections(SyntaxFactory.SwitchSection(
-                SyntaxFactory.SingletonList<SwitchLabelSyntax>(
-                    SyntaxFactory.SwitchLabel(SyntaxKind.DefaultSwitchLabel)),
-                SyntaxFactory.SingletonList<StatementSyntax>(
-                    SyntaxFactory.ThrowStatement(
-                        SyntaxFactory.ObjectCreationExpression(this.GetTypeNameSyntax(typeof(ArgumentOutOfRangeException)))
-                            .WithArgumentList(SyntaxFactory.ArgumentList())))));
-
-            method = method.WithBody(SyntaxFactory.Block(switchStatement));
-            return method;
         }
 
         private MemberDeclarationSyntax CreateGetTypeIdCoreMethod()
