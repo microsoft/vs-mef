@@ -170,11 +170,12 @@
         {
             var templateFactory = new CompositionTemplateFactory();
             templateFactory.Configuration = configuration;
-            var source = templateFactory.CreateSourceFile().NormalizeWhitespace();
+            var source = templateFactory.CreateSourceFile();
 
             SyntaxTree syntaxTree = source.SyntaxTree;
             if (sourceFile != null)
             {
+                source = source.NormalizeWhitespace();
                 FileStream sourceFileStream = sourceFile as FileStream;
                 string sourceFilePath = sourceFileStream != null ? sourceFileStream.Name : null;
                 Encoding encoding = new UTF8Encoding(true);
@@ -304,8 +305,7 @@
                 .Where(t => !referencedEmbeddableTypes.Contains(t.FullName));
 
             var sourceFile = CreateTemplateEmbeddableTypesFile()
-                .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(embeddedTypes.Select(iface => DefineEmbeddableType(iface))))
-                .NormalizeWhitespace();
+                .WithMembers(SyntaxFactory.List<MemberDeclarationSyntax>(embeddedTypes.Select(iface => DefineEmbeddableType(iface))));
 
             var assemblies = ImmutableHashSet.Create<Assembly>(
                 typeof(Guid).Assembly,
