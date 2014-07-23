@@ -11,13 +11,13 @@
 
     internal class ReflectionCache
     {
-        private Dictionary<Assembly, ImmutableArray<Attribute>> assemblyAttributes = new Dictionary<Assembly, ImmutableArray<Attribute>>();
+        private readonly Dictionary<Assembly, ImmutableArray<Attribute>> assemblyAttributes = new Dictionary<Assembly, ImmutableArray<Attribute>>();
 
-        private Dictionary<MemberInfo, ImmutableArray<Attribute>> memberAttributes = new Dictionary<MemberInfo, ImmutableArray<Attribute>>();
+        private readonly Dictionary<MemberInfo, ImmutableArray<Attribute>> memberAttributes = new Dictionary<MemberInfo, ImmutableArray<Attribute>>();
 
-        private Dictionary<ParameterInfo, ImmutableArray<Attribute>> parameterAttributes = new Dictionary<ParameterInfo, ImmutableArray<Attribute>>();
+        private readonly Dictionary<ParameterInfo, ImmutableArray<Attribute>> parameterAttributes = new Dictionary<ParameterInfo, ImmutableArray<Attribute>>();
 
-        private Dictionary<MemberInfo, Type> memberType = new Dictionary<MemberInfo, Type>();
+        private readonly Dictionary<MemberInfo, Type> memberType = new Dictionary<MemberInfo, Type>();
 
         internal ImmutableArray<Attribute> GetCustomAttributes(Assembly assembly)
         {
