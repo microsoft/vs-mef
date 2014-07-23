@@ -98,6 +98,7 @@
     <Compile Include="ExportFactory.cs" />
     <Compile Include="Export.cs" />
     <Compile Include="ExportTypeIdentityConstraint.cs" />
+    <Compile Include="IAssemblyLoader.cs" />
     <Compile Include="IHasValueAndMetadata.cs" />
     <Compile Include="IMetadataViewProvider.cs" />
     <Compile Include="ImportMetadataViewConstraint.cs" />
