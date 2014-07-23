@@ -13,6 +13,8 @@
 
     public static class ReflectionHelpers
     {
+        private static readonly Assembly mscorlib = typeof(int).GetTypeInfo().Assembly;
+
         private static readonly MethodInfo CastAsFuncMethodInfo = new Func<Func<object>, Delegate>(CastAsFunc<object>).GetMethodInfo().GetGenericMethodDefinition();
 
         internal static readonly ReflectionCache Cache = new ReflectionCache();
@@ -317,35 +319,35 @@
             return result;
         }
 
-        private static void AddEmbeddedInterfaces(Type type, HashSet<Type> relevantEmbeddedTypes, HashSet<Type> observedTypes = null)
+        private static void AddEmbeddedInterfaces(Type type, HashSet<Type> relevantEmbeddedTypes, ImmutableStack<Type> observedTypes = null)
         {
             Requires.NotNull(type, "type");
             Requires.NotNull(relevantEmbeddedTypes, "relevantEmbeddedTypes");
 
-            if (observedTypes == null)
-            {
-                observedTypes = new HashSet<Type>();
-            }
-
-            if (!observedTypes.Add(type))
+            observedTypes = observedTypes ?? ImmutableStack<Type>.Empty;
+            if (observedTypes.Contains(type))
             {
                 // avoid stackoverflow (when T implements IComparable<T>, for example).
                 return;
             }
 
-            if (type.IsEmbeddedType())
+            observedTypes = observedTypes.Push(type);
+            if (type.GetTypeInfo().Assembly != mscorlib)
             {
-                relevantEmbeddedTypes.Add(type);
-            }
+                if (type.IsEmbeddedType())
+                {
+                    relevantEmbeddedTypes.Add(type);
+                }
 
-            if (type.GetTypeInfo().BaseType != null)
-            {
-                AddEmbeddedInterfaces(type.GetTypeInfo().BaseType, relevantEmbeddedTypes, observedTypes);
-            }
+                if (type.GetTypeInfo().BaseType != null)
+                {
+                    AddEmbeddedInterfaces(type.GetTypeInfo().BaseType, relevantEmbeddedTypes, observedTypes);
+                }
 
-            foreach (Type iface in type.GetTypeInfo().ImplementedInterfaces)
-            {
-                AddEmbeddedInterfaces(iface, relevantEmbeddedTypes, observedTypes);
+                foreach (Type iface in type.GetTypeInfo().ImplementedInterfaces)
+                {
+                    AddEmbeddedInterfaces(iface, relevantEmbeddedTypes, observedTypes);
+                }
             }
 
             if (type.GetTypeInfo().IsGenericType)

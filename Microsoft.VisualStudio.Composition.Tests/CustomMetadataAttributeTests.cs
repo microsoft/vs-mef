@@ -19,6 +19,20 @@
             Assert.Equal("4", part.ImportOfType.Metadata["Age"]);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportedTypeWithDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata))]
+        public void CustomMetadataOnDerivedMetadataAttributeOnExportedTypeV1(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsExportWithDerivedMetadata>();
+            Assert.Equal("Andrew", part.ImportingProperty.Metadata["Name"]);
+        }
+
+        [MefFact(CompositionEngines.V2Compat, typeof(ExportedTypeWithDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata))]
+        public void CustomMetadataOnDerivedMetadataAttributeOnExportedTypeV2(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsExportWithDerivedMetadata>();
+            Assert.False(part.ImportingProperty.Metadata.ContainsKey("Name"));
+        }
+
         // BUGBUG: MEFv2 throws NullReferenceException in this case.
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2)]
         public void MultipleCustomMetadataOnExportedType(IContainer container)
@@ -62,6 +76,19 @@
         [NameAndAge(Name = "Andrew", Age = "4")]
         public class ExportedTypeWithMetadata { }
 
+        [MefV1.Export]
+        [Export]
+        [NameDerived(Name = "Andrew")]
+        public class ExportedTypeWithDerivedMetadata { }
+
+        [MefV1.Export]
+        [Export]
+        public class PartThatImportsExportWithDerivedMetadata
+        {
+            [Import, MefV1.Import]
+            public Lazy<ExportedTypeWithDerivedMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+        }
+
         public class TypeWithExportingMemberAndMetadata
         {
             [MefV1.Export]
@@ -88,6 +115,15 @@
         public class NameMultipleAttribute : Attribute
         {
             public string Name { get; set; }
+        }
+
+        /// <summary>
+        /// An export metadata attribute that derives from another,
+        /// and intentionally does not have <see cref="MetadataAttribute"/> applied directly.
+        /// </summary>
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+        public class NameDerivedAttribute : NameMultipleAttribute
+        {
         }
     }
 }
