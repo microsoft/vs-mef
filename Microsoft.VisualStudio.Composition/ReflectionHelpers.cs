@@ -319,22 +319,19 @@
             return result;
         }
 
-        private static void AddEmbeddedInterfaces(Type type, HashSet<Type> relevantEmbeddedTypes, HashSet<Type> observedTypes = null)
+        private static void AddEmbeddedInterfaces(Type type, HashSet<Type> relevantEmbeddedTypes, ImmutableStack<Type> observedTypes = null)
         {
             Requires.NotNull(type, "type");
             Requires.NotNull(relevantEmbeddedTypes, "relevantEmbeddedTypes");
 
-            if (observedTypes == null)
-            {
-                observedTypes = new HashSet<Type>();
-            }
-
-            if (!observedTypes.Add(type))
+            observedTypes = observedTypes ?? ImmutableStack<Type>.Empty;
+            if (observedTypes.Contains(type))
             {
                 // avoid stackoverflow (when T implements IComparable<T>, for example).
                 return;
             }
 
+            observedTypes = observedTypes.Push(type);
             if (type.GetTypeInfo().Assembly != mscorlib)
             {
                 if (type.IsEmbeddedType())

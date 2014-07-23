@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -19,7 +20,7 @@
 
             return value;
         }
-        
+
         internal static bool EqualsByValue<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> expected, IReadOnlyDictionary<TKey, TValue> actual, IEqualityComparer<TValue> valueComparer = null)
         {
             Requires.NotNull(expected, "expected");
@@ -74,6 +75,23 @@
                 .Replace(')', '_')
                 .Replace(',', '_')
                 .Replace('-', '_');
+        }
+
+        internal static bool Contains<T>(this ImmutableStack<T> stack, T value)
+        {
+            Requires.NotNull(stack, "stack");
+
+            while (!stack.IsEmpty)
+            {
+                if (EqualityComparer<T>.Default.Equals(value, stack.Peek()))
+                {
+                    return true;
+                }
+
+                stack = stack.Pop();
+            }
+
+            return false;
         }
     }
 }
