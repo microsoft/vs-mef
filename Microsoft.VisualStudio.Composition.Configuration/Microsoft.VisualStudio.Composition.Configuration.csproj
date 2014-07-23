@@ -96,7 +96,7 @@
     <Compile Include="AttributedPartDiscoveryV1.cs" />
     <Compile Include="CodeGen.cs" />
     <Compile Include="CompositionConfigurationDesktop.cs" />
-    <Compile Include="CompositionTemplateFactory.Extras.cs" />
+    <Compile Include="SyntaxCodeGeneration.cs" />
     <Compile Include="ExportMetadataViewInterfaceProxy.cs" />
     <Compile Include="NetFxAdapters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
