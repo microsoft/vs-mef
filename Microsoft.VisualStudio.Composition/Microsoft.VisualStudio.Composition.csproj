@@ -73,6 +73,7 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Threading.Tasks" />
+    <Reference Include="System.Collections" />
     <Reference Include="System.ComponentModel.Composition" Condition=" '$(UsingRazzleToolset)' == 'true' " />
   </ItemGroup>
   <ItemGroup>
