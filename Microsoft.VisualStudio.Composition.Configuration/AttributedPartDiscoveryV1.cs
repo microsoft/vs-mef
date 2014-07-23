@@ -289,7 +289,7 @@
                         result.Add(exportMetadataAttribute.Name, exportMetadataAttribute.Value);
                     }
                 }
-                else if (attribute.GetType().GetCustomAttributesCached<MetadataAttributeAttribute>().Any())
+                else if (attribute.GetType().EnumTypeAndBaseTypes().Any(t => t.GetCustomAttributesCached<MetadataAttributeAttribute>().Any()))
                 {
                     var usage = attribute.GetType().GetCustomAttributesCached<AttributeUsageAttribute>().FirstOrDefault();
                     var properties = attribute.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
