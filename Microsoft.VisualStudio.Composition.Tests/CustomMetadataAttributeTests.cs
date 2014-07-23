@@ -34,6 +34,18 @@
         }
 
         // BUGBUG: MEFv2 throws NullReferenceException in this case.
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(ExportedTypeWithAllowMultipleDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata))]
+        public void CustomMetadataOnAllowMultipleDerivedMetadataAttributeOnExportedType(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsExportWithDerivedMetadata>();
+            Assert.IsType<string[]>(part.ImportingAllowMultiple.Metadata["Name"]);
+            var array = (string[])part.ImportingAllowMultiple.Metadata["Name"];
+            Assert.Equal(2, array.Length);
+            Assert.True(array.Contains("Andrew1"));
+            Assert.True(array.Contains("Andrew2"));
+        }
+
+        // BUGBUG: MEFv2 throws NullReferenceException in this case.
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2)]
         public void MultipleCustomMetadataOnExportedType(IContainer container)
         {
@@ -56,6 +68,26 @@
         {
             var part = container.GetExportedValue<ImportingPart>();
             Assert.False(part.ImportOfType.Metadata.ContainsKey("name"));
+        }
+
+        // BUGBUG: MEFv2 throws NullReferenceException in this case.
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2,
+            typeof(ExportWithMultipleMetadataAttributesAndComplementingMetadataValues), typeof(PartThatImportsAnExportWithMultipleComplementingMetadata))]
+        public void ComplementingMetadataDefinedInTwoAttributes(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsAnExportWithMultipleComplementingMetadata>();
+
+            object after = part.ImportingProperty.Metadata["After"];
+            Assert.IsType<string[]>(after);
+            var afterArray = (string[])after;
+            Assert.True(afterArray.Contains(null));
+            Assert.True(afterArray.Contains("AfterValue"));
+
+            object before = part.ImportingProperty.Metadata["Before"];
+            Assert.IsType<string[]>(before);
+            var beforeArray = (string[])before;
+            Assert.True(beforeArray.Contains(null));
+            Assert.True(beforeArray.Contains("BeforeValue"));
         }
 
         [Export, MefV1.Export]
@@ -83,10 +115,19 @@
 
         [MefV1.Export]
         [Export]
+        [NameMultipleDerived(Name = "Andrew1")]
+        [NameMultipleDerived(Name = "Andrew2")]
+        public class ExportedTypeWithAllowMultipleDerivedMetadata { }
+
+        [MefV1.Export]
+        [Export]
         public class PartThatImportsExportWithDerivedMetadata
         {
-            [Import, MefV1.Import]
+            [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
             public Lazy<ExportedTypeWithDerivedMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+
+            [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
+            public Lazy<ExportedTypeWithAllowMultipleDerivedMetadata, IDictionary<string, object>> ImportingAllowMultiple { get; set; }
         }
 
         public class TypeWithExportingMemberAndMetadata
@@ -107,6 +148,24 @@
         public class ExportedTypeWithMultipleMetadata { }
 
         /// <summary>
+        /// An export with two instances of a custom export metadata attribute applied,
+        /// each with different properties set.
+        /// </summary>
+        [MefV1.Export]
+        [Export]
+        [Order(After = "AfterValue")]
+        [Order(Before = "BeforeValue")]
+        public class ExportWithMultipleMetadataAttributesAndComplementingMetadataValues { }
+
+        [MefV1.Export]
+        [Export]
+        public class PartThatImportsAnExportWithMultipleComplementingMetadata
+        {
+            [Import, MefV1.Import]
+            public Lazy<ExportWithMultipleMetadataAttributesAndComplementingMetadataValues, IDictionary<string, object>> ImportingProperty { get; set; }
+        }
+
+        /// <summary>
         /// An attribute that exports "Name" metadata with IsMultiple=true (meaning the value is string[] instead of just string).
         /// </summary>
         [MetadataAttribute]
@@ -118,12 +177,31 @@
         }
 
         /// <summary>
+        /// An attribute that derives from AllowMultiple base class
+        /// and intentionally does not have <see cref="AttributeUsageAttribute"/> attributes applied directly.
+        /// </summary>
+        [MetadataAttribute] // only V2 needs this
+        public class NameMultipleDerivedAttribute : NameMultipleAttribute
+        {
+            public string OtherProperty { get; set; }
+        }
+
+        /// <summary>
         /// An export metadata attribute that derives from another,
         /// and intentionally does not have <see cref="MetadataAttribute"/> applied directly.
         /// </summary>
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
         public class NameDerivedAttribute : NameMultipleAttribute
         {
+        }
+
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
+        [MetadataAttribute, MefV1.MetadataAttribute]
+        public class OrderAttribute : Attribute
+        {
+            public string Before { get; set; }
+
+            public string After { get; set; }
         }
     }
 }
