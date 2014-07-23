@@ -165,6 +165,13 @@
             return Cache.GetCustomAttributes(parameter);
         }
 
+        internal static AttributeUsageAttribute GetAttributeUsage(Type attributeType)
+        {
+            Requires.NotNull(attributeType, "attributeType");
+
+            return attributeType.EnumTypeAndBaseTypes().SelectMany(t => t.GetTypeInfo().GetCustomAttributesCached<AttributeUsageAttribute>()).FirstOrDefault();
+        }
+
         internal static IEnumerable<T> GetCustomAttributesCached<T>(this MemberInfo member)
             where T : Attribute
         {

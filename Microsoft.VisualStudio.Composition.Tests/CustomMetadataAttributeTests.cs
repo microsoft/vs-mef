@@ -34,6 +34,18 @@
         }
 
         // BUGBUG: MEFv2 throws NullReferenceException in this case.
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(ExportedTypeWithAllowMultipleDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata))]
+        public void CustomMetadataOnAllowMultipleDerivedMetadataAttributeOnExportedType(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsExportWithDerivedMetadata>();
+            Assert.IsType<string[]>(part.ImportingAllowMultiple.Metadata["Name"]);
+            var array = (string[])part.ImportingAllowMultiple.Metadata["Name"];
+            Assert.Equal(2, array.Length);
+            Assert.True(array.Contains("Andrew1"));
+            Assert.True(array.Contains("Andrew2"));
+        }
+
+        // BUGBUG: MEFv2 throws NullReferenceException in this case.
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2)]
         public void MultipleCustomMetadataOnExportedType(IContainer container)
         {
@@ -83,10 +95,19 @@
 
         [MefV1.Export]
         [Export]
+        [NameMultipleDerived(Name = "Andrew1")]
+        [NameMultipleDerived(Name = "Andrew2")]
+        public class ExportedTypeWithAllowMultipleDerivedMetadata { }
+
+        [MefV1.Export]
+        [Export]
         public class PartThatImportsExportWithDerivedMetadata
         {
-            [Import, MefV1.Import]
+            [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
             public Lazy<ExportedTypeWithDerivedMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+
+            [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
+            public Lazy<ExportedTypeWithAllowMultipleDerivedMetadata, IDictionary<string, object>> ImportingAllowMultiple { get; set; }
         }
 
         public class TypeWithExportingMemberAndMetadata
@@ -115,6 +136,16 @@
         public class NameMultipleAttribute : Attribute
         {
             public string Name { get; set; }
+        }
+
+        /// <summary>
+        /// An attribute that derives from AllowMultiple base class
+        /// and intentionally does not have <see cref="AttributeUsageAttribute"/> attributes applied directly.
+        /// </summary>
+        [MetadataAttribute] // only V2 needs this
+        public class NameMultipleDerivedAttribute : NameMultipleAttribute
+        {
+            public string OtherProperty { get; set; }
         }
 
         /// <summary>

@@ -291,7 +291,7 @@
                 }
                 else if (attribute.GetType().EnumTypeAndBaseTypes().Any(t => t.GetCustomAttributesCached<MetadataAttributeAttribute>().Any()))
                 {
-                    var usage = attribute.GetType().GetCustomAttributesCached<AttributeUsageAttribute>().FirstOrDefault();
+                    var usage = ReflectionHelpers.GetAttributeUsage(attribute.GetType());
                     var properties = attribute.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
                     foreach (var property in properties.Where(p => p.DeclaringType != typeof(Attribute)))
                     {
