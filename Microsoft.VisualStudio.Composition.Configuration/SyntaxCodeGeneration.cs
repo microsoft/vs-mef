@@ -103,7 +103,7 @@
 
         private string GetGetExportsCoreMethodDeclaringTypeName(string contractName)
         {
-            return "GetExportsCoreHelpers";
+            return "GetExportsCoreHelpers" + (Math.Abs(contractName.GetHashCode()) % 10);
         }
 
         private MethodDeclarationSyntax CreateGetExportsCoreMethod()
