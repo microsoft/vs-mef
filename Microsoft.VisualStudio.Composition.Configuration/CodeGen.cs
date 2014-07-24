@@ -51,18 +51,24 @@
         {
             Requires.NotNull(nodes, "nodes");
 
-            var list = SyntaxFactory.NodeOrTokenList();
-            foreach (T node in nodes)
+            switch (nodes.Length)
             {
-                if (list.Count > 0)
-                {
-                    list = list.Add(separatingToken);
-                }
+                case 0:
+                    return SyntaxFactory.NodeOrTokenList();
+                case 1:
+                    return SyntaxFactory.NodeOrTokenList(nodes[0]);
+                default:
+                    var nodesOrTokens = new SyntaxNodeOrToken[(nodes.Length * 2) - 1];
+                    nodesOrTokens[0] = nodes[0];
+                    for (int i = 1; i < nodes.Length; i++)
+                    {
+                        int targetIndex = i * 2;
+                        nodesOrTokens[targetIndex - 1] = separatingToken;
+                        nodesOrTokens[targetIndex] = nodes[i];
+                    }
 
-                list = list.Add(node);
+                    return SyntaxFactory.NodeOrTokenList(nodesOrTokens);
             }
-
-            return list;
         }
     }
 }
