@@ -103,7 +103,7 @@
 
         private string GetGetExportsCoreMethodDeclaringTypeName(string contractName)
         {
-            return "GetExportsCoreHelpers" + (Math.Abs(contractName.GetHashCode()) % 10);
+            return HashIdentifierAcrossBuckets("GetExportsCoreHelpers", contractName, 20);
         }
 
         private MethodDeclarationSyntax CreateGetExportsCoreMethod()
@@ -1886,11 +1886,16 @@
             return name;
         }
 
+        private static string HashIdentifierAcrossBuckets(string prefix, string value, int desiredBucketCount)
+        {
+            return Utilities.MakeIdentifierNameSafe(prefix + (Math.Abs(value.GetHashCode()) % desiredBucketCount));
+        }
+
         private static string GetPartFactoryDeclaringTypeName(ComposablePartDefinition part)
         {
             Requires.NotNull(part, "part");
 
-            return Utilities.MakeIdentifierNameSafe(part.Type.Assembly.GetName().Name);
+            return HashIdentifierAcrossBuckets(part.Type.Assembly.GetName().Name, part.Type.Name, 12);
         }
 
         private static string Quote(string value)
