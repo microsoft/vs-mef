@@ -96,6 +96,16 @@
             get { return this.relevantEmbeddedTypes; }
         }
 
+        private string GetGetExportsCoreHelperMethodName(string contractName)
+        {
+            return "GetExportsCore_" + Utilities.MakeIdentifierNameSafe(contractName);
+        }
+
+        private string GetGetExportsCoreMethodDeclaringTypeName(string contractName)
+        {
+            return "GetExportsCoreHelpers";
+        }
+
         private MethodDeclarationSyntax CreateGetExportsCoreMethod()
         {
             var importDefinition = SyntaxFactory.IdentifierName("importDefinition");
@@ -107,12 +117,16 @@
                     SyntaxKind.CaseSwitchLabel,
                     SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(exportsByContract.Key)));
 
-                var helperMethod = CreateGetExportsCoreHelperMethod(exportsByContract, importDefinition, SyntaxFactory.ThisExpression());
-                this.extraMembers.Add(helperMethod);
                 var returnStatement = SyntaxFactory.ReturnStatement(
                     SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.IdentifierName(helperMethod.Identifier),
-                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList<ArgumentSyntax>(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("importDefinition"))))));
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(GetGetExportsCoreMethodDeclaringTypeName(exportsByContract.Key)),
+                            SyntaxFactory.IdentifierName(GetGetExportsCoreHelperMethodName(exportsByContract.Key))),
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                            SyntaxKind.CommaToken,
+                            SyntaxFactory.Argument(SyntaxFactory.ThisExpression()),
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("importDefinition"))))));
 
                 switchSections.Add(SyntaxFactory.SwitchSection(
                     SyntaxFactory.SingletonList(switchLabel),
@@ -243,19 +257,31 @@
 
         internal CompilationUnitSyntax CreateSourceFile()
         {
-            var nestedTypes = from part in this.Configuration.Parts.Where(p => p.Definition.IsInstantiable)
-                              group part by GetPartFactoryDeclaringTypeName(part.Definition) into partsByDeclaringType
-                              select SyntaxFactory.ClassDeclaration(partsByDeclaringType.Key)
-                                .AddModifiers(
-                                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
-                                    SyntaxFactory.Token(SyntaxKind.StaticKeyword))
-                                .AddMembers(partsByDeclaringType.Select(part => this.CreateInstantiatePartMethod(part)).ToArray());
+            var partFactoryNestedTypes =
+                from part in this.Configuration.Parts.Where(p => p.Definition.IsInstantiable)
+                group part by GetPartFactoryDeclaringTypeName(part.Definition) into partsByDeclaringType
+                select SyntaxFactory.ClassDeclaration(partsByDeclaringType.Key)
+                    .AddModifiers(
+                        SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
+                        SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+                    .AddMembers(partsByDeclaringType.Select(part => this.CreateInstantiatePartMethod(part)).ToArray());
+
+            var importDefinition = SyntaxFactory.IdentifierName("importDefinition");
+            var getExportsCoreHelperNestedTypes =
+                from contractName in this.ExportsByContract
+                group contractName by this.GetGetExportsCoreMethodDeclaringTypeName(contractName.Key) into helperMethods
+                select SyntaxFactory.ClassDeclaration(helperMethods.Key)
+                    .AddModifiers(
+                        SyntaxFactory.Token(SyntaxKind.PrivateKeyword),
+                        SyntaxFactory.Token(SyntaxKind.StaticKeyword))
+                    .AddMembers(helperMethods.Select(contractName => CreateGetExportsCoreHelperMethod(contractName, importDefinition)).ToArray());
 
             var compiledExportProviderType = SyntaxFactory.ClassDeclaration(CompiledExportProviderTypeName)
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InternalKeyword)))
                 .WithBaseList(SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
                     SyntaxFactory.IdentifierName("ExportProvider"))))
-                .AddMembers(nestedTypes.ToArray())
+                .AddMembers(partFactoryNestedTypes.ToArray())
+                .AddMembers(getExportsCoreHelperNestedTypes.ToArray())
                 .AddMembers(this.GetMetadataViewInterfaces().Select(CreateMetadataViewClass).ToArray())
                 .AddMembers(this.CreateGetExportsCoreMethod())
                 .AddMembers(this.extraMembers.ToArray())
@@ -1656,10 +1682,12 @@
             }
         }
 
-        private MethodDeclarationSyntax CreateGetExportsCoreHelperMethod(IGrouping<string, ExportDefinitionBinding> exports, IdentifierNameSyntax importDefinition, ExpressionSyntax thisExportProvider)
+        private MethodDeclarationSyntax CreateGetExportsCoreHelperMethod(IGrouping<string, ExportDefinitionBinding> exports, IdentifierNameSyntax importDefinition)
         {
             Requires.NotNull(exports, "exports");
 
+            var thisExportProviderIdentifier = SyntaxFactory.IdentifierName("that");
+            var thisExportProvider = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(SyntaxFactory.IdentifierName(CompiledExportProviderTypeName), thisExportProviderIdentifier));
             var exportExpressions = exports.Select(e => this.ExportCreationSyntax(e, importDefinition, thisExportProvider)).ToArray();
 
             var exportArrayType = SyntaxFactory.ArrayType(
@@ -1674,11 +1702,13 @@
 
             var method = SyntaxFactory.MethodDeclaration(
                 exportArrayType,
-                ReserveClassSymbolName("GetExportsCore_" + Utilities.MakeIdentifierNameSafe(exports.Key), null))
-                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)))
+                SyntaxFactory.Identifier(GetGetExportsCoreHelperMethodName(exports.Key)))
+                .AddModifiers(
+                    SyntaxFactory.Token(SyntaxKind.InternalKeyword),
+                    SyntaxFactory.Token(SyntaxKind.StaticKeyword))
                 .AddParameterListParameters(
-                    SyntaxFactory.Parameter(importDefinition.Identifier)
-                    .WithType(SyntaxFactory.IdentifierName("ImportDefinition")))
+                    SyntaxFactory.Parameter(thisExportProviderIdentifier.Identifier).WithType(this.GetTypeNameSyntax(typeof(ExportProvider))),
+                    SyntaxFactory.Parameter(importDefinition.Identifier).WithType(SyntaxFactory.IdentifierName("ImportDefinition")))
                 .AddBodyStatements(SyntaxFactory.ReturnStatement(exportArrayExpression));
             return method;
         }
@@ -2059,7 +2089,10 @@
             }
 
             var createExport = SyntaxFactory.InvocationExpression(
-                SyntaxFactory.IdentifierName("CreateExport"),
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    thisExportProvider,
+                    SyntaxFactory.IdentifierName("CreateExport")),
                 SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
                     SyntaxKind.CommaToken,
                     arguments.Select(SyntaxFactory.Argument).ToArray())));
