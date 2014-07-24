@@ -285,15 +285,15 @@
         /// </remarks>
         protected abstract IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition);
 
-        protected Export CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, int partOpenGenericTypeId, string valueFactoryMethodName, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
+        protected Export CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, int partOpenGenericTypeId, Type valueFactoryMethodDeclaringType, string valueFactoryMethodName, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(metadata, "metadata");
 
             var typeArgs = (Type[])importDefinition.Metadata[CompositionConstants.GenericParametersMetadataName];
-            var valueFactoryOpenGenericMethodInfo = this.GetMethodWithArity(valueFactoryMethodName, typeArgs.Length);
+            var valueFactoryOpenGenericMethodInfo = this.GetMethodWithArity(valueFactoryMethodDeclaringType, valueFactoryMethodName, typeArgs.Length);
             var valueFactoryMethodInfo = valueFactoryOpenGenericMethodInfo.MakeGenericMethod(typeArgs);
-            var valueFactory = (Func<Dictionary<int, object>, object>)valueFactoryMethodInfo.CreateDelegate(typeof(Func<Dictionary<int, object>, object>), this);
+            var valueFactory = (Func<ExportProvider, Dictionary<int, object>, object>)valueFactoryMethodInfo.CreateDelegate(typeof(Func<ExportProvider, Dictionary<int, object>, object>), null);
 
             Type partOpenGenericType = this.GetType(partOpenGenericTypeId);
             Type partType = partOpenGenericType.MakeGenericType(typeArgs);
@@ -302,7 +302,7 @@
             return this.CreateExport(importDefinition, metadata, partTypeId, valueFactory, partSharingBoundary, nonSharedInstanceRequired, exportingMember);
         }
 
-        protected Export CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, int partTypeId, Func<Dictionary<int, object>, object> valueFactory, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
+        protected Export CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, int partTypeId, Func<ExportProvider, Dictionary<int, object>, object> valueFactory, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(metadata, "metadata");
@@ -355,7 +355,7 @@
             throw new NotSupportedException();
         }
 
-        protected ILazy<object> GetOrCreateShareableValue(int partTypeId, Func<Dictionary<int, object>, object> valueFactory, Dictionary<int, object> provisionalSharedObjects, string partSharingBoundary, bool nonSharedInstanceRequired)
+        protected ILazy<object> GetOrCreateShareableValue(int partTypeId, Func<ExportProvider, Dictionary<int, object>, object> valueFactory, Dictionary<int, object> provisionalSharedObjects, string partSharingBoundary, bool nonSharedInstanceRequired)
         {
             ILazy<System.Object> lazyResult;
             if (!nonSharedInstanceRequired)
@@ -367,7 +367,7 @@
                 }
             }
 
-            lazyResult = new LazyPart<object>(() => valueFactory(provisionalSharedObjects));
+            lazyResult = new LazyPart<object>(() => valueFactory(this, provisionalSharedObjects));
 
             if (!nonSharedInstanceRequired)
             {
@@ -417,9 +417,9 @@
             }
         }
 
-        protected MethodInfo GetMethodWithArity(string methodName, int arity)
+        protected MethodInfo GetMethodWithArity(Type declaringType, string methodName, int arity)
         {
-            return this.GetType().GetTypeInfo().GetDeclaredMethods(methodName)
+            return declaringType.GetTypeInfo().GetDeclaredMethods(methodName)
                 .Single(m => m.GetGenericArguments().Length == arity);
         }
 

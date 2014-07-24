@@ -169,7 +169,7 @@
 
         private static async Task<CSharpCompilation> AddGeneratedCodeAndDependenciesAsync(CSharpCompilation compilationTemplate, CompositionConfiguration configuration, Stream sourceFile, bool debug, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var templateFactory = new CompositionTemplateFactory();
+            var templateFactory = new SyntaxCodeGeneration();
             templateFactory.Configuration = configuration;
             var source = templateFactory.CreateSourceFile();
 
