@@ -106,13 +106,19 @@
             return HashIdentifierAcrossBuckets("GetExportsCoreHelpers", contractName, 20);
         }
 
-        private MethodDeclarationSyntax CreateGetExportsCoreMethod()
+        private MethodDeclarationSyntax CreateGetExportsCoreBucketMethod(int bucket, int bucketCount)
         {
             var importDefinition = SyntaxFactory.IdentifierName("importDefinition");
 
             var switchSections = new List<SwitchSectionSyntax>();
             foreach (var exportsByContract in this.ExportsByContract)
             {
+                if ((Math.Abs(exportsByContract.Key.GetHashCode()) % bucketCount) != bucket)
+                {
+                    // this contract doesn't belong to this bucket, so move on.
+                    continue;
+                }
+
                 var switchLabel = SyntaxFactory.SwitchLabel(
                     SyntaxKind.CaseSwitchLabel,
                     SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(exportsByContract.Key)));
@@ -133,6 +139,12 @@
                     SyntaxFactory.SingletonList<StatementSyntax>(returnStatement)));
             }
 
+            if (switchSections.Count == 0)
+            {
+                // this happened to be an empty hash bucket. return null to indicate to our caller that no method is required.
+                return null;
+            }
+
             switchSections.Add(SyntaxFactory.SwitchSection(
                 SyntaxFactory.SingletonList(SyntaxFactory.SwitchLabel(SyntaxKind.DefaultSwitchLabel)),
                 SyntaxFactory.SingletonList<StatementSyntax>(SyntaxFactory.ReturnStatement(
@@ -140,6 +152,97 @@
                         SyntaxKind.SimpleMemberAccessExpression,
                         this.GetTypeNameSyntax(typeof(ImmutableList<Export>)),
                         SyntaxFactory.IdentifierName("Empty"))))));
+
+            var contractName = SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                importDefinition,
+                SyntaxFactory.IdentifierName("ContractName"));
+
+            var body = SyntaxFactory.Block(
+                SyntaxFactory.SwitchStatement(contractName, SyntaxFactory.List(switchSections)));
+
+            // protected override IEnumerable<Export> GetExportsCore7(ImportDefinition importDefinition)
+            var method = SyntaxFactory.MethodDeclaration(
+                this.GetTypeNameSyntax(typeof(IEnumerable<Export>)),
+                "GetExportsCore" + bucket)
+                .AddParameterListParameters(
+                    SyntaxFactory.Parameter(importDefinition.Identifier).WithType(this.GetTypeNameSyntax(typeof(ImportDefinition))))
+                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
+                .WithBody(body);
+
+            return method;
+        }
+
+        private MethodDeclarationSyntax CreateGetExportsCoreMethod()
+        {
+            var importDefinition = SyntaxFactory.IdentifierName("importDefinition");
+
+            var contractName = SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                importDefinition,
+                SyntaxFactory.IdentifierName("ContractName"));
+
+            // Our algorithm of using the square root of the number of contracts is intentional.
+            // It means that on average, our GetExportsCore method will have the same number of cases
+            // in its switch statement as the switch statment in the helper methods that it calls.
+            int bucketCount = Math.Max(1, (int)Math.Sqrt(this.ExportsByContract.Count()));
+
+            // importDefinition.ContractName.GetHashCode()
+            var contractNameHash = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        contractName,
+                        SyntaxFactory.IdentifierName("GetHashCode")),
+                    SyntaxFactory.ArgumentList());
+
+            // Math.Abs(hashCode) % 15
+            var contractNameBucket = SyntaxFactory.BinaryExpression(
+                SyntaxKind.ModuloExpression,
+                SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.IdentifierName("Math"), SyntaxFactory.IdentifierName("Abs")),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(contractNameHash)))),
+                SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(bucketCount)));
+
+            var switchSections = new List<SwitchSectionSyntax>();
+            for (int bucket = 0; bucket < bucketCount; bucket++)
+            {
+                var bucketMethod = this.CreateGetExportsCoreBucketMethod(bucket, bucketCount);
+                if (bucketMethod == null)
+                {
+                    // no contract fell in this bucket.
+                    continue;
+                }
+
+                this.extraMembers.Add(bucketMethod);
+
+                var switchLabel = SyntaxFactory.SwitchLabel(
+                    SyntaxKind.CaseSwitchLabel,
+                    SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(bucket)));
+
+                var returnStatement = SyntaxFactory.ReturnStatement(
+                    SyntaxFactory.InvocationExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.ThisExpression(),
+                            SyntaxFactory.IdentifierName("GetExportsCore" + bucket)),
+                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("importDefinition"))))));
+
+                switchSections.Add(SyntaxFactory.SwitchSection(
+                    SyntaxFactory.SingletonList(switchLabel),
+                    SyntaxFactory.SingletonList<StatementSyntax>(returnStatement)));
+            }
+
+            switchSections.Add(SyntaxFactory.SwitchSection(
+                SyntaxFactory.SingletonList(SyntaxFactory.SwitchLabel(SyntaxKind.DefaultSwitchLabel)),
+                SyntaxFactory.SingletonList<StatementSyntax>(SyntaxFactory.ReturnStatement(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        this.GetTypeNameSyntax(typeof(ImmutableList<Export>)),
+                        SyntaxFactory.IdentifierName("Empty"))))));
+
+            var body = SyntaxFactory.Block(
+                SyntaxFactory.SwitchStatement(contractNameBucket, SyntaxFactory.List(switchSections)));
 
             // protected override IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition)
             var method = SyntaxFactory.MethodDeclaration(
@@ -150,12 +253,7 @@
                 .AddModifiers(
                     SyntaxFactory.Token(SyntaxKind.ProtectedKeyword),
                     SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
-                .WithBody(SyntaxFactory.Block(
-                    SyntaxFactory.SwitchStatement(SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        importDefinition,
-                        SyntaxFactory.IdentifierName("ContractName")))
-                        .WithSections(SyntaxFactory.List(switchSections))));
+                .WithBody(body);
 
             return method;
         }
