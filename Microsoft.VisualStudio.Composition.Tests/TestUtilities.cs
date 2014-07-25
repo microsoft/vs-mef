@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition.Tests
+﻿#define Runtime
+
+namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
     using System.Collections.Generic;
@@ -20,6 +22,9 @@
         {
             Requires.NotNull(configuration, "configuration");
 
+#if Runtime
+            return configuration.CreateRuntimeFactory().CreateExportProvider();
+#else
             if (Debugger.IsAttached)
             {
                 bool debug = true;
@@ -88,6 +93,7 @@
                     }
                 }
             }
+#endif
         }
 
         internal static ExportProvider CreateContainer(params Type[] parts)

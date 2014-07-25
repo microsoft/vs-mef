@@ -122,6 +122,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReflectionCache.cs" />
     <Compile Include="ReflectionHelpers.cs" />
+    <Compile Include="RuntimeExportProviderFactory.cs" />
     <Compile Include="UniquePropertyNameComparer.cs" />
     <Compile Include="Utilities.cs" />
   </ItemGroup>

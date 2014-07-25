@@ -165,6 +165,11 @@
             return new CompiledExportProviderFactory(assembly);
         }
 
+        public IExportProviderFactory CreateRuntimeFactory()
+        {
+            return new RuntimeExportProviderFactory(this);
+        }
+
         public CompositionConfiguration WithReferenceAssemblies(ImmutableHashSet<Assembly> additionalReferenceAssemblies)
         {
             Requires.NotNull(additionalReferenceAssemblies, "additionalReferenceAssemblies");
