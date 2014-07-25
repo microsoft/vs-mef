@@ -323,7 +323,7 @@
             return new Export(importDefinition.ContractName, metadata, memberValueFactory);
         }
 
-        private object GetValueFromMember(object instance, MemberInfo member)
+        protected object GetValueFromMember(object instance, MemberInfo member)
         {
             Requires.NotNull(instance, "instance");
             Requires.NotNull(member, "member");
