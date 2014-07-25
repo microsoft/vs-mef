@@ -185,7 +185,7 @@
             // Our algorithm of using the square root of the number of contracts is intentional.
             // It means that on average, our GetExportsCore method will have the same number of cases
             // in its switch statement as the switch statment in the helper methods that it calls.
-            int bucketCount = Math.Max(1, (int)Math.Sqrt(this.ExportsByContract.Count()));
+            int bucketCount = (int)Math.Sqrt(this.ExportsByContract.Count());
 
             // importDefinition.ContractName.GetHashCode()
             var contractNameHash = SyntaxFactory.InvocationExpression(
