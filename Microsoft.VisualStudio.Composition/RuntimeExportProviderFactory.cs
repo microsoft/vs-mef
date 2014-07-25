@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
@@ -10,6 +11,7 @@
     internal class RuntimeExportProviderFactory : IExportProviderFactory
     {
         private readonly CompositionConfiguration configuration;
+        private readonly IReadOnlyDictionary<ComposablePartDefinition, ComposedPart> partDefinitionToComposedPart;
         private readonly IReadOnlyDictionary<string, IReadOnlyList<ExportDefinitionBinding>> exportsByContract;
 
         internal RuntimeExportProviderFactory(CompositionConfiguration configuration)
@@ -26,6 +28,8 @@
                 select exportsByContract;
             this.exportsByContract = exports.ToDictionary<IGrouping<string, ExportDefinitionBinding>, string, IReadOnlyList<ExportDefinitionBinding>>(
                 e => e.Key, e => e.ToList());
+
+            this.partDefinitionToComposedPart = this.configuration.Parts.ToDictionary(p => p.Definition);
         }
 
         public ExportProvider CreateExportProvider()
@@ -76,7 +80,43 @@
 
             private object CreatePart(ExportProvider exportProvider, Dictionary<int, object> provisionalSharedObjects, ExportDefinitionBinding exportDefinition)
             {
-                return exportDefinition.PartDefinition.ImportingConstructorInfo.Invoke(EmptyObjectArray);
+                var composedPart = this.factory.partDefinitionToComposedPart[exportDefinition.PartDefinition];
+                object part = exportDefinition.PartDefinition.ImportingConstructorInfo.Invoke(EmptyObjectArray);
+
+                foreach (var importExports in composedPart.SatisfyingExports)
+                {
+                    var import = importExports.Key;
+                    var exports = importExports.Value;
+                    var export = exports.Single();
+                    var exportedValue = this.GetOrCreateShareableValue(
+                        this.GetTypeId(export.PartDefinition.Type),
+                        (ep, pso) => this.CreatePart(ep, pso, export),
+                        provisionalSharedObjects,
+                        export.PartDefinition.IsShared ? this.factory.configuration.GetEffectiveSharingBoundary(export.PartDefinition) : null,
+                        !export.PartDefinition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(import.ImportDefinition));
+                    SetImportingMember(part, import.ImportingMember, exportedValue.Value);
+                }
+
+                return part;
+            }
+
+            private static void SetImportingMember(object part, MemberInfo member, object value)
+            {
+                var property = member as PropertyInfo;
+                if (property != null)
+                {
+                    property.SetValue(part, value);
+                    return;
+                }
+
+                var field = member as FieldInfo;
+                if (field != null)
+                {
+                    field.SetValue(part, value);
+                    return;
+                }
+
+                throw new NotSupportedException();
             }
         }
     }
