@@ -264,19 +264,57 @@
 
             private object GetValueForImportElement(object part, ImportDefinitionBinding import, ExportDefinitionBinding export, Dictionary<int, object> provisionalSharedObjects)
             {
-                if (import.ComposablePartType == export.PartDefinition.Type)
+                if (import.IsExportFactory)
                 {
-                    return import.IsLazy
-                        ? this.CreateStrongTypedLazy(() => part, export.ExportDefinition.Metadata, import.ImportingSiteTypeWithoutCollection)
-                        : part;
+                    // ExportFactory.ctor(Func<Tuple<T, Action>>[, TMetadata])
+                    Type tupleType;
+                    using (var typeArgs = ArrayRental<Type>.Get(2))
+                    {
+                        typeArgs.Value[0] = import.ImportingSiteElementType;
+                        typeArgs.Value[1] = typeof(Action);
+                        tupleType = typeof(Tuple<,>).MakeGenericType(typeArgs.Value);
+                    }
+
+                    Func<object> factory = () =>
+                    {
+                        object constructedPart = this.CreatePart(this, new Dictionary<int, object>(), export);
+                        object constructedValue = export.ExportingMember != null ? this.GetValueFromMember(constructedPart, export.ExportingMember) : constructedPart;
+
+                        using (var ctorArgs = ArrayRental<object>.Get(2))
+                        {
+                            ctorArgs.Value[0] = constructedValue;
+                            var disposableConstructedValue = constructedValue as IDisposable;
+                            ctorArgs.Value[1] = disposableConstructedValue != null ? new Action(disposableConstructedValue.Dispose) : null;
+                            return Activator.CreateInstance(tupleType, ctorArgs.Value);
+                        }
+                    };
+                    using (var ctorArgs = ArrayRental<object>.Get(import.ExportFactoryType.GenericTypeArguments.Length))
+                    {
+                        ctorArgs.Value[0] = ReflectionHelpers.CreateFuncOfType(tupleType, factory);
+                        if (ctorArgs.Value.Length > 1)
+                        {
+                            ctorArgs.Value[1] = this.GetStrongTypedMetadata(export.ExportDefinition.Metadata, import.ExportFactoryType.GenericTypeArguments[1]);
+                        }
+
+                        return Activator.CreateInstance(import.ExportFactoryType, ctorArgs.Value);
+                    }
                 }
+                else
+                {
+                    if (import.ComposablePartType == export.PartDefinition.Type)
+                    {
+                        return import.IsLazy
+                            ? this.CreateStrongTypedLazy(() => part, export.ExportDefinition.Metadata, import.ImportingSiteTypeWithoutCollection)
+                            : part;
+                    }
 
-                ILazy<object> exportedValue = this.GetExportedValue(import, export, provisionalSharedObjects);
+                    ILazy<object> exportedValue = this.GetExportedValue(import, export, provisionalSharedObjects);
 
-                object importedValue = import.IsLazy
-                    ? this.CreateStrongTypedLazy(exportedValue.ValueFactory, export.ExportDefinition.Metadata, import.ImportingSiteTypeWithoutCollection)
-                    : exportedValue.Value;
-                return importedValue;
+                    object importedValue = import.IsLazy
+                        ? this.CreateStrongTypedLazy(exportedValue.ValueFactory, export.ExportDefinition.Metadata, import.ImportingSiteTypeWithoutCollection)
+                        : exportedValue.Value;
+                    return importedValue;
+                }
             }
 
             private object CreateStrongTypedLazy(Func<object> valueFactory, IReadOnlyDictionary<string, object> metadata, Type lazyType)
