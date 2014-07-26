@@ -279,12 +279,15 @@
                 Requires.NotNull(export, "export");
                 Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
 
-                var exportedValue = this.GetOrCreateShareableValue(
+                ILazy<object> exportingPart = this.GetOrCreateShareableValue(
                     this.GetTypeId(export.PartDefinition.Type),
                     (ep, pso) => this.CreatePart(ep, pso, export),
                     provisionalSharedObjects,
                     export.PartDefinition.IsShared ? this.factory.configuration.GetEffectiveSharingBoundary(export.PartDefinition) : null,
                     !export.PartDefinition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(import.ImportDefinition));
+                var exportedValue = export.ExportingMember != null
+                    ? new LazyPart<object>(() => this.GetValueFromMember(exportingPart.Value, export.ExportingMember))
+                    : exportingPart;
                 return exportedValue;
             }
 
