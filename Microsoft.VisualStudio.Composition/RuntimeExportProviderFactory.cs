@@ -82,6 +82,13 @@
             private object CreatePart(ExportProvider exportProvider, Dictionary<int, object> provisionalSharedObjects, ExportDefinitionBinding exportDefinition)
             {
                 var partDefinition = exportDefinition.PartDefinition;
+                
+                if (partDefinition.Equals(ExportProvider.ExportProviderPartDefinition))
+                {
+                    // Special case for our synthesized part that acts as a placeholder for *this* export provider.
+                    return this.NonDisposableWrapper.Value;
+                }
+
                 var composedPart = this.factory.partDefinitionToComposedPart[partDefinition];
                 var ctorArgs = composedPart.GetImportingConstructorImports()
                     .Select(pair => GetValueForImportSite(null, pair.Key, pair.Value, provisionalSharedObjects).Value).ToArray();
