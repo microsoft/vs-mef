@@ -151,7 +151,7 @@
                             for (int i = 0; i < exports.Count; i++)
                             {
                                 intArray.Value[0] = i;
-                                array.SetValue(this.GetValueForImportElement(import, exports[i], provisionalSharedObjects), intArray.Value);
+                                array.SetValue(this.GetValueForImportElement(part, import, exports[i], provisionalSharedObjects), intArray.Value);
                             }
                         }
 
@@ -194,7 +194,7 @@
                         var collectionAccessor = new CollectionWrapper(collectionObject, import.ImportingSiteTypeWithoutCollection);
                         for (int i = 0; i < exports.Count; i++)
                         {
-                            collectionAccessor.Add(this.GetValueForImportElement(import, exports[i], provisionalSharedObjects));
+                            collectionAccessor.Add(this.GetValueForImportElement(part, import, exports[i], provisionalSharedObjects));
                         }
 
                         return new ValueForImportSite(); // signal caller should not set value again.
@@ -208,7 +208,7 @@
                         return new ValueForImportSite(null);
                     }
 
-                    return new ValueForImportSite(this.GetValueForImportElement(import, export, provisionalSharedObjects));
+                    return new ValueForImportSite(this.GetValueForImportElement(part, import, export, provisionalSharedObjects));
                 }
             }
 
@@ -251,8 +251,15 @@
                 }
             }
 
-            private object GetValueForImportElement(ImportDefinitionBinding import, ExportDefinitionBinding export, Dictionary<int, object> provisionalSharedObjects)
+            private object GetValueForImportElement(object part, ImportDefinitionBinding import, ExportDefinitionBinding export, Dictionary<int, object> provisionalSharedObjects)
             {
+                if (import.ComposablePartType == export.PartDefinition.Type)
+                {
+                    return import.IsLazy
+                        ? this.CreateStrongTypedLazy(() => part, export.ExportDefinition.Metadata, import.ImportingSiteTypeWithoutCollection)
+                        : part;
+                }
+
                 ILazy<object> exportedValue = this.GetExportedValue(import, export, provisionalSharedObjects);
 
                 object importedValue = import.IsLazy
