@@ -96,7 +96,7 @@
                         var value = this.GetValueForImportSite(part, import, exports, provisionalSharedObjects);
                         if (value.ValueShouldBeSet)
                         {
-                            SetImportingMember(part, import.ImportingMember, value);
+                            SetImportingMember(part, import.ImportingMember, value.Value);
                         }
                     }
                 }
