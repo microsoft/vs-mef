@@ -99,6 +99,17 @@
                     .Select(pair => GetValueForImportSite(null, pair.Key, pair.Value, provisionalSharedObjects).Value).ToArray();
                 object part = exportDefinition.PartDefinition.ImportingConstructorInfo.Invoke(ctorArgs);
 
+                if (partDefinition.IsShared)
+                {
+                    provisionalSharedObjects.Add(this.GetTypeId(partDefinition.Type), part);
+                }
+
+                var disposablePart = part as IDisposable;
+                if (disposablePart != null)
+                {
+                    this.TrackDisposableValue(disposablePart);
+                }
+
                 foreach (var importExports in composedPart.SatisfyingExports)
                 {
                     var import = importExports.Key;
