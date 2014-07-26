@@ -89,6 +89,11 @@
                     return this.NonDisposableWrapper.Value;
                 }
 
+                if (!partDefinition.IsInstantiable)
+                {
+                    throw new CompositionFailedException("Cannot instantiate this part.");
+                }
+
                 var composedPart = this.factory.partDefinitionToComposedPart[partDefinition];
                 var ctorArgs = composedPart.GetImportingConstructorImports()
                     .Select(pair => GetValueForImportSite(null, pair.Key, pair.Value, provisionalSharedObjects).Value).ToArray();
