@@ -274,9 +274,9 @@
                     // Perf note: there are faster ways to select the constructor if this shows up on traces.
                     var lazyCtors = from ctor in lazyType.GetTypeInfo().DeclaredConstructors
                                     let parameters = ctor.GetParameters()
-                                    where parameters.Length == 2
+                                    where parameters.Length == ctorArgs.Value.Length
                                         && parameters[0].ParameterType == typeof(Func<>).MakeGenericType(lazyType.GenericTypeArguments[0])
-                                        && parameters[1].ParameterType == lazyType.GenericTypeArguments[1]
+                                        && (parameters.Length < 2 || parameters[1].ParameterType == lazyType.GenericTypeArguments[1])
                                     select ctor;
                     object lazyInstance = lazyCtors.First().Invoke(ctorArgs.Value);
                     return lazyInstance;
