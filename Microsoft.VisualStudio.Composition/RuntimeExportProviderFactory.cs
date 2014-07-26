@@ -82,7 +82,7 @@
             private object CreatePart(ExportProvider exportProvider, Dictionary<int, object> provisionalSharedObjects, ExportDefinitionBinding exportDefinition)
             {
                 var partDefinition = exportDefinition.PartDefinition;
-                
+
                 if (partDefinition.Equals(ExportProvider.ExportProviderPartDefinition))
                 {
                     // Special case for our synthesized part that acts as a placeholder for *this* export provider.
@@ -251,12 +251,12 @@
                 ILazy<object> exportedValue = this.GetExportedValue(import, export, provisionalSharedObjects);
 
                 object importedValue = import.IsLazy
-                    ? CreateStrongTypedLazy(exportedValue.ValueFactory, export.ExportDefinition.Metadata, import.ImportingSiteTypeWithoutCollection)
+                    ? this.CreateStrongTypedLazy(exportedValue.ValueFactory, export.ExportDefinition.Metadata, import.ImportingSiteTypeWithoutCollection)
                     : exportedValue.Value;
                 return importedValue;
             }
 
-            private static object CreateStrongTypedLazy(Func<object> valueFactory, IReadOnlyDictionary<string, object> metadata, Type lazyType)
+            private object CreateStrongTypedLazy(Func<object> valueFactory, IReadOnlyDictionary<string, object> metadata, Type lazyType)
             {
                 Requires.NotNull(valueFactory, "valueFactory");
                 Requires.NotNull(metadata, "metadata");
@@ -266,18 +266,34 @@
                     ctorArgs.Value[0] = ReflectionHelpers.CreateFuncOfType(lazyType.GenericTypeArguments[0], valueFactory);
                     if (ctorArgs.Value.Length == 2)
                     {
-                        ctorArgs.Value[1] = GetStrongTypedMetadata(metadata, lazyType.GenericTypeArguments[1]);
+                        ctorArgs.Value[1] = this.GetStrongTypedMetadata(metadata, lazyType.GenericTypeArguments[1]);
                     }
 
-                    object lazyInstance = Activator.CreateInstance(lazyType, ctorArgs.Value);
+                    // We have to select and invoke the method directly because Activator.CreateInstance
+                    // cannot pick the right type when the metadata value is a transparent proxy.
+                    // Perf note: there are faster ways to select the constructor if this shows up on traces.
+                    var lazyCtors = from ctor in lazyType.GetTypeInfo().DeclaredConstructors
+                                    let parameters = ctor.GetParameters()
+                                    where parameters.Length == 2
+                                        && parameters[0].ParameterType == typeof(Func<>).MakeGenericType(lazyType.GenericTypeArguments[0])
+                                        && parameters[1].ParameterType == lazyType.GenericTypeArguments[1]
+                                    select ctor;
+                    object lazyInstance = lazyCtors.First().Invoke(ctorArgs.Value);
                     return lazyInstance;
                 }
             }
 
-            private static object GetStrongTypedMetadata(IReadOnlyDictionary<string, object> metadata, Type lazyType)
+            private object GetStrongTypedMetadata(IReadOnlyDictionary<string, object> metadata, Type metadataType)
             {
-                // TODO: get the metadata type right.
-                return metadata;
+                Requires.NotNull(metadata, "metadata");
+                Requires.NotNull(metadataType, "metadataType");
+
+                var metadataViewProvider = this.GetMetadataViewProvider(metadataType);
+                return metadataViewProvider.CreateProxy(
+                    metadataViewProvider.IsDefaultMetadataRequired
+                        ? AddMissingValueDefaults(metadataType, metadata)
+                        : metadata,
+                    metadataType);
             }
 
             private ILazy<object> GetExportedValue(ImportDefinitionBinding import, ExportDefinitionBinding export, Dictionary<int, object> provisionalSharedObjects)

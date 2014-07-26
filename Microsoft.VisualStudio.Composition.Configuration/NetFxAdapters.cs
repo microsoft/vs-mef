@@ -162,10 +162,10 @@
                 return FindImplClassConstructor(metadataType) != null;
             }
 
-            public TMetadata CreateProxy<TMetadata>(IReadOnlyDictionary<string, object> metadata)
+            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType)
             {
-                var ctor = FindImplClassConstructor(typeof(TMetadata));
-                return (TMetadata)ctor.Invoke(new object[] { metadata });
+                var ctor = FindImplClassConstructor(metadataViewType);
+                return ctor.Invoke(new object[] { metadata });
             }
 
             private static ConstructorInfo FindImplClassConstructor(Type metadataType)

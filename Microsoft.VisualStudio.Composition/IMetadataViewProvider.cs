@@ -30,8 +30,9 @@
         /// to a metadata dictionary.
         /// </summary>
         /// <typeparam name="TMetadata">The type of interface whose members are made up only of property getters.</typeparam>
+        /// <param name="metadataViewType">The type of metadata view to create.</param>
         /// <param name="metadata">The metadata dictionary.</param>
         /// <returns>The proxy instance.</returns>
-        TMetadata CreateProxy<TMetadata>(IReadOnlyDictionary<string, object> metadata);
+        object CreateProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType);
     }
 }

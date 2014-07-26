@@ -564,7 +564,7 @@
             return new LazyMetadataWrapper(this, metadata);
         }
 
-        private static IReadOnlyDictionary<string, object> AddMissingValueDefaults(Type metadataView, IReadOnlyDictionary<string, object> metadata)
+        protected static IReadOnlyDictionary<string, object> AddMissingValueDefaults(Type metadataView, IReadOnlyDictionary<string, object> metadata)
         {
             Requires.NotNull(metadataView, "metadataView");
             Requires.NotNull(metadata, "metadata");
@@ -631,7 +631,9 @@
             IEnumerable<Export> results = this.GetExports(importDefinition);
             return results.Select(result => new LazyPart<T, TMetadataView>(
                 () => result.Value,
-                metadataViewProvider.CreateProxy<TMetadataView>(metadataViewProvider.IsDefaultMetadataRequired ? AddMissingValueDefaults(typeof(TMetadataView), result.Metadata) : result.Metadata)))
+                (TMetadataView)metadataViewProvider.CreateProxy(
+                    metadataViewProvider.IsDefaultMetadataRequired ? AddMissingValueDefaults(typeof(TMetadataView), result.Metadata) : result.Metadata,
+                    typeof(TMetadataView))))
                 .ToImmutableHashSet();
         }
 
@@ -641,7 +643,7 @@
         /// <param name="metadataView">The type of metadata view required.</param>
         /// <returns>A metadata view provider.</returns>
         /// <exception cref="NotSupportedException">Thrown if no metadata view provider available is compatible with the type.</exception>
-        private IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
+        internal IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
         {
             Requires.NotNull(metadataView, "metadataView");
 
@@ -894,12 +896,12 @@
                     || metadataType.GetTypeInfo().IsAssignableFrom(typeof(IDictionary<string, object>).GetTypeInfo());
             }
 
-            public TMetadata CreateProxy<TMetadata>(IReadOnlyDictionary<string, object> metadata)
+            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType)
             {
                 Requires.NotNull(metadata, "metadata");
 
                 // This cast should work because our IsMetadataViewSupported method filters to those that do.
-                return (TMetadata)(object)metadata;
+                return metadata;
             }
         }
 
@@ -926,9 +928,9 @@
                 return typeInfo.IsClass && !typeInfo.IsAbstract && FindConstructor(typeInfo) != null;
             }
 
-            public TMetadata CreateProxy<TMetadata>(IReadOnlyDictionary<string, object> metadata)
+            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType)
             {
-                return (TMetadata)FindConstructor(typeof(TMetadata).GetTypeInfo())
+                return FindConstructor(metadataViewType.GetTypeInfo())
                     .Invoke(new object[] { ImmutableDictionary.CreateRange(metadata) });
             }
 
