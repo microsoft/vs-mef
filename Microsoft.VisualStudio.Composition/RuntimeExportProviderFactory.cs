@@ -84,7 +84,7 @@
                 var partDefinition = exportDefinition.PartDefinition;
                 var composedPart = this.factory.partDefinitionToComposedPart[partDefinition];
                 var ctorArgs = composedPart.GetImportingConstructorImports()
-                    .Select(pair => GetValueForImportSite(pair.Key, pair.Value, provisionalSharedObjects)).ToArray();
+                    .Select(pair => GetValueForImportSite(null, pair.Key, pair.Value, provisionalSharedObjects).Value).ToArray();
                 object part = exportDefinition.PartDefinition.ImportingConstructorInfo.Invoke(ctorArgs);
 
                 foreach (var importExports in composedPart.SatisfyingExports)
@@ -93,7 +93,11 @@
                     var exports = importExports.Value;
                     if (import.ImportingMember != null)
                     {
-                        SetImportingMember(part, import.ImportingMember, this.GetValueForImportSite(import, exports, provisionalSharedObjects));
+                        var value = this.GetValueForImportSite(part, import, exports, provisionalSharedObjects);
+                        if (value.ValueShouldBeSet)
+                        {
+                            SetImportingMember(part, import.ImportingMember, value);
+                        }
                     }
                 }
 
@@ -105,7 +109,21 @@
                 return part;
             }
 
-            private object GetValueForImportSite(ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports, Dictionary<int, object> provisionalSharedObjects)
+            private struct ValueForImportSite
+            {
+                internal ValueForImportSite(object value)
+                    : this()
+                {
+                    this.Value = value;
+                    this.ValueShouldBeSet = true;
+                }
+
+                public bool ValueShouldBeSet { get; private set; }
+
+                public object Value { get; private set; }
+            }
+
+            private ValueForImportSite GetValueForImportSite(object part, ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports, Dictionary<int, object> provisionalSharedObjects)
             {
                 Requires.NotNull(import, "import");
                 Requires.NotNull(exports, "exports");
@@ -113,23 +131,122 @@
 
                 if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
                 {
-                    throw new NotImplementedException();
+                    if (import.ImportingSiteType.IsArray || (import.ImportingSiteType.GetTypeInfo().IsGenericType && import.ImportingSiteType.GetGenericTypeDefinition().IsEquivalentTo(typeof(IEnumerable<>))))
+                    {
+                        Array array = Array.CreateInstance(import.ImportingSiteTypeWithoutCollection, exports.Count);
+                        using (var intArray = ArrayRental<int>.Get(1))
+                        {
+                            for (int i = 0; i < exports.Count; i++)
+                            {
+                                intArray.Value[0] = i;
+                                array.SetValue(this.GetValueForImportElement(import, exports[i], provisionalSharedObjects), intArray.Value);
+                            }
+                        }
+
+                        return new ValueForImportSite(array);
+                    }
+                    else
+                    {
+                        object collectionObject = null;
+                        if (import.ImportingMember != null)
+                        {
+                            collectionObject = GetImportingMember(part, import.ImportingMember);
+                        }
+
+                        if (collectionObject == null)
+                        {
+                            if (PartDiscovery.IsImportManyCollectionTypeCreateable(import))
+                            {
+                                using (var typeArgs = ArrayRental<Type>.Get(1))
+                                {
+                                    typeArgs.Value[0] = import.ImportingSiteTypeWithoutCollection;
+                                    Type listType = typeof(List<>).MakeGenericType(typeArgs.Value);
+                                    if (import.ImportingSiteType.GetTypeInfo().IsAssignableFrom(listType.GetTypeInfo()))
+                                    {
+                                        collectionObject = Activator.CreateInstance(listType);
+                                    }
+                                    else
+                                    {
+                                        collectionObject = Activator.CreateInstance(import.ImportingSiteType);
+                                    }
+                                }
+
+                                SetImportingMember(part, import.ImportingMember, collectionObject);
+                            }
+                            else
+                            {
+                                throw new CompositionFailedException("Unable to instantiate custom import collection type.");
+                            }
+                        }
+
+                        var collectionAccessor = new CollectionWrapper(collectionObject, import.ImportingSiteTypeWithoutCollection);
+                        for (int i = 0; i < exports.Count; i++)
+                        {
+                            collectionAccessor.Add(this.GetValueForImportElement(import, exports[i], provisionalSharedObjects));
+                        }
+
+                        return new ValueForImportSite(); // signal caller should not set value again.
+                    }
                 }
                 else
                 {
                     var export = exports.FirstOrDefault();
                     if (export == null)
                     {
-                        return null;
+                        return new ValueForImportSite(null);
                     }
 
-                    ILazy<object> exportedValue = this.GetExportedValue(import, export, provisionalSharedObjects);
-
-                    object importedValue = import.IsLazy
-                        ? CreateStrongTypedLazy(exportedValue.ValueFactory, export.ExportDefinition.Metadata, import.ImportingSiteTypeWithoutCollection)
-                        : exportedValue.Value;
-                    return importedValue;
+                    return new ValueForImportSite(this.GetValueForImportElement(import, export, provisionalSharedObjects));
                 }
+            }
+
+            private struct CollectionWrapper
+            {
+                private readonly object collectionOfT;
+                private readonly MethodInfo addMethod;
+                private readonly MethodInfo clearMethod;
+
+                internal CollectionWrapper(object collectionOfT, Type elementType)
+                {
+                    Requires.NotNull(collectionOfT, "collectionOfT");
+                    this.collectionOfT = collectionOfT;
+                    Type collectionType;
+                    using (var args = ArrayRental<Type>.Get(1))
+                    {
+                        args.Value[0] = elementType;
+                        collectionType = typeof(ICollection<>).MakeGenericType(args.Value);
+                        this.addMethod = collectionType.GetRuntimeMethod("Add", args.Value);
+                    }
+
+                    using (var args = ArrayRental<Type>.Get(0))
+                    {
+                        this.clearMethod = collectionType.GetRuntimeMethod("Clear", args.Value);
+                    }
+                }
+
+                internal void Add(object item)
+                {
+                    using (var args = ArrayRental<object>.Get(1))
+                    {
+                        args.Value[0] = item;
+                        this.addMethod.Invoke(this.collectionOfT, args.Value);
+                    }
+                }
+
+                internal void Clear()
+                {
+                    this.clearMethod.Invoke(this.collectionOfT, EmptyObjectArray);
+                }
+            }
+
+            private object GetValueForImportElement(ImportDefinitionBinding import, ExportDefinitionBinding export, Dictionary<int, object> provisionalSharedObjects)
+            {
+                ILazy<object> exportedValue = this.GetExportedValue(import, export, provisionalSharedObjects);
+
+                object importedValue = import.IsLazy
+                    ? CreateStrongTypedLazy(exportedValue.ValueFactory, export.ExportDefinition.Metadata, import.ImportingSiteTypeWithoutCollection)
+                    : exportedValue.Value;
+                return importedValue;
             }
 
             private static object CreateStrongTypedLazy(Func<object> valueFactory, IReadOnlyDictionary<string, object> metadata, Type lazyType)
@@ -137,7 +254,7 @@
                 Requires.NotNull(valueFactory, "valueFactory");
                 Requires.NotNull(metadata, "metadata");
 
-                using (var ctorArgs = GetObjectArray(lazyType.GenericTypeArguments.Length))
+                using (var ctorArgs = ArrayRental<object>.Get(lazyType.GenericTypeArguments.Length))
                 {
                     ctorArgs.Value[0] = ReflectionHelpers.CreateFuncOfType(lazyType.GenericTypeArguments[0], valueFactory);
                     if (ctorArgs.Value.Length == 2)
@@ -193,6 +310,26 @@
                 throw new NotSupportedException();
             }
 
+            private static object GetImportingMember(object part, MemberInfo member)
+            {
+                Requires.NotNull(part, "part");
+                Requires.NotNull(member, "member");
+
+                var property = member as PropertyInfo;
+                if (property != null)
+                {
+                    return property.GetValue(part);
+                }
+
+                var field = member as FieldInfo;
+                if (field != null)
+                {
+                    return field.GetValue(part);
+                }
+
+                throw new NotSupportedException();
+            }
+
             private struct Rental<T> : IDisposable
                 where T : class
             {
@@ -200,9 +337,9 @@
                 private Stack<T> returnTo;
                 private Action<T> cleanup;
 
-                internal Rental(Stack<T> returnTo, Func<T> create, Action<T> cleanup)
+                internal Rental(Stack<T> returnTo, Func<int, T> create, Action<T> cleanup, int createArg)
                 {
-                    this.value = returnTo != null && returnTo.Count > 0 ? returnTo.Pop() : create();
+                    this.value = returnTo != null && returnTo.Count > 0 ? returnTo.Pop() : create(createArg);
                     this.returnTo = returnTo;
                     this.cleanup = cleanup;
                 }
@@ -230,19 +367,19 @@
                 }
             }
 
-            private static readonly ThreadLocal<Stack<object[]>> OneElementObjectArray = new ThreadLocal<Stack<object[]>>(() => new Stack<object[]>());
-            private static readonly ThreadLocal<Stack<object[]>> TwoElementObjectArray = new ThreadLocal<Stack<object[]>>(() => new Stack<object[]>());
-
-            private static Rental<object[]> GetObjectArray(int length)
+            private static class ArrayRental<T>
             {
-                switch (length)
+                private static readonly ThreadLocal<Dictionary<int, Stack<T[]>>> arrays = new ThreadLocal<Dictionary<int, Stack<T[]>>>(() => new Dictionary<int, Stack<T[]>>());
+
+                internal static Rental<T[]> Get(int length)
                 {
-                    case 1:
-                        return new Rental<object[]>(OneElementObjectArray.Value, () => new object[1], v => Array.Clear(v, 0, v.Length));
-                    case 2:
-                        return new Rental<object[]>(TwoElementObjectArray.Value, () => new object[2], v => Array.Clear(v, 0, v.Length));
-                    default:
-                        return new Rental<object[]>(null, () => new object[length], null);
+                    Stack<T[]> stack;
+                    if (!arrays.Value.TryGetValue(length, out stack))
+                    {
+                        arrays.Value.Add(length, stack = new Stack<T[]>());
+                    }
+
+                    return new Rental<T[]>(stack, len => new T[len], array => Array.Clear(array, 0, array.Length), length);
                 }
             }
         }

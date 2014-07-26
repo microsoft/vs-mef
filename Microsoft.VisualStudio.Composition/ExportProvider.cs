@@ -32,7 +32,9 @@
 
         protected static readonly LazyPart<object> NotInstantiablePartLazy = new LazyPart<object>(() => CannotInstantiatePartWithNoImportingConstructor());
 
-        protected static readonly object[] EmptyObjectArray = new object[0];
+        protected static readonly Type[] EmptyTypeArray = new Type[0];
+
+        protected static readonly object[] EmptyObjectArray = EmptyTypeArray; // Covariance allows us to reuse the derived type empty array.
 
         /// <summary>
         /// A metadata template used by the generated code.
