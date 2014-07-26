@@ -47,7 +47,7 @@
             {
             }
 
-            internal RuntimeExportProvider(RuntimeExportProviderFactory factory, ExportProvider parent, string[] freshSharingBoundaries)
+            internal RuntimeExportProvider(RuntimeExportProviderFactory factory, ExportProvider parent, IReadOnlyCollection<string> freshSharingBoundaries)
                 : base(parent, freshSharingBoundaries)
             {
                 Requires.NotNull(factory, "factory");
@@ -81,6 +81,7 @@
 
             private object CreatePart(ExportProvider exportProvider, Dictionary<int, object> provisionalSharedObjects, ExportDefinitionBinding exportDefinition)
             {
+                Assumes.True(this == exportProvider);
                 var partDefinition = exportDefinition.PartDefinition;
 
                 if (partDefinition.Equals(ExportProvider.ExportProviderPartDefinition))
@@ -277,8 +278,13 @@
 
                     Func<object> factory = () =>
                     {
-                        object constructedPart = this.CreatePart(this, new Dictionary<int, object>(), export);
-                        object constructedValue = export.ExportingMember != null ? this.GetValueFromMember(constructedPart, export.ExportingMember) : constructedPart;
+                        bool newSharingScope = import.ImportDefinition.ExportFactorySharingBoundaries.Count > 0;
+                        RuntimeExportProvider scope = newSharingScope
+                            ? new RuntimeExportProvider(this.factory, this, import.ImportDefinition.ExportFactorySharingBoundaries)
+                            : this;
+
+                        object constructedPart = scope.CreatePart(scope, new Dictionary<int, object>(), export);
+                        object constructedValue = export.ExportingMember != null ? scope.GetValueFromMember(constructedPart, export.ExportingMember) : constructedPart;
 
                         using (var ctorArgs = ArrayRental<object>.Get(2))
                         {

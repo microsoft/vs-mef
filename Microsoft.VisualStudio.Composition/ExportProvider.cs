@@ -113,7 +113,7 @@
 
         private bool isDisposed;
 
-        protected ExportProvider(ExportProvider parent, string[] freshSharingBoundaries)
+        protected ExportProvider(ExportProvider parent, IReadOnlyCollection<string> freshSharingBoundaries)
         {
             if (parent == null)
             {
