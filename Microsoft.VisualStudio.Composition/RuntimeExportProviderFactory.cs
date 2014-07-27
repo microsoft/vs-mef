@@ -94,24 +94,22 @@
                     throw new CompositionFailedException("Cannot instantiate this part.");
                 }
 
+                var constructedPartType = GetPartConstructedType(exportDefinition.PartDefinition, importDefinition);
                 var composedPart = this.factory.partDefinitionToComposedPart[partDefinition];
                 var ctorArgs = composedPart.GetImportingConstructorImports()
                     .Select(pair => GetValueForImportSite(null, pair.Key, pair.Value, provisionalSharedObjects).Value).ToArray();
                 ConstructorInfo importingConstructor = exportDefinition.PartDefinition.ImportingConstructorInfo;
                 if (importingConstructor.ContainsGenericParameters)
                 {
-                    // Supply the generic type arguments from the import definition.
-                    var constructedPart = importingConstructor.DeclaringType.MakeGenericType((Type[])importDefinition.Metadata[CompositionConstants.GenericParametersMetadataName]);
-
                     // TODO: fix this to find the precise match, including cases where the matching constructor includes a generic type parameter.
-                    importingConstructor = constructedPart.GetTypeInfo().DeclaredConstructors.First(ctor => true);
+                    importingConstructor = constructedPartType.GetTypeInfo().DeclaredConstructors.First(ctor => true);
                 }
 
                 object part = importingConstructor.Invoke(ctorArgs);
 
                 if (partDefinition.IsShared)
                 {
-                    provisionalSharedObjects.Add(this.GetTypeId(partDefinition.Type), part);
+                    provisionalSharedObjects.Add(this.GetTypeId(constructedPartType), part);
                 }
 
                 var disposablePart = part as IDisposable;
@@ -379,8 +377,10 @@
                 Requires.NotNull(export, "export");
                 Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
 
+                var constructedType = GetPartConstructedType(export.PartDefinition, import.ImportDefinition);
+
                 ILazy<object> exportingPart = this.GetOrCreateShareableValue(
-                    this.GetTypeId(export.PartDefinition.Type),
+                    this.GetTypeId(constructedType),
                     (ep, pso) => this.CreatePart(pso, export, import.ImportDefinition),
                     provisionalSharedObjects,
                     export.PartDefinition.IsShared ? this.factory.configuration.GetEffectiveSharingBoundary(export.PartDefinition) : null,
@@ -389,6 +389,20 @@
                     ? new LazyPart<object>(() => this.GetValueFromMember(export.IsStaticExport ? null : exportingPart.Value, import, export))
                     : exportingPart;
                 return exportedValue;
+            }
+
+            /// <summary>
+            /// Gets the constructed type (non generic type definition) for a part.
+            /// </summary>
+            private static Type GetPartConstructedType(ComposablePartDefinition partDefinition, ImportDefinition importDefinition)
+            {
+                Requires.NotNull(importDefinition, "importDefinition");
+                Requires.NotNull(partDefinition, "partDefinition");
+
+                var constructedType = partDefinition.Type.GetTypeInfo().IsGenericTypeDefinition
+                    ? partDefinition.Type.MakeGenericType((Type[])importDefinition.Metadata[CompositionConstants.GenericParametersMetadataName])
+                    : partDefinition.Type;
+                return constructedType;
             }
 
             private static void SetImportingMember(object part, MemberInfo member, object value)
