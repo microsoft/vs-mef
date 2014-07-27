@@ -337,6 +337,7 @@
                 Requires.NotNull(valueFactory, "valueFactory");
                 Requires.NotNull(metadata, "metadata");
 
+                lazyType = LazyPart.FromLazy(lazyType); // be sure we have a concrete type.
                 using (var ctorArgs = ArrayRental<object>.Get(lazyType.GenericTypeArguments.Length))
                 {
                     ctorArgs.Value[0] = ReflectionHelpers.CreateFuncOfType(lazyType.GenericTypeArguments[0], valueFactory);
