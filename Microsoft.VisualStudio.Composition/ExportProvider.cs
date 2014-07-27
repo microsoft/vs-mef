@@ -325,33 +325,46 @@
             return new Export(importDefinition.ContractName, metadata, memberValueFactory);
         }
 
-        protected object GetValueFromMember(object instance, MemberInfo member)
+        protected object GetValueFromMember(object exportingPart, ImportDefinitionBinding import, ExportDefinitionBinding export)
         {
-            Requires.NotNull(instance, "instance");
-            Requires.NotNull(member, "member");
+            return this.GetValueFromMember(exportingPart, export.ExportingMember, import.ImportingSiteElementType, export.ExportedValueType);
+        }
 
-            var field = member as FieldInfo;
+        protected object GetValueFromMember(object exportingPart, MemberInfo exportingMember, Type importingSiteElementType = null, Type exportedValueType = null)
+        {
+            Requires.NotNull(exportingPart, "exportingPart");
+            Requires.NotNull(exportingMember, "exportingMember");
+
+            if (exportingMember == null)
+            {
+                return exportingPart;
+            }
+
+            var field = exportingMember as FieldInfo;
             if (field != null)
             {
-                return field.GetValue(instance);
+                return field.GetValue(exportingPart);
             }
 
-            var property = member as PropertyInfo;
+            var property = exportingMember as PropertyInfo;
             if (property != null)
             {
-                return property.GetValue(instance);
+                return property.GetValue(exportingPart);
             }
 
-            var method = member as MethodInfo;
+            var method = exportingMember as MethodInfo;
             if (method != null)
             {
                 // If the method came from a property, return the result of the property getter rather than return the delegate.
                 if (method.IsSpecialName && method.GetParameters().Length == 0 && method.Name.StartsWith("get_"))
                 {
-                    return method.Invoke(instance, EmptyObjectArray);
+                    return method.Invoke(exportingPart, EmptyObjectArray);
                 }
 
-                return method.CreateDelegate(ExportDefinitionBinding.GetContractTypeForDelegate(method), method.IsStatic ? null : instance);
+                Type delegateType = importingSiteElementType != null && typeof(Delegate).GetTypeInfo().IsAssignableFrom(importingSiteElementType.GetTypeInfo())
+                    ? importingSiteElementType
+                    : (exportedValueType ?? ExportDefinitionBinding.GetContractTypeForDelegate(method));
+                return method.CreateDelegate(delegateType, method.IsStatic ? null : exportingPart);
             }
 
             throw new NotSupportedException();

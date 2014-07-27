@@ -284,7 +284,7 @@
                             : this;
 
                         object constructedPart = scope.CreatePart(scope, new Dictionary<int, object>(), export);
-                        object constructedValue = export.ExportingMember != null ? scope.GetValueFromMember(constructedPart, export.ExportingMember) : constructedPart;
+                        object constructedValue = export.ExportingMember != null ? scope.GetValueFromMember(constructedPart, import, export) : constructedPart;
 
                         using (var ctorArgs = ArrayRental<object>.Get(2))
                         {
@@ -376,7 +376,7 @@
                     export.PartDefinition.IsShared ? this.factory.configuration.GetEffectiveSharingBoundary(export.PartDefinition) : null,
                     !export.PartDefinition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(import.ImportDefinition));
                 var exportedValue = export.ExportingMember != null
-                    ? new LazyPart<object>(() => this.GetValueFromMember(exportingPart.Value, export.ExportingMember))
+                    ? new LazyPart<object>(() => this.GetValueFromMember(exportingPart.Value, import, export))
                     : exportingPart;
                 return exportedValue;
             }
