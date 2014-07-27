@@ -1,6 +1,4 @@
-﻿#define Runtime
-
-namespace Microsoft.VisualStudio.Composition.Tests
+﻿namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
     using System.Collections.Generic;
