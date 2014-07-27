@@ -72,7 +72,7 @@
                     this.CreateExport(
                         importDefinition,
                         export.ExportDefinition.Metadata,
-                        this.GetTypeId(export.PartDefinition.Type),
+                        this.GetTypeId(GetPartConstructedType(export.PartDefinition, importDefinition)),
                         (ep, provisionalSharedObjects) => this.CreatePart(provisionalSharedObjects, export, importDefinition),
                         export.PartDefinition.IsShared ? this.factory.configuration.GetEffectiveSharingBoundary(export.PartDefinition) : null,
                         !export.PartDefinition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
