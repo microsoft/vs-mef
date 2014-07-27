@@ -73,15 +73,14 @@
                         importDefinition,
                         export.ExportDefinition.Metadata,
                         this.GetTypeId(export.PartDefinition.Type),
-                        (ep, provisionalSharedObjects) => this.CreatePart(ep, provisionalSharedObjects, export),
+                        (ep, provisionalSharedObjects) => this.CreatePart(provisionalSharedObjects, export, importDefinition),
                         export.PartDefinition.IsShared ? this.factory.configuration.GetEffectiveSharingBoundary(export.PartDefinition) : null,
                         !export.PartDefinition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
                         export.ExportingMember));
             }
 
-            private object CreatePart(ExportProvider exportProvider, Dictionary<int, object> provisionalSharedObjects, ExportDefinitionBinding exportDefinition)
+            private object CreatePart(Dictionary<int, object> provisionalSharedObjects, ExportDefinitionBinding exportDefinition, ImportDefinition importDefinition)
             {
-                Assumes.True(this == exportProvider);
                 var partDefinition = exportDefinition.PartDefinition;
 
                 if (partDefinition.Equals(ExportProvider.ExportProviderPartDefinition))
@@ -98,7 +97,17 @@
                 var composedPart = this.factory.partDefinitionToComposedPart[partDefinition];
                 var ctorArgs = composedPart.GetImportingConstructorImports()
                     .Select(pair => GetValueForImportSite(null, pair.Key, pair.Value, provisionalSharedObjects).Value).ToArray();
-                object part = exportDefinition.PartDefinition.ImportingConstructorInfo.Invoke(ctorArgs);
+                ConstructorInfo importingConstructor = exportDefinition.PartDefinition.ImportingConstructorInfo;
+                if (importingConstructor.ContainsGenericParameters)
+                {
+                    // Supply the generic type arguments from the import definition.
+                    var constructedPart = importingConstructor.DeclaringType.MakeGenericType((Type[])importDefinition.Metadata[CompositionConstants.GenericParametersMetadataName]);
+
+                    // TODO: fix this to find the precise match, including cases where the matching constructor includes a generic type parameter.
+                    importingConstructor = constructedPart.GetTypeInfo().DeclaredConstructors.First(ctor => true);
+                }
+
+                object part = importingConstructor.Invoke(ctorArgs);
 
                 if (partDefinition.IsShared)
                 {
@@ -283,7 +292,7 @@
                             ? new RuntimeExportProvider(this.factory, this, import.ImportDefinition.ExportFactorySharingBoundaries)
                             : this;
 
-                        object constructedPart = scope.CreatePart(scope, new Dictionary<int, object>(), export);
+                        object constructedPart = scope.CreatePart(new Dictionary<int, object>(), export, import.ImportDefinition);
                         object constructedValue = export.ExportingMember != null ? scope.GetValueFromMember(constructedPart, import, export) : constructedPart;
 
                         using (var ctorArgs = ArrayRental<object>.Get(2))
@@ -371,7 +380,7 @@
 
                 ILazy<object> exportingPart = this.GetOrCreateShareableValue(
                     this.GetTypeId(export.PartDefinition.Type),
-                    (ep, pso) => this.CreatePart(ep, pso, export),
+                    (ep, pso) => this.CreatePart(pso, export, import.ImportDefinition),
                     provisionalSharedObjects,
                     export.PartDefinition.IsShared ? this.factory.configuration.GetEffectiveSharingBoundary(export.PartDefinition) : null,
                     !export.PartDefinition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(import.ImportDefinition));
