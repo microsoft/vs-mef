@@ -70,6 +70,13 @@
                 {
                     string propertyName = methodCall.MethodName.Substring(4);
                     result = this.metadata[propertyName];
+
+                    // In some cases, metadata values may not cast appropriately to the required value.
+                    // In these cases, the desired behavior is to simply return null.
+                    if (result != null && !methodInfo.ReturnType.IsAssignableFrom(result.GetType()))
+                    {
+                        result = null;
+                    }
                 }
                 else if (methodInfo == EqualsMethodInfo)
                 {
