@@ -386,7 +386,7 @@
                     export.PartDefinition.IsShared ? this.factory.configuration.GetEffectiveSharingBoundary(export.PartDefinition) : null,
                     !export.PartDefinition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(import.ImportDefinition));
                 var exportedValue = export.ExportingMember != null
-                    ? new LazyPart<object>(() => this.GetValueFromMember(exportingPart.Value, import, export))
+                    ? new LazyPart<object>(() => this.GetValueFromMember(export.IsStaticExport ? null : exportingPart.Value, import, export))
                     : exportingPart;
                 return exportedValue;
             }

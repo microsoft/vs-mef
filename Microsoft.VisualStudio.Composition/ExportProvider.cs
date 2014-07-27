@@ -330,9 +330,16 @@
             return this.GetValueFromMember(exportingPart, export.ExportingMember, import.ImportingSiteElementType, export.ExportedValueType);
         }
 
+        /// <summary>
+        /// Gets the value from some member of a part.
+        /// </summary>
+        /// <param name="exportingPart">The instance of the part to extract the value from. May be <c>null</c> for static exports.</param>
+        /// <param name="exportingMember">The member exporting the value. May be <c>null</c> for exporting the type/instance itself.</param>
+        /// <param name="importingSiteElementType">The type of the importing member, with ImportMany collections and Lazy/ExportFactory stripped away.</param>
+        /// <param name="exportedValueType">The contractually exported value type.</param>
+        /// <returns>The value of the member.</returns>
         protected object GetValueFromMember(object exportingPart, MemberInfo exportingMember, Type importingSiteElementType = null, Type exportedValueType = null)
         {
-            Requires.NotNull(exportingPart, "exportingPart");
             Requires.NotNull(exportingMember, "exportingMember");
 
             if (exportingMember == null)
