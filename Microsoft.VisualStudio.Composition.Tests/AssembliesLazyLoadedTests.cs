@@ -119,7 +119,7 @@
             string dllPath = rootpath + ".dll";
             string pdbPath = rootpath + ".pdb";
             string csPath = rootpath + ".cs";
-            await configuration.CompileAsync(dllPath, pdbPath, csPath, debug: true);
+            await CompiledComposition.CompileAsync(configuration, dllPath, pdbPath, csPath, debug: true);
             return dllPath;
         }
 
@@ -129,7 +129,7 @@
 
             internal void Initialize(string cachedCompositionPath)
             {
-                var containerFactory = CompiledComposition.Load(Assembly.LoadFile(cachedCompositionPath));
+                var containerFactory = CompiledComposition.LoadExportProviderFactory(Assembly.LoadFile(cachedCompositionPath));
                 this.container = containerFactory.CreateExportProvider();
             }
 

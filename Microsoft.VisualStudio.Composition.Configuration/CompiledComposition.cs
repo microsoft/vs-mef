@@ -27,10 +27,10 @@
             string exePath = Process.GetCurrentProcess().MainModule.FileName.Replace(".vshost", string.Empty);
             string baseName = Path.Combine(Path.GetDirectoryName(exePath), Path.GetFileNameWithoutExtension(exePath));
             string defaultCompositionFile = baseName + ".Composition.dll";
-            return Load(Assembly.LoadFile(defaultCompositionFile));
+            return LoadExportProviderFactory(Assembly.LoadFile(defaultCompositionFile));
         }
 
-        public static async Task CompileAsync(this CompositionConfiguration configuration, string assemblyPath, string pdbPath = null, string sourceFilePath = null, TextWriter buildOutput = null, bool debug = false, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task CompileAsync(CompositionConfiguration configuration, string assemblyPath, string pdbPath = null, string sourceFilePath = null, TextWriter buildOutput = null, bool debug = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             string assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
             using (Stream assemblyStream = File.Open(assemblyPath, FileMode.Create))
@@ -39,7 +39,8 @@
                 {
                     using (FileStream sourceFile = sourceFilePath != null ? File.Open(sourceFilePath, FileMode.Create) : null)
                     {
-                        var result = await configuration.CompileAsync(
+                        var result = await CompileAsync(
+                            configuration,
                             assemblyName,
                             assemblyStream,
                             pdbStream,
@@ -56,7 +57,7 @@
             }
         }
 
-        public static Task<EmitResult> CompileAsync(this CompositionConfiguration configuration, string assemblyName, Stream assemblyStream, Stream pdbStream = null, Stream sourceFile = null, TextWriter buildOutput = null, bool debug = false, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<EmitResult> CompileAsync(CompositionConfiguration configuration, string assemblyName, Stream assemblyStream, Stream pdbStream = null, Stream sourceFile = null, TextWriter buildOutput = null, bool debug = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(configuration, "configuration");
             Requires.NotNullOrEmpty(assemblyName, "assemblyName");
@@ -121,7 +122,8 @@
             string assemblyName = Path.GetRandomFileName();
             var assemblyStream = new MemoryStream();
 
-            var result = await configuration.CompileAsync(
+            var result = await CompileAsync(
+                configuration,
                 assemblyName,
                 assemblyStream: assemblyStream,
                 sourceFile: sourceFile,
@@ -130,7 +132,7 @@
             {
                 await buildOutput.WriteLineAsync("Generated assembly size: " + assemblyStream.Length);
                 var compositionAssembly = Assembly.Load(assemblyStream.ToArray());
-                return Load(compositionAssembly);
+                return LoadExportProviderFactory(compositionAssembly);
             }
             else
             {
@@ -138,12 +140,12 @@
             }
         }
 
-        public static IExportProviderFactory Load(AssemblyName assemblyRef)
+        public static IExportProviderFactory LoadExportProviderFactory(AssemblyName assemblyRef)
         {
             return new CompiledExportProviderFactory(Assembly.Load(assemblyRef));
         }
 
-        public static IExportProviderFactory Load(Assembly assembly)
+        public static IExportProviderFactory LoadExportProviderFactory(Assembly assembly)
         {
             return new CompiledExportProviderFactory(assembly);
         }

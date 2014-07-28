@@ -20,10 +20,10 @@
             var configuration = CompositionConfiguration.Create(
                 new[] { new AttributedPartDiscovery().CreatePart(typeof(SomeExport)) });
             string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            await configuration.CompileAsync(path);
+            await CompiledComposition.CompileAsync(configuration, path);
             configuration = null;
 
-            var reconstitutedConfiguration = CompiledComposition.Load(Assembly.LoadFile(path));
+            var reconstitutedConfiguration = CompiledComposition.LoadExportProviderFactory(Assembly.LoadFile(path));
             var container = reconstitutedConfiguration.CreateExportProvider();
             SomeExport export = container.GetExportedValue<SomeExport>();
             Assert.NotNull(export);

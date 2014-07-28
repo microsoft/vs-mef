@@ -68,7 +68,8 @@
 
                 string assemblyPath = Path.GetFullPath(this.ConfigurationOutputPath);
                 this.Log.LogMessage("Producing IoC container \"{0}\"", assemblyPath);
-                configuration.CompileAsync(
+                CompiledComposition.CompileAsync(
+                    configuration,
                     assemblyPath,
                     Path.GetFullPath(this.ConfigurationSymbolsPath),
                     Path.GetFullPath(this.ConfigurationSourcePath),
