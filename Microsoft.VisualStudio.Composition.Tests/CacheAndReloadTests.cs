@@ -20,7 +20,7 @@
             var configuration = CompositionConfiguration.Create(
                 new[] { new AttributedPartDiscovery().CreatePart(typeof(SomeExport)) });
             string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            await configuration.SaveAsync(path);
+            await configuration.CompileAsync(path);
             configuration = null;
 
             var reconstitutedConfiguration = CompiledComposition.Load(Assembly.LoadFile(path));

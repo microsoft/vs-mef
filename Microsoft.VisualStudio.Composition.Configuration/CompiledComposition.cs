@@ -30,7 +30,7 @@
             return Load(Assembly.LoadFile(defaultCompositionFile));
         }
 
-        public static async Task SaveAsync(this CompositionConfiguration configuration, string assemblyPath, string pdbPath = null, string sourceFilePath = null, TextWriter buildOutput = null, bool debug = false, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task CompileAsync(this CompositionConfiguration configuration, string assemblyPath, string pdbPath = null, string sourceFilePath = null, TextWriter buildOutput = null, bool debug = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             string assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
             using (Stream assemblyStream = File.Open(assemblyPath, FileMode.Create))
@@ -39,7 +39,7 @@
                 {
                     using (FileStream sourceFile = sourceFilePath != null ? File.Open(sourceFilePath, FileMode.Create) : null)
                     {
-                        var result = await configuration.SaveCompilationAsync(
+                        var result = await configuration.CompileAsync(
                             assemblyName,
                             assemblyStream,
                             pdbStream,
@@ -56,7 +56,7 @@
             }
         }
 
-        public static Task<EmitResult> SaveCompilationAsync(this CompositionConfiguration configuration, string assemblyName, Stream assemblyStream, Stream pdbStream = null, Stream sourceFile = null, TextWriter buildOutput = null, bool debug = false, CancellationToken cancellationToken = default(CancellationToken))
+        public static Task<EmitResult> CompileAsync(this CompositionConfiguration configuration, string assemblyName, Stream assemblyStream, Stream pdbStream = null, Stream sourceFile = null, TextWriter buildOutput = null, bool debug = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(configuration, "configuration");
             Requires.NotNullOrEmpty(assemblyName, "assemblyName");
@@ -145,12 +145,12 @@
                     specificDiagnosticOptions: diagnosticOptions));
         }
 
-        public static async Task<IExportProviderFactory> CreateContainerFactoryAsync(this CompositionConfiguration configuration, Stream sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<IExportProviderFactory> CreateCompiledExportProviderFactoryAsync(this CompositionConfiguration configuration, Stream sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             string assemblyName = Path.GetRandomFileName();
             var assemblyStream = new MemoryStream();
 
-            var result = await configuration.SaveCompilationAsync(
+            var result = await configuration.CompileAsync(
                 assemblyName,
                 assemblyStream: assemblyStream,
                 sourceFile: sourceFile,

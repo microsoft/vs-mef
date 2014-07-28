@@ -155,7 +155,7 @@
             return Create(ComposableCatalog.Create(parts));
         }
 
-        public IExportProviderFactory CreateRuntimeFactory()
+        public IExportProviderFactory CreateExportProviderFactory()
         {
             return new RuntimeExportProviderFactory(this);
         }

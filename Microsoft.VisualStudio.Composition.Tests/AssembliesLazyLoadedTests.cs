@@ -119,7 +119,7 @@
             string dllPath = rootpath + ".dll";
             string pdbPath = rootpath + ".pdb";
             string csPath = rootpath + ".cs";
-            await configuration.SaveAsync(dllPath, pdbPath, csPath, debug: true);
+            await configuration.CompileAsync(dllPath, pdbPath, csPath, debug: true);
             return dllPath;
         }
 

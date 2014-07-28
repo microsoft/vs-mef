@@ -21,7 +21,7 @@
             Requires.NotNull(configuration, "configuration");
 
 #if Runtime
-            return configuration.CreateRuntimeFactory().CreateExportProvider();
+            return configuration.CreateExportProviderFactory().CreateExportProvider();
 #else
             if (Debugger.IsAttached)
             {
