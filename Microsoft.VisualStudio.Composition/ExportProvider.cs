@@ -96,7 +96,7 @@
         /// <summary>
         /// An array of types 
         /// </summary>
-        private List<Type> runtimeCreatedTypes = new List<Type>();
+        private List<Type> runtimeCreatedTypes;
 
         private readonly object syncObject = new object();
 
@@ -118,10 +118,12 @@
             if (parent == null)
             {
                 this.sharedInstantiatedExports = this.sharedInstantiatedExports.Add(string.Empty, new Dictionary<int, object>());
+                this.runtimeCreatedTypes = new List<Type>();
             }
             else
             {
                 this.sharedInstantiatedExports = parent.sharedInstantiatedExports;
+                this.runtimeCreatedTypes = parent.runtimeCreatedTypes;
             }
 
             if (freshSharingBoundaries != null)
