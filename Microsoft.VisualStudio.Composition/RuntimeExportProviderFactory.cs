@@ -184,7 +184,8 @@
                             collectionObject = GetImportingMember(part, import.ImportingMember);
                         }
 
-                        if (collectionObject == null)
+                        bool preexistingInstance = collectionObject != null;
+                        if (!preexistingInstance)
                         {
                             if (PartDiscovery.IsImportManyCollectionTypeCreateable(import))
                             {
@@ -211,6 +212,11 @@
                         }
 
                         var collectionAccessor = new CollectionWrapper(collectionObject, import.ImportingSiteTypeWithoutCollection);
+                        if (preexistingInstance)
+                        {
+                            collectionAccessor.Clear();
+                        }
+
                         for (int i = 0; i < exports.Count; i++)
                         {
                             collectionAccessor.Add(this.GetValueForImportElement(part, import, exports[i], provisionalSharedObjects));
