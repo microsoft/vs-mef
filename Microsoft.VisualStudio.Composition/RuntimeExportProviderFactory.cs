@@ -290,8 +290,7 @@
                             ? new RuntimeExportProvider(this.factory, this, import.ImportDefinition.ExportFactorySharingBoundaries)
                             : this;
 
-                        object constructedPart = scope.CreatePart(new Dictionary<int, object>(), export, import.ImportDefinition);
-                        object constructedValue = export.ExportingMember != null ? scope.GetValueFromMember(constructedPart, import, export) : constructedPart;
+                        object constructedValue = scope.GetExportedValue(import, export, new Dictionary<int, object>()).Value;
 
                         using (var ctorArgs = ArrayRental<object>.Get(2))
                         {
