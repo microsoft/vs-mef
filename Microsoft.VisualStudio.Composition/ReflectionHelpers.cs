@@ -491,6 +491,22 @@
                     || a.GetType().FullName == "System.Runtime.InteropServices.ImportedFromTypeLibAttribute");
         }
 
+        /// <summary>
+        /// Returns a type with generic type arguments supplied by a constructed type that is derived from
+        /// the supplied generic type definition.
+        /// </summary>
+        /// <param name="genericTypeDefinition">The generic type definition to return a constructed type from.</param>
+        /// <param name="constructedType">A constructed type that is, or derives from, <see cref="genericTypeDefinition"/>.</param>
+        /// <returns>A constructed type.</returns>
+        internal static Type CloseGenericType(Type genericTypeDefinition, Type constructedType)
+        {
+            Requires.NotNull(genericTypeDefinition, "genericTypeDefinition");
+            Requires.NotNull(constructedType, "constructedType");
+            Requires.Argument(genericTypeDefinition.GetTypeInfo().IsAssignableFrom(constructedType.GetGenericTypeDefinition().GetTypeInfo()), "constructedType", "Not a closed form of the other.");
+
+            return genericTypeDefinition.MakeGenericType(constructedType.GenericTypeArguments.Take(genericTypeDefinition.GetTypeInfo().GenericTypeParameters.Length).ToArray());
+        }
+
         private static string FilterTypeNameForGenericTypeDefinition(Type type, bool fullName)
         {
             Requires.NotNull(type, "type");

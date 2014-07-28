@@ -405,10 +405,16 @@
                 return constructedType;
             }
 
-            private static void SetImportingMember(object part, MemberInfo member, object value)
+            private void SetImportingMember(object part, MemberInfo member, object value)
             {
                 Requires.NotNull(part, "part");
                 Requires.NotNull(member, "member");
+
+                bool containsGenericParameters = member.DeclaringType.GetTypeInfo().ContainsGenericParameters;
+                if (containsGenericParameters)
+                {
+                    member = ReflectionHelpers.CloseGenericType(member.DeclaringType, part.GetType()).GetTypeInfo().DeclaredMembers.First(m => m.Name == member.Name);
+                }
 
                 var property = member as PropertyInfo;
                 if (property != null)
