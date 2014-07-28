@@ -116,35 +116,6 @@
             });
         }
 
-        private static CSharpCompilation CreateTemplateCompilation(string assemblyName, bool debug)
-        {
-            var referenceAssemblies = ImmutableHashSet.Create(
-                Assembly.GetExecutingAssembly(),
-                Assembly.Load("System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
-                Assembly.Load("System.Reflection, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
-                Assembly.Load("System.Collections, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
-                typeof(ILazy<>).Assembly,
-                typeof(Lazy<,>).Assembly,
-                typeof(Enumerable).Assembly,
-                typeof(System.Composition.ExportFactory<>).Assembly,
-                typeof(ImmutableDictionary).Assembly);
-
-            var diagnosticOptions = ImmutableDictionary.Create<string, ReportDiagnostic>()
-                .Add("CS1701", ReportDiagnostic.Suppress)  // this is unavoidable. Roslyn doesn't let us supply runtime policy.
-                .Add("CS0618", ReportDiagnostic.Suppress)  // calling obsolete code in generated code is how we roll.
-                .Add("CS0162", ReportDiagnostic.Error);    // dead code emitted can be a sign of defects.
-
-            return CSharpCompilation.Create(
-                assemblyName,
-                references: referenceAssemblies.Select(a => MetadataFileReferenceProvider.Default.GetReference(a.Location, MetadataReferenceProperties.Assembly)),
-                options: new CSharpCompilationOptions(
-                    OutputKind.DynamicallyLinkedLibrary,
-                    optimize: !debug,
-                    debugInformationKind: debug ? DebugInformationKind.Full : DebugInformationKind.None,
-                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
-                    specificDiagnosticOptions: diagnosticOptions));
-        }
-
         public static async Task<IExportProviderFactory> CreateCompiledExportProviderFactoryAsync(this CompositionConfiguration configuration, Stream sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             string assemblyName = Path.GetRandomFileName();
@@ -175,6 +146,35 @@
         public static IExportProviderFactory Load(Assembly assembly)
         {
             return new CompiledExportProviderFactory(assembly);
+        }
+
+        private static CSharpCompilation CreateTemplateCompilation(string assemblyName, bool debug)
+        {
+            var referenceAssemblies = ImmutableHashSet.Create(
+                Assembly.GetExecutingAssembly(),
+                Assembly.Load("System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
+                Assembly.Load("System.Reflection, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
+                Assembly.Load("System.Collections, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
+                typeof(ILazy<>).Assembly,
+                typeof(Lazy<,>).Assembly,
+                typeof(Enumerable).Assembly,
+                typeof(System.Composition.ExportFactory<>).Assembly,
+                typeof(ImmutableDictionary).Assembly);
+
+            var diagnosticOptions = ImmutableDictionary.Create<string, ReportDiagnostic>()
+                .Add("CS1701", ReportDiagnostic.Suppress)  // this is unavoidable. Roslyn doesn't let us supply runtime policy.
+                .Add("CS0618", ReportDiagnostic.Suppress)  // calling obsolete code in generated code is how we roll.
+                .Add("CS0162", ReportDiagnostic.Error);    // dead code emitted can be a sign of defects.
+
+            return CSharpCompilation.Create(
+                assemblyName,
+                references: referenceAssemblies.Select(a => MetadataFileReferenceProvider.Default.GetReference(a.Location, MetadataReferenceProperties.Assembly)),
+                options: new CSharpCompilationOptions(
+                    OutputKind.DynamicallyLinkedLibrary,
+                    optimize: !debug,
+                    debugInformationKind: debug ? DebugInformationKind.Full : DebugInformationKind.None,
+                    assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
+                    specificDiagnosticOptions: diagnosticOptions));
         }
 
         private static async Task<CSharpCompilation> AddGeneratedCodeAndDependenciesAsync(CSharpCompilation compilationTemplate, CompositionConfiguration configuration, Stream sourceFile, bool debug, CancellationToken cancellationToken = default(CancellationToken))
