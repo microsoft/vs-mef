@@ -121,6 +121,8 @@
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="CircularDependencyTests.cs" />
     <Compile Include="ClosedGenericExportedTypeTests.cs" />
+    <Compile Include="DataFileCacheAndReloadTests.cs" />
+    <Compile Include="CompiledCacheAndReloadTests.cs" />
     <Compile Include="DelegatingExportProviderTests.cs" />
     <Compile Include="DynamicImportTests.cs" />
     <Compile Include="EmbeddableTypesTests.cs" />

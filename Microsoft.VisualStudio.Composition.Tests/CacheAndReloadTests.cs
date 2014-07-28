@@ -10,18 +10,17 @@
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.AppDomainTests;
     using Microsoft.VisualStudio.Composition.AppDomainTests2;
+    using Validation;
     using Xunit;
 
-    public class CacheAndReloadTests
+    public abstract class CacheAndReloadTests
     {
         private ICompositionCacheManager cacheManager;
 
-        public CacheAndReloadTests()
+        protected CacheAndReloadTests(ICompositionCacheManager cacheManager)
         {
-            this.cacheManager = new CompiledComposition
-            {
-                AssemblyName = "CacheAndReloadTestCompilation",
-            };
+            Requires.NotNull(cacheManager, "cacheManager");
+            this.cacheManager = cacheManager;
         }
 
         [Fact]
