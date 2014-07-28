@@ -20,7 +20,7 @@
     using Microsoft.CodeAnalysis.Text;
     using Validation;
 
-    public static class CompositionConfigurationDesktop
+    public static class CompiledComposition
     {
         public static IExportProviderFactory LoadDefault()
         {

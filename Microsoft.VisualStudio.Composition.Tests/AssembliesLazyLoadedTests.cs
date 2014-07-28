@@ -129,7 +129,7 @@
 
             internal void Initialize(string cachedCompositionPath)
             {
-                var containerFactory = CompositionConfigurationDesktop.Load(Assembly.LoadFile(cachedCompositionPath));
+                var containerFactory = CompiledComposition.Load(Assembly.LoadFile(cachedCompositionPath));
                 this.container = containerFactory.CreateExportProvider();
             }
 
