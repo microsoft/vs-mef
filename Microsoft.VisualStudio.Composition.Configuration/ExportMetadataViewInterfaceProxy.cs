@@ -15,7 +15,7 @@
     /// <summary>
     /// Extension that adds support for dynamic interface metadata view generation.
     /// </summary>
-    public static class ExportMetadataViewInterfaceProxy
+    internal static class ExportMetadataViewInterfaceProxy
     {
         private static readonly MethodInfo EqualsMethodInfo = typeof(object).GetMethod("Equals", BindingFlags.Instance | BindingFlags.Public);
 

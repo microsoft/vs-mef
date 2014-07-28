@@ -203,9 +203,7 @@
         {
             var catalogWithCompositionService = catalog
                 .WithCompositionService()
-                .WithMetadataViewProxySupport()
-                .WithMetadataViewImplementationAttributeSupport()
-                .WithAssemblyCodeBasePathLoading();
+                .WithDesktopSupport();
             var configuration = CompositionConfiguration.Create(catalogWithCompositionService)
                 .WithReferenceAssemblies(additionalAssemblies ?? ImmutableHashSet<Assembly>.Empty);
             if (!options.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors))

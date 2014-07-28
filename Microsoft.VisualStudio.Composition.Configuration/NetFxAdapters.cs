@@ -12,9 +12,17 @@
 
     public static class NetFxAdapters
     {
-        private static readonly ComposablePartDefinition compositionServicePart = (new AttributedPartDiscoveryV1()).CreatePart(typeof(CompositionService));
-        private static readonly ComposablePartDefinition metadataViewImplProxyPart = (new AttributedPartDiscoveryV1()).CreatePart(typeof(MetadataViewImplProxy));
-        private static readonly ComposablePartDefinition assemblyNameCodeBasePathPath = (new AttributedPartDiscoveryV1()).CreatePart(typeof(AssemblyLoadCodeBasePathLoader));
+        private static readonly ComposablePartDefinition compositionServicePart;
+        private static readonly ComposablePartDefinition metadataViewImplProxyPart;
+        private static readonly ComposablePartDefinition assemblyNameCodeBasePathPath;
+
+        static NetFxAdapters()
+        {
+            var discovery = new AttributedPartDiscoveryV1();
+            compositionServicePart = discovery.CreatePart(typeof(CompositionService));
+            metadataViewImplProxyPart = discovery.CreatePart(typeof(MetadataViewImplProxy));
+            assemblyNameCodeBasePathPath = discovery.CreatePart(typeof(AssemblyLoadCodeBasePathLoader));
+        }
 
         /// <summary>
         /// Creates an instance of a <see cref="MefV1.Hosting.ExportProvider"/>
@@ -42,24 +50,19 @@
             return modifiedCatalog;
         }
 
-        public static ComposableCatalog WithMetadataViewImplementationAttributeSupport(this ComposableCatalog catalog)
-        {
-            Requires.NotNull(catalog, "catalog");
-
-            return catalog.WithPart(metadataViewImplProxyPart);
-        }
-
         /// <summary>
-        /// Adds the ability to load assemblies on demand based on their known location on disk when the
-        /// catalog is initially created.
+        /// Adds parts that allow MEF to work on .NET Framework platforms.
         /// </summary>
-        /// <param name="catalog">The catalog to add the capability to.</param>
-        /// <returns>The catalog with the added capability.</returns>
-        public static ComposableCatalog WithAssemblyCodeBasePathLoading(this ComposableCatalog catalog)
+        /// <param name="catalog">The catalog to add desktop support to.</param>
+        /// <returns>The catalog that includes desktop support.</returns>
+        public static ComposableCatalog WithDesktopSupport(this ComposableCatalog catalog)
         {
             Requires.NotNull(catalog, "catalog");
 
-            return catalog.WithPart(assemblyNameCodeBasePathPath);
+            return catalog
+                .WithPart(metadataViewImplProxyPart)
+                .WithPart(assemblyNameCodeBasePathPath)
+                .WithMetadataViewProxySupport();
         }
 
         private class MefV1ExportProvider : MefV1.Hosting.ExportProvider
