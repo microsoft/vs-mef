@@ -9,9 +9,9 @@
     using System.Threading.Tasks;
     using Validation;
 
-    public static class CachedComposition
+    public class CachedComposition : ICompositionCacheManager
     {
-        public static async Task SaveAsync(CompositionConfiguration configuration, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task SaveAsync(CompositionConfiguration configuration, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(configuration, "configuration");
             Requires.NotNull(cacheStream, "cacheStream");
@@ -20,7 +20,7 @@
             throw new NotImplementedException();
         }
 
-        public static async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(cacheStream, "cacheStream");
             Requires.Argument(cacheStream.CanRead, "cacheStream", "Readable stream required.");

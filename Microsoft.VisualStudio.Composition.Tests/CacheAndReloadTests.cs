@@ -14,17 +14,28 @@
 
     public class CacheAndReloadTests
     {
+        private ICompositionCacheManager cacheManager;
+
+        public CacheAndReloadTests()
+        {
+            this.cacheManager = new CompiledComposition
+            {
+                AssemblyName = "CacheAndReloadTestCompilation",
+            };
+        }
+
         [Fact]
         public async Task CacheAndReload()
         {
             var configuration = CompositionConfiguration.Create(
                 new[] { new AttributedPartDiscovery().CreatePart(typeof(SomeExport)) });
-            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            await CompiledComposition.CompileAsync(configuration, path);
+            var ms = new MemoryStream();
+            await this.cacheManager.SaveAsync(configuration, ms);
             configuration = null;
 
-            var reconstitutedConfiguration = CompiledComposition.LoadExportProviderFactory(Assembly.LoadFile(path));
-            var container = reconstitutedConfiguration.CreateExportProvider();
+            ms.Position = 0;
+            var exportProviderFactory = await this.cacheManager.LoadExportProviderFactoryAsync(ms);
+            var container = exportProviderFactory.CreateExportProvider();
             SomeExport export = container.GetExportedValue<SomeExport>();
             Assert.NotNull(export);
         }

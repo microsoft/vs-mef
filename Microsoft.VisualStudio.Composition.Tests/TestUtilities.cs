@@ -23,19 +23,31 @@
 #if Runtime
             return configuration.CreateExportProviderFactory().CreateExportProvider();
 #else
+            string basePath = Path.GetTempFileName();
+            string assemblyPath = basePath + ".dll";
+            var compiledCacheManager = new CompiledComposition
+            {
+                AssemblyName = Path.GetFileNameWithoutExtension(assemblyPath),
+            };
+
             if (Debugger.IsAttached)
             {
-                bool debug = true;
-                string basePath = Path.GetTempFileName();
-                string assemblyPath = basePath + ".dll";
-                string pdbPath = basePath + ".pdb";
-                string sourcePath = basePath + ".cs";
-                configuration.SaveAsync(
-                    assemblyPath,
-                    pdbPath,
-                    sourcePath,
-                    debug: debug).GetAwaiter().GetResult();
-                var exportProviderFactory = CompiledComposition.Load(Assembly.LoadFile(assemblyPath));
+                compiledCacheManager.Optimize = false;
+                using (var pdb = File.Open(basePath + ".pdb", FileMode.Create))
+                {
+                    using (var source = File.Open(basePath + ".cs", FileMode.Create))
+                    {
+                        compiledCacheManager.Optimize = false;
+                        compiledCacheManager.PdbSymbols = pdb;
+                        compiledCacheManager.Source = source;
+                        using (var assemblyStream = File.Open(assemblyPath, FileMode.CreateNew))
+                        {
+                            compiledCacheManager.SaveAsync(configuration, assemblyStream).GetAwaiter().GetResult();
+                        }
+                    }
+                }
+
+                var exportProviderFactory = CompiledComposition.LoadExportProviderFactory(assemblyPath);
                 return exportProviderFactory.CreateExportProvider();
             }
             else
@@ -46,7 +58,11 @@
 #endif
                 try
                 {
-                    var exportProvider = configuration.CreateContainerFactoryAsync(sourceFileStream, Console.Out).Result.CreateExportProvider();
+                    compiledCacheManager.Source = sourceFileStream;
+                    var assemblyStream = new MemoryStream();
+                    compiledCacheManager.SaveAsync(configuration, assemblyStream).Wait();
+                    assemblyStream.Position = 0;
+                    var exportProvider = compiledCacheManager.LoadExportProviderFactoryAsync(assemblyStream).Result.CreateExportProvider();
                     return exportProvider;
                 }
                 finally

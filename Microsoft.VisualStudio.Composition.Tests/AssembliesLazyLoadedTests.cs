@@ -1,6 +1,7 @@
 ﻿namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
+    using System.CodeDom.Compiler;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -13,8 +14,26 @@
     using Xunit;
 
     [Trait("Efficiency", "LazyLoad")]
-    public class AssembliesLazyLoadedTests
+    public class AssembliesLazyLoadedTests : IDisposable
     {
+        private ICompositionCacheManager cacheManager;
+
+        private TempFileCollection tfc;
+
+        public AssembliesLazyLoadedTests()
+        {
+            this.tfc = new TempFileCollection();
+            this.cacheManager = new CompiledComposition
+            {
+                AssemblyName = "AssembliesLazyLoadedTestsCompilation",
+            };
+        }
+
+        public void Dispose()
+        {
+            this.tfc.Delete();
+        }
+
         /// <summary>
         /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
         /// </summary>
@@ -22,7 +41,7 @@
         public async Task ComposableAssembliesLazyLoadedWhenQueried()
         {
             var configuration = CompositionConfiguration.Create(await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExternalExport), typeof(YetAnotherExport)));
-            string dllPath = await SaveConfigurationAsync(configuration);
+            string dllPath = await this.SaveConfigurationAsync(configuration);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
             var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
@@ -47,7 +66,7 @@
         {
             var configuration = CompositionConfiguration.Create(
                 await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExternalExportWithLazy), typeof(YetAnotherExport)));
-            string dllPath = await SaveConfigurationAsync(configuration);
+            string dllPath = await this.SaveConfigurationAsync(configuration);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
             var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
@@ -72,7 +91,7 @@
         {
             var configuration = CompositionConfiguration.Create(
                 await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaDictionary), typeof(AnExportWithMetadataTypeValue)));
-            string dllPath = await SaveConfigurationAsync(configuration);
+            string dllPath = await this.SaveConfigurationAsync(configuration);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
             var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
@@ -97,7 +116,7 @@
         {
             var configuration = CompositionConfiguration.Create(
                 await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaTMetadata), typeof(AnExportWithMetadataTypeValue)));
-            string dllPath = await SaveConfigurationAsync(configuration);
+            string dllPath = await this.SaveConfigurationAsync(configuration);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
             var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
@@ -113,14 +132,15 @@
             }
         }
 
-        private static async Task<string> SaveConfigurationAsync(CompositionConfiguration configuration)
+        private async Task<string> SaveConfigurationAsync(CompositionConfiguration configuration)
         {
-            string rootpath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            string dllPath = rootpath + ".dll";
-            string pdbPath = rootpath + ".pdb";
-            string csPath = rootpath + ".cs";
-            await CompiledComposition.CompileAsync(configuration, dllPath, pdbPath, csPath, debug: true);
-            return dllPath;
+            string assemblyCachePath = tfc.AddExtension(".dll", false);
+            using (var compositionCache = File.Open(assemblyCachePath, FileMode.CreateNew))
+            {
+                await this.cacheManager.SaveAsync(configuration, compositionCache);
+            }
+
+            return assemblyCachePath;
         }
 
         private class AppDomainTestDriver : MarshalByRefObject
@@ -129,7 +149,7 @@
 
             internal void Initialize(string cachedCompositionPath)
             {
-                var containerFactory = CompiledComposition.LoadExportProviderFactory(Assembly.LoadFile(cachedCompositionPath));
+                var containerFactory = CompiledComposition.LoadExportProviderFactory(cachedCompositionPath);
                 this.container = containerFactory.CreateExportProvider();
             }
 
