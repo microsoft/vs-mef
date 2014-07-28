@@ -301,7 +301,7 @@
                         using (var ctorArgs = ArrayRental<object>.Get(2))
                         {
                             ctorArgs.Value[0] = constructedValue;
-                            var disposableConstructedValue = constructedValue as IDisposable;
+                            var disposableConstructedValue = newSharingScope ? scope : constructedValue as IDisposable;
                             ctorArgs.Value[1] = disposableConstructedValue != null ? new Action(disposableConstructedValue.Dispose) : null;
                             return Activator.CreateInstance(tupleType, ctorArgs.Value);
                         }
