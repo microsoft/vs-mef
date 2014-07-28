@@ -127,7 +127,7 @@
                         var value = this.GetValueForImportSite(part, import, exports, provisionalSharedObjects);
                         if (value.ValueShouldBeSet)
                         {
-                            SetImportingMember(part, import.ImportingMember, value.Value);
+                            this.SetImportingMember(part, import.ImportingMember, value.Value);
                         }
                     }
                 }
@@ -202,7 +202,7 @@
                                     }
                                 }
 
-                                SetImportingMember(part, import.ImportingMember, collectionObject);
+                                this.SetImportingMember(part, import.ImportingMember, collectionObject);
                             }
                             else
                             {
@@ -375,6 +375,12 @@
                 Requires.NotNull(import, "import");
                 Requires.NotNull(export, "export");
                 Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
+
+                // Special case importing of ExportProvider
+                if (export.ExportDefinition == ExportProvider.ExportProviderExportDefinition)
+                {
+                    return this.NonDisposableWrapper;
+                }
 
                 var constructedType = GetPartConstructedType(export.PartDefinition, import.ImportDefinition);
 
