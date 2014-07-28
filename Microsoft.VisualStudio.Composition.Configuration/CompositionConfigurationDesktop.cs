@@ -27,7 +27,7 @@
             string exePath = Process.GetCurrentProcess().MainModule.FileName.Replace(".vshost", string.Empty);
             string baseName = Path.Combine(Path.GetDirectoryName(exePath), Path.GetFileNameWithoutExtension(exePath));
             string defaultCompositionFile = baseName + ".Composition.dll";
-            return CompositionConfiguration.Load(Assembly.LoadFile(defaultCompositionFile));
+            return Load(Assembly.LoadFile(defaultCompositionFile));
         }
 
         public static async Task SaveAsync(this CompositionConfiguration configuration, string assemblyPath, string pdbPath = null, string sourceFilePath = null, TextWriter buildOutput = null, bool debug = false, CancellationToken cancellationToken = default(CancellationToken))
@@ -159,12 +159,22 @@
             {
                 await buildOutput.WriteLineAsync("Generated assembly size: " + assemblyStream.Length);
                 var compositionAssembly = Assembly.Load(assemblyStream.ToArray());
-                return CompositionConfiguration.Load(compositionAssembly);
+                return Load(compositionAssembly);
             }
             else
             {
                 throw new Exception("Internal error.");
             }
+        }
+
+        public static IExportProviderFactory Load(AssemblyName assemblyRef)
+        {
+            return new CompiledExportProviderFactory(Assembly.Load(assemblyRef));
+        }
+
+        public static IExportProviderFactory Load(Assembly assembly)
+        {
+            return new CompiledExportProviderFactory(assembly);
         }
 
         private static async Task<CSharpCompilation> AddGeneratedCodeAndDependenciesAsync(CSharpCompilation compilationTemplate, CompositionConfiguration configuration, Stream sourceFile, bool debug, CancellationToken cancellationToken = default(CancellationToken))
@@ -350,6 +360,24 @@
             public int GetHashCode(Type obj)
             {
                 return obj.FullName.GetHashCode();
+            }
+        }
+
+        private class CompiledExportProviderFactory : IExportProviderFactory
+        {
+            private Func<ExportProvider> createFactory;
+
+            internal CompiledExportProviderFactory(Assembly assembly)
+            {
+                Requires.NotNull(assembly, "assembly");
+
+                var exportFactoryType = assembly.GetType("CompiledExportProvider");
+                this.createFactory = () => (ExportProvider)Activator.CreateInstance(exportFactoryType);
+            }
+
+            public ExportProvider CreateExportProvider()
+            {
+                return this.createFactory();
             }
         }
     }

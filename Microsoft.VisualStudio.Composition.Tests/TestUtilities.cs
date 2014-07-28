@@ -35,7 +35,7 @@
                     pdbPath,
                     sourcePath,
                     debug: debug).GetAwaiter().GetResult();
-                var exportProviderFactory = CompositionConfiguration.Load(Assembly.LoadFile(assemblyPath));
+                var exportProviderFactory = CompositionConfigurationDesktop.Load(Assembly.LoadFile(assemblyPath));
                 return exportProviderFactory.CreateExportProvider();
             }
             else

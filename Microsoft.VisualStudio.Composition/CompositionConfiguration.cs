@@ -155,16 +155,6 @@
             return Create(ComposableCatalog.Create(parts));
         }
 
-        public static IExportProviderFactory Load(AssemblyName assemblyRef)
-        {
-            return new CompiledExportProviderFactory(Assembly.Load(assemblyRef));
-        }
-
-        public static IExportProviderFactory Load(Assembly assembly)
-        {
-            return new CompiledExportProviderFactory(assembly);
-        }
-
         public IExportProviderFactory CreateRuntimeFactory()
         {
             return new RuntimeExportProviderFactory(this);
@@ -389,24 +379,6 @@
             }
 
             return dgml;
-        }
-
-        private class CompiledExportProviderFactory : IExportProviderFactory
-        {
-            private Func<ExportProvider> createFactory;
-
-            internal CompiledExportProviderFactory(Assembly assembly)
-            {
-                Requires.NotNull(assembly, "assembly");
-
-                var exportFactoryType = assembly.GetType("CompiledExportProvider");
-                this.createFactory = () => (ExportProvider)Activator.CreateInstance(exportFactoryType);
-            }
-
-            public ExportProvider CreateExportProvider()
-            {
-                return this.createFactory();
-            }
         }
 
         [DebuggerDisplay("{PartDefinition.Type.Name}")]

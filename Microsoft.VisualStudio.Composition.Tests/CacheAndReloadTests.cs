@@ -23,7 +23,7 @@
             await configuration.SaveAsync(path);
             configuration = null;
 
-            var reconstitutedConfiguration = CompositionConfiguration.Load(Assembly.LoadFile(path));
+            var reconstitutedConfiguration = CompositionConfigurationDesktop.Load(Assembly.LoadFile(path));
             var container = reconstitutedConfiguration.CreateExportProvider();
             SomeExport export = container.GetExportedValue<SomeExport>();
             Assert.NotNull(export);
