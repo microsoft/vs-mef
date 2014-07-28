@@ -111,6 +111,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AmbiguousPartNamesTests.cs" />
+    <Compile Include="AssembliesLazyLoadedCompilationCacheTests.cs" />
+    <Compile Include="AssembliesLazyLoadedDataFileCacheTests.cs" />
     <Compile Include="AssembliesLazyLoadedTests.cs" />
     <Compile Include="AssemblyReferencingTests.cs" />
     <Compile Include="AttributedPartDiscoveryTestBase.cs" />

@@ -11,22 +11,22 @@
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.AppDomainTests;
     using Microsoft.VisualStudio.Composition.AppDomainTests2;
+    using Validation;
     using Xunit;
 
     [Trait("Efficiency", "LazyLoad")]
-    public class AssembliesLazyLoadedTests : IDisposable
+    public abstract class AssembliesLazyLoadedTests : IDisposable
     {
         private ICompositionCacheManager cacheManager;
 
         private TempFileCollection tfc;
 
-        public AssembliesLazyLoadedTests()
+        protected AssembliesLazyLoadedTests(ICompositionCacheManager cacheManager)
         {
+            Requires.NotNull(cacheManager, "cacheManager");
+            
+            this.cacheManager = cacheManager;
             this.tfc = new TempFileCollection();
-            this.cacheManager = new CompiledComposition
-            {
-                AssemblyName = "AssembliesLazyLoadedTestsCompilation",
-            };
         }
 
         public void Dispose()
@@ -41,14 +41,14 @@
         public async Task ComposableAssembliesLazyLoadedWhenQueried()
         {
             var configuration = CompositionConfiguration.Create(await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExternalExport), typeof(YetAnotherExport)));
-            string dllPath = await this.SaveConfigurationAsync(configuration);
+            var compositionCache = await this.SaveConfigurationAsync(configuration);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
             var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
             try
             {
                 var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
-                driver.Initialize(dllPath);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache);
                 driver.TestExternalExport(typeof(ExternalExport).Assembly.Location);
                 driver.TestYetAnotherExport(typeof(YetAnotherExport).Assembly.Location);
             }
@@ -66,14 +66,14 @@
         {
             var configuration = CompositionConfiguration.Create(
                 await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExternalExportWithLazy), typeof(YetAnotherExport)));
-            string dllPath = await this.SaveConfigurationAsync(configuration);
+            var compositionCache = await this.SaveConfigurationAsync(configuration);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
             var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
             try
             {
                 var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
-                driver.Initialize(dllPath);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache);
                 driver.TestExternalExportWithLazy(typeof(YetAnotherExport).Assembly.Location);
             }
             finally
@@ -91,14 +91,14 @@
         {
             var configuration = CompositionConfiguration.Create(
                 await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaDictionary), typeof(AnExportWithMetadataTypeValue)));
-            string dllPath = await this.SaveConfigurationAsync(configuration);
+            var compositionCache = await this.SaveConfigurationAsync(configuration);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
             var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
             try
             {
                 var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
-                driver.Initialize(dllPath);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache);
                 driver.TestPartThatImportsExportWithTypeMetadataViaDictionary(typeof(YetAnotherExport).Assembly.Location);
             }
             finally
@@ -116,14 +116,14 @@
         {
             var configuration = CompositionConfiguration.Create(
                 await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaTMetadata), typeof(AnExportWithMetadataTypeValue)));
-            string dllPath = await this.SaveConfigurationAsync(configuration);
+            var compositionCache = await this.SaveConfigurationAsync(configuration);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
             var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
             try
             {
                 var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
-                driver.Initialize(dllPath);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache);
                 driver.TestPartThatImportsExportWithTypeMetadataViaTMetadata(typeof(YetAnotherExport).Assembly.Location);
             }
             finally
@@ -132,24 +132,32 @@
             }
         }
 
-        private async Task<string> SaveConfigurationAsync(CompositionConfiguration configuration)
+        private async Task<Stream> SaveConfigurationAsync(CompositionConfiguration configuration)
         {
-            string assemblyCachePath = tfc.AddExtension(".dll", false);
-            using (var compositionCache = File.Open(assemblyCachePath, FileMode.CreateNew))
-            {
-                await this.cacheManager.SaveAsync(configuration, compositionCache);
-            }
+            Requires.NotNull(configuration, "configuration");
 
-            return assemblyCachePath;
+            var ms = new MemoryStream();
+            await this.cacheManager.SaveAsync(configuration, ms);
+            ms.Position = 0;
+            return ms;
         }
 
         private class AppDomainTestDriver : MarshalByRefObject
         {
             private ExportProvider container;
 
-            internal void Initialize(string cachedCompositionPath)
+            internal void Initialize(Type cacheManagerType, Stream cachedComposition)
             {
-                var containerFactory = CompiledComposition.LoadExportProviderFactory(cachedCompositionPath);
+                Requires.NotNull(cacheManagerType, "cacheManagerType");
+                Requires.NotNull(cachedComposition, "cachedComposition");
+
+                // Copy the stream to one inside our app domain.
+                Stream cachedCompositionLocal = new MemoryStream();
+                cachedComposition.CopyTo(cachedCompositionLocal);
+                cachedCompositionLocal.Position = 0;
+
+                var cacheManager = (ICompositionCacheManager)Activator.CreateInstance(cacheManagerType);
+                var containerFactory = cacheManager.LoadExportProviderFactoryAsync(cachedCompositionLocal).GetAwaiter().GetResult();
                 this.container = containerFactory.CreateExportProvider();
             }
 
