@@ -600,6 +600,21 @@
             return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(requiredCreationPolicy);
         }
 
+        private void Write(BinaryWriter writer, ExportMetadataValueImportConstraint exportMetadataValueImportConstraint)
+        {
+            Trace("ExportMetadataValueImportConstraint", writer.BaseStream);
+            writer.Write(exportMetadataValueImportConstraint.Name);
+            this.WriteObject(writer, exportMetadataValueImportConstraint.Value);
+        }
+
+        private ExportMetadataValueImportConstraint ReadExportMetadataValueImportConstraint(BinaryReader reader)
+        {
+            Trace("ExportMetadataValueImportConstraint", reader.BaseStream);
+            string name = reader.ReadString();
+            object value = this.ReadObject(reader);
+            return new ExportMetadataValueImportConstraint(name, value);
+        }
+
         private enum ObjectType : byte
         {
             Null,
@@ -611,6 +626,7 @@
             ImportMetadataViewConstraint,
             ExportTypeIdentityConstraint,
             PartCreationPolicyConstraint,
+            ExportMetadataValueImportConstraint,
         }
 
         private void WriteObject(BinaryWriter writer, object value)
@@ -661,6 +677,11 @@
                     this.Write(writer, ObjectType.PartCreationPolicyConstraint);
                     this.Write(writer, (PartCreationPolicyConstraint)value);
                 }
+                else if (valueType == typeof(ExportMetadataValueImportConstraint))
+                {
+                    this.Write(writer, ObjectType.ExportMetadataValueImportConstraint);
+                    this.Write(writer, (ExportMetadataValueImportConstraint)value);
+                }
                 else
                 {
                     this.Write(writer, ObjectType.BinaryFormattedObject);
@@ -697,6 +718,8 @@
                     return this.ReadExportTypeIdentityConstraint(reader);
                 case ObjectType.PartCreationPolicyConstraint:
                     return this.ReadPartCreationPolicyConstraint(reader);
+                case ObjectType.ExportMetadataValueImportConstraint:
+                    return this.ReadExportMetadataValueImportConstraint(reader);
                 default:
                     throw new NotImplementedException();
             }
