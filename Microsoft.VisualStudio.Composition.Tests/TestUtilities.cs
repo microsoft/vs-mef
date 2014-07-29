@@ -16,12 +16,24 @@
 
     internal static class TestUtilities
     {
+        internal static async Task<IExportProviderFactory> CacheAndReloadConfiguration(CompositionConfiguration configuration, ICompositionCacheManager cacheManager)
+        {
+            Requires.NotNull(configuration, "configuration");
+            Requires.NotNull(cacheManager, "cacheManager");
+
+            var ms = new MemoryStream();
+            await cacheManager.SaveAsync(configuration, ms);
+            ms.Position = 0;
+            return await cacheManager.LoadExportProviderFactoryAsync(ms);
+        }
+
         internal static ExportProvider CreateContainer(this CompositionConfiguration configuration)
         {
             Requires.NotNull(configuration, "configuration");
 
 #if Runtime
-            return configuration.CreateExportProviderFactory().CreateExportProvider();
+            return CacheAndReloadConfiguration(configuration, new CachedComposition()).GetAwaiter().GetResult().CreateExportProvider();
+            ////return configuration.CreateExportProviderFactory().CreateExportProvider();
 #else
             string basePath = Path.GetTempFileName();
             string assemblyPath = basePath + ".dll";

@@ -3,10 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics;
     using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
     using System.Runtime.Serialization.Formatters.Binary;
     using System.Text;
     using System.Threading;
@@ -27,6 +29,7 @@
             {
                 using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
                 {
+                    Debug.WriteLine("Start serialization of MEF cache file.");
                     this.Write(writer, configuration.Catalog);
                 }
             });
@@ -41,6 +44,7 @@
             {
                 using (var reader = new BinaryReader(cacheStream, TextEncoding, leaveOpen: true))
                 {
+                    Debug.WriteLine("Start deserialization of MEF cache file.");
                     var catalog = this.ReadCatalog(reader);
 
                     // TODO: serialize/deserialize the configuration to avoid recomputing it on load.
@@ -51,11 +55,18 @@
             });
         }
 
+        [Conditional("DEBUG")]
+        private static void Trace(string elementName, Stream stream)
+        {
+            Debug.WriteLine("Serialization: {1,7} {0}", elementName, stream.Position);
+        }
+
         private void Write(BinaryWriter writer, ComposableCatalog catalog)
         {
             Requires.NotNull(writer, "writer");
             Requires.NotNull(catalog, "catalog");
 
+            Trace("ComposableCatalog", writer.BaseStream);
             this.Write(writer, catalog.Parts, this.Write);
         }
 
@@ -63,14 +74,14 @@
         {
             Requires.NotNull(reader, "reader");
 
+            Trace("ComposableCatalog", reader.BaseStream);
             var parts = this.ReadList(reader, this.ReadComposablePartDefinition);
             return ComposableCatalog.Create(parts);
         }
 
         private void Write(BinaryWriter writer, ComposablePartDefinition partDefinition)
         {
-            Requires.NotNull(writer, "writer");
-            Requires.NotNull(partDefinition, "partDefinition");
+            Trace("ComposablePartDefinition", writer.BaseStream);
 
             this.Write(writer, partDefinition.Type);
             this.Write(writer, partDefinition.ExportedTypes, this.Write);
@@ -83,13 +94,13 @@
 
         private ComposablePartDefinition ReadComposablePartDefinition(BinaryReader reader)
         {
-            Requires.NotNull(reader, "reader");
+            Trace("ComposablePartDefinition", reader.BaseStream);
 
             Type partType = this.ReadType(reader);
             IReadOnlyList<ExportDefinition> exportsOnType = this.ReadList(reader, this.ReadExportDefinition);
             IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportsOnMembers = this.ReadExportingMembers(reader);
             IReadOnlyList<ImportDefinitionBinding> imports = this.ReadList(reader, this.ReadImportDefinitionBinding);
-            MethodInfo onImportsSatisfied = this.ReadMethodInfo(reader);
+            MethodInfo onImportsSatisfied = (MethodInfo)this.ReadMethodBase(reader);
             IReadOnlyList<ImportDefinitionBinding> importingConstructor = this.ReadList(reader, this.ReadImportDefinitionBinding);
             CreationPolicy partCreationPolicy = (CreationPolicy)reader.ReadByte();
 
@@ -99,6 +110,8 @@
 
         private void Write(BinaryWriter writer, Type type)
         {
+            Trace("Type", writer.BaseStream);
+
             if (type.IsArray)
             {
                 writer.Write((byte)1);
@@ -123,6 +136,8 @@
 
         private Type ReadType(BinaryReader reader)
         {
+            Trace("Type", reader.BaseStream);
+
             int kind = reader.ReadByte();
             Assembly assembly = this.ReadAssembly(reader);
             int typeMetadataToken = reader.ReadInt32();
@@ -155,17 +170,23 @@
 
         private void Write(BinaryWriter writer, Assembly assembly)
         {
+            Trace("Assembly", writer.BaseStream);
+
             writer.Write(assembly.FullName);
         }
 
         private Assembly ReadAssembly(BinaryReader reader)
         {
+            Trace("Assembly", reader.BaseStream);
+
             string assemblyName = reader.ReadString();
             return Assembly.Load(assemblyName);
         }
 
         private void Write<T>(BinaryWriter writer, IReadOnlyCollection<T> list, Action<BinaryWriter, T> itemWriter)
         {
+            Trace("List<" + typeof(T).Name + ">", writer.BaseStream);
+
             if (list == null)
             {
                 writer.Write(-1);
@@ -181,6 +202,8 @@
 
         private IReadOnlyList<T> ReadList<T>(BinaryReader reader, Func<BinaryReader, T> itemReader)
         {
+            Trace("List<" + typeof(T).Name + ">", reader.BaseStream);
+
             int count = reader.ReadInt32();
             if (count == -1)
             {
@@ -198,6 +221,8 @@
 
         private Array ReadList(BinaryReader reader, Func<BinaryReader, object> itemReader, Type elementType)
         {
+            Trace("List<" + elementType.Name + ">", reader.BaseStream);
+
             int count = reader.ReadInt32();
             if (count == -1)
             {
@@ -215,12 +240,16 @@
 
         private void Write(BinaryWriter writer, ExportDefinition exportDefinition)
         {
+            Trace("ExportDefinition", writer.BaseStream);
+
             writer.Write(exportDefinition.ContractName);
             this.Write(writer, exportDefinition.Metadata);
         }
 
         private ExportDefinition ReadExportDefinition(BinaryReader reader)
         {
+            Trace("ExportDefinition", reader.BaseStream);
+
             string contractName = reader.ReadString();
             IReadOnlyDictionary<string, object> metadata = this.ReadMetadata(reader);
             return new ExportDefinition(contractName, metadata);
@@ -228,6 +257,8 @@
 
         private void Write(BinaryWriter writer, IReadOnlyDictionary<string, object> metadata)
         {
+            Trace("Metadata", writer.BaseStream);
+
             writer.Write(metadata.Count);
             foreach (var entry in metadata)
             {
@@ -238,6 +269,8 @@
 
         private IReadOnlyDictionary<string, object> ReadMetadata(BinaryReader reader)
         {
+            Trace("Metadata", reader.BaseStream);
+
             int count = reader.ReadInt32();
             var metadata = ImmutableDictionary<string, object>.Empty;
 
@@ -259,6 +292,8 @@
 
         private void Write(BinaryWriter writer, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportingMembers)
         {
+            Trace("ExportingMembers", writer.BaseStream);
+
             writer.Write(exportingMembers.Count);
             foreach (var item in exportingMembers)
             {
@@ -269,6 +304,8 @@
 
         private IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> ReadExportingMembers(BinaryReader reader)
         {
+            Trace("ExportingMembers", reader.BaseStream);
+
             int count = reader.ReadInt32();
             var exportingMembers = ImmutableDictionary<MemberInfo, IReadOnlyList<ExportDefinition>>.Empty;
             if (count > 0)
@@ -289,6 +326,8 @@
 
         private void Write(BinaryWriter writer, ImportDefinition importDefinition)
         {
+            Trace("ImportDefinition", writer.BaseStream);
+
             writer.Write(importDefinition.ContractName);
             writer.Write((byte)importDefinition.Cardinality);
             this.Write(writer, importDefinition.Metadata);
@@ -298,6 +337,8 @@
 
         private ImportDefinition ReadImportDefinition(BinaryReader reader)
         {
+            Trace("ImportDefinition", reader.BaseStream);
+
             var contractName = reader.ReadString();
             var cardinality = (ImportCardinality)reader.ReadByte();
             var metadata = this.ReadMetadata(reader);
@@ -309,6 +350,8 @@
 
         private void Write(BinaryWriter writer, ImportDefinitionBinding importDefinitionBinding)
         {
+            Trace("ImportDefinitionBinding", writer.BaseStream);
+
             this.Write(writer, importDefinitionBinding.ImportDefinition);
             this.Write(writer, importDefinitionBinding.ComposablePartType);
             if (importDefinitionBinding.ImportingMember != null)
@@ -325,6 +368,8 @@
 
         private ImportDefinitionBinding ReadImportDefinitionBinding(BinaryReader reader)
         {
+            Trace("ImportDefinitionBinding", reader.BaseStream);
+
             ImportDefinition importDefinition = this.ReadImportDefinition(reader);
             Type composablePartType = this.ReadType(reader);
             bool isImportingMember = reader.ReadBoolean();
@@ -342,20 +387,32 @@
 
         private void Write(BinaryWriter writer, ParameterInfo parameterInfo)
         {
-            throw new NotImplementedException();
+            Trace("ParameterInfo", writer.BaseStream);
+
+            var method = (MethodBase)parameterInfo.Member;
+            this.Write(writer, method);
+            int index = Array.IndexOf(method.GetParameters(), parameterInfo);
+            writer.Write((byte)index);
         }
 
         private ParameterInfo ReadParameterInfo(BinaryReader reader)
         {
-            throw new NotImplementedException();
+            Trace("ParameterInfo", reader.BaseStream);
+
+            var member = this.ReadMethodBase(reader);
+            int index = reader.ReadByte();
+            ParameterInfo parameter = member.GetParameters()[index];
+            return parameter;
         }
 
         private void Write(BinaryWriter writer, MemberInfo member)
         {
+            Trace("MemberInfo", writer.BaseStream);
+
             var fieldInfo = member as FieldInfo;
             if (fieldInfo != null)
             {
-                writer.Write(true);
+                writer.Write((byte)1);
                 this.Write(writer, member.DeclaringType.Assembly);
                 writer.Write(member.MetadataToken);
                 return;
@@ -364,9 +421,17 @@
             var propertyInfo = member as PropertyInfo;
             if (propertyInfo != null)
             {
-                writer.Write(false);
+                writer.Write((byte)2);
                 this.Write(writer, propertyInfo.DeclaringType);
                 writer.Write(propertyInfo.Name);
+                return;
+            }
+
+            var methodBase = member as MethodBase;
+            if (methodBase != null)
+            {
+                writer.Write((byte)3);
+                this.Write(writer, methodBase);
                 return;
             }
 
@@ -375,26 +440,36 @@
 
         private MemberInfo ReadMemberInfo(BinaryReader reader)
         {
+            Trace("MemberInfo", reader.BaseStream);
+
             MemberInfo member;
-            bool isField = reader.ReadBoolean();
-            if (isField)
+            byte kind = reader.ReadByte();
+            switch (kind)
             {
-                Assembly assembly = this.ReadAssembly(reader);
-                int metadataToken = reader.ReadInt32();
-                member = assembly.ManifestModule.ResolveMember(metadataToken);
-            }
-            else
-            {
-                Type declaringType = this.ReadType(reader);
-                string propertyName = reader.ReadString();
-                member = declaringType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                case 1:
+                    Assembly assembly = this.ReadAssembly(reader);
+                    int metadataToken = reader.ReadInt32();
+                    member = assembly.ManifestModule.ResolveMember(metadataToken);
+                    break;
+                case 2:
+                    Type declaringType = this.ReadType(reader);
+                    string propertyName = reader.ReadString();
+                    member = declaringType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+                    break;
+                case 3:
+                    member = this.ReadMethodBase(reader);
+                    break;
+                default:
+                    throw new NotSupportedException();
             }
 
             return member;
         }
 
-        private void Write(BinaryWriter writer, MethodInfo method)
+        private void Write(BinaryWriter writer, MethodBase method)
         {
+            Trace("MethodBase", writer.BaseStream);
+
             if (method == null)
             {
                 writer.Write(false);
@@ -414,15 +489,17 @@
             }
         }
 
-        private MethodInfo ReadMethodInfo(BinaryReader reader)
+        private MethodBase ReadMethodBase(BinaryReader reader)
         {
-            MethodInfo method = null;
+            Trace("MethodBase", reader.BaseStream);
+
+            MethodBase method = null;
             bool nonNull = reader.ReadBoolean();
             if (nonNull)
             {
                 Type declaringType = this.ReadType(reader);
                 int metadataToken = reader.ReadInt32();
-                method = (MethodInfo)declaringType.Assembly.ManifestModule.ResolveMethod(metadataToken);
+                method = declaringType.Assembly.ManifestModule.ResolveMethod(metadataToken);
                 if (method.IsGenericMethod)
                 {
                     bool isGenericMethodDefinition = reader.ReadBoolean();
@@ -434,7 +511,7 @@
                             typeArgs[i] = this.ReadType(reader);
                         }
 
-                        method = method.MakeGenericMethod(typeArgs);
+                        method = ((MethodInfo)method).MakeGenericMethod(typeArgs);
                     }
                 }
             }
@@ -444,6 +521,8 @@
 
         private void Write(BinaryWriter writer, ImportMetadataViewConstraint importMetadataViewConstraint)
         {
+            Trace("ImportMetadataViewConstraint", writer.BaseStream);
+
             writer.Write(importMetadataViewConstraint.Requirements.Count);
             foreach (var item in importMetadataViewConstraint.Requirements)
             {
@@ -455,6 +534,8 @@
 
         private ImportMetadataViewConstraint ReadImportMetadataViewConstraint(BinaryReader reader)
         {
+            Trace("ImportMetadataViewConstraint", reader.BaseStream);
+
             int count = reader.ReadInt32();
             var requirements = ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>.Empty;
             if (count > 0)
@@ -474,6 +555,21 @@
             return new ImportMetadataViewConstraint(requirements);
         }
 
+        private void Write(BinaryWriter writer, ExportTypeIdentityConstraint exportTypeIdentityConstraint)
+        {
+            Trace("ExportTypeIdentityConstraint", writer.BaseStream);
+
+            writer.Write(exportTypeIdentityConstraint.TypeIdentityName);
+        }
+
+        private ExportTypeIdentityConstraint ReadExportTypeIdentityConstraint(BinaryReader reader)
+        {
+            Trace("ExportTypeIdentityConstraint", reader.BaseStream);
+
+            string typeIdentityName = reader.ReadString();
+            return new ExportTypeIdentityConstraint(typeIdentityName);
+        }
+
         private enum ObjectType : byte
         {
             Null,
@@ -481,19 +577,22 @@
             CreationPolicy,
             Type,
             Array,
-            ImportMetadataViewConstraint,
             BinaryFormattedObject,
+            ImportMetadataViewConstraint,
+            ExportTypeIdentityConstraint,
         }
 
         private void WriteObject(BinaryWriter writer, object value)
         {
             if (value == null)
             {
+                Trace("Object (null)", writer.BaseStream);
                 this.Write(writer, ObjectType.Null);
             }
             else
             {
                 Type valueType = value.GetType();
+                Trace("Object (" + valueType.Name + ")", writer.BaseStream);
                 if (valueType.IsArray)
                 {
                     Array array = (Array)value;
@@ -521,6 +620,11 @@
                     this.Write(writer, ObjectType.ImportMetadataViewConstraint);
                     this.Write(writer, (ImportMetadataViewConstraint)value);
                 }
+                else if (valueType == typeof(ExportTypeIdentityConstraint))
+                {
+                    this.Write(writer, ObjectType.ExportTypeIdentityConstraint);
+                    this.Write(writer, (ExportTypeIdentityConstraint)value);
+                }
                 else
                 {
                     this.Write(writer, ObjectType.BinaryFormattedObject);
@@ -533,6 +637,7 @@
 
         private object ReadObject(BinaryReader reader)
         {
+            Trace("Object", reader.BaseStream);
             ObjectType objectType = this.ReadObjectType(reader);
             switch (objectType)
             {
@@ -547,11 +652,13 @@
                     return (CreationPolicy)reader.ReadByte();
                 case ObjectType.Type:
                     return this.ReadType(reader);
-                case ObjectType.ImportMetadataViewConstraint:
-                    return this.ReadImportMetadataViewConstraint(reader);
                 case ObjectType.BinaryFormattedObject:
                     var formatter = new BinaryFormatter();
                     return formatter.Deserialize(reader.BaseStream);
+                case ObjectType.ImportMetadataViewConstraint:
+                    return this.ReadImportMetadataViewConstraint(reader);
+                case ObjectType.ExportTypeIdentityConstraint:
+                    return this.ReadExportTypeIdentityConstraint(reader);
                 default:
                     throw new NotImplementedException();
             }
