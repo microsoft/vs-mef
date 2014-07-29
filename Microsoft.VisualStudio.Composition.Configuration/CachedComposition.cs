@@ -570,6 +570,19 @@
             return new ExportTypeIdentityConstraint(typeIdentityName);
         }
 
+        private void Write(BinaryWriter writer, PartCreationPolicyConstraint partCreationPolicyConstraint)
+        {
+            Trace("PartCreationPolicyConstraint", writer.BaseStream);
+            writer.Write((byte)partCreationPolicyConstraint.RequiredCreationPolicy);
+        }
+
+        private PartCreationPolicyConstraint ReadPartCreationPolicyConstraint(BinaryReader reader)
+        {
+            Trace("PartCreationPolicyConstraint", reader.BaseStream);
+            CreationPolicy requiredCreationPolicy = (CreationPolicy)reader.ReadByte();
+            return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(requiredCreationPolicy);
+        }
+
         private enum ObjectType : byte
         {
             Null,
@@ -580,6 +593,7 @@
             BinaryFormattedObject,
             ImportMetadataViewConstraint,
             ExportTypeIdentityConstraint,
+            PartCreationPolicyConstraint,
         }
 
         private void WriteObject(BinaryWriter writer, object value)
@@ -625,6 +639,11 @@
                     this.Write(writer, ObjectType.ExportTypeIdentityConstraint);
                     this.Write(writer, (ExportTypeIdentityConstraint)value);
                 }
+                else if (valueType == typeof(PartCreationPolicyConstraint))
+                {
+                    this.Write(writer, ObjectType.PartCreationPolicyConstraint);
+                    this.Write(writer, (PartCreationPolicyConstraint)value);
+                }
                 else
                 {
                     this.Write(writer, ObjectType.BinaryFormattedObject);
@@ -659,6 +678,8 @@
                     return this.ReadImportMetadataViewConstraint(reader);
                 case ObjectType.ExportTypeIdentityConstraint:
                     return this.ReadExportTypeIdentityConstraint(reader);
+                case ObjectType.PartCreationPolicyConstraint:
+                    return this.ReadPartCreationPolicyConstraint(reader);
                 default:
                     throw new NotImplementedException();
             }
