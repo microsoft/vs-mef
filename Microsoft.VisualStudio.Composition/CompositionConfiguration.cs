@@ -136,7 +136,7 @@
                     throw new CompositionFailedException("Failed to find a stable composition.", ImmutableStack.Create<IReadOnlyCollection<ComposedPartDiagnostic>>(errors));
                 }
 
-                var salvagedParts = customizedCatalog.Parts.Except(invalidParts);
+                var salvagedParts = catalog.Parts.Except(invalidParts);
                 var salvagedCatalog = ComposableCatalog.Create(salvagedParts);
                 var configuration = Create(salvagedCatalog);
                 return configuration.WithErrors(errors);
