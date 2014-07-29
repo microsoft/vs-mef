@@ -14,14 +14,14 @@
     {
         private static readonly ImportMetadataViewConstraint EmptyInstance = new ImportMetadataViewConstraint(ImmutableDictionary<string, MetadatumRequirement>.Empty);
 
-        private readonly ImmutableDictionary<string, MetadatumRequirement> metadataNamesAndTypes;
-
-        private ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> metadataNamesAndTypes)
+        public ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> metadataNamesAndTypes)
         {
             Requires.NotNull(metadataNamesAndTypes, "metadataNamesAndTypes");
 
-            this.metadataNamesAndTypes = ImmutableDictionary.CreateRange(metadataNamesAndTypes);
+            this.Requirements = ImmutableDictionary.CreateRange(metadataNamesAndTypes);
         }
+
+        public ImmutableDictionary<string, MetadatumRequirement> Requirements { get; private set; }
 
         /// <summary>
         /// Creates a constraint for the specified metadata type.
@@ -49,12 +49,12 @@
             Requires.NotNull(exportDefinition, "exportDefinition");
 
             // Fast path since immutable dictionaries are slow to enumerate.
-            if (this.metadataNamesAndTypes.IsEmpty)
+            if (this.Requirements.IsEmpty)
             {
                 return true;
             }
 
-            foreach (var entry in this.metadataNamesAndTypes)
+            foreach (var entry in this.Requirements)
             {
                 object value;
                 if (!exportDefinition.Metadata.TryGetValue(entry.Key, out value))
@@ -143,9 +143,9 @@
             return ImmutableDictionary<string, MetadatumRequirement>.Empty;
         }
 
-        private struct MetadatumRequirement
+        public struct MetadatumRequirement
         {
-            internal MetadatumRequirement(Type valueType, bool required)
+            public MetadatumRequirement(Type valueType, bool required)
                 : this()
             {
                 this.MetadatumValueType = valueType;

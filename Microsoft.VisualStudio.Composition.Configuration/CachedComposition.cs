@@ -7,6 +7,7 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.Serialization.Formatters.Binary;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -98,6 +99,16 @@
 
         private void Write(BinaryWriter writer, Type type)
         {
+            if (type.IsArray)
+            {
+                writer.Write((byte)1);
+                type = type.GetElementType();
+            }
+            else
+            {
+                writer.Write((byte)0);
+            }
+
             this.Write(writer, type.Assembly);
             writer.Write(type.MetadataToken);
             if (type.IsGenericType)
@@ -112,6 +123,7 @@
 
         private Type ReadType(BinaryReader reader)
         {
+            int kind = reader.ReadByte();
             Assembly assembly = this.ReadAssembly(reader);
             int typeMetadataToken = reader.ReadInt32();
             Type type = assembly.ManifestModule.ResolveType(typeMetadataToken);
@@ -130,7 +142,15 @@
                 }
             }
 
-            return type;
+            switch (kind)
+            {
+                case 0:
+                    return type;
+                case 1:
+                    return type.MakeArrayType();
+                default:
+                    throw new NotSupportedException();
+            }
         }
 
         private void Write(BinaryWriter writer, Assembly assembly)
@@ -272,11 +292,7 @@
             writer.Write(importDefinition.ContractName);
             writer.Write((byte)importDefinition.Cardinality);
             this.Write(writer, importDefinition.Metadata);
-            if (importDefinition.ExportConstraints.Count > 0)
-            {
-                throw new NotSupportedException();
-            }
-
+            this.Write(writer, importDefinition.ExportConstraints, this.WriteObject);
             this.Write(writer, importDefinition.ExportFactorySharingBoundaries, (w, v) => w.Write(v));
         }
 
@@ -285,10 +301,8 @@
             var contractName = reader.ReadString();
             var cardinality = (ImportCardinality)reader.ReadByte();
             var metadata = this.ReadMetadata(reader);
-
-            // TODO: fix constraint serialization.
-            IReadOnlyCollection<IImportSatisfiabilityConstraint> constraints = ImmutableHashSet.Create<IImportSatisfiabilityConstraint>();
-            IReadOnlyCollection<string> exportFactorySharingBoundaries = this.ReadList(reader, r => r.ReadString());
+            var constraints = this.ReadList<IImportSatisfiabilityConstraint>(reader, r => (IImportSatisfiabilityConstraint)this.ReadObject(r));
+            var exportFactorySharingBoundaries = this.ReadList(reader, r => r.ReadString());
 
             return new ImportDefinition(contractName, cardinality, metadata, constraints, exportFactorySharingBoundaries);
         }
@@ -428,6 +442,38 @@
             return method;
         }
 
+        private void Write(BinaryWriter writer, ImportMetadataViewConstraint importMetadataViewConstraint)
+        {
+            writer.Write(importMetadataViewConstraint.Requirements.Count);
+            foreach (var item in importMetadataViewConstraint.Requirements)
+            {
+                writer.Write(item.Key);
+                writer.Write(item.Value.IsMetadataumValueRequired);
+                this.Write(writer, item.Value.MetadatumValueType);
+            }
+        }
+
+        private ImportMetadataViewConstraint ReadImportMetadataViewConstraint(BinaryReader reader)
+        {
+            int count = reader.ReadInt32();
+            var requirements = ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>.Empty;
+            if (count > 0)
+            {
+                var builder = requirements.ToBuilder();
+                for (int i = 0; i < count; i++)
+                {
+                    string key = reader.ReadString();
+                    bool isRequired = reader.ReadBoolean();
+                    Type type = this.ReadType(reader);
+                    builder.Add(key, new ImportMetadataViewConstraint.MetadatumRequirement(type, isRequired));
+                }
+
+                requirements = builder.ToImmutable();
+            }
+
+            return new ImportMetadataViewConstraint(requirements);
+        }
+
         private enum ObjectType : byte
         {
             Null,
@@ -435,6 +481,8 @@
             CreationPolicy,
             Type,
             Array,
+            ImportMetadataViewConstraint,
+            BinaryFormattedObject,
         }
 
         private void WriteObject(BinaryWriter writer, object value)
@@ -468,9 +516,17 @@
                     this.Write(writer, ObjectType.Type);
                     this.Write(writer, (Type)value);
                 }
+                else if (valueType == typeof(ImportMetadataViewConstraint))
+                {
+                    this.Write(writer, ObjectType.ImportMetadataViewConstraint);
+                    this.Write(writer, (ImportMetadataViewConstraint)value);
+                }
                 else
                 {
-                    throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, "Objects of type {0} are not supported.", valueType.FullName));
+                    this.Write(writer, ObjectType.BinaryFormattedObject);
+                    var formatter = new BinaryFormatter();
+                    writer.Flush();
+                    formatter.Serialize(writer.BaseStream, value);
                 }
             }
         }
@@ -491,6 +547,11 @@
                     return (CreationPolicy)reader.ReadByte();
                 case ObjectType.Type:
                     return this.ReadType(reader);
+                case ObjectType.ImportMetadataViewConstraint:
+                    return this.ReadImportMetadataViewConstraint(reader);
+                case ObjectType.BinaryFormattedObject:
+                    var formatter = new BinaryFormatter();
+                    return formatter.Deserialize(reader.BaseStream);
                 default:
                     throw new NotImplementedException();
             }
