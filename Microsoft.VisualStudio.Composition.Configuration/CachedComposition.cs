@@ -176,6 +176,23 @@
             return list;
         }
 
+        private Array ReadList(BinaryReader reader, Func<BinaryReader, object> itemReader, Type elementType)
+        {
+            int count = reader.ReadInt32();
+            if (count == -1)
+            {
+                return null;
+            }
+
+            var list = Array.CreateInstance(elementType, count);
+            for (int i = 0; i < list.Length; i++)
+            {
+                list.SetValue(itemReader(reader), i);
+            }
+
+            return list;
+        }
+
         private void Write(BinaryWriter writer, ExportDefinition exportDefinition)
         {
             writer.Write(exportDefinition.ContractName);
@@ -250,24 +267,116 @@
             return exportingMembers;
         }
 
+        private void Write(BinaryWriter writer, ImportDefinition importDefinition)
+        {
+            writer.Write(importDefinition.ContractName);
+            writer.Write((byte)importDefinition.Cardinality);
+            this.Write(writer, importDefinition.Metadata);
+            if (importDefinition.ExportConstraints.Count > 0)
+            {
+                throw new NotSupportedException();
+            }
+
+            this.Write(writer, importDefinition.ExportFactorySharingBoundaries, (w, v) => w.Write(v));
+        }
+
+        private ImportDefinition ReadImportDefinition(BinaryReader reader)
+        {
+            var contractName = reader.ReadString();
+            var cardinality = (ImportCardinality)reader.ReadByte();
+            var metadata = this.ReadMetadata(reader);
+
+            // TODO: fix constraint serialization.
+            IReadOnlyCollection<IImportSatisfiabilityConstraint> constraints = ImmutableHashSet.Create<IImportSatisfiabilityConstraint>();
+            IReadOnlyCollection<string> exportFactorySharingBoundaries = this.ReadList(reader, r => r.ReadString());
+
+            return new ImportDefinition(contractName, cardinality, metadata, constraints, exportFactorySharingBoundaries);
+        }
+
         private void Write(BinaryWriter writer, ImportDefinitionBinding importDefinitionBinding)
+        {
+            this.Write(writer, importDefinitionBinding.ImportDefinition);
+            this.Write(writer, importDefinitionBinding.ComposablePartType);
+            if (importDefinitionBinding.ImportingMember != null)
+            {
+                writer.Write(true);
+                this.Write(writer, importDefinitionBinding.ImportingMember);
+            }
+            else
+            {
+                writer.Write(false);
+                this.Write(writer, importDefinitionBinding.ImportingParameter);
+            }
+        }
+
+        private ImportDefinitionBinding ReadImportDefinitionBinding(BinaryReader reader)
+        {
+            ImportDefinition importDefinition = this.ReadImportDefinition(reader);
+            Type composablePartType = this.ReadType(reader);
+            bool isImportingMember = reader.ReadBoolean();
+            if (isImportingMember)
+            {
+                MemberInfo importingMember = this.ReadMemberInfo(reader);
+                return new ImportDefinitionBinding(importDefinition, composablePartType, importingMember);
+            }
+            else
+            {
+                ParameterInfo importingParameter = this.ReadParameterInfo(reader);
+                return new ImportDefinitionBinding(importDefinition, composablePartType, importingParameter);
+            }
+        }
+
+        private void Write(BinaryWriter writer, ParameterInfo parameterInfo)
         {
             throw new NotImplementedException();
         }
 
-        private ImportDefinitionBinding ReadImportDefinitionBinding(BinaryReader reader)
+        private ParameterInfo ReadParameterInfo(BinaryReader reader)
         {
             throw new NotImplementedException();
         }
 
         private void Write(BinaryWriter writer, MemberInfo member)
         {
-            throw new NotImplementedException();
+            var fieldInfo = member as FieldInfo;
+            if (fieldInfo != null)
+            {
+                writer.Write(true);
+                this.Write(writer, member.DeclaringType.Assembly);
+                writer.Write(member.MetadataToken);
+                return;
+            }
+
+            var propertyInfo = member as PropertyInfo;
+            if (propertyInfo != null)
+            {
+                writer.Write(false);
+                this.Write(writer, propertyInfo.DeclaringType);
+                writer.Write(propertyInfo.Name);
+                return;
+            }
+
+            throw new NotSupportedException("Member type " + member.MemberType + " is not supported.");
         }
 
         private MemberInfo ReadMemberInfo(BinaryReader reader)
         {
-            throw new NotImplementedException();
+            MemberInfo member;
+            bool isField = reader.ReadBoolean();
+            if (isField)
+            {
+                Assembly assembly = this.ReadAssembly(reader);
+                int metadataToken = reader.ReadInt32();
+                member = assembly.ManifestModule.ResolveMember(metadataToken);
+            }
+            else
+            {
+                Type declaringType = this.ReadType(reader);
+                string propertyName = reader.ReadString();
+                member = declaringType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
+            }
+
+            return member;
         }
 
         private void Write(BinaryWriter writer, MethodInfo method)
@@ -324,6 +433,8 @@
             Null,
             String,
             CreationPolicy,
+            Type,
+            Array,
         }
 
         private void WriteObject(BinaryWriter writer, object value)
@@ -335,7 +446,14 @@
             else
             {
                 Type valueType = value.GetType();
-                if (valueType == typeof(string))
+                if (valueType.IsArray)
+                {
+                    Array array = (Array)value;
+                    this.Write(writer, ObjectType.Array);
+                    this.Write(writer, valueType.GetElementType());
+                    this.Write(writer, (object[])array, this.WriteObject);
+                }
+                else if (valueType == typeof(string))
                 {
                     this.Write(writer, ObjectType.String);
                     writer.Write((string)value);
@@ -344,6 +462,11 @@
                 {
                     this.Write(writer, ObjectType.CreationPolicy);
                     writer.Write((byte)(CreationPolicy)value);
+                }
+                else if (typeof(Type).IsAssignableFrom(valueType))
+                {
+                    this.Write(writer, ObjectType.Type);
+                    this.Write(writer, (Type)value);
                 }
                 else
                 {
@@ -359,10 +482,15 @@
             {
                 case ObjectType.Null:
                     return null;
+                case ObjectType.Array:
+                    Type elementType = this.ReadType(reader);
+                    return this.ReadList(reader, this.ReadObject, elementType);
                 case ObjectType.String:
                     return reader.ReadString();
                 case ObjectType.CreationPolicy:
                     return (CreationPolicy)reader.ReadByte();
+                case ObjectType.Type:
+                    return this.ReadType(reader);
                 default:
                     throw new NotImplementedException();
             }
