@@ -200,6 +200,23 @@
             }
         }
 
+        private void Write(BinaryWriter writer, Array list, Action<BinaryWriter, object> itemWriter)
+        {
+            Trace((list != null ? list.GetType().GetElementType().Name : "null") + "[]", writer.BaseStream);
+
+            if (list == null)
+            {
+                writer.Write(-1);
+                return;
+            }
+
+            writer.Write(list.Length);
+            foreach (var item in list)
+            {
+                itemWriter(writer, item);
+            }
+        }
+
         private IReadOnlyList<T> ReadList<T>(BinaryReader reader, Func<BinaryReader, T> itemReader)
         {
             Trace("List<" + typeof(T).Name + ">", reader.BaseStream);
@@ -219,7 +236,7 @@
             return list;
         }
 
-        private Array ReadList(BinaryReader reader, Func<BinaryReader, object> itemReader, Type elementType)
+        private Array ReadArray(BinaryReader reader, Func<BinaryReader, object> itemReader, Type elementType)
         {
             Trace("List<" + elementType.Name + ">", reader.BaseStream);
 
@@ -612,7 +629,7 @@
                     Array array = (Array)value;
                     this.Write(writer, ObjectType.Array);
                     this.Write(writer, valueType.GetElementType());
-                    this.Write(writer, (object[])array, this.WriteObject);
+                    this.Write(writer, array, this.WriteObject);
                 }
                 else if (valueType == typeof(string))
                 {
@@ -664,7 +681,7 @@
                     return null;
                 case ObjectType.Array:
                     Type elementType = this.ReadType(reader);
-                    return this.ReadList(reader, this.ReadObject, elementType);
+                    return this.ReadArray(reader, this.ReadObject, elementType);
                 case ObjectType.String:
                     return reader.ReadString();
                 case ObjectType.CreationPolicy:
