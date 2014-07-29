@@ -70,13 +70,13 @@
 
             // We consider all the parts in the catalog, plus the specially synthesized one
             // so that folks can import the ExportProvider itself.
-            catalog = catalog.WithPart(ExportProvider.ExportProviderPartDefinition);
+            var customizedCatalog = catalog.WithPart(ExportProvider.ExportProviderPartDefinition);
 
             // Construct our part builders, initialized with all their imports satisfied.
             var partBuilders = new Dictionary<ComposablePartDefinition, PartBuilder>();
-            foreach (ComposablePartDefinition partDefinition in catalog.Parts)
+            foreach (ComposablePartDefinition partDefinition in customizedCatalog.Parts)
             {
-                var satisfyingImports = partDefinition.Imports.ToImmutableDictionary(i => i, i => catalog.GetExports(i.ImportDefinition));
+                var satisfyingImports = partDefinition.Imports.ToImmutableDictionary(i => i, i => customizedCatalog.GetExports(i.ImportDefinition));
                 partBuilders.Add(partDefinition, new PartBuilder(partDefinition, satisfyingImports));
             }
 
@@ -136,7 +136,7 @@
                     throw new CompositionFailedException("Failed to find a stable composition.", ImmutableStack.Create<IReadOnlyCollection<ComposedPartDiagnostic>>(errors));
                 }
 
-                var salvagedParts = catalog.Parts.Except(invalidParts);
+                var salvagedParts = customizedCatalog.Parts.Except(invalidParts);
                 var salvagedCatalog = ComposableCatalog.Create(salvagedParts);
                 var configuration = Create(salvagedCatalog);
                 return configuration.WithErrors(errors);
@@ -272,7 +272,7 @@
                 .Where(p => p.ExportDefinitions.Any(ed => ExportDefinitionPracticallyEqual.Default.Equals(ExportProvider.ExportProviderExportDefinition, ed.Value)));
             if (partsExportingExportProvider.Any())
             {
-                throw new CompositionFailedException();
+                throw new CompositionFailedException("Illegal export of ExportProvider.");
             }
         }
 
