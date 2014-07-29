@@ -87,9 +87,11 @@
             this.Write(writer, partDefinition.ExportedTypes, this.Write);
             this.Write(writer, partDefinition.ExportingMembers);
             this.Write(writer, partDefinition.ImportingMembers, this.Write);
+            this.WriteObject(writer, partDefinition.SharingBoundary);
             this.Write(writer, partDefinition.OnImportsSatisfied);
             this.Write(writer, partDefinition.ImportingConstructor, this.Write);
             writer.Write((byte)partDefinition.CreationPolicy);
+            writer.Write(partDefinition.IsSharingBoundaryInferred);
         }
 
         private ComposablePartDefinition ReadComposablePartDefinition(BinaryReader reader)
@@ -100,12 +102,22 @@
             IReadOnlyList<ExportDefinition> exportsOnType = this.ReadList(reader, this.ReadExportDefinition);
             IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportsOnMembers = this.ReadExportingMembers(reader);
             IReadOnlyList<ImportDefinitionBinding> imports = this.ReadList(reader, this.ReadImportDefinitionBinding);
+            string sharingBoundary = (string)this.ReadObject(reader);
             MethodInfo onImportsSatisfied = (MethodInfo)this.ReadMethodBase(reader);
             IReadOnlyList<ImportDefinitionBinding> importingConstructor = this.ReadList(reader, this.ReadImportDefinitionBinding);
             CreationPolicy partCreationPolicy = (CreationPolicy)reader.ReadByte();
+            bool isSharingBoundaryInferred = reader.ReadBoolean();
 
-            // TODO: fix this to include sharing boundary and IsSharingBoundaryInferred
-            return new ComposablePartDefinition(partType, exportsOnType, exportsOnMembers, imports, onImportsSatisfied, importingConstructor, partCreationPolicy);
+            return new ComposablePartDefinition(
+                partType,
+                exportsOnType,
+                exportsOnMembers,
+                imports,
+                sharingBoundary,
+                onImportsSatisfied,
+                importingConstructor,
+                partCreationPolicy,
+                isSharingBoundaryInferred);
         }
 
         private void Write(BinaryWriter writer, Type type)

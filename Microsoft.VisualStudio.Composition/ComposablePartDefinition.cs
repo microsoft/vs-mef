@@ -23,7 +23,7 @@
         /// <param name="onImportsSatisfied">The method to invoke after satisfying imports, if any.</param>
         /// <param name="importingConstructor">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
         /// <param name="partCreationPolicy">The creation policy for this part.</param>
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy)
+        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
         {
             Requires.NotNull(partType, "partType");
             Requires.NotNull(exportedTypes, "exportedTypes");
@@ -38,12 +38,7 @@
             this.OnImportsSatisfied = onImportsSatisfied;
             this.ImportingConstructor = importingConstructor;
             this.CreationPolicy = partCreationPolicy;
-        }
-
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportsOnMembers, IReadOnlyList<ImportDefinitionBinding> imports, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy)
-            : this(partType, exportsOnType, exportsOnMembers, imports, partCreationPolicy != CreationPolicy.NonShared ? string.Empty : null, onImportsSatisfied, importingConstructor, partCreationPolicy)
-        {
-            this.IsSharingBoundaryInferred = partCreationPolicy != Composition.CreationPolicy.NonShared;
+            this.IsSharingBoundaryInferred = isSharingBoundaryInferred;
         }
 
         public Type Type { get; private set; }

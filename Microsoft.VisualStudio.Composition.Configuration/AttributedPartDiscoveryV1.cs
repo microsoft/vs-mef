@@ -170,9 +170,11 @@
                     exportsOnType.ToImmutable(),
                     exportsOnMembers.ToImmutable(),
                     imports.ToImmutable(),
+                    partCreationPolicy != CreationPolicy.NonShared ? string.Empty : null,
                     onImportsSatisfied,
                     importingCtor != null ? importingConstructorParameters.ToImmutable() : null, // some MEF parts are only for metadata
-                    partCreationPolicy);
+                    partCreationPolicy,
+                    partCreationPolicy != Composition.CreationPolicy.NonShared);
             }
             else
             {

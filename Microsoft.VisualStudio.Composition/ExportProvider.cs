@@ -26,9 +26,11 @@
             new[] { ExportProviderExportDefinition },
             ImmutableDictionary<MemberInfo, IReadOnlyList<ExportDefinition>>.Empty,
             ImmutableList<ImportDefinitionBinding>.Empty,
+            string.Empty,
             null,
             null,
-            CreationPolicy.Shared);
+            CreationPolicy.Shared,
+            true);
 
         protected static readonly LazyPart<object> NotInstantiablePartLazy = new LazyPart<object>(() => CannotInstantiatePartWithNoImportingConstructor());
 

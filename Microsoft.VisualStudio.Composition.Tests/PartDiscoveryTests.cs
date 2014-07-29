@@ -71,8 +71,10 @@
                     ImmutableDictionary.Create<MemberInfo, IReadOnlyList<ExportDefinition>>(),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     null,
+                    null,
                     ImmutableList.Create<ImportDefinitionBinding>(),
-                    CreationPolicy.Any);
+                    CreationPolicy.Any,
+                    true);
             }
 
             public override bool IsExportFactoryType(Type type)
