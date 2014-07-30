@@ -386,7 +386,7 @@
                 MemberInfo exportingMember = export.Member.Resolve();
                 Type exportedValueType = export.ExportedValueType.Resolve();
                 var exportedValue = !export.Member.IsEmpty
-                    ? new LazyPart<object>(() => this.GetValueFromMember(exportingMember.IsStatic() ? null : exportingPart.Value, exportingMember, import.ImportingSiteType, exportedValueType))
+                    ? new LazyPart<object>(() => this.GetValueFromMember(exportingMember.IsStatic() ? null : exportingPart.Value, exportingMember, import.ImportingSiteElementType, exportedValueType))
                     : exportingPart;
                 return exportedValue;
             }
