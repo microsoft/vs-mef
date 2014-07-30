@@ -13,50 +13,51 @@
 
     public class RuntimeComposition
     {
-        private RuntimeComposition(IReadOnlyDictionary<string, IReadOnlyCollection<RuntimeExport>> exportsByContractName, IReadOnlyDictionary<int, RuntimePart> partsBySurrogate)
-        {
-            Requires.NotNull(exportsByContractName, "exportsByContractName");
-            Requires.NotNull(partsBySurrogate, "partsBySurrogate");
+        private readonly IReadOnlyCollection<RuntimePart> parts;
+        private readonly IReadOnlyDictionary<TypeRef, RuntimePart> partsByType;
+        private readonly IReadOnlyDictionary<string, IReadOnlyCollection<RuntimeExport>> exportsByContractName;
 
-            this.ExportsByContractName = exportsByContractName;
-            this.PartsBySurrogate = partsBySurrogate;
+        private RuntimeComposition(IEnumerable<RuntimePart> parts)
+        {
+            Requires.NotNull(parts, "parts");
+
+            this.parts = ImmutableHashSet.CreateRange(parts);
+            this.partsByType = this.parts.ToDictionary(p => p.Type);
+
+            var exports =
+                from part in this.parts
+                where part.IsInstantiable // TODO: why are we limiting these to instantiable ones? Why not make static exports available?
+                from export in part.Exports
+                group export by export.ContractName into exportsByContract
+                select exportsByContract;
+            this.exportsByContractName = exports.ToDictionary(
+                e => e.Key,
+                e => (IReadOnlyCollection<RuntimeExport>)e.ToImmutableArray());
+        }
+
+        public IReadOnlyCollection<RuntimePart> Parts
+        {
+            get { return this.parts; }
         }
 
         public static RuntimeComposition CreateRuntimeComposition(CompositionConfiguration configuration)
         {
             Requires.NotNull(configuration, "configuration");
 
-            int surrogateId = 0;
-            IReadOnlyDictionary<ComposablePartDefinition, int> partSurrogates = configuration.Parts.ToDictionary(part => part.Definition, part => ++surrogateId);
-
-            var exports =
-                from part in configuration.Parts
-                where part.Definition.IsInstantiable // TODO: why are we limiting these to instantiable ones? Why not make static exports available?
-                from exportingMemberAndDefinition in part.Definition.ExportDefinitions
-                let exportDefinitionBinding = new ExportDefinitionBinding(exportingMemberAndDefinition.Value, part.Definition, exportingMemberAndDefinition.Key)
-                let runtimeExport = CreateRuntimeExport(exportDefinitionBinding, partSurrogates)
-                group runtimeExport by runtimeExport.ContractName into exportsByContract
-                select exportsByContract;
-            var runtimeExportsByContract = exports.ToDictionary(e => e.Key, e => (IReadOnlyCollection<RuntimeExport>)e.ToImmutableArray());
-
-            var partsBySurrogateQuery =
-               from composedPart in configuration.Parts
-               let surrogate = partSurrogates[composedPart.Definition]
-               let runtimePart = CreateRuntimePart(composedPart, configuration, partSurrogates)
-               select new KeyValuePair<int, RuntimePart>(surrogate, runtimePart);
-            var partsBySurrogate = partsBySurrogateQuery.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
-            return new RuntimeComposition(runtimeExportsByContract, partsBySurrogate);
+            // TODO: create all RuntimeExports first, and then reuse them at each import site.
+            var parts = configuration.Parts.Select(part => CreateRuntimePart(part, configuration));
+            return new RuntimeComposition(parts);
         }
 
-        public IReadOnlyDictionary<string, IReadOnlyCollection<RuntimeExport>> ExportsByContractName { get; private set; }
-
-        public IReadOnlyDictionary<int, RuntimePart> PartsBySurrogate { get; private set; }
+        public static RuntimeComposition CreateRuntimeComposition(IEnumerable<RuntimePart> parts)
+        {
+            return new RuntimeComposition(parts);
+        }
 
         public IReadOnlyCollection<RuntimeExport> GetExports(string contractName)
         {
             IReadOnlyCollection<RuntimeExport> exports;
-            if (this.ExportsByContractName.TryGetValue(contractName, out exports))
+            if (this.exportsByContractName.TryGetValue(contractName, out exports))
             {
                 return exports;
             }
@@ -64,32 +65,32 @@
             return ImmutableList<RuntimeExport>.Empty;
         }
 
-        public RuntimePart GetPart(int partSurrogate)
+        public RuntimePart GetPart(RuntimeExport export)
         {
-            return this.PartsBySurrogate[partSurrogate];
+            return this.partsByType[export.DeclaringType];
         }
 
-        private static RuntimePart CreateRuntimePart(ComposedPart part, CompositionConfiguration configuration, IReadOnlyDictionary<ComposablePartDefinition, int> partSurrogates)
+        private static RuntimePart CreateRuntimePart(ComposedPart part, CompositionConfiguration configuration)
         {
             Requires.NotNull(part, "part");
 
             var runtimePart = new RuntimePart(
                 new TypeRef(part.Definition.Type),
                 part.Definition.ImportingConstructorInfo != null ? new ConstructorRef(part.Definition.ImportingConstructorInfo) : default(ConstructorRef),
-                part.GetImportingConstructorImports().Select(kvp => CreateRuntimeImport(kvp.Key, kvp.Value, partSurrogates)).ToImmutableArray(),
-                part.Definition.ImportingMembers.Select(idb => CreateRuntimeImport(idb, part.SatisfyingExports[idb], partSurrogates)).ToImmutableArray(),
+                part.GetImportingConstructorImports().Select(kvp => CreateRuntimeImport(kvp.Key, kvp.Value)).ToImmutableArray(),
+                part.Definition.ImportingMembers.Select(idb => CreateRuntimeImport(idb, part.SatisfyingExports[idb])).ToImmutableArray(),
+                part.Definition.ExportDefinitions.Select(ed => CreateRuntimeExport(ed.Value, part.Definition.Type, ed.Key)).ToImmutableArray(),
                 part.Definition.OnImportsSatisfied != null ? new MethodRef(part.Definition.OnImportsSatisfied) : new MethodRef(),
                 part.Definition.IsShared ? configuration.GetEffectiveSharingBoundary(part.Definition) : null);
             return runtimePart;
         }
 
-        private static RuntimeImport CreateRuntimeImport(ImportDefinitionBinding importDefinitionBinding, IReadOnlyList<ExportDefinitionBinding> satisfyingExports, IReadOnlyDictionary<ComposablePartDefinition, int> partSurrogates)
+        private static RuntimeImport CreateRuntimeImport(ImportDefinitionBinding importDefinitionBinding, IReadOnlyList<ExportDefinitionBinding> satisfyingExports)
         {
             Requires.NotNull(importDefinitionBinding, "importDefinitionBinding");
             Requires.NotNull(satisfyingExports, "satisfyingExports");
-            Requires.NotNull(partSurrogates, "partSurrogates");
 
-            var runtimeExports = satisfyingExports.Select(export => CreateRuntimeExport(export, partSurrogates)).ToImmutableArray();
+            var runtimeExports = satisfyingExports.Select(export => CreateRuntimeExport(export.ExportDefinition, export.PartDefinition.Type, export.ExportingMember)).ToImmutableArray();
             if (importDefinitionBinding.ImportingMember != null)
             {
                 return new RuntimeImport(
@@ -114,16 +115,16 @@
             }
         }
 
-        private static RuntimeExport CreateRuntimeExport(ExportDefinitionBinding exportDefinitionBinding, IReadOnlyDictionary<ComposablePartDefinition, int> partSurrogates)
+        private static RuntimeExport CreateRuntimeExport(ExportDefinition exportDefinition, Type partType, MemberInfo exportingMember)
         {
-            Requires.NotNull(exportDefinitionBinding, "exportDefinitionBinding");
+            Requires.NotNull(exportDefinition, "exportDefinition");
 
             return new RuntimeExport(
-                partSurrogates[exportDefinitionBinding.PartDefinition],
-                exportDefinitionBinding.ExportDefinition.ContractName,
-                exportDefinitionBinding.ExportingMember != null ? new MemberRef(exportDefinitionBinding.ExportingMember) : default(MemberRef),
-                new TypeRef(exportDefinitionBinding.ExportedValueType),
-                exportDefinitionBinding.ExportDefinition.Metadata);
+                exportDefinition.ContractName,
+                new TypeRef(partType),
+                exportingMember != null ? new MemberRef(exportingMember) : default(MemberRef),
+                new TypeRef(ReflectionHelpers.GetExportedValueType(partType, exportingMember)),
+                exportDefinition.Metadata);
         }
 
         public class RuntimePart
@@ -133,6 +134,7 @@
                 ConstructorRef importingConstructor,
                 IReadOnlyList<RuntimeImport> importingConstructorArguments,
                 IReadOnlyList<RuntimeImport> importingMembers,
+                IReadOnlyList<RuntimeExport> exports,
                 MethodRef onImportsSatisfied,
                 string sharingBoundary)
             {
@@ -140,6 +142,7 @@
                 this.ImportingConstructor = importingConstructor;
                 this.ImportingConstructorArguments = importingConstructorArguments;
                 this.ImportingMembers = importingMembers;
+                this.Exports = exports;
                 this.OnImportsSatisfied = onImportsSatisfied;
                 this.SharingBoundary = sharingBoundary;
             }
@@ -151,6 +154,8 @@
             public IReadOnlyList<RuntimeImport> ImportingConstructorArguments { get; private set; }
 
             public IReadOnlyList<RuntimeImport> ImportingMembers { get; private set; }
+
+            public IReadOnlyList<RuntimeExport> Exports { get; set; }
 
             public MethodRef OnImportsSatisfied { get; private set; }
 
@@ -286,21 +291,21 @@
 
         public class RuntimeExport
         {
-            public RuntimeExport(int partSurrogate, string contractName, MemberRef member, TypeRef exportedValueType, IReadOnlyDictionary<string, object> metadata)
+            public RuntimeExport(string contractName, TypeRef declaringType, MemberRef member, TypeRef exportedValueType, IReadOnlyDictionary<string, object> metadata)
             {
                 Requires.NotNull(metadata, "metadata");
                 Requires.NotNullOrEmpty(contractName, "contractName");
 
-                this.PartSurrogate = partSurrogate;
                 this.ContractName = contractName;
+                this.DeclaringType = declaringType;
                 this.Member = member;
                 this.ExportedValueType = exportedValueType;
                 this.Metadata = metadata;
             }
 
-            public int PartSurrogate { get; private set; }
-
             public string ContractName { get; private set; }
+
+            public TypeRef DeclaringType { get; private set; }
 
             public MemberRef Member { get; private set; }
 

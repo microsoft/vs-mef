@@ -54,7 +54,7 @@
 
                 return
                     from export in exports
-                    let part = this.composition.GetPart(export.PartSurrogate)
+                    let part = this.composition.GetPart(export)
                     select this.CreateExport(
                         importDefinition,
                         export.Metadata,
@@ -300,7 +300,7 @@
                 }
                 else
                 {
-                    if (this.composition.GetPart(export.PartSurrogate).Type.Equals(import.DeclaringType))
+                    if (this.composition.GetPart(export).Type.Equals(import.DeclaringType))
                     {
                         return import.IsLazy
                             ? this.CreateStrongTypedLazy(() => part, export.Metadata, import.ImportingSiteTypeWithoutCollection)
@@ -363,7 +363,7 @@
                 Requires.NotNull(export, "export");
                 Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
 
-                var exportingRuntimePart = this.composition.GetPart(export.PartSurrogate);
+                var exportingRuntimePart = this.composition.GetPart(export);
 
                 // Special case importing of ExportProvider
                 if (exportingRuntimePart.Type.Equals(ExportProvider.ExportProviderPartDefinition.Type))

@@ -374,7 +374,7 @@
 
                 Type delegateType = importingSiteElementType != null && typeof(Delegate).GetTypeInfo().IsAssignableFrom(importingSiteElementType.GetTypeInfo())
                     ? importingSiteElementType
-                    : (exportedValueType ?? ExportDefinitionBinding.GetContractTypeForDelegate(method));
+                    : (exportedValueType ?? ReflectionHelpers.GetContractTypeForDelegate(method));
                 return method.CreateDelegate(delegateType, method.IsStatic ? null : exportingPart);
             }
 

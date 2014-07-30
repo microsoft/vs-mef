@@ -507,6 +507,51 @@
             return genericTypeDefinition.MakeGenericType(constructedType.GenericTypeArguments.Take(genericTypeDefinition.GetTypeInfo().GenericTypeParameters.Length).ToArray());
         }
 
+        internal static Type GetExportedValueType(Type declaringType, MemberInfo exportingMember)
+        {
+            if (exportingMember == null)
+            {
+                return declaringType;
+            }
+
+            if (exportingMember is FieldInfo || exportingMember is PropertyInfo)
+            {
+                return ReflectionHelpers.GetMemberType(exportingMember);
+            }
+
+            var exportingMethod = exportingMember as MethodInfo;
+            if (exportingMethod != null)
+            {
+                return GetContractTypeForDelegate(exportingMethod);
+            }
+
+            throw new NotSupportedException();
+        }
+
+        internal static Type GetContractTypeForDelegate(MethodInfo method)
+        {
+            Type genericTypeDefinition;
+            int parametersCount = method.GetParameters().Length;
+            var typeArguments = method.GetParameters().Select(p => p.ParameterType).ToList();
+            var voidResult = method.ReturnType.Equals(typeof(void));
+            if (voidResult)
+            {
+                if (typeArguments.Count == 0)
+                {
+                    return typeof(Action);
+                }
+
+                genericTypeDefinition = Type.GetType("System.Action`" + typeArguments.Count);
+            }
+            else
+            {
+                typeArguments.Add(method.ReturnType);
+                genericTypeDefinition = Type.GetType("System.Func`" + typeArguments.Count);
+            }
+
+            return genericTypeDefinition.MakeGenericType(typeArguments.ToArray());
+        }
+
         private static string FilterTypeNameForGenericTypeDefinition(Type type, bool fullName)
         {
             Requires.NotNull(type, "type");
