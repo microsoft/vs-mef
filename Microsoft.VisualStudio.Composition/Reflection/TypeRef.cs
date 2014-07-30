@@ -56,7 +56,7 @@
 
         public bool Equals(TypeRef other)
         {
-            return this.AssemblyName == other.AssemblyName
+            return AssemblyNameEqual(this.AssemblyName, other.AssemblyName)
                 && this.MetadataToken == other.MetadataToken
                 && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments);
         }
@@ -64,6 +64,21 @@
         public bool Equals(Type other)
         {
             return this.Equals(new TypeRef(other));
+        }
+
+        private static bool AssemblyNameEqual(AssemblyName first, AssemblyName second)
+        {
+            if (first == null ^ second == null)
+            {
+                return false;
+            }
+
+            if (first == null)
+            {
+                return true;
+            }
+
+            return first.FullName == second.FullName;
         }
     }
 }
