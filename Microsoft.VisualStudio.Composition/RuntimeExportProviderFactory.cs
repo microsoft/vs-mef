@@ -51,10 +51,6 @@
             protected override IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition)
             {
                 var exports = this.composition.GetExports(importDefinition.ContractName);
-                if (exports.Count == 0)
-                {
-                    return Enumerable.Empty<Export>();
-                }
 
                 return
                     from export in exports

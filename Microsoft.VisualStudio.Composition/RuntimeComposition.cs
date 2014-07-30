@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Collections.ObjectModel;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -12,17 +13,13 @@
 
     public class RuntimeComposition
     {
-        private readonly IReadOnlyDictionary<string, IReadOnlyCollection<RuntimeExport>> exportsByContractName;
-
-        private readonly IReadOnlyDictionary<int, RuntimePart> partsBySurrogate;
-
         private RuntimeComposition(IReadOnlyDictionary<string, IReadOnlyCollection<RuntimeExport>> exportsByContractName, IReadOnlyDictionary<int, RuntimePart> partsBySurrogate)
         {
             Requires.NotNull(exportsByContractName, "exportsByContractName");
             Requires.NotNull(partsBySurrogate, "partsBySurrogate");
 
-            this.exportsByContractName = exportsByContractName;
-            this.partsBySurrogate = partsBySurrogate;
+            this.ExportsByContractName = exportsByContractName;
+            this.PartsBySurrogate = partsBySurrogate;
         }
 
         public static RuntimeComposition CreateRuntimeComposition(CompositionConfiguration configuration)
@@ -43,18 +40,23 @@
             var runtimeExportsByContract = exports.ToDictionary(e => e.Key, e => (IReadOnlyCollection<RuntimeExport>)e.ToImmutableArray());
 
             var partsBySurrogateQuery =
-                from composedPart in configuration.Parts
-                let surrogate = partSurrogates[composedPart.Definition]
-                let runtimePart = CreateRuntimePart(composedPart, configuration, partSurrogates)
-                select new KeyValuePair<int, RuntimePart>(surrogate, runtimePart);
+               from composedPart in configuration.Parts
+               let surrogate = partSurrogates[composedPart.Definition]
+               let runtimePart = CreateRuntimePart(composedPart, configuration, partSurrogates)
+               select new KeyValuePair<int, RuntimePart>(surrogate, runtimePart);
             var partsBySurrogate = partsBySurrogateQuery.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
             return new RuntimeComposition(runtimeExportsByContract, partsBySurrogate);
         }
 
-        internal IReadOnlyCollection<RuntimeExport> GetExports(string contractName)
+        public IReadOnlyDictionary<string, IReadOnlyCollection<RuntimeExport>> ExportsByContractName { get; private set; }
+
+        public IReadOnlyDictionary<int, RuntimePart> PartsBySurrogate { get; private set; }
+
+        public IReadOnlyCollection<RuntimeExport> GetExports(string contractName)
         {
             IReadOnlyCollection<RuntimeExport> exports;
-            if (this.exportsByContractName.TryGetValue(contractName, out exports))
+            if (this.ExportsByContractName.TryGetValue(contractName, out exports))
             {
                 return exports;
             }
@@ -62,9 +64,9 @@
             return ImmutableList<RuntimeExport>.Empty;
         }
 
-        internal RuntimePart GetPart(int partSurrogate)
+        public RuntimePart GetPart(int partSurrogate)
         {
-            return this.partsBySurrogate[partSurrogate];
+            return this.PartsBySurrogate[partSurrogate];
         }
 
         private static RuntimePart CreateRuntimePart(ComposedPart part, CompositionConfiguration configuration, IReadOnlyDictionary<ComposablePartDefinition, int> partSurrogates)
@@ -124,7 +126,7 @@
                 exportDefinitionBinding.ExportDefinition.Metadata);
         }
 
-        internal class RuntimePart
+        public class RuntimePart
         {
             public RuntimePart(
                 TypeRef type,
@@ -165,7 +167,7 @@
             }
         }
 
-        internal class RuntimeImport
+        public class RuntimeImport
         {
             private RuntimeImport(ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, IReadOnlyDictionary<string, object> metadata, TypeRef exportFactory, IReadOnlyCollection<string> exportFactorySharingBoundaries)
             {
@@ -282,7 +284,7 @@
             }
         }
 
-        internal class RuntimeExport
+        public class RuntimeExport
         {
             public RuntimeExport(int partSurrogate, string contractName, MemberRef member, TypeRef exportedValueType, IReadOnlyDictionary<string, object> metadata)
             {
