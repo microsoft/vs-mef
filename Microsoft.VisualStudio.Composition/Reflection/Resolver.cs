@@ -13,6 +13,11 @@
 
         public static Type Resolve(this TypeRef typeRef)
         {
+            if (typeRef.IsEmpty)
+            {
+                return null;
+            }
+
             Type type = GetManifest(typeRef.AssemblyName).ResolveType(typeRef.MetadataToken);
             if (typeRef.GenericTypeArguments.Length > 0)
             {
@@ -25,12 +30,22 @@
 
         public static ConstructorInfo Resolve(this ConstructorRef constructorRef)
         {
+            if (constructorRef.IsEmpty)
+            {
+                return null;
+            }
+
             var manifest = GetManifest(constructorRef.DeclaringType.AssemblyName);
             return (ConstructorInfo)manifest.ResolveMethod(constructorRef.MetadataToken);
         }
 
         public static MethodInfo Resolve(this MethodRef methodRef)
         {
+            if (methodRef.IsEmpty)
+            {
+                return null;
+            }
+
             var manifest = GetManifest(methodRef.DeclaringType.AssemblyName);
             var method = (MethodInfo)manifest.ResolveMethod(methodRef.MetadataToken);
             if (methodRef.GenericMethodArguments.Length > 0)
@@ -44,6 +59,11 @@
 
         public static PropertyInfo Resolve(this PropertyRef propertyRef)
         {
+            if (propertyRef.IsEmpty)
+            {
+                return null;
+            }
+
             Type type = Resolve(propertyRef.DeclaringType);
             return type.GetRuntimeProperties().First(p => p.MetadataToken == propertyRef.MetadataToken);
         }
@@ -72,12 +92,34 @@
 
         public static FieldInfo Resolve(this FieldRef fieldRef)
         {
+            if (fieldRef.IsEmpty)
+            {
+                return null;
+            }
+
             var manifest = GetManifest(fieldRef.AssemblyName);
             return manifest.ResolveField(fieldRef.MetadataToken);
         }
 
+        public static ParameterInfo Resolve(this ParameterRef parameterRef)
+        {
+            if (parameterRef.IsEmpty)
+            {
+                return null;
+            }
+
+            Module manifest = GetManifest(parameterRef.AssemblyName);
+            MethodBase method = manifest.ResolveMethod(parameterRef.MethodMetadataToken);
+            return method.GetParameters()[parameterRef.ParameterIndex];
+        }
+
         public static MemberInfo Resolve(this MemberRef memberRef)
         {
+            if (memberRef.IsEmpty)
+            {
+                return null;
+            }
+
             if (memberRef.IsField)
             {
                 return memberRef.Field.Resolve();
@@ -128,13 +170,6 @@
             }
 
             throw new NotSupportedException();
-        }
-
-        public static ParameterInfo Resolve(this ParameterRef parameterRef)
-        {
-            Module manifest = GetManifest(parameterRef.AssemblyName);
-            MethodBase method = manifest.ResolveMethod(parameterRef.MethodMetadataToken);
-            return method.GetParameters()[parameterRef.ParameterIndex];
         }
 
         private static Module GetManifest(AssemblyName assemblyName)

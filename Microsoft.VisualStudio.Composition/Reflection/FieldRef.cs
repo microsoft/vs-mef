@@ -19,6 +19,9 @@
             this.MetadataToken = metadataToken;
         }
 
+        public FieldRef(FieldInfo field)
+            : this(field.DeclaringType.GetTypeInfo().Assembly.GetName(), field.MetadataToken) { }
+
         public AssemblyName AssemblyName { get; private set; }
 
         public int MetadataToken { get; private set; }

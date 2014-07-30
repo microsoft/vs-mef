@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
 
@@ -14,6 +15,9 @@
             this.DeclaringType = declaringType;
             this.MetadataToken = metadataToken;
         }
+
+        public ConstructorRef(ConstructorInfo constructor)
+            : this(new TypeRef(constructor.DeclaringType), constructor.MetadataToken) { }
 
         public TypeRef DeclaringType { get; private set; }
 

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
 
@@ -30,6 +31,28 @@
             : this()
         {
             this.Method = method;
+        }
+
+        public MemberRef(MemberInfo member)
+            : this()
+        {
+            switch (member.MemberType)
+            {
+                case MemberTypes.Constructor:
+                    this.Constructor = new ConstructorRef((ConstructorInfo)member);
+                    break;
+                case MemberTypes.Field:
+                    this.Field = new FieldRef((FieldInfo)member);
+                    break;
+                case MemberTypes.Method:
+                    this.Method = new MethodRef((MethodInfo)member);
+                    break;
+                case MemberTypes.Property:
+                    this.Property = new PropertyRef((PropertyInfo)member);
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
         }
 
         public ConstructorRef Constructor { get; private set; }

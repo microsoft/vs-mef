@@ -137,6 +137,7 @@
     <Compile Include="Reflection\Resolver.cs" />
     <Compile Include="Reflection\TypeDesc.cs" />
     <Compile Include="Reflection\TypeRef.cs" />
+    <Compile Include="RuntimeComposition.cs" />
     <Compile Include="RuntimeExportProviderFactory.cs" />
     <Compile Include="UniquePropertyNameComparer.cs" />
     <Compile Include="Utilities.cs" />

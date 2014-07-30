@@ -35,6 +35,9 @@
         {
         }
 
+        public ParameterRef(ParameterInfo parameter)
+            : this(parameter.Member.DeclaringType.Assembly.GetName(), parameter.Member.MetadataToken, parameter.Position) { }
+
         public AssemblyName AssemblyName { get; private set; }
 
         public int MethodMetadataToken { get; private set; }

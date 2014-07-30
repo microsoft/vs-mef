@@ -9,7 +9,7 @@
     using System.Threading.Tasks;
     using Validation;
 
-    public struct TypeRef : IEquatable<TypeRef>
+    public struct TypeRef : IEquatable<TypeRef>, IEquatable<Type>
     {
         public TypeRef(AssemblyName assemblyName, int metadataToken, ImmutableArray<TypeRef> genericTypeArguments)
             : this()
@@ -57,6 +57,11 @@
             return this.AssemblyName == other.AssemblyName
                 && this.MetadataToken == other.MetadataToken
                 && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments);
+        }
+
+        public bool Equals(Type other)
+        {
+            return this.Equals(new TypeRef(other));
         }
     }
 }
