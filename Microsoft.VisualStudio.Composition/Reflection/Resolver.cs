@@ -13,7 +13,7 @@
 
         public static Type Resolve(this TypeRef typeRef)
         {
-            if (typeRef.IsEmpty)
+            if (typeRef == null && typeRef.IsEmpty)
             {
                 return null;
             }

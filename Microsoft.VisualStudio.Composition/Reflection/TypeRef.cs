@@ -9,8 +9,10 @@
     using System.Threading.Tasks;
     using Validation;
 
-    public struct TypeRef : IEquatable<TypeRef>, IEquatable<Type>
+    public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
     {
+        public TypeRef() { }
+
         public TypeRef(AssemblyName assemblyName, int metadataToken, ImmutableArray<TypeRef> genericTypeArguments)
             : this()
         {

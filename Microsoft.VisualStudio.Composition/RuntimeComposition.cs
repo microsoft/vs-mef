@@ -218,7 +218,7 @@
 
             public bool IsExportFactory
             {
-                get { return !this.ExportFactory.IsEmpty; }
+                get { return !(this.ExportFactory == null || this.ExportFactory.IsEmpty); }
             }
 
             public bool IsLazy

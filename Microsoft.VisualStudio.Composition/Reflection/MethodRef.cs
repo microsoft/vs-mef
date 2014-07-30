@@ -26,10 +26,10 @@ using System.Threading.Tasks;
         public int MetadataToken { get; private set; }
 
         public ImmutableArray<TypeRef> GenericMethodArguments { get; private set; }
-        
+
         public bool IsEmpty
         {
-            get { return this.DeclaringType.IsEmpty; }
+            get { return this.DeclaringType == null || this.DeclaringType.IsEmpty; }
         }
 
         public bool Equals(MethodRef other)

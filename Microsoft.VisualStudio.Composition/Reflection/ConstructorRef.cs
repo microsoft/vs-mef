@@ -25,7 +25,7 @@
 
         public bool IsEmpty
         {
-            get { return this.DeclaringType.IsEmpty; }
+            get { return this.DeclaringType == null || this.DeclaringType.IsEmpty; }
         }
 
         public bool Equals(ConstructorRef other)
