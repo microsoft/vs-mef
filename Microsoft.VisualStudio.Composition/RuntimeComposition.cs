@@ -73,11 +73,11 @@
 
             var runtimePart = new RuntimePart(
                 new TypeRef(part.Definition.Type),
-                new ConstructorRef(part.Definition.ImportingConstructorInfo),
+                part.Definition.ImportingConstructorInfo != null ? new ConstructorRef(part.Definition.ImportingConstructorInfo) : default(ConstructorRef),
                 part.GetImportingConstructorImports().Select(kvp => CreateRuntimeImport(kvp.Key, kvp.Value, partSurrogates)).ToImmutableArray(),
                 part.Definition.ImportingMembers.Select(idb => CreateRuntimeImport(idb, part.SatisfyingExports[idb], partSurrogates)).ToImmutableArray(),
                 part.Definition.OnImportsSatisfied != null ? new MethodRef(part.Definition.OnImportsSatisfied) : new MethodRef(),
-                configuration.GetEffectiveSharingBoundary(part.Definition));
+                part.Definition.IsShared ? configuration.GetEffectiveSharingBoundary(part.Definition) : null);
             return runtimePart;
         }
 
@@ -119,7 +119,7 @@
             return new RuntimeExport(
                 partSurrogates[exportDefinitionBinding.PartDefinition],
                 exportDefinitionBinding.ExportDefinition.ContractName,
-                new MemberRef(exportDefinitionBinding.ExportingMember),
+                exportDefinitionBinding.ExportingMember != null ? new MemberRef(exportDefinitionBinding.ExportingMember) : default(MemberRef),
                 new TypeRef(exportDefinitionBinding.ExportedValueType),
                 exportDefinitionBinding.ExportDefinition.Metadata);
         }

@@ -6,6 +6,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Validation;
 
     public struct MemberRef : IEquatable<MemberRef>
     {
@@ -36,6 +37,8 @@
         public MemberRef(MemberInfo member)
             : this()
         {
+            Requires.NotNull(member, "member");
+
             switch (member.MemberType)
             {
                 case MemberTypes.Constructor:
