@@ -603,6 +603,7 @@
         /// Gets syntax that will reconstruct the MemberInfo for a given member.
         /// </summary>
         /// <param name="member">A field or method. If a property, either the getter or the setter will be retrieved.</param>
+        /// <param name="thisExportProvider">The expression to use when referring to "this" export provider instance.</param>
         /// <param name="favorPropertySetter"><c>true</c> to create syntax to reconstruct the property setter method; <c>false</c> to reconstruct the getter method.</param>
         /// <returns>The reconstruction syntax.</returns>
         private ExpressionSyntax GetMemberInfoSyntax(MemberInfo member, ExpressionSyntax thisExportProvider, bool favorPropertySetter = false)
@@ -2048,6 +2049,7 @@
         /// <param name="valueFactory">The value factory, including the lambda when applicable.</param>
         /// <param name="metadataType">The type for TMetadata.</param>
         /// <param name="metadata">The metadata.</param>
+        /// <param name="thisExportProvider">The expression to use when referring to "this" export provider instance.</param>
         /// <returns>The object creation expression.</returns>
         private ExpressionSyntax CreateLazyConstruction(Type valueType, ExpressionSyntax valueFactory, Type metadataType, ExpressionSyntax metadata, ExpressionSyntax thisExportProvider)
         {

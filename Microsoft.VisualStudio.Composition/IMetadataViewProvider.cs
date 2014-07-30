@@ -14,7 +14,7 @@
         /// <summary>
         /// Gets a value indicating whether the created metadata proxy requires
         /// default values to be included in the metadata supplied to
-        /// <see cref="CreateProxy{TMetadata}"/>.
+        /// <see cref="CreateProxy"/>.
         /// </summary>
         bool IsDefaultMetadataRequired { get; }
 
@@ -26,12 +26,11 @@
         bool IsMetadataViewSupported(Type metadataType);
 
         /// <summary>
-        /// Creates an instance of <typeparamref name="TMetadata"/> that acts as a strongly-typed accessor
+        /// Creates a metadata view that acts as a strongly-typed accessor
         /// to a metadata dictionary.
         /// </summary>
-        /// <typeparam name="TMetadata">The type of interface whose members are made up only of property getters.</typeparam>
-        /// <param name="metadataViewType">The type of metadata view to create.</param>
         /// <param name="metadata">The metadata dictionary.</param>
+        /// <param name="metadataViewType">The type of metadata view to create.</param>
         /// <returns>The proxy instance.</returns>
         object CreateProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType);
     }

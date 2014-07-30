@@ -23,6 +23,7 @@
         /// <param name="onImportsSatisfied">The method to invoke after satisfying imports, if any.</param>
         /// <param name="importingConstructor">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
         /// <param name="partCreationPolicy">The creation policy for this part.</param>
+        /// <param name="isSharingBoundaryInferred">A value indicating whether the part does not have an explicit sharing boundary, and therefore can obtain its sharing boundary based on its imports.</param>
         public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
         {
             Requires.NotNull(partType, "partType");

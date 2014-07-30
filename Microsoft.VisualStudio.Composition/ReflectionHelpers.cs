@@ -496,7 +496,7 @@
         /// the supplied generic type definition.
         /// </summary>
         /// <param name="genericTypeDefinition">The generic type definition to return a constructed type from.</param>
-        /// <param name="constructedType">A constructed type that is, or derives from, <see cref="genericTypeDefinition"/>.</param>
+        /// <param name="constructedType">A constructed type that is, or derives from, <paramref name="genericTypeDefinition"/>.</param>
         /// <returns>A constructed type.</returns>
         internal static Type CloseGenericType(Type genericTypeDefinition, Type constructedType)
         {
