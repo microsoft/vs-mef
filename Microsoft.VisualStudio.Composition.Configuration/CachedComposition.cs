@@ -83,7 +83,7 @@
         {
             Trace("RuntimeExport", writer.BaseStream);
 
-            writer.Write(export.ContractName);
+            this.Write(writer, export.ContractName);
             this.Write(writer, export.DeclaringType);
             this.Write(writer, export.Member);
             this.Write(writer, export.ExportedValueType);
@@ -94,7 +94,7 @@
         {
             Trace("RuntimeExport", reader.BaseStream);
 
-            var contractName = reader.ReadString();
+            var contractName = this.ReadString(reader);
             var declaringType = this.ReadTypeRef(reader);
             var member = this.ReadMemberRef(reader);
             var exportedValueType = this.ReadTypeRef(reader);
@@ -356,7 +356,7 @@
             writer.Write(import.IsNonSharedInstanceRequired);
             this.Write(writer, import.Metadata);
             this.Write(writer, import.ExportFactory);
-            this.Write(writer, import.ExportFactorySharingBoundaries, (w, v) => w.Write(v));
+            this.Write(writer, import.ExportFactorySharingBoundaries, this.Write);
         }
 
         private RuntimeComposition.RuntimeImport ReadRuntimeImport(BinaryReader reader)
@@ -383,7 +383,7 @@
             bool isNonSharedInstanceRequired = reader.ReadBoolean();
             var metadata = this.ReadMetadata(reader);
             var exportFactory = this.ReadTypeRef(reader);
-            var exportFactorySharingBoundaries = this.ReadList(reader, r => r.ReadString());
+            var exportFactorySharingBoundaries = this.ReadList(reader, this.ReadString);
 
             return importingMember.IsEmpty
                 ? new RuntimeComposition.RuntimeImport(
@@ -465,80 +465,20 @@
         {
             Trace("AssemblyName", writer.BaseStream);
 
-            writer.Write(assemblyName.FullName);
-            writer.Write(assemblyName.CodeBase);
+            this.Write(writer, assemblyName.FullName);
+            this.Write(writer, assemblyName.CodeBase);
         }
 
         private AssemblyName ReadAssemblyName(BinaryReader reader)
         {
             Trace("AssemblyName", reader.BaseStream);
 
-            string fullName = reader.ReadString();
-            string codeBase = reader.ReadString();
+            string fullName = this.ReadString(reader);
+            string codeBase = this.ReadString(reader);
             return new AssemblyName(fullName)
             {
                 CodeBase = codeBase,
             };
-        }
-
-        private void Write(BinaryWriter writer, Type type)
-        {
-            Trace("Type", writer.BaseStream);
-
-            if (type.IsArray)
-            {
-                writer.Write((byte)1);
-                type = type.GetElementType();
-            }
-            else
-            {
-                writer.Write((byte)0);
-            }
-
-            this.Write(writer, type.Assembly);
-            writer.Write(type.MetadataToken);
-            if (type.IsGenericType)
-            {
-                writer.Write(type.IsGenericTypeDefinition);
-                foreach (Type typeArg in type.GetTypeInfo().GenericTypeArguments)
-                {
-                    this.Write(writer, typeArg);
-                }
-            }
-        }
-
-        private Type ReadType(BinaryReader reader)
-        {
-            Trace("Type", reader.BaseStream);
-
-            int kind = reader.ReadByte();
-            Assembly assembly = this.ReadAssembly(reader);
-            int typeMetadataToken = reader.ReadInt32();
-            Type type = assembly.ManifestModule.ResolveType(typeMetadataToken);
-            if (type.IsGenericType)
-            {
-                bool isGenericTypeDefinition = reader.ReadBoolean();
-                if (!isGenericTypeDefinition)
-                {
-                    Type[] typeArgs = new Type[type.GetTypeInfo().GenericTypeParameters.Length];
-                    for (int i = 0; i < typeArgs.Length; i++)
-                    {
-                        typeArgs[i] = this.ReadType(reader);
-                    }
-
-                    type = type.MakeGenericType(typeArgs);
-                }
-            }
-
-            switch (kind)
-            {
-                case 0:
-                    return type;
-                case 1:
-                    return type.MakeArrayType();
-                default:
-                    throw new NotSupportedException();
-            }
         }
 
         private void Write(BinaryWriter writer, string value)
@@ -571,14 +511,14 @@
         {
             Trace("Assembly", writer.BaseStream);
 
-            writer.Write(assembly.FullName);
+            this.Write(writer, assembly.FullName);
         }
 
         private Assembly ReadAssembly(BinaryReader reader)
         {
             Trace("Assembly", reader.BaseStream);
 
-            string assemblyName = reader.ReadString();
+            string assemblyName = this.ReadString(reader);
             return Assembly.Load(assemblyName);
         }
 
@@ -668,7 +608,7 @@
             writer.Write(metadata.Count);
             foreach (var entry in metadata)
             {
-                writer.Write(entry.Key);
+                this.Write(writer, entry.Key);
 
                 // Special case values of type Type or Type[] to avoid defeating lazy load later.
                 // We deserialize keeping the replaced TypeRef values so that they can be resolved
@@ -701,7 +641,7 @@
                 var builder = metadata.ToBuilder();
                 for (int i = 0; i < count; i++)
                 {
-                    string key = reader.ReadString();
+                    string key = this.ReadString(reader);
                     object value = this.ReadObject(reader);
                     builder.Add(key, value);
                 }
@@ -751,13 +691,13 @@
                 {
                     Array array = (Array)value;
                     this.Write(writer, ObjectType.Array);
-                    this.Write(writer, valueType.GetElementType());
+                    this.Write(writer, TypeRef.Get(valueType.GetElementType()));
                     this.Write(writer, array, this.WriteObject);
                 }
                 else if (valueType == typeof(string))
                 {
                     this.Write(writer, ObjectType.String);
-                    writer.Write((string)value);
+                    this.Write(writer, (string)value);
                 }
                 else if (valueType == typeof(CreationPolicy)) // TODO: how do we handle arbitrary value types?
                 {
@@ -767,7 +707,7 @@
                 else if (typeof(Type).IsAssignableFrom(valueType))
                 {
                     this.Write(writer, ObjectType.Type);
-                    this.Write(writer, (Type)value);
+                    this.Write(writer, TypeRef.Get((Type)value));
                 }
                 else if (typeof(TypeRef) == valueType)
                 {
@@ -793,14 +733,14 @@
                 case ObjectType.Null:
                     return null;
                 case ObjectType.Array:
-                    Type elementType = this.ReadType(reader);
+                    Type elementType = this.ReadTypeRef(reader).Resolve();
                     return this.ReadArray(reader, this.ReadObject, elementType);
                 case ObjectType.String:
-                    return reader.ReadString();
+                    return this.ReadString(reader);
                 case ObjectType.CreationPolicy:
                     return (CreationPolicy)reader.ReadByte();
                 case ObjectType.Type:
-                    return this.ReadType(reader);
+                    return this.ReadTypeRef(reader).Resolve();
                 case ObjectType.TypeRef:
                     return this.ReadTypeRef(reader);
                 case ObjectType.BinaryFormattedObject:
