@@ -659,23 +659,6 @@
             return list;
         }
 
-        private void Write(BinaryWriter writer, ExportDefinition exportDefinition)
-        {
-            Trace("ExportDefinition", writer.BaseStream);
-
-            writer.Write(exportDefinition.ContractName);
-            this.Write(writer, exportDefinition.Metadata);
-        }
-
-        private ExportDefinition ReadExportDefinition(BinaryReader reader)
-        {
-            Trace("ExportDefinition", reader.BaseStream);
-
-            string contractName = reader.ReadString();
-            IReadOnlyDictionary<string, object> metadata = this.ReadMetadata(reader);
-            return new ExportDefinition(contractName, metadata);
-        }
-
         private void Write(BinaryWriter writer, IReadOnlyDictionary<string, object> metadata)
         {
             Trace("Metadata", writer.BaseStream);
@@ -711,64 +694,6 @@
             return metadata;
         }
 
-        private void Write(BinaryWriter writer, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportingMembers)
-        {
-            Trace("ExportingMembers", writer.BaseStream);
-
-            writer.Write(exportingMembers.Count);
-            foreach (var item in exportingMembers)
-            {
-                this.Write(writer, item.Key);
-                this.Write(writer, item.Value, this.Write);
-            }
-        }
-
-        private IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> ReadExportingMembers(BinaryReader reader)
-        {
-            Trace("ExportingMembers", reader.BaseStream);
-
-            int count = reader.ReadInt32();
-            var exportingMembers = ImmutableDictionary<MemberInfo, IReadOnlyList<ExportDefinition>>.Empty;
-            if (count > 0)
-            {
-                var builder = exportingMembers.ToBuilder();
-                for (int i = 0; i < count; i++)
-                {
-                    MemberInfo key = this.ReadMemberInfo(reader);
-                    IReadOnlyList<ExportDefinition> exportDefinitions = this.ReadList(reader, this.ReadExportDefinition);
-                    builder.Add(key, exportDefinitions);
-                }
-
-                exportingMembers = builder.ToImmutable();
-            }
-
-            return exportingMembers;
-        }
-
-        private void Write(BinaryWriter writer, ImportDefinition importDefinition)
-        {
-            Trace("ImportDefinition", writer.BaseStream);
-
-            writer.Write(importDefinition.ContractName);
-            writer.Write((byte)importDefinition.Cardinality);
-            this.Write(writer, importDefinition.Metadata);
-            this.Write(writer, importDefinition.ExportConstraints, this.WriteObject);
-            this.Write(writer, importDefinition.ExportFactorySharingBoundaries, (w, v) => w.Write(v));
-        }
-
-        private ImportDefinition ReadImportDefinition(BinaryReader reader)
-        {
-            Trace("ImportDefinition", reader.BaseStream);
-
-            var contractName = reader.ReadString();
-            var cardinality = (ImportCardinality)reader.ReadByte();
-            var metadata = this.ReadMetadata(reader);
-            var constraints = this.ReadList<IImportSatisfiabilityConstraint>(reader, r => (IImportSatisfiabilityConstraint)this.ReadObject(r));
-            var exportFactorySharingBoundaries = this.ReadList(reader, r => r.ReadString());
-
-            return new ImportDefinition(contractName, cardinality, metadata, constraints, exportFactorySharingBoundaries);
-        }
-
         private void Write(BinaryWriter writer, ImportCardinality cardinality)
         {
             Trace("ImportCardinality", writer.BaseStream);
@@ -782,256 +707,6 @@
             return (ImportCardinality)reader.ReadByte();
         }
 
-        private void Write(BinaryWriter writer, ImportDefinitionBinding importDefinitionBinding)
-        {
-            Trace("ImportDefinitionBinding", writer.BaseStream);
-
-            this.Write(writer, importDefinitionBinding.ImportDefinition);
-            this.Write(writer, importDefinitionBinding.ComposablePartType);
-            if (importDefinitionBinding.ImportingMember != null)
-            {
-                writer.Write(true);
-                this.Write(writer, importDefinitionBinding.ImportingMember);
-            }
-            else
-            {
-                writer.Write(false);
-                this.Write(writer, importDefinitionBinding.ImportingParameter);
-            }
-        }
-
-        private ImportDefinitionBinding ReadImportDefinitionBinding(BinaryReader reader)
-        {
-            Trace("ImportDefinitionBinding", reader.BaseStream);
-
-            ImportDefinition importDefinition = this.ReadImportDefinition(reader);
-            Type composablePartType = this.ReadType(reader);
-            bool isImportingMember = reader.ReadBoolean();
-            if (isImportingMember)
-            {
-                MemberInfo importingMember = this.ReadMemberInfo(reader);
-                return new ImportDefinitionBinding(importDefinition, composablePartType, importingMember);
-            }
-            else
-            {
-                ParameterInfo importingParameter = this.ReadParameterInfo(reader);
-                return new ImportDefinitionBinding(importDefinition, composablePartType, importingParameter);
-            }
-        }
-
-        private void Write(BinaryWriter writer, ParameterInfo parameterInfo)
-        {
-            Trace("ParameterInfo", writer.BaseStream);
-
-            var method = (MethodBase)parameterInfo.Member;
-            this.Write(writer, method);
-            int index = Array.IndexOf(method.GetParameters(), parameterInfo);
-            writer.Write((byte)index);
-        }
-
-        private ParameterInfo ReadParameterInfo(BinaryReader reader)
-        {
-            Trace("ParameterInfo", reader.BaseStream);
-
-            var member = this.ReadMethodBase(reader);
-            int index = reader.ReadByte();
-            ParameterInfo parameter = member.GetParameters()[index];
-            return parameter;
-        }
-
-        private void Write(BinaryWriter writer, MemberInfo member)
-        {
-            Trace("MemberInfo", writer.BaseStream);
-
-            var fieldInfo = member as FieldInfo;
-            if (fieldInfo != null)
-            {
-                writer.Write((byte)1);
-                this.Write(writer, member.DeclaringType.Assembly);
-                writer.Write(member.MetadataToken);
-                return;
-            }
-
-            var propertyInfo = member as PropertyInfo;
-            if (propertyInfo != null)
-            {
-                writer.Write((byte)2);
-                this.Write(writer, propertyInfo.DeclaringType);
-                writer.Write(propertyInfo.Name);
-                return;
-            }
-
-            var methodBase = member as MethodBase;
-            if (methodBase != null)
-            {
-                writer.Write((byte)3);
-                this.Write(writer, methodBase);
-                return;
-            }
-
-            throw new NotSupportedException("Member type " + member.MemberType + " is not supported.");
-        }
-
-        private MemberInfo ReadMemberInfo(BinaryReader reader)
-        {
-            Trace("MemberInfo", reader.BaseStream);
-
-            MemberInfo member;
-            byte kind = reader.ReadByte();
-            switch (kind)
-            {
-                case 1:
-                    Assembly assembly = this.ReadAssembly(reader);
-                    int metadataToken = reader.ReadInt32();
-                    member = assembly.ManifestModule.ResolveMember(metadataToken);
-                    break;
-                case 2:
-                    Type declaringType = this.ReadType(reader);
-                    string propertyName = reader.ReadString();
-                    member = declaringType.GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-                    break;
-                case 3:
-                    member = this.ReadMethodBase(reader);
-                    break;
-                default:
-                    throw new NotSupportedException();
-            }
-
-            return member;
-        }
-
-        private void Write(BinaryWriter writer, MethodBase method)
-        {
-            Trace("MethodBase", writer.BaseStream);
-
-            if (method == null)
-            {
-                writer.Write(false);
-                return;
-            }
-
-            writer.Write(true);
-            this.Write(writer, method.DeclaringType);
-            writer.Write(method.MetadataToken);
-            if (method.IsGenericMethod)
-            {
-                writer.Write(method.IsGenericMethodDefinition);
-                foreach (var typeArg in method.GetGenericArguments())
-                {
-                    this.Write(writer, typeArg);
-                }
-            }
-        }
-
-        private MethodBase ReadMethodBase(BinaryReader reader)
-        {
-            Trace("MethodBase", reader.BaseStream);
-
-            MethodBase method = null;
-            bool nonNull = reader.ReadBoolean();
-            if (nonNull)
-            {
-                Type declaringType = this.ReadType(reader);
-                int metadataToken = reader.ReadInt32();
-                method = declaringType.Assembly.ManifestModule.ResolveMethod(metadataToken);
-                if (method.IsGenericMethod)
-                {
-                    bool isGenericMethodDefinition = reader.ReadBoolean();
-                    if (!isGenericMethodDefinition)
-                    {
-                        Type[] typeArgs = new Type[method.GetGenericArguments().Length];
-                        for (int i = 0; i < typeArgs.Length; i++)
-                        {
-                            typeArgs[i] = this.ReadType(reader);
-                        }
-
-                        method = ((MethodInfo)method).MakeGenericMethod(typeArgs);
-                    }
-                }
-            }
-
-            return method;
-        }
-
-        private void Write(BinaryWriter writer, ImportMetadataViewConstraint importMetadataViewConstraint)
-        {
-            Trace("ImportMetadataViewConstraint", writer.BaseStream);
-
-            writer.Write(importMetadataViewConstraint.Requirements.Count);
-            foreach (var item in importMetadataViewConstraint.Requirements)
-            {
-                writer.Write(item.Key);
-                writer.Write(item.Value.IsMetadataumValueRequired);
-                this.Write(writer, item.Value.MetadatumValueType);
-            }
-        }
-
-        private ImportMetadataViewConstraint ReadImportMetadataViewConstraint(BinaryReader reader)
-        {
-            Trace("ImportMetadataViewConstraint", reader.BaseStream);
-
-            int count = reader.ReadInt32();
-            var requirements = ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>.Empty;
-            if (count > 0)
-            {
-                var builder = requirements.ToBuilder();
-                for (int i = 0; i < count; i++)
-                {
-                    string key = reader.ReadString();
-                    bool isRequired = reader.ReadBoolean();
-                    Type type = this.ReadType(reader);
-                    builder.Add(key, new ImportMetadataViewConstraint.MetadatumRequirement(type, isRequired));
-                }
-
-                requirements = builder.ToImmutable();
-            }
-
-            return new ImportMetadataViewConstraint(requirements);
-        }
-
-        private void Write(BinaryWriter writer, ExportTypeIdentityConstraint exportTypeIdentityConstraint)
-        {
-            Trace("ExportTypeIdentityConstraint", writer.BaseStream);
-
-            writer.Write(exportTypeIdentityConstraint.TypeIdentityName);
-        }
-
-        private ExportTypeIdentityConstraint ReadExportTypeIdentityConstraint(BinaryReader reader)
-        {
-            Trace("ExportTypeIdentityConstraint", reader.BaseStream);
-
-            string typeIdentityName = reader.ReadString();
-            return new ExportTypeIdentityConstraint(typeIdentityName);
-        }
-
-        private void Write(BinaryWriter writer, PartCreationPolicyConstraint partCreationPolicyConstraint)
-        {
-            Trace("PartCreationPolicyConstraint", writer.BaseStream);
-            writer.Write((byte)partCreationPolicyConstraint.RequiredCreationPolicy);
-        }
-
-        private PartCreationPolicyConstraint ReadPartCreationPolicyConstraint(BinaryReader reader)
-        {
-            Trace("PartCreationPolicyConstraint", reader.BaseStream);
-            CreationPolicy requiredCreationPolicy = (CreationPolicy)reader.ReadByte();
-            return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(requiredCreationPolicy);
-        }
-
-        private void Write(BinaryWriter writer, ExportMetadataValueImportConstraint exportMetadataValueImportConstraint)
-        {
-            Trace("ExportMetadataValueImportConstraint", writer.BaseStream);
-            writer.Write(exportMetadataValueImportConstraint.Name);
-            this.WriteObject(writer, exportMetadataValueImportConstraint.Value);
-        }
-
-        private ExportMetadataValueImportConstraint ReadExportMetadataValueImportConstraint(BinaryReader reader)
-        {
-            Trace("ExportMetadataValueImportConstraint", reader.BaseStream);
-            string name = reader.ReadString();
-            object value = this.ReadObject(reader);
-            return new ExportMetadataValueImportConstraint(name, value);
-        }
-
         private enum ObjectType : byte
         {
             Null,
@@ -1040,10 +715,6 @@
             Type,
             Array,
             BinaryFormattedObject,
-            ImportMetadataViewConstraint,
-            ExportTypeIdentityConstraint,
-            PartCreationPolicyConstraint,
-            ExportMetadataValueImportConstraint,
         }
 
         private void WriteObject(BinaryWriter writer, object value)
@@ -1079,26 +750,6 @@
                     this.Write(writer, ObjectType.Type);
                     this.Write(writer, (Type)value);
                 }
-                else if (valueType == typeof(ImportMetadataViewConstraint))
-                {
-                    this.Write(writer, ObjectType.ImportMetadataViewConstraint);
-                    this.Write(writer, (ImportMetadataViewConstraint)value);
-                }
-                else if (valueType == typeof(ExportTypeIdentityConstraint))
-                {
-                    this.Write(writer, ObjectType.ExportTypeIdentityConstraint);
-                    this.Write(writer, (ExportTypeIdentityConstraint)value);
-                }
-                else if (valueType == typeof(PartCreationPolicyConstraint))
-                {
-                    this.Write(writer, ObjectType.PartCreationPolicyConstraint);
-                    this.Write(writer, (PartCreationPolicyConstraint)value);
-                }
-                else if (valueType == typeof(ExportMetadataValueImportConstraint))
-                {
-                    this.Write(writer, ObjectType.ExportMetadataValueImportConstraint);
-                    this.Write(writer, (ExportMetadataValueImportConstraint)value);
-                }
                 else
                 {
                     this.Write(writer, ObjectType.BinaryFormattedObject);
@@ -1129,14 +780,6 @@
                 case ObjectType.BinaryFormattedObject:
                     var formatter = new BinaryFormatter();
                     return formatter.Deserialize(reader.BaseStream);
-                case ObjectType.ImportMetadataViewConstraint:
-                    return this.ReadImportMetadataViewConstraint(reader);
-                case ObjectType.ExportTypeIdentityConstraint:
-                    return this.ReadExportTypeIdentityConstraint(reader);
-                case ObjectType.PartCreationPolicyConstraint:
-                    return this.ReadPartCreationPolicyConstraint(reader);
-                case ObjectType.ExportMetadataValueImportConstraint:
-                    return this.ReadExportMetadataValueImportConstraint(reader);
                 default:
                     throw new NotSupportedException("Unsupported format: " + objectType);
             }
