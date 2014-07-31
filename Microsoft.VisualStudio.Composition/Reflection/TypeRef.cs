@@ -18,7 +18,7 @@
         /// This is for efficiency to avoid duplicates where convenient to do so.
         /// It is not intended as a guarantee of reference equality across equivalent TypeRef instances.
         /// </remarks>
-        private static readonly Dictionary<Type, TypeRef> instanceCache = new Dictionary<Type, TypeRef>();
+        private static readonly Dictionary<Type, WeakReference<TypeRef>> instanceCache = new Dictionary<Type, WeakReference<TypeRef>>();
 
         private TypeRef(AssemblyName assemblyName, int metadataToken, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
@@ -68,10 +68,19 @@
             TypeRef result;
             lock (instanceCache)
             {
-                if (!instanceCache.TryGetValue(type, out result))
+                WeakReference<TypeRef> weakResult;
+                if (!instanceCache.TryGetValue(type, out weakResult))
                 {
                     result = new TypeRef(type);
-                    instanceCache.Add(type, result);
+                    instanceCache.Add(type, new WeakReference<TypeRef>(result));
+                }
+                else
+                {
+                    if (!weakResult.TryGetTarget(out result))
+                    {
+                        result = new TypeRef(type);
+                        weakResult.SetTarget(result);
+                    }
                 }
             }
 
