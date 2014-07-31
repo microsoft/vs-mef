@@ -34,7 +34,17 @@
 
         public bool Equals(MethodRef other)
         {
-            return this.DeclaringType.Equals(other.DeclaringType)
+            if (this.IsEmpty ^ other.IsEmpty)
+            {
+                return false;
+            }
+
+            if (this.IsEmpty)
+            {
+                return true;
+            }
+
+            return EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType)
                 && this.MetadataToken == other.MetadataToken
                 && this.GenericMethodArguments.EqualsByValue(other.GenericMethodArguments);
         }

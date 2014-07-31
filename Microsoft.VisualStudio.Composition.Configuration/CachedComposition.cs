@@ -108,29 +108,40 @@
             {
                 Trace("RuntimeExport", writer.BaseStream);
 
-                this.Write(export.ContractName);
-                this.Write(export.DeclaringType);
-                this.Write(export.Member);
-                this.Write(export.ExportedValueType);
-                this.Write(export.Metadata);
+                if (this.TryPrepareSerializeReusableObject(export))
+                {
+                    this.Write(export.ContractName);
+                    this.Write(export.DeclaringType);
+                    this.Write(export.Member);
+                    this.Write(export.ExportedValueType);
+                    this.Write(export.Metadata);
+                }
             }
 
             private RuntimeComposition.RuntimeExport ReadRuntimeExport()
             {
                 Trace("RuntimeExport", reader.BaseStream);
 
-                var contractName = this.ReadString();
-                var declaringType = this.ReadTypeRef();
-                var member = this.ReadMemberRef();
-                var exportedValueType = this.ReadTypeRef();
-                var metadata = this.ReadMetadata();
+                int id;
+                RuntimeComposition.RuntimeExport value;
+                if (this.TryPrepareDeserializeReusableObject(out id, out value))
+                {
+                    var contractName = this.ReadString();
+                    var declaringType = this.ReadTypeRef();
+                    var member = this.ReadMemberRef();
+                    var exportedValueType = this.ReadTypeRef();
+                    var metadata = this.ReadMetadata();
 
-                return new RuntimeComposition.RuntimeExport(
-                    contractName,
-                    declaringType,
-                    member,
-                    exportedValueType,
-                    metadata);
+                    value = new RuntimeComposition.RuntimeExport(
+                        contractName,
+                        declaringType,
+                        member,
+                        exportedValueType,
+                        metadata);
+                    this.OnDeserializedReusableObject(id, value);
+                }
+
+                return value;
             }
 
             private void Write(RuntimeComposition.RuntimePart part)
@@ -453,13 +464,8 @@
             {
                 Trace("TypeRef", writer.BaseStream);
 
-                if (typeRef == null)
+                if (this.TryPrepareSerializeReusableObject(typeRef))
                 {
-                    writer.Write((byte)0);
-                }
-                else
-                {
-                    writer.Write((byte)1);
                     this.Write(typeRef.AssemblyName);
                     writer.Write(typeRef.MetadataToken);
                     writer.Write((byte)typeRef.GenericTypeParameterCount);
@@ -471,19 +477,19 @@
             {
                 Trace("TypeRef", reader.BaseStream);
 
-                byte nullCheck = reader.ReadByte();
-                if (nullCheck == 1)
+                int id;
+                TypeRef value;
+                if (this.TryPrepareDeserializeReusableObject(out id, out value))
                 {
                     var assemblyName = this.ReadAssemblyName();
                     var metadataToken = reader.ReadInt32();
                     int genericTypeParameterCount = reader.ReadByte();
                     var genericTypeArguments = this.ReadList(reader, this.ReadTypeRef);
-                    return TypeRef.Get(assemblyName, metadataToken, genericTypeParameterCount, genericTypeArguments.ToImmutableArray());
+                    value = TypeRef.Get(assemblyName, metadataToken, genericTypeParameterCount, genericTypeArguments.ToImmutableArray());
+                    this.OnDeserializedReusableObject(id, value);
                 }
-                else
-                {
-                    return default(TypeRef);
-                }
+
+                return value;
             }
 
             private void Write(AssemblyName assemblyName)

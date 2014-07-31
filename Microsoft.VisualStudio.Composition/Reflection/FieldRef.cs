@@ -33,7 +33,7 @@
 
         public bool Equals(FieldRef other)
         {
-            return this.AssemblyName.Equals(other.AssemblyName)
+            return EqualityComparer<AssemblyName>.Default.Equals(this.AssemblyName, other.AssemblyName)
                 && this.MetadataToken == other.MetadataToken;
         }
 

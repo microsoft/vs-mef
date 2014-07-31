@@ -289,7 +289,7 @@
             }
         }
 
-        public class RuntimeExport
+        public class RuntimeExport : IEquatable<RuntimeExport>
         {
             public RuntimeExport(string contractName, TypeRef declaringType, MemberRef member, TypeRef exportedValueType, IReadOnlyDictionary<string, object> metadata)
             {
@@ -312,6 +312,30 @@
             public TypeRef ExportedValueType { get; private set; }
 
             public IReadOnlyDictionary<string, object> Metadata { get; private set; }
+
+            public override int GetHashCode()
+            {
+                return this.ContractName.GetHashCode() + this.DeclaringType.GetHashCode();
+            }
+
+            public override bool Equals(object obj)
+            {
+                return this.Equals(obj as RuntimeExport);
+            }
+
+            public bool Equals(RuntimeExport other)
+            {
+                if (other == null)
+                {
+                    return false;
+                }
+
+                return this.ContractName == other.ContractName
+                    && EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType)
+                    && EqualityComparer<MemberRef>.Default.Equals(this.Member, other.Member)
+                    && EqualityComparer<TypeRef>.Default.Equals(this.ExportedValueType, other.ExportedValueType)
+                    && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata);
+            }
         }
     }
 }

@@ -83,6 +83,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ByValueEquality.cs" />
     <Compile Include="ComposableCatalog.cs" />
     <Compile Include="ComposedPart.cs" />
     <Compile Include="ComposedPartDiagnostic.cs" />

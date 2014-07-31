@@ -42,7 +42,7 @@
 
         public bool Equals(PropertyRef other)
         {
-            return this.DeclaringType.Equals(other.DeclaringType)
+            return EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType)
                 && this.MetadataToken == other.MetadataToken;
         }
 
