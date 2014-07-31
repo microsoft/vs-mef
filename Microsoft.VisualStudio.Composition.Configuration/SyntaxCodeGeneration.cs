@@ -603,6 +603,7 @@
         /// Gets syntax that will reconstruct the MemberInfo for a given member.
         /// </summary>
         /// <param name="member">A field or method. If a property, either the getter or the setter will be retrieved.</param>
+        /// <param name="thisExportProvider">The expression to use when referring to "this" export provider instance.</param>
         /// <param name="favorPropertySetter"><c>true</c> to create syntax to reconstruct the property setter method; <c>false</c> to reconstruct the getter method.</param>
         /// <returns>The reconstruction syntax.</returns>
         private ExpressionSyntax GetMemberInfoSyntax(MemberInfo member, ExpressionSyntax thisExportProvider, bool favorPropertySetter = false)
@@ -2048,6 +2049,7 @@
         /// <param name="valueFactory">The value factory, including the lambda when applicable.</param>
         /// <param name="metadataType">The type for TMetadata.</param>
         /// <param name="metadata">The metadata.</param>
+        /// <param name="thisExportProvider">The expression to use when referring to "this" export provider instance.</param>
         /// <returns>The object creation expression.</returns>
         private ExpressionSyntax CreateLazyConstruction(Type valueType, ExpressionSyntax valueFactory, Type metadataType, ExpressionSyntax metadata, ExpressionSyntax thisExportProvider)
         {
@@ -2331,7 +2333,7 @@
 
         private MemberDeclarationSyntax CreateGetTypeIdCoreMethod()
         {
-            var typeParameter = SyntaxFactory.IdentifierName("type");
+            var typeRefParameter = SyntaxFactory.IdentifierName("typeRef");
             var method = SyntaxFactory.MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
                 "GetTypeIdCore")
@@ -2342,11 +2344,25 @@
                     SyntaxFactory.Parameter(
                         SyntaxFactory.List<AttributeListSyntax>(),
                         SyntaxFactory.TokenList(),
-                        this.GetTypeNameSyntax(typeof(Type)),
-                        typeParameter.Identifier,
+                        this.GetTypeNameSyntax(typeof(Reflection.TypeRef)),
+                        typeRefParameter.Identifier,
                         null))));
 
             var statements = new List<StatementSyntax>();
+            var typeLocal = SyntaxFactory.IdentifierName("type");
+            statements.Add(SyntaxFactory.LocalDeclarationStatement(SyntaxFactory.VariableDeclaration(
+                SyntaxFactory.IdentifierName("Type"),
+                SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(
+                    typeLocal.Identifier,
+                    null,
+                    SyntaxFactory.EqualsValueClause(
+                        SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                SyntaxFactory.ParseName("Microsoft.VisualStudio.Composition.Reflection.Resolver"),
+                                SyntaxFactory.IdentifierName("Resolve")),
+                            SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
+                                typeRefParameter))))))))));
 
             var fullTypeName = SyntaxFactory.IdentifierName("fullTypeName");
             statements.Add(SyntaxFactory.LocalDeclarationStatement(SyntaxFactory.VariableDeclaration(
@@ -2357,7 +2373,7 @@
                     SyntaxFactory.EqualsValueClause(
                         SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
-                            typeParameter,
+                            typeLocal,
                             SyntaxFactory.IdentifierName("FullName"))))))));
             var assemblyFullName = SyntaxFactory.IdentifierName("assemblyFullName");
             statements.Add(SyntaxFactory.LocalDeclarationStatement(SyntaxFactory.VariableDeclaration(
@@ -2373,7 +2389,7 @@
                                 SyntaxFactory.InvocationExpression(
                                     SyntaxFactory.MemberAccessExpression(
                                         SyntaxKind.SimpleMemberAccessExpression,
-                                        typeParameter,
+                                        typeLocal,
                                         SyntaxFactory.IdentifierName("GetTypeInfo")),
                                     SyntaxFactory.ArgumentList()),
                                 SyntaxFactory.IdentifierName("Assembly")),

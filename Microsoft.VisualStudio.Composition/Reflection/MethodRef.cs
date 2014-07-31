@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
 
@@ -17,15 +18,18 @@
             this.GenericMethodArguments = genericMethodArguments;
         }
 
+        public MethodRef(MethodInfo method)
+            : this(new TypeRef(method.DeclaringType), method.MetadataToken, method.GetGenericArguments().Select(t => new TypeRef(t)).ToImmutableArray()) { }
+
         public TypeRef DeclaringType { get; private set; }
 
         public int MetadataToken { get; private set; }
 
         public ImmutableArray<TypeRef> GenericMethodArguments { get; private set; }
-        
+
         public bool IsEmpty
         {
-            get { return this.DeclaringType.IsEmpty; }
+            get { return this.DeclaringType == null || this.DeclaringType.IsEmpty; }
         }
 
         public bool Equals(MethodRef other)

@@ -157,7 +157,8 @@
 
         public IExportProviderFactory CreateExportProviderFactory()
         {
-            return new RuntimeExportProviderFactory(this);
+            var composition = RuntimeComposition.CreateRuntimeComposition(this);
+            return new RuntimeExportProviderFactory(composition);
         }
 
         public CompositionConfiguration WithReferenceAssemblies(ImmutableHashSet<Assembly> additionalReferenceAssemblies)

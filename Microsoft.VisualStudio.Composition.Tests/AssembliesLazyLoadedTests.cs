@@ -114,8 +114,10 @@
         [Fact]
         public async Task ComposableAssembliesLazyLoadedByLazyTMetadata()
         {
-            var configuration = CompositionConfiguration.Create(
-                await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaTMetadata), typeof(AnExportWithMetadataTypeValue)));
+            var catalog = ComposableCatalog.Create(
+                await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaTMetadata), typeof(AnExportWithMetadataTypeValue)))
+                .WithDesktopSupport();
+            var configuration = CompositionConfiguration.Create(catalog);
             var compositionCache = await this.SaveConfigurationAsync(configuration);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.

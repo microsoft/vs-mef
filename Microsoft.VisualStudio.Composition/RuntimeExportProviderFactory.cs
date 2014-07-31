@@ -2,88 +2,73 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Linq;
     using System.Reflection;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
     internal class RuntimeExportProviderFactory : IExportProviderFactory
     {
-        private readonly CompositionConfiguration configuration;
-        private readonly IReadOnlyDictionary<ComposablePartDefinition, ComposedPart> partDefinitionToComposedPart;
-        private readonly IReadOnlyDictionary<string, IReadOnlyList<ExportDefinitionBinding>> exportsByContract;
+        private readonly RuntimeComposition composition;
 
-        internal RuntimeExportProviderFactory(CompositionConfiguration configuration)
+        internal RuntimeExportProviderFactory(RuntimeComposition composition)
         {
-            Requires.NotNull(configuration, "configuration");
-            this.configuration = configuration;
-
-            var exports =
-                from part in this.configuration.Parts
-                from exportingMemberAndDefinition in part.Definition.ExportDefinitions
-                let export = new ExportDefinitionBinding(exportingMemberAndDefinition.Value, part.Definition, exportingMemberAndDefinition.Key)
-                where part.Definition.IsInstantiable
-                group export by export.ExportDefinition.ContractName into exportsByContract
-                select exportsByContract;
-            this.exportsByContract = exports.ToDictionary<IGrouping<string, ExportDefinitionBinding>, string, IReadOnlyList<ExportDefinitionBinding>>(
-                e => e.Key, e => e.ToList());
-
-            this.partDefinitionToComposedPart = this.configuration.Parts.ToDictionary(p => p.Definition);
+            Requires.NotNull(composition, "composition");
+            this.composition = composition;
         }
 
         public ExportProvider CreateExportProvider()
         {
-            return new RuntimeExportProvider(this);
+            return new RuntimeExportProvider(this.composition);
         }
 
         private class RuntimeExportProvider : ExportProvider
         {
-            private readonly RuntimeExportProviderFactory factory;
+            private readonly RuntimeComposition composition;
 
-            internal RuntimeExportProvider(RuntimeExportProviderFactory factory)
-                : this(factory, null, null)
+            internal RuntimeExportProvider(RuntimeComposition composition)
+                : this(composition, null, null)
             {
             }
 
-            internal RuntimeExportProvider(RuntimeExportProviderFactory factory, ExportProvider parent, IReadOnlyCollection<string> freshSharingBoundaries)
+            internal RuntimeExportProvider(RuntimeComposition composition, ExportProvider parent, IReadOnlyCollection<string> freshSharingBoundaries)
                 : base(parent, freshSharingBoundaries)
             {
-                Requires.NotNull(factory, "factory");
-                this.factory = factory;
+                Requires.NotNull(composition, "composition");
+
+                this.composition = composition;
                 this.cachedTypes = new Type[0];
             }
 
-            protected override int GetTypeIdCore(Type type)
+            protected override int GetTypeIdCore(Reflection.TypeRef type)
             {
                 return -1;
             }
 
             protected override IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition)
             {
-                IReadOnlyList<ExportDefinitionBinding> exports;
-                if (!this.factory.exportsByContract.TryGetValue(importDefinition.ContractName, out exports))
-                {
-                    return Enumerable.Empty<Export>();
-                }
+                var exports = this.composition.GetExports(importDefinition.ContractName);
 
-                return exports.Select(export =>
-                    this.CreateExport(
+                return
+                    from export in exports
+                    let part = this.composition.GetPart(export)
+                    select this.CreateExport(
                         importDefinition,
-                        export.ExportDefinition.Metadata,
-                        this.GetTypeId(GetPartConstructedType(export.PartDefinition, importDefinition)),
-                        (ep, provisionalSharedObjects) => this.CreatePart(provisionalSharedObjects, export, importDefinition),
-                        export.PartDefinition.IsShared ? this.factory.configuration.GetEffectiveSharingBoundary(export.PartDefinition) : null,
-                        !export.PartDefinition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
-                        export.ExportingMember));
+                        export.Metadata,
+                        this.GetTypeId(GetPartConstructedTypeRef(part, importDefinition.Metadata)),
+                        (ep, provisionalSharedObjects) => this.CreatePart(provisionalSharedObjects, part, importDefinition.Metadata),
+                        part.SharingBoundary,
+                        !part.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
+                        export.Member.Resolve());
             }
 
-            private object CreatePart(Dictionary<int, object> provisionalSharedObjects, ExportDefinitionBinding exportDefinition, ImportDefinition importDefinition)
+            private object CreatePart(Dictionary<int, object> provisionalSharedObjects, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata)
             {
-                var partDefinition = exportDefinition.PartDefinition;
-
-                if (partDefinition.Equals(ExportProvider.ExportProviderPartDefinition))
+                if (partDefinition.Type.Equals(new Reflection.TypeRef(ExportProvider.ExportProviderPartDefinition.Type)))
                 {
                     // Special case for our synthesized part that acts as a placeholder for *this* export provider.
                     return this.NonDisposableWrapper.Value;
@@ -94,15 +79,14 @@
                     throw new CompositionFailedException("Cannot instantiate this part.");
                 }
 
-                var constructedPartType = GetPartConstructedType(exportDefinition.PartDefinition, importDefinition);
-                var composedPart = this.factory.partDefinitionToComposedPart[partDefinition];
-                var ctorArgs = composedPart.GetImportingConstructorImports()
-                    .Select(pair => GetValueForImportSite(null, pair.Key, pair.Value, provisionalSharedObjects).Value).ToArray();
-                ConstructorInfo importingConstructor = exportDefinition.PartDefinition.ImportingConstructorInfo;
+                var constructedPartType = GetPartConstructedTypeRef(partDefinition, importMetadata);
+                var ctorArgs = partDefinition.ImportingConstructorArguments
+                    .Select(import => GetValueForImportSite(null, import, provisionalSharedObjects).Value).ToArray();
+                ConstructorInfo importingConstructor = partDefinition.ImportingConstructor.Resolve();
                 if (importingConstructor.ContainsGenericParameters)
                 {
                     // TODO: fix this to find the precise match, including cases where the matching constructor includes a generic type parameter.
-                    importingConstructor = constructedPartType.GetTypeInfo().DeclaredConstructors.First(ctor => true);
+                    importingConstructor = constructedPartType.Resolve().GetTypeInfo().DeclaredConstructors.First(ctor => true);
                 }
 
                 object part = importingConstructor.Invoke(ctorArgs);
@@ -118,23 +102,18 @@
                     this.TrackDisposableValue(disposablePart);
                 }
 
-                foreach (var importExports in composedPart.SatisfyingExports)
+                foreach (var import in partDefinition.ImportingMembers)
                 {
-                    var import = importExports.Key;
-                    var exports = importExports.Value;
-                    if (import.ImportingMember != null)
+                    var value = this.GetValueForImportSite(part, import, provisionalSharedObjects);
+                    if (value.ValueShouldBeSet)
                     {
-                        var value = this.GetValueForImportSite(part, import, exports, provisionalSharedObjects);
-                        if (value.ValueShouldBeSet)
-                        {
-                            this.SetImportingMember(part, import.ImportingMember, value.Value);
-                        }
+                        this.SetImportingMember(part, import.ImportingMemberRef.Resolve(), value.Value);
                     }
                 }
 
-                if (partDefinition.OnImportsSatisfied != null)
+                if (!partDefinition.OnImportsSatisfied.IsEmpty)
                 {
-                    partDefinition.OnImportsSatisfied.Invoke(part, EmptyObjectArray);
+                    partDefinition.OnImportsSatisfied.Resolve().Invoke(part, EmptyObjectArray);
                 }
 
                 return part;
@@ -154,13 +133,13 @@
                 public object Value { get; private set; }
             }
 
-            private ValueForImportSite GetValueForImportSite(object part, ImportDefinitionBinding import, IReadOnlyList<ExportDefinitionBinding> exports, Dictionary<int, object> provisionalSharedObjects)
+            private ValueForImportSite GetValueForImportSite(object part, RuntimeComposition.RuntimeImport import, Dictionary<int, object> provisionalSharedObjects)
             {
                 Requires.NotNull(import, "import");
-                Requires.NotNull(exports, "exports");
                 Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
 
-                if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
+                var exports = import.SatisfyingExports;
+                if (import.Cardinality == ImportCardinality.ZeroOrMore)
                 {
                     if (import.ImportingSiteType.IsArray || (import.ImportingSiteType.GetTypeInfo().IsGenericType && import.ImportingSiteType.GetGenericTypeDefinition().IsEquivalentTo(typeof(IEnumerable<>))))
                     {
@@ -179,15 +158,16 @@
                     else
                     {
                         object collectionObject = null;
-                        if (import.ImportingMember != null)
+                        MemberInfo importingMember = import.ImportingMemberRef.Resolve();
+                        if (importingMember != null)
                         {
-                            collectionObject = GetImportingMember(part, import.ImportingMember);
+                            collectionObject = GetImportingMember(part, importingMember);
                         }
 
                         bool preexistingInstance = collectionObject != null;
                         if (!preexistingInstance)
                         {
-                            if (PartDiscovery.IsImportManyCollectionTypeCreateable(import))
+                            if (PartDiscovery.IsImportManyCollectionTypeCreateable(import.ImportingSiteType, import.ImportingSiteTypeWithoutCollection))
                             {
                                 using (var typeArgs = ArrayRental<Type>.Get(1))
                                 {
@@ -203,7 +183,7 @@
                                     }
                                 }
 
-                                this.SetImportingMember(part, import.ImportingMember, collectionObject);
+                                this.SetImportingMember(part, importingMember, collectionObject);
                             }
                             else
                             {
@@ -276,7 +256,7 @@
                 }
             }
 
-            private object GetValueForImportElement(object part, ImportDefinitionBinding import, ExportDefinitionBinding export, Dictionary<int, object> provisionalSharedObjects)
+            private object GetValueForImportElement(object part, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Dictionary<int, object> provisionalSharedObjects)
             {
                 if (import.IsExportFactory)
                 {
@@ -291,9 +271,9 @@
 
                     Func<object> factory = () =>
                     {
-                        bool newSharingScope = import.ImportDefinition.ExportFactorySharingBoundaries.Count > 0;
+                        bool newSharingScope = import.ExportFactorySharingBoundaries.Count > 0;
                         RuntimeExportProvider scope = newSharingScope
-                            ? new RuntimeExportProvider(this.factory, this, import.ImportDefinition.ExportFactorySharingBoundaries)
+                            ? new RuntimeExportProvider(this.composition, this, import.ExportFactorySharingBoundaries)
                             : this;
 
                         object constructedValue = scope.GetExportedValue(import, export, new Dictionary<int, object>()).Value;
@@ -306,30 +286,32 @@
                             return Activator.CreateInstance(tupleType, ctorArgs.Value);
                         }
                     };
-                    using (var ctorArgs = ArrayRental<object>.Get(import.ExportFactoryType.GenericTypeArguments.Length))
+
+                    Type exportFactoryType = import.ExportFactory.Resolve();
+                    using (var ctorArgs = ArrayRental<object>.Get(exportFactoryType.GenericTypeArguments.Length))
                     {
                         ctorArgs.Value[0] = ReflectionHelpers.CreateFuncOfType(tupleType, factory);
                         if (ctorArgs.Value.Length > 1)
                         {
-                            ctorArgs.Value[1] = this.GetStrongTypedMetadata(export.ExportDefinition.Metadata, import.ExportFactoryType.GenericTypeArguments[1]);
+                            ctorArgs.Value[1] = this.GetStrongTypedMetadata(export.Metadata, exportFactoryType.GenericTypeArguments[1]);
                         }
 
-                        return Activator.CreateInstance(import.ExportFactoryType, ctorArgs.Value);
+                        return Activator.CreateInstance(exportFactoryType, ctorArgs.Value);
                     }
                 }
                 else
                 {
-                    if (import.ComposablePartType == export.PartDefinition.Type)
+                    if (this.composition.GetPart(export).Type.Equals(import.DeclaringType))
                     {
                         return import.IsLazy
-                            ? this.CreateStrongTypedLazy(() => part, export.ExportDefinition.Metadata, import.ImportingSiteTypeWithoutCollection)
+                            ? this.CreateStrongTypedLazy(() => part, export.Metadata, import.ImportingSiteTypeWithoutCollection)
                             : part;
                     }
 
                     ILazy<object> exportedValue = this.GetExportedValue(import, export, provisionalSharedObjects);
 
                     object importedValue = import.IsLazy
-                        ? this.CreateStrongTypedLazy(exportedValue.ValueFactory, export.ExportDefinition.Metadata, import.ImportingSiteTypeWithoutCollection)
+                        ? this.CreateStrongTypedLazy(exportedValue.ValueFactory, export.Metadata, import.ImportingSiteTypeWithoutCollection)
                         : exportedValue.Value;
                     return importedValue;
                 }
@@ -376,28 +358,31 @@
                     metadataType);
             }
 
-            private ILazy<object> GetExportedValue(ImportDefinitionBinding import, ExportDefinitionBinding export, Dictionary<int, object> provisionalSharedObjects)
+            private ILazy<object> GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Dictionary<int, object> provisionalSharedObjects)
             {
                 Requires.NotNull(import, "import");
                 Requires.NotNull(export, "export");
                 Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
 
+                var exportingRuntimePart = this.composition.GetPart(export);
+
                 // Special case importing of ExportProvider
-                if (export.ExportDefinition == ExportProvider.ExportProviderExportDefinition)
+                if (exportingRuntimePart.Type.Equals(ExportProvider.ExportProviderPartDefinition.Type))
                 {
                     return this.NonDisposableWrapper;
                 }
 
-                var constructedType = GetPartConstructedType(export.PartDefinition, import.ImportDefinition);
+                var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
                 ILazy<object> exportingPart = this.GetOrCreateShareableValue(
                     this.GetTypeId(constructedType),
-                    (ep, pso) => this.CreatePart(pso, export, import.ImportDefinition),
+                    (ep, pso) => this.CreatePart(pso, exportingRuntimePart, import.Metadata),
                     provisionalSharedObjects,
-                    export.PartDefinition.IsShared ? this.factory.configuration.GetEffectiveSharingBoundary(export.PartDefinition) : null,
-                    !export.PartDefinition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(import.ImportDefinition));
-                var exportedValue = export.ExportingMember != null
-                    ? new LazyPart<object>(() => this.GetValueFromMember(export.IsStaticExport ? null : exportingPart.Value, import, export))
+                    exportingRuntimePart.SharingBoundary,
+                    !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
+                MemberInfo exportingMember = export.Member.Resolve();
+                var exportedValue = !export.Member.IsEmpty
+                    ? new LazyPart<object>(() => this.GetValueFromMember(exportingMember.IsStatic() ? null : exportingPart.Value, exportingMember, import.ImportingSiteElementType, export.ExportedValueType.Resolve()))
                     : exportingPart;
                 return exportedValue;
             }
@@ -405,15 +390,28 @@
             /// <summary>
             /// Gets the constructed type (non generic type definition) for a part.
             /// </summary>
-            private static Type GetPartConstructedType(ComposablePartDefinition partDefinition, ImportDefinition importDefinition)
+            private static Reflection.TypeRef GetPartConstructedTypeRef(RuntimeComposition.RuntimePart part, IReadOnlyDictionary<string, object> importMetadata)
             {
-                Requires.NotNull(importDefinition, "importDefinition");
-                Requires.NotNull(partDefinition, "partDefinition");
+                Requires.NotNull(part, "part");
+                Requires.NotNull(importMetadata, "importMetadata");
 
-                var constructedType = partDefinition.Type.GetTypeInfo().IsGenericTypeDefinition
-                    ? partDefinition.Type.MakeGenericType((Type[])importDefinition.Metadata[CompositionConstants.GenericParametersMetadataName])
-                    : partDefinition.Type;
-                return constructedType;
+                if (part.Type.IsGenericTypeDefinition)
+                {
+                    var bareMetadata = LazyMetadataWrapper.TryUnwrap(importMetadata);
+                    object typeArgsObject;
+                    if (bareMetadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out typeArgsObject))
+                    {
+                        IEnumerable<Reflection.TypeRef> typeArgs = typeArgsObject as Reflection.TypeRef[];
+                        if (typeArgs == null)
+                        {
+                            typeArgs = ((Type[])typeArgsObject).Select(t => new Reflection.TypeRef(t));
+                        }
+
+                        return part.Type.MakeGenericType(typeArgs.ToImmutableArray());
+                    }
+                }
+
+                return part.Type;
             }
 
             private void SetImportingMember(object part, MemberInfo member, object value)

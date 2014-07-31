@@ -129,7 +129,7 @@
                     var exportDefinitions = ImmutableList.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
-                        Type exportedType = exportAttribute.ContractType ?? ExportDefinitionBinding.GetContractTypeForDelegate(method);
+                        Type exportedType = exportAttribute.ContractType ?? ReflectionHelpers.GetContractTypeForDelegate(method);
                         string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
                         var exportMetadata = exportMetadataOnMember
                             .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
 
@@ -15,13 +16,16 @@
             this.MetadataToken = metadataToken;
         }
 
+        public ConstructorRef(ConstructorInfo constructor)
+            : this(new TypeRef(constructor.DeclaringType), constructor.MetadataToken) { }
+
         public TypeRef DeclaringType { get; private set; }
 
         public int MetadataToken { get; private set; }
 
         public bool IsEmpty
         {
-            get { return this.DeclaringType.IsEmpty; }
+            get { return this.DeclaringType == null || this.DeclaringType.IsEmpty; }
         }
 
         public bool Equals(ConstructorRef other)

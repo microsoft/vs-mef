@@ -40,6 +40,7 @@
             var compiledCacheManager = new CompiledComposition
             {
                 AssemblyName = Path.GetFileNameWithoutExtension(assemblyPath),
+                BuildOutput = Console.Out,
             };
 
             if (Debugger.IsAttached)

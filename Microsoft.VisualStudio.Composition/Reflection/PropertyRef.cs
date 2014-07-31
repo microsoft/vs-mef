@@ -9,7 +9,7 @@
 
     public struct PropertyRef : IEquatable<PropertyRef>
     {
-        public PropertyRef(TypeRef declaringType, int metadataToken, TypeRef propertyType, int? getMethodMetadataToken, int? setMethodMetadataToken)
+        public PropertyRef(TypeRef declaringType, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken)
             : this()
         {
             this.DeclaringType = declaringType;
@@ -37,7 +37,7 @@
 
         public bool IsEmpty
         {
-            get { return this.DeclaringType.IsEmpty; }
+            get { return this.DeclaringType == null || this.DeclaringType.IsEmpty; }
         }
 
         public bool Equals(PropertyRef other)
