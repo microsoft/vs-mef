@@ -98,7 +98,7 @@
         /// <summary>
         /// An array of types 
         /// </summary>
-        private List<Type> runtimeCreatedTypes;
+        private List<Reflection.TypeRef> runtimeCreatedTypes;
 
         private readonly object syncObject = new object();
 
@@ -120,7 +120,7 @@
             if (parent == null)
             {
                 this.sharedInstantiatedExports = this.sharedInstantiatedExports.Add(string.Empty, new Dictionary<int, object>());
-                this.runtimeCreatedTypes = new List<Type>();
+                this.runtimeCreatedTypes = new List<Reflection.TypeRef>();
             }
             else
             {
@@ -512,7 +512,7 @@
         {
             Type result = typeId < this.cachedTypes.Length
                 ? this.cachedTypes[typeId]
-                : this.runtimeCreatedTypes[typeId - this.cachedTypes.Length];
+                : Reflection.Resolver.Resolve(this.runtimeCreatedTypes[typeId - this.cachedTypes.Length]);
             if (result == null)
             {
                 // We don't need to worry about thread-safety here because if two threads assign the
@@ -531,6 +531,12 @@
         }
 
         protected int GetTypeId(Type type)
+        {
+            Requires.NotNull(type, "type");
+            return this.GetTypeId(new Reflection.TypeRef(type));
+        }
+
+        protected int GetTypeId(Reflection.TypeRef type)
         {
             Requires.NotNull(type, "type");
 
@@ -577,7 +583,7 @@
         /// into the array that is designated for the specified type.
         /// </summary>
         /// <returns>A non-negative integer if a type match is found; otherwise a negative integer.</returns>
-        protected virtual int GetTypeIdCore(Type type)
+        protected virtual int GetTypeIdCore(Reflection.TypeRef type)
         {
             throw new NotImplementedException();
         }
@@ -597,7 +603,7 @@
 
             if (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>)))
             {
-                var metadataBuilder = metadata.ToImmutableDictionary().ToBuilder();
+                var metadataBuilder = LazyMetadataWrapper.TryUnwrap(metadata).ToImmutableDictionary().ToBuilder();
                 foreach (var property in metadataView.EnumProperties().WherePublicInstance())
                 {
                     if (!metadataBuilder.ContainsKey(property.Name))
@@ -610,7 +616,7 @@
                     }
                 }
 
-                return metadataBuilder.ToImmutable();
+                return LazyMetadataWrapper.Rewrap(metadata, metadataBuilder.ToImmutable());
             }
 
             // No changes since the metadata view type doesn't provide any.
@@ -754,6 +760,11 @@
                 }
 
                 return value;
+            }
+
+            protected override LazyMetadataWrapper Clone(LazyMetadataWrapper oldVersion, IReadOnlyDictionary<string, object> newMetadata)
+            {
+                return new ExportProviderLazyMetadataWrapper(((ExportProviderLazyMetadataWrapper)oldVersion).resolvingExportProvider, newMetadata.ToImmutableDictionary());
             }
         }
 

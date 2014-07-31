@@ -13,13 +13,14 @@
     {
         public TypeRef() { }
 
-        public TypeRef(AssemblyName assemblyName, int metadataToken, ImmutableArray<TypeRef> genericTypeArguments)
+        public TypeRef(AssemblyName assemblyName, int metadataToken, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
             : this()
         {
             Requires.NotNull(assemblyName, "assemblyName");
 
             this.AssemblyName = assemblyName;
             this.MetadataToken = metadataToken;
+            this.GenericTypeParameterCount = genericTypeParameterCount;
             this.GenericTypeArguments = genericTypeArguments;
         }
 
@@ -28,6 +29,7 @@
         {
             this.AssemblyName = type.Assembly.GetName();
             this.MetadataToken = type.MetadataToken;
+            this.GenericTypeParameterCount = type.GetTypeInfo().GenericTypeParameters.Length;
             this.GenericTypeArguments = type.GenericTypeArguments != null && type.GenericTypeArguments.Length > 0
                 ? type.GenericTypeArguments.Select(t => new TypeRef(t)).ToImmutableArray()
                 : ImmutableArray<TypeRef>.Empty;
@@ -37,11 +39,25 @@
 
         public int MetadataToken { get; private set; }
 
+        public int GenericTypeParameterCount { get; private set; }
+
         public ImmutableArray<TypeRef> GenericTypeArguments { get; private set; }
 
         public bool IsEmpty
         {
             get { return this.AssemblyName == null; }
+        }
+
+        public bool IsGenericTypeDefinition
+        {
+            get { return this.GenericTypeParameterCount > 0 && this.GenericTypeArguments.Length == 0; }
+        }
+
+        public TypeRef MakeGenericType(ImmutableArray<TypeRef> genericTypeArguments)
+        {
+            Requires.Argument(!genericTypeArguments.IsDefault, "genericTypeArguments", "Not initialized.");
+            Verify.Operation(this.IsGenericTypeDefinition, "This is not a generic type definition.");
+            return new Reflection.TypeRef(this.AssemblyName, this.MetadataToken, this.GenericTypeParameterCount, genericTypeArguments);
         }
 
         public override int GetHashCode()

@@ -144,6 +144,33 @@
             throw new NotSupportedException();
         }
 
+        internal static IReadOnlyDictionary<string, object> TryUnwrap(IReadOnlyDictionary<string, object> metadata)
+        {
+            var self = metadata as LazyMetadataWrapper;
+            if (self != null)
+            {
+                return self.underlyingMetadata;
+            }
+
+            return metadata;
+        }
+
+        internal static IReadOnlyDictionary<string, object> Rewrap(IReadOnlyDictionary<string, object> originalWrapper, IReadOnlyDictionary<string, object> updatedMetadata)
+        {
+            var self = originalWrapper as LazyMetadataWrapper;
+            if (self != null)
+            {
+                return self.Clone(self, updatedMetadata);
+            }
+
+            return updatedMetadata;
+        }
+
+        protected virtual LazyMetadataWrapper Clone(LazyMetadataWrapper oldVersion, IReadOnlyDictionary<string, object> newMetadata)
+        {
+            return new LazyMetadataWrapper(newMetadata.ToImmutableDictionary());
+        }
+
         protected virtual object SubstituteValueIfRequired(string key, object value)
         {
             Requires.NotNull(key, "key");

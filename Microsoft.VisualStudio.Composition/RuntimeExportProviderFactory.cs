@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -43,7 +44,7 @@
                 this.cachedTypes = new Type[0];
             }
 
-            protected override int GetTypeIdCore(Type type)
+            protected override int GetTypeIdCore(Reflection.TypeRef type)
             {
                 return -1;
             }
@@ -58,7 +59,7 @@
                     select this.CreateExport(
                         importDefinition,
                         export.Metadata,
-                        this.GetTypeId(GetPartConstructedType(part, importDefinition.Metadata)),
+                        this.GetTypeId(GetPartConstructedTypeRef(part, importDefinition.Metadata)),
                         (ep, provisionalSharedObjects) => this.CreatePart(provisionalSharedObjects, part, importDefinition.Metadata),
                         part.SharingBoundary,
                         !part.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
@@ -78,14 +79,14 @@
                     throw new CompositionFailedException("Cannot instantiate this part.");
                 }
 
-                var constructedPartType = GetPartConstructedType(partDefinition, importMetadata);
+                var constructedPartType = GetPartConstructedTypeRef(partDefinition, importMetadata);
                 var ctorArgs = partDefinition.ImportingConstructorArguments
                     .Select(import => GetValueForImportSite(null, import, provisionalSharedObjects).Value).ToArray();
                 ConstructorInfo importingConstructor = partDefinition.ImportingConstructor.Resolve();
                 if (importingConstructor.ContainsGenericParameters)
                 {
                     // TODO: fix this to find the precise match, including cases where the matching constructor includes a generic type parameter.
-                    importingConstructor = constructedPartType.GetTypeInfo().DeclaredConstructors.First(ctor => true);
+                    importingConstructor = constructedPartType.Resolve().GetTypeInfo().DeclaredConstructors.First(ctor => true);
                 }
 
                 object part = importingConstructor.Invoke(ctorArgs);
@@ -371,7 +372,7 @@
                     return this.NonDisposableWrapper;
                 }
 
-                var constructedType = GetPartConstructedType(exportingRuntimePart, import.Metadata);
+                var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
                 ILazy<object> exportingPart = this.GetOrCreateShareableValue(
                     this.GetTypeId(constructedType),
@@ -380,9 +381,8 @@
                     exportingRuntimePart.SharingBoundary,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
                 MemberInfo exportingMember = export.Member.Resolve();
-                Type exportedValueType = export.ExportedValueType.Resolve();
                 var exportedValue = !export.Member.IsEmpty
-                    ? new LazyPart<object>(() => this.GetValueFromMember(exportingMember.IsStatic() ? null : exportingPart.Value, exportingMember, import.ImportingSiteElementType, exportedValueType))
+                    ? new LazyPart<object>(() => this.GetValueFromMember(exportingMember.IsStatic() ? null : exportingPart.Value, exportingMember, import.ImportingSiteElementType, export.ExportedValueType.Resolve()))
                     : exportingPart;
                 return exportedValue;
             }
@@ -390,16 +390,28 @@
             /// <summary>
             /// Gets the constructed type (non generic type definition) for a part.
             /// </summary>
-            private static Type GetPartConstructedType(RuntimeComposition.RuntimePart part, IReadOnlyDictionary<string, object> importMetadata)
+            private static Reflection.TypeRef GetPartConstructedTypeRef(RuntimeComposition.RuntimePart part, IReadOnlyDictionary<string, object> importMetadata)
             {
                 Requires.NotNull(part, "part");
                 Requires.NotNull(importMetadata, "importMetadata");
 
-                Type type = part.Type.Resolve();
-                var constructedType = type.GetTypeInfo().IsGenericTypeDefinition
-                    ? type.MakeGenericType((Type[])importMetadata[CompositionConstants.GenericParametersMetadataName])
-                    : type;
-                return constructedType;
+                if (part.Type.IsGenericTypeDefinition)
+                {
+                    var bareMetadata = LazyMetadataWrapper.TryUnwrap(importMetadata);
+                    object typeArgsObject;
+                    if (bareMetadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out typeArgsObject))
+                    {
+                        IEnumerable<Reflection.TypeRef> typeArgs = typeArgsObject as Reflection.TypeRef[];
+                        if (typeArgs == null)
+                        {
+                            typeArgs = ((Type[])typeArgsObject).Select(t => new Reflection.TypeRef(t));
+                        }
+
+                        return part.Type.MakeGenericType(typeArgs.ToImmutableArray());
+                    }
+                }
+
+                return part.Type;
             }
 
             private void SetImportingMember(object part, MemberInfo member, object value)

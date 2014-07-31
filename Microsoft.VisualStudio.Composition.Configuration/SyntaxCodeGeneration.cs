@@ -2333,7 +2333,7 @@
 
         private MemberDeclarationSyntax CreateGetTypeIdCoreMethod()
         {
-            var typeParameter = SyntaxFactory.IdentifierName("type");
+            var typeRefParameter = SyntaxFactory.IdentifierName("typeRef");
             var method = SyntaxFactory.MethodDeclaration(
                 SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword)),
                 "GetTypeIdCore")
@@ -2344,11 +2344,25 @@
                     SyntaxFactory.Parameter(
                         SyntaxFactory.List<AttributeListSyntax>(),
                         SyntaxFactory.TokenList(),
-                        this.GetTypeNameSyntax(typeof(Type)),
-                        typeParameter.Identifier,
+                        this.GetTypeNameSyntax(typeof(Reflection.TypeRef)),
+                        typeRefParameter.Identifier,
                         null))));
 
             var statements = new List<StatementSyntax>();
+            var typeLocal = SyntaxFactory.IdentifierName("type");
+            statements.Add(SyntaxFactory.LocalDeclarationStatement(SyntaxFactory.VariableDeclaration(
+                SyntaxFactory.IdentifierName("Type"),
+                SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(
+                    typeLocal.Identifier,
+                    null,
+                    SyntaxFactory.EqualsValueClause(
+                        SyntaxFactory.InvocationExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                SyntaxFactory.ParseName("Microsoft.VisualStudio.Composition.Reflection.Resolver"),
+                                SyntaxFactory.IdentifierName("Resolve")),
+                            SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
+                                typeRefParameter))))))))));
 
             var fullTypeName = SyntaxFactory.IdentifierName("fullTypeName");
             statements.Add(SyntaxFactory.LocalDeclarationStatement(SyntaxFactory.VariableDeclaration(
@@ -2359,7 +2373,7 @@
                     SyntaxFactory.EqualsValueClause(
                         SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
-                            typeParameter,
+                            typeLocal,
                             SyntaxFactory.IdentifierName("FullName"))))))));
             var assemblyFullName = SyntaxFactory.IdentifierName("assemblyFullName");
             statements.Add(SyntaxFactory.LocalDeclarationStatement(SyntaxFactory.VariableDeclaration(
@@ -2375,7 +2389,7 @@
                                 SyntaxFactory.InvocationExpression(
                                     SyntaxFactory.MemberAccessExpression(
                                         SyntaxKind.SimpleMemberAccessExpression,
-                                        typeParameter,
+                                        typeLocal,
                                         SyntaxFactory.IdentifierName("GetTypeInfo")),
                                     SyntaxFactory.ArgumentList()),
                                 SyntaxFactory.IdentifierName("Assembly")),

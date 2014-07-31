@@ -437,6 +437,7 @@
                 writer.Write((byte)1);
                 this.Write(writer, typeRef.AssemblyName);
                 writer.Write(typeRef.MetadataToken);
+                writer.Write((byte)typeRef.GenericTypeParameterCount);
                 this.Write(writer, typeRef.GenericTypeArguments, this.Write);
             }
         }
@@ -450,8 +451,9 @@
             {
                 var assemblyName = this.ReadAssemblyName(reader);
                 var metadataToken = reader.ReadInt32();
+                int genericTypeParameterCount = reader.ReadByte();
                 var genericTypeArguments = this.ReadList(reader, this.ReadTypeRef);
-                return new TypeRef(assemblyName, metadataToken, genericTypeArguments.ToImmutableArray());
+                return new TypeRef(assemblyName, metadataToken, genericTypeParameterCount, genericTypeArguments.ToImmutableArray());
             }
             else
             {
