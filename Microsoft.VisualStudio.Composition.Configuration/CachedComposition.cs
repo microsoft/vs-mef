@@ -62,28 +62,28 @@
 
             private BinaryWriter writer;
 
-            private Dictionary<object, int> serializingObjectTable;
+            private Dictionary<object, uint> serializingObjectTable;
 
-            private Dictionary<int, object> deserializingObjectTable;
+            private Dictionary<uint, object> deserializingObjectTable;
 
             internal SerializationContext(BinaryReader reader)
             {
                 Requires.NotNull(reader, "reader");
                 this.reader = reader;
-                this.deserializingObjectTable = new Dictionary<int, object>();
+                this.deserializingObjectTable = new Dictionary<uint, object>();
             }
 
             internal SerializationContext(BinaryWriter writer)
             {
                 Requires.NotNull(writer, "writer");
                 this.writer = writer;
-                this.serializingObjectTable = new Dictionary<object, int>();
+                this.serializingObjectTable = new Dictionary<object, uint>();
             }
 
             [Conditional("DEBUG")]
             private static void Trace(string elementName, Stream stream)
             {
-                Debug.WriteLine("Serialization: {1,7} {0}", elementName, stream.Position);
+                //Debug.WriteLine("Serialization: {1,7} {0}", elementName, stream.Position);
             }
 
             internal void Write(RuntimeComposition compositionRuntime)
@@ -122,7 +122,7 @@
             {
                 Trace("RuntimeExport", reader.BaseStream);
 
-                int id;
+                uint id;
                 RuntimeComposition.RuntimeExport value;
                 if (this.TryPrepareDeserializeReusableObject(out id, out value))
                 {
@@ -477,7 +477,7 @@
             {
                 Trace("TypeRef", reader.BaseStream);
 
-                int id;
+                uint id;
                 TypeRef value;
                 if (this.TryPrepareDeserializeReusableObject(out id, out value))
                 {
@@ -526,7 +526,7 @@
             {
                 Trace("String", reader.BaseStream);
 
-                int id;
+                uint id;
                 string value;
                 if (this.TryPrepareDeserializeReusableObject(out id, out value))
                 {
@@ -537,6 +537,16 @@
                 return value;
             }
 
+            private void WriteCompressedUInt(uint value)
+            {
+                CompressedUInt.WriteCompressedUInt(writer, value);
+            }
+
+            private uint ReadCompressedUInt()
+            {
+                return CompressedUInt.ReadCompressedUInt(reader);
+            }
+
             /// <summary>
             /// Prepares the object for referential sharing in the serialization stream.
             /// </summary>
@@ -545,7 +555,7 @@
             /// <returns><c>true</c> if the object should be serialized; otherwise <c>false</c>.</returns>
             private bool TryPrepareSerializeReusableObject(object value)
             {
-                int id;
+                uint id;
                 bool result;
                 if (value == null)
                 {
@@ -559,11 +569,11 @@
                 }
                 else
                 {
-                    this.serializingObjectTable.Add(value, id = this.serializingObjectTable.Count + 1);
+                    this.serializingObjectTable.Add(value, id = (uint)this.serializingObjectTable.Count + 1);
                     result = true;
                 }
 
-                this.writer.Write(id);
+                this.WriteCompressedUInt(id);
                 return result;
             }
 
@@ -573,10 +583,10 @@
             /// <param name="id">Receives the ID of the object.</param>
             /// <param name="value">Receives the value of the object, if available.</param>
             /// <returns><c>true</c> if the caller should deserialize the object; <c>false</c> if the object is in <paramref name="value"/>.</returns>
-            private bool TryPrepareDeserializeReusableObject<T>(out int id, out T value)
+            private bool TryPrepareDeserializeReusableObject<T>(out uint id, out T value)
                 where T : class
             {
-                id = this.reader.ReadInt32();
+                id = this.ReadCompressedUInt();
                 if (id == 0)
                 {
                     value = null;
@@ -589,7 +599,7 @@
                 return result;
             }
 
-            private void OnDeserializedReusableObject(int id, object value)
+            private void OnDeserializedReusableObject(uint id, object value)
             {
                 this.deserializingObjectTable.Add(id, value);
             }
@@ -692,7 +702,7 @@
             {
                 Trace("Metadata", writer.BaseStream);
 
-                writer.Write(metadata.Count);
+                this.WriteCompressedUInt((uint)metadata.Count);
                 foreach (var entry in metadata)
                 {
                     this.Write(entry.Key);
@@ -720,7 +730,7 @@
             {
                 Trace("Metadata", reader.BaseStream);
 
-                int count = reader.ReadInt32();
+                uint count = this.ReadCompressedUInt();
                 var metadata = ImmutableDictionary<string, object>.Empty;
 
                 if (count > 0)

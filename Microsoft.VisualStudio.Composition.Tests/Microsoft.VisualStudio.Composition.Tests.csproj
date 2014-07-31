@@ -105,6 +105,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Microsoft.VisualStudio.Composition\CompressedUInt.cs">
+      <Link>CompressedUInt.cs</Link>
+    </Compile>
     <Compile Include="AmbiguousPartNamesTests.cs" />
     <Compile Include="AssembliesLazyLoadedCompilationCacheTests.cs" />
     <Compile Include="AssembliesLazyLoadedDataFileCacheTests.cs" />
@@ -118,6 +121,7 @@
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="CircularDependencyTests.cs" />
     <Compile Include="ClosedGenericExportedTypeTests.cs" />
+    <Compile Include="CompressedUIntTests.cs" />
     <Compile Include="DataFileCacheAndReloadTests.cs" />
     <Compile Include="CompiledCacheAndReloadTests.cs" />
     <Compile Include="DelegatingExportProviderTests.cs" />

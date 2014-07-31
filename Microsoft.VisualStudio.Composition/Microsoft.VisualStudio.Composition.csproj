@@ -89,6 +89,7 @@
     <Compile Include="ComposedPartDiagnostic.cs" />
     <Compile Include="CompositionConstants.cs" />
     <Compile Include="CompositionFailedException.cs" />
+    <Compile Include="CompressedUInt.cs" />
     <Compile Include="ContractNameServices.cs" />
     <Compile Include="CreationPolicy.cs" />
     <Compile Include="DelegatingExportProvider.cs" />
