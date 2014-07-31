@@ -621,15 +621,10 @@
 
             private void Write<T>(IReadOnlyCollection<T> list, Action<T> itemWriter)
             {
+                Requires.NotNull(list, "list");
                 Trace("List<" + typeof(T).Name + ">", writer.BaseStream);
 
-                if (list == null)
-                {
-                    writer.Write(-1);
-                    return;
-                }
-
-                writer.Write(list.Count);
+                this.WriteCompressedUInt((uint)list.Count);
                 foreach (var item in list)
                 {
                     itemWriter(item);
@@ -638,15 +633,10 @@
 
             private void Write(Array list, Action<object> itemWriter)
             {
+                Requires.NotNull(list, "list");
                 Trace((list != null ? list.GetType().GetElementType().Name : "null") + "[]", writer.BaseStream);
 
-                if (list == null)
-                {
-                    writer.Write(-1);
-                    return;
-                }
-
-                writer.Write(list.Length);
+                this.WriteCompressedUInt((uint)list.Length);
                 foreach (var item in list)
                 {
                     itemWriter(item);
@@ -657,12 +647,7 @@
             {
                 Trace("List<" + typeof(T).Name + ">", reader.BaseStream);
 
-                int count = reader.ReadInt32();
-                if (count == -1)
-                {
-                    return null;
-                }
-
+                uint count = this.ReadCompressedUInt();
                 if (count > 0xffff)
                 {
                     // Probably either file corruption or a bug in serialization.
@@ -683,10 +668,12 @@
             {
                 Trace("List<" + elementType.Name + ">", reader.BaseStream);
 
-                int count = reader.ReadInt32();
-                if (count == -1)
+                uint count = this.ReadCompressedUInt();
+                if (count > 0xffff)
                 {
-                    return null;
+                    // Probably either file corruption or a bug in serialization.
+                    // Let's not take untold amounts of memory by throwing out suspiciously large lengths.
+                    throw new NotSupportedException();
                 }
 
                 var list = Array.CreateInstance(elementType, count);
