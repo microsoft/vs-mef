@@ -582,10 +582,12 @@
             throw new NotImplementedException();
         }
 
+        protected internal interface IMetadataDictionary : IDictionary<string, object>, IReadOnlyDictionary<string, object> { }
+
         protected IMetadataDictionary GetTypeRefResolvingMetadata(ImmutableDictionary<string, object> metadata)
         {
             Requires.NotNull(metadata, "metadata");
-            return new LazyMetadataWrapper(this, metadata);
+            return new ExportProviderLazyMetadataWrapper(this, metadata);
         }
 
         protected static IReadOnlyDictionary<string, object> AddMissingValueDefaults(Type metadataView, IReadOnlyDictionary<string, object> metadata)
@@ -704,7 +706,7 @@
             return sharingBoundary;
         }
 
-        protected struct TypeRef
+        protected internal struct TypeRef
         {
             public TypeRef(int typeId)
                 : this()
@@ -722,7 +724,38 @@
             }
         }
 
-        protected interface IMetadataDictionary : IDictionary<string, object>, IReadOnlyDictionary<string, object> { }
+        private class ExportProviderLazyMetadataWrapper : LazyMetadataWrapper
+        {
+            private readonly ExportProvider resolvingExportProvider;
+
+            internal ExportProviderLazyMetadataWrapper(ExportProvider resolvingExportProvider, ImmutableDictionary<string, object> metadata)
+                : base(metadata)
+            {
+                Requires.NotNull(resolvingExportProvider, "resolvingExportProvider");
+
+                this.resolvingExportProvider = resolvingExportProvider;
+            }
+
+            protected override object SubstituteValueIfRequired(string key, object value)
+            {
+                value = base.SubstituteValueIfRequired(key, value);
+
+                if (value is ExportProvider.TypeRef)
+                {
+                    value = ((ExportProvider.TypeRef)value).GetType(this.resolvingExportProvider);
+                }
+                else if (value is ExportProvider.TypeRef[])
+                {
+                    value = ((ExportProvider.TypeRef[])value).Select(r => r.GetType(this.resolvingExportProvider)).ToArray();
+
+                    // Update our metadata dictionary with the substitution to avoid
+                    // the translation costs next time.
+                    this.underlyingMetadata = this.underlyingMetadata.SetItem(key, value);
+                }
+
+                return value;
+            }
+        }
 
         private class ExportProviderAsExport : DelegatingExportProvider
         {
@@ -734,166 +767,6 @@
             protected override void Dispose(bool disposing)
             {
                 throw new InvalidOperationException("This instance is an import and cannot be directly disposed.");
-            }
-        }
-
-        private class LazyMetadataWrapper : IMetadataDictionary
-        {
-            private readonly ExportProvider resolvingExportProvider;
-            private ImmutableDictionary<string, object> underlyingMetadata;
-
-            internal LazyMetadataWrapper(ExportProvider resolvingExportProvider, ImmutableDictionary<string, object> metadata)
-            {
-                Requires.NotNull(resolvingExportProvider, "resolvingExportProvider");
-                Requires.NotNull(metadata, "metadata");
-
-                this.resolvingExportProvider = resolvingExportProvider;
-                this.underlyingMetadata = metadata;
-            }
-
-            public bool ContainsKey(string key)
-            {
-                return this.underlyingMetadata.ContainsKey(key);
-            }
-
-            public IEnumerable<string> Keys
-            {
-                get { return this.underlyingMetadata.Keys; }
-            }
-
-            public bool TryGetValue(string key, out object value)
-            {
-                object underlyingValue;
-                if (this.underlyingMetadata.TryGetValue(key, out underlyingValue))
-                {
-                    value = this.SubstituteValueIfRequired(key, underlyingValue);
-                    return true;
-                }
-                else
-                {
-                    value = null;
-                    return false;
-                }
-            }
-
-            public IEnumerable<object> Values
-            {
-                get
-                {
-                    return from pair in this
-                           let value = this.SubstituteValueIfRequired(pair.Key, pair.Value)
-                           select value;
-                }
-            }
-
-            public object this[string key]
-            {
-                get { return this.SubstituteValueIfRequired(key, this.underlyingMetadata[key]); }
-                set { throw new NotSupportedException(); }
-            }
-
-            public int Count
-            {
-                get { return this.underlyingMetadata.Count; }
-            }
-
-            public bool IsReadOnly
-            {
-                get { return true; }
-            }
-
-            public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
-            {
-                var enumerable = from pair in this.underlyingMetadata
-                                 select new KeyValuePair<string, object>(pair.Key, this.SubstituteValueIfRequired(pair.Key, pair.Value));
-                return enumerable.GetEnumerator();
-            }
-
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-            {
-                return this.GetEnumerator();
-            }
-
-            public void Add(string key, object value)
-            {
-                throw new NotSupportedException();
-            }
-
-            ICollection<string> DefaultMetadataType.Keys
-            {
-                get
-                {
-                    IDictionary<string, object> metadata = this.underlyingMetadata;
-                    return metadata.Keys;
-                }
-            }
-
-            public bool Remove(string key)
-            {
-                throw new NotSupportedException();
-            }
-
-            ICollection<object> DefaultMetadataType.Values
-            {
-                get
-                {
-                    return this.Values.ToImmutableArray();
-                }
-            }
-
-            public void Add(KeyValuePair<string, object> item)
-            {
-                throw new NotSupportedException();
-            }
-
-            public void Clear()
-            {
-                throw new NotSupportedException();
-            }
-
-            public bool Contains(KeyValuePair<string, object> item)
-            {
-                object value;
-                if (this.underlyingMetadata.TryGetValue(item.Key, out value))
-                {
-                    value = this.SubstituteValueIfRequired(item.Key, value);
-                    return item.Value == value;
-                }
-
-                return false;
-            }
-
-            public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex)
-            {
-                foreach (var pair in this)
-                {
-                    array[arrayIndex++] = pair;
-                }
-            }
-
-            public bool Remove(KeyValuePair<string, object> item)
-            {
-                throw new NotSupportedException();
-            }
-
-            private object SubstituteValueIfRequired(string key, object value)
-            {
-                Requires.NotNull(key, "key");
-
-                if (value is TypeRef)
-                {
-                    value = ((TypeRef)value).GetType(this.resolvingExportProvider);
-                }
-                else if (value is TypeRef[])
-                {
-                    value = ((TypeRef[])value).Select(r => r.GetType(this.resolvingExportProvider)).ToArray();
-
-                    // Update our metadata dictionary with the substitution to avoid
-                    // the translation costs next time.
-                    this.underlyingMetadata = this.underlyingMetadata.SetItem(key, value);
-                }
-
-                return value;
             }
         }
 

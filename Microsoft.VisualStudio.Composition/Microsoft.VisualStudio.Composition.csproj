@@ -110,6 +110,7 @@
     <Compile Include="ImportDefinitionBinding.cs" />
     <Compile Include="ImportCardinality.cs" />
     <Compile Include="ExportMetadataValueImportConstraint.cs" />
+    <Compile Include="LazyMetadataWrapper.cs" />
     <Compile Include="LazyPart.cs" />
     <Compile Include="LazyPart`2.cs" />
     <Compile Include="LazyPart`1.cs" />

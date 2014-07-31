@@ -667,7 +667,23 @@
             foreach (var entry in metadata)
             {
                 writer.Write(entry.Key);
-                this.WriteObject(writer, entry.Value);
+
+                // Special case values of type Type or Type[] to avoid defeating lazy load later.
+                // We deserialize keeping the replaced TypeRef values so that they can be resolved
+                // at the last possible moment by the metadata view at runtime.
+                // Check out the ReadMetadata below, how it wraps the return value.
+                if (entry.Value is Type)
+                {
+                    this.WriteObject(writer, new TypeRef((Type)entry.Value));
+                }
+                else if (entry.Value is Type[])
+                {
+                    this.WriteObject(writer, ((Type[])entry.Value).Select(t => new TypeRef(t)).ToArray());
+                }
+                else
+                {
+                    this.WriteObject(writer, entry.Value);
+                }
             }
         }
 
@@ -691,7 +707,7 @@
                 metadata = builder.ToImmutable();
             }
 
-            return metadata;
+            return new LazyMetadataWrapper(metadata);
         }
 
         private void Write(BinaryWriter writer, ImportCardinality cardinality)
@@ -715,6 +731,7 @@
             Type,
             Array,
             BinaryFormattedObject,
+            TypeRef,
         }
 
         private void WriteObject(BinaryWriter writer, object value)
@@ -750,6 +767,11 @@
                     this.Write(writer, ObjectType.Type);
                     this.Write(writer, (Type)value);
                 }
+                else if (typeof(TypeRef) == valueType)
+                {
+                    this.Write(writer, ObjectType.TypeRef);
+                    this.Write(writer, (TypeRef)value);
+                }
                 else
                 {
                     this.Write(writer, ObjectType.BinaryFormattedObject);
@@ -777,6 +799,8 @@
                     return (CreationPolicy)reader.ReadByte();
                 case ObjectType.Type:
                     return this.ReadType(reader);
+                case ObjectType.TypeRef:
+                    return this.ReadTypeRef(reader);
                 case ObjectType.BinaryFormattedObject:
                     var formatter = new BinaryFormatter();
                     return formatter.Deserialize(reader.BaseStream);
