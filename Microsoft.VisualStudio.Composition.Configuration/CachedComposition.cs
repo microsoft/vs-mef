@@ -62,18 +62,22 @@
 
             private BinaryWriter writer;
 
-            private Dictionary<string, int> stringTable = new Dictionary<string, int>();
+            private Dictionary<object, int> serializingObjectTable;
+
+            private Dictionary<int, object> deserializingObjectTable;
 
             internal SerializationContext(BinaryReader reader)
             {
                 Requires.NotNull(reader, "reader");
                 this.reader = reader;
+                this.deserializingObjectTable = new Dictionary<int, object>();
             }
 
             internal SerializationContext(BinaryWriter writer)
             {
                 Requires.NotNull(writer, "writer");
                 this.writer = writer;
+                this.serializingObjectTable = new Dictionary<object, int>();
             }
 
             [Conditional("DEBUG")]
@@ -506,8 +510,7 @@
             {
                 Trace("String", writer.BaseStream);
 
-                writer.Write(value != null ? (byte)1 : (byte)0);
-                if (value != null)
+                if (this.TryPrepareSerializeReusableObject(value))
                 {
                     writer.Write(value);
                 }
@@ -517,15 +520,72 @@
             {
                 Trace("String", reader.BaseStream);
 
-                byte nullCheck = reader.ReadByte();
-                if (nullCheck == 1)
+                int id;
+                string value;
+                if (this.TryPrepareDeserializeReusableObject(out id, out value))
                 {
-                    return reader.ReadString();
+                    value = reader.ReadString();
+                    this.OnDeserializedReusableObject(id, value);
+                }
+
+                return value;
+            }
+
+            /// <summary>
+            /// Prepares the object for referential sharing in the serialization stream.
+            /// </summary>
+            /// <param name="value">The value that may be serialized more than once.</param>
+            /// <param name="id">The ID assigned to this object that should be serialized before the object.</param>
+            /// <returns><c>true</c> if the object should be serialized; otherwise <c>false</c>.</returns>
+            private bool TryPrepareSerializeReusableObject(object value)
+            {
+                int id;
+                bool result;
+                if (value == null)
+                {
+                    id = 0;
+                    result = false;
+                }
+                else if (this.serializingObjectTable.TryGetValue(value, out id))
+                {
+                    // The object has already been serialized.
+                    result = false;
                 }
                 else
                 {
-                    return null;
+                    this.serializingObjectTable.Add(value, id = this.serializingObjectTable.Count + 1);
+                    result = true;
                 }
+
+                this.writer.Write(id);
+                return result;
+            }
+
+            /// <summary>
+            /// Gets an object that has already been deserialized, if available.
+            /// </summary>
+            /// <param name="id">Receives the ID of the object.</param>
+            /// <param name="value">Receives the value of the object, if available.</param>
+            /// <returns><c>true</c> if the caller should deserialize the object; <c>false</c> if the object is in <paramref name="value"/>.</returns>
+            private bool TryPrepareDeserializeReusableObject<T>(out int id, out T value)
+                where T : class
+            {
+                id = this.reader.ReadInt32();
+                if (id == 0)
+                {
+                    value = null;
+                    return false;
+                }
+
+                object valueObject;
+                bool result = !this.deserializingObjectTable.TryGetValue(id, out valueObject);
+                value = (T)valueObject;
+                return result;
+            }
+
+            private void OnDeserializedReusableObject(int id, object value)
+            {
+                this.deserializingObjectTable.Add(id, value);
             }
 
             private void Write(Assembly assembly)
