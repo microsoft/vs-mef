@@ -13,6 +13,7 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
     public class CachedComposition : ICompositionCacheManager
@@ -27,10 +28,12 @@
 
             return Task.Run(() =>
             {
+                var compositionRuntime = RuntimeComposition.CreateRuntimeComposition(configuration);
+
                 using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
                 {
                     Debug.WriteLine("Start serialization of MEF cache file.");
-                    this.Write(writer, configuration.Catalog);
+                    this.Write(writer, compositionRuntime);
                 }
             });
         }
@@ -40,17 +43,14 @@
             Requires.NotNull(cacheStream, "cacheStream");
             Requires.Argument(cacheStream.CanRead, "cacheStream", "Readable stream required.");
 
-            return Task.Run(() =>
+            return Task.Run<IExportProviderFactory>(() =>
             {
                 using (var reader = new BinaryReader(cacheStream, TextEncoding, leaveOpen: true))
                 {
                     Debug.WriteLine("Start deserialization of MEF cache file.");
-                    var catalog = this.ReadCatalog(reader);
+                    var runtimeComposition = this.ReadRuntimeComposition(reader);
 
-                    // TODO: serialize/deserialize the configuration to avoid recomputing it on load.
-                    var configuration = CompositionConfiguration.Create(catalog);
-
-                    return configuration.CreateExportProviderFactory();
+                    return new RuntimeExportProviderFactory(runtimeComposition);
                 }
             });
         }
@@ -61,63 +61,422 @@
             Debug.WriteLine("Serialization: {1,7} {0}", elementName, stream.Position);
         }
 
-        private void Write(BinaryWriter writer, ComposableCatalog catalog)
+        private void Write(BinaryWriter writer, RuntimeComposition compositionRuntime)
         {
             Requires.NotNull(writer, "writer");
-            Requires.NotNull(catalog, "catalog");
+            Requires.NotNull(compositionRuntime, "compositionRuntime");
+            Trace("RuntimeComposition", writer.BaseStream);
 
-            Trace("ComposableCatalog", writer.BaseStream);
-            this.Write(writer, catalog.Parts, this.Write);
+            this.Write(writer, compositionRuntime.Parts, this.Write);
         }
 
-        private ComposableCatalog ReadCatalog(BinaryReader reader)
+        private RuntimeComposition ReadRuntimeComposition(BinaryReader reader)
         {
             Requires.NotNull(reader, "reader");
+            Trace("RuntimeComposition", reader.BaseStream);
 
-            Trace("ComposableCatalog", reader.BaseStream);
-            var parts = this.ReadList(reader, this.ReadComposablePartDefinition);
-            return ComposableCatalog.Create(parts);
+            var parts = this.ReadList(reader, this.ReadRuntimePart);
+            return RuntimeComposition.CreateRuntimeComposition(parts);
         }
 
-        private void Write(BinaryWriter writer, ComposablePartDefinition partDefinition)
+        private void Write(BinaryWriter writer, RuntimeComposition.RuntimeExport export)
         {
-            Trace("ComposablePartDefinition", writer.BaseStream);
+            Trace("RuntimeExport", writer.BaseStream);
 
-            this.Write(writer, partDefinition.Type);
-            this.Write(writer, partDefinition.ExportedTypes, this.Write);
-            this.Write(writer, partDefinition.ExportingMembers);
-            this.Write(writer, partDefinition.ImportingMembers, this.Write);
-            this.WriteObject(writer, partDefinition.SharingBoundary);
-            this.Write(writer, partDefinition.OnImportsSatisfied);
-            this.Write(writer, partDefinition.ImportingConstructor, this.Write);
-            writer.Write((byte)partDefinition.CreationPolicy);
-            writer.Write(partDefinition.IsSharingBoundaryInferred);
+            writer.Write(export.ContractName);
+            this.Write(writer, export.DeclaringType);
+            this.Write(writer, export.Member);
+            this.Write(writer, export.ExportedValueType);
+            this.Write(writer, export.Metadata);
         }
 
-        private ComposablePartDefinition ReadComposablePartDefinition(BinaryReader reader)
+        private RuntimeComposition.RuntimeExport ReadRuntimeExport(BinaryReader reader)
         {
-            Trace("ComposablePartDefinition", reader.BaseStream);
+            Trace("RuntimeExport", reader.BaseStream);
 
-            Type partType = this.ReadType(reader);
-            IReadOnlyList<ExportDefinition> exportsOnType = this.ReadList(reader, this.ReadExportDefinition);
-            IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportsOnMembers = this.ReadExportingMembers(reader);
-            IReadOnlyList<ImportDefinitionBinding> imports = this.ReadList(reader, this.ReadImportDefinitionBinding);
-            string sharingBoundary = (string)this.ReadObject(reader);
-            MethodInfo onImportsSatisfied = (MethodInfo)this.ReadMethodBase(reader);
-            IReadOnlyList<ImportDefinitionBinding> importingConstructor = this.ReadList(reader, this.ReadImportDefinitionBinding);
-            CreationPolicy partCreationPolicy = (CreationPolicy)reader.ReadByte();
-            bool isSharingBoundaryInferred = reader.ReadBoolean();
+            var contractName = reader.ReadString();
+            var declaringType = this.ReadTypeRef(reader);
+            var member = this.ReadMemberRef(reader);
+            var exportedValueType = this.ReadTypeRef(reader);
+            var metadata = this.ReadMetadata(reader);
 
-            return new ComposablePartDefinition(
-                partType,
-                exportsOnType,
-                exportsOnMembers,
-                imports,
-                sharingBoundary,
+            return new RuntimeComposition.RuntimeExport(
+                contractName,
+                declaringType,
+                member,
+                exportedValueType,
+                metadata);
+        }
+
+        private void Write(BinaryWriter writer, RuntimeComposition.RuntimePart part)
+        {
+            Trace("RuntimePart", writer.BaseStream);
+
+            this.Write(writer, part.Type);
+            this.Write(writer, part.Exports, this.Write);
+            this.Write(writer, part.ImportingConstructor);
+            this.Write(writer, part.ImportingConstructorArguments, this.Write);
+            this.Write(writer, part.ImportingMembers, this.Write);
+            this.Write(writer, part.OnImportsSatisfied);
+            this.Write(writer, part.SharingBoundary);
+        }
+
+        private RuntimeComposition.RuntimePart ReadRuntimePart(BinaryReader reader)
+        {
+            Trace("RuntimePart", reader.BaseStream);
+
+            var type = this.ReadTypeRef(reader);
+            var exports = this.ReadList(reader, this.ReadRuntimeExport);
+            var importingCtor = this.ReadConstructorRef(reader);
+            var importingCtorArguments = this.ReadList(reader, this.ReadRuntimeImport);
+            var importingMembers = this.ReadList(reader, this.ReadRuntimeImport);
+            var onImportsSatisfied = this.ReadMethodRef(reader);
+            var sharingBoundary = this.ReadString(reader);
+
+            return new RuntimeComposition.RuntimePart(
+                type,
+                importingCtor,
+                importingCtorArguments,
+                importingMembers,
+                exports,
                 onImportsSatisfied,
-                importingConstructor,
-                partCreationPolicy,
-                isSharingBoundaryInferred);
+                sharingBoundary);
+        }
+
+        private void Write(BinaryWriter writer, MethodRef methodRef)
+        {
+            Trace("MethodRef", writer.BaseStream);
+
+            if (methodRef.IsEmpty)
+            {
+                writer.Write((byte)0);
+            }
+            else
+            {
+                writer.Write((byte)1);
+                this.Write(writer, methodRef.DeclaringType);
+                writer.Write(methodRef.MetadataToken);
+                this.Write(writer, methodRef.GenericMethodArguments, this.Write);
+            }
+        }
+
+        private MethodRef ReadMethodRef(BinaryReader reader)
+        {
+            Trace("MethodRef", reader.BaseStream);
+
+            byte nullCheck = reader.ReadByte();
+            if (nullCheck == 1)
+            {
+                var declaringType = this.ReadTypeRef(reader);
+                var metadataToken = reader.ReadInt32();
+                var genericMethodArguments = this.ReadList(reader, this.ReadTypeRef);
+                return new MethodRef(declaringType, metadataToken, genericMethodArguments.ToImmutableArray());
+            }
+            else
+            {
+                return default(MethodRef);
+            }
+        }
+
+        private void Write(BinaryWriter writer, MemberRef memberRef)
+        {
+            Trace("MemberRef", writer.BaseStream);
+
+            if (memberRef.IsConstructor)
+            {
+                writer.Write((byte)1);
+                this.Write(writer, memberRef.Constructor);
+            }
+            else if (memberRef.IsField)
+            {
+                writer.Write((byte)2);
+                this.Write(writer, memberRef.Field);
+            }
+            else if (memberRef.IsProperty)
+            {
+                writer.Write((byte)3);
+                this.Write(writer, memberRef.Property);
+            }
+            else if (memberRef.IsMethod)
+            {
+                writer.Write((byte)4);
+                this.Write(writer, memberRef.Method);
+            }
+            else
+            {
+                writer.Write((byte)0);
+            }
+        }
+
+        private MemberRef ReadMemberRef(BinaryReader reader)
+        {
+            Trace("MemberRef", reader.BaseStream);
+
+            int kind = reader.ReadByte();
+            switch (kind)
+            {
+                case 0:
+                    return default(MemberRef);
+                case 1:
+                    return new MemberRef(this.ReadConstructorRef(reader));
+                case 2:
+                    return new MemberRef(this.ReadFieldRef(reader));
+                case 3:
+                    return new MemberRef(this.ReadPropertyRef(reader));
+                case 4:
+                    return new MemberRef(this.ReadMethodRef(reader));
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        private void Write(BinaryWriter writer, PropertyRef propertyRef)
+        {
+            Trace("PropertyRef", writer.BaseStream);
+
+            this.Write(writer, propertyRef.DeclaringType);
+            writer.Write(propertyRef.MetadataToken);
+
+            byte flags = 0;
+            flags |= propertyRef.GetMethodMetadataToken.HasValue ? (byte)0x1 : (byte)0x0;
+            flags |= propertyRef.SetMethodMetadataToken.HasValue ? (byte)0x2 : (byte)0x0;
+            writer.Write(flags);
+
+            if (propertyRef.GetMethodMetadataToken.HasValue)
+            {
+                writer.Write(propertyRef.GetMethodMetadataToken.Value);
+            }
+
+            if (propertyRef.SetMethodMetadataToken.HasValue)
+            {
+                writer.Write(propertyRef.SetMethodMetadataToken.Value);
+            }
+        }
+
+        private PropertyRef ReadPropertyRef(BinaryReader reader)
+        {
+            Trace("PropertyRef", reader.BaseStream);
+
+            var declaringType = this.ReadTypeRef(reader);
+            var metadataToken = reader.ReadInt32();
+
+            byte flags = reader.ReadByte();
+            int? getter = null, setter = null;
+            if ((flags & 0x1) != 0)
+            {
+                getter = reader.ReadInt32();
+            }
+
+            if ((flags & 0x2) != 0)
+            {
+                setter = reader.ReadInt32();
+            }
+
+            return new PropertyRef(
+                declaringType,
+                metadataToken,
+                getter,
+                setter);
+        }
+
+        private void Write(BinaryWriter writer, FieldRef fieldRef)
+        {
+            Trace("FieldRef", writer.BaseStream);
+
+            writer.Write(!fieldRef.IsEmpty);
+            if (!fieldRef.IsEmpty)
+            {
+                this.Write(writer, fieldRef.AssemblyName);
+                writer.Write(fieldRef.MetadataToken);
+            }
+        }
+
+        private FieldRef ReadFieldRef(BinaryReader reader)
+        {
+            Trace("FieldRef", reader.BaseStream);
+
+            if (reader.ReadBoolean())
+            {
+                var assemblyName = this.ReadAssemblyName(reader);
+                int metadataToken = reader.ReadInt32();
+                return new FieldRef(assemblyName, metadataToken);
+            }
+            else
+            {
+                return default(FieldRef);
+            }
+        }
+
+        private void Write(BinaryWriter writer, ParameterRef parameterRef)
+        {
+            Trace("ParameterRef", writer.BaseStream);
+
+            writer.Write(!parameterRef.IsEmpty);
+            if (!parameterRef.IsEmpty)
+            {
+                this.Write(writer, parameterRef.AssemblyName);
+                writer.Write(parameterRef.MethodMetadataToken);
+                writer.Write((byte)parameterRef.ParameterIndex);
+            }
+        }
+
+        private ParameterRef ReadParameterRef(BinaryReader reader)
+        {
+            Trace("ParameterRef", reader.BaseStream);
+
+            if (reader.ReadBoolean())
+            {
+                var assemblyName = this.ReadAssemblyName(reader);
+                int metadataToken = reader.ReadInt32();
+                var parameterIndex = reader.ReadByte();
+                return new ParameterRef(assemblyName, metadataToken, parameterIndex);
+            }
+            else
+            {
+                return default(ParameterRef);
+            }
+        }
+
+        private void Write(BinaryWriter writer, RuntimeComposition.RuntimeImport import)
+        {
+            Trace("RuntimeImport", writer.BaseStream);
+
+            writer.Write(import.ImportingMemberRef.IsEmpty ? (byte)2 : (byte)1);
+            if (import.ImportingMemberRef.IsEmpty)
+            {
+                this.Write(writer, import.ImportingParameterRef);
+            }
+            else
+            {
+                this.Write(writer, import.ImportingMemberRef);
+            }
+
+            this.Write(writer, import.Cardinality);
+            this.Write(writer, import.SatisfyingExports, this.Write);
+            writer.Write(import.IsNonSharedInstanceRequired);
+            this.Write(writer, import.Metadata);
+            this.Write(writer, import.ExportFactory);
+            this.Write(writer, import.ExportFactorySharingBoundaries, (w, v) => w.Write(v));
+        }
+
+        private RuntimeComposition.RuntimeImport ReadRuntimeImport(BinaryReader reader)
+        {
+            Trace("RuntimeImport", reader.BaseStream);
+
+            byte kind = reader.ReadByte();
+            MemberRef importingMember = default(MemberRef);
+            ParameterRef importingParameter = default(ParameterRef);
+            switch (kind)
+            {
+                case 1:
+                    importingMember = this.ReadMemberRef(reader);
+                    break;
+                case 2:
+                    importingParameter = this.ReadParameterRef(reader);
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+
+            var cardinality = this.ReadImportCardinality(reader);
+            var satisfyingExports = this.ReadList(reader, this.ReadRuntimeExport);
+            bool isNonSharedInstanceRequired = reader.ReadBoolean();
+            var metadata = this.ReadMetadata(reader);
+            var exportFactory = this.ReadTypeRef(reader);
+            var exportFactorySharingBoundaries = this.ReadList(reader, r => r.ReadString());
+
+            return importingMember.IsEmpty
+                ? new RuntimeComposition.RuntimeImport(
+                    importingParameter,
+                    cardinality,
+                    satisfyingExports,
+                    isNonSharedInstanceRequired,
+                    metadata,
+                    exportFactory,
+                    exportFactorySharingBoundaries)
+                : new RuntimeComposition.RuntimeImport(
+                    importingMember,
+                    cardinality,
+                    satisfyingExports,
+                    isNonSharedInstanceRequired,
+                    metadata,
+                    exportFactory,
+                    exportFactorySharingBoundaries);
+        }
+
+        private void Write(BinaryWriter writer, ConstructorRef constructorRef)
+        {
+            Trace("ConstructorRef", writer.BaseStream);
+
+            this.Write(writer, constructorRef.DeclaringType);
+            writer.Write(constructorRef.MetadataToken);
+        }
+
+        private ConstructorRef ReadConstructorRef(BinaryReader reader)
+        {
+            Trace("ConstructorRef", reader.BaseStream);
+
+            var declaringType = this.ReadTypeRef(reader);
+            var metadataToken = reader.ReadInt32();
+
+            return new ConstructorRef(
+                declaringType,
+                metadataToken);
+        }
+
+        private void Write(BinaryWriter writer, TypeRef typeRef)
+        {
+            Trace("TypeRef", writer.BaseStream);
+
+            if (typeRef == null || typeRef.IsEmpty)
+            {
+                writer.Write((byte)0);
+            }
+            else
+            {
+                writer.Write((byte)1);
+                this.Write(writer, typeRef.AssemblyName);
+                writer.Write(typeRef.MetadataToken);
+                this.Write(writer, typeRef.GenericTypeArguments, this.Write);
+            }
+        }
+
+        private TypeRef ReadTypeRef(BinaryReader reader)
+        {
+            Trace("TypeRef", reader.BaseStream);
+
+            byte nullCheck = reader.ReadByte();
+            if (nullCheck == 1)
+            {
+                var assemblyName = this.ReadAssemblyName(reader);
+                var metadataToken = reader.ReadInt32();
+                var genericTypeArguments = this.ReadList(reader, this.ReadTypeRef);
+                return new TypeRef(assemblyName, metadataToken, genericTypeArguments.ToImmutableArray());
+            }
+            else
+            {
+                return default(TypeRef);
+            }
+        }
+
+        private void Write(BinaryWriter writer, AssemblyName assemblyName)
+        {
+            Trace("AssemblyName", writer.BaseStream);
+
+            writer.Write(assemblyName.FullName);
+            writer.Write(assemblyName.CodeBase);
+        }
+
+        private AssemblyName ReadAssemblyName(BinaryReader reader)
+        {
+            Trace("AssemblyName", reader.BaseStream);
+
+            string fullName = reader.ReadString();
+            string codeBase = reader.ReadString();
+            return new AssemblyName(fullName)
+            {
+                CodeBase = codeBase,
+            };
         }
 
         private void Write(BinaryWriter writer, Type type)
@@ -180,6 +539,32 @@
             }
         }
 
+        private void Write(BinaryWriter writer, string value)
+        {
+            Trace("String", writer.BaseStream);
+
+            writer.Write(value != null ? (byte)1 : (byte)0);
+            if (value != null)
+            {
+                writer.Write(value);
+            }
+        }
+
+        private string ReadString(BinaryReader reader)
+        {
+            Trace("String", reader.BaseStream);
+
+            byte nullCheck = reader.ReadByte();
+            if (nullCheck == 1)
+            {
+                return reader.ReadString();
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         private void Write(BinaryWriter writer, Assembly assembly)
         {
             Trace("Assembly", writer.BaseStream);
@@ -237,6 +622,13 @@
             if (count == -1)
             {
                 return null;
+            }
+
+            if (count > 0xffff)
+            {
+                // Probably either file corruption or a bug in serialization.
+                // Let's not take untold amounts of memory by throwing out suspiciously large lengths.
+                throw new NotSupportedException();
             }
 
             var list = new T[count];
@@ -375,6 +767,19 @@
             var exportFactorySharingBoundaries = this.ReadList(reader, r => r.ReadString());
 
             return new ImportDefinition(contractName, cardinality, metadata, constraints, exportFactorySharingBoundaries);
+        }
+
+        private void Write(BinaryWriter writer, ImportCardinality cardinality)
+        {
+            Trace("ImportCardinality", writer.BaseStream);
+
+            writer.Write((byte)cardinality);
+        }
+
+        private ImportCardinality ReadImportCardinality(BinaryReader reader)
+        {
+            Trace("ImportCardinality", reader.BaseStream);
+            return (ImportCardinality)reader.ReadByte();
         }
 
         private void Write(BinaryWriter writer, ImportDefinitionBinding importDefinitionBinding)
@@ -733,7 +1138,7 @@
                 case ObjectType.ExportMetadataValueImportConstraint:
                     return this.ReadExportMetadataValueImportConstraint(reader);
                 default:
-                    throw new NotImplementedException();
+                    throw new NotSupportedException("Unsupported format: " + objectType);
             }
         }
 

@@ -9,7 +9,7 @@
 
     public struct PropertyRef : IEquatable<PropertyRef>
     {
-        public PropertyRef(TypeRef declaringType, int metadataToken, TypeRef propertyType, int? getMethodMetadataToken, int? setMethodMetadataToken)
+        public PropertyRef(TypeRef declaringType, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken)
             : this()
         {
             this.DeclaringType = declaringType;
