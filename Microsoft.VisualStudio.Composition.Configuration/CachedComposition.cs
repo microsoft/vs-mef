@@ -83,7 +83,7 @@
             [Conditional("DEBUG")]
             private static void Trace(string elementName, Stream stream)
             {
-                //Debug.WriteLine("Serialization: {1,7} {0}", elementName, stream.Position);
+                Debug.WriteLine("Serialization: {1,7} {0}", elementName, stream.Position);
             }
 
             internal void Write(RuntimeComposition compositionRuntime)
