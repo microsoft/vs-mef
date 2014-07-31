@@ -11,6 +11,15 @@
 
     public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
     {
+        /// <summary>
+        /// A cache of TypeRef instances that correspond to Type instances.
+        /// </summary>
+        /// <remarks>
+        /// This is for efficiency to avoid duplicates where convenient to do so.
+        /// It is not intended as a guarantee of reference equality across equivalent TypeRef instances.
+        /// </remarks>
+        private static readonly Dictionary<Type, TypeRef> instanceCache = new Dictionary<Type, TypeRef>();
+
         private TypeRef(AssemblyName assemblyName, int metadataToken, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
             Requires.NotNull(assemblyName, "assemblyName");
@@ -56,7 +65,17 @@
                 return null;
             }
 
-            return new TypeRef(type);
+            TypeRef result;
+            lock (instanceCache)
+            {
+                if (!instanceCache.TryGetValue(type, out result))
+                {
+                    result = new TypeRef(type);
+                    instanceCache.Add(type, result);
+                }
+            }
+
+            return result;
         }
 
         public TypeRef MakeGenericType(ImmutableArray<TypeRef> genericTypeArguments)
