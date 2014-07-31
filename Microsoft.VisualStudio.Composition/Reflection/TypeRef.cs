@@ -80,12 +80,13 @@
         {
             return AssemblyNameEqual(this.AssemblyName, other.AssemblyName)
                 && this.MetadataToken == other.MetadataToken
+                && this.GenericTypeParameterCount == other.GenericTypeParameterCount
                 && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments);
         }
 
         public bool Equals(Type other)
         {
-            return this.Equals(new TypeRef(other));
+            return this.Equals(TypeRef.Get(other));
         }
 
         private static bool AssemblyNameEqual(AssemblyName first, AssemblyName second)
