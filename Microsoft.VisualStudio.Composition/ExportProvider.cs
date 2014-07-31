@@ -533,7 +533,7 @@
         protected int GetTypeId(Type type)
         {
             Requires.NotNull(type, "type");
-            return this.GetTypeId(new Reflection.TypeRef(type));
+            return this.GetTypeId(Reflection.TypeRef.Get(type));
         }
 
         protected int GetTypeId(Reflection.TypeRef type)

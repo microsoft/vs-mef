@@ -22,7 +22,7 @@
         public static TypeDesc Get(Type type)
         {
             Requires.NotNull(type, "type");
-            return new TypeDesc(new TypeRef(type), type.FullName);
+            return new TypeDesc(TypeRef.Get(type), type.FullName);
         }
     }
 }

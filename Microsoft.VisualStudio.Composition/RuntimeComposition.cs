@@ -75,7 +75,7 @@
             Requires.NotNull(part, "part");
 
             var runtimePart = new RuntimePart(
-                new TypeRef(part.Definition.Type),
+                TypeRef.Get(part.Definition.Type),
                 part.Definition.ImportingConstructorInfo != null ? new ConstructorRef(part.Definition.ImportingConstructorInfo) : default(ConstructorRef),
                 part.GetImportingConstructorImports().Select(kvp => CreateRuntimeImport(kvp.Key, kvp.Value)).ToImmutableArray(),
                 part.Definition.ImportingMembers.Select(idb => CreateRuntimeImport(idb, part.SatisfyingExports[idb])).ToImmutableArray(),
@@ -99,7 +99,7 @@
                     runtimeExports,
                     PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinitionBinding.ImportDefinition),
                     importDefinitionBinding.ImportDefinition.Metadata,
-                    importDefinitionBinding.IsExportFactory ? new TypeRef(importDefinitionBinding.ExportFactoryType) : new TypeRef(),
+                    TypeRef.Get(importDefinitionBinding.ExportFactoryType),
                     importDefinitionBinding.ImportDefinition.ExportFactorySharingBoundaries);
             }
             else
@@ -110,7 +110,7 @@
                     runtimeExports,
                     PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinitionBinding.ImportDefinition),
                     importDefinitionBinding.ImportDefinition.Metadata,
-                    importDefinitionBinding.IsExportFactory ? new TypeRef(importDefinitionBinding.ExportFactoryType) : new TypeRef(),
+                    TypeRef.Get(importDefinitionBinding.ExportFactoryType),
                     importDefinitionBinding.ImportDefinition.ExportFactorySharingBoundaries);
             }
         }
@@ -121,9 +121,9 @@
 
             return new RuntimeExport(
                 exportDefinition.ContractName,
-                new TypeRef(partType),
+                TypeRef.Get(partType),
                 exportingMember != null ? new MemberRef(exportingMember) : default(MemberRef),
-                new TypeRef(ReflectionHelpers.GetExportedValueType(partType, exportingMember)),
+                TypeRef.Get(ReflectionHelpers.GetExportedValueType(partType, exportingMember)),
                 exportDefinition.Metadata);
         }
 
@@ -225,7 +225,7 @@
 
             public bool IsExportFactory
             {
-                get { return !(this.ExportFactory == null || this.ExportFactory.IsEmpty); }
+                get { return this.ExportFactory != null; }
             }
 
             public bool IsLazy

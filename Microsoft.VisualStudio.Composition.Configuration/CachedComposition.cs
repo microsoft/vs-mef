@@ -428,7 +428,7 @@
         {
             Trace("TypeRef", writer.BaseStream);
 
-            if (typeRef == null || typeRef.IsEmpty)
+            if (typeRef == null)
             {
                 writer.Write((byte)0);
             }
@@ -453,7 +453,7 @@
                 var metadataToken = reader.ReadInt32();
                 int genericTypeParameterCount = reader.ReadByte();
                 var genericTypeArguments = this.ReadList(reader, this.ReadTypeRef);
-                return new TypeRef(assemblyName, metadataToken, genericTypeParameterCount, genericTypeArguments.ToImmutableArray());
+                return TypeRef.Get(assemblyName, metadataToken, genericTypeParameterCount, genericTypeArguments.ToImmutableArray());
             }
             else
             {
@@ -676,11 +676,11 @@
                 // Check out the ReadMetadata below, how it wraps the return value.
                 if (entry.Value is Type)
                 {
-                    this.WriteObject(writer, new TypeRef((Type)entry.Value));
+                    this.WriteObject(writer, TypeRef.Get((Type)entry.Value));
                 }
                 else if (entry.Value is Type[])
                 {
-                    this.WriteObject(writer, ((Type[])entry.Value).Select(t => new TypeRef(t)).ToArray());
+                    this.WriteObject(writer, ((Type[])entry.Value).Select(TypeRef.Get).ToArray());
                 }
                 else
                 {

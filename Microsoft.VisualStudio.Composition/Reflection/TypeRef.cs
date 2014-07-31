@@ -11,10 +11,7 @@
 
     public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
     {
-        public TypeRef() { }
-
-        public TypeRef(AssemblyName assemblyName, int metadataToken, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
-            : this()
+        private TypeRef(AssemblyName assemblyName, int metadataToken, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
             Requires.NotNull(assemblyName, "assemblyName");
 
@@ -24,8 +21,7 @@
             this.GenericTypeArguments = genericTypeArguments;
         }
 
-        public TypeRef(Type type)
-            : this()
+        private TypeRef(Type type)
         {
             this.AssemblyName = type.Assembly.GetName();
             this.MetadataToken = type.MetadataToken;
@@ -43,14 +39,24 @@
 
         public ImmutableArray<TypeRef> GenericTypeArguments { get; private set; }
 
-        public bool IsEmpty
-        {
-            get { return this.AssemblyName == null; }
-        }
-
         public bool IsGenericTypeDefinition
         {
             get { return this.GenericTypeParameterCount > 0 && this.GenericTypeArguments.Length == 0; }
+        }
+
+        public static TypeRef Get(AssemblyName assemblyName, int metadataToken, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
+        {
+            return new TypeRef(assemblyName, metadataToken, genericTypeParameterCount, genericTypeArguments);
+        }
+
+        public static TypeRef Get(Type type)
+        {
+            if (type == null)
+            {
+                return null;
+            }
+
+            return new TypeRef(type);
         }
 
         public TypeRef MakeGenericType(ImmutableArray<TypeRef> genericTypeArguments)

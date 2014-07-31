@@ -21,7 +21,7 @@
         public PropertyRef(PropertyInfo propertyInfo)
             : this()
         {
-            this.DeclaringType = new TypeRef(propertyInfo.DeclaringType);
+            this.DeclaringType = TypeRef.Get(propertyInfo.DeclaringType);
             this.MetadataToken = propertyInfo.MetadataToken;
             this.GetMethodMetadataToken = propertyInfo.GetMethod != null ? (int?)propertyInfo.GetMethod.MetadataToken : null;
             this.SetMethodMetadataToken = propertyInfo.SetMethod != null ? (int?)propertyInfo.SetMethod.MetadataToken : null;
@@ -37,7 +37,7 @@
 
         public bool IsEmpty
         {
-            get { return this.DeclaringType == null || this.DeclaringType.IsEmpty; }
+            get { return this.DeclaringType == null; }
         }
 
         public bool Equals(PropertyRef other)

@@ -19,7 +19,7 @@
         }
 
         public MethodRef(MethodInfo method)
-            : this(new TypeRef(method.DeclaringType), method.MetadataToken, method.GetGenericArguments().Select(t => new TypeRef(t)).ToImmutableArray()) { }
+            : this(TypeRef.Get(method.DeclaringType), method.MetadataToken, method.GetGenericArguments().Select(TypeRef.Get).ToImmutableArray()) { }
 
         public TypeRef DeclaringType { get; private set; }
 
@@ -29,7 +29,7 @@
 
         public bool IsEmpty
         {
-            get { return this.DeclaringType == null || this.DeclaringType.IsEmpty; }
+            get { return this.DeclaringType == null; }
         }
 
         public bool Equals(MethodRef other)

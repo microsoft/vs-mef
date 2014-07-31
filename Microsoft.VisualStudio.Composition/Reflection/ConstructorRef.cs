@@ -17,7 +17,7 @@
         }
 
         public ConstructorRef(ConstructorInfo constructor)
-            : this(new TypeRef(constructor.DeclaringType), constructor.MetadataToken) { }
+            : this(TypeRef.Get(constructor.DeclaringType), constructor.MetadataToken) { }
 
         public TypeRef DeclaringType { get; private set; }
 
@@ -25,7 +25,7 @@
 
         public bool IsEmpty
         {
-            get { return this.DeclaringType == null || this.DeclaringType.IsEmpty; }
+            get { return this.DeclaringType == null; }
         }
 
         public bool Equals(ConstructorRef other)

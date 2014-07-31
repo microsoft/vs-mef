@@ -68,7 +68,7 @@
 
             private object CreatePart(Dictionary<int, object> provisionalSharedObjects, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata)
             {
-                if (partDefinition.Type.Equals(new Reflection.TypeRef(ExportProvider.ExportProviderPartDefinition.Type)))
+                if (partDefinition.Type.Equals(Reflection.TypeRef.Get(ExportProvider.ExportProviderPartDefinition.Type)))
                 {
                     // Special case for our synthesized part that acts as a placeholder for *this* export provider.
                     return this.NonDisposableWrapper.Value;
@@ -404,7 +404,7 @@
                         IEnumerable<Reflection.TypeRef> typeArgs = typeArgsObject as Reflection.TypeRef[];
                         if (typeArgs == null)
                         {
-                            typeArgs = ((Type[])typeArgsObject).Select(t => new Reflection.TypeRef(t));
+                            typeArgs = ((Type[])typeArgsObject).Select(t => Reflection.TypeRef.Get(t));
                         }
 
                         return part.Type.MakeGenericType(typeArgs.ToImmutableArray());
