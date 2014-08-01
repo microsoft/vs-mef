@@ -13,10 +13,11 @@
     public class MefV3DiscoveryTestCommand : FactCommand
     {
         private readonly CompositionEngines compositionVersions;
+        private readonly bool expectInvalidConfiguration;
         private readonly Type[] parts;
         private readonly IReadOnlyList<string> assemblyNames;
 
-        public MefV3DiscoveryTestCommand(IMethodInfo method, CompositionEngines compositionEngines, Type[] parts, IReadOnlyList<string> assemblyNames)
+        public MefV3DiscoveryTestCommand(IMethodInfo method, CompositionEngines compositionEngines, Type[] parts, IReadOnlyList<string> assemblyNames, bool expectInvalidConfiguration)
             : base(method)
         {
             Requires.NotNull(method, "method");
@@ -26,13 +27,14 @@
             this.compositionVersions = compositionEngines;
             this.assemblyNames = assemblyNames;
             this.parts = parts;
+            this.expectInvalidConfiguration = expectInvalidConfiguration;
 
-            this.DisplayName = "V3 discovery";
+            this.DisplayName = "V3 composition";
         }
 
         public MethodResult Result { get; set; }
 
-        public ComposableCatalog ResultingCatalog { get; set; }
+        public CompositionConfiguration ResultingConfiguration { get; set; }
 
         public override MethodResult Execute(object testClass)
         {
@@ -59,7 +61,20 @@
                     Assert.Equal(resultingCatalogs[i - 1], resultingCatalogs[i]);
                 }
 
-                this.ResultingCatalog = resultingCatalogs[0];
+                // Now that we've proven that all part discovery mechanisms produced identical catalogs,
+                // create one configuration and verify it meets expectations.
+                var catalogWithSupport = resultingCatalogs[0]
+                    .WithCompositionService()
+                    .WithDesktopSupport();
+                var configuration = CompositionConfiguration.Create(catalogWithSupport);
+
+                if (!this.compositionVersions.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors))
+                {
+                    Assert.Equal(this.expectInvalidConfiguration, !configuration.CompositionErrors.IsEmpty);
+                }
+
+                // Save the configuration in a property so that the engine test that follows can reuse the work we've done.
+                this.ResultingConfiguration = configuration;
 
                 return this.Result = new PassedResult(this.testMethod, this.DisplayName);
             }

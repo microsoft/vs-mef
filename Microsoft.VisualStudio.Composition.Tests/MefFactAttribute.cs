@@ -83,13 +83,13 @@
             }
             else
             {
-                var v3DiscoveryTest = new MefV3DiscoveryTestCommand(method, this.compositionVersions, parts, this.assemblies);
+                var v3DiscoveryTest = new MefV3DiscoveryTestCommand(method, this.compositionVersions, parts, this.assemblies, this.InvalidConfiguration);
                 yield return v3DiscoveryTest;
 
-                if (v3DiscoveryTest.Result is PassedResult)
+                if (v3DiscoveryTest.Result is PassedResult && !this.InvalidConfiguration)
                 {
-                    yield return new Mef3TestCommand(method, v3DiscoveryTest.ResultingCatalog, this.compositionVersions, this.InvalidConfiguration, runtime: false);
-                    yield return new Mef3TestCommand(method, v3DiscoveryTest.ResultingCatalog, this.compositionVersions, this.InvalidConfiguration, runtime: true);
+                    yield return new Mef3TestCommand(method, v3DiscoveryTest.ResultingConfiguration, this.compositionVersions, runtime: false);
+                    yield return new Mef3TestCommand(method, v3DiscoveryTest.ResultingConfiguration, this.compositionVersions, runtime: true);
                 }
             }
         }
