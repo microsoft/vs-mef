@@ -10,7 +10,7 @@
     using System.Threading.Tasks;
     using Validation;
 
-    public class ComposableCatalog
+    public class ComposableCatalog : IEquatable<ComposableCatalog>
     {
         /// <summary>
         /// The types behind the parts in the catalog.
@@ -171,6 +171,18 @@
 
             var catalog = this.WithParts(parts.Parts);
             return new ComposableCatalog(catalog.types, catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts));
+        }
+
+        public bool Equals(ComposableCatalog other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            // TODO: implement this.
+            return true;
+            throw new NotImplementedException();
         }
     }
 }

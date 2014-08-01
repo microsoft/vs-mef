@@ -27,15 +27,10 @@
             return await cacheManager.LoadExportProviderFactoryAsync(ms);
         }
 
-        internal static ExportProvider CreateContainer(this CompositionConfiguration configuration)
+        internal static ExportProvider CreateContainer(this CompositionConfiguration configuration, bool runtime)
         {
             Requires.NotNull(configuration, "configuration");
 
-#if Runtime
-            const bool runtime = true;
-#else
-            const bool runtime = false;
-#endif
             if (runtime)
             {
                 const bool serializeRoundtrip = false;
@@ -147,7 +142,7 @@
         {
             return CompositionConfiguration.Create(
                 await new AttributedPartDiscovery().CreatePartsAsync(parts))
-                .CreateContainer();
+                .CreateContainer(true);
         }
 
         internal static IContainer CreateContainerV1(params Type[] parts)
@@ -260,7 +255,7 @@
             configuration.CreateDgml().Save(dgmlFile);
             Console.WriteLine("DGML saved to: " + dgmlFile);
 #endif
-            var container = configuration.CreateContainer();
+            var container = configuration.CreateContainer(true);
             return new V3ContainerWrapper(container, configuration);
         }
 
@@ -299,24 +294,9 @@
                 test(CreateContainerV1(assemblies, parts));
             }
 
-            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1))
-            {
-                test(CreateContainerV3(assemblies, CompositionEngines.V1 | (CompositionEngines.V3OptionsMask & attributesVersion), parts));
-            }
-
             if (attributesVersion.HasFlag(CompositionEngines.V2))
             {
                 test(CreateContainerV2(assemblies, parts));
-            }
-
-            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV2))
-            {
-                test(CreateContainerV3(assemblies, CompositionEngines.V2 | (CompositionEngines.V3OptionsMask & attributesVersion), parts));
-            }
-
-            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1AndV2AtOnce))
-            {
-                test(CreateContainerV3(assemblies, CompositionEngines.V1 | CompositionEngines.V2 | (CompositionEngines.V3OptionsMask & attributesVersion), parts));
             }
         }
 

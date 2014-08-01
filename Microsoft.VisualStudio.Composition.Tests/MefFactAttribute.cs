@@ -28,6 +28,7 @@
             Requires.NotNull(parts, "parts");
 
             this.parts = parts;
+            this.assemblies = ImmutableList<string>.Empty;
         }
 
         public MefFactAttribute(CompositionEngines compositionVersions, string newLineSeparatedAssemblyNames, params Type[] parts)
@@ -64,7 +65,7 @@
                 parts = GetNestedTypesRecursively(method.Class.Type).Where(t => (!t.IsAbstract || t.IsSealed) && !t.IsInterface).ToArray();
             }
 
-            foreach (var engine in new[] { CompositionEngines.V1, CompositionEngines.V2, CompositionEngines.V3EmulatingV1, CompositionEngines.V3EmulatingV2, CompositionEngines.V3EmulatingV1AndV2AtOnce })
+            foreach (var engine in new[] { CompositionEngines.V1, CompositionEngines.V2 })
             {
                 if (this.compositionVersions.HasFlag(engine))
                 {
@@ -72,12 +73,23 @@
                 }
             }
 
-            if (!this.NoCompatGoal)
+            if ((this.compositionVersions & CompositionEngines.V3EnginesMask) == CompositionEngines.Unspecified)
             {
-                // Call out that we're *not* testing V3 functionality for this test.
-                if ((this.compositionVersions & (CompositionEngines.V3EmulatingV2 | CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV1AndV2AtOnce)) == CompositionEngines.Unspecified)
+                if (!this.NoCompatGoal)
                 {
+                    // Call out that we're *not* testing V3 functionality for this test.
                     yield return new SkipCommand(method, MethodUtility.GetDisplayName(method) + "V3", "Test does not include V3 test.");
+                }
+            }
+            else
+            {
+                var v3DiscoveryTest = new MefV3DiscoveryTestCommand(method, this.compositionVersions, parts, this.assemblies);
+                yield return v3DiscoveryTest;
+
+                if (v3DiscoveryTest.Result is PassedResult)
+                {
+                    yield return new Mef3TestCommand(method, v3DiscoveryTest.ResultingCatalog, this.compositionVersions, this.InvalidConfiguration, runtime: false);
+                    yield return new Mef3TestCommand(method, v3DiscoveryTest.ResultingCatalog, this.compositionVersions, this.InvalidConfiguration, runtime: true);
                 }
             }
         }
