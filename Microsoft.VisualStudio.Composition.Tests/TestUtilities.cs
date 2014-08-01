@@ -32,95 +32,110 @@
             Requires.NotNull(configuration, "configuration");
 
 #if Runtime
-            return CacheAndReloadConfiguration(configuration, new CachedComposition()).GetAwaiter().GetResult().CreateExportProvider();
-            ////return configuration.CreateExportProviderFactory().CreateExportProvider();
+            const bool runtime = true;
 #else
-            string basePath = Path.GetTempFileName();
-            string assemblyPath = basePath + ".dll";
-            var compiledCacheManager = new CompiledComposition
+            const bool runtime = false;
+#endif
+            if (runtime)
             {
-                AssemblyName = Path.GetFileNameWithoutExtension(assemblyPath),
-                BuildOutput = Console.Out,
-            };
-
-            if (Debugger.IsAttached)
-            {
-                compiledCacheManager.Optimize = false;
-                using (var pdb = File.Open(basePath + ".pdb", FileMode.Create))
+                const bool serializeRoundtrip = false;
+                if (serializeRoundtrip)
                 {
-                    using (var source = File.Open(basePath + ".cs", FileMode.Create))
-                    {
-                        compiledCacheManager.Optimize = false;
-                        compiledCacheManager.PdbSymbols = pdb;
-                        compiledCacheManager.Source = source;
-                        using (var assemblyStream = File.Open(assemblyPath, FileMode.CreateNew))
-                        {
-                            compiledCacheManager.SaveAsync(configuration, assemblyStream).GetAwaiter().GetResult();
-                        }
-                    }
+                    return CacheAndReloadConfiguration(configuration, new CachedComposition()).GetAwaiter().GetResult().CreateExportProvider();
                 }
-
-                var exportProviderFactory = CompiledComposition.LoadExportProviderFactory(assemblyPath);
-                return exportProviderFactory.CreateExportProvider();
+                else
+                {
+                    return configuration.CreateExportProviderFactory().CreateExportProvider();
+                }
             }
             else
             {
-                Stream sourceFileStream = null;
-#if DEBUG
-                sourceFileStream = new MemoryStream();
-#endif
-                try
+                string basePath = Path.GetTempFileName();
+                string assemblyPath = basePath + ".dll";
+                var compiledCacheManager = new CompiledComposition
                 {
-                    compiledCacheManager.Source = sourceFileStream;
-                    var assemblyStream = new MemoryStream();
-                    compiledCacheManager.SaveAsync(configuration, assemblyStream).Wait();
-                    assemblyStream.Position = 0;
-                    var exportProvider = compiledCacheManager.LoadExportProviderFactoryAsync(assemblyStream).Result.CreateExportProvider();
-                    return exportProvider;
-                }
-                finally
-                {
-                    if (sourceFileStream != null)
-                    {
-                        bool includeLineNumbers;
-                        TextWriter sourceFileWriter;
-                        if (sourceFileStream.Length < 200 * 1024) // the test results window doesn't do well with large output
-                        {
-                            includeLineNumbers = true;
-                            sourceFileWriter = Console.Out;
-                        }
-                        else
-                        {
-                            // Write to a file instead and then emit its path to the output window.
-                            string sourceFileName = Path.GetTempFileName() + ".cs";
-                            sourceFileWriter = new StreamWriter(File.OpenWrite(sourceFileName));
-                            Console.WriteLine("Source file written to: {0}", sourceFileName);
-                            includeLineNumbers = false;
-                        }
+                    AssemblyName = Path.GetFileNameWithoutExtension(assemblyPath),
+                    BuildOutput = Console.Out,
+                };
 
-                        sourceFileStream.Position = 0;
-                        var sourceFileReader = new StreamReader(sourceFileStream);
-                        int lineNumber = 0;
-                        string line;
-                        while ((line = sourceFileReader.ReadLine()) != null)
+                if (Debugger.IsAttached)
+                {
+                    compiledCacheManager.Optimize = false;
+                    using (var pdb = File.Open(basePath + ".pdb", FileMode.Create))
+                    {
+                        using (var source = File.Open(basePath + ".cs", FileMode.Create))
                         {
-                            if (includeLineNumbers)
+                            compiledCacheManager.Optimize = false;
+                            compiledCacheManager.PdbSymbols = pdb;
+                            compiledCacheManager.Source = source;
+                            using (var assemblyStream = File.Open(assemblyPath, FileMode.CreateNew))
                             {
-                                sourceFileWriter.Write("Line {0,5}: ", ++lineNumber);
+                                compiledCacheManager.SaveAsync(configuration, assemblyStream).GetAwaiter().GetResult();
+                            }
+                        }
+                    }
+
+                    var exportProviderFactory = CompiledComposition.LoadExportProviderFactory(assemblyPath);
+                    return exportProviderFactory.CreateExportProvider();
+                }
+                else
+                {
+                    Stream sourceFileStream = null;
+#if DEBUG
+                    sourceFileStream = new MemoryStream();
+#endif
+                    try
+                    {
+                        compiledCacheManager.Source = sourceFileStream;
+                        var assemblyStream = new MemoryStream();
+                        compiledCacheManager.SaveAsync(configuration, assemblyStream).Wait();
+                        assemblyStream.Position = 0;
+                        var exportProvider = compiledCacheManager.LoadExportProviderFactoryAsync(assemblyStream).Result.CreateExportProvider();
+                        return exportProvider;
+                    }
+                    finally
+                    {
+                        if (sourceFileStream != null)
+                        {
+                            bool includeLineNumbers;
+                            TextWriter sourceFileWriter;
+                            if (sourceFileStream.Length < 200 * 1024) // the test results window doesn't do well with large output
+                            {
+                                includeLineNumbers = true;
+                                sourceFileWriter = Console.Out;
+                            }
+                            else
+                            {
+                                // Write to a file instead and then emit its path to the output window.
+                                string sourceFileName = Path.GetTempFileName() + ".cs";
+                                sourceFileWriter = new StreamWriter(File.OpenWrite(sourceFileName));
+                                Console.WriteLine("Source file written to: {0}", sourceFileName);
+                                includeLineNumbers = false;
                             }
 
-                            sourceFileWriter.WriteLine(line);
-                        }
+                            sourceFileStream.Position = 0;
+                            var sourceFileReader = new StreamReader(sourceFileStream);
+                            int lineNumber = 0;
+                            string line;
+                            while ((line = sourceFileReader.ReadLine()) != null)
+                            {
+                                if (includeLineNumbers)
+                                {
+                                    sourceFileWriter.Write("Line {0,5}: ", ++lineNumber);
+                                }
 
-                        sourceFileWriter.Flush();
-                        if (sourceFileWriter != Console.Out)
-                        {
-                            sourceFileWriter.Close();
+                                sourceFileWriter.WriteLine(line);
+                            }
+
+                            sourceFileWriter.Flush();
+                            if (sourceFileWriter != Console.Out)
+                            {
+                                sourceFileWriter.Close();
+                            }
                         }
                     }
                 }
             }
-#endif
         }
 
         internal static ExportProvider CreateContainer(params Type[] parts)
