@@ -70,7 +70,7 @@
 
                 if (!this.compositionVersions.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors))
                 {
-                    Assert.Equal(this.expectInvalidConfiguration, !configuration.CompositionErrors.IsEmpty);
+                    Assert.Equal(this.expectInvalidConfiguration, !configuration.CompositionErrors.IsEmpty || !catalogWithSupport.DiscoveredParts.DiscoveryErrors.IsEmpty);
                 }
 
                 // Save the configuration in a property so that the engine test that follows can reuse the work we've done.

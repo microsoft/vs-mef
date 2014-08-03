@@ -66,8 +66,6 @@
         {
             Requires.NotNull(catalog, "catalog");
 
-            ValidateIndividualParts(catalog.Parts);
-
             // We consider all the parts in the catalog, plus the specially synthesized one
             // so that folks can import the ExportProvider itself.
             var customizedCatalog = catalog.WithPart(ExportProvider.ExportProviderPartDefinition);
@@ -263,18 +261,6 @@
             }
 
             return false;
-        }
-
-        private static void ValidateIndividualParts(IImmutableSet<ComposablePartDefinition> parts)
-        {
-            Requires.NotNull(parts, "parts");
-            var partsExportingExportProvider = parts
-                .Remove(ExportProvider.ExportProviderPartDefinition)
-                .Where(p => p.ExportDefinitions.Any(ed => ExportDefinitionPracticallyEqual.Default.Equals(ExportProvider.ExportProviderExportDefinition, ed.Value)));
-            if (partsExportingExportProvider.Any())
-            {
-                throw new CompositionFailedException("Illegal export of ExportProvider.");
-            }
         }
 
         /// <summary>
@@ -506,7 +492,7 @@
             }
         }
 
-        private class ExportDefinitionPracticallyEqual : IEqualityComparer<ExportDefinition>
+        internal class ExportDefinitionPracticallyEqual : IEqualityComparer<ExportDefinition>
         {
             private ExportDefinitionPracticallyEqual() { }
 

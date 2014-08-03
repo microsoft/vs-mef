@@ -65,12 +65,14 @@
                 parts = GetNestedTypesRecursively(method.Class.Type).Where(t => (!t.IsAbstract || t.IsSealed) && !t.IsInterface).ToArray();
             }
 
-            foreach (var engine in new[] { CompositionEngines.V1, CompositionEngines.V2 })
+            if (this.compositionVersions.HasFlag(CompositionEngines.V1))
             {
-                if (this.compositionVersions.HasFlag(engine))
-                {
-                    yield return new MefTestCommand(method, engine | (this.compositionVersions & CompositionEngines.V3OptionsMask), parts, this.assemblies, this.InvalidConfiguration);
-                }
+                yield return new MefTestCommand(method, CompositionEngines.V1, parts, this.assemblies, this.InvalidConfiguration);
+            }
+
+            if (this.compositionVersions.HasFlag(CompositionEngines.V2))
+            {
+                yield return new MefTestCommand(method, CompositionEngines.V2, parts, this.assemblies, this.InvalidConfiguration);
             }
 
             if ((this.compositionVersions & CompositionEngines.V3EnginesMask) == CompositionEngines.Unspecified)
@@ -83,7 +85,7 @@
             }
             else
             {
-                var v3DiscoveryTest = new MefV3DiscoveryTestCommand(method, this.compositionVersions, parts, this.assemblies, this.InvalidConfiguration);
+                var v3DiscoveryTest = new MefV3DiscoveryTestCommand(method, this.compositionVersions, parts ?? new Type[0], this.assemblies ?? ImmutableList<string>.Empty, this.InvalidConfiguration);
                 yield return v3DiscoveryTest;
 
                 if (v3DiscoveryTest.Result is PassedResult && !this.InvalidConfiguration)
