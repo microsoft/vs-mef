@@ -102,6 +102,7 @@
     <Compile Include="ExportTypeIdentityConstraint.cs" />
     <Compile Include="IAssemblyLoader.cs" />
     <Compile Include="ICompositionCacheManager.cs" />
+    <Compile Include="IDescriptiveToString.cs" />
     <Compile Include="IHasValueAndMetadata.cs" />
     <Compile Include="IMetadataViewProvider.cs" />
     <Compile Include="ImportMetadataViewConstraint.cs" />
@@ -112,6 +113,7 @@
     <Compile Include="ImportDefinitionBinding.cs" />
     <Compile Include="ImportCardinality.cs" />
     <Compile Include="ExportMetadataValueImportConstraint.cs" />
+    <Compile Include="IndentingTextWriter.cs" />
     <Compile Include="LazyMetadataWrapper.cs" />
     <Compile Include="LazyPart.cs" />
     <Compile Include="LazyPart`2.cs" />

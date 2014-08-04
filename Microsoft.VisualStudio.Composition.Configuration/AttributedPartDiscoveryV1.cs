@@ -42,7 +42,7 @@
 
             var inheritedExportContractNamesFromNonInterfaces = ImmutableHashSet.CreateBuilder<string>();
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
-            var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
+            var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyCollection<ExportDefinition>>();
             var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
 
             foreach (var exportAttributes in partType.GetCustomAttributesByType<ExportAttribute>())

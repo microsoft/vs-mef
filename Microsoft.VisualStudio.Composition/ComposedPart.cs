@@ -55,6 +55,12 @@
 
         public IEnumerable<ComposedPartDiagnostic> Validate()
         {
+            if (this.Definition.ExportDefinitions.Any(ed => CompositionConfiguration.ExportDefinitionPracticallyEqual.Default.Equals(ExportProvider.ExportProviderExportDefinition, ed.Value)) &&
+                !this.Definition.Equals(ExportProvider.ExportProviderPartDefinition))
+            {
+                yield return new ComposedPartDiagnostic(this, "{0}: Export of ExportProvider is not allowed.", this.Definition.Type.FullName);
+            }
+
             foreach (var pair in this.SatisfyingExports)
             {
                 var importDefinition = pair.Key.ImportDefinition;

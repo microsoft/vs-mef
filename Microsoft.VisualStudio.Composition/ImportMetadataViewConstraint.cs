@@ -4,13 +4,14 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.ComponentModel;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
 
-    public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint
+    public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
         private static readonly ImportMetadataViewConstraint EmptyInstance = new ImportMetadataViewConstraint(ImmutableDictionary<string, MetadatumRequirement>.Empty);
 
@@ -121,6 +122,15 @@
             }
 
             return true;
+        }
+
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+            foreach (var requirement in this.Requirements)
+            {
+                indentingWriter.WriteLine("{0} = {1} (required: {2})", requirement.Key, ReflectionHelpers.GetTypeName(requirement.Value.MetadatumValueType, false, true, null, null), requirement.Value.IsMetadataumValueRequired);
+            }
         }
 
         private static ImmutableDictionary<string, MetadatumRequirement> GetRequiredMetadata(Type metadataView)

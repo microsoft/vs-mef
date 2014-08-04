@@ -90,7 +90,7 @@
             Assert.True(beforeArray.Contains("BeforeValue"));
         }
 
-        [Export, MefV1.Export]
+        [Export, MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class ImportingPart
         {
             [Import, MefV1.Import]
@@ -103,7 +103,7 @@
             public Lazy<string, IDictionary<string, object>> ImportOfProperty { get; set; }
         }
 
-        [MefV1.Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [Export]
         [NameAndAge(Name = "Andrew", Age = "4")]
         public class ExportedTypeWithMetadata { }
@@ -130,6 +130,7 @@
             public Lazy<ExportedTypeWithAllowMultipleDerivedMetadata, IDictionary<string, object>> ImportingAllowMultiple { get; set; }
         }
 
+        [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class TypeWithExportingMemberAndMetadata
         {
             [MefV1.Export]

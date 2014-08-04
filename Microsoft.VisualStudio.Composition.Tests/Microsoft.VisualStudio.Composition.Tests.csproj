@@ -32,16 +32,10 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Runtime|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Runtime\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;Runtime</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DiffPlex">
+      <HintPath>..\packages\DiffPlex.1.2.0\lib\Net40\DiffPlex.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CodeAnalysis">
       <HintPath>..\packages\Microsoft.CodeAnalysis.Common.0.7.4052301-beta\lib\net45\Microsoft.CodeAnalysis.dll</HintPath>
     </Reference>
@@ -136,7 +130,9 @@
     <Compile Include="ImportedExportProviderTests.cs" />
     <Compile Include="InheritedExportTests.cs" />
     <Compile Include="InvalidGraphTests.cs" />
+    <Compile Include="Mef3TestCommand.cs" />
     <Compile Include="MefV1ExportProviderAdapterTests.cs" />
+    <Compile Include="MefV3DiscoveryTestCommand.cs" />
     <Compile Include="MetadataViewImplementationTests.cs" />
     <Compile Include="MixedGenericExportsTests.cs" />
     <Compile Include="NestedTypeTests.cs" />

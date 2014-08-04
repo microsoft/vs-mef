@@ -6,7 +6,6 @@
     using System.Text;
     using System.Threading.Tasks;
 
-#if Runtime
     public class AssembliesLazyLoadedDataFileCacheTests : AssembliesLazyLoadedTests
     {
         public AssembliesLazyLoadedDataFileCacheTests()
@@ -14,5 +13,4 @@
         {
         }
     }
-#endif
 }
