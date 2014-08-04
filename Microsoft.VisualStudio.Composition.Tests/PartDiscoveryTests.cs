@@ -68,7 +68,7 @@
                 return new ComposablePartDefinition(
                     typeof(int),
                     ImmutableList.Create<ExportDefinition>(),
-                    ImmutableDictionary.Create<MemberInfo, ImmutableHashSet<ExportDefinition>>(),
+                    ImmutableDictionary.Create<MemberInfo, IReadOnlyCollection<ExportDefinition>>(),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     null,
                     null,

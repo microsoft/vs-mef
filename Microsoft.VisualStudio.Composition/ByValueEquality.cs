@@ -15,9 +15,9 @@
             get { return MetadataDictionaryEqualityComparer.Default; }
         }
 
-        internal static IEqualityComparer<IReadOnlyDictionary<TKey, TValue>> Dictionary<TKey, TValue>()
+        internal static IEqualityComparer<IReadOnlyDictionary<TKey, TValue>> Dictionary<TKey, TValue>(IEqualityComparer<TValue> valueComparer = null)
         {
-            return DictionaryEqualityComparer<TKey, TValue>.Default;
+            return DictionaryEqualityComparer<TKey, TValue>.Get(valueComparer);
         }
 
         internal static IEqualityComparer<IReadOnlyDictionary<TKey, ImmutableHashSet<TValue>>> DictionaryOfImmutableHashSet<TKey, TValue>()
@@ -25,9 +25,98 @@
             return DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue>.Default;
         }
 
+        internal static IEqualityComparer<IReadOnlyCollection<T>> EquivalentIgnoreOrder<T>()
+        {
+            return CollectionIgnoreOrder<T>.Default;
+        }
+
+        private class CollectionIgnoreOrder<T> : IEqualityComparer<IReadOnlyCollection<T>>
+        {
+            internal static readonly CollectionIgnoreOrder<T> Default = new CollectionIgnoreOrder<T>();
+            private CollectionIgnoreOrder() { }
+
+            protected virtual IEqualityComparer<T> ValueComparer
+            {
+                get { return EqualityComparer<T>.Default; }
+            }
+
+            public bool Equals(IReadOnlyCollection<T> x, IReadOnlyCollection<T> y)
+            {
+                if (x == null ^ y == null)
+                {
+                    return false;
+                }
+
+                if (x == null)
+                {
+                    return true;
+                }
+
+                if (x.Count != y.Count)
+                {
+                    return false;
+                }
+
+                IEqualityComparer<T> valueComparer = this.ValueComparer;
+                var matchingIndexesInY = new bool[y.Count];
+                var yList = y as IReadOnlyList<T> ?? y.ToList();
+                foreach (T item in x)
+                {
+                    int j;
+                    for (j = 0; j < y.Count; j++)
+                    {
+                        if (!matchingIndexesInY[j] && valueComparer.Equals(item, yList[j]))
+                        {
+                            // We found a match. Avoid finding the same item again.
+                            matchingIndexesInY[j] = true;
+                            break;
+                        }
+                    }
+
+                    if (j == y.Count)
+                    {
+                        // no match
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public int GetHashCode(IReadOnlyCollection<T> obj)
+            {
+                int hashCode = obj.Count;
+                foreach (var item in obj)
+                {
+                    hashCode += item.GetHashCode();
+                }
+
+                return hashCode;
+            }
+        }
+
         private class DictionaryEqualityComparer<TKey, TValue> : IEqualityComparer<IReadOnlyDictionary<TKey, TValue>>
         {
+            private readonly IEqualityComparer<TValue> valueComparer;
+
             internal static readonly DictionaryEqualityComparer<TKey, TValue> Default = new DictionaryEqualityComparer<TKey, TValue>();
+
+            protected DictionaryEqualityComparer(IEqualityComparer<TValue> valueComparer = null)
+            {
+                this.valueComparer = valueComparer ?? EqualityComparer<TValue>.Default;
+            }
+
+            internal static DictionaryEqualityComparer<TKey, TValue> Get(IEqualityComparer<TValue> valueComparer = null)
+            {
+                if (valueComparer == null || valueComparer == EqualityComparer<TValue>.Default)
+                {
+                    return Default;
+                }
+                else
+                {
+                    return new DictionaryEqualityComparer<TKey, TValue>(valueComparer);
+                }
+            }
 
             protected virtual IEqualityComparer<TValue> ValueComparer
             {
@@ -93,7 +182,7 @@
         private class DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue> : DictionaryEqualityComparer<TKey, ImmutableHashSet<TValue>>
         {
             new internal static readonly DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue> Default = new DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue>();
-            
+
             protected override IEqualityComparer<ImmutableHashSet<TValue>> ValueComparer
             {
                 get { return SetEqualityComparer.Default; }

@@ -26,7 +26,7 @@
         /// <param name="importingConstructor">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
         /// <param name="partCreationPolicy">The creation policy for this part.</param>
         /// <param name="isSharingBoundaryInferred">A value indicating whether the part does not have an explicit sharing boundary, and therefore can obtain its sharing boundary based on its imports.</param>
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberInfo, ImmutableHashSet<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
+        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberInfo, IReadOnlyCollection<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
         {
             Requires.NotNull(partType, "partType");
             Requires.NotNull(exportedTypes, "exportedTypes");
@@ -34,7 +34,7 @@
             Requires.NotNull(importingMembers, "importingMembers");
 
             this.Type = partType;
-            this.ExportedTypes = ImmutableHashSet.CreateRange(exportedTypes);
+            this.ExportedTypes = exportedTypes;
             this.ExportingMembers = exportingMembers;
             this.ImportingMembers = ImmutableHashSet.CreateRange(importingMembers);
             this.SharingBoundary = sharingBoundary;
@@ -77,12 +77,12 @@
         /// <summary>
         /// Gets the types exported on the part itself.
         /// </summary>
-        public ImmutableHashSet<ExportDefinition> ExportedTypes { get; private set; }
+        public IReadOnlyCollection<ExportDefinition> ExportedTypes { get; private set; }
 
         /// <summary>
         /// Gets the exports found on members of the part (exporting properties, fields, methods.)
         /// </summary>
-        public IReadOnlyDictionary<MemberInfo, ImmutableHashSet<ExportDefinition>> ExportingMembers { get; private set; }
+        public IReadOnlyDictionary<MemberInfo, IReadOnlyCollection<ExportDefinition>> ExportingMembers { get; private set; }
 
         /// <summary>
         /// Gets a sequence of all exports found on this part (both the type directly and its members).
@@ -167,8 +167,8 @@
                 && this.IsSharingBoundaryInferred == other.IsSharingBoundaryInferred
                 && this.CreationPolicy == other.CreationPolicy
                 && this.OnImportsSatisfied == other.OnImportsSatisfied
-                && this.ExportedTypes.SetEquals(other.ExportedTypes)
-                && ByValueEquality.DictionaryOfImmutableHashSet<MemberInfo, ExportDefinition>().Equals(this.ExportingMembers, other.ExportingMembers)
+                && ByValueEquality.EquivalentIgnoreOrder<ExportDefinition>().Equals(this.ExportedTypes, other.ExportedTypes)
+                && ByValueEquality.Dictionary<MemberInfo, IReadOnlyCollection<ExportDefinition>>(ByValueEquality.EquivalentIgnoreOrder<ExportDefinition>()).Equals(this.ExportingMembers, other.ExportingMembers)
                 && this.ImportingMembers.SetEquals(other.ImportingMembers)
                 && ((this.ImportingConstructor == null && other.ImportingConstructor == null) || (this.ImportingConstructor != null && other.ImportingConstructor != null && this.ImportingConstructor.SequenceEqual(other.ImportingConstructor)));
             return result;
