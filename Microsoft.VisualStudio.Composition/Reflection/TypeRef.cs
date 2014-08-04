@@ -129,7 +129,18 @@
                 return true;
             }
 
-            return first.FullName == second.FullName;
+            // fast path
+            if (first.CodeBase == second.CodeBase)
+            {
+                return true;
+            }
+
+            // Testing on FullName is horrifically slow.
+            // So test directly on its components instead.
+            return first.Name == second.Name
+                && first.Version.Equals(second.Version)
+                && first.CultureName.Equals(second.CultureName)
+                && ByValueEquality.Buffer.Equals(first.GetPublicKey(), second.GetPublicKey());
         }
     }
 }
