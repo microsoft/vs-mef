@@ -2,12 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
 
-    public class ExportMetadataValueImportConstraint : IImportSatisfiabilityConstraint
+    public class ExportMetadataValueImportConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
         public ExportMetadataValueImportConstraint(string name, object value)
         {
@@ -35,6 +36,12 @@
             }
 
             return false;
+        }
+
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+            indentingWriter.WriteLine("{0} = {1}", this.Name, this.Value);
         }
     }
 }

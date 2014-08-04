@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -12,7 +13,7 @@
     /// A constraint that may be included in an <see cref="ImportDefinition"/> that only matches
     /// exports whose parts have a compatible <see cref="CreationPolicy"/>.
     /// </summary>
-    public class PartCreationPolicyConstraint : IImportSatisfiabilityConstraint
+    public class PartCreationPolicyConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
         private PartCreationPolicyConstraint(CreationPolicy creationPolicy)
         {
@@ -100,6 +101,12 @@
 
             // No policy => our requirements are met
             return true;
+        }
+
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+            indentingWriter.WriteLine("RequiredCreationPolicy: {0}", this.RequiredCreationPolicy);
         }
     }
 }

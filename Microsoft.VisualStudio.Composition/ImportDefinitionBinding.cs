@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -157,6 +158,22 @@
                 && EqualityComparer<ParameterInfo>.Default.Equals(this.ImportingParameter, other.ImportingParameter);
 
             return result;
+        }
+
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+
+            indentingWriter.WriteLine("ImportDefinition:");
+            using (indentingWriter.Indent())
+            {
+                this.ImportDefinition.ToString(writer);
+            }
+
+            indentingWriter.WriteLine("ComposablePartType: {0}", this.ComposablePartType.FullName);
+            indentingWriter.WriteLine("ImportingMember: {0}", this.ImportingMember);
+            indentingWriter.WriteLine("ParameterInfo: {0}", this.ImportingParameter);
+            indentingWriter.WriteLine("ImportingSiteType: {0}", this.ImportingSiteType);
         }
     }
 }

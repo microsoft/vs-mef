@@ -3,12 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
 
-    public class ExportTypeIdentityConstraint : IImportSatisfiabilityConstraint
+    public class ExportTypeIdentityConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
         public ExportTypeIdentityConstraint(Type typeIdentity)
         {
@@ -49,6 +50,12 @@
             }
 
             return false;
+        }
+
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+            indentingWriter.WriteLine("TypeIdentityName: {0}", this.TypeIdentityName);
         }
     }
 }

@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DiffPlex">
+      <HintPath>..\packages\DiffPlex.1.2.0\lib\Net40\DiffPlex.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CodeAnalysis">
       <HintPath>..\packages\Microsoft.CodeAnalysis.Common.0.7.4052301-beta\lib\net45\Microsoft.CodeAnalysis.dll</HintPath>
     </Reference>

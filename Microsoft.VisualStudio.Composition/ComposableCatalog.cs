@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.ComponentModel;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -46,7 +47,7 @@
 
             // For those imports of generic types, we also want to consider exports that are based on open generic exports,
             string genericTypeDefinitionContractName;
-            Type[] genericTypeArguments; 
+            Type[] genericTypeArguments;
             if (TryGetOpenGenericExport(importDefinition, out genericTypeDefinitionContractName, out genericTypeArguments))
             {
                 var openGenericExports = this.exportsByContract.GetValueOrDefault(genericTypeDefinitionContractName, ImmutableList.Create<ExportDefinitionBinding>());
@@ -184,6 +185,22 @@
             // which shouldn't impact an equivalence check.
             bool result = this.parts.SetEquals(other.parts);
             return result;
+        }
+
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+            using (indentingWriter.Indent())
+            {
+                foreach (var part in this.parts)
+                {
+                    indentingWriter.WriteLine("Part");
+                    using (indentingWriter.Indent())
+                    {
+                        part.ToString(indentingWriter);
+                    }
+                }
+            }
         }
     }
 }

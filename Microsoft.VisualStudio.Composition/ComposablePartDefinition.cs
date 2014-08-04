@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -171,6 +172,58 @@
                 && this.ImportingMembers.SetEquals(other.ImportingMembers)
                 && ((this.ImportingConstructor == null && other.ImportingConstructor == null) || (this.ImportingConstructor != null && other.ImportingConstructor != null && this.ImportingConstructor.SequenceEqual(other.ImportingConstructor)));
             return result;
+        }
+
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+            indentingWriter.WriteLine("Type: {0}", this.Type.FullName);
+            indentingWriter.WriteLine("SharingBoundary: {0}", this.SharingBoundary);
+            indentingWriter.WriteLine("CreationPolicy: {0}", this.CreationPolicy);
+            indentingWriter.WriteLine("OnImportsSatisfied: {0}", this.OnImportsSatisfied);
+
+            indentingWriter.WriteLine("ExportedTypes:");
+            using (indentingWriter.Indent())
+            {
+                foreach (var item in this.ExportedTypes)
+                {
+                    item.ToString(indentingWriter);
+                }
+            }
+
+            indentingWriter.WriteLine("ExportingMembers:");
+            using (indentingWriter.Indent())
+            {
+                foreach (var exportingMember in this.ExportingMembers)
+                {
+                    indentingWriter.WriteLine(exportingMember.Key.Name);
+                    using (indentingWriter.Indent())
+                    {
+                        foreach (var export in exportingMember.Value)
+                        {
+                            export.ToString(indentingWriter);
+                        }
+                    }
+                }
+            }
+
+            indentingWriter.WriteLine("ImportingMembers:");
+            using (indentingWriter.Indent())
+            {
+                foreach (var importingMember in this.ImportingMembers)
+                {
+                    importingMember.ToString(indentingWriter);
+                }
+            }
+
+            indentingWriter.WriteLine("ImportingConstructor:");
+            using (indentingWriter.Indent())
+            {
+                foreach (var import in this.ImportingConstructor)
+                {
+                    import.ToString(indentingWriter);
+                }
+            }
         }
     }
 }

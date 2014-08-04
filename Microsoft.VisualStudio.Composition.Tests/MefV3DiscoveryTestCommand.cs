@@ -2,10 +2,14 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using DiffPlex;
+    using DiffPlex.DiffBuilder;
+    using DiffPlex.DiffBuilder.Model;
     using Validation;
     using Xunit;
     using Xunit.Sdk;
@@ -55,7 +59,46 @@
                     resultingCatalogs.Add(catalog);
                 }
 
+                string[] catalogStringRepresentations = resultingCatalogs.Select(catalog =>
+                    {
+                        var writer = new StringWriter();
+                        catalog.ToString(writer);
+                        return writer.ToString();
+                    }).ToArray();
+
+                for (int i = 1; i < resultingCatalogs.Count; i++)
+                {
+                    var d = new Differ();
+                    var inlineBuilder = new InlineDiffBuilder(d);
+                    var result = inlineBuilder.BuildDiffModel(catalogStringRepresentations[0], catalogStringRepresentations[i]);
+                    if (result.Lines.Any(l => l.Type != ChangeType.Unchanged))
+                    {
+                        Console.WriteLine("Catalog {0} vs. {1}", v3DiscoveryModules[0], v3DiscoveryModules[i]);
+                        foreach (var line in result.Lines)
+                        {
+                            if (line.Type == ChangeType.Inserted)
+                            {
+                                Console.Write("+ ");
+                            }
+                            else if (line.Type == ChangeType.Deleted)
+                            {
+                                Console.Write("- ");
+                            }
+                            else
+                            {
+                                Console.Write("  ");
+                            }
+
+                            Console.WriteLine(line.Text);
+                        }
+
+                        Assert.False(true, "Catalogs not equivalent");
+                    }
+                }
+
                 // Verify that the catalogs are identical.
+                // The string compare above should have taken care of this (in a more descriptive way),
+                // but we do this to double-check.
                 for (int i = 1; i < resultingCatalogs.Count; i++)
                 {
                     Assert.Equal(resultingCatalogs[i - 1], resultingCatalogs[i]);
@@ -84,7 +127,7 @@
             }
         }
 
-        private IReadOnlyCollection<PartDiscovery> GetV3DiscoveryModules()
+        private IReadOnlyList<PartDiscovery> GetV3DiscoveryModules()
         {
             var titleAppends = new List<string>();
 

@@ -1,12 +1,13 @@
 ﻿namespace Microsoft.VisualStudio.Composition
 {
     using System;
-    using System.Collections.Generic;
-    using System.Collections.Immutable;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using Validation;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Validation;
 
     internal static class Utilities
     {
@@ -110,6 +111,33 @@
             }
 
             return true;
+        }
+
+        internal static void ToString(this IReadOnlyDictionary<string, object> metadata, IndentingTextWriter writer)
+        {
+            Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(writer, "writer");
+
+            foreach (var item in metadata)
+            {
+                writer.WriteLine("{0} = {1}", item.Key, item.Value);
+            }
+        }
+
+        internal static void ToString(this object value, TextWriter writer)
+        {
+            Requires.NotNull(value, "value");
+            Requires.NotNull(writer, "writer");
+
+            var descriptiveValue = value as IDescriptiveToString;
+            if (descriptiveValue != null)
+            {
+                descriptiveValue.ToString(writer);
+            }
+            else
+            {
+                writer.WriteLine(value);
+            }
         }
     }
 }
