@@ -90,8 +90,11 @@
 
                 if (v3DiscoveryTest.Result is PassedResult && !this.InvalidConfiguration)
                 {
-                    yield return new Mef3TestCommand(method, v3DiscoveryTest.ResultingConfiguration, this.compositionVersions, runtime: false);
-                    yield return new Mef3TestCommand(method, v3DiscoveryTest.ResultingConfiguration, this.compositionVersions, runtime: true);
+                    foreach (var configuration in v3DiscoveryTest.ResultingConfigurations)
+                    {
+                        yield return new Mef3TestCommand(method, configuration, this.compositionVersions, runtime: false);
+                        yield return new Mef3TestCommand(method, configuration, this.compositionVersions, runtime: true);
+                    }
                 }
             }
         }

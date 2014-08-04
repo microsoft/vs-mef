@@ -139,5 +139,10 @@ using Validation;
                 writer.WriteLine(value);
             }
         }
+
+        internal static object SpecifyIfNull(this object value)
+        {
+            return value == null ? "<null>" : value;
+        }
     }
 }

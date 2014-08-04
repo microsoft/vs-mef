@@ -178,16 +178,20 @@
         {
             var indentingWriter = IndentingTextWriter.Get(writer);
             indentingWriter.WriteLine("Type: {0}", this.Type.FullName);
-            indentingWriter.WriteLine("SharingBoundary: {0}", this.SharingBoundary);
+            indentingWriter.WriteLine("SharingBoundary: {0}", this.SharingBoundary.SpecifyIfNull());
             indentingWriter.WriteLine("CreationPolicy: {0}", this.CreationPolicy);
-            indentingWriter.WriteLine("OnImportsSatisfied: {0}", this.OnImportsSatisfied);
+            indentingWriter.WriteLine("OnImportsSatisfied: {0}", this.OnImportsSatisfied.SpecifyIfNull());
 
             indentingWriter.WriteLine("ExportedTypes:");
             using (indentingWriter.Indent())
             {
                 foreach (var item in this.ExportedTypes)
                 {
-                    item.ToString(indentingWriter);
+                    indentingWriter.WriteLine("ExportDefinition");
+                    using (indentingWriter.Indent())
+                    {
+                        item.ToString(indentingWriter);
+                    }
                 }
             }
 
@@ -216,12 +220,19 @@
                 }
             }
 
-            indentingWriter.WriteLine("ImportingConstructor:");
-            using (indentingWriter.Indent())
+            if (this.ImportingConstructor == null)
             {
-                foreach (var import in this.ImportingConstructor)
+                indentingWriter.WriteLine("ImportingConstructor: <null>");
+            }
+            else
+            {
+                indentingWriter.WriteLine("ImportingConstructor:");
+                using (indentingWriter.Indent())
                 {
-                    import.ToString(indentingWriter);
+                    foreach (var import in this.ImportingConstructor)
+                    {
+                        import.ToString(indentingWriter);
+                    }
                 }
             }
         }
