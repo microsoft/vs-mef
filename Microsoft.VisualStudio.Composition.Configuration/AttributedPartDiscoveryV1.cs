@@ -42,7 +42,7 @@
 
             var inheritedExportContractNamesFromNonInterfaces = ImmutableHashSet.CreateBuilder<string>();
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
-            var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
+            var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, ImmutableHashSet<ExportDefinition>>();
             var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
 
             foreach (var exportAttributes in partType.GetCustomAttributesByType<ExportAttribute>())
@@ -105,7 +105,7 @@
                 {
                     Verify.Operation(!partType.IsGenericTypeDefinition, "Exports on members not allowed when the declaring type is generic.");
                     var exportMetadataOnMember = allExportsMetadata.AddRange(GetExportMetadata(member.GetCustomAttributesCached()));
-                    var exportDefinitions = ImmutableList.Create<ExportDefinition>();
+                    var exportDefinitions = ImmutableHashSet.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
                         Type exportedType = exportAttribute.ContractType ?? propertyOrFieldType;
@@ -126,7 +126,7 @@
                 if (exportAttributes.Any())
                 {
                     var exportMetadataOnMember = allExportsMetadata.AddRange(GetExportMetadata(method.GetCustomAttributesCached()));
-                    var exportDefinitions = ImmutableList.Create<ExportDefinition>();
+                    var exportDefinitions = ImmutableHashSet.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
                         Type exportedType = exportAttribute.ContractType ?? ReflectionHelpers.GetContractTypeForDelegate(method);

@@ -151,10 +151,12 @@
                 return false;
             }
 
-            return this.ImportDefinition.Equals(other.ImportDefinition)
+            bool result = this.ImportDefinition.Equals(other.ImportDefinition)
                 && EqualityComparer<Type>.Default.Equals(this.ComposablePartType, other.ComposablePartType)
                 && EqualityComparer<MemberInfo>.Default.Equals(this.ImportingMember, other.ImportingMember)
                 && EqualityComparer<ParameterInfo>.Default.Equals(this.ImportingParameter, other.ImportingParameter);
+
+            return result;
         }
     }
 }

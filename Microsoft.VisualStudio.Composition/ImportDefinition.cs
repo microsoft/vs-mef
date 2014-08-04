@@ -91,8 +91,9 @@
                 return false;
             }
 
-            return this.ContractName == other.ContractName
+            bool result = this.ContractName == other.ContractName
                 && this.Cardinality == other.Cardinality;
+            return result;
         }
     }
 }

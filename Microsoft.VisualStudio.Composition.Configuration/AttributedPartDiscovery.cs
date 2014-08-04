@@ -57,7 +57,7 @@
             var allExportsMetadata = ImmutableDictionary.CreateRange(PartCreationPolicyConstraint.GetExportMetadata(partCreationPolicy));
 
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
-            var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
+            var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, ImmutableHashSet<ExportDefinition>>();
             var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
             var exportMetadataOnType = allExportsMetadata.AddRange(this.GetExportMetadata(partType.GetCustomAttributesCached()));
 
@@ -90,7 +90,7 @@
                 {
                     Verify.Operation(!partType.IsGenericTypeDefinition, "Exports on members not allowed when the declaring type is generic.");
                     var exportMetadataOnMember = allExportsMetadata.AddRange(this.GetExportMetadata(member.GetCustomAttributesCached()));
-                    var exportDefinitions = ImmutableList.Create<ExportDefinition>();
+                    var exportDefinitions = ImmutableHashSet.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
                         Type exportedType = exportAttribute.ContractType ?? ReflectionHelpers.GetMemberType(member);

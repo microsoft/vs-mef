@@ -37,8 +37,9 @@
 
         public bool Equals(ExportDefinition other)
         {
-            return this.ContractName == other.ContractName
+            bool result = this.ContractName == other.ContractName
                 && this.Metadata.EqualsByValue(other.Metadata);
+            return result;
         }
     }
 }

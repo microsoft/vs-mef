@@ -180,9 +180,10 @@
                 return false;
             }
 
-            // TODO: implement this.
-            return true;
-            throw new NotImplementedException();
+            // A catalog is just the sum of its parts. Anything else is a side-effect of how it was discovered,
+            // which shouldn't impact an equivalence check.
+            bool result = this.parts.SetEquals(other.parts);
+            return result;
         }
     }
 }

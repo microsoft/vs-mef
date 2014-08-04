@@ -10,7 +10,7 @@
     using System.Threading.Tasks;
     using Validation;
 
-    public class ExportDefinitionBinding
+    public class ExportDefinitionBinding : IEquatable<ExportDefinitionBinding>
     {
         public ExportDefinitionBinding(ExportDefinition exportDefinition, ComposablePartDefinition partDefinition, MemberInfo exportingMember)
         {
@@ -24,6 +24,10 @@
 
         public ExportDefinition ExportDefinition { get; private set; }
 
+        // TODO: remove this member, perhaps in favor of just a property of type System.Type,
+        // so that ComposablePartDefinition can contain a collection of ExportDefinitionBinding
+        // instead of just ExportDefinition in a dictionary.
+        // This would make it parallel to ImportDefinitionBinding.
         public ComposablePartDefinition PartDefinition { get; private set; }
 
         /// <summary>
@@ -58,6 +62,30 @@
                 new ExportDefinition(this.ExportDefinition.ContractName, updatedMetadata),
                 this.PartDefinition,
                 this.ExportingMember);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as ExportDefinitionBinding);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = this.PartDefinition.Type.GetHashCode();
+            if (this.ExportingMember != null)
+            {
+                hashCode += this.ExportingMember.GetHashCode();
+            }
+
+            return hashCode;
+        }
+
+        public bool Equals(ExportDefinitionBinding other)
+        {
+            bool result = this.PartDefinition.Type == other.PartDefinition.Type
+                && this.ExportDefinition.Equals(other.ExportDefinition)
+                && this.ExportingMember == other.ExportingMember;
+            return result;
         }
     }
 }
