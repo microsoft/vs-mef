@@ -187,6 +187,17 @@
             return result;
         }
 
+        public override int GetHashCode()
+        {
+            int hashCode = this.Parts.Count;
+            foreach (var part in this.Parts)
+            {
+                hashCode += part.GetHashCode();
+            }
+
+            return hashCode;
+        }
+
         public void ToString(TextWriter writer)
         {
             var indentingWriter = IndentingTextWriter.Get(writer);

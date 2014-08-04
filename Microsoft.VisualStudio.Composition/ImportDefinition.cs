@@ -114,7 +114,7 @@
             indentingWriter.WriteLine("ExportConstraints: ");
             using (indentingWriter.Indent())
             {
-                foreach (var item in this.ExportConstraints)
+                foreach (var item in this.ExportConstraints.OrderBy(ec => ec.GetType().Name))
                 {
                     indentingWriter.WriteLine(item.GetType().Name);
                     using (indentingWriter.Indent())

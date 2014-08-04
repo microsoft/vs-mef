@@ -185,7 +185,7 @@
             indentingWriter.WriteLine("ExportedTypes:");
             using (indentingWriter.Indent())
             {
-                foreach (var item in this.ExportedTypes)
+                foreach (var item in this.ExportedTypes.OrderBy(et => et.ContractName))
                 {
                     indentingWriter.WriteLine("ExportDefinition");
                     using (indentingWriter.Indent())

@@ -33,6 +33,7 @@
         private class CollectionIgnoreOrder<T> : IEqualityComparer<IReadOnlyCollection<T>>
         {
             internal static readonly CollectionIgnoreOrder<T> Default = new CollectionIgnoreOrder<T>();
+
             private CollectionIgnoreOrder() { }
 
             protected virtual IEqualityComparer<T> ValueComparer
@@ -118,11 +119,6 @@
                 }
             }
 
-            protected virtual IEqualityComparer<TValue> ValueComparer
-            {
-                get { return EqualityComparer<TValue>.Default; }
-            }
-
             public bool Equals(IReadOnlyDictionary<TKey, TValue> x, IReadOnlyDictionary<TKey, TValue> y)
             {
                 if (x.Count != y.Count)
@@ -130,7 +126,6 @@
                     return false;
                 }
 
-                IEqualityComparer<TValue> valueComparer = this.ValueComparer;
                 foreach (var pair in x)
                 {
                     TValue otherValue;
@@ -139,7 +134,7 @@
                         return false;
                     }
 
-                    if (!valueComparer.Equals(pair.Value, otherValue))
+                    if (!this.valueComparer.Equals(pair.Value, otherValue))
                     {
                         return false;
                     }
@@ -183,10 +178,8 @@
         {
             new internal static readonly DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue> Default = new DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue>();
 
-            protected override IEqualityComparer<ImmutableHashSet<TValue>> ValueComparer
-            {
-                get { return SetEqualityComparer.Default; }
-            }
+            protected DictionaryOfImmutableHashSetEqualityComparer()
+                : base(SetEqualityComparer.Default) { }
 
             private class SetEqualityComparer : IEqualityComparer<ImmutableHashSet<TValue>>
             {

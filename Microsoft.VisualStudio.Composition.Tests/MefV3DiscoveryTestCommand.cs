@@ -66,6 +66,7 @@
                         return writer.ToString();
                     }).ToArray();
 
+                bool anyStringRepresentationDifferences = false;
                 for (int i = 1; i < resultingCatalogs.Count; i++)
                 {
                     var d = new Differ();
@@ -92,7 +93,8 @@
                             Console.WriteLine(line.Text);
                         }
 
-                        ////Assert.False(true, "Catalogs not equivalent");
+                        anyStringRepresentationDifferences = true;
+                        ////Assert.False(anyStringRepresentationDifferences, "Catalogs not equivalent");
                     }
                 }
 
@@ -100,6 +102,9 @@
                 // The string compare above should have taken care of this (in a more descriptive way),
                 // but we do this to double-check.
                 var uniqueCatalogs = resultingCatalogs.Distinct().ToArray();
+
+                // Fail the test if ComposableCatalog.Equals returns a different result from string comparison.
+                Assert.Equal(anyStringRepresentationDifferences, uniqueCatalogs.Length > 1);
 
                 if (uniqueCatalogs.Length == 1)
                 {
