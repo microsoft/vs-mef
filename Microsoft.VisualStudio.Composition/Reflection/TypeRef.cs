@@ -106,7 +106,7 @@
 
         public bool Equals(TypeRef other)
         {
-            return AssemblyNameEqual(this.AssemblyName, other.AssemblyName)
+            return ByValueEquality.AssemblyName.Equals(this.AssemblyName, other.AssemblyName)
                 && this.MetadataToken == other.MetadataToken
                 && this.GenericTypeParameterCount == other.GenericTypeParameterCount
                 && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments);
@@ -115,32 +115,6 @@
         public bool Equals(Type other)
         {
             return this.Equals(TypeRef.Get(other));
-        }
-
-        private static bool AssemblyNameEqual(AssemblyName first, AssemblyName second)
-        {
-            if (first == null ^ second == null)
-            {
-                return false;
-            }
-
-            if (first == null)
-            {
-                return true;
-            }
-
-            // fast path
-            if (first.CodeBase == second.CodeBase)
-            {
-                return true;
-            }
-
-            // Testing on FullName is horrifically slow.
-            // So test directly on its components instead.
-            return first.Name == second.Name
-                && first.Version.Equals(second.Version)
-                && first.CultureName.Equals(second.CultureName)
-                && ByValueEquality.Buffer.Equals(first.GetPublicKey(), second.GetPublicKey());
         }
     }
 }

@@ -11,6 +11,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
+    using Xunit;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
     using MefV1 = System.ComponentModel.Composition;
 
@@ -33,15 +34,17 @@
 
             if (runtime)
             {
-                const bool serializeRoundtrip = false;
-                if (serializeRoundtrip)
-                {
-                    return CacheAndReloadConfiguration(configuration, new CachedComposition()).GetAwaiter().GetResult().CreateExportProvider();
-                }
-                else
-                {
-                    return configuration.CreateExportProviderFactory().CreateExportProvider();
-                }
+                var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
+
+                // Round-trip serialization to make sure the result is equivalent.
+                var cacheManager = new CachedComposition();
+                var ms = new MemoryStream();
+                cacheManager.SaveAsync(runtimeComposition, ms).GetAwaiter().GetResult();
+                ms.Position = 0;
+                var deserializedRuntimeComposition = cacheManager.LoadRuntimeCompositionAsync(ms).GetAwaiter().GetResult();
+                Assert.Equal(runtimeComposition, deserializedRuntimeComposition);
+
+                return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();
             }
             else
             {

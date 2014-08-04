@@ -11,9 +11,9 @@
     using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
-    public class RuntimeComposition
+    public class RuntimeComposition : IEquatable<RuntimeComposition>
     {
-        private readonly IReadOnlyCollection<RuntimePart> parts;
+        private readonly ImmutableHashSet<RuntimePart> parts;
         private readonly IReadOnlyDictionary<TypeRef, RuntimePart> partsByType;
         private readonly IReadOnlyDictionary<string, IReadOnlyCollection<RuntimeExport>> exportsByContractName;
 
@@ -54,6 +54,11 @@
             return new RuntimeComposition(parts);
         }
 
+        public IExportProviderFactory CreateExportProviderFactory()
+        {
+            return new RuntimeExportProviderFactory(this);
+        }
+
         public IReadOnlyCollection<RuntimeExport> GetExports(string contractName)
         {
             IReadOnlyCollection<RuntimeExport> exports;
@@ -68,6 +73,32 @@
         public RuntimePart GetPart(RuntimeExport export)
         {
             return this.partsByType[export.DeclaringType];
+        }
+
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as RuntimeComposition);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = this.parts.Count;
+            foreach (var part in this.parts)
+            {
+                hashCode += part.GetHashCode();
+            }
+
+            return hashCode;
+        }
+
+        public bool Equals(RuntimeComposition other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            return this.parts.SetEquals(other.parts);
         }
 
         private static RuntimePart CreateRuntimePart(ComposedPart part, CompositionConfiguration configuration)
@@ -127,7 +158,7 @@
                 exportDefinition.Metadata);
         }
 
-        public class RuntimePart
+        public class RuntimePart : IEquatable<RuntimePart>
         {
             public RuntimePart(
                 TypeRef type,
@@ -170,9 +201,36 @@
             {
                 get { return !this.ImportingConstructor.IsEmpty; }
             }
+
+            public override bool Equals(object obj)
+            {
+                return this.Equals(obj as RuntimePart);
+            }
+
+            public override int GetHashCode()
+            {
+                return this.Type.GetHashCode();
+            }
+
+            public bool Equals(RuntimePart other)
+            {
+                if (other == null)
+                {
+                    return false;
+                }
+
+                bool result = this.Type.Equals(other.Type)
+                    && this.ImportingConstructor.Equals(other.ImportingConstructor)
+                    && this.ImportingConstructorArguments.SequenceEqual(other.ImportingConstructorArguments)
+                    && ByValueEquality.EquivalentIgnoreOrder<RuntimeImport>().Equals(this.ImportingMembers, other.ImportingMembers)
+                    && ByValueEquality.EquivalentIgnoreOrder<RuntimeExport>().Equals(this.Exports, other.Exports)
+                    && this.OnImportsSatisfied.Equals(other.OnImportsSatisfied)
+                    && this.SharingBoundary == other.SharingBoundary;
+                return result;
+            }
         }
 
-        public class RuntimeImport
+        public class RuntimeImport : IEquatable<RuntimeImport>
         {
             private RuntimeImport(ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, IReadOnlyDictionary<string, object> metadata, TypeRef exportFactory, IReadOnlyCollection<string> exportFactorySharingBoundaries)
             {
@@ -210,7 +268,7 @@
 
             public ImportCardinality Cardinality { get; private set; }
 
-            public IReadOnlyList<RuntimeExport> SatisfyingExports { get; private set; }
+            public IReadOnlyCollection<RuntimeExport> SatisfyingExports { get; private set; }
 
             public bool IsNonSharedInstanceRequired { get; private set; }
 
@@ -287,6 +345,34 @@
                         this.ImportingParameterRef.Resolve().Member.DeclaringType;
                 }
             }
+
+            public override int GetHashCode()
+            {
+                return this.ImportingMemberRef.GetHashCode();
+            }
+
+            public override bool Equals(object obj)
+            {
+                return this.Equals(obj as RuntimeImport);
+            }
+
+            public bool Equals(RuntimeImport other)
+            {
+                if (other == null)
+                {
+                    return false;
+                }
+
+                bool result = this.Cardinality == other.Cardinality
+                    && ByValueEquality.EquivalentIgnoreOrder<RuntimeExport>().Equals(this.SatisfyingExports, other.SatisfyingExports)
+                    && this.IsNonSharedInstanceRequired == other.IsNonSharedInstanceRequired
+                    && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata)
+                    && EqualityComparer<TypeRef>.Default.Equals(this.ExportFactory, other.ExportFactory)
+                    && ByValueEquality.EquivalentIgnoreOrder<string>().Equals(this.ExportFactorySharingBoundaries, other.ExportFactorySharingBoundaries)
+                    && this.ImportingMemberRef.Equals(other.ImportingMemberRef)
+                    && this.ImportingParameterRef.Equals(other.ImportingParameterRef);
+                return result;
+            }
         }
 
         public class RuntimeExport : IEquatable<RuntimeExport>
@@ -330,11 +416,12 @@
                     return false;
                 }
 
-                return this.ContractName == other.ContractName
+                bool result = this.ContractName == other.ContractName
                     && EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType)
                     && EqualityComparer<MemberRef>.Default.Equals(this.Member, other.Member)
                     && EqualityComparer<TypeRef>.Default.Equals(this.ExportedValueType, other.ExportedValueType)
-                    && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata);
+                    && ByValueEquality.Metadata.Equals(LazyMetadataWrapper.TryUnwrap(this.Metadata), LazyMetadataWrapper.TryUnwrap(other.Metadata));
+                return result;
             }
         }
     }

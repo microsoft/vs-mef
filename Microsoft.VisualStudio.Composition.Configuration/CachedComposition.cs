@@ -16,7 +16,7 @@
     using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
-    public class CachedComposition : ICompositionCacheManager
+    public class CachedComposition : ICompositionCacheManager, IRuntimeCompositionCacheManager
     {
         private static readonly Encoding TextEncoding = Encoding.UTF8;
 
@@ -26,34 +26,52 @@
             Requires.NotNull(cacheStream, "cacheStream");
             Requires.Argument(cacheStream.CanWrite, "cacheStream", "Writable stream required.");
 
-            return Task.Run(() =>
+            return Task.Run(async delegate
             {
                 var compositionRuntime = RuntimeComposition.CreateRuntimeComposition(configuration);
 
+                await this.SaveAsync(compositionRuntime, cacheStream, cancellationToken);
+            });
+        }
+
+        public Task SaveAsync(RuntimeComposition composition, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Requires.NotNull(composition, "composition");
+            Requires.NotNull(cacheStream, "cacheStream");
+            Requires.Argument(cacheStream.CanWrite, "cacheStream", "Writable stream required.");
+
+            return Task.Run(() =>
+            {
                 using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
                 {
                     Debug.WriteLine("Start serialization of MEF cache file.");
                     var context = new SerializationContext(writer);
-                    context.Write(compositionRuntime);
+                    context.Write(composition);
                 }
             });
         }
 
-        public Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<RuntimeComposition> LoadRuntimeCompositionAsync(Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(cacheStream, "cacheStream");
             Requires.Argument(cacheStream.CanRead, "cacheStream", "Readable stream required.");
 
-            return Task.Run<IExportProviderFactory>(() =>
+            return Task.Run(() =>
             {
                 using (var reader = new BinaryReader(cacheStream, TextEncoding, leaveOpen: true))
                 {
                     Debug.WriteLine("Start deserialization of MEF cache file.");
                     var context = new SerializationContext(reader);
                     var runtimeComposition = context.ReadRuntimeComposition();
-                    return new RuntimeExportProviderFactory(runtimeComposition);
+                    return runtimeComposition;
                 }
             });
+        }
+
+        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, cancellationToken);
+            return runtimeComposition.CreateExportProviderFactory();
         }
 
         private class SerializationContext

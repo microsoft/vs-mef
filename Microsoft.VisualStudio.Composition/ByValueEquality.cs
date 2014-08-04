@@ -4,8 +4,10 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
     internal static class ByValueEquality
@@ -33,6 +35,11 @@
         internal static IEqualityComparer<IReadOnlyCollection<T>> EquivalentIgnoreOrder<T>()
         {
             return CollectionIgnoreOrder<T>.Default;
+        }
+
+        internal static IEqualityComparer<AssemblyName> AssemblyName
+        {
+            get { return AssemblyNameComparer.Default; }
         }
 
         private class BufferComparer : IEqualityComparer<byte[]>
@@ -205,6 +212,9 @@
         {
             new internal static readonly MetadataDictionaryEqualityComparer Default = new MetadataDictionaryEqualityComparer();
 
+            protected MetadataDictionaryEqualityComparer()
+                : base(MetadataValueComparer.Default) { }
+
             public override int GetHashCode(IReadOnlyDictionary<string, object> obj)
             {
                 // We don't want to hash the entire contents. So just look for one key that tends to be on most
@@ -217,6 +227,98 @@
 
                 // We can't do any better without hashing the entire dictionary.
                 return 1;
+            }
+
+            private class MetadataValueComparer : IEqualityComparer<object>
+            {
+                internal static readonly MetadataValueComparer Default = new MetadataValueComparer();
+
+                private MetadataValueComparer() { }
+
+                public new bool Equals(object x, object y)
+                {
+                    if (x == y)
+                    {
+                        return true;
+                    }
+
+                    if (x == null ^ y == null)
+                    {
+                        return false;
+                    }
+
+                    if (IsTypeRelated(x.GetType()) && IsTypeRelated(y.GetType()))
+                    {
+                        if (x.GetType().IsArray && y.GetType().IsArray)
+                        {
+                            return ArrayEquals((Array)x, (Array)y, GetTypeRef);
+                        }
+                        else if (!x.GetType().IsArray && !y.GetType().IsArray)
+                        {
+                            return GetTypeRef(x).Equals(GetTypeRef(y));
+                        }
+                        else
+                        {
+                            return false;
+                        }
+                    }
+
+                    if (x.GetType() != y.GetType())
+                    {
+                        // Whitelist Type[] and RuntimeType[] arrays as equivalent.
+                        if (!(x.GetType().IsArray && y.GetType().IsArray &&
+                            typeof(Type).IsAssignableFrom(x.GetType().GetElementType()) &&
+                            typeof(Type).IsAssignableFrom(y.GetType().GetElementType())))
+                        {
+                            return false;
+                        }
+                    }
+
+                    if (x.GetType().IsArray)
+                    {
+                        return ArrayEquals((Array)x, (Array)y, v => v);
+                    }
+                    else
+                    {
+                        return x.Equals(y);
+                    }
+                }
+
+                private static bool ArrayEquals(Array xArray, Array yArray, Func<object, object> translator)
+                {
+                    if (xArray.Length != yArray.Length)
+                    {
+                        return false;
+                    }
+
+                    for (int i = 0; i < xArray.Length; i++)
+                    {
+                        if (!EqualityComparer<object>.Default.Equals(translator(xArray.GetValue(i)), translator(yArray.GetValue(i))))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
+                }
+
+                public int GetHashCode(object obj)
+                {
+                    throw new NotImplementedException();
+                }
+
+                private static bool IsTypeRelated(Type type)
+                {
+                    Requires.NotNull(type, "type");
+                    return typeof(Type).IsAssignableFrom(type)
+                        || typeof(Reflection.TypeRef).IsAssignableFrom(type)
+                        || (type.IsArray && IsTypeRelated(type.GetElementType()));
+                }
+
+                private static TypeRef GetTypeRef(object type1)
+                {
+                    return type1 as TypeRef ?? TypeRef.Get((Type)type1);
+                }
             }
         }
 
@@ -252,6 +354,44 @@
                 {
                     return obj.Count;
                 }
+            }
+        }
+
+        private class AssemblyNameComparer : IEqualityComparer<AssemblyName>
+        {
+            internal static readonly AssemblyNameComparer Default = new AssemblyNameComparer();
+
+            internal AssemblyNameComparer() { }
+
+            public bool Equals(AssemblyName x, AssemblyName y)
+            {
+                if (x == null ^ y == null)
+                {
+                    return false;
+                }
+
+                if (x == null)
+                {
+                    return true;
+                }
+
+                // fast path
+                if (x.CodeBase == y.CodeBase)
+                {
+                    return true;
+                }
+
+                // Testing on FullName is horrifically slow.
+                // So test directly on its components instead.
+                return x.Name == y.Name
+                    && x.Version.Equals(y.Version)
+                    && x.CultureName.Equals(y.CultureName)
+                    && ByValueEquality.Buffer.Equals(x.GetPublicKey(), y.GetPublicKey());
+            }
+
+            public int GetHashCode(AssemblyName obj)
+            {
+                return obj.Name.GetHashCode();
             }
         }
     }

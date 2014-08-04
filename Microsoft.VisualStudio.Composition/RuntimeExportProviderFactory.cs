@@ -146,10 +146,11 @@
                         Array array = Array.CreateInstance(import.ImportingSiteTypeWithoutCollection, exports.Count);
                         using (var intArray = ArrayRental<int>.Get(1))
                         {
-                            for (int i = 0; i < exports.Count; i++)
+                            int i = 0;
+                            foreach (var export in exports)
                             {
-                                intArray.Value[0] = i;
-                                array.SetValue(this.GetValueForImportElement(part, import, exports[i], provisionalSharedObjects), intArray.Value);
+                                intArray.Value[0] = i++;
+                                array.SetValue(this.GetValueForImportElement(part, import, export, provisionalSharedObjects), intArray.Value);
                             }
                         }
 
@@ -197,9 +198,9 @@
                             collectionAccessor.Clear();
                         }
 
-                        for (int i = 0; i < exports.Count; i++)
+                        foreach (var export in exports)
                         {
-                            collectionAccessor.Add(this.GetValueForImportElement(part, import, exports[i], provisionalSharedObjects));
+                            collectionAccessor.Add(this.GetValueForImportElement(part, import, export, provisionalSharedObjects));
                         }
 
                         return new ValueForImportSite(); // signal caller should not set value again.
