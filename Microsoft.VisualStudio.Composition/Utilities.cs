@@ -1,12 +1,13 @@
 ﻿namespace Microsoft.VisualStudio.Composition
 {
     using System;
-    using System.Collections.Generic;
-    using System.Collections.Immutable;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using Validation;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Validation;
 
     internal static class Utilities
     {
@@ -92,6 +93,56 @@
             }
 
             return false;
+        }
+
+        internal static bool EqualsByValue<T>(this ImmutableArray<T> array, ImmutableArray<T> other) 
+            where T : IEquatable<T>
+        {
+            if (array.Length != other.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < array.Length; i++)
+            {
+                if (!array[i].Equals(other[i])) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        internal static void ToString(this IReadOnlyDictionary<string, object> metadata, IndentingTextWriter writer)
+        {
+            Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(writer, "writer");
+
+            foreach (var item in metadata)
+            {
+                writer.WriteLine("{0} = {1}", item.Key, item.Value);
+            }
+        }
+
+        internal static void ToString(this object value, TextWriter writer)
+        {
+            Requires.NotNull(value, "value");
+            Requires.NotNull(writer, "writer");
+
+            var descriptiveValue = value as IDescriptiveToString;
+            if (descriptiveValue != null)
+            {
+                descriptiveValue.ToString(writer);
+            }
+            else
+            {
+                writer.WriteLine(value);
+            }
+        }
+
+        internal static object SpecifyIfNull(this object value)
+        {
+            return value == null ? "<null>" : value;
         }
     }
 }

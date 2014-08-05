@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -37,8 +38,23 @@
 
         public bool Equals(ExportDefinition other)
         {
-            return this.ContractName == other.ContractName
+            bool result = this.ContractName == other.ContractName
                 && this.Metadata.EqualsByValue(other.Metadata);
+            return result;
+        }
+
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+            indentingWriter.WriteLine("ContractName: {0}", this.ContractName);
+            indentingWriter.WriteLine("Metadata:");
+            using (indentingWriter.Indent())
+            {
+                foreach (var item in this.Metadata)
+                {
+                    indentingWriter.WriteLine("{0} = {1}", item.Key, item.Value);
+                }
+            }
         }
     }
 }

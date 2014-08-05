@@ -28,6 +28,7 @@
             Requires.NotNull(parts, "parts");
 
             this.parts = parts;
+            this.assemblies = ImmutableList<string>.Empty;
         }
 
         public MefFactAttribute(CompositionEngines compositionVersions, string newLineSeparatedAssemblyNames, params Type[] parts)
@@ -64,20 +65,36 @@
                 parts = GetNestedTypesRecursively(method.Class.Type).Where(t => (!t.IsAbstract || t.IsSealed) && !t.IsInterface).ToArray();
             }
 
-            foreach (var engine in new[] { CompositionEngines.V1, CompositionEngines.V2, CompositionEngines.V3EmulatingV1, CompositionEngines.V3EmulatingV2, CompositionEngines.V3EmulatingV1AndV2AtOnce })
+            if (this.compositionVersions.HasFlag(CompositionEngines.V1))
             {
-                if (this.compositionVersions.HasFlag(engine))
-                {
-                    yield return new MefTestCommand(method, engine | (this.compositionVersions & CompositionEngines.V3OptionsMask), parts, this.assemblies, this.InvalidConfiguration);
-                }
+                yield return new MefTestCommand(method, CompositionEngines.V1, parts, this.assemblies, this.InvalidConfiguration);
             }
 
-            if (!this.NoCompatGoal)
+            if (this.compositionVersions.HasFlag(CompositionEngines.V2))
             {
-                // Call out that we're *not* testing V3 functionality for this test.
-                if ((this.compositionVersions & (CompositionEngines.V3EmulatingV2 | CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV1AndV2AtOnce)) == CompositionEngines.Unspecified)
+                yield return new MefTestCommand(method, CompositionEngines.V2, parts, this.assemblies, this.InvalidConfiguration);
+            }
+
+            if ((this.compositionVersions & CompositionEngines.V3EnginesMask) == CompositionEngines.Unspecified)
+            {
+                if (!this.NoCompatGoal)
                 {
+                    // Call out that we're *not* testing V3 functionality for this test.
                     yield return new SkipCommand(method, MethodUtility.GetDisplayName(method) + "V3", "Test does not include V3 test.");
+                }
+            }
+            else
+            {
+                var v3DiscoveryTest = new MefV3DiscoveryTestCommand(method, this.compositionVersions, parts ?? new Type[0], this.assemblies ?? ImmutableList<string>.Empty, this.InvalidConfiguration);
+                yield return v3DiscoveryTest;
+
+                if (v3DiscoveryTest.Result is PassedResult && !this.InvalidConfiguration)
+                {
+                    foreach (var configuration in v3DiscoveryTest.ResultingConfigurations)
+                    {
+                        yield return new Mef3TestCommand(method, configuration, this.compositionVersions, runtime: false);
+                        yield return new Mef3TestCommand(method, configuration, this.compositionVersions, runtime: true);
+                    }
                 }
             }
         }

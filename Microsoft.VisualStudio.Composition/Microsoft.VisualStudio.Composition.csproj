@@ -2,7 +2,6 @@
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="Globals">
     <DevDivProjectType>Product</DevDivProjectType>
-    <DevDivProjectSubType>Portable</DevDivProjectSubType>
   </PropertyGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), EnlistmentInfo.props))\EnlistmentInfo.props" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), EnlistmentInfo.props))' != '' " />
   <PropertyGroup>
@@ -44,6 +43,7 @@
       <HintPath>$(DepotRoot)\packages\Microsoft.Bcl.Immutable.1.1.20-beta\lib\portable-net45+win8\System.Collections.Immutable.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Composition.AttributedModel, Version=1.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(DepotRoot)\packages\Microsoft.Composition.1.0.20\lib\portable-net45+win8\System.Composition.AttributedModel.dll</HintPath>
@@ -80,11 +80,13 @@
     <ModuleReference Include="Microsoft.VisualStudio.Validation" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ByValueEquality.cs" />
     <Compile Include="ComposableCatalog.cs" />
     <Compile Include="ComposedPart.cs" />
     <Compile Include="ComposedPartDiagnostic.cs" />
     <Compile Include="CompositionConstants.cs" />
     <Compile Include="CompositionFailedException.cs" />
+    <Compile Include="CompressedUInt.cs" />
     <Compile Include="ContractNameServices.cs" />
     <Compile Include="CreationPolicy.cs" />
     <Compile Include="DelegatingExportProvider.cs" />
@@ -96,6 +98,9 @@
     <Compile Include="Export.cs" />
     <Compile Include="ExportTypeIdentityConstraint.cs" />
     <Compile Include="IAssemblyLoader.cs" />
+    <Compile Include="IRuntimeCompositionCacheManager.cs" />
+    <Compile Include="ICompositionCacheManager.cs" />
+    <Compile Include="IDescriptiveToString.cs" />
     <Compile Include="IHasValueAndMetadata.cs" />
     <Compile Include="IMetadataViewProvider.cs" />
     <Compile Include="ImportMetadataViewConstraint.cs" />
@@ -106,6 +111,8 @@
     <Compile Include="ImportDefinitionBinding.cs" />
     <Compile Include="ImportCardinality.cs" />
     <Compile Include="ExportMetadataValueImportConstraint.cs" />
+    <Compile Include="IndentingTextWriter.cs" />
+    <Compile Include="LazyMetadataWrapper.cs" />
     <Compile Include="LazyPart.cs" />
     <Compile Include="LazyPart`2.cs" />
     <Compile Include="LazyPart`1.cs" />
@@ -119,6 +126,22 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReflectionCache.cs" />
     <Compile Include="ReflectionHelpers.cs" />
+    <Compile Include="Reflection\ConstructorDesc.cs" />
+    <Compile Include="Reflection\ConstructorRef.cs" />
+    <Compile Include="Reflection\FieldDesc.cs" />
+    <Compile Include="Reflection\FieldRef.cs" />
+    <Compile Include="Reflection\MemberDesc.cs" />
+    <Compile Include="Reflection\MemberRef.cs" />
+    <Compile Include="Reflection\MethodDesc.cs" />
+    <Compile Include="Reflection\MethodRef.cs" />
+    <Compile Include="Reflection\ParameterRef.cs" />
+    <Compile Include="Reflection\PropertyDesc.cs" />
+    <Compile Include="Reflection\PropertyRef.cs" />
+    <Compile Include="Reflection\Resolver.cs" />
+    <Compile Include="Reflection\TypeDesc.cs" />
+    <Compile Include="Reflection\TypeRef.cs" />
+    <Compile Include="RuntimeComposition.cs" />
+    <Compile Include="RuntimeExportProviderFactory.cs" />
     <Compile Include="UniquePropertyNameComparer.cs" />
     <Compile Include="Utilities.cs" />
   </ItemGroup>

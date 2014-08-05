@@ -698,5 +698,115 @@
             [MefV1.Import]
             public Lazy<ExportWithBoolMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
         }
+
+        #region Exhaustive metatadata value types testing
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartThatImportsPartWithExhaustiveMetadataValueTypes), typeof(PartWithExhaustiveMetadataValueTypes))]
+        public void ExhaustiveMetadataValueTypes(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<PartThatImportsPartWithExhaustiveMetadataValueTypes>();
+            var export = importingPart.ImportingProperty;
+
+            // allowed types
+            Assert.Equal(true, (bool)export.Metadata["bool"]);
+            Assert.Equal(byte.MaxValue, (byte)export.Metadata["byte"]);
+            Assert.Equal('a', (char)export.Metadata["char"]);
+            Assert.Equal((double)5, (double)export.Metadata["double"]);
+            Assert.Equal(double.MaxValue, (double)export.Metadata["doubleMax"]);
+            Assert.Equal(double.MinValue, (double)export.Metadata["doubleMin"]);
+            Assert.Equal((float)5, (float)export.Metadata["float"]);
+            Assert.Equal(float.MaxValue, (float)export.Metadata["floatMax"]);
+            Assert.Equal(float.MinValue, (float)export.Metadata["floatMin"]);
+            Assert.Equal(int.MaxValue, (int)export.Metadata["int"]);
+            Assert.Equal(long.MaxValue, (long)export.Metadata["long"]);
+            Assert.Equal(sbyte.MaxValue, (sbyte)export.Metadata["sbyte"]);
+            Assert.Equal(short.MaxValue, (short)export.Metadata["short"]);
+            Assert.Equal("value", (string)export.Metadata["string"]);
+            Assert.Equal(uint.MaxValue, (uint)export.Metadata["uint"]);
+            Assert.Equal(ulong.MaxValue, (ulong)export.Metadata["ulong"]);
+            Assert.Equal(ushort.MaxValue, (ushort)export.Metadata["ushort"]);
+            Assert.Equal(typeof(string), (Type)export.Metadata["type"]);
+            Assert.Equal(CreationPolicy.NonShared, (CreationPolicy)export.Metadata["enum"]);
+
+            // arrays of allowed types
+            Assert.Equal(new [] { true }, (bool[])export.Metadata["array_bool"]);
+            Assert.Equal(new [] { byte.MaxValue }, (byte[])export.Metadata["array_byte"]);
+            Assert.Equal(new [] { 'a' }, (char[])export.Metadata["array_char"]);
+            Assert.Equal(new [] { (double)5 }, (double[])export.Metadata["array_double"]);
+            Assert.Equal(new [] { double.MaxValue }, (double[])export.Metadata["array_doubleMax"]);
+            Assert.Equal(new [] { double.MinValue }, (double[])export.Metadata["array_doubleMin"]);
+            Assert.Equal(new [] { (float)5 }, (float[])export.Metadata["array_float"]);
+            Assert.Equal(new [] { float.MaxValue }, (float[])export.Metadata["array_floatMax"]);
+            Assert.Equal(new [] { float.MinValue }, (float[])export.Metadata["array_floatMin"]);
+            Assert.Equal(new [] { int.MaxValue }, (int[])export.Metadata["array_int"]);
+            Assert.Equal(new [] { long.MaxValue }, (long[])export.Metadata["array_long"]);
+            Assert.Equal(new [] { sbyte.MaxValue }, (sbyte[])export.Metadata["array_sbyte"]);
+            Assert.Equal(new [] { short.MaxValue }, (short[])export.Metadata["array_short"]);
+            Assert.Equal(new [] { "value" }, (string[])export.Metadata["array_string"]);
+            Assert.Equal(new [] { uint.MaxValue }, (uint[])export.Metadata["array_uint"]);
+            Assert.Equal(new [] { ulong.MaxValue }, (ulong[])export.Metadata["array_ulong"]);
+            Assert.Equal(new [] { ushort.MaxValue }, (ushort[])export.Metadata["array_ushort"]);
+            Assert.Equal(new [] { typeof(string) }, (Type[])export.Metadata["array_type"]);
+            Assert.Equal(new [] { CreationPolicy.NonShared }, (CreationPolicy[])export.Metadata["array_enum"]);
+        }
+
+        /// <summary>
+        /// A MEF part with metadata of all types allowed by MEFv1.
+        /// </summary>
+        /// <remarks>
+        /// System.ComponentModel.Composition limits metadata value types to just those found in
+        /// the C# language specification 17.1.3.
+        /// </remarks>
+        [Export, MefV1.Export]
+        // allowed types
+        [ExportMetadata("bool", true), MefV1.ExportMetadata("bool", true)]
+        [ExportMetadata("byte", byte.MaxValue), MefV1.ExportMetadata("byte", byte.MaxValue)]
+        [ExportMetadata("char", 'a'), MefV1.ExportMetadata("char", 'a')]
+        [ExportMetadata("double", (double)5), MefV1.ExportMetadata("double", (double)5)]
+        [ExportMetadata("doubleMax", double.MaxValue), MefV1.ExportMetadata("doubleMax", double.MaxValue)]
+        [ExportMetadata("doubleMin", double.MinValue), MefV1.ExportMetadata("doubleMin", double.MinValue)]
+        [ExportMetadata("float", (float)5), MefV1.ExportMetadata("float", (float)5)]
+        [ExportMetadata("floatMax", float.MaxValue), MefV1.ExportMetadata("floatMax", float.MaxValue)]
+        [ExportMetadata("floatMin", float.MinValue), MefV1.ExportMetadata("floatMin", float.MinValue)]
+        [ExportMetadata("int", int.MaxValue), MefV1.ExportMetadata("int", int.MaxValue)]
+        [ExportMetadata("long", long.MaxValue), MefV1.ExportMetadata("long", long.MaxValue)]
+        [ExportMetadata("sbyte", sbyte.MaxValue), MefV1.ExportMetadata("sbyte", sbyte.MaxValue)]
+        [ExportMetadata("short", short.MaxValue), MefV1.ExportMetadata("short", short.MaxValue)]
+        [ExportMetadata("string", "value"), MefV1.ExportMetadata("string", "value")]
+        [ExportMetadata("uint", uint.MaxValue), MefV1.ExportMetadata("uint", uint.MaxValue)]
+        [ExportMetadata("ulong", ulong.MaxValue), MefV1.ExportMetadata("ulong", ulong.MaxValue)]
+        [ExportMetadata("ushort", ushort.MaxValue), MefV1.ExportMetadata("ushort", ushort.MaxValue)]
+        [ExportMetadata("type", typeof(string)), MefV1.ExportMetadata("type", typeof(string))]
+        [ExportMetadata("enum", CreationPolicy.NonShared), MefV1.ExportMetadata("enum", CreationPolicy.NonShared)]
+        // arrays of allowed types
+        [ExportMetadata("array_bool", new[] { true }), MefV1.ExportMetadata("array_bool", new[] { true })]
+        [ExportMetadata("array_byte", new[] { byte.MaxValue }), MefV1.ExportMetadata("array_byte", new[] { byte.MaxValue })]
+        [ExportMetadata("array_char", new[] { 'a' }), MefV1.ExportMetadata("array_char", new[] { 'a' })]
+        [ExportMetadata("array_double", new[] { (double)5 }), MefV1.ExportMetadata("array_double", new[] { (double)5 })]
+        [ExportMetadata("array_doubleMax", new[] { double.MaxValue }), MefV1.ExportMetadata("array_doubleMax", new[] { double.MaxValue })]
+        [ExportMetadata("array_doubleMin", new[] { double.MinValue }), MefV1.ExportMetadata("array_doubleMin", new[] { double.MinValue })]
+        [ExportMetadata("array_float", new[] { (float)5 }), MefV1.ExportMetadata("array_float", new[] { (float)5 })]
+        [ExportMetadata("array_floatMax", new[] { float.MaxValue }), MefV1.ExportMetadata("array_floatMax", new[] { float.MaxValue })]
+        [ExportMetadata("array_floatMin", new[] { float.MinValue }), MefV1.ExportMetadata("array_floatMin", new[] { float.MinValue })]
+        [ExportMetadata("array_int", new[] { int.MaxValue }), MefV1.ExportMetadata("array_int", new[] { int.MaxValue })]
+        [ExportMetadata("array_long", new[] { long.MaxValue }), MefV1.ExportMetadata("array_long", new[] { long.MaxValue })]
+        [ExportMetadata("array_sbyte", new[] { sbyte.MaxValue }), MefV1.ExportMetadata("array_sbyte", new[] { sbyte.MaxValue })]
+        [ExportMetadata("array_short", new[] { short.MaxValue }), MefV1.ExportMetadata("array_short", new[] { short.MaxValue })]
+        [ExportMetadata("array_string", new[] { "value" }), MefV1.ExportMetadata("array_string", new[] { "value" })]
+        [ExportMetadata("array_uint", new[] { uint.MaxValue }), MefV1.ExportMetadata("array_uint", new[] { uint.MaxValue })]
+        [ExportMetadata("array_ulong", new[] { ulong.MaxValue }), MefV1.ExportMetadata("array_ulong", new[] { ulong.MaxValue })]
+        [ExportMetadata("array_ushort", new[] { ushort.MaxValue }), MefV1.ExportMetadata("array_ushort", new[] { ushort.MaxValue })]
+        [ExportMetadata("array_type", new[] { typeof(string) }), MefV1.ExportMetadata("array_type", new[] { typeof(string) })]
+        [ExportMetadata("array_enum", new[] { CreationPolicy.NonShared }), MefV1.ExportMetadata("array_enum", new[] { CreationPolicy.NonShared })]
+        public class PartWithExhaustiveMetadataValueTypes { }
+
+        [Export, MefV1.Export]
+        public class PartThatImportsPartWithExhaustiveMetadataValueTypes
+        {
+            [Import, MefV1.Import]
+            public Lazy<PartWithExhaustiveMetadataValueTypes, IDictionary<string, object>> ImportingProperty { get; set; }
+        }
+
+        #endregion
     }
 }

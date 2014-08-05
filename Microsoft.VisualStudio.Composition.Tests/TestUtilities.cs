@@ -11,79 +11,125 @@
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
+    using Xunit;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
     using MefV1 = System.ComponentModel.Composition;
 
     internal static class TestUtilities
     {
-        internal static ExportProvider CreateContainer(this CompositionConfiguration configuration)
+        internal static async Task<IExportProviderFactory> CacheAndReloadConfiguration(CompositionConfiguration configuration, ICompositionCacheManager cacheManager)
+        {
+            Requires.NotNull(configuration, "configuration");
+            Requires.NotNull(cacheManager, "cacheManager");
+
+            var ms = new MemoryStream();
+            await cacheManager.SaveAsync(configuration, ms);
+            ms.Position = 0;
+            return await cacheManager.LoadExportProviderFactoryAsync(ms);
+        }
+
+        internal static ExportProvider CreateContainer(this CompositionConfiguration configuration, bool runtime)
         {
             Requires.NotNull(configuration, "configuration");
 
-            if (Debugger.IsAttached)
+            if (runtime)
             {
-                bool debug = true;
-                string basePath = Path.GetTempFileName();
-                string assemblyPath = basePath + ".dll";
-                string pdbPath = basePath + ".pdb";
-                string sourcePath = basePath + ".cs";
-                configuration.SaveAsync(
-                    assemblyPath,
-                    pdbPath,
-                    sourcePath,
-                    debug: debug).GetAwaiter().GetResult();
-                var exportProviderFactory = CompositionConfiguration.Load(Assembly.LoadFile(assemblyPath));
-                return exportProviderFactory.CreateExportProvider();
+                var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
+
+                // Round-trip serialization to make sure the result is equivalent.
+                var cacheManager = new CachedComposition();
+                var ms = new MemoryStream();
+                cacheManager.SaveAsync(runtimeComposition, ms).GetAwaiter().GetResult();
+                ms.Position = 0;
+                var deserializedRuntimeComposition = cacheManager.LoadRuntimeCompositionAsync(ms).GetAwaiter().GetResult();
+                Assert.Equal(runtimeComposition, deserializedRuntimeComposition);
+
+                return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();
             }
             else
             {
-                Stream sourceFileStream = null;
-#if DEBUG
-                sourceFileStream = new MemoryStream();
-#endif
-                try
+                string basePath = Path.GetTempFileName();
+                string assemblyPath = basePath + ".dll";
+                var compiledCacheManager = new CompiledComposition
                 {
-                    var exportProvider = configuration.CreateContainerFactoryAsync(sourceFileStream, Console.Out).Result.CreateExportProvider();
-                    return exportProvider;
-                }
-                finally
-                {
-                    if (sourceFileStream != null)
-                    {
-                        bool includeLineNumbers;
-                        TextWriter sourceFileWriter;
-                        if (sourceFileStream.Length < 200 * 1024) // the test results window doesn't do well with large output
-                        {
-                            includeLineNumbers = true;
-                            sourceFileWriter = Console.Out;
-                        }
-                        else
-                        {
-                            // Write to a file instead and then emit its path to the output window.
-                            string sourceFileName = Path.GetTempFileName() + ".cs";
-                            sourceFileWriter = new StreamWriter(File.OpenWrite(sourceFileName));
-                            Console.WriteLine("Source file written to: {0}", sourceFileName);
-                            includeLineNumbers = false;
-                        }
+                    AssemblyName = Path.GetFileNameWithoutExtension(assemblyPath),
+                    BuildOutput = Console.Out,
+                };
 
-                        sourceFileStream.Position = 0;
-                        var sourceFileReader = new StreamReader(sourceFileStream);
-                        int lineNumber = 0;
-                        string line;
-                        while ((line = sourceFileReader.ReadLine()) != null)
+                if (Debugger.IsAttached)
+                {
+                    compiledCacheManager.Optimize = false;
+                    using (var pdb = File.Open(basePath + ".pdb", FileMode.Create))
+                    {
+                        using (var source = File.Open(basePath + ".cs", FileMode.Create))
                         {
-                            if (includeLineNumbers)
+                            compiledCacheManager.Optimize = false;
+                            compiledCacheManager.PdbSymbols = pdb;
+                            compiledCacheManager.Source = source;
+                            using (var assemblyStream = File.Open(assemblyPath, FileMode.CreateNew))
                             {
-                                sourceFileWriter.Write("Line {0,5}: ", ++lineNumber);
+                                compiledCacheManager.SaveAsync(configuration, assemblyStream).GetAwaiter().GetResult();
+                            }
+                        }
+                    }
+
+                    var exportProviderFactory = CompiledComposition.LoadExportProviderFactory(assemblyPath);
+                    return exportProviderFactory.CreateExportProvider();
+                }
+                else
+                {
+                    Stream sourceFileStream = null;
+#if DEBUG
+                    sourceFileStream = new MemoryStream();
+#endif
+                    try
+                    {
+                        compiledCacheManager.Source = sourceFileStream;
+                        var assemblyStream = new MemoryStream();
+                        compiledCacheManager.SaveAsync(configuration, assemblyStream).Wait();
+                        assemblyStream.Position = 0;
+                        var exportProvider = compiledCacheManager.LoadExportProviderFactoryAsync(assemblyStream).Result.CreateExportProvider();
+                        return exportProvider;
+                    }
+                    finally
+                    {
+                        if (sourceFileStream != null)
+                        {
+                            bool includeLineNumbers;
+                            TextWriter sourceFileWriter;
+                            if (sourceFileStream.Length < 200 * 1024) // the test results window doesn't do well with large output
+                            {
+                                includeLineNumbers = true;
+                                sourceFileWriter = Console.Out;
+                            }
+                            else
+                            {
+                                // Write to a file instead and then emit its path to the output window.
+                                string sourceFileName = Path.GetTempFileName() + ".cs";
+                                sourceFileWriter = new StreamWriter(File.OpenWrite(sourceFileName));
+                                Console.WriteLine("Source file written to: {0}", sourceFileName);
+                                includeLineNumbers = false;
                             }
 
-                            sourceFileWriter.WriteLine(line);
-                        }
+                            sourceFileStream.Position = 0;
+                            var sourceFileReader = new StreamReader(sourceFileStream);
+                            int lineNumber = 0;
+                            string line;
+                            while ((line = sourceFileReader.ReadLine()) != null)
+                            {
+                                if (includeLineNumbers)
+                                {
+                                    sourceFileWriter.Write("Line {0,5}: ", ++lineNumber);
+                                }
 
-                        sourceFileWriter.Flush();
-                        if (sourceFileWriter != Console.Out)
-                        {
-                            sourceFileWriter.Close();
+                                sourceFileWriter.WriteLine(line);
+                            }
+
+                            sourceFileWriter.Flush();
+                            if (sourceFileWriter != Console.Out)
+                            {
+                                sourceFileWriter.Close();
+                            }
                         }
                     }
                 }
@@ -99,7 +145,7 @@
         {
             return CompositionConfiguration.Create(
                 await new AttributedPartDiscovery().CreatePartsAsync(parts))
-                .CreateContainer();
+                .CreateContainer(true);
         }
 
         internal static IContainer CreateContainerV1(params Type[] parts)
@@ -199,9 +245,7 @@
         {
             var catalogWithCompositionService = catalog
                 .WithCompositionService()
-                .WithMetadataViewProxySupport()
-                .WithMetadataViewImplementationAttributeSupport()
-                .WithAssemblyCodeBasePathLoading();
+                .WithDesktopSupport();
             var configuration = CompositionConfiguration.Create(catalogWithCompositionService)
                 .WithReferenceAssemblies(additionalAssemblies ?? ImmutableHashSet<Assembly>.Empty);
             if (!options.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors))
@@ -214,7 +258,7 @@
             configuration.CreateDgml().Save(dgmlFile);
             Console.WriteLine("DGML saved to: " + dgmlFile);
 #endif
-            var container = configuration.CreateContainer();
+            var container = configuration.CreateContainer(true);
             return new V3ContainerWrapper(container, configuration);
         }
 
@@ -253,24 +297,9 @@
                 test(CreateContainerV1(assemblies, parts));
             }
 
-            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1))
-            {
-                test(CreateContainerV3(assemblies, CompositionEngines.V1 | (CompositionEngines.V3OptionsMask & attributesVersion), parts));
-            }
-
             if (attributesVersion.HasFlag(CompositionEngines.V2))
             {
                 test(CreateContainerV2(assemblies, parts));
-            }
-
-            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV2))
-            {
-                test(CreateContainerV3(assemblies, CompositionEngines.V2 | (CompositionEngines.V3OptionsMask & attributesVersion), parts));
-            }
-
-            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1AndV2AtOnce))
-            {
-                test(CreateContainerV3(assemblies, CompositionEngines.V1 | CompositionEngines.V2 | (CompositionEngines.V3OptionsMask & attributesVersion), parts));
             }
         }
 

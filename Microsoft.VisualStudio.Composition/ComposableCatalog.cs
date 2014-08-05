@@ -4,13 +4,14 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.ComponentModel;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
 
-    public class ComposableCatalog
+    public class ComposableCatalog : IEquatable<ComposableCatalog>
     {
         /// <summary>
         /// The types behind the parts in the catalog.
@@ -46,7 +47,7 @@
 
             // For those imports of generic types, we also want to consider exports that are based on open generic exports,
             string genericTypeDefinitionContractName;
-            Type[] genericTypeArguments; 
+            Type[] genericTypeArguments;
             if (TryGetOpenGenericExport(importDefinition, out genericTypeDefinitionContractName, out genericTypeArguments))
             {
                 var openGenericExports = this.exportsByContract.GetValueOrDefault(genericTypeDefinitionContractName, ImmutableList.Create<ExportDefinitionBinding>());
@@ -171,6 +172,46 @@
 
             var catalog = this.WithParts(parts.Parts);
             return new ComposableCatalog(catalog.types, catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts));
+        }
+
+        public bool Equals(ComposableCatalog other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            // A catalog is just the sum of its parts. Anything else is a side-effect of how it was discovered,
+            // which shouldn't impact an equivalence check.
+            bool result = this.parts.SetEquals(other.parts);
+            return result;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = this.Parts.Count;
+            foreach (var part in this.Parts)
+            {
+                hashCode += part.GetHashCode();
+            }
+
+            return hashCode;
+        }
+
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+            using (indentingWriter.Indent())
+            {
+                foreach (var part in this.parts)
+                {
+                    indentingWriter.WriteLine("Part");
+                    using (indentingWriter.Indent())
+                    {
+                        part.ToString(indentingWriter);
+                    }
+                }
+            }
         }
     }
 }
