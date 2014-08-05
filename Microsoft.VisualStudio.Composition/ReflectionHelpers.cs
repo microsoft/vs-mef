@@ -491,6 +491,67 @@
                     || a.GetType().FullName == "System.Runtime.InteropServices.ImportedFromTypeLibAttribute");
         }
 
+        /// <summary>
+        /// Returns a type with generic type arguments supplied by a constructed type that is derived from
+        /// the supplied generic type definition.
+        /// </summary>
+        /// <param name="genericTypeDefinition">The generic type definition to return a constructed type from.</param>
+        /// <param name="constructedType">A constructed type that is, or derives from, <paramref name="genericTypeDefinition"/>.</param>
+        /// <returns>A constructed type.</returns>
+        internal static Type CloseGenericType(Type genericTypeDefinition, Type constructedType)
+        {
+            Requires.NotNull(genericTypeDefinition, "genericTypeDefinition");
+            Requires.NotNull(constructedType, "constructedType");
+            Requires.Argument(genericTypeDefinition.GetTypeInfo().IsAssignableFrom(constructedType.GetGenericTypeDefinition().GetTypeInfo()), "constructedType", "Not a closed form of the other.");
+
+            return genericTypeDefinition.MakeGenericType(constructedType.GenericTypeArguments.Take(genericTypeDefinition.GetTypeInfo().GenericTypeParameters.Length).ToArray());
+        }
+
+        internal static Type GetExportedValueType(Type declaringType, MemberInfo exportingMember)
+        {
+            if (exportingMember == null)
+            {
+                return declaringType;
+            }
+
+            if (exportingMember is FieldInfo || exportingMember is PropertyInfo)
+            {
+                return ReflectionHelpers.GetMemberType(exportingMember);
+            }
+
+            var exportingMethod = exportingMember as MethodInfo;
+            if (exportingMethod != null)
+            {
+                return GetContractTypeForDelegate(exportingMethod);
+            }
+
+            throw new NotSupportedException();
+        }
+
+        internal static Type GetContractTypeForDelegate(MethodInfo method)
+        {
+            Type genericTypeDefinition;
+            int parametersCount = method.GetParameters().Length;
+            var typeArguments = method.GetParameters().Select(p => p.ParameterType).ToList();
+            var voidResult = method.ReturnType.Equals(typeof(void));
+            if (voidResult)
+            {
+                if (typeArguments.Count == 0)
+                {
+                    return typeof(Action);
+                }
+
+                genericTypeDefinition = Type.GetType("System.Action`" + typeArguments.Count);
+            }
+            else
+            {
+                typeArguments.Add(method.ReturnType);
+                genericTypeDefinition = Type.GetType("System.Func`" + typeArguments.Count);
+            }
+
+            return genericTypeDefinition.MakeGenericType(typeArguments.ToArray());
+        }
+
         private static string FilterTypeNameForGenericTypeDefinition(Type type, bool fullName)
         {
             Requires.NotNull(type, "type");

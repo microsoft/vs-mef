@@ -271,13 +271,26 @@
         /// represents a MEF part; otherwise <c>null</c>.</returns>
         protected abstract ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested);
 
+        /// <summary>
+        /// Checks whether an import many collection is creatable.
+        /// </summary>
         internal static bool IsImportManyCollectionTypeCreateable(ImportDefinitionBinding import)
         {
             Requires.NotNull(import, "import");
+            return IsImportManyCollectionTypeCreateable(import.ImportingSiteType, import.ImportingSiteTypeWithoutCollection);
+        }
 
-            var importDefinition = import.ImportDefinition;
-            var collectionType = import.ImportingSiteType;
-            var elementType = import.ImportingSiteTypeWithoutCollection;
+        /// <summary>
+        /// Checks whether an import many collection is creatable.
+        /// </summary>
+        /// <param name="collectionType">The value from ImportingSiteType.</param>
+        /// <param name="elementType">The value from ImportingSiteTypeWithoutCollection.</param>
+        /// <returns><c>true</c> if the collection is creatable; <c>false</c> otherwise.</returns>
+        internal static bool IsImportManyCollectionTypeCreateable(Type collectionType, Type elementType)
+        {
+            Requires.NotNull(collectionType, "collectionType");
+            Requires.NotNull(elementType, "elementType");
+
             var icollectionOfT = typeof(ICollection<>).MakeGenericType(elementType);
             var ienumerableOfT = typeof(IEnumerable<>).MakeGenericType(elementType);
             var ilistOfT = typeof(IList<>).MakeGenericType(elementType);

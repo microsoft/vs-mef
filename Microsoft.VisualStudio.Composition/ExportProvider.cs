@@ -24,15 +24,19 @@
         internal static readonly ComposablePartDefinition ExportProviderPartDefinition = new ComposablePartDefinition(
             typeof(ExportProviderAsExport),
             new[] { ExportProviderExportDefinition },
-            ImmutableDictionary<MemberInfo, IReadOnlyList<ExportDefinition>>.Empty,
+            ImmutableDictionary<MemberInfo, IReadOnlyCollection<ExportDefinition>>.Empty,
             ImmutableList<ImportDefinitionBinding>.Empty,
+            string.Empty,
             null,
             null,
-            CreationPolicy.Shared);
+            CreationPolicy.Shared,
+            true);
 
         protected static readonly LazyPart<object> NotInstantiablePartLazy = new LazyPart<object>(() => CannotInstantiatePartWithNoImportingConstructor());
 
-        protected static readonly object[] EmptyObjectArray = new object[0];
+        protected static readonly Type[] EmptyTypeArray = new Type[0];
+
+        protected static readonly object[] EmptyObjectArray = EmptyTypeArray; // Covariance allows us to reuse the derived type empty array.
 
         /// <summary>
         /// A metadata template used by the generated code.
@@ -94,7 +98,7 @@
         /// <summary>
         /// An array of types 
         /// </summary>
-        private List<Type> runtimeCreatedTypes = new List<Type>();
+        private List<Reflection.TypeRef> runtimeCreatedTypes;
 
         private readonly object syncObject = new object();
 
@@ -111,15 +115,17 @@
 
         private bool isDisposed;
 
-        protected ExportProvider(ExportProvider parent, string[] freshSharingBoundaries)
+        protected ExportProvider(ExportProvider parent, IReadOnlyCollection<string> freshSharingBoundaries)
         {
             if (parent == null)
             {
                 this.sharedInstantiatedExports = this.sharedInstantiatedExports.Add(string.Empty, new Dictionary<int, object>());
+                this.runtimeCreatedTypes = new List<Reflection.TypeRef>();
             }
             else
             {
                 this.sharedInstantiatedExports = parent.sharedInstantiatedExports;
+                this.runtimeCreatedTypes = parent.runtimeCreatedTypes;
             }
 
             if (freshSharingBoundaries != null)
@@ -323,33 +329,53 @@
             return new Export(importDefinition.ContractName, metadata, memberValueFactory);
         }
 
-        private object GetValueFromMember(object instance, MemberInfo member)
+        protected object GetValueFromMember(object exportingPart, ImportDefinitionBinding import, ExportDefinitionBinding export)
         {
-            Requires.NotNull(instance, "instance");
-            Requires.NotNull(member, "member");
+            return this.GetValueFromMember(exportingPart, export.ExportingMember, import.ImportingSiteElementType, export.ExportedValueType);
+        }
 
-            var field = member as FieldInfo;
+        /// <summary>
+        /// Gets the value from some member of a part.
+        /// </summary>
+        /// <param name="exportingPart">The instance of the part to extract the value from. May be <c>null</c> for static exports.</param>
+        /// <param name="exportingMember">The member exporting the value. May be <c>null</c> for exporting the type/instance itself.</param>
+        /// <param name="importingSiteElementType">The type of the importing member, with ImportMany collections and Lazy/ExportFactory stripped away.</param>
+        /// <param name="exportedValueType">The contractually exported value type.</param>
+        /// <returns>The value of the member.</returns>
+        protected object GetValueFromMember(object exportingPart, MemberInfo exportingMember, Type importingSiteElementType = null, Type exportedValueType = null)
+        {
+            Requires.NotNull(exportingMember, "exportingMember");
+
+            if (exportingMember == null)
+            {
+                return exportingPart;
+            }
+
+            var field = exportingMember as FieldInfo;
             if (field != null)
             {
-                return field.GetValue(instance);
+                return field.GetValue(exportingPart);
             }
 
-            var property = member as PropertyInfo;
+            var property = exportingMember as PropertyInfo;
             if (property != null)
             {
-                return property.GetValue(instance);
+                return property.GetValue(exportingPart);
             }
 
-            var method = member as MethodInfo;
+            var method = exportingMember as MethodInfo;
             if (method != null)
             {
                 // If the method came from a property, return the result of the property getter rather than return the delegate.
                 if (method.IsSpecialName && method.GetParameters().Length == 0 && method.Name.StartsWith("get_"))
                 {
-                    return method.Invoke(instance, EmptyObjectArray);
+                    return method.Invoke(exportingPart, EmptyObjectArray);
                 }
 
-                return method.CreateDelegate(ExportDefinitionBinding.GetContractTypeForDelegate(method), method.IsStatic ? null : instance);
+                Type delegateType = importingSiteElementType != null && typeof(Delegate).GetTypeInfo().IsAssignableFrom(importingSiteElementType.GetTypeInfo())
+                    ? importingSiteElementType
+                    : (exportedValueType ?? ReflectionHelpers.GetContractTypeForDelegate(method));
+                return method.CreateDelegate(delegateType, method.IsStatic ? null : exportingPart);
             }
 
             throw new NotSupportedException();
@@ -486,7 +512,7 @@
         {
             Type result = typeId < this.cachedTypes.Length
                 ? this.cachedTypes[typeId]
-                : this.runtimeCreatedTypes[typeId - this.cachedTypes.Length];
+                : Reflection.Resolver.Resolve(this.runtimeCreatedTypes[typeId - this.cachedTypes.Length]);
             if (result == null)
             {
                 // We don't need to worry about thread-safety here because if two threads assign the
@@ -505,6 +531,12 @@
         }
 
         protected int GetTypeId(Type type)
+        {
+            Requires.NotNull(type, "type");
+            return this.GetTypeId(Reflection.TypeRef.Get(type));
+        }
+
+        protected int GetTypeId(Reflection.TypeRef type)
         {
             Requires.NotNull(type, "type");
 
@@ -551,25 +583,27 @@
         /// into the array that is designated for the specified type.
         /// </summary>
         /// <returns>A non-negative integer if a type match is found; otherwise a negative integer.</returns>
-        protected virtual int GetTypeIdCore(Type type)
+        protected virtual int GetTypeIdCore(Reflection.TypeRef type)
         {
             throw new NotImplementedException();
         }
 
+        protected internal interface IMetadataDictionary : IDictionary<string, object>, IReadOnlyDictionary<string, object> { }
+
         protected IMetadataDictionary GetTypeRefResolvingMetadata(ImmutableDictionary<string, object> metadata)
         {
             Requires.NotNull(metadata, "metadata");
-            return new LazyMetadataWrapper(this, metadata);
+            return new ExportProviderLazyMetadataWrapper(this, metadata);
         }
 
-        private static IReadOnlyDictionary<string, object> AddMissingValueDefaults(Type metadataView, IReadOnlyDictionary<string, object> metadata)
+        protected static IReadOnlyDictionary<string, object> AddMissingValueDefaults(Type metadataView, IReadOnlyDictionary<string, object> metadata)
         {
             Requires.NotNull(metadataView, "metadataView");
             Requires.NotNull(metadata, "metadata");
 
             if (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>)))
             {
-                var metadataBuilder = metadata.ToImmutableDictionary().ToBuilder();
+                var metadataBuilder = LazyMetadataWrapper.TryUnwrap(metadata).ToImmutableDictionary().ToBuilder();
                 foreach (var property in metadataView.EnumProperties().WherePublicInstance())
                 {
                     if (!metadataBuilder.ContainsKey(property.Name))
@@ -582,7 +616,7 @@
                     }
                 }
 
-                return metadataBuilder.ToImmutable();
+                return LazyMetadataWrapper.Rewrap(metadata, metadataBuilder.ToImmutable());
             }
 
             // No changes since the metadata view type doesn't provide any.
@@ -629,7 +663,9 @@
             IEnumerable<Export> results = this.GetExports(importDefinition);
             return results.Select(result => new LazyPart<T, TMetadataView>(
                 () => result.Value,
-                metadataViewProvider.CreateProxy<TMetadataView>(metadataViewProvider.IsDefaultMetadataRequired ? AddMissingValueDefaults(typeof(TMetadataView), result.Metadata) : result.Metadata)))
+                (TMetadataView)metadataViewProvider.CreateProxy(
+                    metadataViewProvider.IsDefaultMetadataRequired ? AddMissingValueDefaults(typeof(TMetadataView), result.Metadata) : result.Metadata,
+                    typeof(TMetadataView))))
                 .ToImmutableHashSet();
         }
 
@@ -639,7 +675,7 @@
         /// <param name="metadataView">The type of metadata view required.</param>
         /// <returns>A metadata view provider.</returns>
         /// <exception cref="NotSupportedException">Thrown if no metadata view provider available is compatible with the type.</exception>
-        private IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
+        internal IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
         {
             Requires.NotNull(metadataView, "metadataView");
 
@@ -676,7 +712,7 @@
             return sharingBoundary;
         }
 
-        protected struct TypeRef
+        protected internal struct TypeRef
         {
             public TypeRef(int typeId)
                 : this()
@@ -694,7 +730,43 @@
             }
         }
 
-        protected interface IMetadataDictionary : IDictionary<string, object>, IReadOnlyDictionary<string, object> { }
+        private class ExportProviderLazyMetadataWrapper : LazyMetadataWrapper
+        {
+            private readonly ExportProvider resolvingExportProvider;
+
+            internal ExportProviderLazyMetadataWrapper(ExportProvider resolvingExportProvider, ImmutableDictionary<string, object> metadata)
+                : base(metadata)
+            {
+                Requires.NotNull(resolvingExportProvider, "resolvingExportProvider");
+
+                this.resolvingExportProvider = resolvingExportProvider;
+            }
+
+            protected override object SubstituteValueIfRequired(string key, object value)
+            {
+                value = base.SubstituteValueIfRequired(key, value);
+
+                if (value is ExportProvider.TypeRef)
+                {
+                    value = ((ExportProvider.TypeRef)value).GetType(this.resolvingExportProvider);
+                }
+                else if (value is ExportProvider.TypeRef[])
+                {
+                    value = ((ExportProvider.TypeRef[])value).Select(r => r.GetType(this.resolvingExportProvider)).ToArray();
+
+                    // Update our metadata dictionary with the substitution to avoid
+                    // the translation costs next time.
+                    this.underlyingMetadata = this.underlyingMetadata.SetItem(key, value);
+                }
+
+                return value;
+            }
+
+            protected override LazyMetadataWrapper Clone(LazyMetadataWrapper oldVersion, IReadOnlyDictionary<string, object> newMetadata)
+            {
+                return new ExportProviderLazyMetadataWrapper(((ExportProviderLazyMetadataWrapper)oldVersion).resolvingExportProvider, newMetadata.ToImmutableDictionary());
+            }
+        }
 
         private class ExportProviderAsExport : DelegatingExportProvider
         {
@@ -706,166 +778,6 @@
             protected override void Dispose(bool disposing)
             {
                 throw new InvalidOperationException("This instance is an import and cannot be directly disposed.");
-            }
-        }
-
-        private class LazyMetadataWrapper : IMetadataDictionary
-        {
-            private readonly ExportProvider resolvingExportProvider;
-            private ImmutableDictionary<string, object> underlyingMetadata;
-
-            internal LazyMetadataWrapper(ExportProvider resolvingExportProvider, ImmutableDictionary<string, object> metadata)
-            {
-                Requires.NotNull(resolvingExportProvider, "resolvingExportProvider");
-                Requires.NotNull(metadata, "metadata");
-
-                this.resolvingExportProvider = resolvingExportProvider;
-                this.underlyingMetadata = metadata;
-            }
-
-            public bool ContainsKey(string key)
-            {
-                return this.underlyingMetadata.ContainsKey(key);
-            }
-
-            public IEnumerable<string> Keys
-            {
-                get { return this.underlyingMetadata.Keys; }
-            }
-
-            public bool TryGetValue(string key, out object value)
-            {
-                object underlyingValue;
-                if (this.underlyingMetadata.TryGetValue(key, out underlyingValue))
-                {
-                    value = this.SubstituteValueIfRequired(key, underlyingValue);
-                    return true;
-                }
-                else
-                {
-                    value = null;
-                    return false;
-                }
-            }
-
-            public IEnumerable<object> Values
-            {
-                get
-                {
-                    return from pair in this
-                           let value = this.SubstituteValueIfRequired(pair.Key, pair.Value)
-                           select value;
-                }
-            }
-
-            public object this[string key]
-            {
-                get { return this.SubstituteValueIfRequired(key, this.underlyingMetadata[key]); }
-                set { throw new NotSupportedException(); }
-            }
-
-            public int Count
-            {
-                get { return this.underlyingMetadata.Count; }
-            }
-
-            public bool IsReadOnly
-            {
-                get { return true; }
-            }
-
-            public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
-            {
-                var enumerable = from pair in this.underlyingMetadata
-                                 select new KeyValuePair<string, object>(pair.Key, this.SubstituteValueIfRequired(pair.Key, pair.Value));
-                return enumerable.GetEnumerator();
-            }
-
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-            {
-                return this.GetEnumerator();
-            }
-
-            public void Add(string key, object value)
-            {
-                throw new NotSupportedException();
-            }
-
-            ICollection<string> DefaultMetadataType.Keys
-            {
-                get
-                {
-                    IDictionary<string, object> metadata = this.underlyingMetadata;
-                    return metadata.Keys;
-                }
-            }
-
-            public bool Remove(string key)
-            {
-                throw new NotSupportedException();
-            }
-
-            ICollection<object> DefaultMetadataType.Values
-            {
-                get
-                {
-                    return this.Values.ToImmutableArray();
-                }
-            }
-
-            public void Add(KeyValuePair<string, object> item)
-            {
-                throw new NotSupportedException();
-            }
-
-            public void Clear()
-            {
-                throw new NotSupportedException();
-            }
-
-            public bool Contains(KeyValuePair<string, object> item)
-            {
-                object value;
-                if (this.underlyingMetadata.TryGetValue(item.Key, out value))
-                {
-                    value = this.SubstituteValueIfRequired(item.Key, value);
-                    return item.Value == value;
-                }
-
-                return false;
-            }
-
-            public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex)
-            {
-                foreach (var pair in this)
-                {
-                    array[arrayIndex++] = pair;
-                }
-            }
-
-            public bool Remove(KeyValuePair<string, object> item)
-            {
-                throw new NotSupportedException();
-            }
-
-            private object SubstituteValueIfRequired(string key, object value)
-            {
-                Requires.NotNull(key, "key");
-
-                if (value is TypeRef)
-                {
-                    value = ((TypeRef)value).GetType(this.resolvingExportProvider);
-                }
-                else if (value is TypeRef[])
-                {
-                    value = ((TypeRef[])value).Select(r => r.GetType(this.resolvingExportProvider)).ToArray();
-
-                    // Update our metadata dictionary with the substitution to avoid
-                    // the translation costs next time.
-                    this.underlyingMetadata = this.underlyingMetadata.SetItem(key, value);
-                }
-
-                return value;
             }
         }
 
@@ -892,12 +804,12 @@
                     || metadataType.GetTypeInfo().IsAssignableFrom(typeof(IDictionary<string, object>).GetTypeInfo());
             }
 
-            public TMetadata CreateProxy<TMetadata>(IReadOnlyDictionary<string, object> metadata)
+            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType)
             {
                 Requires.NotNull(metadata, "metadata");
 
                 // This cast should work because our IsMetadataViewSupported method filters to those that do.
-                return (TMetadata)(object)metadata;
+                return metadata;
             }
         }
 
@@ -924,9 +836,9 @@
                 return typeInfo.IsClass && !typeInfo.IsAbstract && FindConstructor(typeInfo) != null;
             }
 
-            public TMetadata CreateProxy<TMetadata>(IReadOnlyDictionary<string, object> metadata)
+            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType)
             {
-                return (TMetadata)FindConstructor(typeof(TMetadata).GetTypeInfo())
+                return FindConstructor(metadataViewType.GetTypeInfo())
                     .Invoke(new object[] { ImmutableDictionary.CreateRange(metadata) });
             }
 

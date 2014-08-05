@@ -3,26 +3,27 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
 
-    public class ExportTypeIdentityConstraint : IImportSatisfiabilityConstraint
+    public class ExportTypeIdentityConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
-        private readonly string typeIdentityName;
-
         public ExportTypeIdentityConstraint(Type typeIdentity)
         {
             Requires.NotNull(typeIdentity, "typeIdentity");
-            this.typeIdentityName = ContractNameServices.GetTypeIdentity(typeIdentity);
+            this.TypeIdentityName = ContractNameServices.GetTypeIdentity(typeIdentity);
         }
 
         public ExportTypeIdentityConstraint(string typeIdentityName)
         {
             Requires.NotNullOrEmpty(typeIdentityName, "typeIdentityName");
-            this.typeIdentityName = typeIdentityName;
+            this.TypeIdentityName = typeIdentityName;
         }
+
+        public string TypeIdentityName { get; private set; }
 
         public static ImmutableDictionary<string, object> GetExportMetadata(Type type)
         {
@@ -45,10 +46,16 @@
             string value;
             if (exportDefinition.Metadata.TryGetValue(CompositionConstants.ExportTypeIdentityMetadataName, out value))
             {
-                return this.typeIdentityName == value;
+                return this.TypeIdentityName == value;
             }
 
             return false;
+        }
+
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+            indentingWriter.WriteLine("TypeIdentityName: {0}", this.TypeIdentityName);
         }
     }
 }

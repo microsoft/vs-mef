@@ -17,7 +17,7 @@ namespace $rootnamespace$
     {
         internal static IExportProviderFactory LoadDefault()
         {
-            return CompositionConfiguration.Load(Assembly.Load("$ConfigurationAssemblyName$"));
+            return CompiledComposition.Load(Assembly.Load("$ConfigurationAssemblyName$"));
         }
    }
 }

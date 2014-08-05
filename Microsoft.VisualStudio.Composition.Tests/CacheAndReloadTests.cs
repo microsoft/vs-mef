@@ -10,21 +10,31 @@
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.AppDomainTests;
     using Microsoft.VisualStudio.Composition.AppDomainTests2;
+    using Validation;
     using Xunit;
 
-    public class CacheAndReloadTests
+    public abstract class CacheAndReloadTests
     {
+        private ICompositionCacheManager cacheManager;
+
+        protected CacheAndReloadTests(ICompositionCacheManager cacheManager)
+        {
+            Requires.NotNull(cacheManager, "cacheManager");
+            this.cacheManager = cacheManager;
+        }
+
         [Fact]
         public async Task CacheAndReload()
         {
             var configuration = CompositionConfiguration.Create(
                 new[] { new AttributedPartDiscovery().CreatePart(typeof(SomeExport)) });
-            string path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            await configuration.SaveAsync(path);
+            var ms = new MemoryStream();
+            await this.cacheManager.SaveAsync(configuration, ms);
             configuration = null;
 
-            var reconstitutedConfiguration = CompositionConfiguration.Load(Assembly.LoadFile(path));
-            var container = reconstitutedConfiguration.CreateExportProvider();
+            ms.Position = 0;
+            var exportProviderFactory = await this.cacheManager.LoadExportProviderFactoryAsync(ms);
+            var container = exportProviderFactory.CreateExportProvider();
             SomeExport export = container.GetExportedValue<SomeExport>();
             Assert.NotNull(export);
         }

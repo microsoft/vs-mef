@@ -4,24 +4,25 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.ComponentModel;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
 
-    public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint
+    public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
         private static readonly ImportMetadataViewConstraint EmptyInstance = new ImportMetadataViewConstraint(ImmutableDictionary<string, MetadatumRequirement>.Empty);
 
-        private readonly ImmutableDictionary<string, MetadatumRequirement> metadataNamesAndTypes;
-
-        private ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> metadataNamesAndTypes)
+        public ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> metadataNamesAndTypes)
         {
             Requires.NotNull(metadataNamesAndTypes, "metadataNamesAndTypes");
 
-            this.metadataNamesAndTypes = ImmutableDictionary.CreateRange(metadataNamesAndTypes);
+            this.Requirements = ImmutableDictionary.CreateRange(metadataNamesAndTypes);
         }
+
+        public ImmutableDictionary<string, MetadatumRequirement> Requirements { get; private set; }
 
         /// <summary>
         /// Creates a constraint for the specified metadata type.
@@ -49,12 +50,12 @@
             Requires.NotNull(exportDefinition, "exportDefinition");
 
             // Fast path since immutable dictionaries are slow to enumerate.
-            if (this.metadataNamesAndTypes.IsEmpty)
+            if (this.Requirements.IsEmpty)
             {
                 return true;
             }
 
-            foreach (var entry in this.metadataNamesAndTypes)
+            foreach (var entry in this.Requirements)
             {
                 object value;
                 if (!exportDefinition.Metadata.TryGetValue(entry.Key, out value))
@@ -123,6 +124,15 @@
             return true;
         }
 
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+            foreach (var requirement in this.Requirements)
+            {
+                indentingWriter.WriteLine("{0} = {1} (required: {2})", requirement.Key, ReflectionHelpers.GetTypeName(requirement.Value.MetadatumValueType, false, true, null, null), requirement.Value.IsMetadataumValueRequired);
+            }
+        }
+
         private static ImmutableDictionary<string, MetadatumRequirement> GetRequiredMetadata(Type metadataView)
         {
             Requires.NotNull(metadataView, "metadataView");
@@ -143,9 +153,9 @@
             return ImmutableDictionary<string, MetadatumRequirement>.Empty;
         }
 
-        private struct MetadatumRequirement
+        public struct MetadatumRequirement
         {
-            internal MetadatumRequirement(Type valueType, bool required)
+            public MetadatumRequirement(Type valueType, bool required)
                 : this()
             {
                 this.MetadatumValueType = valueType;

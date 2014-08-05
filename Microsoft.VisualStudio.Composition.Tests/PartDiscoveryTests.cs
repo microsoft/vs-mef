@@ -68,11 +68,13 @@
                 return new ComposablePartDefinition(
                     typeof(int),
                     ImmutableList.Create<ExportDefinition>(),
-                    ImmutableDictionary.Create<MemberInfo, IReadOnlyList<ExportDefinition>>(),
+                    ImmutableDictionary.Create<MemberInfo, IReadOnlyCollection<ExportDefinition>>(),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     null,
+                    null,
                     ImmutableList.Create<ImportDefinitionBinding>(),
-                    CreationPolicy.Any);
+                    CreationPolicy.Any,
+                    true);
             }
 
             public override bool IsExportFactoryType(Type type)

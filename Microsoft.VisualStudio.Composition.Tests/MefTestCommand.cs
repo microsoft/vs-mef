@@ -26,7 +26,7 @@
             this.engineVersion = engineVersion;
             this.parts = parts;
             this.assemblies = assemblies;
-            this.DisplayName = method.Class.Type.Name + "." + method.Name + " " + engineVersion;
+            this.DisplayName = engineVersion.ToString();
             this.invalidConfiguration = invalidConfiguration;
         }
 
@@ -37,29 +37,11 @@
                 bool exceptionThrown;
                 try
                 {
-                    if (this.engineVersion == CompositionEngines.V3EmulatingV1)
-                    {
-                        CompositionConfiguration.Create(new AttributedPartDiscoveryV1().CreatePartsAsync(this.parts).GetAwaiter().GetResult())
-                            .ThrowOnErrors();
-                    }
-                    else if (this.engineVersion == CompositionEngines.V3EmulatingV2)
-                    {
-                        CompositionConfiguration.Create(new AttributedPartDiscovery().CreatePartsAsync(this.parts).GetAwaiter().GetResult())
-                            .ThrowOnErrors();
-                    }
-                    else if (this.engineVersion == CompositionEngines.V3EmulatingV1AndV2AtOnce)
-                    {
-                        CompositionConfiguration.Create(PartDiscovery.Combine(new AttributedPartDiscoveryV1(), new AttributedPartDiscovery()).CreatePartsAsync(this.parts).GetAwaiter().GetResult())
-                            .ThrowOnErrors();
-                    }
-                    else
-                    {
-                        RunMultiEngineTest(
-                            this.engineVersion,
-                            this.parts,
-                            this.assemblies,
-                            container => this.testMethod.Invoke(testClass, container));
-                    }
+                    RunMultiEngineTest(
+                        this.engineVersion,
+                        this.parts,
+                        this.assemblies,
+                        container => this.testMethod.Invoke(testClass, container));
 
                     exceptionThrown = false;
                 }

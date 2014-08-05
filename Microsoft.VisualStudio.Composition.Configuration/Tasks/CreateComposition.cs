@@ -68,11 +68,22 @@
 
                 string assemblyPath = Path.GetFullPath(this.ConfigurationOutputPath);
                 this.Log.LogMessage("Producing IoC container \"{0}\"", assemblyPath);
-                configuration.SaveAsync(
-                    assemblyPath,
-                    Path.GetFullPath(this.ConfigurationSymbolsPath),
-                    Path.GetFullPath(this.ConfigurationSourcePath),
-                    cancellationToken: this.cancellationSource.Token).GetAwaiter().GetResult();
+                using (var source = File.Open(Path.GetFullPath(this.ConfigurationSourcePath), FileMode.Create))
+                {
+                    using (var pdbSymbols = File.Open(Path.GetFullPath(this.ConfigurationSymbolsPath), FileMode.Create))
+                    {
+                        var compiler = new CompiledComposition
+                        {
+                            AssemblyName = Path.GetFileNameWithoutExtension(assemblyPath),
+                            PdbSymbols = pdbSymbols,
+                            Source = source,
+                        };
+                        using (var assemblyStream = File.Open(assemblyPath, FileMode.Create))
+                        {
+                            compiler.SaveAsync(configuration, assemblyStream, this.cancellationSource.Token).GetAwaiter().GetResult();
+                        }
+                    }
+                }
             }
             catch (AggregateException ex)
             {

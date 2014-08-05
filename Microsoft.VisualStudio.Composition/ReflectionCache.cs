@@ -53,7 +53,7 @@
 
             if (result.IsDefault)
             {
-                result = member.GetCustomAttributes(false).ToImmutableArray();
+                result = member.GetCustomAttributes(false).Cast<Attribute>().ToImmutableArray();
                 lock (this.memberAttributes)
                 {
                     this.memberAttributes[member] = result;
@@ -75,7 +75,7 @@
 
             if (result.IsDefault)
             {
-                result = parameter.GetCustomAttributes(false).ToImmutableArray();
+                result = parameter.GetCustomAttributes(false).Cast<Attribute>().ToImmutableArray();
                 lock (this.memberAttributes)
                 {
                     this.parameterAttributes[parameter] = result;

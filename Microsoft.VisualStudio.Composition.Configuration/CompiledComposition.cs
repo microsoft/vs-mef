@@ -20,100 +20,126 @@
     using Microsoft.CodeAnalysis.Text;
     using Validation;
 
-    public static class CompositionConfigurationDesktop
+    public class CompiledComposition : ICompositionCacheManager
     {
+        public CompiledComposition()
+        {
+            this.Optimize = true;
+        }
+
+        /// <summary>
+        /// Gets or sets the assembly name to use when writing out the compiled assembly.
+        /// </summary>
+        /// <remarks>
+        /// This is <em>not</em> the path to the assembly. The assembly is written to the stream provided to the <see cref="SaveAsync"/> method.
+        /// Rather, the value of this property should be set to match the leaf filename of the stream to which the assembly is written (without the .dll extension).
+        /// </remarks>
+        public string AssemblyName { get; set; }
+
+        public Stream PdbSymbols { get; set; }
+
+        public Stream Source { get; set; }
+
+        public TextWriter BuildOutput { get; set; }
+
+        public bool Optimize { get; set; }
+
         public static IExportProviderFactory LoadDefault()
         {
             string exePath = Process.GetCurrentProcess().MainModule.FileName.Replace(".vshost", string.Empty);
             string baseName = Path.Combine(Path.GetDirectoryName(exePath), Path.GetFileNameWithoutExtension(exePath));
             string defaultCompositionFile = baseName + ".Composition.dll";
-            return CompositionConfiguration.Load(Assembly.LoadFile(defaultCompositionFile));
+            return LoadExportProviderFactory(Assembly.LoadFile(defaultCompositionFile));
         }
 
-        public static async Task SaveAsync(this CompositionConfiguration configuration, string assemblyPath, string pdbPath = null, string sourceFilePath = null, TextWriter buildOutput = null, bool debug = false, CancellationToken cancellationToken = default(CancellationToken))
+        public static IExportProviderFactory LoadExportProviderFactory(string assemblyCacheFullPath)
         {
-            string assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
-            using (Stream assemblyStream = File.Open(assemblyPath, FileMode.Create))
+            Requires.NotNullOrEmpty(assemblyCacheFullPath, "assemblyCacheFullPath");
+
+            return LoadExportProviderFactory(Assembly.LoadFrom(assemblyCacheFullPath));
+        }
+
+        public static IExportProviderFactory LoadExportProviderFactory(Assembly assembly)
+        {
+            return new CompiledExportProviderFactory(assembly);
+        }
+
+        public async Task<EmitResult> SaveGetResultAsync(CompositionConfiguration configuration, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Requires.NotNull(configuration, "configuration");
+            Requires.NotNull(cacheStream, "cacheStream");
+            Requires.Argument(cacheStream.CanWrite, "cacheStream", "Writable stream required.");
+            Verify.Operation(this.AssemblyName != null, "AssemblyName must be set first.");
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            CSharpCompilation templateCompilation = CreateTemplateCompilation(this.AssemblyName, !this.Optimize);
+
+            CSharpCompilation compilation = await AddGeneratedCodeAndDependenciesAsync(templateCompilation, configuration, this.Source, !this.Optimize, cancellationToken);
+
+            EmitResult result = compilation.Emit(
+                cacheStream,
+                pdbStream: this.PdbSymbols,
+                cancellationToken: cancellationToken);
+
+            if (this.BuildOutput != null)
             {
-                using (Stream pdbStream = pdbPath != null ? File.Open(pdbPath, FileMode.Create) : null)
+                if (!result.Success)
                 {
-                    using (FileStream sourceFile = sourceFilePath != null ? File.Open(sourceFilePath, FileMode.Create) : null)
+                    await this.BuildOutput.WriteLineAsync("Build failed.");
+                }
+
+                string fileName = this.Source is FileStream ? Path.GetFileName(((FileStream)this.Source).Name) : (this.AssemblyName + ".cs");
+                foreach (var diagnostic in result.Diagnostics)
+                {
+                    if (diagnostic.Severity > DiagnosticSeverity.Info)
                     {
-                        var result = await configuration.SaveCompilationAsync(
-                            assemblyName,
-                            assemblyStream,
-                            pdbStream,
-                            sourceFile,
-                            buildOutput,
-                            debug,
-                            cancellationToken: cancellationToken);
-                        if (!result.Success)
+                        string location = fileName;
+                        if (diagnostic.Location != Location.None)
                         {
-                            throw new Exception("Internal error");
+                            location += string.Format(
+                                CultureInfo.InvariantCulture,
+                                "({0},{1},{2},{3})",
+                                diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1,
+                                diagnostic.Location.GetLineSpan().StartLinePosition.Character,
+                                diagnostic.Location.GetLineSpan().EndLinePosition.Line + 1,
+                                diagnostic.Location.GetLineSpan().EndLinePosition.Character);
                         }
+
+                        string formattedMessage = string.Format(
+                            CultureInfo.CurrentCulture,
+                            "{0}: {1} {2}: {3}",
+                            location,
+                            diagnostic.Severity,
+                            diagnostic.Id,
+                            diagnostic.GetMessage());
+
+                        await this.BuildOutput.WriteLineAsync(formattedMessage);
                     }
                 }
             }
+
+            return result;
         }
 
-        public static Task<EmitResult> SaveCompilationAsync(this CompositionConfiguration configuration, string assemblyName, Stream assemblyStream, Stream pdbStream = null, Stream sourceFile = null, TextWriter buildOutput = null, bool debug = false, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task SaveAsync(CompositionConfiguration configuration, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Requires.NotNull(configuration, "configuration");
-            Requires.NotNullOrEmpty(assemblyName, "assemblyName");
-            Requires.NotNull(assemblyStream, "assemblyStream");
-
-            return Task.Run(async delegate
+            var result = await this.SaveGetResultAsync(configuration, cacheStream, cancellationToken);
+            if (!result.Success)
             {
-                cancellationToken.ThrowIfCancellationRequested();
+                throw new Exception("Compilation errors occurred.");
+            }
+        }
 
-                CSharpCompilation templateCompilation = CreateTemplateCompilation(assemblyName, debug);
+        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Requires.NotNull(cacheStream, "cacheStream");
+            Requires.Argument(cacheStream.CanRead, "cacheStream", "Readable stream required.");
 
-                var compilation = await AddGeneratedCodeAndDependenciesAsync(templateCompilation, configuration, sourceFile, debug, cancellationToken);
-
-                var result = compilation.Emit(
-                    assemblyStream,
-                    pdbStream: pdbStream,
-                    cancellationToken: cancellationToken);
-
-                if (buildOutput != null)
-                {
-                    if (!result.Success)
-                    {
-                        await buildOutput.WriteLineAsync("Build failed.");
-                    }
-
-                    foreach (var diagnostic in result.Diagnostics)
-                    {
-                        if (diagnostic.Severity > DiagnosticSeverity.Info)
-                        {
-                            string fileName = sourceFile is FileStream ? Path.GetFileName(((FileStream)sourceFile).Name) : assemblyName;
-                            string location = fileName;
-                            if (diagnostic.Location != Location.None)
-                            {
-                                location += string.Format(
-                                    CultureInfo.InvariantCulture,
-                                    "({0},{1},{2},{3})",
-                                    diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1,
-                                    diagnostic.Location.GetLineSpan().StartLinePosition.Character,
-                                    diagnostic.Location.GetLineSpan().EndLinePosition.Line + 1,
-                                    diagnostic.Location.GetLineSpan().EndLinePosition.Character);
-                            }
-
-                            string formattedMessage = string.Format(
-                                CultureInfo.CurrentCulture,
-                                "{0}: {1} {2}: {3}",
-                                location,
-                                diagnostic.Severity,
-                                diagnostic.Id,
-                                diagnostic.GetMessage());
-
-                            await buildOutput.WriteLineAsync(formattedMessage);
-                        }
-                    }
-                }
-
-                return result;
-            });
+            byte[] assemblyBytes = new byte[cacheStream.Length - cacheStream.Position];
+            await cacheStream.ReadAsync(assemblyBytes, 0, assemblyBytes.Length);
+            Assembly loadedAssembly = Assembly.Load(assemblyBytes);
+            return LoadExportProviderFactory(loadedAssembly);
         }
 
         private static CSharpCompilation CreateTemplateCompilation(string assemblyName, bool debug)
@@ -143,28 +169,6 @@
                     debugInformationKind: debug ? DebugInformationKind.Full : DebugInformationKind.None,
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
                     specificDiagnosticOptions: diagnosticOptions));
-        }
-
-        public static async Task<IExportProviderFactory> CreateContainerFactoryAsync(this CompositionConfiguration configuration, Stream sourceFile = null, TextWriter buildOutput = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            string assemblyName = Path.GetRandomFileName();
-            var assemblyStream = new MemoryStream();
-
-            var result = await configuration.SaveCompilationAsync(
-                assemblyName,
-                assemblyStream: assemblyStream,
-                sourceFile: sourceFile,
-                buildOutput: buildOutput);
-            if (result.Success)
-            {
-                await buildOutput.WriteLineAsync("Generated assembly size: " + assemblyStream.Length);
-                var compositionAssembly = Assembly.Load(assemblyStream.ToArray());
-                return CompositionConfiguration.Load(compositionAssembly);
-            }
-            else
-            {
-                throw new Exception("Internal error.");
-            }
         }
 
         private static async Task<CSharpCompilation> AddGeneratedCodeAndDependenciesAsync(CSharpCompilation compilationTemplate, CompositionConfiguration configuration, Stream sourceFile, bool debug, CancellationToken cancellationToken = default(CancellationToken))
@@ -350,6 +354,24 @@
             public int GetHashCode(Type obj)
             {
                 return obj.FullName.GetHashCode();
+            }
+        }
+
+        private class CompiledExportProviderFactory : IExportProviderFactory
+        {
+            private Func<ExportProvider> createFactory;
+
+            internal CompiledExportProviderFactory(Assembly assembly)
+            {
+                Requires.NotNull(assembly, "assembly");
+
+                var exportFactoryType = assembly.GetType("CompiledExportProvider");
+                this.createFactory = () => (ExportProvider)Activator.CreateInstance(exportFactoryType);
+            }
+
+            public ExportProvider CreateExportProvider()
+            {
+                return this.createFactory();
             }
         }
     }

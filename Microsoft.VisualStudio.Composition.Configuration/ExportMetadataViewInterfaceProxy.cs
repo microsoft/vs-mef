@@ -15,7 +15,7 @@
     /// <summary>
     /// Extension that adds support for dynamic interface metadata view generation.
     /// </summary>
-    public static class ExportMetadataViewInterfaceProxy
+    internal static class ExportMetadataViewInterfaceProxy
     {
         private static readonly MethodInfo EqualsMethodInfo = typeof(object).GetMethod("Equals", BindingFlags.Instance | BindingFlags.Public);
 
@@ -34,21 +34,22 @@
             return catalog.WithPart(proxySupportPartDefinition);
         }
 
-        private static TMetadata GetProxy<TMetadata>(IReadOnlyDictionary<string, object> metadata)
+        private static object GetProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType)
         {
             Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(metadataViewType, "metadataViewType");
 
-            var proxy = new MetadataProxy<TMetadata>(metadata);
-            return (TMetadata)proxy.GetTransparentProxy();
+            var proxy = new MetadataProxy(metadata, metadataViewType);
+            return proxy.GetTransparentProxy();
         }
 
-        private class MetadataProxy<TMetadata> : RealProxy
+        private class MetadataProxy : RealProxy
         {
             private readonly IReadOnlyDictionary<string, object> metadata;
             private object transparentProxy;
 
-            internal MetadataProxy(IReadOnlyDictionary<string, object> metadata)
-                : base(typeof(TMetadata))
+            internal MetadataProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType)
+                : base(metadataViewType)
             {
                 Requires.NotNull(metadata, "metadata");
                 this.metadata = metadata;
@@ -69,6 +70,13 @@
                 {
                     string propertyName = methodCall.MethodName.Substring(4);
                     result = this.metadata[propertyName];
+
+                    // In some cases, metadata values may not cast appropriately to the required value.
+                    // In these cases, the desired behavior is to simply return null.
+                    if (result != null && !methodInfo.ReturnType.IsAssignableFrom(result.GetType()))
+                    {
+                        result = null;
+                    }
                 }
                 else if (methodInfo == EqualsMethodInfo)
                 {
@@ -106,9 +114,9 @@
                 return false;
             }
 
-            public TMetadata CreateProxy<TMetadata>(IReadOnlyDictionary<string, object> metadata)
+            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType)
             {
-                return GetProxy<TMetadata>(metadata);
+                return GetProxy(metadata, metadataViewType);
             }
 
             private static bool IsPropertyRelated(MemberInfo member)
