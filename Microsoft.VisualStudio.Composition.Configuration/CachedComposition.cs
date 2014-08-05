@@ -569,7 +569,6 @@
             /// Prepares the object for referential sharing in the serialization stream.
             /// </summary>
             /// <param name="value">The value that may be serialized more than once.</param>
-            /// <param name="id">The ID assigned to this object that should be serialized before the object.</param>
             /// <returns><c>true</c> if the object should be serialized; otherwise <c>false</c>.</returns>
             private bool TryPrepareSerializeReusableObject(object value)
             {
