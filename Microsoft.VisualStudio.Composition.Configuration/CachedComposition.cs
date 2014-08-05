@@ -44,7 +44,6 @@
             {
                 using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
                 {
-                    Debug.WriteLine("Start serialization of MEF cache file.");
                     var context = new SerializationContext(writer);
                     context.Write(composition);
                 }
@@ -60,7 +59,6 @@
             {
                 using (var reader = new BinaryReader(cacheStream, TextEncoding, leaveOpen: true))
                 {
-                    Debug.WriteLine("Start deserialization of MEF cache file.");
                     var context = new SerializationContext(reader);
                     var runtimeComposition = context.ReadRuntimeComposition();
                     return runtimeComposition;
