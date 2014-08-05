@@ -303,7 +303,7 @@
             }
         }
 
-        private class DebuggableCompositionContainer : MefV1.Hosting.CompositionContainer
+        internal class DebuggableCompositionContainer : MefV1.Hosting.CompositionContainer
         {
             protected override IEnumerable<MefV1.Primitives.Export> GetExportsCore(MefV1.Primitives.ImportDefinition definition, MefV1.Hosting.AtomicComposition atomicComposition)
             {
@@ -322,11 +322,11 @@
             }
         }
 
-        private class V1ContainerWrapper : IContainer
+        internal class V1ContainerWrapper : IContainer
         {
             private readonly DebuggableCompositionContainer container;
 
-            public DebuggableCompositionContainer Container
+            internal DebuggableCompositionContainer Container
             {
                 get { return container; }
             }

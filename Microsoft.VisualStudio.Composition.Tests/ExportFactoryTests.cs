@@ -311,6 +311,30 @@
 
         #endregion
 
+        #region ExportFactory with CreatePolicy == Any
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3SkipCodeGenScenario, typeof(ExportWithAnyCreationPolicy), typeof(ExportFactoryOfAnyCreationPolicyPartV1Part))]
+        public void ExportFactoryOfAnyCreationPolicyPartV1(IContainer container)
+        {
+            var factory = container.GetExportedValue<ExportFactoryOfAnyCreationPolicyPartV1Part>();
+            var value1 = factory.Factory.CreateExport().Value;
+            var value2 = factory.Factory.CreateExport().Value;
+            Assert.NotSame(value1, value2);
+        }
+
+        [MefV1.Export]
+        [Export]
+        public class ExportWithAnyCreationPolicy { }
+
+        [MefV1.Export]
+        public class ExportFactoryOfAnyCreationPolicyPartV1Part
+        {
+            [MefV1.Import]
+            public MefV1.ExportFactory<ExportWithAnyCreationPolicy> Factory { get; set; }
+        }
+
+        #endregion
+
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [MefV1.ExportMetadata("N", "V")]
         [Export]

@@ -172,7 +172,7 @@
                 }
             }
 
-            public bool Equals(IReadOnlyDictionary<TKey, TValue> x, IReadOnlyDictionary<TKey, TValue> y)
+            public virtual bool Equals(IReadOnlyDictionary<TKey, TValue> x, IReadOnlyDictionary<TKey, TValue> y)
             {
                 if (x.Count != y.Count)
                 {
@@ -227,6 +227,12 @@
 
                 // We can't do any better without hashing the entire dictionary.
                 return 1;
+            }
+
+            public override bool Equals(IReadOnlyDictionary<string, object> x, IReadOnlyDictionary<string, object> y)
+            {
+                // Be sure we're comparing TypeRefs instead of resolved Types to avoid loading assemblies unnecessarily.
+                return base.Equals(LazyMetadataWrapper.TryUnwrap(x), LazyMetadataWrapper.TryUnwrap(y));
             }
 
             private class MetadataValueComparer : IEqualityComparer<object>

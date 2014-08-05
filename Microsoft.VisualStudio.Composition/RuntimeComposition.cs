@@ -420,7 +420,7 @@
                     && EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType)
                     && EqualityComparer<MemberRef>.Default.Equals(this.Member, other.Member)
                     && EqualityComparer<TypeRef>.Default.Equals(this.ExportedValueType, other.ExportedValueType)
-                    && ByValueEquality.Metadata.Equals(LazyMetadataWrapper.TryUnwrap(this.Metadata), LazyMetadataWrapper.TryUnwrap(other.Metadata));
+                    && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata);
                 return result;
             }
         }
