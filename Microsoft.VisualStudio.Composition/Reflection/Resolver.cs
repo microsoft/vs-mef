@@ -9,7 +9,7 @@
 
     public static class Resolver
     {
-        private static readonly Dictionary<AssemblyName, Module> assemblyManifests = new Dictionary<AssemblyName, Module>();
+        private static readonly Dictionary<AssemblyName, Module> assemblyManifests = new Dictionary<AssemblyName, Module>(ByValueEquality.AssemblyName);
 
         public static Type Resolve(this TypeRef typeRef)
         {
@@ -180,12 +180,15 @@
                 assemblyManifests.TryGetValue(assemblyName, out module);
             }
 
-            var assembly = Assembly.Load(assemblyName);
-            module = assembly.ManifestModule;
-
-            lock (assemblyManifests)
+            if (module == null)
             {
-                assemblyManifests[assemblyName] = module;
+                var assembly = Assembly.Load(assemblyName);
+                module = assembly.ManifestModule;
+
+                lock (assemblyManifests)
+                {
+                    assemblyManifests[assemblyName] = module;
+                }
             }
 
             return module;
