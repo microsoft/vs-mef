@@ -511,6 +511,43 @@
 
         #endregion
 
+        /// <summary>
+        /// Documents MEFv1 behavior that the metadata view with default values improperly matches
+        /// exports with incompatible metadata, and at runtime shows the metadata as null.
+        /// </summary>
+        [MefFact(CompositionEngines.V1, typeof(PartWithNamesSingleMetadata), typeof(PartImportingPartWithNamesSingleMetadata), NoCompatGoal = true)]
+        public void ExportMetadataIsMultipleFalseIntoMultipleMetadataViewV1(IContainer container)
+        {
+            var export = container.GetExportedValue<PartImportingPartWithNamesSingleMetadata>();
+            Assert.Equal(1, export.ImportingProperty.Count); // MEFv1 allows through the filter...
+            Assert.Null(export.ImportingProperty[0].Metadata.Names); // ...but then fails to obtain the value.
+        }
+
+        /// <summary>
+        /// Documents MEFv3 behavior as having a more accurate metadata view filter than MEFv1 in
+        /// the same scenario as above.
+        /// </summary>
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(PartWithNamesSingleMetadata), typeof(PartImportingPartWithNamesSingleMetadata))]
+        public void ExportMetadataIsMultipleFalseIntoMultipleMetadataViewV3(IContainer container)
+        {
+            var export = container.GetExportedValue<PartImportingPartWithNamesSingleMetadata>();
+            Assert.Equal(0, export.ImportingProperty.Count); // empty because the metadata filter is not satisfied (string != string[])
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        [MefV1.ExportMetadata("Names", "someName")]
+        [Export]
+        [ExportMetadata("Names", "someName")]
+        public class PartWithNamesSingleMetadata { }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        [Export]
+        public class PartImportingPartWithNamesSingleMetadata
+        {
+            [MefV1.ImportMany, ImportMany]
+            public List<Lazy<PartWithNamesSingleMetadata, INamedMetadata>> ImportingProperty { get; set; }
+        }
+
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [MefV1.ExportMetadata("a", "b")]
         [Export]
