@@ -83,12 +83,12 @@
         #region SatisfyImportsOnce
 
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Apple))]
-        public void SatisfyImportsOnce(IContainer container)
+        public void SatisfyImportsOnceWithRequiredCreationPolicy(IContainer container)
         {
             var v3Container = (TestUtilities.V3ContainerWrapper)container;
 
             var v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
-            var receiver = new SatisfyImportsOnceReceiver();
+            var receiver = new SatisfyImportsOnceWithPartCreationPolicyReceiver();
             MefV1.AttributedModelServices.SatisfyImportsOnce(v1Container, receiver);
             Assert.NotNull(receiver.NonSharedApple);
 
@@ -96,13 +96,39 @@
             ////Assert.Null(receiver.SharedApple);
         }
 
-        private class SatisfyImportsOnceReceiver
+        private class SatisfyImportsOnceWithPartCreationPolicyReceiver
         {
             [MefV1.Import(RequiredCreationPolicy = MefV1.CreationPolicy.NonShared)]
             public Apple NonSharedApple { get; set; }
 
             [MefV1.Import(RequiredCreationPolicy = MefV1.CreationPolicy.Shared, AllowDefault = true)]
             public Apple SharedApple { get; set; }
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Apple), Skip = "Not yet supported.")]
+        public void SatisfyImportsOnceWithExportFactory(IContainer container)
+        {
+            var v3Container = (TestUtilities.V3ContainerWrapper)container;
+
+            var v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
+            var receiver = new SatisfyImportsOnceWithExportFactoryReceiver();
+            MefV1.AttributedModelServices.SatisfyImportsOnce(v1Container, receiver);
+            Assert.NotNull(receiver.AppleFactory);
+            MefV1.ExportLifetimeContext<Apple> apple1 = receiver.AppleFactory.CreateExport();
+            Assert.NotNull(apple1);
+            Assert.NotNull(apple1.Value);
+            MefV1.ExportLifetimeContext<Apple> apple2 = receiver.AppleFactory.CreateExport();
+            Assert.NotNull(apple2);
+            Assert.NotNull(apple2.Value);
+
+            Assert.NotSame(apple1, apple2);
+            Assert.NotSame(apple1.Value, apple2.Value);
+        }
+
+        private class SatisfyImportsOnceWithExportFactoryReceiver
+        {
+            [MefV1.Import]
+            public MefV1.ExportFactory<Apple> AppleFactory { get; set; }
         }
 
         #endregion
