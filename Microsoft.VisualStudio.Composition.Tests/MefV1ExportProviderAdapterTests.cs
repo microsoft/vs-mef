@@ -105,12 +105,21 @@
             public Apple SharedApple { get; set; }
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Apple), Skip = "Not yet supported.")]
+        [MefFact(CompositionEngines.V1, typeof(Apple), typeof(Tree))]
         public void SatisfyImportsOnceWithExportFactory(IContainer container)
         {
-            var v3Container = (TestUtilities.V3ContainerWrapper)container;
+            MefV1.Hosting.CompositionContainer v1Container;
+            
+            var v3Container = container as TestUtilities.V3ContainerWrapper;
+            if (v3Container != null)
+            {
+                v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
+            }
+            else
+            {
+                v1Container = ((TestUtilities.V1ContainerWrapper)container).Container;
+            }
 
-            var v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
             var receiver = new SatisfyImportsOnceWithExportFactoryReceiver();
             MefV1.AttributedModelServices.SatisfyImportsOnce(v1Container, receiver);
             Assert.NotNull(receiver.AppleFactory);
