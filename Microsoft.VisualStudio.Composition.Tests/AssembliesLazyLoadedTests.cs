@@ -134,6 +134,33 @@
             }
         }
 
+        /// <summary>
+        /// Verifies that lazy assembly load isn't defeated when that assembly
+        /// defines a type used as a generic type argument elsewhere.
+        /// </summary>
+        [Fact]
+        public async Task ComposableAssembliesLazyLoadedWithGenericTypeArg()
+        {
+            var catalog = ComposableCatalog.Create(
+                await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartImportingOpenGenericExport), typeof(OpenGenericExport<>)))
+                .WithDesktopSupport();
+            var configuration = CompositionConfiguration.Create(catalog);
+            var compositionCache = await this.SaveConfigurationAsync(configuration);
+
+            // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
+            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
+            try
+            {
+                var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache);
+                driver.TestPartThatImportsExportWithGenericTypeArg(typeof(SomeOtherType).Assembly.Location);
+            }
+            finally
+            {
+                AppDomain.Unload(appDomain);
+            }
+        }
+
         private async Task<Stream> SaveConfigurationAsync(CompositionConfiguration configuration)
         {
             Requires.NotNull(configuration, "configuration");
@@ -213,6 +240,13 @@
                 Assert.Equal("YetAnotherExport", type.Name);
                 types.Single(t => t.Name == "String");
                 types.Single(t => t.Name == "YetAnotherExport");
+                Assert.True(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            internal void TestPartThatImportsExportWithGenericTypeArg(string lazyLoadedAssemblyPath)
+            {
+                Assert.False(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                var exportWithLazy = container.GetExportedValue<PartImportingOpenGenericExport>();
                 Assert.True(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
