@@ -92,7 +92,11 @@
                 {
                     foreach (var configuration in v3DiscoveryTest.ResultingConfigurations)
                     {
-                        yield return new Mef3TestCommand(method, configuration, this.compositionVersions, runtime: false);
+                        if (!this.compositionVersions.HasFlag(CompositionEngines.V3SkipCodeGenScenario))
+                        {
+                            yield return new Mef3TestCommand(method, configuration, this.compositionVersions, runtime: false);
+                        }
+
                         yield return new Mef3TestCommand(method, configuration, this.compositionVersions, runtime: true);
                     }
                 }

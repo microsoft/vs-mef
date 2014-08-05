@@ -45,6 +45,11 @@
         V3AllowConfigurationWithErrors = 0x2000,
 
         /// <summary>
+        /// Suppress running the test through the code gen component. Use only the "runtime".
+        /// </summary>
+        V3SkipCodeGenScenario = 0x4000,
+
+        /// <summary>
         /// The test is run both against System.ComponentModel.Composition and Microsoft.VisualStudio.Composition,
         /// assuming MEF parts are decorated with attributes from System.ComponentModel.Composition.
         /// </summary>

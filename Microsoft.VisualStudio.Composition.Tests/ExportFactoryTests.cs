@@ -313,7 +313,7 @@
 
         #region ExportFactory with CreatePolicy == Any
 
-        [MefFact(CompositionEngines.V1, typeof(ExportWithAnyCreationPolicy), typeof(ExportFactoryOfAnyCreationPolicyPartV1Part))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3SkipCodeGenScenario, typeof(ExportWithAnyCreationPolicy), typeof(ExportFactoryOfAnyCreationPolicyPartV1Part))]
         public void ExportFactoryOfAnyCreationPolicyPartV1(IContainer container)
         {
             var factory = container.GetExportedValue<ExportFactoryOfAnyCreationPolicyPartV1Part>();
