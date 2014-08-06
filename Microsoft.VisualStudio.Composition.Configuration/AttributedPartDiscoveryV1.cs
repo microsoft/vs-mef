@@ -172,7 +172,7 @@
                     exportsOnMembers.ToImmutable(),
                     imports.ToImmutable(),
                     partCreationPolicy != CreationPolicy.NonShared ? string.Empty : null,
-                    onImportsSatisfied,
+                    MethodRef.Get(onImportsSatisfied),
                     importingCtor != null ? importingConstructorParameters.ToImmutable() : null, // some MEF parts are only for metadata
                     partCreationPolicy,
                     partCreationPolicy != Composition.CreationPolicy.NonShared);

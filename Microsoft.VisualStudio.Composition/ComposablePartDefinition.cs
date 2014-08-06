@@ -27,7 +27,7 @@
         /// <param name="importingConstructor">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
         /// <param name="partCreationPolicy">The creation policy for this part.</param>
         /// <param name="isSharingBoundaryInferred">A value indicating whether the part does not have an explicit sharing boundary, and therefore can obtain its sharing boundary based on its imports.</param>
-        public ComposablePartDefinition(TypeRef partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberInfo, IReadOnlyCollection<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
+        public ComposablePartDefinition(TypeRef partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberInfo, IReadOnlyCollection<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodRef onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
         {
             Requires.NotNull(partType, "partType");
             Requires.NotNull(exportedTypes, "exportedTypes");
@@ -39,7 +39,7 @@
             this.ExportingMembers = exportingMembers;
             this.ImportingMembers = ImmutableHashSet.CreateRange(importingMembers);
             this.SharingBoundary = sharingBoundary;
-            this.OnImportsSatisfied = onImportsSatisfied;
+            this.OnImportsSatisfiedRef = onImportsSatisfied;
             this.ImportingConstructor = importingConstructor;
             this.CreationPolicy = partCreationPolicy;
             this.IsSharingBoundaryInferred = isSharingBoundaryInferred;
@@ -78,7 +78,12 @@
             get { return this.SharingBoundary != null; }
         }
 
-        public MethodInfo OnImportsSatisfied { get; private set; }
+        public MethodInfo OnImportsSatisfied
+        {
+            get { return this.OnImportsSatisfiedRef.Resolve(); }
+        }
+
+        public MethodRef OnImportsSatisfiedRef { get; private set; }
 
         /// <summary>
         /// Gets the types exported on the part itself.

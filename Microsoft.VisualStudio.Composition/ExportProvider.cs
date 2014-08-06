@@ -12,6 +12,7 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
     using DefaultMetadataType = System.Collections.Generic.IDictionary<string, object>;
 
@@ -27,7 +28,7 @@
             ImmutableDictionary<MemberInfo, IReadOnlyCollection<ExportDefinition>>.Empty,
             ImmutableList<ImportDefinitionBinding>.Empty,
             string.Empty,
-            null,
+            default(MethodRef),
             null,
             CreationPolicy.Shared,
             true);

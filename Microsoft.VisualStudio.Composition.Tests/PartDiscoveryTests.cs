@@ -72,7 +72,7 @@
                     ImmutableDictionary.Create<MemberInfo, IReadOnlyCollection<ExportDefinition>>(),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     null,
-                    null,
+                    default(MethodRef),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     CreationPolicy.Any,
                     true);
