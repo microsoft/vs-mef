@@ -145,6 +145,11 @@
     <Compile Include="Reflection\TypeRef.cs" />
     <Compile Include="RuntimeComposition.cs" />
     <Compile Include="RuntimeExportProviderFactory.cs" />
+    <Compile Include="Strings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
     <Compile Include="UniquePropertyNameComparer.cs" />
     <Compile Include="Utilities.cs" />
   </ItemGroup>
@@ -152,7 +157,12 @@
     <None Include="packages.config" />
     <None Include="signing.snk" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

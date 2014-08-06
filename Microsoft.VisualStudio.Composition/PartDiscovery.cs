@@ -6,6 +6,7 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -52,7 +53,7 @@
         {
             Requires.NotNull(partTypes, "partTypes");
 
-            var tuple = this.CreateDiscoveryBlockChain(true, cancellationToken);
+            var tuple = this.CreateDiscoveryBlockChain(true, null, cancellationToken);
             foreach (Type type in partTypes)
             {
                 await tuple.Item1.SendAsync(type);
@@ -73,7 +74,7 @@
         {
             Requires.NotNull(assembly, "assembly");
 
-            return this.CreatePartsAsync(new[] { assembly }, cancellationToken);
+            return this.CreatePartsAsync(new[] { assembly }, null, cancellationToken);
         }
 
         public abstract bool IsExportFactoryType(Type type);
@@ -82,13 +83,16 @@
         /// Reflects over a set of assemblies and produces MEF parts for every applicable type.
         /// </summary>
         /// <param name="assemblies">The assemblies to search for MEF parts.</param>
+        /// <param name="progress">An optional way to receive progress updates on how discovery is progressing.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A set of generated parts.</returns>
-        public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<Assembly> assemblies, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<Assembly> assemblies, IProgress<DiscoveryProgress> progress = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(assemblies, "assemblies");
 
-            var tuple = this.CreateDiscoveryBlockChain(false, cancellationToken);
+            var progressFilter = new ProgressFilter(progress);
+
+            var tuple = this.CreateDiscoveryBlockChain(false, progressFilter, cancellationToken);
             var exceptions = new List<Exception>();
             var assemblyBlock = new TransformManyBlock<Assembly, Type>(
                 a =>
@@ -97,7 +101,9 @@
                     {
                         // Fully realize any enumerable now so that we can catch the exception rather than
                         // leave it to dataflow to catch it.
-                        return this.GetTypes(a).ToList();
+                        var types = this.GetTypes(a).ToList();
+                        progressFilter.OnDiscoveredMoreTypes(types.Count);
+                        return types;
                     }
                     catch (Exception ex)
                     {
@@ -333,8 +339,10 @@
             return null;
         }
 
-        private Tuple<ITargetBlock<Type>, Task<DiscoveredParts>> CreateDiscoveryBlockChain(bool typeExplicitlyRequested, CancellationToken cancellationToken)
+        private Tuple<ITargetBlock<Type>, Task<DiscoveredParts>> CreateDiscoveryBlockChain(bool typeExplicitlyRequested, IProgress<DiscoveryProgress> progress, CancellationToken cancellationToken)
         {
+            string status = Strings.ScanningMEFAssemblies;
+            int typesScanned = 0;
             var transformBlock = new TransformBlock<Type, object>(
                 type =>
                 {
@@ -368,6 +376,8 @@
                 {
                     errors.Add(error);
                 }
+
+                progress.ReportNullSafe(new DiscoveryProgress(++typesScanned, 0, status));
             });
             transformBlock.LinkTo(aggregatingBlock, new DataflowLinkOptions { PropagateCompletion = true });
 
@@ -386,6 +396,72 @@
             });
 
             return Tuple.Create<ITargetBlock<Type>, Task<DiscoveredParts>>(transformBlock, tcs.Task);
+        }
+
+        private class ProgressFilter : IProgress<DiscoveryProgress>
+        {
+            private readonly IProgress<DiscoveryProgress> upstreamReceiver;
+
+            private int totalTypes;
+
+            private DiscoveryProgress lastReportedProgress;
+
+            internal ProgressFilter(IProgress<DiscoveryProgress> upstreamReceiver)
+            {
+                this.upstreamReceiver = upstreamReceiver;
+            }
+
+            internal void OnDiscoveredMoreTypes(int count)
+            {
+                Interlocked.Add(ref this.totalTypes, count);
+            }
+
+            public void Report(DiscoveryProgress value)
+            {
+                if (this.upstreamReceiver != null)
+                {
+                    // Update with the total types we get out of band.
+                    value = new DiscoveryProgress(value.TypesScanned, this.totalTypes, value.Status);
+
+                    bool update = false;
+                    lock (this)
+                    {
+                        // Only report progress if completion or status has changed significantly.
+                        if (Math.Abs(value.Completion - this.lastReportedProgress.Completion) > .01 || value.Status != this.lastReportedProgress.Status)
+                        {
+                            this.lastReportedProgress = value;
+                            update = true;
+                        }
+                    }
+
+                    if (update)
+                    {
+                        this.upstreamReceiver.Report(this.lastReportedProgress);
+                    }
+                }
+            }
+        }
+
+        public struct DiscoveryProgress
+        {
+            public DiscoveryProgress(int typesScanned, int totalTypes, string status)
+                : this()
+            {
+                this.TypesScanned = typesScanned;
+                this.TotalTypes = totalTypes;
+                this.Status = status;
+            }
+
+            public int TypesScanned { get; private set; }
+
+            public int TotalTypes { get; private set; }
+
+            public float Completion
+            {
+                get { return this.TotalTypes > 0 ? ((float)this.TypesScanned / this.TotalTypes) : 0; }
+            }
+
+            public string Status { get; private set; }
         }
 
         private class CombinedPartDiscovery : PartDiscovery
