@@ -15,7 +15,7 @@
         public string BootstrapFile { get; set; }
 
         [Required]
-        public string ConfigurationAssemblyName { get; set; }
+        public string CompositionCacheFile { get; set; }
 
         [Required]
         public string RootNamespace { get; set; }
@@ -24,7 +24,7 @@
         {
             string sourceFileContent = this.GetSourceFileTemplate()
                 .Replace("$rootnamespace$", this.RootNamespace)
-                .Replace("$ConfigurationAssemblyName$", this.ConfigurationAssemblyName);
+                .Replace("$ConfigurationAssemblyName$", this.CompositionCacheFile);
 
             File.WriteAllText(
                 this.BootstrapFile,

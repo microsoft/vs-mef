@@ -23,7 +23,7 @@
   <Import Project="$(NuProjPath)\NuProj.props" Condition="Exists('$(NuProjPath)\NuProj.props')" />
   <PropertyGroup Label="Configuration">
     <Id>Microsoft.VisualStudio.Composition</Id>
-    <Version>0.1.0-alpha4</Version>
+    <Version>0.1.0-alpha5</Version>
     <Title>Visual Studio MEF</Title>
     <Authors>Andrew Arnott</Authors>
     <Owners>Andrew Arnott</Owners>
@@ -55,14 +55,6 @@
     <BinariesSourceLocation Condition=" !Exists('$(BinariesSourceLocation)') ">$(OutDir)\</BinariesSourceLocation>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="$(BinariesSourceLocation)Microsoft.CodeAnalysis.CSharp.dll">
-      <Link>build\Microsoft.CodeAnalysis.CSharp.dll</Link>
-      <AlwaysInclude>true</AlwaysInclude>
-    </Content>
-    <Content Include="$(BinariesSourceLocation)Microsoft.CodeAnalysis.dll">
-      <Link>build\Microsoft.CodeAnalysis.dll</Link>
-      <AlwaysInclude>true</AlwaysInclude>
-    </Content>
     <Content Include="$(BinariesSourceLocation)System.Reflection.Metadata.dll">
       <Link>build\System.Reflection.Metadata.dll</Link>
       <AlwaysInclude>true</AlwaysInclude>
