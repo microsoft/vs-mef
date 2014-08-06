@@ -7,6 +7,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
     public class ImportDefinitionBinding : IEquatable<ImportDefinitionBinding>
@@ -15,45 +16,43 @@
         /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
         /// to represent an importing member.
         /// </summary>
-        public ImportDefinitionBinding(ImportDefinition importDefinition, Type composablePartType, MemberInfo importingMember)
+        public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef composablePartType, MemberRef importingMember)
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(composablePartType, "composablePartType");
-            Requires.NotNull(importingMember, "importingMember");
 
             this.ImportDefinition = importDefinition;
-            this.ComposablePartType = composablePartType;
-            this.ImportingMember = importingMember;
-            this.ImportingSiteType = ReflectionHelpers.GetMemberType(importingMember);
+            this.ComposablePartTypeRef = composablePartType;
+            this.ImportingMemberRef = importingMember;
+            this.ImportingSiteTypeRef = TypeRef.Get(ReflectionHelpers.GetMemberType(importingMember.Resolve()));
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
         /// to represent a parameter in an importing constructor.
         /// </summary>
-        public ImportDefinitionBinding(ImportDefinition importDefinition, Type composablePartType, ParameterInfo importingConstructorParameter)
+        public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef composablePartType, ParameterRef importingConstructorParameter)
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(composablePartType, "composablePartType");
-            Requires.NotNull(importingConstructorParameter, "importingConstructorParameter");
 
             this.ImportDefinition = importDefinition;
-            this.ComposablePartType = composablePartType;
-            this.ImportingParameter = importingConstructorParameter;
-            this.ImportingSiteType = importingConstructorParameter.ParameterType;
+            this.ComposablePartTypeRef = composablePartType;
+            this.ImportingParameterRef = importingConstructorParameter;
+            this.ImportingSiteTypeRef = TypeRef.Get(importingConstructorParameter.Resolve().ParameterType);
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
         /// to represent an imperative query into the container (no importing part).
         /// </summary>
-        public ImportDefinitionBinding(ImportDefinition importDefinition, Type contractType)
+        public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef contractType)
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(contractType, "contractType");
 
             this.ImportDefinition = importDefinition;
-            this.ImportingSiteType = typeof(IEnumerable<>).MakeGenericType(typeof(ILazy<>).MakeGenericType(contractType));
+            this.ImportingSiteTypeRef = TypeRef.Get(typeof(IEnumerable<>).MakeGenericType(typeof(ILazy<>).MakeGenericType(contractType.Resolve())));
         }
 
         /// <summary>
@@ -62,20 +61,48 @@
         public ImportDefinition ImportDefinition { get; private set; }
 
         /// <summary>
-        /// Gets the members this import is found on. Null for importing constructors.
+        /// Gets the member this import is found on. Null for importing constructors.
         /// </summary>
-        public MemberInfo ImportingMember { get; private set; }
+        public MemberInfo ImportingMember
+        {
+            get { return this.ImportingMemberRef.Resolve(); }
+        }
 
-        public ParameterInfo ImportingParameter { get; private set; }
+        /// <summary>
+        /// Gets the member this import is found on. Null for importing constructors.
+        /// </summary>
+        public MemberRef ImportingMemberRef { get; private set; }
 
-        public Type ComposablePartType { get; private set; }
+        public ParameterInfo ImportingParameter
+        {
+            get { return this.ImportingParameterRef.Resolve(); }
+        }
+
+        public ParameterRef ImportingParameterRef { get; private set; }
+
+        public Type ComposablePartType
+        {
+            get { return this.ComposablePartTypeRef.Resolve(); }
+        }
+
+        public TypeRef ComposablePartTypeRef { get; private set; }
 
         /// <summary>
         /// Gets the actual type of the variable or member that will be assigned the result.
         /// This includes any Lazy, ExportFactory or collection wrappers.
         /// </summary>
         /// <value>Never null.</value>
-        public Type ImportingSiteType { get; private set; }
+        public Type ImportingSiteType
+        {
+            get { return this.ImportingSiteTypeRef.Resolve(); }
+        }
+
+        /// <summary>
+        /// Gets the actual type of the variable or member that will be assigned the result.
+        /// This includes any Lazy, ExportFactory or collection wrappers.
+        /// </summary>
+        /// <value>Never null.</value>
+        public TypeRef ImportingSiteTypeRef { get; private set; }
 
         public Type ImportingSiteTypeWithoutCollection
         {

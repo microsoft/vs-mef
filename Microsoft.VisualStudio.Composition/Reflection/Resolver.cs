@@ -21,8 +21,12 @@
             Type type = GetManifest(typeRef.AssemblyName).ResolveType(typeRef.MetadataToken);
             if (typeRef.GenericTypeArguments.Length > 0)
             {
-                Type constructedType = type.MakeGenericType(typeRef.GenericTypeArguments.Select(Resolve).ToArray());
-                return constructedType;
+                type = type.MakeGenericType(typeRef.GenericTypeArguments.Select(Resolve).ToArray());
+            }
+
+            if (typeRef.IsArray)
+            {
+                type = type.MakeArrayType();
             }
 
             return type;

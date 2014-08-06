@@ -85,7 +85,7 @@
                 ImportDefinition importDefinition;
                 if (TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member.GetCustomAttributesCached(), importConstraints, out importDefinition))
                 {
-                    imports.Add(new ImportDefinitionBinding(importDefinition, partType, member));
+                    imports.Add(new ImportDefinitionBinding(importDefinition, TypeRef.Get(partType), MemberRef.Get(member)));
                 }
                 else if (exportAttributes.Any())
                 {
@@ -274,7 +274,7 @@
                 Assumes.True(TryCreateImportDefinition(parameter.ParameterType, attributes.Concat(new Attribute[] { new ImportAttribute() }), importConstraints, out result));
             }
 
-            return new ImportDefinitionBinding(result, parameter.Member.DeclaringType, parameter);
+            return new ImportDefinitionBinding(result, TypeRef.Get(parameter.Member.DeclaringType), ParameterRef.Get(parameter));
         }
 
         /// <summary>
