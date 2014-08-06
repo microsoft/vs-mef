@@ -188,7 +188,7 @@
 
         #region Crossing Scope LifeTime Test
 
-        [MefFact(CompositionEngines.V2, typeof(RootScopePart), typeof(RootScopeSecondPart), typeof(SubScopedBPart))]
+        [MefFact(CompositionEngines.V2Compat, typeof(RootScopePart), typeof(RootScopeSecondPart), typeof(SubScopedBPart))]
         public void PartsInRootScopeStaysAlive(IContainer container)
         {
             var root = container.GetExportedValue<RootScopePart>();
@@ -203,16 +203,19 @@
                 Assert.Same(secondItem, newItem.Value.Root);
                 Assert.False(newItem.Value.Root.IsDisposed);
             }
+
+            container.Dispose();
+            Assert.True(secondItem.IsDisposed);
         }
 
-        [MefV2.Export, MefV2.Shared()]
+        [MefV2.Export, MefV2.Shared]
         public class RootScopePart
         {
             [MefV2.Import, MefV2.SharingBoundary("B")]
             public MefV2.ExportFactory<SubScopedBPart> ScopeFactory { get; set; }
         }
 
-        [MefV2.Export, MefV2.Shared()]
+        [MefV2.Export, MefV2.Shared]
         public class RootScopeSecondPart : IDisposable
         {
             [MefV2.Import]

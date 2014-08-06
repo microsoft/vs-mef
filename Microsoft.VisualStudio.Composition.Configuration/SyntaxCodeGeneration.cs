@@ -297,7 +297,7 @@
                                 SyntaxFactory.Argument(parentIdentifier),
                                 SyntaxFactory.Argument(freshSharingBoundaries))))))
                 .WithBody(SyntaxFactory.Block(
-                // this.assemblyNames
+                    // this.assemblyNames
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -313,7 +313,7 @@
                                 CodeGen.JoinSyntaxNodes(
                                     SyntaxKind.CommaToken,
                                     this.reflectionLoadedAssemblies.Select(a => GetSyntaxToReconstructValue(a.FullName, SyntaxFactory.ThisExpression())).ToArray()))))),
-                // this.assemblyCodeBasePaths
+                    // this.assemblyCodeBasePaths
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -329,7 +329,7 @@
                                 CodeGen.JoinSyntaxNodes(
                                     SyntaxKind.CommaToken,
                                     this.reflectionLoadedAssemblies.Select(a => GetSyntaxToReconstructValue(a.CodeBase, SyntaxFactory.ThisExpression())).ToArray()))))),
-                // this.cachedManifests = new Module[<#= reflectionLoadedAssemblies.Count #>];
+                    // this.cachedManifests = new Module[<#= reflectionLoadedAssemblies.Count #>];
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -340,7 +340,7 @@
                             this.GetTypeNameSyntax(typeof(Module)),
                             SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
                                 SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(this.reflectionLoadedAssemblies.Count))))))))),
-                // this.cachedTypes = new Type[<#= reflectionLoadedTypes.Count #>];
+                    // this.cachedTypes = new Type[<#= reflectionLoadedTypes.Count #>];
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -1393,16 +1393,24 @@
 
                 if (typeof(IDisposable).IsAssignableFrom(part.Definition.Type))
                 {
-                    // this.TrackDisposableValue((IDisposable)result);
+                    // this.TrackDisposableValue((IDisposable)result, "sharingBoundary");
                     statements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
                             thisExportProvider,
                             SyntaxFactory.IdentifierName("TrackDisposableValue")),
-                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
-                            SyntaxFactory.CastExpression(
-                                SyntaxFactory.IdentifierName("IDisposable"),
-                                partInstanceIdentifier)))))));
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                            SyntaxKind.CommaToken,
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.CastExpression(
+                                    SyntaxFactory.IdentifierName("IDisposable"),
+                                    partInstanceIdentifier)),
+                            SyntaxFactory.Argument(
+                                part.Definition.IsShared
+                                    ? (ExpressionSyntax)SyntaxFactory.LiteralExpression(
+                                        SyntaxKind.StringLiteralExpression,
+                                        SyntaxFactory.Literal(this.Configuration.GetEffectiveSharingBoundary(part.Definition)))
+                                    : NullSyntax))))));
                 }
 
                 if (part.Definition.IsShared)
@@ -2515,7 +2523,7 @@
                         SyntaxKind.NotEqualsExpression,
                         SyntaxFactory.ElementAccessExpression(typeGenericArgArray, bracketTypeId),
                         NullSyntax),
-                // type = type.MakeGenericType(typeGenericArgumentId[typeId].Select(GetTypeCore).ToArray())
+                    // type = type.MakeGenericType(typeGenericArgumentId[typeId].Select(GetTypeCore).ToArray())
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         typeLocalVar,

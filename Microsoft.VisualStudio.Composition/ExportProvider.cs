@@ -109,9 +109,22 @@
         private readonly ImmutableDictionary<string, Dictionary<int, object>> sharedInstantiatedExports = ImmutableDictionary.Create<string, Dictionary<int, object>>();
 
         /// <summary>
-        /// The disposable objects whose lifetimes are controlled by this instance.
+        /// The disposable objects whose lifetimes are shared and tied to a specific sharing boundary.
         /// </summary>
-        private readonly HashSet<IDisposable> disposableInstantiatedParts = new HashSet<IDisposable>();
+        private readonly ImmutableDictionary<string, HashSet<IDisposable>> disposableInstantiatedSharedParts = ImmutableDictionary.Create<string, HashSet<IDisposable>>();
+
+        /// <summary>
+        /// The dispoable objects whose lifetimes are controlled by this instance.
+        /// </summary>
+        /// <remarks>
+        /// Access to this collection is guarded by locking the collection instance itself.
+        /// </remarks>
+        private readonly HashSet<IDisposable> disposableNonSharedParts = new HashSet<IDisposable>();
+
+        /// <summary>
+        /// The sharing boundaries that this ExportProvider creates new sharing boundaries for.
+        /// </summary>
+        private readonly ImmutableHashSet<string> freshSharingBoundaries = ImmutableHashSet.Create<string>();
 
         private bool isDisposed;
 
@@ -121,18 +134,23 @@
             {
                 this.sharedInstantiatedExports = this.sharedInstantiatedExports.Add(string.Empty, new Dictionary<int, object>());
                 this.runtimeCreatedTypes = new List<Reflection.TypeRef>();
+                this.disposableInstantiatedSharedParts = this.disposableInstantiatedSharedParts.Add(string.Empty, new HashSet<IDisposable>());
+                this.freshSharingBoundaries = this.freshSharingBoundaries.Add(string.Empty);
             }
             else
             {
                 this.sharedInstantiatedExports = parent.sharedInstantiatedExports;
                 this.runtimeCreatedTypes = parent.runtimeCreatedTypes;
+                this.disposableInstantiatedSharedParts = parent.disposableInstantiatedSharedParts;
             }
 
             if (freshSharingBoundaries != null)
             {
+                this.freshSharingBoundaries = this.freshSharingBoundaries.Union(freshSharingBoundaries);
                 foreach (string freshSharingBoundary in freshSharingBoundaries)
                 {
                     this.sharedInstantiatedExports = this.sharedInstantiatedExports.SetItem(freshSharingBoundary, new Dictionary<int, object>());
+                    this.disposableInstantiatedSharedParts = this.disposableInstantiatedSharedParts.SetItem(freshSharingBoundary, new HashSet<IDisposable>());
                 }
             }
 
@@ -264,10 +282,20 @@
                 // then dispose of the values outside the lock to avoid
                 // executing arbitrary 3rd-party code within our lock.
                 List<IDisposable> disposableSnapshot;
-                lock (this.syncObject)
+                lock (this.disposableNonSharedParts)
                 {
-                    disposableSnapshot = new List<IDisposable>(this.disposableInstantiatedParts);
-                    this.disposableInstantiatedParts.Clear();
+                    disposableSnapshot = new List<IDisposable>(this.disposableNonSharedParts);
+                    this.disposableNonSharedParts.Clear();
+                }
+
+                foreach (var sharingBoundary in this.freshSharingBoundaries)
+                {
+                    var disposablePartsHashSet = this.disposableInstantiatedSharedParts[sharingBoundary];
+                    lock (disposablePartsHashSet)
+                    {
+                        disposableSnapshot.AddRange(disposablePartsHashSet);
+                        disposablePartsHashSet.Clear();
+                    }
                 }
 
                 foreach (var item in disposableSnapshot)
@@ -433,13 +461,32 @@
             }
         }
 
-        protected void TrackDisposableValue(IDisposable value)
+        /// <summary>
+        /// Adds a value to be disposed of when this or a parent ExportProvider is disposed of.
+        /// </summary>
+        /// <param name="instantiatedPart">The part to be disposed.</param>
+        /// <param name="sharingBoundary">
+        /// The sharing boundary associated with the part.
+        /// May be null for non-shared parts, or the empty string for the default sharing scope.
+        /// </param>
+        protected void TrackDisposableValue(IDisposable instantiatedPart, string sharingBoundary)
         {
-            Requires.NotNull(value, "value");
+            Requires.NotNull(instantiatedPart, "instantiatedPart");
 
-            lock (this.syncObject)
+            if (sharingBoundary == null)
             {
-                this.disposableInstantiatedParts.Add(value);
+                lock (this.disposableNonSharedParts)
+                {
+                    this.disposableNonSharedParts.Add(instantiatedPart);
+                }
+            }
+            else
+            {
+                var disposablePartsHashSet = this.disposableInstantiatedSharedParts[sharingBoundary];
+                lock (disposablePartsHashSet)
+                {
+                    disposablePartsHashSet.Add(instantiatedPart);
+                }
             }
         }
 
