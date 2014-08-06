@@ -7,6 +7,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Xunit;
 
     public class PartDiscoveryTests
@@ -66,12 +67,12 @@
                 }
 
                 return new ComposablePartDefinition(
-                    typeof(int),
+                    TypeRef.Get(typeof(int)),
                     ImmutableList.Create<ExportDefinition>(),
-                    ImmutableDictionary.Create<MemberInfo, IReadOnlyCollection<ExportDefinition>>(),
+                    ImmutableDictionary.Create<MemberRef, IReadOnlyCollection<ExportDefinition>>(),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     null,
-                    null,
+                    default(MethodRef),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     CreationPolicy.Any,
                     true);

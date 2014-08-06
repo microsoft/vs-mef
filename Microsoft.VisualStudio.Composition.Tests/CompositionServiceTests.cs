@@ -185,5 +185,58 @@
         }
 
         #endregion
+
+        #region Crossing Scope LifeTime Test
+
+        [MefFact(CompositionEngines.V2Compat, typeof(RootScopePart), typeof(RootScopeSecondPart), typeof(SubScopedBPart))]
+        public void PartsInRootScopeStaysAlive(IContainer container)
+        {
+            var root = container.GetExportedValue<RootScopePart>();
+            RootScopeSecondPart secondItem;
+            using (var firstItem = root.ScopeFactory.CreateExport())
+            {
+                secondItem = firstItem.Value.Root;
+            }
+
+            using (var newItem = root.ScopeFactory.CreateExport())
+            {
+                Assert.Same(secondItem, newItem.Value.Root);
+                Assert.False(newItem.Value.Root.IsDisposed);
+            }
+
+            container.Dispose();
+            Assert.True(secondItem.IsDisposed);
+        }
+
+        [MefV2.Export, MefV2.Shared]
+        public class RootScopePart
+        {
+            [MefV2.Import, MefV2.SharingBoundary("B")]
+            public MefV2.ExportFactory<SubScopedBPart> ScopeFactory { get; set; }
+        }
+
+        [MefV2.Export, MefV2.Shared]
+        public class RootScopeSecondPart : IDisposable
+        {
+            [MefV2.Import]
+            public RootScopePart Root { get; set; }
+
+            public bool IsDisposed { get; private set; }
+
+            void IDisposable.Dispose()
+            {
+                this.IsDisposed = true;
+            }
+        }
+
+        [MefV2.Export, MefV2.Shared("B")]
+        public class SubScopedBPart
+        {
+            [MefV2.Import]
+            public RootScopeSecondPart Root { get; set; }
+        }
+
+        #endregion
+
     }
 }

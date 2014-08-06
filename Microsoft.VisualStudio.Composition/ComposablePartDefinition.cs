@@ -9,6 +9,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
     [DebuggerDisplay("{Type.Name}")]
@@ -26,25 +27,30 @@
         /// <param name="importingConstructor">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
         /// <param name="partCreationPolicy">The creation policy for this part.</param>
         /// <param name="isSharingBoundaryInferred">A value indicating whether the part does not have an explicit sharing boundary, and therefore can obtain its sharing boundary based on its imports.</param>
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberInfo, IReadOnlyCollection<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
+        public ComposablePartDefinition(TypeRef partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodRef onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
         {
             Requires.NotNull(partType, "partType");
             Requires.NotNull(exportedTypes, "exportedTypes");
             Requires.NotNull(exportingMembers, "exportingMembers");
             Requires.NotNull(importingMembers, "importingMembers");
 
-            this.Type = partType;
+            this.TypeRef = partType;
             this.ExportedTypes = exportedTypes;
             this.ExportingMembers = exportingMembers;
             this.ImportingMembers = ImmutableHashSet.CreateRange(importingMembers);
             this.SharingBoundary = sharingBoundary;
-            this.OnImportsSatisfied = onImportsSatisfied;
+            this.OnImportsSatisfiedRef = onImportsSatisfied;
             this.ImportingConstructor = importingConstructor;
             this.CreationPolicy = partCreationPolicy;
             this.IsSharingBoundaryInferred = isSharingBoundaryInferred;
         }
 
-        public Type Type { get; private set; }
+        public Type Type
+        {
+            get { return this.TypeRef.Resolve(); }
+        }
+
+        public TypeRef TypeRef { get; private set; }
 
         public string Id
         {
@@ -72,7 +78,12 @@
             get { return this.SharingBoundary != null; }
         }
 
-        public MethodInfo OnImportsSatisfied { get; private set; }
+        public MethodInfo OnImportsSatisfied
+        {
+            get { return this.OnImportsSatisfiedRef.Resolve(); }
+        }
+
+        public MethodRef OnImportsSatisfiedRef { get; private set; }
 
         /// <summary>
         /// Gets the types exported on the part itself.
@@ -82,25 +93,25 @@
         /// <summary>
         /// Gets the exports found on members of the part (exporting properties, fields, methods.)
         /// </summary>
-        public IReadOnlyDictionary<MemberInfo, IReadOnlyCollection<ExportDefinition>> ExportingMembers { get; private set; }
+        public IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> ExportingMembers { get; private set; }
 
         /// <summary>
         /// Gets a sequence of all exports found on this part (both the type directly and its members).
         /// </summary>
-        public IEnumerable<KeyValuePair<MemberInfo, ExportDefinition>> ExportDefinitions
+        public IEnumerable<KeyValuePair<MemberRef, ExportDefinition>> ExportDefinitions
         {
             get
             {
                 foreach (var export in this.ExportedTypes)
                 {
-                    yield return new KeyValuePair<MemberInfo, ExportDefinition>(null, export);
+                    yield return new KeyValuePair<MemberRef, ExportDefinition>(default(MemberRef), export);
                 }
 
                 foreach (var member in this.ExportingMembers)
                 {
                     foreach (var export in member.Value)
                     {
-                        yield return new KeyValuePair<MemberInfo, ExportDefinition>(member.Key, export);
+                        yield return new KeyValuePair<MemberRef, ExportDefinition>(member.Key, export);
                     }
                 }
             }
@@ -168,7 +179,7 @@
                 && this.CreationPolicy == other.CreationPolicy
                 && this.OnImportsSatisfied == other.OnImportsSatisfied
                 && ByValueEquality.EquivalentIgnoreOrder<ExportDefinition>().Equals(this.ExportedTypes, other.ExportedTypes)
-                && ByValueEquality.Dictionary<MemberInfo, IReadOnlyCollection<ExportDefinition>>(ByValueEquality.EquivalentIgnoreOrder<ExportDefinition>()).Equals(this.ExportingMembers, other.ExportingMembers)
+                && ByValueEquality.Dictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>(ByValueEquality.EquivalentIgnoreOrder<ExportDefinition>()).Equals(this.ExportingMembers, other.ExportingMembers)
                 && this.ImportingMembers.SetEquals(other.ImportingMembers)
                 && ((this.ImportingConstructor == null && other.ImportingConstructor == null) || (this.ImportingConstructor != null && other.ImportingConstructor != null && this.ImportingConstructor.SequenceEqual(other.ImportingConstructor)));
             return result;
@@ -200,7 +211,7 @@
             {
                 foreach (var exportingMember in this.ExportingMembers)
                 {
-                    indentingWriter.WriteLine(exportingMember.Key.Name);
+                    indentingWriter.WriteLine(exportingMember.Key.Resolve().Name);
                     using (indentingWriter.Indent())
                     {
                         foreach (var export in exportingMember.Value)

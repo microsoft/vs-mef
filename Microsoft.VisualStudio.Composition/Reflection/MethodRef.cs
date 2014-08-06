@@ -32,6 +32,11 @@
             get { return this.DeclaringType == null; }
         }
 
+        public static MethodRef Get(MethodInfo method)
+        {
+            return method != null ? new MethodRef(method) : default(MethodRef);
+        }
+
         public bool Equals(MethodRef other)
         {
             if (this.IsEmpty ^ other.IsEmpty)

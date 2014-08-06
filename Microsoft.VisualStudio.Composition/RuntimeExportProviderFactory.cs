@@ -99,7 +99,7 @@
                 var disposablePart = part as IDisposable;
                 if (disposablePart != null)
                 {
-                    this.TrackDisposableValue(disposablePart);
+                    this.TrackDisposableValue(disposablePart, partDefinition.SharingBoundary);
                 }
 
                 foreach (var import in partDefinition.ImportingMembers)

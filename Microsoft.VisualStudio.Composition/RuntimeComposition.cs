@@ -121,7 +121,7 @@
             Requires.NotNull(importDefinitionBinding, "importDefinitionBinding");
             Requires.NotNull(satisfyingExports, "satisfyingExports");
 
-            var runtimeExports = satisfyingExports.Select(export => CreateRuntimeExport(export.ExportDefinition, export.PartDefinition.Type, export.ExportingMember)).ToImmutableArray();
+            var runtimeExports = satisfyingExports.Select(export => CreateRuntimeExport(export.ExportDefinition, export.PartDefinition.Type, MemberRef.Get(export.ExportingMember))).ToImmutableArray();
             if (importDefinitionBinding.ImportingMember != null)
             {
                 return new RuntimeImport(
@@ -146,15 +146,15 @@
             }
         }
 
-        private static RuntimeExport CreateRuntimeExport(ExportDefinition exportDefinition, Type partType, MemberInfo exportingMember)
+        private static RuntimeExport CreateRuntimeExport(ExportDefinition exportDefinition, Type partType, MemberRef exportingMember)
         {
             Requires.NotNull(exportDefinition, "exportDefinition");
 
             return new RuntimeExport(
                 exportDefinition.ContractName,
                 TypeRef.Get(partType),
-                exportingMember != null ? new MemberRef(exportingMember) : default(MemberRef),
-                TypeRef.Get(ReflectionHelpers.GetExportedValueType(partType, exportingMember)),
+                exportingMember,
+                TypeRef.Get(ReflectionHelpers.GetExportedValueType(partType, exportingMember.Resolve())),
                 exportDefinition.Metadata);
         }
 

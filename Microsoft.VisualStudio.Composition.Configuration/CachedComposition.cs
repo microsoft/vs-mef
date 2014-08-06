@@ -44,7 +44,6 @@
             {
                 using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
                 {
-                    Debug.WriteLine("Start serialization of MEF cache file.");
                     var context = new SerializationContext(writer);
                     context.Write(composition);
                 }
@@ -60,7 +59,6 @@
             {
                 using (var reader = new BinaryReader(cacheStream, TextEncoding, leaveOpen: true))
                 {
-                    Debug.WriteLine("Start deserialization of MEF cache file.");
                     var context = new SerializationContext(reader);
                     var runtimeComposition = context.ReadRuntimeComposition();
                     return runtimeComposition;
@@ -486,6 +484,7 @@
                 {
                     this.Write(typeRef.AssemblyName);
                     writer.Write(typeRef.MetadataToken);
+                    writer.Write(typeRef.IsArray);
                     writer.Write((byte)typeRef.GenericTypeParameterCount);
                     this.Write(typeRef.GenericTypeArguments, this.Write);
                 }
@@ -501,9 +500,10 @@
                 {
                     var assemblyName = this.ReadAssemblyName();
                     var metadataToken = reader.ReadInt32();
+                    bool isArray = reader.ReadBoolean();
                     int genericTypeParameterCount = reader.ReadByte();
                     var genericTypeArguments = this.ReadList(reader, this.ReadTypeRef);
-                    value = TypeRef.Get(assemblyName, metadataToken, genericTypeParameterCount, genericTypeArguments.ToImmutableArray());
+                    value = TypeRef.Get(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments.ToImmutableArray());
                     this.OnDeserializedReusableObject(id, value);
                 }
 

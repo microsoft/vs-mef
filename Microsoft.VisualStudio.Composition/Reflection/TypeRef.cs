@@ -20,29 +20,38 @@
         /// </remarks>
         private static readonly Dictionary<Type, WeakReference<TypeRef>> instanceCache = new Dictionary<Type, WeakReference<TypeRef>>();
 
-        private TypeRef(AssemblyName assemblyName, int metadataToken, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
+        private TypeRef(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
             Requires.NotNull(assemblyName, "assemblyName");
+            Requires.Argument(metadataToken != 0x02000000, "metadataToken", "Unresolvable metadata token.");
 
             this.AssemblyName = assemblyName;
             this.MetadataToken = metadataToken;
+            this.IsArray = isArray;
             this.GenericTypeParameterCount = genericTypeParameterCount;
             this.GenericTypeArguments = genericTypeArguments;
         }
 
         private TypeRef(Type type)
         {
+            Requires.NotNull(type, "type");
+
             this.AssemblyName = type.Assembly.GetName();
-            this.MetadataToken = type.MetadataToken;
-            this.GenericTypeParameterCount = type.GetTypeInfo().GenericTypeParameters.Length;
-            this.GenericTypeArguments = type.GenericTypeArguments != null && type.GenericTypeArguments.Length > 0
-                ? type.GenericTypeArguments.Select(t => new TypeRef(t)).ToImmutableArray()
+            this.IsArray = type.IsArray;
+
+            Type elementType = type.IsArray ? type.GetElementType() : type;
+            this.MetadataToken = elementType.MetadataToken;
+            this.GenericTypeParameterCount = elementType.GetTypeInfo().GenericTypeParameters.Length;
+            this.GenericTypeArguments = elementType.GenericTypeArguments != null && elementType.GenericTypeArguments.Length > 0
+                ? elementType.GenericTypeArguments.Select(t => new TypeRef(t)).ToImmutableArray()
                 : ImmutableArray<TypeRef>.Empty;
         }
 
         public AssemblyName AssemblyName { get; private set; }
 
         public int MetadataToken { get; private set; }
+
+        public bool IsArray { get; private set; }
 
         public int GenericTypeParameterCount { get; private set; }
 
@@ -53,9 +62,9 @@
             get { return this.GenericTypeParameterCount > 0 && this.GenericTypeArguments.Length == 0; }
         }
 
-        public static TypeRef Get(AssemblyName assemblyName, int metadataToken, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
+        public static TypeRef Get(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
-            return new TypeRef(assemblyName, metadataToken, genericTypeParameterCount, genericTypeArguments);
+            return new TypeRef(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments);
         }
 
         public static TypeRef Get(Type type)
@@ -91,7 +100,7 @@
         {
             Requires.Argument(!genericTypeArguments.IsDefault, "genericTypeArguments", "Not initialized.");
             Verify.Operation(this.IsGenericTypeDefinition, "This is not a generic type definition.");
-            return new Reflection.TypeRef(this.AssemblyName, this.MetadataToken, this.GenericTypeParameterCount, genericTypeArguments);
+            return new Reflection.TypeRef(this.AssemblyName, this.MetadataToken, this.IsArray, this.GenericTypeParameterCount, genericTypeArguments);
         }
 
         public override int GetHashCode()

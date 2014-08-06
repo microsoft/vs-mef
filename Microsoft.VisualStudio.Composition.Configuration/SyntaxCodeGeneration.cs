@@ -1393,16 +1393,24 @@
 
                 if (typeof(IDisposable).IsAssignableFrom(part.Definition.Type))
                 {
-                    // this.TrackDisposableValue((IDisposable)result);
+                    // this.TrackDisposableValue((IDisposable)result, "sharingBoundary");
                     statements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(
                         SyntaxFactory.MemberAccessExpression(
                             SyntaxKind.SimpleMemberAccessExpression,
                             thisExportProvider,
                             SyntaxFactory.IdentifierName("TrackDisposableValue")),
-                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
-                            SyntaxFactory.CastExpression(
-                                SyntaxFactory.IdentifierName("IDisposable"),
-                                partInstanceIdentifier)))))));
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                            SyntaxKind.CommaToken,
+                            SyntaxFactory.Argument(
+                                SyntaxFactory.CastExpression(
+                                    SyntaxFactory.IdentifierName("IDisposable"),
+                                    partInstanceIdentifier)),
+                            SyntaxFactory.Argument(
+                                part.Definition.IsShared
+                                    ? (ExpressionSyntax)SyntaxFactory.LiteralExpression(
+                                        SyntaxKind.StringLiteralExpression,
+                                        SyntaxFactory.Literal(this.Configuration.GetEffectiveSharingBoundary(part.Definition)))
+                                    : NullSyntax))))));
                 }
 
                 if (part.Definition.IsShared)
@@ -1848,7 +1856,7 @@
                 return
                     from part in this.Configuration.Parts
                     from exportingMemberAndDefinition in part.Definition.ExportDefinitions
-                    let export = new ExportDefinitionBinding(exportingMemberAndDefinition.Value, part.Definition, exportingMemberAndDefinition.Key)
+                    let export = new ExportDefinitionBinding(exportingMemberAndDefinition.Value, part.Definition, Reflection.Resolver.Resolve(exportingMemberAndDefinition.Key))
                     where part.Definition.IsInstantiable
                     group export by export.ExportDefinition.ContractName into exportsByContract
                     select exportsByContract;

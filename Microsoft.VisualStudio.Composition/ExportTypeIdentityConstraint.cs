@@ -7,14 +7,15 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
     public class ExportTypeIdentityConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
-        public ExportTypeIdentityConstraint(Type typeIdentity)
+        public ExportTypeIdentityConstraint(TypeRef typeIdentity)
         {
             Requires.NotNull(typeIdentity, "typeIdentity");
-            this.TypeIdentityName = ContractNameServices.GetTypeIdentity(typeIdentity);
+            this.TypeIdentityName = ContractNameServices.GetTypeIdentity(typeIdentity.Resolve());
         }
 
         public ExportTypeIdentityConstraint(string typeIdentityName)
