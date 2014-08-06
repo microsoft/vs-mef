@@ -59,6 +59,18 @@
         }
 
         [Fact]
+        public async Task Combined_CreatePartsAsync_AssemblyPathEnumerable()
+        {
+            var discovery = PartDiscovery.Combine(new AttributedPartDiscovery(), new AttributedPartDiscoveryV1());
+            var assemblies = new[] { 
+                typeof(AssemblyDiscoveryTests.DiscoverablePart1).Assembly,
+                this.GetType().Assembly,
+            };
+            var parts = await discovery.CreatePartsAsync(assemblies.Select(a => a.Location));
+            Assert.NotEqual(0, parts.Parts.Count);
+        }
+
+        [Fact]
         public async Task Combined_IncrementalProgressUpdates()
         {
             var discovery = PartDiscovery.Combine(new AttributedPartDiscovery(), new AttributedPartDiscoveryV1());
