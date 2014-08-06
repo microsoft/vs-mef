@@ -10,6 +10,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
     public abstract class PartDiscovery
@@ -192,7 +193,7 @@
             Type metadataType = GetMetadataType(elementType);
             if (metadataType != null)
             {
-                result = result.Add(ImportMetadataViewConstraint.GetConstraint(metadataType));
+                result = result.Add(ImportMetadataViewConstraint.GetConstraint(TypeRef.Get(metadataType)));
             }
 
             return result;
@@ -206,7 +207,7 @@
 
             if (!contractType.IsEquivalentTo(typeof(object)))
             {
-                constraints = constraints.Add(new ExportTypeIdentityConstraint(contractType));
+                constraints = constraints.Add(new ExportTypeIdentityConstraint(TypeRef.Get(contractType)));
             }
 
             return constraints;

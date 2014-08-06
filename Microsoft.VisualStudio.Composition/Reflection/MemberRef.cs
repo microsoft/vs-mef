@@ -91,6 +91,11 @@
             get { return !this.Method.IsEmpty; }
         }
 
+        public static MemberRef Get(MemberInfo member)
+        {
+            return member != null ? new MemberRef(member) : default(MemberRef);
+        }
+
         public bool Equals(MemberRef other)
         {
             return this.Constructor.Equals(other.Constructor)

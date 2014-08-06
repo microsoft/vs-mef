@@ -12,6 +12,7 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
     using DefaultMetadataType = System.Collections.Generic.IDictionary<string, object>;
 
@@ -22,12 +23,12 @@
             PartCreationPolicyConstraint.GetExportMetadata(CreationPolicy.Shared).AddRange(ExportTypeIdentityConstraint.GetExportMetadata(typeof(ExportProvider))));
 
         internal static readonly ComposablePartDefinition ExportProviderPartDefinition = new ComposablePartDefinition(
-            typeof(ExportProviderAsExport),
+            Reflection.TypeRef.Get(typeof(ExportProviderAsExport)),
             new[] { ExportProviderExportDefinition },
-            ImmutableDictionary<MemberInfo, IReadOnlyCollection<ExportDefinition>>.Empty,
+            ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
             ImmutableList<ImportDefinitionBinding>.Empty,
             string.Empty,
-            null,
+            default(MethodRef),
             null,
             CreationPolicy.Shared,
             true);
@@ -702,7 +703,7 @@
 
             if (typeof(TMetadataView) != typeof(DefaultMetadataType))
             {
-                constraints = constraints.Add(ImportMetadataViewConstraint.GetConstraint(typeof(TMetadataView)));
+                constraints = constraints.Add(ImportMetadataViewConstraint.GetConstraint(Reflection.TypeRef.Get(typeof(TMetadataView))));
             }
 
             var importMetadata = PartDiscovery.GetImportMetadataForGenericTypeImport(typeof(T));

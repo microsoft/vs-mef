@@ -52,6 +52,11 @@
             get { return this.parameterIndex == 0; }
         }
 
+        public static ParameterRef Get(ParameterInfo parameter)
+        {
+            return parameter != null ? new ParameterRef(parameter) : default(ParameterRef);
+        }
+
         public bool Equals(ParameterRef other)
         {
             return this.MethodMetadataToken.Equals(other.MethodMetadataToken)

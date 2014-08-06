@@ -9,6 +9,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
     using MefV1 = System.ComponentModel.Composition;
 
@@ -42,7 +43,7 @@
 
             var inheritedExportContractNamesFromNonInterfaces = ImmutableHashSet.CreateBuilder<string>();
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
-            var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyCollection<ExportDefinition>>();
+            var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberRef, IReadOnlyCollection<ExportDefinition>>();
             var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
 
             foreach (var exportAttributes in partType.GetCustomAttributesByType<ExportAttribute>())
@@ -99,7 +100,7 @@
                 ImportDefinition importDefinition;
                 if (TryCreateImportDefinition(propertyOrFieldType, member.GetCustomAttributesCached(), out importDefinition))
                 {
-                    imports.Add(new ImportDefinitionBinding(importDefinition, partType, member));
+                    imports.Add(new ImportDefinitionBinding(importDefinition, TypeRef.Get(partType), MemberRef.Get(member)));
                 }
                 else if (exportAttributes.Any())
                 {
@@ -116,7 +117,7 @@
                         exportDefinitions = exportDefinitions.Add(exportDefinition);
                     }
 
-                    exportsOnMembers.Add(member, exportDefinitions);
+                    exportsOnMembers.Add(MemberRef.Get(member), exportDefinitions);
                 }
             }
 
@@ -137,7 +138,7 @@
                         exportDefinitions = exportDefinitions.Add(exportDefinition);
                     }
 
-                    exportsOnMembers.Add(method, exportDefinitions);
+                    exportsOnMembers.Add(MemberRef.Get(method), exportDefinitions);
                 }
             }
 
@@ -166,12 +167,12 @@
                 }
 
                 return new ComposablePartDefinition(
-                    partType,
+                    TypeRef.Get(partType),
                     exportsOnType.ToImmutable(),
                     exportsOnMembers.ToImmutable(),
                     imports.ToImmutable(),
                     partCreationPolicy != CreationPolicy.NonShared ? string.Empty : null,
-                    onImportsSatisfied,
+                    MethodRef.Get(onImportsSatisfied),
                     importingCtor != null ? importingConstructorParameters.ToImmutable() : null, // some MEF parts are only for metadata
                     partCreationPolicy,
                     partCreationPolicy != Composition.CreationPolicy.NonShared);
@@ -269,7 +270,7 @@
                 Assumes.True(TryCreateImportDefinition(parameter.ParameterType, attributes.Concat(new Attribute[] { new ImportAttribute() }), out definition));
             }
 
-            return new ImportDefinitionBinding(definition, parameter.Member.DeclaringType, parameter);
+            return new ImportDefinitionBinding(definition, TypeRef.Get(parameter.Member.DeclaringType), ParameterRef.Get(parameter));
         }
 
         private static IReadOnlyDictionary<string, object> GetExportMetadata(IEnumerable<Attribute> attributes)
