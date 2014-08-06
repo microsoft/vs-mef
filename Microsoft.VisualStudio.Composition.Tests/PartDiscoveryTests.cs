@@ -72,7 +72,7 @@
             {
                 progressUpdateCount++;
                 Assert.NotNull(update.Status);
-                Assert.True(update.Completion >= lastReceivedUpdate.Completion);
+                ////Assert.True(update.Completion >= lastReceivedUpdate.Completion); // work can be discovered that regresses this legitimately
                 Assert.True(update.Completion <= 1);
                 Assert.True(update.Status != lastReceivedUpdate.Status || update.Completion != lastReceivedUpdate.Completion);
                 Console.WriteLine(
