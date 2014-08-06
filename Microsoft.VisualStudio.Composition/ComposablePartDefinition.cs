@@ -9,6 +9,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
     [DebuggerDisplay("{Type.Name}")]
@@ -26,14 +27,14 @@
         /// <param name="importingConstructor">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
         /// <param name="partCreationPolicy">The creation policy for this part.</param>
         /// <param name="isSharingBoundaryInferred">A value indicating whether the part does not have an explicit sharing boundary, and therefore can obtain its sharing boundary based on its imports.</param>
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberInfo, IReadOnlyCollection<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
+        public ComposablePartDefinition(TypeRef partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberInfo, IReadOnlyCollection<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
         {
             Requires.NotNull(partType, "partType");
             Requires.NotNull(exportedTypes, "exportedTypes");
             Requires.NotNull(exportingMembers, "exportingMembers");
             Requires.NotNull(importingMembers, "importingMembers");
 
-            this.Type = partType;
+            this.TypeRef = partType;
             this.ExportedTypes = exportedTypes;
             this.ExportingMembers = exportingMembers;
             this.ImportingMembers = ImmutableHashSet.CreateRange(importingMembers);
@@ -44,7 +45,12 @@
             this.IsSharingBoundaryInferred = isSharingBoundaryInferred;
         }
 
-        public Type Type { get; private set; }
+        public Type Type
+        {
+            get { return this.TypeRef.Resolve(); }
+        }
+
+        public TypeRef TypeRef { get; private set; }
 
         public string Id
         {

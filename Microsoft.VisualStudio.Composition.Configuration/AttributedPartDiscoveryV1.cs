@@ -9,6 +9,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
     using MefV1 = System.ComponentModel.Composition;
 
@@ -166,7 +167,7 @@
                 }
 
                 return new ComposablePartDefinition(
-                    partType,
+                    TypeRef.Get(partType),
                     exportsOnType.ToImmutable(),
                     exportsOnMembers.ToImmutable(),
                     imports.ToImmutable(),

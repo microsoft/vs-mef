@@ -8,6 +8,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
     public class AttributedPartDiscovery : PartDiscovery
@@ -135,7 +136,7 @@
                     importingConstructorParameters.Add(import);
                 }
 
-                return new ComposablePartDefinition(partType, exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary, onImportsSatisfied, importingConstructorParameters.ToImmutable(), partCreationPolicy);
+                return new ComposablePartDefinition(TypeRef.Get(partType), exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary, onImportsSatisfied, importingConstructorParameters.ToImmutable(), partCreationPolicy);
             }
             else
             {

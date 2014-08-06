@@ -22,7 +22,7 @@
             PartCreationPolicyConstraint.GetExportMetadata(CreationPolicy.Shared).AddRange(ExportTypeIdentityConstraint.GetExportMetadata(typeof(ExportProvider))));
 
         internal static readonly ComposablePartDefinition ExportProviderPartDefinition = new ComposablePartDefinition(
-            typeof(ExportProviderAsExport),
+            Reflection.TypeRef.Get(typeof(ExportProviderAsExport)),
             new[] { ExportProviderExportDefinition },
             ImmutableDictionary<MemberInfo, IReadOnlyCollection<ExportDefinition>>.Empty,
             ImmutableList<ImportDefinitionBinding>.Empty,
