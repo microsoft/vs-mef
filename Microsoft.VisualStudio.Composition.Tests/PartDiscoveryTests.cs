@@ -78,8 +78,8 @@
                 Console.WriteLine(
                     "Completion reported: {0} ({1}/{2}): {3}",
                     update.Completion,
-                    update.TypesScanned,
-                    update.TotalTypes,
+                    update.CompletedSteps,
+                    update.TotalSteps,
                     update.Status);
                 lastReceivedUpdate = update;
             });

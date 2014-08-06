@@ -421,7 +421,7 @@
                 if (this.upstreamReceiver != null)
                 {
                     // Update with the total types we get out of band.
-                    value = new DiscoveryProgress(value.TypesScanned, this.totalTypes, value.Status);
+                    value = new DiscoveryProgress(value.CompletedSteps, this.totalTypes, value.Status);
 
                     bool update = false;
                     lock (this)
@@ -444,21 +444,21 @@
 
         public struct DiscoveryProgress
         {
-            public DiscoveryProgress(int typesScanned, int totalTypes, string status)
+            public DiscoveryProgress(int completedSteps, int totalSteps, string status)
                 : this()
             {
-                this.TypesScanned = typesScanned;
-                this.TotalTypes = totalTypes;
+                this.CompletedSteps = completedSteps;
+                this.TotalSteps = totalSteps;
                 this.Status = status;
             }
 
-            public int TypesScanned { get; private set; }
+            public int CompletedSteps { get; private set; }
 
-            public int TotalTypes { get; private set; }
+            public int TotalSteps { get; private set; }
 
             public float Completion
             {
-                get { return this.TotalTypes > 0 ? ((float)this.TypesScanned / this.TotalTypes) : 0; }
+                get { return this.TotalSteps > 0 ? ((float)this.CompletedSteps / this.TotalSteps) : 0; }
             }
 
             public string Status { get; private set; }
