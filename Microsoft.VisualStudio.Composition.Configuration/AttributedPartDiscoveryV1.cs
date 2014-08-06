@@ -43,7 +43,7 @@
 
             var inheritedExportContractNamesFromNonInterfaces = ImmutableHashSet.CreateBuilder<string>();
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
-            var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyCollection<ExportDefinition>>();
+            var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberRef, IReadOnlyCollection<ExportDefinition>>();
             var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
 
             foreach (var exportAttributes in partType.GetCustomAttributesByType<ExportAttribute>())
@@ -117,7 +117,7 @@
                         exportDefinitions = exportDefinitions.Add(exportDefinition);
                     }
 
-                    exportsOnMembers.Add(member, exportDefinitions);
+                    exportsOnMembers.Add(MemberRef.Get(member), exportDefinitions);
                 }
             }
 
@@ -138,7 +138,7 @@
                         exportDefinitions = exportDefinitions.Add(exportDefinition);
                     }
 
-                    exportsOnMembers.Add(method, exportDefinitions);
+                    exportsOnMembers.Add(MemberRef.Get(method), exportDefinitions);
                 }
             }
 

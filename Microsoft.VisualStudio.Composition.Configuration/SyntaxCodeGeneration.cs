@@ -297,7 +297,7 @@
                                 SyntaxFactory.Argument(parentIdentifier),
                                 SyntaxFactory.Argument(freshSharingBoundaries))))))
                 .WithBody(SyntaxFactory.Block(
-                    // this.assemblyNames
+                // this.assemblyNames
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -313,7 +313,7 @@
                                 CodeGen.JoinSyntaxNodes(
                                     SyntaxKind.CommaToken,
                                     this.reflectionLoadedAssemblies.Select(a => GetSyntaxToReconstructValue(a.FullName, SyntaxFactory.ThisExpression())).ToArray()))))),
-                    // this.assemblyCodeBasePaths
+                // this.assemblyCodeBasePaths
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -329,7 +329,7 @@
                                 CodeGen.JoinSyntaxNodes(
                                     SyntaxKind.CommaToken,
                                     this.reflectionLoadedAssemblies.Select(a => GetSyntaxToReconstructValue(a.CodeBase, SyntaxFactory.ThisExpression())).ToArray()))))),
-                    // this.cachedManifests = new Module[<#= reflectionLoadedAssemblies.Count #>];
+                // this.cachedManifests = new Module[<#= reflectionLoadedAssemblies.Count #>];
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -340,7 +340,7 @@
                             this.GetTypeNameSyntax(typeof(Module)),
                             SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
                                 SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(this.reflectionLoadedAssemblies.Count))))))))),
-                    // this.cachedTypes = new Type[<#= reflectionLoadedTypes.Count #>];
+                // this.cachedTypes = new Type[<#= reflectionLoadedTypes.Count #>];
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -1856,7 +1856,7 @@
                 return
                     from part in this.Configuration.Parts
                     from exportingMemberAndDefinition in part.Definition.ExportDefinitions
-                    let export = new ExportDefinitionBinding(exportingMemberAndDefinition.Value, part.Definition, exportingMemberAndDefinition.Key)
+                    let export = new ExportDefinitionBinding(exportingMemberAndDefinition.Value, part.Definition, Reflection.Resolver.Resolve(exportingMemberAndDefinition.Key))
                     where part.Definition.IsInstantiable
                     group export by export.ExportDefinition.ContractName into exportsByContract
                     select exportsByContract;
@@ -2523,7 +2523,7 @@
                         SyntaxKind.NotEqualsExpression,
                         SyntaxFactory.ElementAccessExpression(typeGenericArgArray, bracketTypeId),
                         NullSyntax),
-                    // type = type.MakeGenericType(typeGenericArgumentId[typeId].Select(GetTypeCore).ToArray())
+                // type = type.MakeGenericType(typeGenericArgumentId[typeId].Select(GetTypeCore).ToArray())
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         typeLocalVar,

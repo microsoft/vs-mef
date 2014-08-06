@@ -69,7 +69,7 @@
                 return new ComposablePartDefinition(
                     TypeRef.Get(typeof(int)),
                     ImmutableList.Create<ExportDefinition>(),
-                    ImmutableDictionary.Create<MemberInfo, IReadOnlyCollection<ExportDefinition>>(),
+                    ImmutableDictionary.Create<MemberRef, IReadOnlyCollection<ExportDefinition>>(),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     null,
                     default(MethodRef),
