@@ -95,6 +95,7 @@
     <Compile Include="DelegatingExportProvider.cs" />
     <Compile Include="Dgml.cs" />
     <Compile Include="DiscoveredParts.cs" />
+    <Compile Include="DiscoveryProgress.cs" />
     <Compile Include="DisposableWithAction.cs" />
     <Compile Include="ExportDefinitionBinding.cs" />
     <Compile Include="ExportFactory.cs" />

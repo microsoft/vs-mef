@@ -442,28 +442,6 @@
             }
         }
 
-        public struct DiscoveryProgress
-        {
-            public DiscoveryProgress(int completedSteps, int totalSteps, string status)
-                : this()
-            {
-                this.CompletedSteps = completedSteps;
-                this.TotalSteps = totalSteps;
-                this.Status = status;
-            }
-
-            public int CompletedSteps { get; private set; }
-
-            public int TotalSteps { get; private set; }
-
-            public float Completion
-            {
-                get { return this.TotalSteps > 0 ? ((float)this.CompletedSteps / this.TotalSteps) : 0; }
-            }
-
-            public string Status { get; private set; }
-        }
-
         private class CombinedPartDiscovery : PartDiscovery
         {
             private readonly IReadOnlyList<PartDiscovery> discoveryMechanisms;

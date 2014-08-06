@@ -66,9 +66,9 @@
                 typeof(AssemblyDiscoveryTests.DiscoverablePart1).Assembly,
                 this.GetType().Assembly,
             };
-            PartDiscovery.DiscoveryProgress lastReceivedUpdate = default(PartDiscovery.DiscoveryProgress);
+            DiscoveryProgress lastReceivedUpdate = default(DiscoveryProgress);
             int progressUpdateCount = 0;
-            var progress = new SynchronousProgress<PartDiscovery.DiscoveryProgress>(update =>
+            var progress = new SynchronousProgress<DiscoveryProgress>(update =>
             {
                 progressUpdateCount++;
                 Assert.NotNull(update.Status);
