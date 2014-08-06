@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -74,6 +75,7 @@
                 return null;
             }
 
+            Requires.Argument(!type.IsGenericParameter, "type", "Generic type parameters are not allowed.");
             TypeRef result;
             lock (instanceCache)
             {
@@ -92,6 +94,8 @@
                     }
                 }
             }
+
+            Debug.Assert(type.IsEquivalentTo(result.Resolve()));
 
             return result;
         }
