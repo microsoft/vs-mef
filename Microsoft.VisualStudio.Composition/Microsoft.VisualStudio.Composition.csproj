@@ -120,6 +120,7 @@
     <Compile Include="LazyPart.cs" />
     <Compile Include="LazyPart`2.cs" />
     <Compile Include="LazyPart`1.cs" />
+    <Compile Include="MetadataTokenType.cs" />
     <Compile Include="PartCreationPolicyImportConstraint.cs" />
     <Compile Include="PartDiscovery.cs" />
     <Compile Include="ComposablePartDefinition.cs" />
