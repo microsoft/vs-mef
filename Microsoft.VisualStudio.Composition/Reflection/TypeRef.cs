@@ -109,7 +109,7 @@
 
         public override int GetHashCode()
         {
-            return this.MetadataToken;
+            return ByValueEquality.AssemblyName.GetHashCode(this.AssemblyName) + this.MetadataToken;
         }
 
         public override bool Equals(object obj)
