@@ -29,6 +29,7 @@
                 var cacheManager = new CachedComposition();
                 var ms = new MemoryStream();
                 cacheManager.SaveAsync(runtimeComposition, ms).GetAwaiter().GetResult();
+                Console.WriteLine("Cache file size: {0}", ms.Length);
                 ms.Position = 0;
                 var deserializedRuntimeComposition = cacheManager.LoadRuntimeCompositionAsync(ms).GetAwaiter().GetResult();
                 Assert.Equal(runtimeComposition, deserializedRuntimeComposition);
