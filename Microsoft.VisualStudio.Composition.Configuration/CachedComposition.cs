@@ -621,21 +621,6 @@
                 this.deserializingObjectTable.Add(id, value);
             }
 
-            private void Write(Assembly assembly)
-            {
-                Trace("Assembly", writer.BaseStream);
-
-                this.Write(assembly.FullName);
-            }
-
-            private Assembly ReadAssembly()
-            {
-                Trace("Assembly", reader.BaseStream);
-
-                string assemblyName = this.ReadString();
-                return Assembly.Load(assemblyName);
-            }
-
             private void Write<T>(IReadOnlyCollection<T> list, Action<T> itemWriter)
             {
                 Requires.NotNull(list, "list");
