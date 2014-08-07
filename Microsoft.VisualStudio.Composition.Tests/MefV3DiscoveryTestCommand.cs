@@ -108,7 +108,7 @@
 
                 if (uniqueCatalogs.Length == 1)
                 {
-                    Console.WriteLine(catalogStringRepresentations[0]);
+                    ////Console.WriteLine(catalogStringRepresentations[0]);
                 }
 
                 // For each distinct catalog, create one configuration and verify it meets expectations.
