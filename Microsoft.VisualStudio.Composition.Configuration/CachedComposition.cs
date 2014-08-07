@@ -93,7 +93,7 @@
             {
                 Requires.NotNull(writer, "writer");
                 this.writer = writer;
-                this.serializingObjectTable = new Dictionary<object, uint>();
+                this.serializingObjectTable = new Dictionary<object, uint>(SmartInterningEqualityComparer.Default);
             }
 
             [Conditional("DEBUG")]
@@ -514,20 +514,28 @@
             {
                 Trace("AssemblyName", writer.BaseStream);
 
-                this.Write(assemblyName.FullName);
-                this.Write(assemblyName.CodeBase);
+                if (this.TryPrepareSerializeReusableObject(assemblyName))
+                {
+                    this.Write(assemblyName.FullName);
+                    this.Write(assemblyName.CodeBase);
+                }
             }
 
             private AssemblyName ReadAssemblyName()
             {
                 Trace("AssemblyName", reader.BaseStream);
 
-                string fullName = this.ReadString();
-                string codeBase = this.ReadString();
-                return new AssemblyName(fullName)
+                uint id;
+                AssemblyName value;
+                if (this.TryPrepareDeserializeReusableObject(out id, out value))
                 {
-                    CodeBase = codeBase,
-                };
+                    string fullName = this.ReadString();
+                    string codeBase = this.ReadString();
+                    value = new AssemblyName(fullName) { CodeBase = codeBase };
+                    this.OnDeserializedReusableObject(id, value);
+                }
+
+                return value;
             }
 
             private void Write(string value)
@@ -846,6 +854,38 @@
             {
                 var objectType = (ObjectType)reader.ReadByte();
                 return objectType;
+            }
+
+            /// <summary>
+            /// An equality comparer that provides a bit better recognition of objects for better interning.
+            /// </summary>
+            private class SmartInterningEqualityComparer : IEqualityComparer<object>
+            {
+                internal static readonly IEqualityComparer<object> Default = new SmartInterningEqualityComparer();
+
+                private static readonly IEqualityComparer<object> Fallback = EqualityComparer<object>.Default;
+
+                private SmartInterningEqualityComparer() { }
+
+                public bool Equals(object x, object y)
+                {
+                    if (x is AssemblyName && y is AssemblyName)
+                    {
+                        return ByValueEquality.AssemblyName.Equals((AssemblyName)x, (AssemblyName)y);
+                    }
+
+                    return Fallback.Equals(x, y);
+                }
+
+                public int GetHashCode(object obj)
+                {
+                    if (obj is AssemblyName)
+                    {
+                        return ByValueEquality.AssemblyName.GetHashCode((AssemblyName)obj);
+                    }
+
+                    return Fallback.GetHashCode(obj);
+                }
             }
         }
     }
