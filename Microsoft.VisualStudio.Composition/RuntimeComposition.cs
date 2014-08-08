@@ -232,6 +232,10 @@
 
         public class RuntimeImport : IEquatable<RuntimeImport>
         {
+            private bool? isLazy;
+            private Type importingSiteType;
+            private Type importingSiteTypeWithoutCollection;
+
             private RuntimeImport(ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, IReadOnlyDictionary<string, object> metadata, TypeRef exportFactory, IReadOnlyCollection<string> exportFactorySharingBoundaries)
             {
                 Requires.NotNull(satisfyingExports, "satisfyingExports");
@@ -288,29 +292,42 @@
 
             public bool IsLazy
             {
-                get { return this.ImportingSiteTypeWithoutCollection.IsAnyLazyType(); }
+                get
+                {
+                    if (!this.isLazy.HasValue)
+                    {
+                        this.isLazy = this.ImportingSiteTypeWithoutCollection.IsAnyLazyType();
+                    }
+
+                    return this.isLazy.Value;
+                }
             }
 
             public Type ImportingSiteType
             {
                 get
                 {
-                    if (!this.ImportingParameterRef.IsEmpty)
+                    if (this.importingSiteType == null)
                     {
-                        return this.ImportingParameterRef.Resolve().ParameterType;
+                        if (!this.ImportingParameterRef.IsEmpty)
+                        {
+                            this.importingSiteType = this.ImportingParameterRef.Resolve().ParameterType;
+                        }
+                        else if (this.ImportingMemberRef.IsField)
+                        {
+                            this.importingSiteType = this.ImportingMemberRef.Field.Resolve().FieldType;
+                        }
+                        else if (this.ImportingMemberRef.IsProperty)
+                        {
+                            this.importingSiteType = this.ImportingMemberRef.Property.Resolve().PropertyType;
+                        }
+                        else
+                        {
+                            throw new NotSupportedException();
+                        }
                     }
 
-                    if (this.ImportingMemberRef.IsField)
-                    {
-                        return this.ImportingMemberRef.Field.Resolve().FieldType;
-                    }
-
-                    if (this.ImportingMemberRef.IsProperty)
-                    {
-                        return this.ImportingMemberRef.Property.Resolve().PropertyType;
-                    }
-
-                    throw new NotSupportedException();
+                    return this.importingSiteType;
                 }
             }
 
@@ -318,9 +335,14 @@
             {
                 get
                 {
-                    return this.Cardinality == ImportCardinality.ZeroOrMore
-                        ? PartDiscovery.GetElementTypeFromMany(this.ImportingSiteType)
-                        : this.ImportingSiteType;
+                    if (this.importingSiteTypeWithoutCollection == null)
+                    {
+                        this.importingSiteTypeWithoutCollection = this.Cardinality == ImportCardinality.ZeroOrMore
+                            ? PartDiscovery.GetElementTypeFromMany(this.ImportingSiteType)
+                            : this.ImportingSiteType;
+                    }
+
+                    return this.importingSiteTypeWithoutCollection;
                 }
             }
 
