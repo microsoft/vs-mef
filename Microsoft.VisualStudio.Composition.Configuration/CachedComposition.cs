@@ -925,7 +925,7 @@
 
                 private SmartInterningEqualityComparer() { }
 
-                public bool Equals(object x, object y)
+                new public bool Equals(object x, object y)
                 {
                     if (x is AssemblyName && y is AssemblyName)
                     {
