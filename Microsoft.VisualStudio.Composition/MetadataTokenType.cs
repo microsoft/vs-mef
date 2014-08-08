@@ -9,12 +9,13 @@
     /// numbers after removing the leading byte.
     /// These come from: http://msdn.microsoft.com/en-us/library/ms231937(v=vs.110).aspx
     /// </remarks>
-    internal enum CorTokenType
+    internal enum MetadataTokenType : uint
     {
         Type = 0x02000000,
         Field = 0x04000000,
         Method = 0x06000000,
         Parameter = 0x08000000,
         Property = 0x17000000,
+        Mask = 0xff000000,
     }
 }
