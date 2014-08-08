@@ -799,6 +799,10 @@
                 Array,
                 BinaryFormattedObject,
                 TypeRef,
+                BoolTrue,
+                BoolFalse,
+                Int32,
+                Char,
             }
 
             private void WriteObject(object value)
@@ -819,10 +823,24 @@
                         this.Write(TypeRef.Get(valueType.GetElementType()));
                         this.Write(array, this.WriteObject);
                     }
+                    else if (valueType == typeof(bool))
+                    {
+                        this.Write((bool)value ? ObjectType.BoolTrue : ObjectType.BoolFalse);
+                    }
                     else if (valueType == typeof(string))
                     {
                         this.Write(ObjectType.String);
                         this.Write((string)value);
+                    }
+                    else if (valueType == typeof(int))
+                    {
+                        this.Write(ObjectType.Int32);
+                        writer.Write((int)value);
+                    }
+                    else if (valueType == typeof(char))
+                    {
+                        this.Write(ObjectType.Char);
+                        writer.Write((char)value);
                     }
                     else if (valueType == typeof(CreationPolicy)) // TODO: how do we handle arbitrary value types?
                     {
@@ -841,6 +859,7 @@
                     }
                     else
                     {
+                        Debug.WriteLine("Falling back to binary formatter for value of type: {0}", valueType);
                         this.Write(ObjectType.BinaryFormattedObject);
                         var formatter = new BinaryFormatter();
                         writer.Flush();
@@ -860,8 +879,16 @@
                     case ObjectType.Array:
                         Type elementType = this.ReadTypeRef().Resolve();
                         return this.ReadArray(reader, this.ReadObject, elementType);
+                    case ObjectType.BoolTrue:
+                        return true;
+                    case ObjectType.BoolFalse:
+                        return false;
+                    case ObjectType.Int32:
+                        return reader.ReadInt32();
                     case ObjectType.String:
                         return this.ReadString();
+                    case ObjectType.Char:
+                        return reader.ReadChar();
                     case ObjectType.CreationPolicy:
                         return (CreationPolicy)reader.ReadByte();
                     case ObjectType.Type:
