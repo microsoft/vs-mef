@@ -326,7 +326,7 @@
                 lazyType = LazyPart.FromLazy(lazyType); // be sure we have a concrete type.
                 using (var ctorArgs = ArrayRental<object>.Get(lazyType.GenericTypeArguments.Length))
                 {
-                    ctorArgs.Value[0] = ReflectionHelpers.CreateFuncOfType(lazyType.GenericTypeArguments[0], valueFactory);
+                    ctorArgs.Value[0] = valueFactory;
                     if (ctorArgs.Value.Length == 2)
                     {
                         ctorArgs.Value[1] = this.GetStrongTypedMetadata(metadata, lazyType.GenericTypeArguments[1]);
@@ -338,7 +338,7 @@
                     var lazyCtors = from ctor in lazyType.GetTypeInfo().DeclaredConstructors
                                     let parameters = ctor.GetParameters()
                                     where parameters.Length == ctorArgs.Value.Length
-                                        && parameters[0].ParameterType == typeof(Func<>).MakeGenericType(lazyType.GenericTypeArguments[0])
+                                        && parameters[0].ParameterType == typeof(Func<object>)
                                         && (parameters.Length < 2 || parameters[1].ParameterType == lazyType.GenericTypeArguments[1])
                                     select ctor;
                     object lazyInstance = lazyCtors.First().Invoke(ctorArgs.Value);
