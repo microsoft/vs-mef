@@ -8,6 +8,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
+    using Validation;
     using Xunit;
 
     public class PartDiscoveryTests
@@ -55,6 +56,69 @@
             var parts = await discovery.CreatePartsAsync(new[] { this.GetType().Assembly });
             Assert.Equal(1, parts.DiscoveryErrors.Count);
             Assert.Equal(0, parts.Parts.Count);
+        }
+
+        [Fact]
+        public async Task Combined_IncrementalProgressUpdates()
+        {
+            var discovery = PartDiscovery.Combine(new AttributedPartDiscovery(), new AttributedPartDiscoveryV1());
+            var assemblies = new[] { 
+                typeof(AssemblyDiscoveryTests.DiscoverablePart1).Assembly,
+                this.GetType().Assembly,
+            };
+            PartDiscovery.DiscoveryProgress lastReceivedUpdate = default(PartDiscovery.DiscoveryProgress);
+            int progressUpdateCount = 0;
+            var progress = new SynchronousProgress<PartDiscovery.DiscoveryProgress>(update =>
+            {
+                progressUpdateCount++;
+                Assert.NotNull(update.Status);
+                Assert.True(update.Completion >= lastReceivedUpdate.Completion);
+                Assert.True(update.Completion <= 1);
+                Assert.True(update.Status != lastReceivedUpdate.Status || update.Completion != lastReceivedUpdate.Completion);
+                Console.WriteLine(
+                    "Completion reported: {0} ({1}/{2}): {3}",
+                    update.Completion,
+                    update.TypesScanned,
+                    update.TotalTypes,
+                    update.Status);
+                lastReceivedUpdate = update;
+            });
+            await discovery.CreatePartsAsync(assemblies, progress);
+            progress.RethrowAnyExceptions();
+            Assert.True(lastReceivedUpdate.Completion > 0);
+            Assert.True(progressUpdateCount > 2);
+        }
+
+        private class SynchronousProgress<T> : IProgress<T>
+        {
+            private readonly Action<T> callback;
+            private readonly List<Exception> exceptions = new List<Exception>();
+
+            internal SynchronousProgress(Action<T> callback)
+            {
+                Requires.NotNull(callback, "callback");
+                this.callback = callback;
+            }
+
+            public void Report(T value)
+            {
+                try
+                {
+                    this.callback(value);
+                }
+                catch (Exception ex)
+                {
+                    this.exceptions.Add(ex);
+                }
+            }
+
+            public void RethrowAnyExceptions()
+            {
+                if (this.exceptions.Count > 0)
+                {
+                    throw new AggregateException(this.exceptions);
+                }
+            }
         }
 
         private class SketchyPartDiscovery : PartDiscovery
