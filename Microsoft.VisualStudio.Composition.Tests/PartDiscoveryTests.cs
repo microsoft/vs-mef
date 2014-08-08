@@ -59,6 +59,18 @@
         }
 
         [Fact]
+        public async Task Combined_CreatePartsAsync_AssemblyPathEnumerable()
+        {
+            var discovery = PartDiscovery.Combine(new AttributedPartDiscovery(), new AttributedPartDiscoveryV1());
+            var assemblies = new[] { 
+                typeof(AssemblyDiscoveryTests.DiscoverablePart1).Assembly,
+                this.GetType().Assembly,
+            };
+            var parts = await discovery.CreatePartsAsync(assemblies.Select(a => a.Location));
+            Assert.NotEqual(0, parts.Parts.Count);
+        }
+
+        [Fact]
         public async Task Combined_IncrementalProgressUpdates()
         {
             var discovery = PartDiscovery.Combine(new AttributedPartDiscovery(), new AttributedPartDiscoveryV1());
@@ -66,20 +78,20 @@
                 typeof(AssemblyDiscoveryTests.DiscoverablePart1).Assembly,
                 this.GetType().Assembly,
             };
-            PartDiscovery.DiscoveryProgress lastReceivedUpdate = default(PartDiscovery.DiscoveryProgress);
+            DiscoveryProgress lastReceivedUpdate = default(DiscoveryProgress);
             int progressUpdateCount = 0;
-            var progress = new SynchronousProgress<PartDiscovery.DiscoveryProgress>(update =>
+            var progress = new SynchronousProgress<DiscoveryProgress>(update =>
             {
                 progressUpdateCount++;
                 Assert.NotNull(update.Status);
-                Assert.True(update.Completion >= lastReceivedUpdate.Completion);
+                ////Assert.True(update.Completion >= lastReceivedUpdate.Completion); // work can be discovered that regresses this legitimately
                 Assert.True(update.Completion <= 1);
                 Assert.True(update.Status != lastReceivedUpdate.Status || update.Completion != lastReceivedUpdate.Completion);
                 Console.WriteLine(
                     "Completion reported: {0} ({1}/{2}): {3}",
                     update.Completion,
-                    update.TypesScanned,
-                    update.TotalTypes,
+                    update.CompletedSteps,
+                    update.TotalSteps,
                     update.Status);
                 lastReceivedUpdate = update;
             });

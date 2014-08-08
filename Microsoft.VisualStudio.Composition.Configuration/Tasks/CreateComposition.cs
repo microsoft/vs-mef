@@ -19,11 +19,7 @@
         public ITaskItem[] CatalogAssemblies { get; set; }
 
         [Required]
-        public string ConfigurationOutputPath { get; set; }
-
-        public string ConfigurationSymbolsPath { get; set; }
-
-        public string ConfigurationSourcePath { get; set; }
+        public string CompositionCacheFile { get; set; }
 
         public string DgmlOutputPath { get; set; }
 
@@ -36,7 +32,7 @@
 
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
 
-                var parts = discovery.CreatePartsAsync(this.CatalogAssemblies.Select(item => Assembly.LoadFile(item.ItemSpec))).GetAwaiter().GetResult();
+                var parts = discovery.CreatePartsAsync(this.CatalogAssemblies.Select(item => item.ItemSpec)).GetAwaiter().GetResult();
                 foreach (var error in parts.DiscoveryErrors)
                 {
                     this.Log.LogWarningFromException(error);
@@ -46,7 +42,6 @@
                 var catalog = ComposableCatalog.Create(parts.Parts);
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
                 var configuration = CompositionConfiguration.Create(catalog);
-                this.cancellationSource.Token.ThrowIfCancellationRequested();
 
                 if (!string.IsNullOrEmpty(this.DgmlOutputPath))
                 {
@@ -66,23 +61,15 @@
 
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
 
-                string assemblyPath = Path.GetFullPath(this.ConfigurationOutputPath);
-                this.Log.LogMessage("Producing IoC container \"{0}\"", assemblyPath);
-                using (var source = File.Open(Path.GetFullPath(this.ConfigurationSourcePath), FileMode.Create))
+                string cachePath = Path.GetFullPath(this.CompositionCacheFile);
+                this.Log.LogMessage("Producing IoC container \"{0}\"", cachePath);
+                using (var cacheStream = File.Open(cachePath, FileMode.Create))
                 {
-                    using (var pdbSymbols = File.Open(Path.GetFullPath(this.ConfigurationSymbolsPath), FileMode.Create))
-                    {
-                        var compiler = new CompiledComposition
-                        {
-                            AssemblyName = Path.GetFileNameWithoutExtension(assemblyPath),
-                            PdbSymbols = pdbSymbols,
-                            Source = source,
-                        };
-                        using (var assemblyStream = File.Open(assemblyPath, FileMode.Create))
-                        {
-                            compiler.SaveAsync(configuration, assemblyStream, this.cancellationSource.Token).GetAwaiter().GetResult();
-                        }
-                    }
+                    this.cancellationSource.Token.ThrowIfCancellationRequested();
+                    var runtime = RuntimeComposition.CreateRuntimeComposition(configuration);
+                    this.cancellationSource.Token.ThrowIfCancellationRequested();
+                    var runtimeCache = new CachedComposition();
+                    runtimeCache.SaveAsync(runtime, cacheStream, cancellationSource.Token).GetAwaiter().GetResult();
                 }
             }
             catch (AggregateException ex)

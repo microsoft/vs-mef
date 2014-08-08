@@ -92,6 +92,7 @@
     <Compile Include="DelegatingExportProvider.cs" />
     <Compile Include="Dgml.cs" />
     <Compile Include="DiscoveredParts.cs" />
+    <Compile Include="DiscoveryProgress.cs" />
     <Compile Include="DisposableWithAction.cs" />
     <Compile Include="ExportDefinitionBinding.cs" />
     <Compile Include="ExportFactory.cs" />
@@ -116,6 +117,7 @@
     <Compile Include="LazyPart.cs" />
     <Compile Include="LazyPart`2.cs" />
     <Compile Include="LazyPart`1.cs" />
+    <Compile Include="MetadataTokenType.cs" />
     <Compile Include="PartCreationPolicyImportConstraint.cs" />
     <Compile Include="PartDiscovery.cs" />
     <Compile Include="ComposablePartDefinition.cs" />

@@ -4,7 +4,8 @@
 	<UsingTask TaskName="CreateContainerFactoryBootstrapFile" AssemblyFile="Microsoft.VisualStudio.Composition.Configuration.dll" />
 
 	<PropertyGroup>
-		<CompositionConfigurationAssemblyName>$(TargetName).Composition</CompositionConfigurationAssemblyName>
+		<CompositionConfigurationBaseName>$(TargetName).Composition</CompositionConfigurationBaseName>
+		<CompositionConfigurationCacheName>$(CompositionConfigurationBaseName).cache</CompositionConfigurationCacheName>
 		<MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
 		<PrepareResourceNamesDependsOn>
 			GenerateCompositionBootstrapSourceFile;
@@ -23,7 +24,7 @@
 		<CreateContainerFactoryBootstrapFile
 			BootstrapFile="$(ContainerFactoryBootstrapFile)"
 			RootNamespace="$(RootNamespace)"
-			ConfigurationAssemblyName="$(CompositionConfigurationAssemblyName)"/>
+			CompositionCacheFile="$(CompositionConfigurationCacheName)"/>
 	</Target>
 
 	<Target Name="GenerateCompositionConfigurationAssembly" AfterTargets="Build" DependsOnTargets="ResolveReferences">
@@ -34,10 +35,8 @@
 
 		<CreateComposition
 			CatalogAssemblies="@(CompositionConfigurationAssembly)"
-			DgmlOutputPath="$(OutputPath)$(CompositionConfigurationAssemblyName).dgml"
-			ConfigurationOutputPath="$(OutputPath)$(CompositionConfigurationAssemblyName).dll" 
-			ConfigurationSymbolsPath="$(OutputPath)$(CompositionConfigurationAssemblyName).pdb" 
-			ConfigurationSourcePath="$(IntermediateOutputPath)$(CompositionConfigurationAssemblyName).cs" />
+			DgmlOutputPath="$(OutputPath)$(CompositionConfigurationBaseName).dgml"
+			CompositionCacheFile="$(OutputPath)$(CompositionConfigurationCacheName)" />
 	</Target>
 
 	<Target Name="BeforeCompile" DependsOnTargets="GenerateCompositionBootstrapSourceFile"/>

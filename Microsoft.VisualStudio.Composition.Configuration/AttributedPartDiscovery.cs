@@ -136,7 +136,15 @@
                     importingConstructorParameters.Add(import);
                 }
 
-                return new ComposablePartDefinition(TypeRef.Get(partType), exportsOnType.ToImmutable(), exportsOnMembers.ToImmutable(), imports.ToImmutable(), sharingBoundary, MethodRef.Get(onImportsSatisfied), importingConstructorParameters.ToImmutable(), partCreationPolicy);
+                return new ComposablePartDefinition(
+                    TypeRef.Get(partType),
+                    exportsOnType.ToImmutable(),
+                    exportsOnMembers.ToImmutable(),
+                    imports.ToImmutable(),
+                    sharingBoundary,
+                    MethodRef.Get(onImportsSatisfied),
+                    importingConstructorParameters.ToImmutable(),
+                    partCreationPolicy);
             }
             else
             {

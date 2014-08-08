@@ -190,6 +190,7 @@
             var indentingWriter = IndentingTextWriter.Get(writer);
             indentingWriter.WriteLine("Type: {0}", this.Type.FullName);
             indentingWriter.WriteLine("SharingBoundary: {0}", this.SharingBoundary.SpecifyIfNull());
+            indentingWriter.WriteLine("IsSharingBoundaryInferred: {0}", this.IsSharingBoundaryInferred);
             indentingWriter.WriteLine("CreationPolicy: {0}", this.CreationPolicy);
             indentingWriter.WriteLine("OnImportsSatisfied: {0}", this.OnImportsSatisfied.SpecifyIfNull());
 
