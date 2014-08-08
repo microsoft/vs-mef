@@ -75,6 +75,14 @@
         protected Type[] cachedTypes;
 
         /// <summary>
+        /// A cache for the <see cref="GetMetadataViewProvider"/> method which has shown up on perf traces.
+        /// </summary>
+        /// <remarks>
+        /// All access to this dictionary is guarded by a lock on this field.
+        /// </remarks>
+        private Dictionary<Type, IMetadataViewProvider> typeAndSelectedMetadataViewProviderCache = new Dictionary<Type, IMetadataViewProvider>();
+
+        /// <summary>
         /// A list of built-in metadata view providers that should be used before trying to get additional ones
         /// from the extensions.
         /// </summary>
@@ -727,19 +735,33 @@
         {
             Requires.NotNull(metadataView, "metadataView");
 
-            IMetadataViewProvider metadataViewProvider = BuiltInMetadataViewProviders
-                .FirstOrDefault(vp => vp.IsMetadataViewSupported(metadataView));
-            if (metadataViewProvider != null)
+            IMetadataViewProvider metadataViewProvider;
+            lock (this.typeAndSelectedMetadataViewProviderCache)
             {
-                return metadataViewProvider;
+                this.typeAndSelectedMetadataViewProviderCache.TryGetValue(metadataView, out metadataViewProvider);
             }
 
-            metadataViewProvider = this.metadataViewProviders.Value
-                    .Select(vp => vp.Value)
-                    .FirstOrDefault(vp => vp.IsMetadataViewSupported(metadataView));
             if (metadataViewProvider == null)
             {
-                throw new NotSupportedException("Type of metadata view is unsupported.");
+                metadataViewProvider = BuiltInMetadataViewProviders
+                    .FirstOrDefault(vp => vp.IsMetadataViewSupported(metadataView));
+                if (metadataViewProvider != null)
+                {
+                    return metadataViewProvider;
+                }
+
+                metadataViewProvider = this.metadataViewProviders.Value
+                        .Select(vp => vp.Value)
+                        .FirstOrDefault(vp => vp.IsMetadataViewSupported(metadataView));
+                if (metadataViewProvider == null)
+                {
+                    throw new NotSupportedException("Type of metadata view is unsupported.");
+                }
+
+                lock (this.typeAndSelectedMetadataViewProviderCache)
+                {
+                    this.typeAndSelectedMetadataViewProviderCache[metadataView] = metadataViewProvider;
+                }
             }
 
             return metadataViewProvider;
