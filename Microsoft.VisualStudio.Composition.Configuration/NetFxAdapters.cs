@@ -120,10 +120,10 @@
 
             public bool IsSatisfiedBy(ExportDefinition exportDefinition)
             {
-                var v3ExportDefinition = new MefV1.Primitives.ExportDefinition(
+                var v1ExportDefinition = new MefV1.Primitives.ExportDefinition(
                     exportDefinition.ContractName,
                     (IDictionary<string, object>)exportDefinition.Metadata);
-                return this.definition.IsConstraintSatisfiedBy(v3ExportDefinition);
+                return this.definition.IsConstraintSatisfiedBy(v1ExportDefinition);
             }
         }
 
