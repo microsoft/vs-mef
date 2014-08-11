@@ -24,6 +24,14 @@
                 ImmutableDictionary<string, object>.Empty,
                 ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty);
             IEnumerable<Export> exports = exportProvider.GetExports(importDefinition);
+
+            // Verify the re-enumeration does not recreate the objects.
+            Assert.Same(exports.Single(), exports.Single());
+
+            // Verify that getting the exported value returns the same value every time.
+            Assert.Same(exports.Single().Value, exports.Single().Value);
+
+            // Verify that the value isn't null.
             var otherPart2 = exports.Single().Value;
             Assert.NotNull(otherPart2);
         }

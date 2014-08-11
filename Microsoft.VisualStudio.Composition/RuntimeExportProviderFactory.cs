@@ -49,7 +49,7 @@
                 return -1;
             }
 
-            protected override IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition)
+            protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
             {
                 var exports = this.composition.GetExports(importDefinition.ContractName);
 
@@ -261,44 +261,7 @@
             {
                 if (import.IsExportFactory)
                 {
-                    // ExportFactory.ctor(Func<Tuple<T, Action>>[, TMetadata])
-                    Type tupleType;
-                    using (var typeArgs = ArrayRental<Type>.Get(2))
-                    {
-                        typeArgs.Value[0] = import.ImportingSiteElementType;
-                        typeArgs.Value[1] = typeof(Action);
-                        tupleType = typeof(Tuple<,>).MakeGenericType(typeArgs.Value);
-                    }
-
-                    Func<object> factory = () =>
-                    {
-                        bool newSharingScope = import.ExportFactorySharingBoundaries.Count > 0;
-                        RuntimeExportProvider scope = newSharingScope
-                            ? new RuntimeExportProvider(this.composition, this, import.ExportFactorySharingBoundaries)
-                            : this;
-
-                        object constructedValue = scope.GetExportedValue(import, export, new Dictionary<int, object>()).Value;
-
-                        using (var ctorArgs = ArrayRental<object>.Get(2))
-                        {
-                            ctorArgs.Value[0] = constructedValue;
-                            var disposableConstructedValue = newSharingScope ? scope : constructedValue as IDisposable;
-                            ctorArgs.Value[1] = disposableConstructedValue != null ? new Action(disposableConstructedValue.Dispose) : null;
-                            return Activator.CreateInstance(tupleType, ctorArgs.Value);
-                        }
-                    };
-
-                    Type exportFactoryType = import.ExportFactory.Resolve();
-                    using (var ctorArgs = ArrayRental<object>.Get(exportFactoryType.GenericTypeArguments.Length))
-                    {
-                        ctorArgs.Value[0] = ReflectionHelpers.CreateFuncOfType(tupleType, factory);
-                        if (ctorArgs.Value.Length > 1)
-                        {
-                            ctorArgs.Value[1] = this.GetStrongTypedMetadata(export.Metadata, exportFactoryType.GenericTypeArguments[1]);
-                        }
-
-                        return Activator.CreateInstance(exportFactoryType, ctorArgs.Value);
-                    }
+                    return this.CreateExportFactory(import, export);
                 }
                 else
                 {
@@ -309,13 +272,36 @@
                             : part;
                     }
 
-                    ILazy<object> exportedValue = this.GetExportedValue(import, export, provisionalSharedObjects);
+                    Func<object> exportedValue = this.GetExportedValue(import, export, provisionalSharedObjects);
 
                     object importedValue = import.IsLazy
-                        ? this.CreateStrongTypedLazy(exportedValue.ValueFactory, export.Metadata, import.ImportingSiteTypeWithoutCollection)
-                        : exportedValue.Value;
+                        ? this.CreateStrongTypedLazy(exportedValue, export.Metadata, import.ImportingSiteTypeWithoutCollection)
+                        : exportedValue();
                     return importedValue;
                 }
+            }
+
+            private object CreateExportFactory(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export)
+            {
+                Requires.NotNull(import, "import");
+                Requires.NotNull(export, "export");
+
+                Type importingSiteElementType = import.ImportingSiteElementType;
+                IReadOnlyCollection<string> sharingBoundaries = import.ExportFactorySharingBoundaries;
+                bool newSharingScope = sharingBoundaries.Count > 0;
+                Func<KeyValuePair<object, IDisposable>> valueFactory = () =>
+                {
+                    RuntimeExportProvider scope = newSharingScope
+                        ? new RuntimeExportProvider(this.composition, this, sharingBoundaries)
+                        : this;
+                    object constructedValue = ((RuntimeExportProvider)scope).GetExportedValue(import, export, new Dictionary<int, object>())();
+                    var disposableValue = newSharingScope ? scope : constructedValue as IDisposable;
+                    return new KeyValuePair<object, IDisposable>(constructedValue, disposableValue);
+                };
+                Type exportFactoryType = import.ExportFactory.Resolve();
+                var exportMetadata = export.Metadata;
+
+                return this.CreateExportFactory(importingSiteElementType, sharingBoundaries, valueFactory, exportFactoryType, exportMetadata);
             }
 
             private object CreateStrongTypedLazy(Func<object> valueFactory, IReadOnlyDictionary<string, object> metadata, Type lazyType)
@@ -346,20 +332,7 @@
                 }
             }
 
-            private object GetStrongTypedMetadata(IReadOnlyDictionary<string, object> metadata, Type metadataType)
-            {
-                Requires.NotNull(metadata, "metadata");
-                Requires.NotNull(metadataType, "metadataType");
-
-                var metadataViewProvider = this.GetMetadataViewProvider(metadataType);
-                return metadataViewProvider.CreateProxy(
-                    metadataViewProvider.IsDefaultMetadataRequired
-                        ? AddMissingValueDefaults(metadataType, metadata)
-                        : metadata,
-                    metadataType);
-            }
-
-            private ILazy<object> GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Dictionary<int, object> provisionalSharedObjects)
+            private Func<object> GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Dictionary<int, object> provisionalSharedObjects)
             {
                 Requires.NotNull(import, "import");
                 Requires.NotNull(export, "export");
@@ -370,21 +343,21 @@
                 // Special case importing of ExportProvider
                 if (exportingRuntimePart.Type.Equals(ExportProvider.ExportProviderPartDefinition.Type))
                 {
-                    return this.NonDisposableWrapper;
+                    return this.NonDisposableWrapper.ValueFactory;
                 }
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
-                ILazy<object> exportingPart = this.GetOrCreateShareableValue(
+                Func<object> partFactory = this.GetOrCreateShareableValue(
                     this.GetTypeId(constructedType),
                     (ep, pso) => this.CreatePart(pso, exportingRuntimePart, import.Metadata),
                     provisionalSharedObjects,
                     exportingRuntimePart.SharingBoundary,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
                 MemberInfo exportingMember = export.Member.Resolve();
-                var exportedValue = !export.Member.IsEmpty
-                    ? new LazyPart<object>(() => this.GetValueFromMember(exportingMember.IsStatic() ? null : exportingPart.Value, exportingMember, import.ImportingSiteElementType, export.ExportedValueType.Resolve()))
-                    : exportingPart;
+                Func<object> exportedValue = !export.Member.IsEmpty
+                    ? () => this.GetValueFromMember(exportingMember.IsStatic() ? null : partFactory(), exportingMember, import.ImportingSiteElementType, export.ExportedValueType.Resolve())
+                    : partFactory;
                 return exportedValue;
             }
 
@@ -461,59 +434,6 @@
                 }
 
                 throw new NotSupportedException();
-            }
-
-            private struct Rental<T> : IDisposable
-                where T : class
-            {
-                private T value;
-                private Stack<T> returnTo;
-                private Action<T> cleanup;
-
-                internal Rental(Stack<T> returnTo, Func<int, T> create, Action<T> cleanup, int createArg)
-                {
-                    this.value = returnTo != null && returnTo.Count > 0 ? returnTo.Pop() : create(createArg);
-                    this.returnTo = returnTo;
-                    this.cleanup = cleanup;
-                }
-
-                public T Value
-                {
-                    get { return this.value; }
-                }
-
-                public void Dispose()
-                {
-                    Assumes.NotNull(this.value);
-
-                    var value = this.value;
-                    this.value = null;
-                    if (this.cleanup != null)
-                    {
-                        this.cleanup(value);
-                    }
-
-                    if (this.returnTo != null)
-                    {
-                        this.returnTo.Push(value);
-                    }
-                }
-            }
-
-            private static class ArrayRental<T>
-            {
-                private static readonly ThreadLocal<Dictionary<int, Stack<T[]>>> arrays = new ThreadLocal<Dictionary<int, Stack<T[]>>>(() => new Dictionary<int, Stack<T[]>>());
-
-                internal static Rental<T[]> Get(int length)
-                {
-                    Stack<T[]> stack;
-                    if (!arrays.Value.TryGetValue(length, out stack))
-                    {
-                        arrays.Value.Add(length, stack = new Stack<T[]>());
-                    }
-
-                    return new Rental<T[]>(stack, len => new T[len], array => Array.Clear(array, 0, array.Length), length);
-                }
             }
         }
     }

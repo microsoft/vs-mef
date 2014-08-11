@@ -15,6 +15,14 @@
 
         internal const string IsOpenGenericExport = MefV3CompositionNamespace + ".IsOpenGenericExport";
 
+
+        // ExportFactory<T> support (V3-specific)
+        internal const string ExportFactoryProductImportDefinition = MefV3CompositionNamespace + ".ProductImportDefinition";
+        internal const string ExportFactoryTypeMetadataName = MefV3CompositionNamespace + ".ExportFactoryType";
+        // ExportFactory<T> support (copied from V1)
+        internal const string ProductDefinitionMetadataName = "ProductDefinition";
+        internal const string PartCreatorContractName = MefV1CompositionNamespace + ".Contracts.ExportFactory";
+
         private const string MefV1CompositionNamespace = "System.ComponentModel.Composition";
         private const string MefV3CompositionNamespace = "Microsoft.VisualStudio.Composition";
     }

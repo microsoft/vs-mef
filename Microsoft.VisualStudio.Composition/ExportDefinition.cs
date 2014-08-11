@@ -38,6 +38,11 @@
 
         public bool Equals(ExportDefinition other)
         {
+            if (other == null)
+            {
+                return false;
+            }
+
             bool result = this.ContractName == other.ContractName
                 && this.Metadata.EqualsByValue(other.Metadata);
             return result;
