@@ -105,7 +105,7 @@
             public Apple SharedApple { get; set; }
         }
 
-        [MefFact(CompositionEngines.V1, typeof(Apple), typeof(Tree))]
+        [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(Tree))]
         public void SatisfyImportsOnceWithExportFactory(IContainer container)
         {
             MefV1.Hosting.CompositionContainer v1Container;
@@ -140,6 +140,78 @@
             public MefV1.ExportFactory<Apple> AppleFactory { get; set; }
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(Tree))]
+        public void SatisfyImportsOnceWithListOfExportFactory(IContainer container)
+        {
+            MefV1.Hosting.CompositionContainer v1Container;
+
+            var v3Container = container as TestUtilities.V3ContainerWrapper;
+            if (v3Container != null)
+            {
+                v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
+            }
+            else
+            {
+                v1Container = ((TestUtilities.V1ContainerWrapper)container).Container;
+            }
+
+            var receiver = new SatisfyImportsOnceWithListOfExportFactoryReceiver();
+            MefV1.AttributedModelServices.SatisfyImportsOnce(v1Container, receiver);
+            Assert.NotNull(receiver.AppleFactories);
+            Assert.Equal(1, receiver.AppleFactories.Count);
+            MefV1.ExportLifetimeContext<Apple> apple1 = receiver.AppleFactories[0].CreateExport();
+            Assert.NotNull(apple1);
+            Assert.NotNull(apple1.Value);
+            MefV1.ExportLifetimeContext<Apple> apple2 = receiver.AppleFactories[0].CreateExport();
+            Assert.NotNull(apple2);
+            Assert.NotNull(apple2.Value);
+
+            Assert.NotSame(apple1, apple2);
+            Assert.NotSame(apple1.Value, apple2.Value);
+        }
+
+        private class SatisfyImportsOnceWithListOfExportFactoryReceiver
+        {
+            [MefV1.ImportMany]
+            public List<MefV1.ExportFactory<Apple>> AppleFactories { get; set; }
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(Tree<>))]
+        public void SatisfyImportsOnceWithListOfExportFactoryOfOpenGenericExport(IContainer container)
+        {
+            MefV1.Hosting.CompositionContainer v1Container;
+
+            var v3Container = container as TestUtilities.V3ContainerWrapper;
+            if (v3Container != null)
+            {
+                v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
+            }
+            else
+            {
+                v1Container = ((TestUtilities.V1ContainerWrapper)container).Container;
+            }
+
+            var receiver = new SatisfyImportsOnceWithListOfExportFactoryOfOpenGenericExportReceiver();
+            MefV1.AttributedModelServices.SatisfyImportsOnce(v1Container, receiver);
+            Assert.NotNull(receiver.OrangeTreeFactories);
+            Assert.Equal(1, receiver.OrangeTreeFactories.Count);
+            MefV1.ExportLifetimeContext<Tree<Orange>> orangeTree1 = receiver.OrangeTreeFactories[0].CreateExport();
+            Assert.NotNull(orangeTree1);
+            Assert.NotNull(orangeTree1.Value);
+            MefV1.ExportLifetimeContext<Tree<Orange>> orangeTree2 = receiver.OrangeTreeFactories[0].CreateExport();
+            Assert.NotNull(orangeTree2);
+            Assert.NotNull(orangeTree2.Value);
+
+            Assert.NotSame(orangeTree1, orangeTree2);
+            Assert.NotSame(orangeTree1.Value, orangeTree2.Value);
+        }
+
+        private class SatisfyImportsOnceWithListOfExportFactoryOfOpenGenericExportReceiver
+        {
+            [MefV1.ImportMany]
+            public List<MefV1.ExportFactory<Tree<Orange>>> OrangeTreeFactories { get; set; }
+        }
+
         #endregion
 
         [Export, Export("SomeContract")]
@@ -170,6 +242,8 @@
         public class Tree<T>
         {
         }
+
+        public class Orange { }
 
         public interface IMetadata
         {

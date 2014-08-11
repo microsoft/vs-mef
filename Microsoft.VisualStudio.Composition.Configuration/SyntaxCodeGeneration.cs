@@ -1548,7 +1548,7 @@
                 scope = thisExportProvider;
             }
 
-            // ILazy<object> part = GetOrCreateShareableValue(typeof(Part), ...);
+            // Func<object> part = GetOrCreateShareableValue(typeof(Part), ...);
             Type[] typeArgs = import.ImportingSiteElementType.GetGenericArguments();
             var partLocalVar = SyntaxFactory.IdentifierName("part");
             statements.Add(
@@ -1558,9 +1558,9 @@
                         SyntaxFactory.SingletonSeparatedList(
                             SyntaxFactory.VariableDeclarator(partLocalVar.Identifier)
                                 .WithInitializer(SyntaxFactory.EqualsValueClause(
-                                    GetPartInstanceLazy(export.PartDefinition, newDictionaryOfTypeObjectExpression, false, typeArgs, scope)))))));
+                                    GetPartInstanceFactory(export.PartDefinition, newDictionaryOfTypeObjectExpression, false, typeArgs, scope)))))));
 
-            // var value = part.Value.SomeMember;
+            // var value = part().SomeMember;
             var exportedValueLocalVar = SyntaxFactory.IdentifierName("value");
             statements.Add(
                 SyntaxFactory.LocalDeclarationStatement(
@@ -1580,7 +1580,7 @@
             {
                 disposeReceiver = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
                     SyntaxFactory.IdentifierName("IDisposable"),
-                    SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, partLocalVar, SyntaxFactory.IdentifierName("Value"))));
+                    SyntaxFactory.InvocationExpression(partLocalVar, SyntaxFactory.ArgumentList())));
             }
 
             ExpressionSyntax disposeAction = disposeReceiver != null
@@ -1699,19 +1699,19 @@
             }
         }
 
-        private ExpressionSyntax GetExportedValueFromPart(ExpressionSyntax lazyPart, ImportDefinitionBinding import, ExportDefinitionBinding export, ValueFactoryType lazyType, ExpressionSyntax thisExportProvider)
+        private ExpressionSyntax GetExportedValueFromPart(ExpressionSyntax partFactory, ImportDefinitionBinding import, ExportDefinitionBinding export, ValueFactoryType lazyType, ExpressionSyntax thisExportProvider)
         {
-            Requires.NotNull(lazyPart, "lazyPart");
+            Requires.NotNull(partFactory, "partFactory");
             Requires.NotNull(import, "import");
             Requires.NotNull(export, "export");
 
             if (export.ExportingMember == null)
             {
-                return this.ConvertValue(lazyPart, this.GetTypeNameSyntax(export.PartDefinition.Type), ValueFactoryType.LazyOfT, lazyType);
+                return this.ConvertValue(partFactory, this.GetTypeNameSyntax(export.PartDefinition.Type), ValueFactoryType.FuncOfObject, lazyType);
             }
 
             // To retrieve a member, we must have the actual instance that hosts it.
-            var partInstance = this.ConvertValue(lazyPart, this.GetTypeNameSyntax(export.PartDefinition.Type), ValueFactoryType.LazyOfT, ValueFactoryType.ActualValue);
+            var partInstance = this.ConvertValue(partFactory, this.GetTypeNameSyntax(export.PartDefinition.Type), ValueFactoryType.FuncOfObject, ValueFactoryType.ActualValue);
 
             var memberValue = CreateMemberRetrieval(export.ExportingMember, partInstance, thisExportProvider);
             switch (export.ExportingMember.MemberType)
@@ -1760,7 +1760,7 @@
             bool isNonSharedInstanceRequired = PartCreationPolicyConstraint.IsNonSharedInstanceRequired(import.ImportDefinition);
             Type[] typeArgs = import.ImportingSiteElementType.GetGenericArguments();
             var exportedValueSyntax = GetExportedValueFromPart(
-                    GetPartInstanceLazy(export.PartDefinition, provisionalSharedObjects, isNonSharedInstanceRequired, typeArgs, scopeExportProvider),
+                    GetPartInstanceFactory(export.PartDefinition, provisionalSharedObjects, isNonSharedInstanceRequired, typeArgs, scopeExportProvider),
                     import,
                     export,
                     import.IsLazy ? ValueFactoryType.FuncOfObject : ValueFactoryType.ActualValue,
@@ -2233,9 +2233,9 @@
         }
 
         /// <summary>
-        /// Creates an expression that evaluates to an <see cref="ILazy{Object}"/>.
+        /// Creates an expression that evaluates to a <see cref="Func{Object}"/>.
         /// </summary>
-        private ExpressionSyntax GetPartInstanceLazy(ComposablePartDefinition partDefinition, ExpressionSyntax provisionalSharedObjects, bool nonSharedInstanceRequired, IReadOnlyList<Type> typeArgs, ExpressionSyntax scopeExportProvider)
+        private ExpressionSyntax GetPartInstanceFactory(ComposablePartDefinition partDefinition, ExpressionSyntax provisionalSharedObjects, bool nonSharedInstanceRequired, IReadOnlyList<Type> typeArgs, ExpressionSyntax scopeExportProvider)
         {
             Requires.NotNull(partDefinition, "partDefinition");
             Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
@@ -2255,8 +2255,11 @@
                 // this.NonDisposableWrapper
                 return SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
-                    scopeExportProvider,
-                    SyntaxFactory.IdentifierName("NonDisposableWrapper"));
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        scopeExportProvider,
+                        SyntaxFactory.IdentifierName("NonDisposableWrapper")),
+                    SyntaxFactory.IdentifierName("ValueFactory"));
             }
 
             Type partType = typeArgs.Count == 0 ? partDefinition.Type : partDefinition.Type.MakeGenericType(typeArgs.ToArray());
