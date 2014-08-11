@@ -286,26 +286,7 @@
             if (isExportFactory)
             {
                 var exportFactoryType = (Type)exportFactoryImportDefinition.Metadata[CompositionConstants.ExportFactoryTypeMetadataName];
-                exports = from exportInfo in filteredExportInfos
-                          let exportFactoryCreator = (Func<object>)(() => this.CreateExportFactory(
-                            typeof(object),
-                            ImmutableHashSet<string>.Empty, // no support for sub-scopes queried for imperatively.
-                            () =>
-                            {
-                                object value = exportInfo.ExportedValueGetter();
-                                return new KeyValuePair<object, IDisposable>(value, value as IDisposable);
-                            },
-                            exportFactoryType,
-                            exportInfo.Definition.Metadata))
-                          let exportFactoryTypeIdentity = ContractNameServices.GetTypeIdentity(exportFactoryType)
-                          let exportFactoryMetadata = ImmutableDictionary.Create<string, object>()
-                            .Add(CompositionConstants.ExportTypeIdentityMetadataName, exportFactoryTypeIdentity)
-                            .Add(CompositionConstants.PartCreationPolicyMetadataName, CreationPolicy.NonShared)
-                            .Add(CompositionConstants.ProductDefinitionMetadataName, exportInfo.Definition)
-                          select new Export(
-                              exportFactoryTypeIdentity,
-                              exportFactoryMetadata,
-                              exportFactoryCreator);
+                exports = filteredExportInfos.Select(ei => this.CreateExportFactoryExport(ei, exportFactoryType));
             }
             else
             {
@@ -451,6 +432,31 @@
 
                 return Activator.CreateInstance(exportFactoryType, ctorArgs.Value);
             }
+        }
+
+        private Export CreateExportFactoryExport(ExportInfo exportInfo, Type exportFactoryType)
+        {
+            Requires.NotNull(exportFactoryType, "exportFactoryType");
+
+            var exportFactoryCreator = (Func<object>)(() => this.CreateExportFactory(
+                typeof(object),
+                ImmutableHashSet<string>.Empty, // no support for sub-scopes queried for imperatively.
+                () =>
+                {
+                    object value = exportInfo.ExportedValueGetter();
+                    return new KeyValuePair<object, IDisposable>(value, value as IDisposable);
+                },
+                exportFactoryType,
+                exportInfo.Definition.Metadata));
+            var exportFactoryTypeIdentity = ContractNameServices.GetTypeIdentity(exportFactoryType);
+            var exportFactoryMetadata = ImmutableDictionary.Create<string, object>()
+                .Add(CompositionConstants.ExportTypeIdentityMetadataName, exportFactoryTypeIdentity)
+                .Add(CompositionConstants.PartCreationPolicyMetadataName, CreationPolicy.NonShared)
+                .Add(CompositionConstants.ProductDefinitionMetadataName, exportInfo.Definition);
+            return new Export(
+                exportFactoryTypeIdentity,
+                exportFactoryMetadata,
+                exportFactoryCreator);
         }
 
         protected object GetStrongTypedMetadata(IReadOnlyDictionary<string, object> metadata, Type metadataType)
