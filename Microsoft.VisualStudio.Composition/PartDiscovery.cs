@@ -126,7 +126,7 @@
                     {
                         lock (exceptions)
                         {
-                            exceptions.Add(ex);
+                            exceptions.Add(new PartDiscoveryException("Unable to load assembly for scanning.", ex) { AssemblyPath = path });
                         }
 
                         return Enumerable.Empty<Assembly>();

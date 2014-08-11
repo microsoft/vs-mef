@@ -128,6 +128,7 @@
     <Compile Include="ExportDefinition.cs" />
     <Compile Include="ExportProvider.cs" />
     <Compile Include="ImportDefinition.cs" />
+    <Compile Include="PartDiscoveryException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReflectionCache.cs" />
     <Compile Include="ReflectionHelpers.cs" />
