@@ -248,9 +248,25 @@
         {
             Requires.NotNull(importDefinition, "importDefinition");
 
-            IEnumerable<Export> exports = importDefinition.ContractName == ExportProviderExportDefinition.ContractName
-                ? this.NonDisposableWrapperExportAsListOfOne
-                : this.GetExportsCore(importDefinition);
+            if (importDefinition.ContractName == ExportProviderExportDefinition.ContractName)
+            {
+                return this.NonDisposableWrapperExportAsListOfOne;
+            }
+
+            bool isExportFactory = importDefinition.ContractName == CompositionConstants.PartCreatorContractName;
+            ImportDefinition exportFactoryImportDefinition = null;
+            if (isExportFactory)
+            {
+                // This is a runtime request for an ExportFactory<T>. This can happen for example when an object
+                // is supplied to a MEFv1 CompositionContainer's SatisfyImportsOnce method when that object
+                // has an importing member of type ExportFactory<T>.
+                // We must unwrap the nested import definition to unveil the actual export to be created
+                // by this export factory.
+                exportFactoryImportDefinition = importDefinition;
+                importDefinition = (ImportDefinition)importDefinition.Metadata[CompositionConstants.ExportFactoryProductImportDefinition];
+            }
+
+            IEnumerable<ExportInfo> exportInfos = this.GetExportsCore(importDefinition);
 
             string genericTypeDefinitionContractName;
             Type[] genericTypeArguments;
@@ -259,14 +275,25 @@
                 var genericTypeImportDefinition = new ImportDefinition(genericTypeDefinitionContractName, importDefinition.Cardinality, importDefinition.Metadata, importDefinition.ExportConstraints);
                 var openGenericExports = this.GetExportsCore(genericTypeImportDefinition);
                 var closedGenericExports = openGenericExports.Select(export => export.CloseGenericExport(genericTypeArguments));
-                exports = exports.Concat(closedGenericExports);
+                exportInfos = exportInfos.Concat(closedGenericExports);
             }
 
-            var filteredExports = from export in exports
-                                  where importDefinition.ExportConstraints.All(c => c.IsSatisfiedBy(export.Definition))
-                                  select export;
+            var filteredExportInfos = from export in exportInfos
+                                      where importDefinition.ExportConstraints.All(c => c.IsSatisfiedBy(export.Definition))
+                                      select export;
 
-            var exportsSnapshot = filteredExports.ToArray(); // avoid redoing the above work during multiple enumerations of our result.
+            IEnumerable<Export> exports;
+            if (isExportFactory)
+            {
+                var exportFactoryType = (Type)exportFactoryImportDefinition.Metadata[CompositionConstants.ExportFactoryTypeMetadataName];
+                exports = filteredExportInfos.Select(ei => this.CreateExportFactoryExport(ei, exportFactoryType));
+            }
+            else
+            {
+                exports = filteredExportInfos.Select(fe => new Export(fe.Definition, fe.ExportedValueGetter));
+            }
+
+            var exportsSnapshot = exports.ToArray(); // avoid repeating all the foregoing work each time this sequence is enumerated.
             if (importDefinition.Cardinality == ImportCardinality.ExactlyOne && exportsSnapshot.Length != 1)
             {
                 throw new CompositionFailedException();
@@ -326,9 +353,9 @@
         /// <remarks>
         /// The derived type is *not* expected to filter the exports based on the import definition constraints.
         /// </remarks>
-        protected abstract IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition);
+        protected abstract IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition);
 
-        protected Export CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, int partOpenGenericTypeId, Type valueFactoryMethodDeclaringType, string valueFactoryMethodName, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
+        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, int partOpenGenericTypeId, Type valueFactoryMethodDeclaringType, string valueFactoryMethodName, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(metadata, "metadata");
@@ -345,25 +372,104 @@
             return this.CreateExport(importDefinition, metadata, partTypeId, valueFactory, partSharingBoundary, nonSharedInstanceRequired, exportingMember);
         }
 
-        protected Export CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, int partTypeId, Func<ExportProvider, Dictionary<int, object>, object> valueFactory, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
+        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, int partTypeId, Func<ExportProvider, Dictionary<int, object>, object> valueFactory, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(metadata, "metadata");
             Requires.NotNull(valueFactory, "valueFactory");
 
             var provisionalSharedObjects = new Dictionary<int, object>();
-            ILazy<object> lazy = this.GetOrCreateShareableValue(partTypeId, valueFactory, provisionalSharedObjects, partSharingBoundary, nonSharedInstanceRequired);
+            Func<object> maybeSharedValueFactory = this.GetOrCreateShareableValue(partTypeId, valueFactory, provisionalSharedObjects, partSharingBoundary, nonSharedInstanceRequired);
             Func<object> memberValueFactory;
             if (exportingMember == null)
             {
-                memberValueFactory = lazy.ValueFactory;
+                memberValueFactory = maybeSharedValueFactory;
             }
             else
             {
-                memberValueFactory = () => GetValueFromMember(lazy.Value, exportingMember);
+                memberValueFactory = () => GetValueFromMember(maybeSharedValueFactory(), exportingMember);
             }
 
-            return new Export(importDefinition.ContractName, metadata, memberValueFactory);
+            return new ExportInfo(importDefinition.ContractName, metadata, memberValueFactory);
+        }
+
+        protected object CreateExportFactory(Type importingSiteElementType, IReadOnlyCollection<string> sharingBoundaries, Func<KeyValuePair<object, IDisposable>> valueFactory, Type exportFactoryType, IReadOnlyDictionary<string, object> exportMetadata)
+        {
+            Requires.NotNull(importingSiteElementType, "importingSiteElementType");
+            Requires.NotNull(sharingBoundaries, "sharingBoundaries");
+            Requires.NotNull(valueFactory, "valueFactory");
+            Requires.NotNull(exportFactoryType, "exportFactoryType");
+            Requires.NotNull(exportMetadata, "exportMetadata");
+
+            // ExportFactory.ctor(Func<Tuple<T, Action>>[, TMetadata])
+            Type tupleType;
+            using (var typeArgs = ArrayRental<Type>.Get(2))
+            {
+                typeArgs.Value[0] = importingSiteElementType;
+                typeArgs.Value[1] = typeof(Action);
+                tupleType = typeof(Tuple<,>).MakeGenericType(typeArgs.Value);
+            }
+
+            Func<object> factory = () =>
+            {
+                KeyValuePair<object, IDisposable> constructedValueAndDisposable = valueFactory();
+
+                using (var ctorArgs = ArrayRental<object>.Get(2))
+                {
+                    ctorArgs.Value[0] = constructedValueAndDisposable.Key;
+                    ctorArgs.Value[1] = constructedValueAndDisposable.Value != null ? new Action(constructedValueAndDisposable.Value.Dispose) : null;
+                    return Activator.CreateInstance(tupleType, ctorArgs.Value);
+                }
+            };
+
+            using (var ctorArgs = ArrayRental<object>.Get(exportFactoryType.GenericTypeArguments.Length))
+            {
+                ctorArgs.Value[0] = ReflectionHelpers.CreateFuncOfType(tupleType, factory);
+                if (ctorArgs.Value.Length > 1)
+                {
+                    ctorArgs.Value[1] = this.GetStrongTypedMetadata(exportMetadata, exportFactoryType.GenericTypeArguments[1]);
+                }
+
+                return Activator.CreateInstance(exportFactoryType, ctorArgs.Value);
+            }
+        }
+
+        private Export CreateExportFactoryExport(ExportInfo exportInfo, Type exportFactoryType)
+        {
+            Requires.NotNull(exportFactoryType, "exportFactoryType");
+
+            var exportFactoryCreator = (Func<object>)(() => this.CreateExportFactory(
+                typeof(object),
+                ImmutableHashSet<string>.Empty, // no support for sub-scopes queried for imperatively.
+                () =>
+                {
+                    object value = exportInfo.ExportedValueGetter();
+                    return new KeyValuePair<object, IDisposable>(value, value as IDisposable);
+                },
+                exportFactoryType,
+                exportInfo.Definition.Metadata));
+            var exportFactoryTypeIdentity = ContractNameServices.GetTypeIdentity(exportFactoryType);
+            var exportFactoryMetadata = ImmutableDictionary.Create<string, object>()
+                .Add(CompositionConstants.ExportTypeIdentityMetadataName, exportFactoryTypeIdentity)
+                .Add(CompositionConstants.PartCreationPolicyMetadataName, CreationPolicy.NonShared)
+                .Add(CompositionConstants.ProductDefinitionMetadataName, exportInfo.Definition);
+            return new Export(
+                exportFactoryTypeIdentity,
+                exportFactoryMetadata,
+                exportFactoryCreator);
+        }
+
+        protected object GetStrongTypedMetadata(IReadOnlyDictionary<string, object> metadata, Type metadataType)
+        {
+            Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(metadataType, "metadataType");
+
+            var metadataViewProvider = this.GetMetadataViewProvider(metadataType);
+            return metadataViewProvider.CreateProxy(
+                metadataViewProvider.IsDefaultMetadataRequired
+                    ? AddMissingValueDefaults(metadataType, metadata)
+                    : metadata,
+                metadataType);
         }
 
         protected object GetValueFromMember(object exportingPart, ImportDefinitionBinding import, ExportDefinitionBinding export)
@@ -418,26 +524,28 @@
             throw new NotSupportedException();
         }
 
-        protected ILazy<object> GetOrCreateShareableValue(int partTypeId, Func<ExportProvider, Dictionary<int, object>, object> valueFactory, Dictionary<int, object> provisionalSharedObjects, string partSharingBoundary, bool nonSharedInstanceRequired)
+        protected Func<object> GetOrCreateShareableValue(int partTypeId, Func<ExportProvider, Dictionary<int, object>, object> valueFactory, Dictionary<int, object> provisionalSharedObjects, string partSharingBoundary, bool nonSharedInstanceRequired)
         {
-            ILazy<System.Object> lazyResult;
             if (!nonSharedInstanceRequired)
             {
+                ILazy<System.Object> lazyResult;
                 if (this.TryGetProvisionalSharedExport(provisionalSharedObjects, partTypeId, out lazyResult) ||
                     this.TryGetSharedInstanceFactory(partSharingBoundary, partTypeId, out lazyResult))
                 {
-                    return lazyResult;
+                    return lazyResult.ValueFactory;
                 }
             }
 
-            lazyResult = new LazyPart<object>(() => valueFactory(this, provisionalSharedObjects));
+            Func<object> result = () => valueFactory(this, provisionalSharedObjects);
 
             if (!nonSharedInstanceRequired)
             {
+                ILazy<System.Object> lazyResult = new LazyPart<object>(result);
                 lazyResult = this.GetOrAddSharedInstanceFactory(partSharingBoundary, partTypeId, lazyResult);
+                result = lazyResult.ValueFactory;
             }
 
-            return lazyResult;
+            return result;
         }
 
         private bool TryGetSharedInstanceFactory<T>(string partSharingBoundary, int partTypeId, out ILazy<T> value)
@@ -797,6 +905,97 @@
                 Requires.NotNull(resolvingExportProvider, "resolvingExportProvider");
 
                 return resolvingExportProvider.GetType(this.TypeId);
+            }
+        }
+
+        protected struct ExportInfo
+        {
+            public ExportInfo(string contractName, IReadOnlyDictionary<string, object> metadata, Func<object> exportedValueGetter)
+                : this(new ExportDefinition(contractName, metadata), exportedValueGetter)
+            {
+            }
+
+            public ExportInfo(ExportDefinition exportDefinition, Func<object> exportedValueGetter)
+                : this()
+            {
+                Requires.NotNull(exportDefinition, "exportDefinition");
+                Requires.NotNull(exportedValueGetter, "exportedValueGetter");
+
+                this.Definition = exportDefinition;
+                this.ExportedValueGetter = exportedValueGetter;
+            }
+
+            public ExportDefinition Definition { get; private set; }
+
+            public Func<object> ExportedValueGetter { get; private set; }
+
+            internal ExportInfo CloseGenericExport(Type[] genericTypeArguments)
+            {
+                Requires.NotNull(genericTypeArguments, "genericTypeArguments");
+
+                string openGenericExportTypeIdentity = (string)this.Definition.Metadata[CompositionConstants.ExportTypeIdentityMetadataName];
+                string genericTypeDefinitionIdentityPattern = openGenericExportTypeIdentity;
+                string[] genericTypeArgumentIdentities = genericTypeArguments.Select(ContractNameServices.GetTypeIdentity).ToArray();
+                string closedTypeIdentity = string.Format(CultureInfo.InvariantCulture, genericTypeDefinitionIdentityPattern, genericTypeArgumentIdentities);
+                var metadata = ImmutableDictionary.CreateRange(this.Definition.Metadata).SetItem(CompositionConstants.ExportTypeIdentityMetadataName, closedTypeIdentity);
+
+                string contractName = this.Definition.ContractName == openGenericExportTypeIdentity
+                    ? closedTypeIdentity : this.Definition.ContractName;
+
+                return new ExportInfo(contractName, metadata, this.ExportedValueGetter);
+            }
+        }
+
+        protected struct Rental<T> : IDisposable
+            where T : class
+        {
+            private T value;
+            private Stack<T> returnTo;
+            private Action<T> cleanup;
+
+            internal Rental(Stack<T> returnTo, Func<int, T> create, Action<T> cleanup, int createArg)
+            {
+                this.value = returnTo != null && returnTo.Count > 0 ? returnTo.Pop() : create(createArg);
+                this.returnTo = returnTo;
+                this.cleanup = cleanup;
+            }
+
+            public T Value
+            {
+                get { return this.value; }
+            }
+
+            public void Dispose()
+            {
+                Assumes.NotNull(this.value);
+
+                var value = this.value;
+                this.value = null;
+                if (this.cleanup != null)
+                {
+                    this.cleanup(value);
+                }
+
+                if (this.returnTo != null)
+                {
+                    this.returnTo.Push(value);
+                }
+            }
+        }
+
+        protected static class ArrayRental<T>
+        {
+            private static readonly ThreadLocal<Dictionary<int, Stack<T[]>>> arrays = new ThreadLocal<Dictionary<int, Stack<T[]>>>(() => new Dictionary<int, Stack<T[]>>());
+
+            internal static Rental<T[]> Get(int length)
+            {
+                Stack<T[]> stack;
+                if (!arrays.Value.TryGetValue(length, out stack))
+                {
+                    arrays.Value.Add(length, stack = new Stack<T[]>());
+                }
+
+                return new Rental<T[]>(stack, len => new T[len], array => Array.Clear(array, 0, array.Length), length);
             }
         }
 
