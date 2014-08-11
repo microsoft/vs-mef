@@ -112,7 +112,7 @@
         {
             Requires.NotNull(assemblyPaths, "assemblyPaths");
 
-            var exceptions = new List<Exception>();
+            var exceptions = new List<PartDiscoveryException>();
             var tuple = this.CreateAssemblyDiscoveryBlockChain(progress, cancellationToken);
             var assemblyLoader = new TransformManyBlock<string, Assembly>(
                 path =>
@@ -368,7 +368,7 @@
                     }
                     catch (Exception ex)
                     {
-                        return ex;
+                        return new PartDiscoveryException("Unable to scan type for MEF attributes.", ex) { AssemblyPath = type.Assembly.Location, ScannedType = type };
                     }
                 },
                 new ExecutionDataflowBlockOptions
@@ -379,11 +379,12 @@
                     BoundedCapacity = 100,
                 });
             var parts = ImmutableHashSet.CreateBuilder<ComposablePartDefinition>();
-            var errors = ImmutableList.CreateBuilder<Exception>();
+            var errors = ImmutableList.CreateBuilder<PartDiscoveryException>();
             var aggregatingBlock = new ActionBlock<object>(partOrException =>
             {
                 var part = partOrException as ComposablePartDefinition;
-                var error = partOrException as Exception;
+                var error = partOrException as PartDiscoveryException;
+                Debug.Assert(partOrException is Exception == partOrException is PartDiscoveryException, "Wrong exception type returned.");
                 if (part != null)
                 {
                     parts.Add(part);
@@ -419,7 +420,7 @@
             var progressFilter = new ProgressFilter(progress);
 
             var tuple = this.CreateDiscoveryBlockChain(false, progressFilter, cancellationToken);
-            var exceptions = new List<Exception>();
+            var exceptions = new List<PartDiscoveryException>();
             var assemblyBlock = new TransformManyBlock<Assembly, Type>(
                 a =>
                 {
@@ -433,9 +434,10 @@
                     }
                     catch (Exception ex)
                     {
+                        var partDiscoveryException = new PartDiscoveryException("Unable to enumerate types.", ex) { AssemblyPath = a.Location };
                         lock (exceptions)
                         {
-                            exceptions.Add(ex);
+                            exceptions.Add(partDiscoveryException);
                         }
 
                         return Enumerable.Empty<Type>();

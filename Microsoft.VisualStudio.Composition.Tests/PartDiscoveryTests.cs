@@ -107,8 +107,7 @@
             var discovery = new AttributedPartDiscovery();
             var result = await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist.dll" });
             Assert.Equal(1, result.DiscoveryErrors.Count);
-            Assert.IsType<PartDiscoveryException>(result.DiscoveryErrors[0]);
-            Assert.Equal("Foo\\DoesNotExist.dll", ((PartDiscoveryException)result.DiscoveryErrors[0]).AssemblyPath);
+            Assert.Equal("Foo\\DoesNotExist.dll", result.DiscoveryErrors[0].AssemblyPath);
         }
 
         private class SynchronousProgress<T> : IProgress<T>

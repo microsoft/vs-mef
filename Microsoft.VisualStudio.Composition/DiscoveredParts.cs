@@ -10,9 +10,9 @@
 
     public class DiscoveredParts
     {
-        public static readonly DiscoveredParts Empty = new DiscoveredParts(ImmutableHashSet.Create<ComposablePartDefinition>(), ImmutableList.Create<Exception>());
+        public static readonly DiscoveredParts Empty = new DiscoveredParts(ImmutableHashSet.Create<ComposablePartDefinition>(), ImmutableList.Create<PartDiscoveryException>());
 
-        public DiscoveredParts(IEnumerable<ComposablePartDefinition> parts, IEnumerable<Exception> discoveryErrors)
+        public DiscoveredParts(IEnumerable<ComposablePartDefinition> parts, IEnumerable<PartDiscoveryException> discoveryErrors)
         {
             Requires.NotNull(parts, "parts");
             Requires.NotNull(discoveryErrors, "discoveryErrors");
@@ -23,7 +23,7 @@
 
         public ImmutableHashSet<ComposablePartDefinition> Parts { get; private set; }
 
-        public ImmutableList<Exception> DiscoveryErrors { get; private set; }
+        public ImmutableList<PartDiscoveryException> DiscoveryErrors { get; private set; }
 
         /// <summary>
         /// Returns the discovered parts if no errors occurred, otherwise throws an exception describing any discovery failures.
