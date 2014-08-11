@@ -129,6 +129,7 @@
     <Compile Include="GuidMetadataTests.cs" />
     <Compile Include="ImportDefinitionTests.cs" />
     <Compile Include="ImportedExportProviderTests.cs" />
+    <Compile Include="ImportOfTResolvedByDerivedClassTests.cs" />
     <Compile Include="InheritedExportTests.cs" />
     <Compile Include="InvalidGraphTests.cs" />
     <Compile Include="Mef3TestCommand.cs" />
