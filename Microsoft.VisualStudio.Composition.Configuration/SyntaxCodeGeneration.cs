@@ -150,7 +150,7 @@
                 SyntaxFactory.SingletonList<StatementSyntax>(SyntaxFactory.ReturnStatement(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
-                        this.GetTypeNameSyntax(typeof(ImmutableList<Export>)),
+                        SyntaxFactory.ParseName("ImmutableList<ExportInfo>"),
                         SyntaxFactory.IdentifierName("Empty"))))));
 
             var contractName = SyntaxFactory.MemberAccessExpression(
@@ -161,9 +161,9 @@
             var body = SyntaxFactory.Block(
                 SyntaxFactory.SwitchStatement(contractName, SyntaxFactory.List(switchSections)));
 
-            // protected override IEnumerable<Export> GetExportsCore7(ImportDefinition importDefinition)
+            // protected override IEnumerable<ExportInfo> GetExportsCore7(ImportDefinition importDefinition)
             var method = SyntaxFactory.MethodDeclaration(
-                this.GetTypeNameSyntax(typeof(IEnumerable<Export>)),
+                SyntaxFactory.ParseName("IEnumerable<ExportInfo>"),
                 "GetExportsCore" + bucket)
                 .AddParameterListParameters(
                     SyntaxFactory.Parameter(importDefinition.Identifier).WithType(this.GetTypeNameSyntax(typeof(ImportDefinition))))
@@ -238,15 +238,15 @@
                 SyntaxFactory.SingletonList<StatementSyntax>(SyntaxFactory.ReturnStatement(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
-                        this.GetTypeNameSyntax(typeof(ImmutableList<Export>)),
+                        SyntaxFactory.ParseName("ImmutableList<ExportInfo>"),
                         SyntaxFactory.IdentifierName("Empty"))))));
 
             var body = SyntaxFactory.Block(
                 SyntaxFactory.SwitchStatement(contractNameBucket, SyntaxFactory.List(switchSections)));
 
-            // protected override IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition)
+            // protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
             var method = SyntaxFactory.MethodDeclaration(
-                this.GetTypeNameSyntax(typeof(IEnumerable<Export>)),
+                SyntaxFactory.ParseName("IEnumerable<ExportInfo>"),
                 "GetExportsCore")
                 .AddParameterListParameters(
                     SyntaxFactory.Parameter(importDefinition.Identifier).WithType(this.GetTypeNameSyntax(typeof(ImportDefinition))))
@@ -1802,7 +1802,7 @@
             var exportExpressions = exports.Select(e => this.ExportCreationSyntax(e, importDefinition, thisExportProvider)).ToArray();
 
             var exportArrayType = SyntaxFactory.ArrayType(
-                    SyntaxFactory.IdentifierName("Export"),
+                    SyntaxFactory.IdentifierName("ExportInfo"),
                     SyntaxFactory.SingletonList<ArrayRankSpecifierSyntax>(
                         SyntaxFactory.ArrayRankSpecifier(
                             SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(

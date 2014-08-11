@@ -248,9 +248,12 @@
         {
             Requires.NotNull(importDefinition, "importDefinition");
 
-            IEnumerable<Export> exports = importDefinition.ContractName == ExportProviderExportDefinition.ContractName
-                ? this.NonDisposableWrapperExportAsListOfOne
-                : this.GetExportsCore(importDefinition);
+            if (importDefinition.ContractName == ExportProviderExportDefinition.ContractName)
+            {
+                return this.NonDisposableWrapperExportAsListOfOne;
+            }
+
+            IEnumerable<ExportInfo> exportInfos = this.GetExportsCore(importDefinition);
 
             string genericTypeDefinitionContractName;
             Type[] genericTypeArguments;
@@ -259,14 +262,19 @@
                 var genericTypeImportDefinition = new ImportDefinition(genericTypeDefinitionContractName, importDefinition.Cardinality, importDefinition.Metadata, importDefinition.ExportConstraints);
                 var openGenericExports = this.GetExportsCore(genericTypeImportDefinition);
                 var closedGenericExports = openGenericExports.Select(export => export.CloseGenericExport(genericTypeArguments));
-                exports = exports.Concat(closedGenericExports);
+                exportInfos = exportInfos.Concat(closedGenericExports);
             }
 
-            var filteredExports = from export in exports
-                                  where importDefinition.ExportConstraints.All(c => c.IsSatisfiedBy(export.Definition))
-                                  select export;
+            var filteredExportInfos = from export in exportInfos
+                                      where importDefinition.ExportConstraints.All(c => c.IsSatisfiedBy(export.Definition))
+                                      select export;
 
-            var exportsSnapshot = filteredExports.ToArray(); // avoid redoing the above work during multiple enumerations of our result.
+            IEnumerable<Export> exports;
+            {
+                exports = filteredExportInfos.Select(fe => new Export(fe.Definition, fe.ExportedValueGetter));
+            }
+
+            var exportsSnapshot = exports.ToArray(); // avoid repeating all the foregoing work each time this sequence is enumerated.
             if (importDefinition.Cardinality == ImportCardinality.ExactlyOne && exportsSnapshot.Length != 1)
             {
                 throw new CompositionFailedException();
@@ -326,9 +334,9 @@
         /// <remarks>
         /// The derived type is *not* expected to filter the exports based on the import definition constraints.
         /// </remarks>
-        protected abstract IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition);
+        protected abstract IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition);
 
-        protected Export CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, int partOpenGenericTypeId, Type valueFactoryMethodDeclaringType, string valueFactoryMethodName, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
+        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, int partOpenGenericTypeId, Type valueFactoryMethodDeclaringType, string valueFactoryMethodName, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(metadata, "metadata");
@@ -345,7 +353,7 @@
             return this.CreateExport(importDefinition, metadata, partTypeId, valueFactory, partSharingBoundary, nonSharedInstanceRequired, exportingMember);
         }
 
-        protected Export CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, int partTypeId, Func<ExportProvider, Dictionary<int, object>, object> valueFactory, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
+        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, int partTypeId, Func<ExportProvider, Dictionary<int, object>, object> valueFactory, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(metadata, "metadata");
@@ -363,7 +371,7 @@
                 memberValueFactory = () => GetValueFromMember(lazy.Value, exportingMember);
             }
 
-            return new Export(importDefinition.ContractName, metadata, memberValueFactory);
+            return new ExportInfo(importDefinition.ContractName, metadata, memberValueFactory);
         }
 
         protected object GetValueFromMember(object exportingPart, ImportDefinitionBinding import, ExportDefinitionBinding export)
@@ -797,6 +805,44 @@
                 Requires.NotNull(resolvingExportProvider, "resolvingExportProvider");
 
                 return resolvingExportProvider.GetType(this.TypeId);
+            }
+        }
+
+        protected struct ExportInfo
+        {
+            public ExportInfo(string contractName, IReadOnlyDictionary<string, object> metadata, Func<object> exportedValueGetter)
+                : this(new ExportDefinition(contractName, metadata), exportedValueGetter)
+            {
+            }
+
+            public ExportInfo(ExportDefinition exportDefinition, Func<object> exportedValueGetter)
+                : this()
+            {
+                Requires.NotNull(exportDefinition, "exportDefinition");
+                Requires.NotNull(exportedValueGetter, "exportedValueGetter");
+
+                this.Definition = exportDefinition;
+                this.ExportedValueGetter = exportedValueGetter;
+            }
+
+            public ExportDefinition Definition { get; private set; }
+
+            public Func<object> ExportedValueGetter { get; private set; }
+
+            internal ExportInfo CloseGenericExport(Type[] genericTypeArguments)
+            {
+                Requires.NotNull(genericTypeArguments, "genericTypeArguments");
+
+                string openGenericExportTypeIdentity = (string)this.Definition.Metadata[CompositionConstants.ExportTypeIdentityMetadataName];
+                string genericTypeDefinitionIdentityPattern = openGenericExportTypeIdentity;
+                string[] genericTypeArgumentIdentities = genericTypeArguments.Select(ContractNameServices.GetTypeIdentity).ToArray();
+                string closedTypeIdentity = string.Format(CultureInfo.InvariantCulture, genericTypeDefinitionIdentityPattern, genericTypeArgumentIdentities);
+                var metadata = ImmutableDictionary.CreateRange(this.Definition.Metadata).SetItem(CompositionConstants.ExportTypeIdentityMetadataName, closedTypeIdentity);
+
+                string contractName = this.Definition.ContractName == openGenericExportTypeIdentity
+                    ? closedTypeIdentity : this.Definition.ContractName;
+
+                return new ExportInfo(contractName, metadata, this.ExportedValueGetter);
             }
         }
 

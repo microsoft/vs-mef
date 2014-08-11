@@ -49,7 +49,7 @@
                 return -1;
             }
 
-            protected override IEnumerable<Export> GetExportsCore(ImportDefinition importDefinition)
+            protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
             {
                 var exports = this.composition.GetExports(importDefinition.ContractName);
 
