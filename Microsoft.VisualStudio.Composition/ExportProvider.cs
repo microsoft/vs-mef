@@ -90,10 +90,6 @@
             PassthroughMetadataViewProvider.Default,
             MetadataViewClassProvider.Default);
 
-        private static readonly IAssemblyLoader BuiltInAssemblyLoader = new AssemblyLoaderByFullName();
-
-        private ThreadLocal<bool> initializingAssemblyLoader = new ThreadLocal<bool>();
-
         /// <summary>
         /// The metadata view providers available to this ExportProvider.
         /// </summary>
@@ -101,8 +97,6 @@
         /// This field is lazy to avoid a chicken-and-egg problem with initializing it in our constructor.
         /// </remarks>
         private readonly Lazy<ImmutableList<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>> metadataViewProviders;
-
-        private readonly Lazy<IAssemblyLoader> assemblyLoadProvider;
 
         /// <summary>
         /// An array of types 
@@ -170,9 +164,6 @@
             this.metadataViewProviders = new Lazy<ImmutableList<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>>(
                 () => ImmutableList.CreateRange(this.GetExports<IMetadataViewProvider, IReadOnlyDictionary<string, object>>())
                     .Sort((first, second) => -GetOrderMetadata(first.Metadata).CompareTo(GetOrderMetadata(second.Metadata))));
-            this.assemblyLoadProvider = new Lazy<IAssemblyLoader>(
-                () => ImmutableList.CreateRange(this.GetExports<IAssemblyLoader, IReadOnlyDictionary<string, object>>())
-                    .Sort((first, second) => -GetOrderMetadata(first.Metadata).CompareTo(GetOrderMetadata(second.Metadata))).Select(v => v.Value).FirstOrDefault() ?? BuiltInAssemblyLoader);
         }
 
         bool IDisposableObservable.IsDisposed
@@ -614,60 +605,6 @@
         }
 
         /// <summary>
-        /// Gets the manifest module for an assembly.
-        /// </summary>
-        /// <param name="assemblyId">The index into the cached manifest array.</param>
-        /// <returns>The manifest module.</returns>
-        protected Module GetAssemblyManifest(int assemblyId)
-        {
-            Module result = this.cachedManifests[assemblyId];
-            if (result == null)
-            {
-                // We have to be very careful about getting the assembly loader because it may itself be
-                // a MEF component that is in an assembly that must be loaded.
-                // So we'll go ahead and try to use the right loader, but if we get re-entered in the meantime,
-                // on the same thread, we'll fallback to using our built-in one.
-                // The requirement then is that any assembly loader provider must be in an assembly that can be
-                // loaded using our built-in one.
-                IAssemblyLoader loader;
-                if (!this.assemblyLoadProvider.IsValueCreated)
-                {
-                    if (this.initializingAssemblyLoader.Value)
-                    {
-                        loader = BuiltInAssemblyLoader;
-                    }
-                    else
-                    {
-                        this.initializingAssemblyLoader.Value = true;
-                        try
-                        {
-                            loader = this.assemblyLoadProvider.Value;
-                        }
-                        finally
-                        {
-                            this.initializingAssemblyLoader.Value = false;
-                        }
-                    }
-                }
-                else
-                {
-                    loader = this.assemblyLoadProvider.Value;
-                }
-
-                Assembly assembly = loader.LoadAssembly(
-                    this.assemblyNames[assemblyId],
-                    this.assemblyCodeBasePaths[assemblyId]);
-
-                // We don't need to worry about thread-safety here because if two threads assign the
-                // reference to the loaded assembly to the array slot, that's just fine.
-                result = assembly.ManifestModule;
-                this.cachedManifests[assemblyId] = result;
-            }
-
-            return result;
-        }
-
-        /// <summary>
         /// Gets a type for reflection.
         /// </summary>
         /// <param name="typeId">The index into the cached type array.</param>
@@ -787,7 +724,7 @@
             return metadata;
         }
 
-        private static int GetOrderMetadata(IReadOnlyDictionary<string, object> metadata)
+        protected static int GetOrderMetadata(IReadOnlyDictionary<string, object> metadata)
         {
             Requires.NotNull(metadata, "metadata");
 
@@ -1123,18 +1060,6 @@
                                                   where paramInfo.IsAssignableFrom(typeof(ImmutableDictionary<string, object>).GetTypeInfo())
                                                   select ctor;
                 return publicCtorsWithOneParameter.FirstOrDefault();
-            }
-        }
-
-        private class AssemblyLoaderByFullName : IAssemblyLoader
-        {
-            public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
-            {
-                // We can't use codeBasePath here because this is a PCL, and the
-                // facade assembly we reference doesn't expose AssemblyName.CodeBasePath.
-                // That's why the MS.VS.Composition.Configuration.dll has another IAssemblyLoader
-                // that we prefer over this one. It does the codebasepath thing.
-                return Assembly.Load(new AssemblyName(assemblyFullName));
             }
         }
     }

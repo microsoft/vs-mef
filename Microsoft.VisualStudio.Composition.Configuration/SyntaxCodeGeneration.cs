@@ -30,6 +30,10 @@
 
         private const string InstantiatedPartLocalVarName = "result";
 
+        private static readonly IdentifierNameSyntax ExportProviderIdentifierName = SyntaxFactory.IdentifierName("ExportProvider");
+
+        private static readonly IdentifierNameSyntax ExportProviderBaseIdentifierName = SyntaxFactory.IdentifierName("CodeGenExportProviderBase");
+
         private static readonly TypeSyntax dictionaryOfIntObject = SyntaxFactory.GenericName("Dictionary")
                     .WithTypeArgumentList(SyntaxFactory.TypeArgumentList(CodeGen.JoinSyntaxNodes<TypeSyntax>(
                         SyntaxKind.CommaToken,
@@ -281,12 +285,12 @@
             var parentIdentifier = SyntaxFactory.IdentifierName("parent");
             var freshSharingBoundaries = SyntaxFactory.IdentifierName("freshSharingBoundaries");
 
-            // public CompiledExportProvider(ExportProvider parent, string[] freshSharingBoundaries) 
+            // public CompiledExportProvider(CodeGenExportProviderBase parent, string[] freshSharingBoundaries) 
             //    : base(parent, freshSharingBoundaries)
             return SyntaxFactory.ConstructorDeclaration(CompiledExportProviderTypeName)
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                 .AddParameterListParameters(
-                    SyntaxFactory.Parameter(parentIdentifier.Identifier).WithType(this.GetTypeNameSyntax(typeof(ExportProvider))),
+                    SyntaxFactory.Parameter(parentIdentifier.Identifier).WithType(ExportProviderBaseIdentifierName),
                     SyntaxFactory.Parameter(freshSharingBoundaries.Identifier).WithType(this.GetTypeNameSyntax(typeof(string[]))))
                 .WithInitializer(
                     SyntaxFactory.ConstructorInitializer(
@@ -377,7 +381,7 @@
             var compiledExportProviderType = SyntaxFactory.ClassDeclaration(CompiledExportProviderTypeName)
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InternalKeyword)))
                 .WithBaseList(SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                    SyntaxFactory.IdentifierName("ExportProvider"))))
+                    ExportProviderBaseIdentifierName)))
                 .AddMembers(partFactoryNestedTypes.ToArray())
                 .AddMembers(getExportsCoreHelperNestedTypes.ToArray())
                 .AddMembers(this.GetMetadataViewInterfaces().Select(CreateMetadataViewClass).ToArray())
@@ -1347,7 +1351,7 @@
                     SyntaxFactory.Token(SyntaxKind.InternalKeyword),
                     SyntaxFactory.Token(SyntaxKind.StaticKeyword))
                 .AddParameterListParameters(
-                    SyntaxFactory.Parameter(thisExportProviderIdentifier.Identifier).WithType(SyntaxFactory.IdentifierName("ExportProvider")),
+                    SyntaxFactory.Parameter(thisExportProviderIdentifier.Identifier).WithType(ExportProviderIdentifierName),
                     SyntaxFactory.Parameter(provisionalSharedObjectsIdentifier.Identifier).WithType(dictionaryOfIntObject));
 
             var statements = new List<StatementSyntax>();
@@ -1818,7 +1822,7 @@
                     SyntaxFactory.Token(SyntaxKind.InternalKeyword),
                     SyntaxFactory.Token(SyntaxKind.StaticKeyword))
                 .AddParameterListParameters(
-                    SyntaxFactory.Parameter(thisExportProviderIdentifier.Identifier).WithType(this.GetTypeNameSyntax(typeof(ExportProvider))),
+                    SyntaxFactory.Parameter(thisExportProviderIdentifier.Identifier).WithType(ExportProviderIdentifierName),
                     SyntaxFactory.Parameter(importDefinition.Identifier).WithType(SyntaxFactory.IdentifierName("ImportDefinition")))
                 .AddBodyStatements(SyntaxFactory.ReturnStatement(exportArrayExpression));
             return method;
@@ -2306,7 +2310,7 @@
                     SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(SyntaxKind.CommaToken, typeArgsExpressionSyntax.Select(SyntaxFactory.Argument).ToArray())));
                 var funcOfProviderDictionaryObject = SyntaxFactory.GenericName("Func")
                     .AddTypeArgumentListArguments(
-                        SyntaxFactory.IdentifierName("ExportProvider"),
+                        ExportProviderIdentifierName,
                         dictionaryOfIntObject,
                         SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)));
                 var createDelegate = SyntaxFactory.InvocationExpression(
