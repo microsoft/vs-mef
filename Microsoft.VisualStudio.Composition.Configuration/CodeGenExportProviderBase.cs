@@ -9,6 +9,8 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
+    using Validation;
 
     [EditorBrowsable(EditorBrowsableState.Never)]
     public abstract  class CodeGenExportProviderBase : ExportProvider
@@ -35,6 +37,12 @@
         /// Its elements are individually lazily initialized.
         /// </remarks>
         protected Module[] cachedManifests;
+
+        /// <summary>
+        /// An array initialized by the generated code derived class that contains the value of
+        /// TypeRef's used within the generated code.
+        /// </summary>
+        protected TypeRef[] typeRefs;
 
         private readonly Lazy<IAssemblyLoader> assemblyLoadProvider;
 
@@ -100,6 +108,29 @@
             }
 
             return result;
+        }
+
+        protected IMetadataDictionary GetTypeRefResolvingMetadata(ImmutableDictionary<string, object> metadata)
+        {
+            Requires.NotNull(metadata, "metadata");
+            return new LazyMetadataWrapper(metadata);
+        }
+
+        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, TypeRef partOpenGenericTypeRef, Type valueFactoryMethodDeclaringType, string valueFactoryMethodName, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
+        {
+            Requires.NotNull(partOpenGenericTypeRef, "partOpenGenericTypeRef");
+            Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(metadata, "metadata");
+
+            var typeArgs = (Type[])importDefinition.Metadata[CompositionConstants.GenericParametersMetadataName];
+            var valueFactoryOpenGenericMethodInfo = this.GetMethodWithArity(valueFactoryMethodDeclaringType, valueFactoryMethodName, typeArgs.Length);
+            var valueFactoryMethodInfo = valueFactoryOpenGenericMethodInfo.MakeGenericMethod(typeArgs);
+            var valueFactory = (Func<ExportProvider, Dictionary<TypeRef, object>, object>)valueFactoryMethodInfo.CreateDelegate(typeof(Func<ExportProvider, Dictionary<TypeRef, object>, object>), null);
+
+            Type partOpenGenericType = partOpenGenericTypeRef.Resolve();
+            TypeRef partType = partOpenGenericTypeRef.MakeGenericType(typeArgs.Select(TypeRef.Get).ToImmutableArray());
+
+            return this.CreateExport(importDefinition, metadata, partType, valueFactory, partSharingBoundary, nonSharedInstanceRequired, exportingMember);
         }
 
         private class AssemblyLoaderByFullName : IAssemblyLoader
