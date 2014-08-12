@@ -803,6 +803,7 @@
                 BoolFalse,
                 Int32,
                 Char,
+                Guid,
             }
 
             private void WriteObject(object value)
@@ -841,6 +842,11 @@
                     {
                         this.Write(ObjectType.Char);
                         writer.Write((char)value);
+                    }
+                    else if (valueType == typeof(Guid))
+                    {
+                        this.Write(ObjectType.Guid);
+                        writer.Write(((Guid)value).ToByteArray());
                     }
                     else if (valueType == typeof(CreationPolicy)) // TODO: how do we handle arbitrary value types?
                     {
@@ -889,6 +895,8 @@
                         return this.ReadString();
                     case ObjectType.Char:
                         return reader.ReadChar();
+                    case ObjectType.Guid:
+                        return new Guid(reader.ReadBytes(16));
                     case ObjectType.CreationPolicy:
                         return (CreationPolicy)reader.ReadByte();
                     case ObjectType.Type:
