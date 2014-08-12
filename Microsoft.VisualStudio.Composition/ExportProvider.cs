@@ -45,27 +45,6 @@
         protected static readonly ImmutableDictionary<string, object> EmptyMetadata = ImmutableDictionary.Create<string, object>();
 
         /// <summary>
-        /// An array initialized by the generated code derived class that contains the value of 
-        /// AssemblyName.FullName for each assembly that must be reflected into.
-        /// </summary>
-        protected string[] assemblyNames;
-
-        /// <summary>
-        /// An array initialized by the generated code derived class that contains the value of 
-        /// AssemblyName.CodeBasePath for each assembly that must be reflected into.
-        /// </summary>
-        protected string[] assemblyCodeBasePaths;
-
-        /// <summary>
-        /// An array of manifest modules required for access by reflection.
-        /// </summary>
-        /// <remarks>
-        /// This field is initialized to an array of appropriate size by the derived code-gen'd class.
-        /// Its elements are individually lazily initialized.
-        /// </remarks>
-        protected Module[] cachedManifests;
-
-        /// <summary>
         /// An array of types required for access by reflection.
         /// </summary>
         /// <remarks>
