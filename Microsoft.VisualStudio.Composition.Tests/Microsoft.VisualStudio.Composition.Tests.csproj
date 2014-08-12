@@ -117,6 +117,7 @@
     <Compile Include="ClosedGenericExportedTypeTests.cs" />
     <Compile Include="CompositionFailedExceptionTests.cs" />
     <Compile Include="CompressedUIntTests.cs" />
+    <Compile Include="CustomAttributeDataRefTests.cs" />
     <Compile Include="DataFileCacheAndReloadTests.cs" />
     <Compile Include="CompiledCacheAndReloadTests.cs" />
     <Compile Include="DelegatingExportProviderTests.cs" />

@@ -134,6 +134,7 @@
     <Compile Include="ReflectionHelpers.cs" />
     <Compile Include="Reflection\ConstructorDesc.cs" />
     <Compile Include="Reflection\ConstructorRef.cs" />
+    <Compile Include="Reflection\CustomAttributeDataRef.cs" />
     <Compile Include="Reflection\FieldDesc.cs" />
     <Compile Include="Reflection\FieldRef.cs" />
     <Compile Include="Reflection\MemberDesc.cs" />
