@@ -28,12 +28,6 @@
                 Requires.NotNull(composition, "composition");
 
                 this.composition = composition;
-                this.cachedTypes = new Type[0];
-            }
-
-            protected override int GetTypeIdCore(Reflection.TypeRef type)
-            {
-                return -1;
             }
 
             protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
@@ -46,14 +40,14 @@
                     select this.CreateExport(
                         importDefinition,
                         export.Metadata,
-                        this.GetTypeId(GetPartConstructedTypeRef(part, importDefinition.Metadata)),
+                        GetPartConstructedTypeRef(part, importDefinition.Metadata),
                         (ep, provisionalSharedObjects) => this.CreatePart(provisionalSharedObjects, part, importDefinition.Metadata),
                         part.SharingBoundary,
                         !part.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
                         export.Member.Resolve());
             }
 
-            private object CreatePart(Dictionary<int, object> provisionalSharedObjects, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata)
+            private object CreatePart(Dictionary<TypeRef, object> provisionalSharedObjects, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata)
             {
                 if (partDefinition.Type.Equals(Reflection.TypeRef.Get(ExportProvider.ExportProviderPartDefinition.Type)))
                 {
@@ -80,7 +74,10 @@
 
                 if (partDefinition.IsShared)
                 {
-                    provisionalSharedObjects.Add(this.GetTypeId(constructedPartType), part);
+                    lock (provisionalSharedObjects)
+                    {
+                        provisionalSharedObjects.Add(constructedPartType, part);
+                    }
                 }
 
                 var disposablePart = part as IDisposable;
@@ -120,7 +117,7 @@
                 public object Value { get; private set; }
             }
 
-            private ValueForImportSite GetValueForImportSite(object part, RuntimeComposition.RuntimeImport import, Dictionary<int, object> provisionalSharedObjects)
+            private ValueForImportSite GetValueForImportSite(object part, RuntimeComposition.RuntimeImport import, Dictionary<TypeRef, object> provisionalSharedObjects)
             {
                 Requires.NotNull(import, "import");
                 Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
@@ -244,7 +241,7 @@
                 }
             }
 
-            private object GetValueForImportElement(object part, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Dictionary<int, object> provisionalSharedObjects)
+            private object GetValueForImportElement(object part, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Dictionary<TypeRef, object> provisionalSharedObjects)
             {
                 if (import.IsExportFactory)
                 {
@@ -281,7 +278,7 @@
                     RuntimeExportProvider scope = newSharingScope
                         ? new RuntimeExportProvider(this.composition, this, sharingBoundaries)
                         : this;
-                    object constructedValue = ((RuntimeExportProvider)scope).GetExportedValue(import, export, new Dictionary<int, object>())();
+                    object constructedValue = ((RuntimeExportProvider)scope).GetExportedValue(import, export, new Dictionary<TypeRef, object>())();
                     var disposableValue = newSharingScope ? scope : constructedValue as IDisposable;
                     return new KeyValuePair<object, IDisposable>(constructedValue, disposableValue);
                 };
@@ -319,7 +316,7 @@
                 }
             }
 
-            private Func<object> GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Dictionary<int, object> provisionalSharedObjects)
+            private Func<object> GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Dictionary<TypeRef, object> provisionalSharedObjects)
             {
                 Requires.NotNull(import, "import");
                 Requires.NotNull(export, "export");
@@ -336,7 +333,7 @@
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
                 Func<object> partFactory = this.GetOrCreateShareableValue(
-                    this.GetTypeId(constructedType),
+                    constructedType,
                     (ep, pso) => this.CreatePart(pso, exportingRuntimePart, import.Metadata),
                     provisionalSharedObjects,
                     exportingRuntimePart.SharingBoundary,
