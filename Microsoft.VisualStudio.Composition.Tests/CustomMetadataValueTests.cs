@@ -20,6 +20,7 @@
         {
             var importer = container.GetExportedValue<ImportingPart>();
             Assert.IsType<MyObjectType>(importer.ImportingProperty.Metadata["SomeName"]);
+            Assert.Equal(7, ((MyObjectType)importer.ImportingProperty.Metadata["SomeName"]).Value);
         }
 
         [MefFact(CompositionEngines.V2)]
@@ -27,6 +28,7 @@
         {
             var importer = container.GetExportedValue<ImportingPart>();
             Assert.IsType<MyObjectType>(importer.ImportingProperty.Metadata["SomeName"]);
+            Assert.Equal(7, ((MyObjectType)importer.ImportingProperty.Metadata["SomeName"]).Value);
         }
 
         [Export]
@@ -40,7 +42,7 @@
 
         [Export]
         [MefV1.Export]
-        [CustomMetadata]
+        [CustomMetadata(1, Field = 2, Property = 4)]
         public class ExportWithCustomMetadata { }
 
         [MetadataAttribute]
@@ -48,19 +50,31 @@
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
         public class CustomMetadataAttribute : Attribute
         {
-            public CustomMetadataAttribute()
+            private int positional;
+
+            public CustomMetadataAttribute(int positional)
             {
-                this.SomeName = new MyObjectType(5);
+                this.positional = positional;
             }
 
-            public MyObjectType SomeName { get; set; }
+            public MyObjectType SomeName
+            {
+                get { return new MyObjectType(this.positional + this.Field + this.Property); }
+            }
+
+            public int Field;
+
+            public int Property { get; set; }
         }
 
         public class MyObjectType
         {
             internal MyObjectType(int value)
             {
+                this.Value = value;
             }
+
+            public int Value { get; private set; }
         }
     }
 }
