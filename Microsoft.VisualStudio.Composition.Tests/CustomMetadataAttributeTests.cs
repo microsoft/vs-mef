@@ -204,5 +204,53 @@
 
             public string After { get; set; }
         }
+
+        #region CustomMetadataAttributeLotsOfTypesAndVisibilities test
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartThatImportsLotsOfTypesAndVisibilitiesAttribute), typeof(PartWithLotsOfTypesAndVisibilitiesAttribute))]
+        public void CustomMetadataAttributeLotsOfTypesAndVisibilitiesV1(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsLotsOfTypesAndVisibilitiesAttribute>();
+            Assert.Equal(true, part.ImportingProperty.Metadata["PublicProperty"]);
+            Assert.False(part.ImportingProperty.Metadata.ContainsKey("PublicField"));
+            Assert.False(part.ImportingProperty.Metadata.ContainsKey("InternalProperty"));
+            Assert.False(part.ImportingProperty.Metadata.ContainsKey("InternalField"));
+        }
+
+        [MefFact(CompositionEngines.V2, typeof(PartThatImportsLotsOfTypesAndVisibilitiesAttribute), typeof(PartWithLotsOfTypesAndVisibilitiesAttribute))]
+        public void CustomMetadataAttributeLotsOfTypesAndVisibilitiesV2(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsLotsOfTypesAndVisibilitiesAttribute>();
+            Assert.Equal(true, part.ImportingProperty.Metadata["PublicProperty"]);
+            Assert.False(part.ImportingProperty.Metadata.ContainsKey("PublicField"));
+            Assert.Equal(true, part.ImportingProperty.Metadata["InternalProperty"]);
+            Assert.False(part.ImportingProperty.Metadata.ContainsKey("InternalField"));
+        }
+
+        [Export, MefV1.Export]
+        public class PartThatImportsLotsOfTypesAndVisibilitiesAttribute
+        {
+            [Import, MefV1.Import]
+            public Lazy<PartWithLotsOfTypesAndVisibilitiesAttribute, IDictionary<string, object>> ImportingProperty { get; set; }
+        }
+
+        [Export, MefV1.Export]
+        [LotsOfTypesAndVisibilities]
+        public class PartWithLotsOfTypesAndVisibilitiesAttribute { }
+
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
+        [MetadataAttribute, MefV1.MetadataAttribute]
+        public class LotsOfTypesAndVisibilitiesAttribute : Attribute
+        {
+            public bool PublicProperty { get { return true; } }
+
+            public bool PublicField = true;
+
+            internal bool InternalProperty { get { return true; } }
+
+            internal bool InternalField = true;
+        }
+
+        #endregion
     }
 }
