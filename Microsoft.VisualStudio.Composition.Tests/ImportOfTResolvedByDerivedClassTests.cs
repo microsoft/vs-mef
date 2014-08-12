@@ -12,14 +12,14 @@
     [Trait("GenericExports", "Closed")]
     public class ImportOfTResolvedByDerivedClassTests
     {
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void ImportOfTResolvedByDerivedClass(IContainer container)
         {
             var derived = container.GetExportedValue<DerivedClass>();
             Assert.NotNull(derived.ImportingProperty);
         }
 
-        public class OpenGenericBaseClass<T>
+        public abstract class OpenGenericBaseClass<T>
         {
             [Import, MefV1.Import]
             public T ImportingProperty { get; set; }
