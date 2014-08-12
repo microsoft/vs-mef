@@ -597,7 +597,13 @@
             Requires.NotNull(partTypeRef, "partTypeRef");
 
             object valueObject;
-            if (provisionalSharedObjects.TryGetValue(partTypeRef, out valueObject))
+            bool success;
+            lock (provisionalSharedObjects)
+            {
+                success = provisionalSharedObjects.TryGetValue(partTypeRef, out valueObject);
+            }
+
+            if (success)
             {
                 value = LazyPart.Wrap(valueObject, partTypeRef.Resolve());
                 return true;

@@ -74,7 +74,10 @@
 
                 if (partDefinition.IsShared)
                 {
-                    provisionalSharedObjects.Add(constructedPartType, part);
+                    lock (provisionalSharedObjects)
+                    {
+                        provisionalSharedObjects.Add(constructedPartType, part);
+                    }
                 }
 
                 var disposablePart = part as IDisposable;
