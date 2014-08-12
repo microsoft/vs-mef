@@ -620,7 +620,7 @@
         /// <returns>The manifest module.</returns>
         protected Module GetAssemblyManifest(int assemblyId)
         {
-            Module result = cachedManifests[assemblyId];
+            Module result = this.cachedManifests[assemblyId];
             if (result == null)
             {
                 // We have to be very careful about getting the assembly loader because it may itself be
@@ -661,7 +661,7 @@
                 // We don't need to worry about thread-safety here because if two threads assign the
                 // reference to the loaded assembly to the array slot, that's just fine.
                 result = assembly.ManifestModule;
-                cachedManifests[assemblyId] = result;
+                this.cachedManifests[assemblyId] = result;
             }
 
             return result;
