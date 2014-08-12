@@ -217,7 +217,7 @@
             Assert.False(part.ImportingProperty.Metadata.ContainsKey("InternalField"));
         }
 
-        [MefFact(CompositionEngines.V2, typeof(PartThatImportsLotsOfTypesAndVisibilitiesAttribute), typeof(PartWithLotsOfTypesAndVisibilitiesAttribute))]
+        [MefFact(CompositionEngines.V2Compat, typeof(PartThatImportsLotsOfTypesAndVisibilitiesAttribute), typeof(PartWithLotsOfTypesAndVisibilitiesAttribute))]
         public void CustomMetadataAttributeLotsOfTypesAndVisibilitiesV2(IContainer container)
         {
             var part = container.GetExportedValue<PartThatImportsLotsOfTypesAndVisibilitiesAttribute>();
