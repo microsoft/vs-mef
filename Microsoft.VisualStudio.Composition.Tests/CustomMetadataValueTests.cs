@@ -23,6 +23,14 @@
             Assert.Equal(7, ((MyObjectType)importer.ImportingProperty.Metadata["SomeName"]).Value);
         }
 
+        /// <summary>
+        /// Verifies that metadata values can be complex, non-serializable objects.
+        /// </summary>
+        /// <remarks>
+        /// When it comes time to support this in V3, <see cref="ReflectionHelpers.Instantiate(CustomAttributeData)"/>
+        /// is expected to come in useful. We can cache that CustomAttributeData the same way we cache other reflection
+        /// data, and use it to reconsistute the value at runtime.
+        /// </remarks>
         [MefFact(CompositionEngines.V2)]
         public void CustomMetadataValueV2(IContainer container)
         {
@@ -67,6 +75,9 @@
             public int Property { get; set; }
         }
 
+        /// <summary>
+        /// A intentionally non-serializable object.
+        /// </summary>
         public class MyObjectType
         {
             internal MyObjectType(int value)
