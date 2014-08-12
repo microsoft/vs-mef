@@ -68,11 +68,6 @@
         /// </remarks>
         private readonly Lazy<ImmutableList<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>> metadataViewProviders;
 
-        /// <summary>
-        /// An array of types 
-        /// </summary>
-        private List<TypeRef> runtimeCreatedTypes;
-
         private readonly object syncObject = new object();
 
         /// <summary>
@@ -106,14 +101,12 @@
             if (parent == null)
             {
                 this.sharedInstantiatedExports = this.sharedInstantiatedExports.Add(string.Empty, new Dictionary<TypeRef, object>());
-                this.runtimeCreatedTypes = new List<TypeRef>();
                 this.disposableInstantiatedSharedParts = this.disposableInstantiatedSharedParts.Add(string.Empty, new HashSet<IDisposable>());
                 this.freshSharingBoundaries = this.freshSharingBoundaries.Add(string.Empty);
             }
             else
             {
                 this.sharedInstantiatedExports = parent.sharedInstantiatedExports;
-                this.runtimeCreatedTypes = parent.runtimeCreatedTypes;
                 this.disposableInstantiatedSharedParts = parent.disposableInstantiatedSharedParts;
             }
 
