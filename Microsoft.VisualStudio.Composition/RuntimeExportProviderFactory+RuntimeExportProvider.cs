@@ -15,6 +15,8 @@
     {
         private class RuntimeExportProvider : ExportProvider
         {
+            private static readonly RuntimeMethodHandle LazyFuncOfObject = typeof(LazyPart<>).GetConstructors().Single(ctor => ctor.GetParameters()[0].ParameterType == typeof(Func<object>)).MethodHandle;
+            private static readonly RuntimeMethodHandle LazyFuncOfObjectMetadata = typeof(LazyPart<,>).GetConstructors().Single(ctor => ctor.GetParameters()[0].ParameterType == typeof(Func<object>)).MethodHandle;
             private readonly RuntimeComposition composition;
 
             internal RuntimeExportProvider(RuntimeComposition composition)
@@ -302,16 +304,9 @@
                         ctorArgs.Value[1] = this.GetStrongTypedMetadata(metadata, lazyType.GenericTypeArguments[1]);
                     }
 
-                    // We have to select and invoke the method directly because Activator.CreateInstance
-                    // cannot pick the right type when the metadata value is a transparent proxy.
-                    // Perf note: there are faster ways to select the constructor if this shows up on traces.
-                    var lazyCtors = from ctor in lazyType.GetTypeInfo().DeclaredConstructors
-                                    let parameters = ctor.GetParameters()
-                                    where parameters.Length == ctorArgs.Value.Length
-                                        && parameters[0].ParameterType == typeof(Func<object>)
-                                        && (parameters.Length < 2 || parameters[1].ParameterType == lazyType.GenericTypeArguments[1])
-                                    select ctor;
-                    object lazyInstance = lazyCtors.First().Invoke(ctorArgs.Value);
+                    ConstructorInfo lazyCtor = (ConstructorInfo)MethodBase.GetMethodFromHandle(
+                        ctorArgs.Value.Length == 1 ? LazyFuncOfObject : LazyFuncOfObjectMetadata, lazyType.TypeHandle);
+                    object lazyInstance = lazyCtor.Invoke(ctorArgs.Value);
                     return lazyInstance;
                 }
             }
