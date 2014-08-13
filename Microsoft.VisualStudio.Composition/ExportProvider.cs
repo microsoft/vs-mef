@@ -468,9 +468,14 @@
 
             if (!nonSharedInstanceRequired)
             {
+                object provisionalObject;
+                if (this.TryGetProvisionalSharedExport(provisionalSharedObjects, partTypeRef, out provisionalObject))
+                {
+                    return () => provisionalObject;
+                }
+
                 ILazy<System.Object> lazyResult;
-                if (this.TryGetProvisionalSharedExport(provisionalSharedObjects, partTypeRef, out lazyResult) ||
-                    this.TryGetSharedInstanceFactory(partSharingBoundary, partTypeRef, out lazyResult))
+                if (this.TryGetSharedInstanceFactory(partSharingBoundary, partTypeRef, out lazyResult))
                 {
                     return lazyResult.ValueFactory;
                 }
@@ -591,26 +596,15 @@
             return value is int ? (int)value : 0;
         }
 
-        private bool TryGetProvisionalSharedExport(IReadOnlyDictionary<TypeRef, object> provisionalSharedObjects, TypeRef partTypeRef, out ILazy<object> value)
+        private bool TryGetProvisionalSharedExport(IReadOnlyDictionary<TypeRef, object> provisionalSharedObjects, TypeRef partTypeRef, out object value)
         {
             Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
             Requires.NotNull(partTypeRef, "partTypeRef");
 
-            object valueObject;
-            bool success;
             lock (provisionalSharedObjects)
             {
-                success = provisionalSharedObjects.TryGetValue(partTypeRef, out valueObject);
+                return provisionalSharedObjects.TryGetValue(partTypeRef, out value);
             }
-
-            if (success)
-            {
-                value = LazyPart.Wrap(valueObject, partTypeRef.Resolve());
-                return true;
-            }
-
-            value = null;
-            return false;
         }
 
         private IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName, ImportCardinality cardinality)
