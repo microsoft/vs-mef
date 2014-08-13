@@ -56,7 +56,7 @@
         /// A list of built-in metadata view providers that should be used before trying to get additional ones
         /// from the extensions.
         /// </summary>
-        private static readonly ImmutableList<IMetadataViewProvider> BuiltInMetadataViewProviders = ImmutableList.Create(
+        private static readonly ImmutableArray<IMetadataViewProvider> BuiltInMetadataViewProviders = ImmutableArray.Create(
             PassthroughMetadataViewProvider.Default,
             MetadataViewClassProvider.Default);
 
@@ -66,7 +66,7 @@
         /// <remarks>
         /// This field is lazy to avoid a chicken-and-egg problem with initializing it in our constructor.
         /// </remarks>
-        private readonly Lazy<ImmutableList<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>> metadataViewProviders;
+        private readonly Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>> metadataViewProviders;
 
         private readonly object syncObject = new object();
 
@@ -124,9 +124,10 @@
             this.NonDisposableWrapper = LazyPart.Wrap(nonDisposableWrapper);
             this.NonDisposableWrapperExportAsListOfOne = ImmutableList.Create(
                 new Export(ExportProviderExportDefinition, this.NonDisposableWrapper));
-            this.metadataViewProviders = new Lazy<ImmutableList<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>>(
-                () => ImmutableList.CreateRange(this.GetExports<IMetadataViewProvider, IReadOnlyDictionary<string, object>>())
-                    .Sort((first, second) => -GetOrderMetadata(first.Metadata).CompareTo(GetOrderMetadata(second.Metadata))));
+            this.metadataViewProviders = new Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>>(
+                () => ImmutableArray.CreateRange(
+                    this.GetExports<IMetadataViewProvider, IReadOnlyDictionary<string, object>>()
+                    .OrderByDescending(v => GetOrderMetadata(v.Metadata))));
         }
 
         bool IDisposableObservable.IsDisposed
