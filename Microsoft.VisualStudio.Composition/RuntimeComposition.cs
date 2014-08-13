@@ -357,13 +357,13 @@
                 }
             }
 
-            public Type DeclaringType
+            public TypeRef DeclaringType
             {
                 get
                 {
                     return
-                        this.ImportingParameterRef.IsEmpty ? this.ImportingMemberRef.Resolve().DeclaringType :
-                        this.ImportingParameterRef.Resolve().Member.DeclaringType;
+                        this.ImportingParameterRef.IsEmpty ? this.ImportingMemberRef.DeclaringType :
+                        this.ImportingParameterRef.DeclaringType;
                 }
             }
 

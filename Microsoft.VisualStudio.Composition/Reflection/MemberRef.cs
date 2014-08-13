@@ -66,6 +66,33 @@
 
         public MethodRef Method { get; private set; }
 
+        public TypeRef DeclaringType
+        {
+            get
+            {
+                if (this.IsProperty)
+                {
+                    return this.Property.DeclaringType;
+                }
+                else if (this.IsField)
+                {
+                    return this.Field.DeclaringType;
+                }
+                else if (this.IsConstructor)
+                {
+                    return this.Constructor.DeclaringType;
+                }
+                else if (this.IsMethod)
+                {
+                    return this.Method.DeclaringType;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
         public bool IsEmpty
         {
             get { return this.Constructor.IsEmpty && this.Field.IsEmpty && this.Property.IsEmpty && this.Method.IsEmpty; }
