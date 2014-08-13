@@ -10,6 +10,14 @@
 
     public static class LazyPart
     {
+        /// <summary>
+        /// A cache of the input and output of the <see cref="FromLazy"/> method.
+        /// </summary>
+        /// <remarks>
+        /// ETL traces show that <see cref="Type.MakeGenericType"/> and <see cref="Type.GenericTypeArguments"/> is *slow*.
+        /// </remarks>
+        private static readonly Dictionary<Type, Type> FromLazyCache = new Dictionary<Type, Type>();
+
         public static Lazy<TBase> ToLazy<T, TBase>(this ILazy<T> lazy) where TBase : T
         {
             Requires.NotNull(lazy, "lazy");
@@ -70,20 +78,42 @@
         {
             Requires.NotNull(type, "type");
 
-            if (type.GetTypeInfo().IsGenericType)
+            Type result;
+            lock (FromLazyCache)
             {
-                Type genericTypeDefinition = type.GetGenericTypeDefinition();
-                if (genericTypeDefinition.Equals(typeof(Lazy<>)) || genericTypeDefinition.Equals(typeof(ILazy<>)))
+                FromLazyCache.TryGetValue(type, out result);
+            }
+
+            if (result == null)
+            {
+                if (type.GetTypeInfo().IsGenericType)
                 {
-                    return typeof(LazyPart<>).MakeGenericType(type.GenericTypeArguments);
+                    Type genericTypeDefinition = type.GetGenericTypeDefinition();
+                    if (genericTypeDefinition.Equals(typeof(Lazy<>)) || genericTypeDefinition.Equals(typeof(ILazy<>)))
+                    {
+                        result = typeof(LazyPart<>).MakeGenericType(type.GenericTypeArguments);
+                    }
+                    else if (genericTypeDefinition.Equals(typeof(Lazy<,>)) || genericTypeDefinition.Equals(typeof(ILazy<,>)))
+                    {
+                        result = typeof(LazyPart<,>).MakeGenericType(type.GenericTypeArguments);
+                    }
+                    else
+                    {
+                        throw new ArgumentException();
+                    }
+
+                    lock (FromLazyCache)
+                    {
+                        FromLazyCache[type] = result;
+                    }
                 }
-                else if (genericTypeDefinition.Equals(typeof(Lazy<,>)) || genericTypeDefinition.Equals(typeof(ILazy<,>)))
+                else
                 {
-                    return typeof(LazyPart<,>).MakeGenericType(type.GenericTypeArguments);
+                    throw new ArgumentException();
                 }
             }
 
-            throw new ArgumentException();
+            return result;
         }
     }
 }
