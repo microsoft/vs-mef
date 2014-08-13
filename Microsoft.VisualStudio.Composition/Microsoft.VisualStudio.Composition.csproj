@@ -83,6 +83,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArrayRental`1.cs" />
     <Compile Include="ByValueEquality.cs" />
     <Compile Include="ComposableCatalog.cs" />
     <Compile Include="ComposedPart.cs" />
@@ -147,6 +148,7 @@
     <Compile Include="Reflection\Resolver.cs" />
     <Compile Include="Reflection\TypeDesc.cs" />
     <Compile Include="Reflection\TypeRef.cs" />
+    <Compile Include="Rental`1.cs" />
     <Compile Include="RuntimeComposition.cs" />
     <Compile Include="RuntimeExportProviderFactory+RuntimeExportProvider.cs" />
     <Compile Include="RuntimeExportProviderFactory.cs" />

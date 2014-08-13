@@ -88,9 +88,13 @@
 
         internal static ILazy<object> Wrap(object value, Type typeArg)
         {
-            return (ILazy<object>)Activator.CreateInstance(
-                typeof(LazyPart<>).MakeGenericType(typeArg),
-                new object[] { new Func<object>(() => value) });
+            using (var array = ArrayRental<object>.Get(1))
+            {
+                array.Value[0] = new Func<object>(() => value);
+                return (ILazy<object>)Activator.CreateInstance(
+                    typeof(LazyPart<>).MakeGenericType(typeArg),
+                    array.Value);
+            }
         }
     }
 }

@@ -733,59 +733,6 @@
             }
         }
 
-        protected struct Rental<T> : IDisposable
-            where T : class
-        {
-            private T value;
-            private Stack<T> returnTo;
-            private Action<T> cleanup;
-
-            internal Rental(Stack<T> returnTo, Func<int, T> create, Action<T> cleanup, int createArg)
-            {
-                this.value = returnTo != null && returnTo.Count > 0 ? returnTo.Pop() : create(createArg);
-                this.returnTo = returnTo;
-                this.cleanup = cleanup;
-            }
-
-            public T Value
-            {
-                get { return this.value; }
-            }
-
-            public void Dispose()
-            {
-                Assumes.NotNull(this.value);
-
-                var value = this.value;
-                this.value = null;
-                if (this.cleanup != null)
-                {
-                    this.cleanup(value);
-                }
-
-                if (this.returnTo != null)
-                {
-                    this.returnTo.Push(value);
-                }
-            }
-        }
-
-        protected static class ArrayRental<T>
-        {
-            private static readonly ThreadLocal<Dictionary<int, Stack<T[]>>> arrays = new ThreadLocal<Dictionary<int, Stack<T[]>>>(() => new Dictionary<int, Stack<T[]>>());
-
-            internal static Rental<T[]> Get(int length)
-            {
-                Stack<T[]> stack;
-                if (!arrays.Value.TryGetValue(length, out stack))
-                {
-                    arrays.Value.Add(length, stack = new Stack<T[]>());
-                }
-
-                return new Rental<T[]>(stack, len => new T[len], array => Array.Clear(array, 0, array.Length), length);
-            }
-        }
-
         private class ExportProviderAsExport : DelegatingExportProvider
         {
             internal ExportProviderAsExport(ExportProvider inner)
