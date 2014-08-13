@@ -404,9 +404,8 @@
 
             var metadataViewProvider = this.GetMetadataViewProvider(metadataType);
             return metadataViewProvider.CreateProxy(
-                metadataViewProvider.IsDefaultMetadataRequired
-                    ? AddMissingValueDefaults(metadataType, metadata)
-                    : metadata,
+                metadata,
+                GetMetadataViewDefaults(metadataType),
                 metadataType);
         }
 
@@ -561,31 +560,54 @@
 
         protected internal interface IMetadataDictionary : IDictionary<string, object>, IReadOnlyDictionary<string, object> { }
 
-        protected static IReadOnlyDictionary<string, object> AddMissingValueDefaults(Type metadataView, IReadOnlyDictionary<string, object> metadata)
+        private static readonly Dictionary<Type, IReadOnlyDictionary<string, object>> GetMetadataViewDefaultsCache = new Dictionary<Type, IReadOnlyDictionary<string, object>>();
+
+        /// <summary>
+        /// Gets a dictionary of metadata that describes all the default values supplied by a metadata view.
+        /// </summary>
+        /// <param name="metadataView">The metadata view type.</param>
+        /// <returns>A dictionary of default metadata values.</returns>
+        protected static IReadOnlyDictionary<string, object> GetMetadataViewDefaults(Type metadataView)
         {
             Requires.NotNull(metadataView, "metadataView");
-            Requires.NotNull(metadata, "metadata");
 
-            if (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>)))
+            IReadOnlyDictionary<string, object> result;
+            lock (GetMetadataViewDefaultsCache)
             {
-                var metadataBuilder = LazyMetadataWrapper.TryUnwrap(metadata).ToImmutableDictionary().ToBuilder();
-                foreach (var property in metadataView.EnumProperties().WherePublicInstance())
-                {
-                    if (!metadataBuilder.ContainsKey(property.Name))
-                    {
-                        var defaultValueAttribute = property.GetCustomAttributesCached<DefaultValueAttribute>().FirstOrDefault();
-                        if (defaultValueAttribute != null)
-                        {
-                            metadataBuilder.Add(property.Name, defaultValueAttribute.Value);
-                        }
-                    }
-                }
-
-                return LazyMetadataWrapper.Rewrap(metadata, metadataBuilder.ToImmutable());
+                GetMetadataViewDefaultsCache.TryGetValue(metadataView, out result);
             }
 
-            // No changes since the metadata view type doesn't provide any.
-            return metadata;
+            if (result == null)
+            {
+                if (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>)))
+                {
+                    var metadataBuilder = ImmutableDictionary.CreateBuilder<string, object>();
+                    foreach (var property in metadataView.EnumProperties().WherePublicInstance())
+                    {
+                        if (!metadataBuilder.ContainsKey(property.Name))
+                        {
+                            var defaultValueAttribute = property.GetCustomAttributesCached<DefaultValueAttribute>().FirstOrDefault();
+                            if (defaultValueAttribute != null)
+                            {
+                                metadataBuilder.Add(property.Name, defaultValueAttribute.Value);
+                            }
+                        }
+                    }
+
+                    result = metadataBuilder.ToImmutable();
+                }
+                else
+                {
+                    result = ImmutableDictionary<string, object>.Empty;
+                }
+
+                lock (GetMetadataViewDefaultsCache)
+                {
+                    GetMetadataViewDefaultsCache[metadataView] = result;
+                }
+            }
+
+            return result;
         }
 
         protected static int GetOrderMetadata(IReadOnlyDictionary<string, object> metadata)
@@ -627,7 +649,8 @@
             return results.Select(result => new LazyPart<T, TMetadataView>(
                 () => result.Value,
                 (TMetadataView)metadataViewProvider.CreateProxy(
-                    metadataViewProvider.IsDefaultMetadataRequired ? AddMissingValueDefaults(typeof(TMetadataView), result.Metadata) : result.Metadata,
+                    result.Metadata,
+                    GetMetadataViewDefaults(typeof(TMetadataView)),
                     typeof(TMetadataView))))
                 .ToImmutableHashSet();
         }
@@ -750,11 +773,6 @@
 
             internal static readonly IMetadataViewProvider Default = new PassthroughMetadataViewProvider();
 
-            public bool IsDefaultMetadataRequired
-            {
-                get { return false; }
-            }
-
             public bool IsMetadataViewSupported(Type metadataType)
             {
                 Requires.NotNull(metadataType, "metadataType");
@@ -763,7 +781,7 @@
                     || metadataType.GetTypeInfo().IsAssignableFrom(typeof(IDictionary<string, object>).GetTypeInfo());
             }
 
-            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType)
+            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
             {
                 Requires.NotNull(metadata, "metadata");
 
@@ -782,11 +800,6 @@
 
             internal static readonly IMetadataViewProvider Default = new MetadataViewClassProvider();
 
-            public bool IsDefaultMetadataRequired
-            {
-                get { return false; }
-            }
-
             public bool IsMetadataViewSupported(Type metadataType)
             {
                 Requires.NotNull(metadataType, "metadataType");
@@ -795,7 +808,7 @@
                 return typeInfo.IsClass && !typeInfo.IsAbstract && FindConstructor(typeInfo) != null;
             }
 
-            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType)
+            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
             {
                 return FindConstructor(metadataViewType.GetTypeInfo())
                     .Invoke(new object[] { ImmutableDictionary.CreateRange(metadata) });

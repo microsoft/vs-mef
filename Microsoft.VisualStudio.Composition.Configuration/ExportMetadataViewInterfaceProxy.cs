@@ -34,25 +34,30 @@
             return catalog.WithPart(proxySupportPartDefinition);
         }
 
-        private static object GetProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType)
+        private static object GetProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
         {
             Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(defaultValues, "defaultValues");
             Requires.NotNull(metadataViewType, "metadataViewType");
 
-            var proxy = new MetadataProxy(metadata, metadataViewType);
+            var proxy = new MetadataProxy(metadata, defaultValues, metadataViewType);
             return proxy.GetTransparentProxy();
         }
 
         private class MetadataProxy : RealProxy
         {
             private readonly IReadOnlyDictionary<string, object> metadata;
+            private readonly IReadOnlyDictionary<string, object> defaultValues;
             private object transparentProxy;
 
-            internal MetadataProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType)
+            internal MetadataProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
                 : base(metadataViewType)
             {
                 Requires.NotNull(metadata, "metadata");
+                Requires.NotNull(defaultValues, "defaultValues");
+
                 this.metadata = metadata;
+                this.defaultValues = defaultValues;
             }
 
             public override object GetTransparentProxy()
@@ -69,7 +74,10 @@
                 if (methodInfo.GetParameters().Length == 0 && methodInfo.IsSpecialName && methodInfo.Name.StartsWith("get_"))
                 {
                     string propertyName = methodCall.MethodName.Substring(4);
-                    result = this.metadata[propertyName];
+                    if (!this.metadata.TryGetValue(propertyName, out result))
+                    {
+                        result = this.defaultValues[propertyName];
+                    }
 
                     // In some cases, metadata values may not cast appropriately to the required value.
                     // In these cases, the desired behavior is to simply return null.
@@ -98,11 +106,6 @@
         [Export(typeof(IMetadataViewProvider))]
         private class MetadataViewProxyProvider : IMetadataViewProvider
         {
-            public bool IsDefaultMetadataRequired
-            {
-                get { return true; }
-            }
-
             public bool IsMetadataViewSupported(Type metadataType)
             {
                 if (metadataType.IsInterface &&
@@ -114,9 +117,9 @@
                 return false;
             }
 
-            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType)
+            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
             {
-                return GetProxy(metadata, metadataViewType);
+                return GetProxy(metadata, defaultValues, metadataViewType);
             }
 
             private static bool IsPropertyRelated(MemberInfo member)
