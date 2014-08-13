@@ -39,7 +39,8 @@
                 }
 
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
-                var catalog = ComposableCatalog.Create(parts.Parts);
+                var catalog = ComposableCatalog.Create(parts.Parts)
+                    .WithDesktopSupport();
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
                 var configuration = CompositionConfiguration.Create(catalog);
 
