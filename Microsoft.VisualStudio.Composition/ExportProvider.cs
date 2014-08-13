@@ -673,16 +673,26 @@
 
             if (metadataViewProvider == null)
             {
-                metadataViewProvider = BuiltInMetadataViewProviders
-                    .FirstOrDefault(vp => vp.IsMetadataViewSupported(metadataView));
-                if (metadataViewProvider != null)
+                foreach (var viewProvider in BuiltInMetadataViewProviders)
                 {
-                    return metadataViewProvider;
+                    if (viewProvider.IsMetadataViewSupported(metadataView))
+                    {
+                        metadataViewProvider = viewProvider;
+                    }
                 }
 
-                metadataViewProvider = this.metadataViewProviders.Value
-                        .Select(vp => vp.Value)
-                        .FirstOrDefault(vp => vp.IsMetadataViewSupported(metadataView));
+                if (metadataViewProvider == null)
+                {
+                    foreach (var viewProvider in this.metadataViewProviders.Value)
+                    {
+                        if (viewProvider.Value.IsMetadataViewSupported(metadataView))
+                        {
+                            metadataViewProvider = viewProvider.Value;
+                            break;
+                        }
+                    }
+                }
+
                 if (metadataViewProvider == null)
                 {
                     throw new NotSupportedException("Type of metadata view is unsupported.");
