@@ -362,8 +362,7 @@
                 get
                 {
                     return
-                        this.ImportingMemberRef.IsField ? this.ImportingMemberRef.Field.Resolve().DeclaringType :
-                        this.ImportingMemberRef.IsProperty ? this.ImportingMemberRef.Property.Resolve().DeclaringType :
+                        this.ImportingParameterRef.IsEmpty ? this.ImportingMemberRef.Resolve().DeclaringType :
                         this.ImportingParameterRef.Resolve().Member.DeclaringType;
                 }
             }
