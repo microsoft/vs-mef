@@ -28,20 +28,38 @@
 
         [PartNotDiscoverable]
         [Export(typeof(IMetadataViewProvider))]
-        [ExportMetadata("Order", 100)]
+        [ExportMetadata("OrderPrecedence", 50)]
         private class MetadataViewProxyProvider : IMetadataViewProvider
         {
             public bool IsMetadataViewSupported(Type metadataType)
             {
                 // We apply to interfaces with nothing but property getters.
                 return metadataType.IsInterface
-                    && metadataType.GetMembers().All(m => (m.MemberType == MemberTypes.Method && ((MethodInfo)m).Attributes.HasFlag(MethodAttributes.SpecialName) && m.Name.StartsWith("get_")) || (m.MemberType == System.Reflection.MemberTypes.Property && ((PropertyInfo)m).GetGetMethod() != null && ((PropertyInfo)m).GetSetMethod() == null));
+                    && metadataType.GetMembers().All(IsPropertyRelated);
             }
 
             public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
             {
                 var factory = MetadataViewGenerator.GetMetadataViewFactory(metadataViewType);
                 return factory(metadata, defaultValues);
+            }
+
+            private static bool IsPropertyRelated(MemberInfo member)
+            {
+                var property = member as PropertyInfo;
+                if (property != null)
+                {
+                    return property.GetMethod != null && property.SetMethod == null;
+                }
+
+                var method = member as MethodInfo;
+                if (method != null)
+                {
+                    return method.IsSpecialName
+                        && method.Name.StartsWith("get_");
+                }
+
+                return false;
             }
         }
     }

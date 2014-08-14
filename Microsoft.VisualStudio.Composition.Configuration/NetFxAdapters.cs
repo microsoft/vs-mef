@@ -324,7 +324,7 @@
         }
 
         [MefV1.Export(typeof(IMetadataViewProvider))]
-        [MefV1.ExportMetadata("OrderPrecedence", 100)] // should take precedence over the transparent proxy
+        [MefV1.ExportMetadata("OrderPrecedence", 100)] // should take precedence over the transparent or emitted proxy providers
         private class MetadataViewImplProxy : IMetadataViewProvider
         {
             public bool IsMetadataViewSupported(Type metadataType)
