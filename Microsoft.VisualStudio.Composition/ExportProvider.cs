@@ -388,10 +388,10 @@
                 exportFactoryType,
                 exportInfo.Definition.Metadata));
             var exportFactoryTypeIdentity = ContractNameServices.GetTypeIdentity(exportFactoryType);
-            var exportFactoryMetadata = ImmutableDictionary.Create<string, object>()
-                .Add(CompositionConstants.ExportTypeIdentityMetadataName, exportFactoryTypeIdentity)
-                .Add(CompositionConstants.PartCreationPolicyMetadataName, CreationPolicy.NonShared)
-                .Add(CompositionConstants.ProductDefinitionMetadataName, exportInfo.Definition);
+            var exportFactoryMetadata = exportInfo.Definition.Metadata.ToImmutableDictionary()
+                .SetItem(CompositionConstants.ExportTypeIdentityMetadataName, exportFactoryTypeIdentity)
+                .SetItem(CompositionConstants.PartCreationPolicyMetadataName, CreationPolicy.NonShared)
+                .SetItem(CompositionConstants.ProductDefinitionMetadataName, exportInfo.Definition);
             return new Export(
                 exportFactoryTypeIdentity,
                 exportFactoryMetadata,

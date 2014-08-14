@@ -109,7 +109,7 @@
         public void SatisfyImportsOnceWithExportFactory(IContainer container)
         {
             MefV1.Hosting.CompositionContainer v1Container;
-            
+
             var v3Container = container as TestUtilities.V3ContainerWrapper;
             if (v3Container != null)
             {
@@ -138,6 +138,43 @@
         {
             [MefV1.Import]
             public MefV1.ExportFactory<Apple> AppleFactory { get; set; }
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(Tree))]
+        public void SatisfyImportsOnceWithExportFactoryAndMetadata(IContainer container)
+        {
+            MefV1.Hosting.CompositionContainer v1Container;
+
+            var v3Container = container as TestUtilities.V3ContainerWrapper;
+            if (v3Container != null)
+            {
+                v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
+            }
+            else
+            {
+                v1Container = ((TestUtilities.V1ContainerWrapper)container).Container;
+            }
+
+            var receiver = new SatisfyImportsOnceWithExportFactoryMetadataReceiver();
+            MefV1.AttributedModelServices.SatisfyImportsOnce(v1Container, receiver);
+            Assert.NotNull(receiver.TreeFactory);
+            Assert.Equal("b", receiver.TreeFactory.Metadata["A"]);
+            MefV1.ExportLifetimeContext<Tree> tree1 = receiver.TreeFactory.CreateExport();
+            Assert.NotNull(tree1);
+            Assert.NotNull(tree1.Value);
+            MefV1.ExportLifetimeContext<Tree> tree2 = receiver.TreeFactory.CreateExport();
+            Assert.NotNull(tree2);
+            Assert.NotNull(tree2.Value);
+
+            Assert.NotSame(tree1, tree2);
+            Assert.NotSame(tree1.Value, tree2.Value);
+            Assert.NotSame(tree1.Value.Apple, tree2.Value.Apple);
+        }
+
+        private class SatisfyImportsOnceWithExportFactoryMetadataReceiver
+        {
+            [MefV1.Import]
+            public MefV1.ExportFactory<Tree, IDictionary<string, object>> TreeFactory { get; set; }
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(Tree))]
