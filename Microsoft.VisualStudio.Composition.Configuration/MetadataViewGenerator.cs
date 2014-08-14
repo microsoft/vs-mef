@@ -152,12 +152,12 @@ namespace Microsoft.VisualStudio.Composition
             FieldBuilder metadataFieldBuilder = proxyTypeBuilder.DefineField(
                 metadataFieldName,
                 CtorArgumentTypes[0],
-                FieldAttributes.Private);
+                FieldAttributes.Private | FieldAttributes.InitOnly);
             const string metadataDefaultFieldName = "metadataDefault";
             FieldBuilder metadataDefaultFieldBuilder = proxyTypeBuilder.DefineField(
                 metadataDefaultFieldName,
                 CtorArgumentTypes[1],
-                FieldAttributes.Private);
+                FieldAttributes.Private | FieldAttributes.InitOnly);
 
             // Implement Constructor
             ConstructorBuilder proxyCtor = proxyTypeBuilder.DefineConstructor(MethodAttributes.Private, CallingConventions.Standard, CtorArgumentTypes);
