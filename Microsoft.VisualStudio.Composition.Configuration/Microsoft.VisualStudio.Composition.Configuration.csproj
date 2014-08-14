@@ -101,7 +101,6 @@
     <Compile Include="CodeGenExportProviderBase.cs" />
     <Compile Include="CompiledComposition.cs" />
     <Compile Include="ExportMetadataViewInterfaceEmitProxy.cs" />
-    <Compile Include="GenerationServices.cs" />
     <Compile Include="MetadataViewGenerator.cs" />
     <Compile Include="ReflectionServices.cs" />
     <Compile Include="Strings.Designer.cs">
