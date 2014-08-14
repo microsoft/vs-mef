@@ -552,6 +552,26 @@
             return genericTypeDefinition.MakeGenericType(typeArguments.ToArray());
         }
 
+        internal static Attribute Instantiate(this CustomAttributeData attributeData)
+        {
+            Requires.NotNull(attributeData, "attributeData");
+
+            Attribute attribute = (Attribute)attributeData.Constructor.Invoke(attributeData.ConstructorArguments.Select(ca => ca.Value).ToArray());
+            foreach (var namedArgument in attributeData.NamedArguments)
+            {
+                if (namedArgument.IsField)
+                {
+                    ((FieldInfo)namedArgument.MemberInfo).SetValue(attribute, namedArgument.TypedValue.Value);
+                }
+                else
+                {
+                    ((PropertyInfo)namedArgument.MemberInfo).SetValue(attribute, namedArgument.TypedValue.Value);
+                }
+            }
+
+            return attribute;
+        }
+
         private static string FilterTypeNameForGenericTypeDefinition(Type type, bool fullName)
         {
             Requires.NotNull(type, "type");

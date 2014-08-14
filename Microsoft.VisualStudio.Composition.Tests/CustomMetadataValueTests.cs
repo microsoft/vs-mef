@@ -20,13 +20,23 @@
         {
             var importer = container.GetExportedValue<ImportingPart>();
             Assert.IsType<MyObjectType>(importer.ImportingProperty.Metadata["SomeName"]);
+            Assert.Equal(7, ((MyObjectType)importer.ImportingProperty.Metadata["SomeName"]).Value);
         }
 
+        /// <summary>
+        /// Verifies that metadata values can be complex, non-serializable objects.
+        /// </summary>
+        /// <remarks>
+        /// When it comes time to support this in V3, <see cref="ReflectionHelpers.Instantiate(CustomAttributeData)"/>
+        /// is expected to come in useful. We can cache that CustomAttributeData the same way we cache other reflection
+        /// data, and use it to reconsistute the value at runtime.
+        /// </remarks>
         [MefFact(CompositionEngines.V2)]
         public void CustomMetadataValueV2(IContainer container)
         {
             var importer = container.GetExportedValue<ImportingPart>();
             Assert.IsType<MyObjectType>(importer.ImportingProperty.Metadata["SomeName"]);
+            Assert.Equal(7, ((MyObjectType)importer.ImportingProperty.Metadata["SomeName"]).Value);
         }
 
         [Export]
@@ -40,7 +50,7 @@
 
         [Export]
         [MefV1.Export]
-        [CustomMetadata]
+        [CustomMetadata(1, Field = 2, Property = 4)]
         public class ExportWithCustomMetadata { }
 
         [MetadataAttribute]
@@ -48,19 +58,34 @@
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
         public class CustomMetadataAttribute : Attribute
         {
-            public CustomMetadataAttribute()
+            private int positional;
+
+            public CustomMetadataAttribute(int positional)
             {
-                this.SomeName = new MyObjectType(5);
+                this.positional = positional;
             }
 
-            public MyObjectType SomeName { get; set; }
+            public MyObjectType SomeName
+            {
+                get { return new MyObjectType(this.positional + this.Field + this.Property); }
+            }
+
+            public int Field;
+
+            public int Property { get; set; }
         }
 
+        /// <summary>
+        /// A intentionally non-serializable object.
+        /// </summary>
         public class MyObjectType
         {
             internal MyObjectType(int value)
             {
+                this.Value = value;
             }
+
+            public int Value { get; private set; }
         }
     }
 }

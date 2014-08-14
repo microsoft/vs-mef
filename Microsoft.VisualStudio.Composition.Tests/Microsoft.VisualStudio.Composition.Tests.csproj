@@ -121,6 +121,7 @@
     <Compile Include="ClosedGenericExportedTypeTests.cs" />
     <Compile Include="CompositionFailedExceptionTests.cs" />
     <Compile Include="CompressedUIntTests.cs" />
+    <Compile Include="CustomAttributeDataRefTests.cs" />
     <Compile Include="DataFileCacheAndReloadTests.cs" />
     <Compile Include="CompiledCacheAndReloadTests.cs" />
     <Compile Include="DelegatingExportProviderTests.cs" />
@@ -133,6 +134,7 @@
     <Compile Include="GuidMetadataTests.cs" />
     <Compile Include="ImportDefinitionTests.cs" />
     <Compile Include="ImportedExportProviderTests.cs" />
+    <Compile Include="ImportOfTResolvedByDerivedClassTests.cs" />
     <Compile Include="InheritedExportTests.cs" />
     <Compile Include="InvalidGraphTests.cs" />
     <Compile Include="Mef3TestCommand.cs" />

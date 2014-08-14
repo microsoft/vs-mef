@@ -101,6 +101,15 @@
             Assert.True(progressUpdateCount > 2);
         }
 
+        [Fact]
+        public async Task CatalogAssemblyLoadFailure()
+        {
+            var discovery = new AttributedPartDiscovery();
+            var result = await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist.dll" });
+            Assert.Equal(1, result.DiscoveryErrors.Count);
+            Assert.Equal("Foo\\DoesNotExist.dll", result.DiscoveryErrors[0].AssemblyPath);
+        }
+
         private class SynchronousProgress<T> : IProgress<T>
         {
             private readonly Action<T> callback;

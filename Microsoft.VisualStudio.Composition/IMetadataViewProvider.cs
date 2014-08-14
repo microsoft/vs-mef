@@ -12,13 +12,6 @@
     internal interface IMetadataViewProvider
     {
         /// <summary>
-        /// Gets a value indicating whether the created metadata proxy requires
-        /// default values to be included in the metadata supplied to
-        /// <see cref="CreateProxy"/>.
-        /// </summary>
-        bool IsDefaultMetadataRequired { get; }
-
-        /// <summary>
         /// Gets a value indicating whether this provider can create a metadata proxy for a given type.
         /// </summary>
         /// <param name="metadataType">The type of the required proxy.</param>
@@ -30,8 +23,9 @@
         /// to a metadata dictionary.
         /// </summary>
         /// <param name="metadata">The metadata dictionary.</param>
+        /// <param name="defaultValues">The metadata dictionary of defaults, to be used when <paramref name="metadata"/> is missing a key.</param>
         /// <param name="metadataViewType">The type of metadata view to create.</param>
         /// <returns>The proxy instance.</returns>
-        object CreateProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType);
+        object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType);
     }
 }

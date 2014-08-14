@@ -106,6 +106,7 @@
     <Compile Include="AttributedPartDiscoveryV1.cs" />
     <Compile Include="CachedComposition.cs" />
     <Compile Include="CodeGen.cs" />
+    <Compile Include="CodeGenExportProviderBase.cs" />
     <Compile Include="CompiledComposition.cs" />
     <Compile Include="SyntaxCodeGeneration.cs" />
     <Compile Include="ExportMetadataViewInterfaceProxy.cs" />

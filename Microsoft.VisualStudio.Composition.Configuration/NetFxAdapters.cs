@@ -326,17 +326,12 @@
         [MefV1.ExportMetadata("OrderPrecedence", 100)] // should take precedence over the transparent proxy
         private class MetadataViewImplProxy : IMetadataViewProvider
         {
-            public bool IsDefaultMetadataRequired
-            {
-                get { return false; }
-            }
-
             public bool IsMetadataViewSupported(Type metadataType)
             {
                 return FindImplClassConstructor(metadataType) != null;
             }
 
-            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, Type metadataViewType)
+            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
             {
                 var ctor = FindImplClassConstructor(metadataViewType);
                 return ctor.Invoke(new object[] { metadata });
