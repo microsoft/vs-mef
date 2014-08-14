@@ -78,59 +78,21 @@ namespace Microsoft.VisualStudio.Composition
 
         private static Dictionary<Type, MetadataViewFactory> _metadataViewFactories = new Dictionary<Type, MetadataViewFactory>();
         private static AssemblyName ProxyAssemblyName = new AssemblyName(string.Format(CultureInfo.InvariantCulture, "MetadataViewProxies_{0}", Guid.NewGuid()));
-#if FEATURE_CAS_APTCA
-        private static ModuleBuilder    criticalProxyModuleBuilder;
-#endif //FEATURE_CAS_APTCA
         private static ModuleBuilder transparentProxyModuleBuilder;
 
         private static Type[] CtorArgumentTypes = new Type[] { typeof(IDictionary<string, object>) };
         private static MethodInfo _mdvDictionaryTryGet = CtorArgumentTypes[0].GetMethod("TryGetValue");
         private static readonly MethodInfo ObjectGetType = typeof(object).GetMethod("GetType", Type.EmptyTypes);
         private static readonly ConstructorInfo ObjectCtor = typeof(object).GetConstructor(Type.EmptyTypes);
-#if FEATURE_CAS_APTCA
-        private static CustomAttributeBuilder _securityCriticalBuilder = 
-            new CustomAttributeBuilder(typeof(SecurityCriticalAttribute).GetConstructor(Type.EmptyTypes), new object[0]);
-        private static CustomAttributeBuilder _securitySafeCriticalBuilder = 
-            new CustomAttributeBuilder(typeof(SecuritySafeCriticalAttribute).GetConstructor(Type.EmptyTypes), new object[0]);
-#endif //FEATURE_CAS_APTCA
 
         private static AssemblyBuilder CreateProxyAssemblyBuilder(ConstructorInfo constructorInfo)
         {
-#if FEATURE_CAS_APTCA
-        object[] args = new object[0];
-            CustomAttributeBuilder accessAttribute = new CustomAttributeBuilder(constructorInfo, args);
-            CustomAttributeBuilder[] attributes = { accessAttribute };
- 
-            // For Homogenous app domains we should use the SecurityContextSource from the current AppDomain.
-            // Otherwise the clr will use the Current Assembly --- which will make it full trust, this is the same behavior as V1.0 mef.
-            if(AppDomain.CurrentDomain.IsHomogenous)
-            {
-                return AppDomain.CurrentDomain.DefineDynamicAssembly(ProxyAssemblyName, AssemblyBuilderAccess.Run, attributes, SecurityContextSource.CurrentAppDomain);
-            }
-            else
-            {
-                return AppDomain.CurrentDomain.DefineDynamicAssembly(ProxyAssemblyName, AssemblyBuilderAccess.Run, attributes);
-            }
-#else
             return AppDomain.CurrentDomain.DefineDynamicAssembly(ProxyAssemblyName, AssemblyBuilderAccess.Run);
-#endif //FEATURE_CAS_APTCA
         }
 
         // Must be called with _lock held
         private static ModuleBuilder GetProxyModuleBuilder(bool requiresCritical)
         {
-#if FEATURE_CAS_APTCA
-            if(requiresCritical)
-            {
-                // Needed a critical modulebuilder so find or make it
-                if (criticalProxyModuleBuilder == null)
-                {
-                    var assemblyBuilder = CreateProxyAssemblyBuilder(typeof(AllowPartiallyTrustedCallersAttribute).GetConstructor(Type.EmptyTypes));
-                    criticalProxyModuleBuilder = assemblyBuilder.DefineDynamicModule("MetadataViewProxiesModule");
-                }
-                return criticalProxyModuleBuilder;
-            }
-#endif //FEATURE_CAS_APTCA
             if (transparentProxyModuleBuilder == null)
             {
                 // make a new assemblybuilder and modulebuilder
@@ -227,9 +189,6 @@ namespace Microsoft.VisualStudio.Composition
             TypeBuilder proxyTypeBuilder;
             Type[] interfaces = { viewType };
             bool requiresCritical = false;
-#if FEATURE_CAS_APTCA
-            requiresCritical = !viewType.IsSecurityTransparent;
-#endif //FEATURE_CAS_APTCA
 
             var proxyModuleBuilder = GetProxyModuleBuilder(requiresCritical);
             proxyTypeBuilder = proxyModuleBuilder.DefineType(
@@ -237,12 +196,7 @@ namespace Microsoft.VisualStudio.Composition
                 TypeAttributes.Public,
                 typeof(object),
                 interfaces);
-#if FEATURE_CAS_APTCA
-            if (requiresCritical)
-            {
-                proxyTypeBuilder.SetCustomAttribute(_securityCriticalBuilder);
-            }
-#endif //FEATURE_CAS_APTCA
+
             // Implement Constructor
             ConstructorBuilder proxyCtor = proxyTypeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, CtorArgumentTypes);
             ILGenerator proxyCtorIL = proxyCtor.GetILGenerator();
@@ -377,12 +331,6 @@ namespace Microsoft.VisualStudio.Composition
                         Type.EmptyTypes, null, null);
 
                     proxyTypeBuilder.DefineMethodOverride(getMethodBuilder, propertyInfo.GetGetMethod());
-#if FEATURE_CAS_APTCA
-                    if(!viewType.IsSecurityTransparent)
-                    {
-                        getMethodBuilder.SetCustomAttribute(_securityCriticalBuilder);
-                    }
-#endif //FEATURE_CAS_APTCA
                     ILGenerator getMethodIL = getMethodBuilder.GetILGenerator();
                     getMethodIL.Emit(OpCodes.Ldarg_0);
                     getMethodIL.Emit(OpCodes.Ldfld, proxyFieldBuilder);
@@ -427,9 +375,6 @@ namespace Microsoft.VisualStudio.Composition
             //    return new <ProxyClass>(dictionary);
             // }
             MethodBuilder factoryMethodBuilder = proxyTypeBuilder.DefineMethod(MetadataViewGenerator.MetadataViewFactoryName, MethodAttributes.Public | MethodAttributes.Static, typeof(object), CtorArgumentTypes);
-#if FEATURE_CAS_APTCA
-            factoryMethodBuilder.SetCustomAttribute(_securitySafeCriticalBuilder);
-#endif //FEATURE_CAS_APTCA
             ILGenerator factoryIL = factoryMethodBuilder.GetILGenerator();
             factoryIL.Emit(OpCodes.Ldarg_0);
             factoryIL.Emit(OpCodes.Newobj, proxyCtor);
