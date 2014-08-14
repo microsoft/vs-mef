@@ -62,6 +62,7 @@
             return catalog
                 .WithPart(metadataViewImplProxyPart)
                 .WithPart(assemblyNameCodeBasePathPath)
+                .WithMetadataViewEmitProxySupport()
                 .WithMetadataViewProxySupport();
         }
 
