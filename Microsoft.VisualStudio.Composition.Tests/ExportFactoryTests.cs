@@ -27,6 +27,7 @@
             Assert.NotNull(partFactory.Factory);
             Assert.NotNull(partFactory.FactoryWithMetadata);
             Assert.Equal("V", partFactory.FactoryWithMetadata.Metadata["N"]);
+            Assert.Equal("V", partFactory.FactoryWithTMetadata.Metadata.N);
             using (var exportContext = partFactory.Factory.CreateExport())
             {
                 Assert.NotNull(exportContext);
@@ -126,6 +127,9 @@
 
             [MefV1.Import]
             public MefV1.ExportFactory<NonSharedPart, IDictionary<string, object>> FactoryWithMetadata { get; set; }
+
+            [MefV1.Import]
+            public MefV1.ExportFactory<NonSharedPart, IMetadata> FactoryWithTMetadata { get; set; }
         }
 
         [MefV1.Export]
@@ -361,6 +365,11 @@
         [ExportMetadata("N", "V2")]
         public class NonSharedPart2 : NonSharedPart
         {
+        }
+
+        public interface IMetadata
+        {
+            string N { get; }
         }
     }
 }
