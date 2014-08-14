@@ -41,7 +41,7 @@
             public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
             {
                 var factory = MetadataViewGenerator.GetMetadataViewFactory(metadataViewType);
-                return factory((IDictionary<string, object>)metadata);
+                return factory(metadata, defaultValues);
             }
         }
     }

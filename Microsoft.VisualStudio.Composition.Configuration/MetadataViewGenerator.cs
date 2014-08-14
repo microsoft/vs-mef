@@ -4,7 +4,7 @@
 *                                                        *
 *********************************************************/
 
-// This file is heavily derived from the version found in System.ComponentModel.Composition
+// This file is originally derived from the version found in System.ComponentModel.Composition
 
 namespace Microsoft.VisualStudio.Composition
 {
@@ -24,50 +24,52 @@ namespace Microsoft.VisualStudio.Composition
     // // Assume TMetadataView is
     // //interface Foo
     // //{
-    // //    public typeRecord1 Record1 { get; }
-    // //    public typeRecord2 Record2 { get; }
-    // //    public typeRecord3 Record3 { get; }
-    // //    public typeRecord4 Record4 { get; }
+    // //    public string RefTypeProperty { get; }
+    // //    public bool ValueTypeProperty { get; }
     // //}
     // // The class to be generated will look approximately like:
     // public class __Foo__MedataViewProxy : TMetadataView
-    // {
-    //     public static object Create(IDictionary<string, object> metadata) 
-    //     {
-    //        return new __Foo__MedataViewProxy(metadata);
-    //     }
     // 
-    //     public __Foo__MedataViewProxy (IDictionary<string, object> metadata)
+    //     private readonly IReadOnlyDictionary<string, object> metadata;
+    //     private readonly IReadOnlyDictionary<string, object> defaultMetadata;
+    //
+    //     private __Foo__MedataViewProxy (IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata) 
     //     {
-    //         if(metadata == null)
-    //         {
-    //             throw InvalidArgumentException("metadata");
-    //         }
-    //         try
-    //         {
-    //              Record1 = (typeRecord1)Record1;
-    //              Record2 = (typeRecord1)Record2;
-    //              Record3 = (typeRecord1)Record3;
-    //              Record4 = (typeRecord1)Record4;
-    //          }
-    //          catch(InvalidCastException ice)
-    //          {
-    //              //Annotate exception .Data with diagnostic info
-    //          }
-    //          catch(NulLReferenceException ice)
-    //          {
-    //              //Annotate exception .Data with diagnostic info
-    //          }
+    //         this.metadata = metadata;
+    //         this.defaultMetadata = defaultMetadata;
     //     }
+    //
     //     // Interface
-    //     public typeRecord1 Record1 { get; }
-    //     public typeRecord2 Record2 { get; }
-    //     public typeRecord3 Record3 { get; }
-    //     public typeRecord4 Record4 { get; }
+    //     public string RefTypeProperty
+    //     {
+    //         get
+    //         {
+    //             object value;
+    //             if (!this.metadata.TryGetValue("RefTypeProperty", out value))
+    //                 value = this.defaultMetadata["RefTypeProperty"];
+    //             return value as string;
+    //         }
+    //     }
+    //
+    //     public bool ValueTypeProperty
+    //     {
+    //         get
+    //         {
+    //             object value;
+    //             if (!this.metadata.TryGetValue("RefTypeProperty", out value))
+    //                 value = this.defaultMetadata["RefTypeProperty"];
+    //             return (bool)value;
+    //         }
+    //     }
+    //
+    //     public static object Create(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata) 
+    //     {
+    //        return new __Foo__MedataViewProxy(metadata, defaultMetadata);
+    //     }
     // }
     internal static class MetadataViewGenerator
     {
-        public delegate object MetadataViewFactory(IDictionary<string, object> metadata);
+        public delegate object MetadataViewFactory(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata);
 
         public const string MetadataViewType = "MetadataViewType";
         public const string MetadataItemKey = "MetadataItemKey";
@@ -76,12 +78,13 @@ namespace Microsoft.VisualStudio.Composition
         public const string MetadataItemValue = "MetadataItemValue";
         public const string MetadataViewFactoryName = "Create";
 
-        private static Dictionary<Type, MetadataViewFactory> _metadataViewFactories = new Dictionary<Type, MetadataViewFactory>();
-        private static AssemblyName ProxyAssemblyName = new AssemblyName(string.Format(CultureInfo.InvariantCulture, "MetadataViewProxies_{0}", Guid.NewGuid()));
+        private static readonly Dictionary<Type, MetadataViewFactory> metadataViewFactories = new Dictionary<Type, MetadataViewFactory>();
+        private static readonly AssemblyName ProxyAssemblyName = new AssemblyName(string.Format(CultureInfo.InvariantCulture, "MetadataViewProxies_{0}", Guid.NewGuid()));
         private static ModuleBuilder transparentProxyModuleBuilder;
 
-        private static Type[] CtorArgumentTypes = new Type[] { typeof(IDictionary<string, object>) };
-        private static MethodInfo _mdvDictionaryTryGet = CtorArgumentTypes[0].GetMethod("TryGetValue");
+        private static readonly Type[] CtorArgumentTypes = new Type[] { typeof(IReadOnlyDictionary<string, object>), typeof(IReadOnlyDictionary<string, object>) };
+        private static readonly MethodInfo mdvDictionaryTryGet = CtorArgumentTypes[0].GetMethod("TryGetValue");
+        private static readonly MethodInfo mdvDictionaryIndexer = CtorArgumentTypes[0].GetMethod("get_Item");
         private static readonly MethodInfo ObjectGetType = typeof(object).GetMethod("GetType", Type.EmptyTypes);
         private static readonly ConstructorInfo ObjectCtor = typeof(object).GetConstructor(Type.EmptyTypes);
 
@@ -90,9 +93,9 @@ namespace Microsoft.VisualStudio.Composition
             return AppDomain.CurrentDomain.DefineDynamicAssembly(ProxyAssemblyName, AssemblyBuilderAccess.Run);
         }
 
-        // Must be called with _lock held
-        private static ModuleBuilder GetProxyModuleBuilder(bool requiresCritical)
+        private static ModuleBuilder GetProxyModuleBuilder()
         {
+            Assumes.True(Monitor.IsEntered(metadataViewFactories));
             if (transparentProxyModuleBuilder == null)
             {
                 // make a new assemblybuilder and modulebuilder
@@ -111,74 +114,22 @@ namespace Microsoft.VisualStudio.Composition
             MetadataViewFactory metadataViewFactory;
             bool foundMetadataViewFactory;
 
-            lock (_metadataViewFactories)
+            lock (metadataViewFactories)
             {
-                foundMetadataViewFactory = _metadataViewFactories.TryGetValue(viewType, out metadataViewFactory);
-            }
+                foundMetadataViewFactory = metadataViewFactories.TryGetValue(viewType, out metadataViewFactory);
 
-            // No factory exists
-            if (!foundMetadataViewFactory)
-            {
-                // Try again under a write lock if still none generate the proxy
-                Type generatedProxyType = GenerateInterfaceViewProxyType(viewType);
-                Assumes.NotNull(generatedProxyType);
-
-                MetadataViewFactory generatedMetadataViewFactory = (MetadataViewFactory)Delegate.CreateDelegate(
-                    typeof(MetadataViewFactory), generatedProxyType.GetMethod(MetadataViewGenerator.MetadataViewFactoryName, BindingFlags.Public | BindingFlags.Static));
-                Assumes.NotNull(generatedMetadataViewFactory);
-
-                lock (_metadataViewFactories)
+                // No factory exists
+                if (!foundMetadataViewFactory)
                 {
-                    if (!_metadataViewFactories.TryGetValue(viewType, out metadataViewFactory))
-                    {
-                        metadataViewFactory = generatedMetadataViewFactory;
-                        _metadataViewFactories.Add(viewType, metadataViewFactory);
-                    }
+                    // Try again under a write lock if still none generate the proxy
+                    Type generatedProxyType = GenerateInterfaceViewProxyType(viewType);
+                    metadataViewFactory = (MetadataViewFactory)Delegate.CreateDelegate(
+                        typeof(MetadataViewFactory), generatedProxyType.GetMethod(MetadataViewGenerator.MetadataViewFactoryName, BindingFlags.Public | BindingFlags.Static));
+                    metadataViewFactories.Add(viewType, metadataViewFactory);
                 }
             }
+
             return metadataViewFactory;
-        }
-
-        public static TMetadataView CreateMetadataView<TMetadataView>(MetadataViewFactory metadataViewFactory, IDictionary<string, object> metadata)
-        {
-            Assumes.NotNull(metadataViewFactory);
-            // we are simulating the Activator.CreateInstance behavior by wrapping everything in a TargetInvocationException
-            try
-            {
-                return (TMetadataView)metadataViewFactory.Invoke(metadata);
-            }
-            catch (Exception e)
-            {
-                throw new TargetInvocationException(e);
-            }
-        }
-
-        private static void GenerateLocalAssignmentFromDefaultAttribute(this ILGenerator IL, DefaultValueAttribute[] attrs, LocalBuilder local)
-        {
-            if (attrs.Length > 0)
-            {
-                DefaultValueAttribute defaultAttribute = attrs[0];
-                IL.LoadValue(defaultAttribute.Value);
-                if ((defaultAttribute.Value != null) && (defaultAttribute.Value.GetType().IsValueType))
-                {
-                    IL.Emit(OpCodes.Box, defaultAttribute.Value.GetType());
-                }
-                IL.Emit(OpCodes.Stloc, local);
-            }
-        }
-
-        private static void GenerateFieldAssignmentFromLocalValue(this ILGenerator IL, LocalBuilder local, FieldBuilder field)
-        {
-            IL.Emit(OpCodes.Ldarg_0);
-            IL.Emit(OpCodes.Ldloc, local);
-            IL.Emit(field.FieldType.IsValueType ? OpCodes.Unbox_Any : OpCodes.Castclass, field.FieldType);
-            IL.Emit(OpCodes.Stfld, field);
-        }
-
-        private static void GenerateLocalAssignmentFromFlag(this ILGenerator IL, LocalBuilder local, bool flag)
-        {
-            IL.Emit(flag ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
-            IL.Emit(OpCodes.Stloc, local);
         }
 
         // This must be called with _readerWriterLock held for Write
@@ -188,54 +139,55 @@ namespace Microsoft.VisualStudio.Composition
             Type proxyType;
             TypeBuilder proxyTypeBuilder;
             Type[] interfaces = { viewType };
-            bool requiresCritical = false;
 
-            var proxyModuleBuilder = GetProxyModuleBuilder(requiresCritical);
+            var proxyModuleBuilder = GetProxyModuleBuilder();
             proxyTypeBuilder = proxyModuleBuilder.DefineType(
                 string.Format(CultureInfo.InvariantCulture, "_proxy_{0}_{1}", viewType.FullName, Guid.NewGuid()),
                 TypeAttributes.Public,
                 typeof(object),
                 interfaces);
 
+            // Generate field
+            const string metadataFieldName = "metadata";
+            FieldBuilder metadataFieldBuilder = proxyTypeBuilder.DefineField(
+                metadataFieldName,
+                CtorArgumentTypes[0],
+                FieldAttributes.Private);
+            const string metadataDefaultFieldName = "metadataDefault";
+            FieldBuilder metadataDefaultFieldBuilder = proxyTypeBuilder.DefineField(
+                metadataDefaultFieldName,
+                CtorArgumentTypes[1],
+                FieldAttributes.Private);
+
             // Implement Constructor
-            ConstructorBuilder proxyCtor = proxyTypeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, CtorArgumentTypes);
+            ConstructorBuilder proxyCtor = proxyTypeBuilder.DefineConstructor(MethodAttributes.Private, CallingConventions.Standard, CtorArgumentTypes);
             ILGenerator proxyCtorIL = proxyCtor.GetILGenerator();
             proxyCtorIL.Emit(OpCodes.Ldarg_0);
             proxyCtorIL.Emit(OpCodes.Call, ObjectCtor);
 
-            LocalBuilder exception = proxyCtorIL.DeclareLocal(typeof(Exception));
-            LocalBuilder exceptionData = proxyCtorIL.DeclareLocal(typeof(IDictionary));
-            LocalBuilder sourceType = proxyCtorIL.DeclareLocal(typeof(Type));
-            LocalBuilder value = proxyCtorIL.DeclareLocal(typeof(object));
-            LocalBuilder usesExportedMD = proxyCtorIL.DeclareLocal(typeof(bool));
+            proxyCtorIL.Emit(OpCodes.Ldarg_0);
+            proxyCtorIL.Emit(OpCodes.Ldarg_1);
+            proxyCtorIL.Emit(OpCodes.Stfld, metadataFieldBuilder);
 
-            Label tryConstructView = proxyCtorIL.BeginExceptionBlock();
+            proxyCtorIL.Emit(OpCodes.Ldarg_0);
+            proxyCtorIL.Emit(OpCodes.Ldarg_2);
+            proxyCtorIL.Emit(OpCodes.Stfld, metadataDefaultFieldBuilder);
 
-            // Implement interface properties
+            proxyCtorIL.Emit(OpCodes.Ret);
+
             foreach (PropertyInfo propertyInfo in viewType.GetAllProperties())
             {
-                string fieldName = string.Format(CultureInfo.InvariantCulture, "_{0}_{1}", propertyInfo.Name, Guid.NewGuid());
-
-                // Cache names and type for exception
-                string propertyName = string.Format(CultureInfo.InvariantCulture, "{0}", propertyInfo.Name);
+                string propertyName = propertyInfo.Name;
 
                 Type[] propertyTypeArguments = new Type[] { propertyInfo.PropertyType };
                 Type[] optionalModifiers = null;
                 Type[] requiredModifiers = null;
 
-#if FEATURE_ADVANCEDREFLECTION
                 // PropertyInfo does not support GetOptionalCustomModifiers and GetRequiredCustomModifiers on Silverlight
                 optionalModifiers = propertyInfo.GetOptionalCustomModifiers();
                 requiredModifiers = propertyInfo.GetRequiredCustomModifiers();
                 Array.Reverse(optionalModifiers);
                 Array.Reverse(requiredModifiers);
-#endif //FEATURE_ADVANCEDREFLECTION
-
-                // Generate field
-                FieldBuilder proxyFieldBuilder = proxyTypeBuilder.DefineField(
-                    fieldName,
-                    propertyInfo.PropertyType,
-                    FieldAttributes.Private);
 
                 // Generate property
                 PropertyBuilder proxyPropertyBuilder = proxyTypeBuilder.DefineProperty(
@@ -244,139 +196,58 @@ namespace Microsoft.VisualStudio.Composition
                     propertyInfo.PropertyType,
                     propertyTypeArguments);
 
-                // Generate constructor code for retrieving the metadata value and setting the field
-                Label tryCastValue = proxyCtorIL.BeginExceptionBlock();
-                Label innerTryCastValue;
+                // Generate "get" method implementation.
+                MethodBuilder getMethodBuilder = proxyTypeBuilder.DefineMethod(
+                    string.Format(CultureInfo.InvariantCulture, "get_{0}", propertyName),
+                    MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.NewSlot | MethodAttributes.Virtual | MethodAttributes.Final,
+                    CallingConventions.HasThis,
+                    propertyInfo.PropertyType,
+                    requiredModifiers,
+                    optionalModifiers,
+                    Type.EmptyTypes, null, null);
 
-                DefaultValueAttribute[] attrs = propertyInfo.GetAttributes<DefaultValueAttribute>(false);
-                if (attrs.Length > 0)
-                {
-                    innerTryCastValue = proxyCtorIL.BeginExceptionBlock();
-                }
+                proxyTypeBuilder.DefineMethodOverride(getMethodBuilder, propertyInfo.GetGetMethod());
+                ILGenerator getMethodIL = getMethodBuilder.GetILGenerator();
 
-                // In constructor set the backing field with the value from the dictionary
-                Label doneGettingDefaultValue = proxyCtorIL.DefineLabel();
-                GenerateLocalAssignmentFromFlag(proxyCtorIL, usesExportedMD, true);
+                Label returnLabel = getMethodIL.DefineLabel();
 
-                proxyCtorIL.Emit(OpCodes.Ldarg_1);
-                proxyCtorIL.Emit(OpCodes.Ldstr, propertyInfo.Name);
-                proxyCtorIL.Emit(OpCodes.Ldloca, value);
-                proxyCtorIL.Emit(OpCodes.Callvirt, _mdvDictionaryTryGet);
-                proxyCtorIL.Emit(OpCodes.Brtrue, doneGettingDefaultValue);
+                // object value;
+                LocalBuilder valueLocal = getMethodIL.DeclareLocal(typeof(object));
 
-                proxyCtorIL.GenerateLocalAssignmentFromFlag(usesExportedMD, false);
-                proxyCtorIL.GenerateLocalAssignmentFromDefaultAttribute(attrs, value);
+                // this.metadata.TryGetValue(propertyName, out value);
+                getMethodIL.Emit(OpCodes.Ldarg_0);
+                getMethodIL.Emit(OpCodes.Ldfld, metadataFieldBuilder);
+                getMethodIL.Emit(OpCodes.Ldstr, propertyName);
+                getMethodIL.Emit(OpCodes.Ldloca_S, valueLocal);
+                getMethodIL.Emit(OpCodes.Callvirt, mdvDictionaryTryGet);
 
-                proxyCtorIL.MarkLabel(doneGettingDefaultValue);
-                proxyCtorIL.GenerateFieldAssignmentFromLocalValue(value, proxyFieldBuilder);
-                proxyCtorIL.Emit(OpCodes.Leave, tryCastValue);
+                // If that succeeded, prepare to return.
+                getMethodIL.Emit(OpCodes.Brtrue_S, returnLabel);
 
-                // catch blocks for innerTryCastValue start here
-                if (attrs.Length > 0)
-                {
-                    proxyCtorIL.BeginCatchBlock(typeof(InvalidCastException));
-                    {
-                        Label notUsesExportedMd = proxyCtorIL.DefineLabel();
-                        proxyCtorIL.Emit(OpCodes.Ldloc, usesExportedMD);
-                        proxyCtorIL.Emit(OpCodes.Brtrue, notUsesExportedMd);
-                        proxyCtorIL.Emit(OpCodes.Rethrow);
-                        proxyCtorIL.MarkLabel(notUsesExportedMd);
-                        proxyCtorIL.GenerateLocalAssignmentFromDefaultAttribute(attrs, value);
-                        proxyCtorIL.GenerateFieldAssignmentFromLocalValue(value, proxyFieldBuilder);
-                    }
-                    proxyCtorIL.EndExceptionBlock();
-                }
+                // Otherwise get the value from the default metadata dictionary.
+                getMethodIL.Emit(OpCodes.Ldarg_0);
+                getMethodIL.Emit(OpCodes.Ldfld, metadataDefaultFieldBuilder);
+                getMethodIL.Emit(OpCodes.Ldstr, propertyName);
+                getMethodIL.Emit(OpCodes.Callvirt, mdvDictionaryIndexer);
+                getMethodIL.Emit(OpCodes.Stloc_0);
 
-                // catch blocks for tryCast start here
-                proxyCtorIL.BeginCatchBlock(typeof(NullReferenceException));
-                {
-                    proxyCtorIL.Emit(OpCodes.Stloc, exception);
+                getMethodIL.MarkLabel(returnLabel);
+                getMethodIL.Emit(OpCodes.Ldloc_0);
+                getMethodIL.Emit(propertyInfo.PropertyType.IsValueType ? OpCodes.Unbox_Any : OpCodes.Isinst, propertyInfo.PropertyType);
+                getMethodIL.Emit(OpCodes.Ret);
 
-                    proxyCtorIL.GetExceptionDataAndStoreInLocal(exception, exceptionData);
-                    proxyCtorIL.AddItemToLocalDictionary(exceptionData, MetadataItemKey, propertyName);
-                    proxyCtorIL.AddItemToLocalDictionary(exceptionData, MetadataItemTargetType, propertyInfo.PropertyType);
-                    proxyCtorIL.Emit(OpCodes.Rethrow);
-                }
-
-                proxyCtorIL.BeginCatchBlock(typeof(InvalidCastException));
-                {
-                    proxyCtorIL.Emit(OpCodes.Stloc, exception);
-
-                    proxyCtorIL.GetExceptionDataAndStoreInLocal(exception, exceptionData);
-                    proxyCtorIL.AddItemToLocalDictionary(exceptionData, MetadataItemKey, propertyName);
-                    proxyCtorIL.AddItemToLocalDictionary(exceptionData, MetadataItemTargetType, propertyInfo.PropertyType);
-                    proxyCtorIL.Emit(OpCodes.Rethrow);
-                }
-
-                proxyCtorIL.EndExceptionBlock();
-
-                if (propertyInfo.CanWrite)
-                {
-                    // The MetadataView '{0}' is invalid because property '{1}' has a property set method.
-                    throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture,
-                        Strings.InvalidSetterOnMetadataField,
-                        viewType,
-                        propertyName));
-                }
-                if (propertyInfo.CanRead)
-                {
-                    // Generate "get" method implementation.
-                    MethodBuilder getMethodBuilder = proxyTypeBuilder.DefineMethod(
-                        string.Format(CultureInfo.InvariantCulture, "get_{0}", propertyName),
-                        MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.NewSlot | MethodAttributes.Virtual | MethodAttributes.Final,
-                        CallingConventions.HasThis,
-                        propertyInfo.PropertyType,
-                        requiredModifiers,
-                        optionalModifiers,
-                        Type.EmptyTypes, null, null);
-
-                    proxyTypeBuilder.DefineMethodOverride(getMethodBuilder, propertyInfo.GetGetMethod());
-                    ILGenerator getMethodIL = getMethodBuilder.GetILGenerator();
-                    getMethodIL.Emit(OpCodes.Ldarg_0);
-                    getMethodIL.Emit(OpCodes.Ldfld, proxyFieldBuilder);
-                    getMethodIL.Emit(OpCodes.Ret);
-
-                    proxyPropertyBuilder.SetGetMethod(getMethodBuilder);
-                }
+                proxyPropertyBuilder.SetGetMethod(getMethodBuilder);
             }
 
-            proxyCtorIL.Emit(OpCodes.Leave, tryConstructView);
-
-            // catch blocks for constructView start here
-            proxyCtorIL.BeginCatchBlock(typeof(NullReferenceException));
-            {
-                proxyCtorIL.Emit(OpCodes.Stloc, exception);
-
-                proxyCtorIL.GetExceptionDataAndStoreInLocal(exception, exceptionData);
-                proxyCtorIL.AddItemToLocalDictionary(exceptionData, MetadataViewType, viewType);
-                proxyCtorIL.Emit(OpCodes.Rethrow);
-            }
-            proxyCtorIL.BeginCatchBlock(typeof(InvalidCastException));
-            {
-                proxyCtorIL.Emit(OpCodes.Stloc, exception);
-
-                proxyCtorIL.GetExceptionDataAndStoreInLocal(exception, exceptionData);
-                proxyCtorIL.Emit(OpCodes.Ldloc, value);
-                proxyCtorIL.Emit(OpCodes.Call, ObjectGetType);
-                proxyCtorIL.Emit(OpCodes.Stloc, sourceType);
-                proxyCtorIL.AddItemToLocalDictionary(exceptionData, MetadataViewType, viewType);
-                proxyCtorIL.AddLocalToLocalDictionary(exceptionData, MetadataItemSourceType, sourceType);
-                proxyCtorIL.AddLocalToLocalDictionary(exceptionData, MetadataItemValue, value);
-                proxyCtorIL.Emit(OpCodes.Rethrow);
-            }
-            proxyCtorIL.EndExceptionBlock();
-
-            // Finished implementing the constructor
-            proxyCtorIL.Emit(OpCodes.Ret);
-
-            // Implemet the static factory
-            // public object Create(IDictionary<string, object>)
+            // Implement the static factory
+            // public static object Create(IReadOnlyDictionary<string, object>, IReadOnlyDictionary<string, object>)
             // {
             //    return new <ProxyClass>(dictionary);
             // }
             MethodBuilder factoryMethodBuilder = proxyTypeBuilder.DefineMethod(MetadataViewGenerator.MetadataViewFactoryName, MethodAttributes.Public | MethodAttributes.Static, typeof(object), CtorArgumentTypes);
             ILGenerator factoryIL = factoryMethodBuilder.GetILGenerator();
             factoryIL.Emit(OpCodes.Ldarg_0);
+            factoryIL.Emit(OpCodes.Ldarg_1);
             factoryIL.Emit(OpCodes.Newobj, proxyCtor);
             factoryIL.Emit(OpCodes.Ret);
 
