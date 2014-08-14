@@ -369,7 +369,8 @@
                     ctorArgs.Value[1] = this.GetStrongTypedMetadata(exportMetadata, exportFactoryType.GenericTypeArguments[1]);
                 }
 
-                return Activator.CreateInstance(exportFactoryType, ctorArgs.Value);
+                var ctor = exportFactoryType.GetConstructors()[0];
+                return ctor.Invoke(ctorArgs.Value);
             }
         }
 
