@@ -107,16 +107,13 @@ namespace Microsoft.VisualStudio.Composition
             Assumes.True(viewType.IsInterface);
 
             MetadataViewFactory metadataViewFactory;
-            bool foundMetadataViewFactory;
 
             lock (metadataViewFactories)
             {
-                foundMetadataViewFactory = metadataViewFactories.TryGetValue(viewType, out metadataViewFactory);
-
-                // No factory exists
-                if (!foundMetadataViewFactory)
+                if (!metadataViewFactories.TryGetValue(viewType, out metadataViewFactory))
                 {
-                    // Try again under a write lock if still none generate the proxy
+                    // We actually create the proxy type within the lock because we're 
+                    // tampering with the ModuleBuilder which isn't thread-safe.
                     Type generatedProxyType = GenerateInterfaceViewProxyType(viewType);
                     metadataViewFactory = (MetadataViewFactory)Delegate.CreateDelegate(
                         typeof(MetadataViewFactory), generatedProxyType.GetMethod(MetadataViewGenerator.MetadataViewFactoryName, BindingFlags.Public | BindingFlags.Static));
@@ -127,7 +124,6 @@ namespace Microsoft.VisualStudio.Composition
             return metadataViewFactory;
         }
 
-        // This must be called with _readerWriterLock held for Write
         private static Type GenerateInterfaceViewProxyType(Type viewType)
         {
             // View type is an interface let's cook an implementation
@@ -157,13 +153,17 @@ namespace Microsoft.VisualStudio.Composition
             // Implement Constructor
             ConstructorBuilder proxyCtor = proxyTypeBuilder.DefineConstructor(MethodAttributes.Private, CallingConventions.Standard, CtorArgumentTypes);
             ILGenerator proxyCtorIL = proxyCtor.GetILGenerator();
+
+            // : base()
             proxyCtorIL.Emit(OpCodes.Ldarg_0);
             proxyCtorIL.Emit(OpCodes.Call, ObjectCtor);
 
+            // this.metadata = metadata;
             proxyCtorIL.Emit(OpCodes.Ldarg_0);
             proxyCtorIL.Emit(OpCodes.Ldarg_1);
             proxyCtorIL.Emit(OpCodes.Stfld, metadataFieldBuilder);
 
+            // this.metadataDefault = metadataDefault;
             proxyCtorIL.Emit(OpCodes.Ldarg_0);
             proxyCtorIL.Emit(OpCodes.Ldarg_2);
             proxyCtorIL.Emit(OpCodes.Stfld, metadataDefaultFieldBuilder);
@@ -204,8 +204,6 @@ namespace Microsoft.VisualStudio.Composition
                 proxyTypeBuilder.DefineMethodOverride(getMethodBuilder, propertyInfo.GetGetMethod());
                 ILGenerator getMethodIL = getMethodBuilder.GetILGenerator();
 
-                Label returnLabel = getMethodIL.DefineLabel();
-
                 // object value;
                 LocalBuilder valueLocal = getMethodIL.DeclareLocal(typeof(object));
 
@@ -217,6 +215,7 @@ namespace Microsoft.VisualStudio.Composition
                 getMethodIL.Emit(OpCodes.Callvirt, mdvDictionaryTryGet);
 
                 // If that succeeded, prepare to return.
+                Label returnLabel = getMethodIL.DefineLabel();
                 getMethodIL.Emit(OpCodes.Brtrue_S, returnLabel);
 
                 // Otherwise get the value from the default metadata dictionary.
