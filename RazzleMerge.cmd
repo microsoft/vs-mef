@@ -3,10 +3,10 @@
 SET RAZZLE=C:\dd\VSPro_VBCS\src\Platform\MEF
 SET GIT=%~dp0\
 
-IF "%1"=="FI" (
+IF /I "%1"=="FI" (
 	SET ORIGIN=%RAZZLE%
 	SET TARGET=%GIT%
-) ELSE IF "%1"=="RI" (
+) ELSE IF /I "%1"=="RI" (
 	SET ORIGIN=%GIT%
 	SET TARGET=%RAZZLE%
 ) ELSE (
