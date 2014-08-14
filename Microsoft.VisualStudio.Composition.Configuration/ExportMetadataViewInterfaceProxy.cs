@@ -111,6 +111,7 @@
                 if (metadataType.IsInterface &&
                     metadataType.GetMembers().All(IsPropertyRelated))
                 {
+                    Report.Fail("The Reflection.Emit provider should have handled this.");
                     return true;
                 }
 

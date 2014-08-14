@@ -108,6 +108,8 @@
     <Compile Include="CodeGen.cs" />
     <Compile Include="CodeGenExportProviderBase.cs" />
     <Compile Include="CompiledComposition.cs" />
+    <Compile Include="ExportMetadataViewInterfaceEmitProxy.cs" />
+    <Compile Include="MetadataViewGenerator.cs" />
     <Compile Include="SyntaxCodeGeneration.cs" />
     <Compile Include="ExportMetadataViewInterfaceProxy.cs" />
     <Compile Include="NetFxAdapters.cs" />

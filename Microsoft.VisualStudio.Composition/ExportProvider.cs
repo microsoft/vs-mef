@@ -125,9 +125,7 @@
             this.NonDisposableWrapperExportAsListOfOne = ImmutableList.Create(
                 new Export(ExportProviderExportDefinition, this.NonDisposableWrapper));
             this.metadataViewProviders = new Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>>(
-                () => ImmutableArray.CreateRange(
-                    this.GetExports<IMetadataViewProvider, IReadOnlyDictionary<string, object>>()
-                    .OrderByDescending(v => GetOrderMetadata(v.Metadata))));
+                this.GetMetadataViewProviderExtensions);
         }
 
         bool IDisposableObservable.IsDisposed
@@ -657,6 +655,14 @@
                 .ToImmutableHashSet();
         }
 
+        private ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>> GetMetadataViewProviderExtensions()
+        {
+            var extensions = this.GetExports<IMetadataViewProvider, IReadOnlyDictionary<string, object>>();
+            var sorted = extensions.OrderByDescending(v => GetOrderMetadata(v.Metadata));
+            var result = ImmutableArray.CreateRange(sorted);
+            return result;
+        }
+
         /// <summary>
         /// Gets a provider that can create a metadata view of a specified type over a dictionary of metadata.
         /// </summary>
@@ -680,6 +686,7 @@
                     if (viewProvider.IsMetadataViewSupported(metadataView))
                     {
                         metadataViewProvider = viewProvider;
+                        break;
                     }
                 }
 
