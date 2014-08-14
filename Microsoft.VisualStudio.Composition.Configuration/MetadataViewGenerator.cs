@@ -256,5 +256,10 @@ namespace Microsoft.VisualStudio.Composition
 
             return proxyType;
         }
+
+        private static IEnumerable<PropertyInfo> GetAllProperties(this Type type)
+        {
+            return type.GetInterfaces().Concat(new Type[] { type }).SelectMany(itf => itf.GetProperties());
+        }
     }
 }

@@ -102,7 +102,6 @@
     <Compile Include="CompiledComposition.cs" />
     <Compile Include="ExportMetadataViewInterfaceEmitProxy.cs" />
     <Compile Include="MetadataViewGenerator.cs" />
-    <Compile Include="ReflectionServices.cs" />
     <Compile Include="Strings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
