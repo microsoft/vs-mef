@@ -128,7 +128,7 @@
                 {
                     this.Write(export.ContractName);
                     this.Write(export.DeclaringType);
-                    this.Write(export.Member);
+                    this.Write(export.MemberRef);
                     this.Write(export.ExportedValueType);
                     this.Write(export.Metadata);
                 }
@@ -166,19 +166,19 @@
 
                 this.Write(part.Type);
                 this.Write(part.Exports, this.Write);
-                if (part.ImportingConstructor.IsEmpty)
+                if (part.ImportingConstructorRef.IsEmpty)
                 {
                     writer.Write(false);
                 }
                 else
                 {
                     writer.Write(true);
-                    this.Write(part.ImportingConstructor);
+                    this.Write(part.ImportingConstructorRef);
                     this.Write(part.ImportingConstructorArguments, this.Write);
                 }
 
                 this.Write(part.ImportingMembers, this.Write);
-                this.Write(part.OnImportsSatisfied);
+                this.Write(part.OnImportsSatisfiedRef);
                 this.Write(part.SharingBoundary);
             }
 
@@ -419,11 +419,29 @@
                 return (int)(this.ReadCompressedUInt() | (uint)type);
             }
 
+            private enum RuntimeImportFlags : byte
+            {
+                None = 0x00,
+                IsNonSharedInstanceRequired = 0x01,
+                IsExportFactory = 0x02,
+                CardinalityExactlyOne = 0x04,
+                CardinalityOneOrZero = 0x08,
+                IsParameter = 0x10,
+            }
+
             private void Write(RuntimeComposition.RuntimeImport import)
             {
                 Trace("RuntimeImport", writer.BaseStream);
 
-                writer.Write(import.ImportingMemberRef.IsEmpty ? (byte)2 : (byte)1);
+                RuntimeImportFlags flags = RuntimeImportFlags.None;
+                flags |= import.ImportingMemberRef.IsEmpty ? RuntimeImportFlags.IsParameter : 0;
+                flags |= import.IsNonSharedInstanceRequired ? RuntimeImportFlags.IsNonSharedInstanceRequired : 0;
+                flags |= import.IsExportFactory ? RuntimeImportFlags.IsExportFactory : 0;
+                flags |=
+                    import.Cardinality == ImportCardinality.ExactlyOne ? RuntimeImportFlags.CardinalityExactlyOne :
+                    import.Cardinality == ImportCardinality.OneOrZero ? RuntimeImportFlags.CardinalityOneOrZero : 0;
+                writer.Write((byte)flags);
+
                 if (import.ImportingMemberRef.IsEmpty)
                 {
                     this.Write(import.ImportingParameterRef);
@@ -433,56 +451,62 @@
                     this.Write(import.ImportingMemberRef);
                 }
 
-                this.Write(import.Cardinality);
+                this.Write(import.ImportingSiteTypeRef);
                 this.Write(import.SatisfyingExports, this.Write);
-                writer.Write(import.IsNonSharedInstanceRequired);
                 this.Write(import.Metadata);
-                this.Write(import.ExportFactory);
-                this.Write(import.ExportFactorySharingBoundaries, this.Write);
+                if (import.IsExportFactory)
+                {
+                    this.Write(import.ExportFactorySharingBoundaries, this.Write);
+                }
             }
 
             private RuntimeComposition.RuntimeImport ReadRuntimeImport()
             {
                 Trace("RuntimeImport", reader.BaseStream);
 
-                byte kind = reader.ReadByte();
+                var flags = (RuntimeImportFlags)reader.ReadByte();
+                var cardinality =
+                    flags.HasFlag(RuntimeImportFlags.CardinalityOneOrZero) ? ImportCardinality.OneOrZero :
+                    flags.HasFlag(RuntimeImportFlags.CardinalityExactlyOne) ? ImportCardinality.ExactlyOne :
+                    ImportCardinality.ZeroOrMore;
+                bool isExportFactory = flags.HasFlag(RuntimeImportFlags.IsExportFactory);
+
                 MemberRef importingMember = default(MemberRef);
                 ParameterRef importingParameter = default(ParameterRef);
-                switch (kind)
+                if (flags.HasFlag(RuntimeImportFlags.IsParameter))
                 {
-                    case 1:
-                        importingMember = this.ReadMemberRef();
-                        break;
-                    case 2:
-                        importingParameter = this.ReadParameterRef();
-                        break;
-                    default:
-                        throw new NotSupportedException();
+                    importingParameter = this.ReadParameterRef();
+                }
+                else
+                {
+                    importingMember = this.ReadMemberRef();
                 }
 
-                var cardinality = this.ReadImportCardinality();
+                var importingSiteTypeRef = this.ReadTypeRef();
                 var satisfyingExports = this.ReadList(reader, this.ReadRuntimeExport);
-                bool isNonSharedInstanceRequired = reader.ReadBoolean();
                 var metadata = this.ReadMetadata();
-                var exportFactory = this.ReadTypeRef();
-                var exportFactorySharingBoundaries = this.ReadList(reader, this.ReadString);
+                IReadOnlyList<string> exportFactorySharingBoundaries = isExportFactory
+                    ? this.ReadList(reader, this.ReadString)
+                    : ImmutableList<string>.Empty;
 
                 return importingMember.IsEmpty
                     ? new RuntimeComposition.RuntimeImport(
                         importingParameter,
+                        importingSiteTypeRef,
                         cardinality,
                         satisfyingExports,
-                        isNonSharedInstanceRequired,
+                        flags.HasFlag(RuntimeImportFlags.IsNonSharedInstanceRequired),
+                        isExportFactory,
                         metadata,
-                        exportFactory,
                         exportFactorySharingBoundaries)
                     : new RuntimeComposition.RuntimeImport(
                         importingMember,
+                        importingSiteTypeRef,
                         cardinality,
                         satisfyingExports,
-                        isNonSharedInstanceRequired,
+                        flags.HasFlag(RuntimeImportFlags.IsNonSharedInstanceRequired),
+                        isExportFactory,
                         metadata,
-                        exportFactory,
                         exportFactorySharingBoundaries);
             }
 

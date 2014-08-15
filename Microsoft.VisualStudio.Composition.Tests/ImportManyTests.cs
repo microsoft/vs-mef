@@ -227,18 +227,6 @@
             Assert.Equal(1, extension.Metadata["a"]);
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(ExtendableCustomCollectionOfConcreteTypeWithILazyMetadata), typeof(ExtensionOne))]
-        public void ImportManyCustomCollectionConcreteTypeWithILazyMetadata(IContainer container)
-        {
-            var extendable = container.GetExportedValue<ExtendableCustomCollectionOfConcreteTypeWithILazyMetadata>();
-            Assert.NotNull(extendable);
-            Assert.NotNull(extendable.Extensions);
-            Assert.Equal(1, extendable.Extensions.Count);
-            var extension = extendable.Extensions.Single();
-            Assert.IsType<ExtensionOne>(extension.Value);
-            Assert.Equal(1, extension.Metadata["a"]);
-        }
-
         [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionWithPreInitializedPublicCtor), typeof(ExtensionOne), typeof(ExtensionTwo))]
         public void ImportManyCustomCollectionWithPreInitializedPublicCtor(IContainer container)
         {
@@ -391,29 +379,6 @@
             }
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ImportsMethodsV3), typeof(ExportMembers))]
-        public void ImportManyMethodsV3(IContainer container)
-        {
-            var importsMethodsExport = container.GetExportedValue<ImportsMethodsV3>();
-            Assert.Equal(2, importsMethodsExport.ImportedMethods.Length);
-            foreach (Action action in importsMethodsExport.ImportedMethods)
-            {
-                action();
-            }
-
-            Assert.Equal(2, importsMethodsExport.LazilyImportedMethods.Length);
-            foreach (Lazy<Action> action in importsMethodsExport.LazilyImportedMethods)
-            {
-                action.Value();
-            }
-
-            Assert.Equal(2, importsMethodsExport.ILazilyImportedMethods.Length);
-            foreach (ILazy<Action> action in importsMethodsExport.ILazilyImportedMethods)
-            {
-                action.Value();
-            }
-        }
-
         [MefV1.Export]
         public class ImportsMethods
         {
@@ -422,13 +387,6 @@
 
             [MefV1.ImportMany]
             public Lazy<Action>[] LazilyImportedMethods { get; set; }
-        }
-
-        [MefV1.Export]
-        public class ImportsMethodsV3 : ImportsMethods
-        {
-            [MefV1.ImportMany]
-            public ILazy<Action>[] ILazilyImportedMethods { get; set; }
         }
 
         public class ExportMembers
@@ -466,7 +424,7 @@
         {
             [ImportMany("NonPublic")]
             [MefV1.ImportMany("NonPublic")]
-            public List<ILazy<IExtension>> Extensions { get; set; }
+            public List<Lazy<IExtension>> Extensions { get; set; }
         }
 
         #endregion
@@ -663,15 +621,6 @@
             public CustomCollectionConcreteTypeWithMetadata Extensions { get; set; }
         }
 
-        [Export]
-        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
-        public class ExtendableCustomCollectionOfConcreteTypeWithILazyMetadata
-        {
-            [ImportMany]
-            [MefV1.ImportMany]
-            public CustomCollectionConcreteTypeWithILazyMetadata Extensions { get; set; }
-        }
-
         public class CustomCollectionWithPublicCtor<T> : ICollection<T>
         {
             private List<T> inner = new List<T>();
@@ -811,7 +760,5 @@
         public class CustomCollectionConcreteType : CustomCollectionWithPublicCtor<IExtension> { }
 
         public class CustomCollectionConcreteTypeWithMetadata : CustomCollectionWithPublicCtor<Lazy<IExtension, IDictionary<string, object>>> { }
-
-        public class CustomCollectionConcreteTypeWithILazyMetadata : CustomCollectionWithPublicCtor<ILazy<IExtension, IDictionary<string, object>>> { }
     }
 }

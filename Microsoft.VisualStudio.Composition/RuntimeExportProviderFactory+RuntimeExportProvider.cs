@@ -15,8 +15,6 @@
     {
         private class RuntimeExportProvider : ExportProvider
         {
-            private static readonly RuntimeMethodHandle LazyFuncOfObject = typeof(LazyPart<>).GetConstructors().Single(ctor => ctor.GetParameters()[0].ParameterType == typeof(Func<object>)).MethodHandle;
-            private static readonly RuntimeMethodHandle LazyFuncOfObjectMetadata = typeof(LazyPart<,>).GetConstructors().Single(ctor => ctor.GetParameters()[0].ParameterType == typeof(Func<object>)).MethodHandle;
             private readonly RuntimeComposition composition;
 
             internal RuntimeExportProvider(RuntimeComposition composition)
@@ -46,7 +44,7 @@
                         (ep, provisionalSharedObjects) => this.CreatePart(provisionalSharedObjects, part, importDefinition.Metadata),
                         part.SharingBoundary,
                         !part.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
-                        export.Member.Resolve());
+                        export.Member);
             }
 
             private object CreatePart(Dictionary<TypeRef, object> provisionalSharedObjects, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata)
@@ -65,7 +63,7 @@
                 var constructedPartType = GetPartConstructedTypeRef(partDefinition, importMetadata);
                 var ctorArgs = partDefinition.ImportingConstructorArguments
                     .Select(import => GetValueForImportSite(null, import, provisionalSharedObjects).Value).ToArray();
-                ConstructorInfo importingConstructor = partDefinition.ImportingConstructor.Resolve();
+                ConstructorInfo importingConstructor = partDefinition.ImportingConstructor;
                 if (importingConstructor.ContainsGenericParameters)
                 {
                     // TODO: fix this to find the precise match, including cases where the matching constructor includes a generic type parameter.
@@ -93,13 +91,13 @@
                     var value = this.GetValueForImportSite(part, import, provisionalSharedObjects);
                     if (value.ValueShouldBeSet)
                     {
-                        this.SetImportingMember(part, import.ImportingMemberRef.Resolve(), value.Value);
+                        this.SetImportingMember(part, import.ImportingMember, value.Value);
                     }
                 }
 
-                if (!partDefinition.OnImportsSatisfied.IsEmpty)
+                if (partDefinition.OnImportsSatisfied != null)
                 {
-                    partDefinition.OnImportsSatisfied.Resolve().Invoke(part, EmptyObjectArray);
+                    partDefinition.OnImportsSatisfied.Invoke(part, EmptyObjectArray);
                 }
 
                 return part;
@@ -124,6 +122,13 @@
                 Requires.NotNull(import, "import");
                 Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
 
+                Func<Func<object>, object, object> lazyFactory = null;
+                if (import.IsLazy)
+                {
+                    Type[] lazyTypeArgs = import.ImportingSiteTypeWithoutCollection.GenericTypeArguments;
+                    lazyFactory = LazyServices.CreateStronglyTypedLazyFactory(import.ImportingSiteElementType, lazyTypeArgs.Length > 1 ? lazyTypeArgs[1] : null);
+                }
+
                 var exports = import.SatisfyingExports;
                 if (import.Cardinality == ImportCardinality.ZeroOrMore)
                 {
@@ -136,7 +141,7 @@
                             foreach (var export in exports)
                             {
                                 intArray.Value[0] = i++;
-                                array.SetValue(this.GetValueForImportElement(part, import, export, provisionalSharedObjects), intArray.Value);
+                                array.SetValue(this.GetValueForImportElement(part, import, export, provisionalSharedObjects, lazyFactory), intArray.Value);
                             }
                         }
 
@@ -145,7 +150,7 @@
                     else
                     {
                         object collectionObject = null;
-                        MemberInfo importingMember = import.ImportingMemberRef.Resolve();
+                        MemberInfo importingMember = import.ImportingMember;
                         if (importingMember != null)
                         {
                             collectionObject = GetImportingMember(part, importingMember);
@@ -178,7 +183,7 @@
                             }
                         }
 
-                        var collectionAccessor = new CollectionWrapper(collectionObject, import.ImportingSiteTypeWithoutCollection);
+                        var collectionAccessor = CollectionServices.GetCollectionWrapper(import.ImportingSiteTypeWithoutCollection, collectionObject);
                         if (preexistingInstance)
                         {
                             collectionAccessor.Clear();
@@ -186,7 +191,7 @@
 
                         foreach (var export in exports)
                         {
-                            collectionAccessor.Add(this.GetValueForImportElement(part, import, export, provisionalSharedObjects));
+                            collectionAccessor.Add(this.GetValueForImportElement(part, import, export, provisionalSharedObjects, lazyFactory));
                         }
 
                         return new ValueForImportSite(); // signal caller should not set value again.
@@ -200,50 +205,11 @@
                         return new ValueForImportSite(null);
                     }
 
-                    return new ValueForImportSite(this.GetValueForImportElement(part, import, export, provisionalSharedObjects));
+                    return new ValueForImportSite(this.GetValueForImportElement(part, import, export, provisionalSharedObjects, lazyFactory));
                 }
             }
 
-            private struct CollectionWrapper
-            {
-                private readonly object collectionOfT;
-                private readonly MethodInfo addMethod;
-                private readonly MethodInfo clearMethod;
-
-                internal CollectionWrapper(object collectionOfT, Type elementType)
-                {
-                    Requires.NotNull(collectionOfT, "collectionOfT");
-                    this.collectionOfT = collectionOfT;
-                    Type collectionType;
-                    using (var args = ArrayRental<Type>.Get(1))
-                    {
-                        args.Value[0] = elementType;
-                        collectionType = typeof(ICollection<>).MakeGenericType(args.Value);
-                        this.addMethod = collectionType.GetRuntimeMethod("Add", args.Value);
-                    }
-
-                    using (var args = ArrayRental<Type>.Get(0))
-                    {
-                        this.clearMethod = collectionType.GetRuntimeMethod("Clear", args.Value);
-                    }
-                }
-
-                internal void Add(object item)
-                {
-                    using (var args = ArrayRental<object>.Get(1))
-                    {
-                        args.Value[0] = item;
-                        this.addMethod.Invoke(this.collectionOfT, args.Value);
-                    }
-                }
-
-                internal void Clear()
-                {
-                    this.clearMethod.Invoke(this.collectionOfT, EmptyObjectArray);
-                }
-            }
-
-            private object GetValueForImportElement(object part, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Dictionary<TypeRef, object> provisionalSharedObjects)
+            private object GetValueForImportElement(object part, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Dictionary<TypeRef, object> provisionalSharedObjects, Func<Func<object>, object, object> lazyFactory)
             {
                 if (import.IsExportFactory)
                 {
@@ -251,17 +217,22 @@
                 }
                 else
                 {
+                    if (import.IsLazy)
+                    {
+                        Requires.NotNull(lazyFactory, "lazyFactory");
+                    }
+
                     if (this.composition.GetPart(export).Type.Equals(import.DeclaringType))
                     {
                         return import.IsLazy
-                            ? this.CreateStrongTypedLazy(() => part, export.Metadata, import.ImportingSiteTypeWithoutCollection)
+                            ? lazyFactory(() => part, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
                             : part;
                     }
 
                     Func<object> exportedValue = this.GetExportedValue(import, export, provisionalSharedObjects);
 
                     object importedValue = import.IsLazy
-                        ? this.CreateStrongTypedLazy(exportedValue, export.Metadata, import.ImportingSiteTypeWithoutCollection)
+                        ? lazyFactory(exportedValue, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
                         : exportedValue();
                     return importedValue;
                 }
@@ -284,31 +255,10 @@
                     var disposableValue = newSharingScope ? scope : constructedValue as IDisposable;
                     return new KeyValuePair<object, IDisposable>(constructedValue, disposableValue);
                 };
-                Type exportFactoryType = import.ExportFactory.Resolve();
+                Type exportFactoryType = import.ImportingSiteTypeWithoutCollection;
                 var exportMetadata = export.Metadata;
 
                 return this.CreateExportFactory(importingSiteElementType, sharingBoundaries, valueFactory, exportFactoryType, exportMetadata);
-            }
-
-            private object CreateStrongTypedLazy(Func<object> valueFactory, IReadOnlyDictionary<string, object> metadata, Type lazyType)
-            {
-                Requires.NotNull(valueFactory, "valueFactory");
-                Requires.NotNull(metadata, "metadata");
-
-                lazyType = LazyPart.FromLazy(lazyType); // be sure we have a concrete type.
-                using (var ctorArgs = ArrayRental<object>.Get(lazyType.GenericTypeArguments.Length))
-                {
-                    ctorArgs.Value[0] = valueFactory;
-                    if (ctorArgs.Value.Length == 2)
-                    {
-                        ctorArgs.Value[1] = this.GetStrongTypedMetadata(metadata, lazyType.GenericTypeArguments[1]);
-                    }
-
-                    ConstructorInfo lazyCtor = (ConstructorInfo)MethodBase.GetMethodFromHandle(
-                        ctorArgs.Value.Length == 1 ? LazyFuncOfObject : LazyFuncOfObjectMetadata, lazyType.TypeHandle);
-                    object lazyInstance = lazyCtor.Invoke(ctorArgs.Value);
-                    return lazyInstance;
-                }
             }
 
             private Func<object> GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Dictionary<TypeRef, object> provisionalSharedObjects)
@@ -322,7 +272,7 @@
                 // Special case importing of ExportProvider
                 if (exportingRuntimePart.Type.Equals(ExportProvider.ExportProviderPartDefinition.Type))
                 {
-                    return this.NonDisposableWrapper.ValueFactory;
+                    return () => this.NonDisposableWrapper.Value;
                 }
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
@@ -333,9 +283,8 @@
                     provisionalSharedObjects,
                     exportingRuntimePart.SharingBoundary,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
-                MemberInfo exportingMember = export.Member.Resolve();
-                Func<object> exportedValue = !export.Member.IsEmpty
-                    ? () => this.GetValueFromMember(exportingMember.IsStatic() ? null : partFactory(), exportingMember, import.ImportingSiteElementType, export.ExportedValueType.Resolve())
+                Func<object> exportedValue = export.Member != null
+                    ? () => this.GetValueFromMember(export.Member.IsStatic() ? null : partFactory(), export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve())
                     : partFactory;
                 return exportedValue;
             }

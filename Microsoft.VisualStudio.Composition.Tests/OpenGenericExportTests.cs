@@ -70,16 +70,6 @@
             Assert.IsType<Useful<int>>(user.Useful[0].Value);
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Useful<>), typeof(ImportManyILazyUser))]
-        public void AcquireExportWithImportManyILazyOfOpenGenericExport(IContainer container)
-        {
-            var user = container.GetExportedValue<ImportManyILazyUser>();
-            Assert.NotNull(user);
-            Assert.NotNull(user.Useful);
-            Assert.Equal(1, user.Useful.Length);
-            Assert.IsType<Useful<int>>(user.Useful[0].Value);
-        }
-
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Useful<>))]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportedValuesOfOpenGenericExport(IContainer container)
@@ -152,15 +142,6 @@
             [ImportMany]
             [MefV1.ImportMany]
             public Lazy<Useful<int>>[] Useful { get; set; }
-        }
-
-        [Export]
-        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
-        public class ImportManyILazyUser
-        {
-            [ImportMany]
-            [MefV1.ImportMany]
-            public ILazy<Useful<int>>[] Useful { get; set; }
         }
 
         public class OpenGenericPartWithExportingProperty<T>
