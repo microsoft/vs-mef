@@ -15,8 +15,6 @@
     {
         private class RuntimeExportProvider : ExportProvider
         {
-            private static readonly RuntimeMethodHandle LazyFuncOfObject = typeof(LazyPart<>).GetConstructors().Single(ctor => ctor.GetParameters()[0].ParameterType == typeof(Func<object>)).MethodHandle;
-            private static readonly RuntimeMethodHandle LazyFuncOfObjectMetadata = typeof(LazyPart<,>).GetConstructors().Single(ctor => ctor.GetParameters()[0].ParameterType == typeof(Func<object>)).MethodHandle;
             private readonly RuntimeComposition composition;
 
             internal RuntimeExportProvider(RuntimeComposition composition)
@@ -124,6 +122,13 @@
                 Requires.NotNull(import, "import");
                 Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
 
+                Func<Func<object>, object, object> lazyFactory = null;
+                if (import.IsLazy)
+                {
+                    Type[] lazyTypeArgs = import.ImportingSiteTypeWithoutCollection.GenericTypeArguments;
+                    lazyFactory = LazyServices.CreateStronglyTypedLazyFactory(import.ImportingSiteElementType, lazyTypeArgs.Length > 1 ? lazyTypeArgs[1] : null);
+                }
+
                 var exports = import.SatisfyingExports;
                 if (import.Cardinality == ImportCardinality.ZeroOrMore)
                 {
@@ -136,7 +141,7 @@
                             foreach (var export in exports)
                             {
                                 intArray.Value[0] = i++;
-                                array.SetValue(this.GetValueForImportElement(part, import, export, provisionalSharedObjects), intArray.Value);
+                                array.SetValue(this.GetValueForImportElement(part, import, export, provisionalSharedObjects, lazyFactory), intArray.Value);
                             }
                         }
 
@@ -186,7 +191,7 @@
 
                         foreach (var export in exports)
                         {
-                            collectionAccessor.Add(this.GetValueForImportElement(part, import, export, provisionalSharedObjects));
+                            collectionAccessor.Add(this.GetValueForImportElement(part, import, export, provisionalSharedObjects, lazyFactory));
                         }
 
                         return new ValueForImportSite(); // signal caller should not set value again.
@@ -200,11 +205,11 @@
                         return new ValueForImportSite(null);
                     }
 
-                    return new ValueForImportSite(this.GetValueForImportElement(part, import, export, provisionalSharedObjects));
+                    return new ValueForImportSite(this.GetValueForImportElement(part, import, export, provisionalSharedObjects, lazyFactory));
                 }
             }
 
-            private object GetValueForImportElement(object part, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Dictionary<TypeRef, object> provisionalSharedObjects)
+            private object GetValueForImportElement(object part, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Dictionary<TypeRef, object> provisionalSharedObjects, Func<Func<object>, object, object> lazyFactory)
             {
                 if (import.IsExportFactory)
                 {
@@ -212,17 +217,22 @@
                 }
                 else
                 {
+                    if (import.IsLazy)
+                    {
+                        Requires.NotNull(lazyFactory, "lazyFactory");
+                    }
+
                     if (this.composition.GetPart(export).Type.Equals(import.DeclaringType))
                     {
                         return import.IsLazy
-                            ? this.CreateStrongTypedLazy(() => part, export.Metadata, import.ImportingSiteTypeWithoutCollection)
+                            ? lazyFactory(() => part, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
                             : part;
                     }
 
                     Func<object> exportedValue = this.GetExportedValue(import, export, provisionalSharedObjects);
 
                     object importedValue = import.IsLazy
-                        ? this.CreateStrongTypedLazy(exportedValue, export.Metadata, import.ImportingSiteTypeWithoutCollection)
+                        ? lazyFactory(exportedValue, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
                         : exportedValue();
                     return importedValue;
                 }
@@ -251,27 +261,6 @@
                 return this.CreateExportFactory(importingSiteElementType, sharingBoundaries, valueFactory, exportFactoryType, exportMetadata);
             }
 
-            private object CreateStrongTypedLazy(Func<object> valueFactory, IReadOnlyDictionary<string, object> metadata, Type lazyType)
-            {
-                Requires.NotNull(valueFactory, "valueFactory");
-                Requires.NotNull(metadata, "metadata");
-
-                lazyType = LazyPart.FromLazy(lazyType); // be sure we have a concrete type.
-                using (var ctorArgs = ArrayRental<object>.Get(lazyType.GenericTypeArguments.Length))
-                {
-                    ctorArgs.Value[0] = valueFactory;
-                    if (ctorArgs.Value.Length == 2)
-                    {
-                        ctorArgs.Value[1] = this.GetStrongTypedMetadata(metadata, lazyType.GenericTypeArguments[1]);
-                    }
-
-                    ConstructorInfo lazyCtor = (ConstructorInfo)MethodBase.GetMethodFromHandle(
-                        ctorArgs.Value.Length == 1 ? LazyFuncOfObject : LazyFuncOfObjectMetadata, lazyType.TypeHandle);
-                    object lazyInstance = lazyCtor.Invoke(ctorArgs.Value);
-                    return lazyInstance;
-                }
-            }
-
             private Func<object> GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Dictionary<TypeRef, object> provisionalSharedObjects)
             {
                 Requires.NotNull(import, "import");
@@ -283,7 +272,7 @@
                 // Special case importing of ExportProvider
                 if (exportingRuntimePart.Type.Equals(ExportProvider.ExportProviderPartDefinition.Type))
                 {
-                    return this.NonDisposableWrapper.ValueFactory;
+                    return () => this.NonDisposableWrapper.Value;
                 }
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);

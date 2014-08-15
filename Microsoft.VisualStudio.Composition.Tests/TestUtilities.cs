@@ -491,7 +491,7 @@
             public Lazy<T> GetExport<T>()
             {
                 // MEF v2 doesn't support this, so emulate it.
-                return new LazyPart<T>(() =>
+                return new Lazy<T>(() =>
                 {
                     try
                     {
@@ -507,7 +507,7 @@
             public Lazy<T> GetExport<T>(string contractName)
             {
                 // MEF v2 doesn't support this, so emulate it.
-                return new LazyPart<T>(() =>
+                return new Lazy<T>(() =>
                 {
                     try
                     {
