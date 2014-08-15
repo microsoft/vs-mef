@@ -357,6 +357,16 @@
                 }
             }
 
+            public Type MetadataType
+            {
+                get
+                {
+                    return this.ImportingSiteTypeWithoutCollection.IsGenericType && this.ImportingSiteTypeWithoutCollection.GetGenericTypeDefinition() == typeof(Lazy<,>)
+                        ? this.ImportingSiteTypeWithoutCollection.GenericTypeArguments[1]
+                        : null;
+                }
+            }
+
             public TypeRef DeclaringType
             {
                 get

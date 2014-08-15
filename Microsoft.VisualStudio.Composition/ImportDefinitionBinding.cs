@@ -52,7 +52,7 @@
             Requires.NotNull(contractType, "contractType");
 
             this.ImportDefinition = importDefinition;
-            this.ImportingSiteTypeRef = TypeRef.Get(typeof(IEnumerable<>).MakeGenericType(typeof(ILazy<>).MakeGenericType(contractType.Resolve())));
+            this.ImportingSiteTypeRef = TypeRef.Get(typeof(IEnumerable<>).MakeGenericType(typeof(Lazy<>).MakeGenericType(contractType.Resolve())));
         }
 
         /// <summary>
@@ -128,11 +128,6 @@
         public bool IsLazy
         {
             get { return this.ImportingSiteTypeWithoutCollection.IsAnyLazyType(); }
-        }
-
-        public bool IsLazyConcreteType
-        {
-            get { return this.ImportingSiteTypeWithoutCollection.IsConcreteLazyType(); }
         }
 
         public Type MetadataType

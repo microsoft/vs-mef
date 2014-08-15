@@ -11,7 +11,7 @@
 
     public class Export
     {
-        private readonly ILazy<object> exportedValueGetter;
+        private readonly Lazy<object> exportedValueGetter;
 
         public Export(string contractName, IReadOnlyDictionary<string, object> metadata, Func<object> exportedValueGetter)
             : this(new ExportDefinition(contractName, metadata), exportedValueGetter)
@@ -19,11 +19,11 @@
         }
 
         public Export(ExportDefinition definition, Func<object> exportedValueGetter)
-            : this(definition, new LazyPart<object>(exportedValueGetter))
+            : this(definition, new Lazy<object>(exportedValueGetter))
         {
         }
 
-        public Export(ExportDefinition definition, ILazy<object> exportedValueGetter)
+        public Export(ExportDefinition definition, Lazy<object> exportedValueGetter)
         {
             Requires.NotNull(definition, "definition");
             Requires.NotNull(exportedValueGetter, "exportedValueGetter");

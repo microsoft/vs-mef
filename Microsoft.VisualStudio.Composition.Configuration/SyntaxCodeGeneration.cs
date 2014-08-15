@@ -2112,7 +2112,7 @@
         }
 
         /// <summary>
-        /// Creates an expression that creates a <see cref="LazyPart{T, TMetadata}"/> instance.
+        /// Creates an expression that creates a <see cref="Lazy{T, TMetadata}"/> instance.
         /// </summary>
         /// <param name="valueType">The type for T.</param>
         /// <param name="valueFactory">The value factory, including the lambda when applicable.</param>
@@ -2125,7 +2125,7 @@
             Requires.NotNull(valueType, "valueType");
             Requires.NotNull(valueFactory, "valueFactory");
 
-            Type lazyTypeDefinition = metadataType != null ? typeof(LazyPart<,>) : typeof(LazyPart<>);
+            Type lazyTypeDefinition = metadataType != null ? typeof(Lazy<,>) : typeof(Lazy<>);
             Type[] lazyTypeArgs = metadataType != null ? new[] { valueType, metadataType } : new[] { valueType };
             Type lazyType = lazyTypeDefinition.MakeGenericType(lazyTypeArgs);
             ExpressionSyntax[] lazyArgs = metadataType == null ? new[] { valueFactory } : new[] { valueFactory, metadata };

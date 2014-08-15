@@ -149,7 +149,7 @@
                 Assembly.Load("System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
                 Assembly.Load("System.Reflection, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
                 Assembly.Load("System.Collections, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a"),
-                typeof(ILazy<>).Assembly,
+                typeof(ComposedPart).Assembly,
                 typeof(Lazy<,>).Assembly,
                 typeof(Enumerable).Assembly,
                 typeof(System.Composition.ExportFactory<>).Assembly,
