@@ -255,7 +255,7 @@
                     var disposableValue = newSharingScope ? scope : constructedValue as IDisposable;
                     return new KeyValuePair<object, IDisposable>(constructedValue, disposableValue);
                 };
-                Type exportFactoryType = import.ExportFactory.Resolve();
+                Type exportFactoryType = import.ImportingSiteTypeWithoutCollection;
                 var exportMetadata = export.Metadata;
 
                 return this.CreateExportFactory(importingSiteElementType, sharingBoundaries, valueFactory, exportFactoryType, exportMetadata);
