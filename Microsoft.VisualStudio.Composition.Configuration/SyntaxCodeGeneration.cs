@@ -1674,15 +1674,7 @@
             {
                 // Since we'll be using reflection to pass in the tuple factory, we have to
                 // explicitly give the lambda a delegate shape or the C# compiler won't know what to do with it.
-                var tupleFactoryDelegate = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName("ReflectionHelpers"),
-                        SyntaxFactory.IdentifierName("CreateFuncOfType")),
-                    SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
-                        SyntaxKind.CommaToken,
-                        SyntaxFactory.Argument(this.GetTypeExpressionSyntax(tupleType, thisExportProvider)),
-                        SyntaxFactory.Argument(tupleFactoryLambda))));
+                var tupleFactoryDelegate = CreateFuncOfType(tupleFactoryLambda, this.GetTypeExpressionSyntax(tupleType, thisExportProvider));
                 exportFactoryCtorArguments.Add(tupleFactoryDelegate);
             }
 
@@ -1696,6 +1688,75 @@
                 import.ExportFactoryType.GetConstructors().Single(),
                 exportFactoryCtorArguments.ToArray(),
                 thisExportProvider);
+        }
+
+        private ExpressionSyntax CreateFuncOfType(ExpressionSyntax funcOfObject, Type returnType, ExpressionSyntax thisExportProvider)
+        {
+            return IsPublic(returnType, true)
+                ? CreateFuncOfType(funcOfObject, this.GetTypeNameSyntax(returnType))
+                : CreateFuncOfType(funcOfObject, this.GetTypeExpressionSyntax(returnType, thisExportProvider));
+        }
+
+        /// <summary>
+        /// Returns a Func{T} expression given a Func{object} expression
+        /// when T is non-public.
+        /// </summary>
+        /// <param name="funcOfObject">The Func{object} expression.</param>
+        /// <param name="returnTypeSyntax">The syntax that produces T as a type (not a type expression). T must be public.</param>
+        private static ExpressionSyntax CreateFuncOfType(ExpressionSyntax funcOfObject, TypeSyntax returnTypeSyntax)
+        {
+            Requires.NotNull(funcOfObject, "funcOfObject");
+            Requires.NotNull(returnTypeSyntax, "returnTypeSyntax");
+
+            ExpressionSyntax valueFactoryInput;
+            if (funcOfObject is ParenthesizedLambdaExpressionSyntax)
+            {
+                // Strip off the lambda to avoid compile errors for trying to directly invoke a lambda.
+                valueFactoryInput = (ExpressionSyntax)((ParenthesizedLambdaExpressionSyntax)funcOfObject).Body;
+            }
+            else
+            {
+                // Invoke the function.
+                valueFactoryInput = SyntaxFactory.InvocationExpression(funcOfObject, SyntaxFactory.ArgumentList());
+            }
+
+            // We must cast the result of the value factory.
+            //   () => (T)(valueFactory())
+            var adaptedValueFactory = SyntaxFactory.ParenthesizedLambdaExpression(
+                SyntaxFactory.CastExpression(returnTypeSyntax, valueFactoryInput));
+
+            // And be sure we actually create a delegate so that when the result goes into a reflection Invoke call,
+            // we don't get a compiler error about the compiler not knowing what type of delegate to create.
+            var funcOfTExpression = SyntaxFactory.ObjectCreationExpression(
+                SyntaxFactory.GenericName("Func").AddTypeArgumentListArguments(returnTypeSyntax),
+                SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(adaptedValueFactory))),
+                null);
+
+            return funcOfTExpression;
+        }
+
+        /// <summary>
+        /// Returns a Func{T} expression given a Func{object} expression
+        /// when T is non-public.
+        /// </summary>
+        /// <param name="funcOfObject">The Func{object} expression.</param>
+        /// <param name="typeExpressionSyntax">The expression that describes the T in Func{T}.</param>
+        private static ExpressionSyntax CreateFuncOfType(ExpressionSyntax funcOfObject, ExpressionSyntax typeExpressionSyntax)
+        {
+            Requires.NotNull(funcOfObject, "funcOfObject");
+            Requires.NotNull(typeExpressionSyntax, "typeExpressionSyntax");
+
+            var funcOfTExpression = SyntaxFactory.InvocationExpression(
+                SyntaxFactory.MemberAccessExpression(
+                    SyntaxKind.SimpleMemberAccessExpression,
+                    SyntaxFactory.IdentifierName("ReflectionHelpers"),
+                    SyntaxFactory.IdentifierName("CreateFuncOfType")),
+                SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                    SyntaxKind.CommaToken,
+                    SyntaxFactory.Argument(typeExpressionSyntax),
+                    SyntaxFactory.Argument(funcOfObject))));
+
+            return funcOfTExpression;
         }
 
         private enum ValueFactoryType
@@ -2125,25 +2186,19 @@
             Requires.NotNull(valueType, "valueType");
             Requires.NotNull(valueFactory, "valueFactory");
 
-            if (valueType != typeof(object))
-            {
-                // We must cast the result of the value factory.
-                //   () => (T)(valueFactory())
-                valueFactory = SyntaxFactory.ParenthesizedLambdaExpression(
-                    SyntaxFactory.CastExpression(
-                        this.GetTypeNameSyntax(valueType),
-                        SyntaxFactory.ParenthesizedExpression(
-                            SyntaxFactory.InvocationExpression(valueFactory, SyntaxFactory.ArgumentList()))));
-            }
-
             Type lazyTypeDefinition = metadataType != null ? typeof(Lazy<,>) : typeof(Lazy<>);
             Type[] lazyTypeArgs = metadataType != null ? new[] { valueType, metadataType } : new[] { valueType };
             Type lazyType = lazyTypeDefinition.MakeGenericType(lazyTypeArgs);
-            ExpressionSyntax[] lazyArgs = metadataType == null ? new[] { valueFactory } : new[] { valueFactory, metadata };
 
             Type[] ctorArgTypes = lazyTypeArgs.ToArray();
             ctorArgTypes[0] = typeof(Func<>).MakeGenericType(ctorArgTypes[0]);
+
+            ExpressionSyntax adaptedValueFactory = valueType != typeof(object)
+                ? CreateFuncOfType(valueFactory, valueType, thisExportProvider)
+                : valueFactory;
+
             var ctor = lazyType.GetConstructor(ctorArgTypes);
+            ExpressionSyntax[] lazyArgs = metadataType == null ? new[] { adaptedValueFactory } : new[] { adaptedValueFactory, metadata };
             var lazyConstruction = this.ObjectCreationExpression(ctor, lazyArgs, thisExportProvider);
             return lazyConstruction;
         }
