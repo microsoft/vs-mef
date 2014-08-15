@@ -235,6 +235,8 @@
             private bool? isLazy;
             private Type importingSiteType;
             private Type importingSiteTypeWithoutCollection;
+            private ParameterInfo importingParameter;
+            private MemberInfo importingMember;
 
             private RuntimeImport(ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, IReadOnlyDictionary<string, object> metadata, TypeRef exportFactory, IReadOnlyCollection<string> exportFactorySharingBoundaries)
             {
@@ -285,6 +287,32 @@
             /// </summary>
             public IReadOnlyCollection<string> ExportFactorySharingBoundaries { get; private set; }
 
+            public MemberInfo ImportingMember
+            {
+                get
+                {
+                    if (this.importingMember == null)
+                    {
+                        this.importingMember = this.ImportingMemberRef.Resolve();
+                    }
+
+                    return this.importingMember;
+                }
+            }
+
+            public ParameterInfo ImportingParameter
+            {
+                get
+                {
+                    if (this.importingParameter == null)
+                    {
+                        this.importingParameter = this.ImportingParameterRef.Resolve();
+                    }
+
+                    return this.importingParameter;
+                }
+            }
+
             public bool IsExportFactory
             {
                 get { return this.ExportFactory != null; }
@@ -311,15 +339,15 @@
                     {
                         if (!this.ImportingParameterRef.IsEmpty)
                         {
-                            this.importingSiteType = this.ImportingParameterRef.Resolve().ParameterType;
+                            this.importingSiteType = this.ImportingParameter.ParameterType;
                         }
                         else if (this.ImportingMemberRef.IsField)
                         {
-                            this.importingSiteType = this.ImportingMemberRef.Field.Resolve().FieldType;
+                            this.importingSiteType = ((FieldInfo)this.ImportingMember).FieldType;
                         }
                         else if (this.ImportingMemberRef.IsProperty)
                         {
-                            this.importingSiteType = this.ImportingMemberRef.Property.Resolve().PropertyType;
+                            this.importingSiteType = ((PropertyInfo)this.ImportingMember).PropertyType;
                         }
                         else
                         {
@@ -408,14 +436,16 @@
 
         public class RuntimeExport : IEquatable<RuntimeExport>
         {
-            public RuntimeExport(string contractName, TypeRef declaringType, MemberRef member, TypeRef exportedValueType, IReadOnlyDictionary<string, object> metadata)
+            private MemberInfo member;
+
+            public RuntimeExport(string contractName, TypeRef declaringType, MemberRef memberRef, TypeRef exportedValueType, IReadOnlyDictionary<string, object> metadata)
             {
                 Requires.NotNull(metadata, "metadata");
                 Requires.NotNullOrEmpty(contractName, "contractName");
 
                 this.ContractName = contractName;
                 this.DeclaringType = declaringType;
-                this.Member = member;
+                this.MemberRef = memberRef;
                 this.ExportedValueType = exportedValueType;
                 this.Metadata = metadata;
             }
@@ -424,11 +454,24 @@
 
             public TypeRef DeclaringType { get; private set; }
 
-            public MemberRef Member { get; private set; }
+            public MemberRef MemberRef { get; private set; }
 
             public TypeRef ExportedValueType { get; private set; }
 
             public IReadOnlyDictionary<string, object> Metadata { get; private set; }
+
+            public MemberInfo Member
+            {
+                get
+                {
+                    if (this.member == null)
+                    {
+                        this.member = this.MemberRef.Resolve();
+                    }
+
+                    return this.member;
+                }
+            }
 
             public override int GetHashCode()
             {
@@ -449,7 +492,7 @@
 
                 bool result = this.ContractName == other.ContractName
                     && EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType)
-                    && EqualityComparer<MemberRef>.Default.Equals(this.Member, other.Member)
+                    && EqualityComparer<MemberRef>.Default.Equals(this.MemberRef, other.MemberRef)
                     && EqualityComparer<TypeRef>.Default.Equals(this.ExportedValueType, other.ExportedValueType)
                     && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata);
                 return result;

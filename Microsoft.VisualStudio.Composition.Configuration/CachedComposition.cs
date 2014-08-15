@@ -128,7 +128,7 @@
                 {
                     this.Write(export.ContractName);
                     this.Write(export.DeclaringType);
-                    this.Write(export.Member);
+                    this.Write(export.MemberRef);
                     this.Write(export.ExportedValueType);
                     this.Write(export.Metadata);
                 }

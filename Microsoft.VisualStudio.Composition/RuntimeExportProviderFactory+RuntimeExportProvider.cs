@@ -44,7 +44,7 @@
                         (ep, provisionalSharedObjects) => this.CreatePart(provisionalSharedObjects, part, importDefinition.Metadata),
                         part.SharingBoundary,
                         !part.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
-                        export.Member.Resolve());
+                        export.Member);
             }
 
             private object CreatePart(Dictionary<TypeRef, object> provisionalSharedObjects, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata)
@@ -91,7 +91,7 @@
                     var value = this.GetValueForImportSite(part, import, provisionalSharedObjects);
                     if (value.ValueShouldBeSet)
                     {
-                        this.SetImportingMember(part, import.ImportingMemberRef.Resolve(), value.Value);
+                        this.SetImportingMember(part, import.ImportingMember, value.Value);
                     }
                 }
 
@@ -150,7 +150,7 @@
                     else
                     {
                         object collectionObject = null;
-                        MemberInfo importingMember = import.ImportingMemberRef.Resolve();
+                        MemberInfo importingMember = import.ImportingMember;
                         if (importingMember != null)
                         {
                             collectionObject = GetImportingMember(part, importingMember);
@@ -283,9 +283,8 @@
                     provisionalSharedObjects,
                     exportingRuntimePart.SharingBoundary,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
-                MemberInfo exportingMember = export.Member.Resolve();
-                Func<object> exportedValue = !export.Member.IsEmpty
-                    ? () => this.GetValueFromMember(exportingMember.IsStatic() ? null : partFactory(), exportingMember, import.ImportingSiteElementType, export.ExportedValueType.Resolve())
+                Func<object> exportedValue = export.Member != null
+                    ? () => this.GetValueFromMember(export.Member.IsStatic() ? null : partFactory(), export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve())
                     : partFactory;
                 return exportedValue;
             }
