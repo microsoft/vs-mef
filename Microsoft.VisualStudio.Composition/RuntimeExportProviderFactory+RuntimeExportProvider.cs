@@ -178,7 +178,7 @@
                             }
                         }
 
-                        var collectionAccessor = new CollectionWrapper(collectionObject, import.ImportingSiteTypeWithoutCollection);
+                        var collectionAccessor = CollectionServices.GetCollectionWrapper(import.ImportingSiteTypeWithoutCollection, collectionObject);
                         if (preexistingInstance)
                         {
                             collectionAccessor.Clear();
@@ -201,45 +201,6 @@
                     }
 
                     return new ValueForImportSite(this.GetValueForImportElement(part, import, export, provisionalSharedObjects));
-                }
-            }
-
-            private struct CollectionWrapper
-            {
-                private readonly object collectionOfT;
-                private readonly MethodInfo addMethod;
-                private readonly MethodInfo clearMethod;
-
-                internal CollectionWrapper(object collectionOfT, Type elementType)
-                {
-                    Requires.NotNull(collectionOfT, "collectionOfT");
-                    this.collectionOfT = collectionOfT;
-                    Type collectionType;
-                    using (var args = ArrayRental<Type>.Get(1))
-                    {
-                        args.Value[0] = elementType;
-                        collectionType = typeof(ICollection<>).MakeGenericType(args.Value);
-                        this.addMethod = collectionType.GetRuntimeMethod("Add", args.Value);
-                    }
-
-                    using (var args = ArrayRental<Type>.Get(0))
-                    {
-                        this.clearMethod = collectionType.GetRuntimeMethod("Clear", args.Value);
-                    }
-                }
-
-                internal void Add(object item)
-                {
-                    using (var args = ArrayRental<object>.Get(1))
-                    {
-                        args.Value[0] = item;
-                        this.addMethod.Invoke(this.collectionOfT, args.Value);
-                    }
-                }
-
-                internal void Clear()
-                {
-                    this.clearMethod.Invoke(this.collectionOfT, EmptyObjectArray);
                 }
             }
 
