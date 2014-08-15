@@ -50,6 +50,8 @@
 
         private static readonly LiteralExpressionSyntax NullSyntax = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
+        private static readonly TypeSyntax FuncOfObjectTypeSyntax = SyntaxFactory.GenericName("Func").AddTypeArgumentListArguments(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)));
+
         private readonly HashSet<Assembly> relevantAssemblies = new HashSet<Assembly>();
 
         private readonly HashSet<Type> relevantEmbeddedTypes = new HashSet<Type>();
@@ -306,7 +308,7 @@
                                 SyntaxFactory.Argument(parentIdentifier),
                                 SyntaxFactory.Argument(freshSharingBoundaries))))))
                 .WithBody(SyntaxFactory.Block(
-                // this.assemblyNames
+                    // this.assemblyNames
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -322,7 +324,7 @@
                                 CodeGen.JoinSyntaxNodes(
                                     SyntaxKind.CommaToken,
                                     this.reflectionLoadedAssemblies.Select(a => GetSyntaxToReconstructValue(a.FullName, SyntaxFactory.ThisExpression())).ToArray()))))),
-                // this.assemblyCodeBasePaths
+                    // this.assemblyCodeBasePaths
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -338,7 +340,7 @@
                                 CodeGen.JoinSyntaxNodes(
                                     SyntaxKind.CommaToken,
                                     this.reflectionLoadedAssemblies.Select(a => GetSyntaxToReconstructValue(a.CodeBase, SyntaxFactory.ThisExpression())).ToArray()))))),
-                // this.cachedManifests = new Module[<#= reflectionLoadedAssemblies.Count #>];
+                    // this.cachedManifests = new Module[<#= reflectionLoadedAssemblies.Count #>];
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -349,7 +351,7 @@
                             this.GetTypeNameSyntax(typeof(Module)),
                             SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
                                 SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(this.reflectionLoadedAssemblies.Count))))))))),
-                // this.typeRefs = new TypeRef[<#= reflectionLoadedTypes.Count #>];
+                    // this.typeRefs = new TypeRef[<#= reflectionLoadedTypes.Count #>];
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -1719,7 +1721,7 @@
                             // new Func<object>(() => value)
                             var lambda = SyntaxFactory.ParenthesizedLambdaExpression(value);
                             return SyntaxFactory.ObjectCreationExpression(
-                                SyntaxFactory.GenericName("Func").AddTypeArgumentListArguments(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))),
+                                FuncOfObjectTypeSyntax,
                                 SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(lambda))),
                                 null);
                         default:
@@ -1734,8 +1736,8 @@
                         case ValueFactoryType.LazyOfT:
                             return value;
                         case ValueFactoryType.FuncOfObject:
-                            // value.ValueFactory;
-                            return SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, value, SyntaxFactory.IdentifierName("ValueFactory"));
+                            // () => value.Value;
+                            return SyntaxFactory.ParenthesizedLambdaExpression(SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, value, SyntaxFactory.IdentifierName("Value")));
                         default:
                             throw new ArgumentOutOfRangeException("target");
                     }
@@ -1829,10 +1831,11 @@
                 if (!export.IsStaticExport && !export.PartDefinition.IsInstantiable)
                 {
                     // Don't bother with code for generating a part we can't access. Just emit code to throw.
-                    exportedValueSyntax = SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        SyntaxFactory.IdentifierName("NotInstantiablePartLazy"),
-                        SyntaxFactory.IdentifierName("ValueFactory"));
+                    exportedValueSyntax = SyntaxFactory.ParenthesizedLambdaExpression(
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName("NotInstantiablePartLazy"),
+                            SyntaxFactory.IdentifierName("Value")));
                 }
 
                 var lazyExportedValueSyntax = CreateLazyConstruction(
@@ -2328,13 +2331,18 @@
             {
                 // Special case for our synthesized part that acts as a placeholder for *this* export provider.
                 // this.NonDisposableWrapper
-                return SyntaxFactory.MemberAccessExpression(
-                    SyntaxKind.SimpleMemberAccessExpression,
-                    SyntaxFactory.MemberAccessExpression(
-                        SyntaxKind.SimpleMemberAccessExpression,
-                        scopeExportProvider,
-                        SyntaxFactory.IdentifierName("NonDisposableWrapper")),
-                    SyntaxFactory.IdentifierName("ValueFactory"));
+                return SyntaxFactory.ObjectCreationExpression(
+                    FuncOfObjectTypeSyntax,
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(
+                        SyntaxFactory.ParenthesizedLambdaExpression(
+                            SyntaxFactory.MemberAccessExpression(
+                                SyntaxKind.SimpleMemberAccessExpression,
+                                SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    scopeExportProvider,
+                                    SyntaxFactory.IdentifierName("NonDisposableWrapper")),
+                                SyntaxFactory.IdentifierName("Value")))))),
+                    null);
             }
 
             Type partType = typeArgs.Count == 0 ? partDefinition.Type : partDefinition.Type.MakeGenericType(typeArgs.ToArray());

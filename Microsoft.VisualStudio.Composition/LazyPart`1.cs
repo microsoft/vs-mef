@@ -17,10 +17,5 @@
             : this(() => (T)valueFactory())
         {
         }
-
-        public Func<T> ValueFactory
-        {
-            get { return () => this.Value; }
-        }
     }
 }

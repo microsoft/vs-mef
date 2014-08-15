@@ -476,7 +476,7 @@
                 ILazy<System.Object> lazyResult;
                 if (this.TryGetSharedInstanceFactory(partSharingBoundary, partTypeRef, out lazyResult))
                 {
-                    return lazyResult.ValueFactory;
+                    return () => lazyResult.Value;
                 }
             }
 
@@ -486,7 +486,7 @@
             {
                 ILazy<System.Object> lazyResult = new LazyPart<object>(result);
                 lazyResult = this.GetOrAddSharedInstanceFactory(partSharingBoundary, partTypeRef, lazyResult);
-                result = lazyResult.ValueFactory;
+                result = () => lazyResult.Value;
             }
 
             return result;

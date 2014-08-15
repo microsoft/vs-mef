@@ -17,10 +17,5 @@
             : base(() => (T)valueFactory(), metadata, true)
         {
         }
-
-        public Func<T> ValueFactory
-        {
-            get { return () => this.Value; }
-        }
     }
 }

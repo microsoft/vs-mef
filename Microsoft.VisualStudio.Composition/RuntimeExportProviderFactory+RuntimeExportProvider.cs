@@ -283,7 +283,7 @@
                 // Special case importing of ExportProvider
                 if (exportingRuntimePart.Type.Equals(ExportProvider.ExportProviderPartDefinition.Type))
                 {
-                    return this.NonDisposableWrapper.ValueFactory;
+                    return () => this.NonDisposableWrapper.Value;
                 }
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
