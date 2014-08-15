@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public class LazyPart<T, TMetadata> : Lazy<T, TMetadata>, ILazy<T, TMetadata>, IHasValueAndMetadata
+    public class LazyPart<T, TMetadata> : Lazy<T, TMetadata>, ILazy<T, TMetadata>
     {
         public LazyPart(Func<T> valueFactory, TMetadata metadata)
             : base(valueFactory, metadata, true)
@@ -21,16 +21,6 @@
         public Func<T> ValueFactory
         {
             get { return () => this.Value; }
-        }
-
-        object IHasValueAndMetadata.Value
-        {
-            get { return this.Value; }
-        }
-
-        IReadOnlyDictionary<string, object> IHasValueAndMetadata.Metadata
-        {
-            get { return (IReadOnlyDictionary<string, object>)this.Metadata; }
         }
     }
 }
