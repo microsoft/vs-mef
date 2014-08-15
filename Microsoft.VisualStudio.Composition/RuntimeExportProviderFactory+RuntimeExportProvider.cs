@@ -63,7 +63,7 @@
                 var constructedPartType = GetPartConstructedTypeRef(partDefinition, importMetadata);
                 var ctorArgs = partDefinition.ImportingConstructorArguments
                     .Select(import => GetValueForImportSite(null, import, provisionalSharedObjects).Value).ToArray();
-                ConstructorInfo importingConstructor = partDefinition.ImportingConstructor.Resolve();
+                ConstructorInfo importingConstructor = partDefinition.ImportingConstructor;
                 if (importingConstructor.ContainsGenericParameters)
                 {
                     // TODO: fix this to find the precise match, including cases where the matching constructor includes a generic type parameter.

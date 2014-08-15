@@ -166,14 +166,14 @@
 
                 this.Write(part.Type);
                 this.Write(part.Exports, this.Write);
-                if (part.ImportingConstructor.IsEmpty)
+                if (part.ImportingConstructorRef.IsEmpty)
                 {
                     writer.Write(false);
                 }
                 else
                 {
                     writer.Write(true);
-                    this.Write(part.ImportingConstructor);
+                    this.Write(part.ImportingConstructorRef);
                     this.Write(part.ImportingConstructorArguments, this.Write);
                 }
 

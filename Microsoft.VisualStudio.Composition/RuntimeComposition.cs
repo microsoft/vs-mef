@@ -162,6 +162,7 @@
 
         public class RuntimePart : IEquatable<RuntimePart>
         {
+            private ConstructorInfo importingConstructor;
             private MethodInfo onImportsSatisfied;
 
             public RuntimePart(
@@ -174,7 +175,7 @@
                 string sharingBoundary)
             {
                 this.Type = type;
-                this.ImportingConstructor = importingConstructor;
+                this.ImportingConstructorRef = importingConstructor;
                 this.ImportingConstructorArguments = importingConstructorArguments;
                 this.ImportingMembers = importingMembers;
                 this.Exports = exports;
@@ -184,7 +185,7 @@
 
             public TypeRef Type { get; private set; }
 
-            public ConstructorRef ImportingConstructor { get; private set; }
+            public ConstructorRef ImportingConstructorRef { get; private set; }
 
             public IReadOnlyList<RuntimeImport> ImportingConstructorArguments { get; private set; }
 
@@ -203,7 +204,20 @@
 
             public bool IsInstantiable
             {
-                get { return !this.ImportingConstructor.IsEmpty; }
+                get { return !this.ImportingConstructorRef.IsEmpty; }
+            }
+
+            public ConstructorInfo ImportingConstructor
+            {
+                get
+                {
+                    if (this.importingConstructor == null)
+                    {
+                        this.importingConstructor = this.ImportingConstructorRef.Resolve();
+                    }
+
+                    return this.importingConstructor;
+                }
             }
 
             public MethodInfo OnImportsSatisfied
@@ -237,7 +251,7 @@
                 }
 
                 bool result = this.Type.Equals(other.Type)
-                    && this.ImportingConstructor.Equals(other.ImportingConstructor)
+                    && this.ImportingConstructorRef.Equals(other.ImportingConstructorRef)
                     && this.ImportingConstructorArguments.SequenceEqual(other.ImportingConstructorArguments)
                     && ByValueEquality.EquivalentIgnoreOrder<RuntimeImport>().Equals(this.ImportingMembers, other.ImportingMembers)
                     && ByValueEquality.EquivalentIgnoreOrder<RuntimeExport>().Equals(this.Exports, other.Exports)
