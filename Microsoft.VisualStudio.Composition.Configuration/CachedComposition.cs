@@ -178,7 +178,7 @@
                 }
 
                 this.Write(part.ImportingMembers, this.Write);
-                this.Write(part.OnImportsSatisfied);
+                this.Write(part.OnImportsSatisfiedRef);
                 this.Write(part.SharingBoundary);
             }
 

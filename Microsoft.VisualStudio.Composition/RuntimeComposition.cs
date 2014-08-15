@@ -162,6 +162,8 @@
 
         public class RuntimePart : IEquatable<RuntimePart>
         {
+            private MethodInfo onImportsSatisfied;
+
             public RuntimePart(
                 TypeRef type,
                 ConstructorRef importingConstructor,
@@ -176,7 +178,7 @@
                 this.ImportingConstructorArguments = importingConstructorArguments;
                 this.ImportingMembers = importingMembers;
                 this.Exports = exports;
-                this.OnImportsSatisfied = onImportsSatisfied;
+                this.OnImportsSatisfiedRef = onImportsSatisfied;
                 this.SharingBoundary = sharingBoundary;
             }
 
@@ -190,7 +192,7 @@
 
             public IReadOnlyList<RuntimeExport> Exports { get; set; }
 
-            public MethodRef OnImportsSatisfied { get; private set; }
+            public MethodRef OnImportsSatisfiedRef { get; private set; }
 
             public string SharingBoundary { get; private set; }
 
@@ -202,6 +204,19 @@
             public bool IsInstantiable
             {
                 get { return !this.ImportingConstructor.IsEmpty; }
+            }
+
+            public MethodInfo OnImportsSatisfied
+            {
+                get
+                {
+                    if (this.onImportsSatisfied == null)
+                    {
+                        this.onImportsSatisfied = this.OnImportsSatisfiedRef.Resolve();
+                    }
+
+                    return this.onImportsSatisfied;
+                }
             }
 
             public override bool Equals(object obj)
@@ -226,7 +241,7 @@
                     && this.ImportingConstructorArguments.SequenceEqual(other.ImportingConstructorArguments)
                     && ByValueEquality.EquivalentIgnoreOrder<RuntimeImport>().Equals(this.ImportingMembers, other.ImportingMembers)
                     && ByValueEquality.EquivalentIgnoreOrder<RuntimeExport>().Equals(this.Exports, other.Exports)
-                    && this.OnImportsSatisfied.Equals(other.OnImportsSatisfied)
+                    && this.OnImportsSatisfiedRef.Equals(other.OnImportsSatisfiedRef)
                     && this.SharingBoundary == other.SharingBoundary;
                 return result;
             }

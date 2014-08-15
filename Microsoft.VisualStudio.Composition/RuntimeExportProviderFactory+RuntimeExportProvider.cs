@@ -95,9 +95,9 @@
                     }
                 }
 
-                if (!partDefinition.OnImportsSatisfied.IsEmpty)
+                if (partDefinition.OnImportsSatisfied != null)
                 {
-                    partDefinition.OnImportsSatisfied.Resolve().Invoke(part, EmptyObjectArray);
+                    partDefinition.OnImportsSatisfied.Invoke(part, EmptyObjectArray);
                 }
 
                 return part;
