@@ -2125,6 +2125,17 @@
             Requires.NotNull(valueType, "valueType");
             Requires.NotNull(valueFactory, "valueFactory");
 
+            if (valueType != typeof(object))
+            {
+                // We must cast the result of the value factory.
+                //   () => (T)(valueFactory())
+                valueFactory = SyntaxFactory.ParenthesizedLambdaExpression(
+                    SyntaxFactory.CastExpression(
+                        this.GetTypeNameSyntax(valueType),
+                        SyntaxFactory.ParenthesizedExpression(
+                            SyntaxFactory.InvocationExpression(valueFactory, SyntaxFactory.ArgumentList()))));
+            }
+
             Type lazyTypeDefinition = metadataType != null ? typeof(Lazy<,>) : typeof(Lazy<>);
             Type[] lazyTypeArgs = metadataType != null ? new[] { valueType, metadataType } : new[] { valueType };
             Type lazyType = lazyTypeDefinition.MakeGenericType(lazyTypeArgs);
