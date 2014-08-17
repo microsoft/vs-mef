@@ -105,6 +105,9 @@
     <Compile Include="..\Microsoft.VisualStudio.Composition\CompressedUInt.cs">
       <Link>CompressedUInt.cs</Link>
     </Compile>
+    <Compile Include="..\Microsoft.VisualStudio.Composition\DelegateServices.cs">
+      <Link>DelegateServices.cs</Link>
+    </Compile>
     <Compile Include="..\Microsoft.VisualStudio.Composition\LazyServices.cs">
       <Link>LazyServices.cs</Link>
     </Compile>
@@ -129,6 +132,7 @@
     <Compile Include="CustomAttributeDataRefTests.cs" />
     <Compile Include="DataFileCacheAndReloadTests.cs" />
     <Compile Include="CompiledCacheAndReloadTests.cs" />
+    <Compile Include="DelegateServicesTests.cs" />
     <Compile Include="DelegatingExportProviderTests.cs" />
     <Compile Include="DynamicImportTests.cs" />
     <Compile Include="EmbeddableTypesTests.cs" />

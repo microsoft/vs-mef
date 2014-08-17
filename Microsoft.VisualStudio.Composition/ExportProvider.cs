@@ -121,7 +121,7 @@
             }
 
             var nonDisposableWrapper = (this as ExportProviderAsExport) ?? new ExportProviderAsExport(this);
-            this.NonDisposableWrapper = LazyServices.FromValue<object>(nonDisposableWrapper);
+            this.NonDisposableWrapper = new Lazy<object>(DelegateServices.FromValue((object)nonDisposableWrapper), LazyThreadSafetyMode.PublicationOnly);
             this.NonDisposableWrapperExportAsListOfOne = ImmutableList.Create(
                 new Export(ExportProviderExportDefinition, this.NonDisposableWrapper));
             this.metadataViewProviders = new Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>>(
@@ -473,13 +473,13 @@
                 object provisionalObject;
                 if (this.TryGetProvisionalSharedExport(provisionalSharedObjects, partTypeRef, out provisionalObject))
                 {
-                    return () => provisionalObject;
+                    return DelegateServices.FromValue(provisionalObject);
                 }
 
                 Lazy<object> lazyResult;
                 if (this.TryGetSharedInstanceFactory(partSharingBoundary, partTypeRef, out lazyResult))
                 {
-                    return () => lazyResult.Value;
+                    return lazyResult.AsFunc();
                 }
             }
 
@@ -489,7 +489,7 @@
             {
                 var lazyResult = new Lazy<object>(result);
                 lazyResult = this.GetOrAddSharedInstanceFactory(partSharingBoundary, partTypeRef, lazyResult);
-                result = () => lazyResult.Value;
+                result = lazyResult.AsFunc();
             }
 
             return result;
@@ -649,6 +649,7 @@
             var importMetadata = PartDiscovery.GetImportMetadataForGenericTypeImport(typeof(T));
             var importDefinition = new ImportDefinition(contractName, cardinality, importMetadata, constraints);
             IEnumerable<Export> results = this.GetExports(importDefinition);
+
             return results.Select(result => new Lazy<T, TMetadataView>(
                 () => (T)result.Value,
                 (TMetadataView)metadataViewProvider.CreateProxy(

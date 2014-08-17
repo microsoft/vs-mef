@@ -10,58 +10,6 @@
     public class LazyServicesTests
     {
         [Fact]
-        public void FromValueOfObject()
-        {
-            object expectedValue = new object();
-            Lazy<object> lazy = LazyServices.FromValue(expectedValue);
-            Assert.Same(expectedValue, lazy.Value);
-        }
-
-        [Fact]
-        public void FromValueOfObjectWithMetadata()
-        {
-            int metadata = 5;
-            object expectedValue = new object();
-            Lazy<object, int> lazy = LazyServices.FromValue(expectedValue, metadata);
-            Assert.Equal(metadata, lazy.Metadata);
-            Assert.Same(expectedValue, lazy.Value);
-        }
-
-        [Fact]
-        public void FromValueOfT()
-        {
-            string expectedValue = "hi";
-            Lazy<string> lazy = LazyServices.FromValue(expectedValue);
-            Assert.Same(expectedValue, lazy.Value);
-        }
-
-        [Fact]
-        public void FromValueOfTWithMetadata()
-        {
-            int metadata = 5;
-            string expectedValue = "hi";
-            Lazy<string, int> lazy = LazyServices.FromValue(expectedValue, metadata);
-            Assert.Equal(metadata, lazy.Metadata);
-            Assert.Same(expectedValue, lazy.Value);
-        }
-
-        [Fact]
-        public void FromFactory()
-        {
-            Lazy<string> lazy = LazyServices.FromFactory(v => v + "ha!", "Ha");
-            Assert.Equal("Haha!", lazy.Value);
-        }
-
-        [Fact]
-        public void FromFactoryWithMetadata()
-        {
-            int metadata = 5;
-            Lazy<string, int> lazy = LazyServices.FromFactory(v => v + "ha!", "Ha", metadata);
-            Assert.Equal(metadata, lazy.Metadata);
-            Assert.Equal("Haha!", lazy.Value);
-        }
-
-        [Fact]
         public void IsAnyLazyType()
         {
             Assert.True(typeof(Lazy<string>).IsAnyLazyType());
