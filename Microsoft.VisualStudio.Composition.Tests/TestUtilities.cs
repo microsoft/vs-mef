@@ -315,14 +315,14 @@
 
         internal class V1ContainerWrapper : IContainer
         {
-            private readonly DebuggableCompositionContainer container;
+            private readonly MefV1.Hosting.CompositionContainer container;
 
-            internal DebuggableCompositionContainer Container
+            internal MefV1.Hosting.CompositionContainer Container
             {
                 get { return container; }
             }
 
-            internal V1ContainerWrapper(DebuggableCompositionContainer container)
+            internal V1ContainerWrapper(MefV1.Hosting.CompositionContainer container)
             {
                 Requires.NotNull(container, "container");
                 this.container = container;
