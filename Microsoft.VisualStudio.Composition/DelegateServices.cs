@@ -26,7 +26,7 @@
     internal static class DelegateServices
     {
         private static readonly Dictionary<Type, MethodInfo> closedReturnTValues = new Dictionary<Type, MethodInfo>();
-
+        private static readonly ConstructorInfo FuncOfObjectCtor = typeof(Func<object>).GetConstructors().Single();
         private static readonly MethodInfo returnObjectValue = typeof(DelegateServices).GetMethod("ReturnObjectValue", BindingFlags.NonPublic | BindingFlags.Static);
         private static readonly MethodInfo returnTValue = typeof(DelegateServices).GetMethod("ReturnTValue", BindingFlags.NonPublic | BindingFlags.Static);
 
@@ -38,7 +38,12 @@
         /// <returns>The lazy instance.</returns>
         internal static Func<object> FromValue(object value)
         {
-            return (Func<object>)Delegate.CreateDelegate(typeof(Func<object>), value, returnObjectValue);
+            using (var args = ArrayRental<object>.Get(2))
+            {
+                args.Value[0] = value;
+                args.Value[1] = returnObjectValue.MethodHandle.GetFunctionPointer();
+                return (Func<object>)FuncOfObjectCtor.Invoke(args.Value);
+            }
         }
 
         /// <summary>
@@ -50,7 +55,13 @@
         internal static Func<T> FromValue<T>(T value)
         {
             MethodInfo returnTValueClosed = GetFromValueGenericFactoryMethod<T>();
-            return (Func<T>)Delegate.CreateDelegate(typeof(Func<T>), value, returnTValueClosed);
+
+            using (var args = ArrayRental<object>.Get(2))
+            {
+                args.Value[0] = value;
+                args.Value[1] = returnTValueClosed.MethodHandle.GetFunctionPointer();
+                return (Func<T>)Helper<T>.FuncOfTCtor.Invoke(args.Value);
+            }
         }
 
         /// <summary>
@@ -67,7 +78,12 @@
             Requires.NotNull(function, "function");
             Requires.Argument(function.Target == null, "function", "Only static methods or delegates without closures are allowed.");
 
-            return (Func<T>)Delegate.CreateDelegate(typeof(Func<T>), arg, function.Method);
+            using (var args = ArrayRental<object>.Get(2))
+            {
+                args.Value[0] = arg;
+                args.Value[1] = function.Method.MethodHandle.GetFunctionPointer();
+                return (Func<T>)Helper<T>.FuncOfTCtor.Invoke(args.Value);
+            }
         }
 
         private static MethodInfo GetFromValueGenericFactoryMethod<T>()
@@ -102,6 +118,15 @@
         private static T ReturnTValue<T>(T value)
         {
             return value;
+        }
+
+        /// <summary>
+        /// A class that caches the results of generic type args in an inexpensive way.
+        /// </summary>
+        /// <typeparam name="T">The generic type argument used in the cached values.</typeparam>
+        private static class Helper<T>
+        {
+            internal static readonly ConstructorInfo FuncOfTCtor = typeof(Func<T>).GetConstructors().Single();
         }
     }
 }
