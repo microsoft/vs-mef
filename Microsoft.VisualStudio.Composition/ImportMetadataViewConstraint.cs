@@ -4,34 +4,61 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.ComponentModel;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
-    public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint
+    public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
-        private readonly ImmutableDictionary<string, MetadatumRequirement> metadataNamesAndTypes;
+        private static readonly ImportMetadataViewConstraint EmptyInstance = new ImportMetadataViewConstraint(ImmutableDictionary<string, MetadatumRequirement>.Empty);
 
-        public ImportMetadataViewConstraint(Type metadataView)
-            : this(GetRequiredMetadata(metadataView))
-        {
-        }
-
-        private ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> metadataNamesAndTypes)
+        public ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> metadataNamesAndTypes)
         {
             Requires.NotNull(metadataNamesAndTypes, "metadataNamesAndTypes");
 
-            this.metadataNamesAndTypes = ImmutableDictionary.CreateRange(metadataNamesAndTypes);
+            this.Requirements = ImmutableDictionary.CreateRange(metadataNamesAndTypes);
+        }
+
+        public ImmutableDictionary<string, MetadatumRequirement> Requirements { get; private set; }
+
+        /// <summary>
+        /// Creates a constraint for the specified metadata type.
+        /// </summary>
+        /// <param name="metadataTypeRef">The metadata type.</param>
+        /// <returns>A constraint to match the metadata type.</returns>
+        public static ImportMetadataViewConstraint GetConstraint(TypeRef metadataTypeRef)
+        {
+            if (metadataTypeRef == null)
+            {
+                return EmptyInstance;
+            }
+
+            var requirements = GetRequiredMetadata(metadataTypeRef);
+            if (requirements.IsEmpty)
+            {
+                return EmptyInstance;
+            }
+
+            return new ImportMetadataViewConstraint(requirements);
         }
 
         public bool IsSatisfiedBy(ExportDefinition exportDefinition)
         {
             Requires.NotNull(exportDefinition, "exportDefinition");
 
-            foreach (var entry in this.metadataNamesAndTypes)
+            // Fast path since immutable dictionaries are slow to enumerate.
+            if (this.Requirements.IsEmpty)
             {
+                return true;
+            }
+
+            foreach (var entry in this.Requirements)
+            {
+                Type metadatumValueType = entry.Value.MetadatumValueType.Resolve();
                 object value;
                 if (!exportDefinition.Metadata.TryGetValue(entry.Key, out value))
                 {
@@ -48,7 +75,7 @@
 
                 if (value == null)
                 {
-                    if (entry.Value.MetadatumValueType.GetTypeInfo().IsValueType)
+                    if (metadatumValueType.GetTypeInfo().IsValueType)
                     {
                         // A null reference for a value type is not a compatible match.
                         return false;
@@ -60,10 +87,10 @@
                     }
                 }
 
-                if (typeof(object[]).IsEquivalentTo(value.GetType()) && (entry.Value.MetadatumValueType.IsArray || (entry.Value.MetadatumValueType.GetTypeInfo().IsGenericType && typeof(IEnumerable<>).GetTypeInfo().IsAssignableFrom(entry.Value.MetadatumValueType.GetTypeInfo().GetGenericTypeDefinition().GetTypeInfo()))))
+                if (typeof(object[]).IsEquivalentTo(value.GetType()) && (entry.Value.MetadatumValueType.IsArray || (metadatumValueType.GetTypeInfo().IsGenericType && typeof(IEnumerable<>).GetTypeInfo().IsAssignableFrom(metadatumValueType.GetTypeInfo().GetGenericTypeDefinition().GetTypeInfo()))))
                 {
                     // When ExportMetadata(IsMultiple=true), the value is an object[]. Check that each individual value is assignable.
-                    var receivingElementType = PartDiscovery.GetElementTypeFromMany(entry.Value.MetadatumValueType).GetTypeInfo();
+                    var receivingElementType = PartDiscovery.GetElementTypeFromMany(metadatumValueType).GetTypeInfo();
                     foreach (object item in (object[])value)
                     {
                         if (item == null)
@@ -90,7 +117,7 @@
                     continue;
                 }
 
-                if (!entry.Value.MetadatumValueType.GetTypeInfo().IsAssignableFrom(value.GetType().GetTypeInfo()))
+                if (!metadatumValueType.GetTypeInfo().IsAssignableFrom(value.GetType().GetTypeInfo()))
                 {
                     return false;
                 }
@@ -99,18 +126,28 @@
             return true;
         }
 
-        private static ImmutableDictionary<string, MetadatumRequirement> GetRequiredMetadata(Type metadataView)
+        public void ToString(TextWriter writer)
         {
-            Requires.NotNull(metadataView, "metadataView");
+            var indentingWriter = IndentingTextWriter.Get(writer);
+            foreach (var requirement in this.Requirements)
+            {
+                indentingWriter.WriteLine("{0} = {1} (required: {2})", requirement.Key, ReflectionHelpers.GetTypeName(requirement.Value.MetadatumValueType.Resolve(), false, true, null, null), requirement.Value.IsMetadataumValueRequired);
+            }
+        }
 
-            if (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>)))
+        private static ImmutableDictionary<string, MetadatumRequirement> GetRequiredMetadata(TypeRef metadataViewRef)
+        {
+            Requires.NotNull(metadataViewRef, "metadataViewRef");
+
+            var metadataView = metadataViewRef.Resolve();
+            if (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>)) && !metadataView.Equals(typeof(IReadOnlyDictionary<string, object>)))
             {
                 var requiredMetadata = ImmutableDictionary.CreateBuilder<string, MetadatumRequirement>();
 
                 foreach (var property in metadataView.EnumProperties().WherePublicInstance())
                 {
-                    bool required = property.GetCustomAttribute<DefaultValueAttribute>() == null;
-                    requiredMetadata.Add(property.Name, new MetadatumRequirement(property.PropertyType, required));
+                    bool required = !property.GetCustomAttributesCached<DefaultValueAttribute>().Any();
+                    requiredMetadata.Add(property.Name, new MetadatumRequirement(TypeRef.Get(ReflectionHelpers.GetMemberType(property)), required));
                 }
 
                 return requiredMetadata.ToImmutable();
@@ -119,16 +156,16 @@
             return ImmutableDictionary<string, MetadatumRequirement>.Empty;
         }
 
-        private struct MetadatumRequirement
+        public struct MetadatumRequirement
         {
-            internal MetadatumRequirement(Type valueType, bool required)
+            public MetadatumRequirement(TypeRef valueType, bool required)
                 : this()
             {
                 this.MetadatumValueType = valueType;
                 this.IsMetadataumValueRequired = required;
             }
 
-            public Type MetadatumValueType { get; private set; }
+            public TypeRef MetadatumValueType { get; private set; }
 
             public bool IsMetadataumValueRequired { get; private set; }
         }

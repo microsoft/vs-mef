@@ -66,17 +66,15 @@
         {
             Requires.NotNull(catalog, "catalog");
 
-            ValidateIndividualParts(catalog.Parts);
-
             // We consider all the parts in the catalog, plus the specially synthesized one
             // so that folks can import the ExportProvider itself.
-            catalog = catalog.WithPart(ExportProvider.ExportProviderPartDefinition);
+            var customizedCatalog = catalog.WithPart(ExportProvider.ExportProviderPartDefinition);
 
             // Construct our part builders, initialized with all their imports satisfied.
             var partBuilders = new Dictionary<ComposablePartDefinition, PartBuilder>();
-            foreach (ComposablePartDefinition partDefinition in catalog.Parts)
+            foreach (ComposablePartDefinition partDefinition in customizedCatalog.Parts)
             {
-                var satisfyingImports = partDefinition.Imports.ToImmutableDictionary(i => i, i => catalog.GetExports(i.ImportDefinition));
+                var satisfyingImports = partDefinition.Imports.ToImmutableDictionary(i => i, i => customizedCatalog.GetExports(i.ImportDefinition));
                 partBuilders.Add(partDefinition, new PartBuilder(partDefinition, satisfyingImports));
             }
 
@@ -155,14 +153,10 @@
             return Create(ComposableCatalog.Create(parts));
         }
 
-        public static IExportProviderFactory Load(AssemblyName assemblyRef)
+        public IExportProviderFactory CreateExportProviderFactory()
         {
-            return new CompiledExportProviderFactory(Assembly.Load(assemblyRef));
-        }
-
-        public static IExportProviderFactory Load(Assembly assembly)
-        {
-            return new CompiledExportProviderFactory(assembly);
+            var composition = RuntimeComposition.CreateRuntimeComposition(this);
+            return new RuntimeExportProviderFactory(composition);
         }
 
         public CompositionConfiguration WithReferenceAssemblies(ImmutableHashSet<Assembly> additionalReferenceAssemblies)
@@ -210,8 +204,11 @@
             return new CompositionConfiguration(this.Catalog, this.Parts, this.CompositionErrors.Push(errors), this.effectiveSharingBoundaryOverrides);
         }
 
-        private static bool IsLoopPresent(ImmutableHashSet<ComposedPart> parts)
+        private static bool IsLoopPresent(IEnumerable<ComposedPart> parts)
         {
+            Requires.NotNull(parts, "parts");
+
+            var partByPartDefinition = parts.ToDictionary(p => p.Definition);
             var partsAndDirectImports = new Dictionary<ComposedPart, ImmutableHashSet<ComposedPart>>();
 
             // First create a map of each NonShared part and the NonShared parts it directly imports.
@@ -219,7 +216,7 @@
             {
                 var directlyImportedParts = (from exportList in part.SatisfyingExports.Values
                                              from export in exportList
-                                             let exportingPart = parts.Single(p => p.Definition == export.PartDefinition)
+                                             let exportingPart = partByPartDefinition[export.PartDefinition]
                                              where !exportingPart.Definition.IsShared
                                              select exportingPart).ToImmutableHashSet();
                 partsAndDirectImports.Add(part, directlyImportedParts);
@@ -264,18 +261,6 @@
             }
 
             return false;
-        }
-
-        private static void ValidateIndividualParts(IImmutableSet<ComposablePartDefinition> parts)
-        {
-            Requires.NotNull(parts, "parts");
-            var partsExportingExportProvider = parts
-                .Remove(ExportProvider.ExportProviderPartDefinition)
-                .Where(p => p.ExportDefinitions.Any(ed => ExportDefinitionPracticallyEqual.Default.Equals(ExportProvider.ExportProviderExportDefinition, ed.Value)));
-            if (partsExportingExportProvider.Any())
-            {
-                throw new CompositionFailedException();
-            }
         }
 
         /// <summary>
@@ -381,24 +366,6 @@
             }
 
             return dgml;
-        }
-
-        private class CompiledExportProviderFactory : IExportProviderFactory
-        {
-            private Func<ExportProvider> createFactory;
-
-            internal CompiledExportProviderFactory(Assembly assembly)
-            {
-                Requires.NotNull(assembly, "assembly");
-
-                var exportFactoryType = assembly.GetType("CompiledExportProvider");
-                this.createFactory = () => (ExportProvider)Activator.CreateInstance(exportFactoryType);
-            }
-
-            public ExportProvider CreateExportProvider()
-            {
-                return this.createFactory();
-            }
         }
 
         [DebuggerDisplay("{PartDefinition.Type.Name}")]
@@ -525,7 +492,7 @@
             }
         }
 
-        private class ExportDefinitionPracticallyEqual : IEqualityComparer<ExportDefinition>
+        internal class ExportDefinitionPracticallyEqual : IEqualityComparer<ExportDefinition>
         {
             private ExportDefinitionPracticallyEqual() { }
 

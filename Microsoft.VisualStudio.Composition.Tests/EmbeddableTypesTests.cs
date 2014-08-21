@@ -56,17 +56,6 @@
         }
 
         [MefFact(
-            CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2,
-            typeof(PartThatImportsILazyOfEmbeddedType),
-            typeof(PartThatExportsEmbeddedType))]
-        public void CovariantEmbeddedGenericTypeArgument(IContainer container)
-        {
-            var exporter = container.GetExportedValue<TEmbedded>();
-            var importer = container.GetExportedValue<PartThatImportsILazyOfEmbeddedType>();
-            Assert.Same(exporter, importer.RetargetProjectNoLazy);
-        }
-
-        [MefFact(
             CompositionEngines.V1Compat,
             typeof(PartThatImportsLazyOfEmbeddedTypeNonPublic),
             typeof(PartThatExportsEmbeddedType))]

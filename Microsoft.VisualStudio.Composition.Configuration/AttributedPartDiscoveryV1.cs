@@ -9,22 +9,31 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
     using MefV1 = System.ComponentModel.Composition;
 
     public class AttributedPartDiscoveryV1 : PartDiscovery
     {
-        public override ComposablePartDefinition CreatePart(Type partType)
+        protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
         {
             Requires.NotNull(partType, "partType");
 
-            if (partType.IsAbstract)
+            // We want to ignore abstract classes, but we want to consider static classes.
+            // Static classes claim to be both abstract and sealed. So to ignore just abstract
+            // ones, we check that they are not sealed.
+            if (partType.IsAbstract && !partType.IsSealed)
+            {
+                return null;
+            }
+
+            if (!typeExplicitlyRequested && partType.GetCustomAttributesCached<PartNotDiscoverableAttribute>().Any())
             {
                 return null;
             }
 
             var partCreationPolicy = CreationPolicy.Any;
-            var partCreationPolicyAttribute = partType.GetCustomAttribute<PartCreationPolicyAttribute>();
+            var partCreationPolicyAttribute = partType.GetCustomAttributesCached<PartCreationPolicyAttribute>().FirstOrDefault();
             if (partCreationPolicyAttribute != null)
             {
                 partCreationPolicy = (CreationPolicy)partCreationPolicyAttribute.CreationPolicy;
@@ -34,12 +43,12 @@
 
             var inheritedExportContractNamesFromNonInterfaces = ImmutableHashSet.CreateBuilder<string>();
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
-            var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberInfo, IReadOnlyList<ExportDefinition>>();
+            var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberRef, IReadOnlyCollection<ExportDefinition>>();
             var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
 
             foreach (var exportAttributes in partType.GetCustomAttributesByType<ExportAttribute>())
             {
-                var exportMetadataOnType = allExportsMetadata.AddRange(GetExportMetadata(exportAttributes.Key.GetCustomAttributes()));
+                var exportMetadataOnType = allExportsMetadata.AddRange(GetExportMetadata(exportAttributes.Key.GetCustomAttributesCached()));
                 foreach (var exportAttribute in exportAttributes)
                 {
                     if (exportAttributes.Key != partType && !(exportAttribute is InheritedExportAttribute))
@@ -81,22 +90,22 @@
             {
                 var property = member as PropertyInfo;
                 var field = member as FieldInfo;
-                var propertyOrFieldType = property != null ? property.PropertyType : field.FieldType;
-                var importAttribute = member.GetCustomAttribute<ImportAttribute>(inherit: false);
-                var importManyAttribute = member.GetCustomAttribute<ImportManyAttribute>(inherit: false);
-                var exportAttributes = member.GetCustomAttributes<ExportAttribute>(inherit: false);
+                var propertyOrFieldType = ReflectionHelpers.GetMemberType(member);
+                var importAttribute = member.GetCustomAttributesCached<ImportAttribute>().FirstOrDefault();
+                var importManyAttribute = member.GetCustomAttributesCached<ImportManyAttribute>().FirstOrDefault();
+                var exportAttributes = member.GetCustomAttributesCached<ExportAttribute>();
                 Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", "Member \"{0}\" contains both ImportAttribute and ImportManyAttribute.", member.Name);
                 Requires.Argument(!(exportAttributes.Any() && (importAttribute != null || importManyAttribute != null)), "partType", "Member \"{0}\" contains both import and export attributes.", member.Name);
 
                 ImportDefinition importDefinition;
-                if (TryCreateImportDefinition(propertyOrFieldType, member.GetCustomAttributes(inherit: false).OfType<Attribute>(), out importDefinition))
+                if (TryCreateImportDefinition(propertyOrFieldType, member.GetCustomAttributesCached(), out importDefinition))
                 {
-                    imports.Add(new ImportDefinitionBinding(importDefinition, partType, member));
+                    imports.Add(new ImportDefinitionBinding(importDefinition, TypeRef.Get(partType), MemberRef.Get(member)));
                 }
                 else if (exportAttributes.Any())
                 {
                     Verify.Operation(!partType.IsGenericTypeDefinition, "Exports on members not allowed when the declaring type is generic.");
-                    var exportMetadataOnMember = allExportsMetadata.AddRange(GetExportMetadata(member.GetCustomAttributes()));
+                    var exportMetadataOnMember = allExportsMetadata.AddRange(GetExportMetadata(member.GetCustomAttributesCached()));
                     var exportDefinitions = ImmutableList.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
@@ -108,20 +117,20 @@
                         exportDefinitions = exportDefinitions.Add(exportDefinition);
                     }
 
-                    exportsOnMembers.Add(member, exportDefinitions);
+                    exportsOnMembers.Add(MemberRef.Get(member), exportDefinitions);
                 }
             }
 
             foreach (var method in partType.GetMethods(flags))
             {
-                var exportAttributes = method.GetCustomAttributes<ExportAttribute>();
+                var exportAttributes = method.GetCustomAttributesCached<ExportAttribute>();
                 if (exportAttributes.Any())
                 {
-                    var exportMetadataOnMember = allExportsMetadata.AddRange(GetExportMetadata(method.GetCustomAttributes()));
+                    var exportMetadataOnMember = allExportsMetadata.AddRange(GetExportMetadata(method.GetCustomAttributesCached()));
                     var exportDefinitions = ImmutableList.Create<ExportDefinition>();
                     foreach (var exportAttribute in exportAttributes)
                     {
-                        Type exportedType = exportAttribute.ContractType ?? ExportDefinitionBinding.GetContractTypeForDelegate(method);
+                        Type exportedType = exportAttribute.ContractType ?? ReflectionHelpers.GetContractTypeForDelegate(method);
                         string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
                         var exportMetadata = exportMetadataOnMember
                             .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
@@ -129,7 +138,7 @@
                         exportDefinitions = exportDefinitions.Add(exportDefinition);
                     }
 
-                    exportsOnMembers.Add(method, exportDefinitions);
+                    exportsOnMembers.Add(MemberRef.Get(method), exportDefinitions);
                 }
             }
 
@@ -142,12 +151,12 @@
             if (exportsOnMembers.Count > 0 || exportsOnType.Count > 0)
             {
                 var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
-                var importingCtor = GetImportingConstructor(partType, typeof(ImportingConstructorAttribute), publicOnly: false);
+                var importingCtor = GetImportingConstructor<ImportingConstructorAttribute>(partType, publicOnly: false);
                 if (importingCtor != null) // some parts have exports merely for metadata -- they can't be instantiated
                 {
                     foreach (var parameter in importingCtor.GetParameters())
                     {
-                        var import = CreateImport(parameter, parameter.GetCustomAttributes());
+                        var import = CreateImport(parameter, parameter.GetCustomAttributesCached());
                         if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
                         {
                             Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(import), "Collection must be public with a public constructor when used with an [ImportingConstructor].");
@@ -158,13 +167,15 @@
                 }
 
                 return new ComposablePartDefinition(
-                    partType,
+                    TypeRef.Get(partType),
                     exportsOnType.ToImmutable(),
                     exportsOnMembers.ToImmutable(),
                     imports.ToImmutable(),
-                    onImportsSatisfied,
+                    partCreationPolicy != CreationPolicy.NonShared ? string.Empty : null,
+                    MethodRef.Get(onImportsSatisfied),
                     importingCtor != null ? importingConstructorParameters.ToImmutable() : null, // some MEF parts are only for metadata
-                    partCreationPolicy);
+                    partCreationPolicy,
+                    partCreationPolicy != Composition.CreationPolicy.NonShared);
             }
             else
             {
@@ -190,25 +201,7 @@
         {
             Requires.NotNull(assembly, "assembly");
 
-            try
-            {
-                return assembly.GetTypes().Where(type =>
-                    {
-                        object customAttribute = null;
-                        try
-                        {
-                            customAttribute = type.GetCustomAttribute<PartNotDiscoverableAttribute>();
-                        }
-                        catch (Exception)
-                        {
-                        }
-                        return customAttribute == null;
-                    });
-            }
-            catch (Exception)
-            {
-                return ImmutableList<Type>.Empty;
-            }
+            return assembly.GetTypes();
         }
 
         private static bool TryCreateImportDefinition(Type importingType, IEnumerable<Attribute> attributes, out ImportDefinition importDefinition)
@@ -277,7 +270,7 @@
                 Assumes.True(TryCreateImportDefinition(parameter.ParameterType, attributes.Concat(new Attribute[] { new ImportAttribute() }), out definition));
             }
 
-            return new ImportDefinitionBinding(definition, parameter.Member.DeclaringType, parameter);
+            return new ImportDefinitionBinding(definition, TypeRef.Get(parameter.Member.DeclaringType), ParameterRef.Get(parameter));
         }
 
         private static IReadOnlyDictionary<string, object> GetExportMetadata(IEnumerable<Attribute> attributes)
@@ -299,15 +292,15 @@
                         result.Add(exportMetadataAttribute.Name, exportMetadataAttribute.Value);
                     }
                 }
-                else if (attribute.GetType().GetCustomAttribute<MetadataAttributeAttribute>() != null)
+                else if (attribute.GetType().EnumTypeAndBaseTypes().Any(t => t.GetCustomAttributesCached<MetadataAttributeAttribute>().Any()))
                 {
-                    var usage = attribute.GetType().GetCustomAttribute<AttributeUsageAttribute>();
+                    var usage = ReflectionHelpers.GetAttributeUsage(attribute.GetType());
                     var properties = attribute.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
                     foreach (var property in properties.Where(p => p.DeclaringType != typeof(Attribute)))
                     {
                         if (usage != null && usage.AllowMultiple)
                         {
-                            result[property.Name] = AddElement(result.GetValueOrDefault(property.Name) as Array, property.GetValue(attribute), property.PropertyType);
+                            result[property.Name] = AddElement(result.GetValueOrDefault(property.Name) as Array, property.GetValue(attribute), ReflectionHelpers.GetMemberType(property));
                         }
                         else
                         {

@@ -1,0 +1,19 @@
+﻿namespace Microsoft.VisualStudio.Composition.Reflection
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+
+    public class ConstructorDesc : MemberDesc
+    {
+        public ConstructorDesc(ConstructorRef constructor, string name, bool isStatic)
+            : base(name, isStatic)
+        {
+            this.Constructor = constructor;
+        }
+
+        public ConstructorRef Constructor { get; private set; }
+    }
+}

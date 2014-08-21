@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -91,8 +92,37 @@
                 return false;
             }
 
-            return this.ContractName == other.ContractName
+            bool result = this.ContractName == other.ContractName
                 && this.Cardinality == other.Cardinality;
+            return result;
+        }
+
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+
+            indentingWriter.WriteLine("ContractName: {0}", this.ContractName);
+            indentingWriter.WriteLine("Cardinality: {0}", this.Cardinality);
+            indentingWriter.WriteLine("Metadata:");
+            using (indentingWriter.Indent())
+            {
+                this.Metadata.ToString(indentingWriter);
+            }
+
+            indentingWriter.WriteLine("ExportFactorySharingBoundaries: {0}", string.Join(", ", this.ExportFactorySharingBoundaries));
+
+            indentingWriter.WriteLine("ExportConstraints: ");
+            using (indentingWriter.Indent())
+            {
+                foreach (var item in this.ExportConstraints.OrderBy(ec => ec.GetType().Name))
+                {
+                    indentingWriter.WriteLine(item.GetType().Name);
+                    using (indentingWriter.Indent())
+                    {
+                        item.ToString(indentingWriter);
+                    }
+                }
+            }
         }
     }
 }

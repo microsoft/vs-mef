@@ -20,29 +20,34 @@
         /// <summary>
         /// Microsoft.VisualStudio.Composition, with the catalog created by reading System.Composition MEF attributes.
         /// </summary>
-        V3EmulatingV2 = 0x4,
+        V3EmulatingV2 = 0x0100,
 
         /// <summary>
         /// Microsoft.VisualStudio.Composition, with the catalog created by reading System.ComponentModel.Composition MEF attributes.
         /// </summary>
-        V3EmulatingV1 = 0x8 | V3NonPublicSupport,
+        V3EmulatingV1 = 0x0200 | V3NonPublicSupport,
 
         /// <summary>
         /// Microsoft.VisualStudio.Composition, with the catalog created by reading both
         /// System.ComponentModel.Composition and System.Composition MEF attributes.
         /// </summary>
-        V3EmulatingV1AndV2AtOnce = 0x10,
+        V3EmulatingV1AndV2AtOnce = 0x0400,
 
         /// <summary>
         /// Indicates that non-publics will be reflected over.
         /// </summary>
-        V3NonPublicSupport = 0x100,
+        V3NonPublicSupport = 0x1000,
 
         /// <summary>
         /// Suppress the test harness's call to <see cref="CompositionConfiguration.ThrowOnErrors"/>
         /// after constructing the configuration.
         /// </summary>
-        V3AllowConfigurationWithErrors = 0x200,
+        V3AllowConfigurationWithErrors = 0x2000,
+
+        /// <summary>
+        /// Suppress running the test through the code gen component. Use only the "runtime".
+        /// </summary>
+        V3SkipCodeGenScenario = 0x4000,
 
         /// <summary>
         /// The test is run both against System.ComponentModel.Composition and Microsoft.VisualStudio.Composition,
@@ -61,9 +66,11 @@
         /// </summary>
         V3EmulatingV2WithNonPublic = V3EmulatingV2 | V3NonPublicSupport,
 
+        V3EnginesMask = 0x0F00,
+
         /// <summary>
         /// The bit mask for options sent to the V3 engine.
         /// </summary>
-        V3OptionsMask = 0xF00,
+        V3OptionsMask = 0xF000,
     }
 }

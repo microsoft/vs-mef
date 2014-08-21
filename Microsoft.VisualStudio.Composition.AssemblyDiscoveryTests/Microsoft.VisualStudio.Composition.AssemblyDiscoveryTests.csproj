@@ -67,12 +67,22 @@
     <Compile Include="DiscoverablePart2.cs" />
     <Compile Include="ISomeInterface.cs" />
     <Compile Include="NestedPart.cs" />
+    <Compile Include="NonDiscoverablePartV2.cs" />
+    <Compile Include="NonDiscoverablePartV1.cs" />
     <Compile Include="NonDiscoverablePart.cs" />
     <Compile Include="NonPart.cs" />
+    <Compile Include="TypeWithMissingAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.MissingAssemblyTests\Microsoft.VisualStudio.Composition.MissingAssemblyTests.csproj">
+      <Project>{635a4876-52ba-47c7-874c-8dfb125c020a}</Project>
+      <Name>Microsoft.VisualStudio.Composition.MissingAssemblyTests</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

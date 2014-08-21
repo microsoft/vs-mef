@@ -1,0 +1,527 @@
+﻿namespace Microsoft.VisualStudio.Composition
+{
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.Immutable;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Reflection;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
+    using Validation;
+
+    public class RuntimeComposition : IEquatable<RuntimeComposition>
+    {
+        private readonly ImmutableHashSet<RuntimePart> parts;
+        private readonly IReadOnlyDictionary<TypeRef, RuntimePart> partsByType;
+        private readonly IReadOnlyDictionary<string, IReadOnlyCollection<RuntimeExport>> exportsByContractName;
+
+        private RuntimeComposition(IEnumerable<RuntimePart> parts)
+        {
+            Requires.NotNull(parts, "parts");
+
+            this.parts = ImmutableHashSet.CreateRange(parts);
+            this.partsByType = this.parts.ToDictionary(p => p.Type);
+
+            var exports =
+                from part in this.parts
+                where part.IsInstantiable // TODO: why are we limiting these to instantiable ones? Why not make static exports available?
+                from export in part.Exports
+                group export by export.ContractName into exportsByContract
+                select exportsByContract;
+            this.exportsByContractName = exports.ToDictionary(
+                e => e.Key,
+                e => (IReadOnlyCollection<RuntimeExport>)e.ToImmutableArray());
+        }
+
+        public IReadOnlyCollection<RuntimePart> Parts
+        {
+            get { return this.parts; }
+        }
+
+        public static RuntimeComposition CreateRuntimeComposition(CompositionConfiguration configuration)
+        {
+            Requires.NotNull(configuration, "configuration");
+
+            // TODO: create all RuntimeExports first, and then reuse them at each import site.
+            var parts = configuration.Parts.Select(part => CreateRuntimePart(part, configuration));
+            return new RuntimeComposition(parts);
+        }
+
+        public static RuntimeComposition CreateRuntimeComposition(IEnumerable<RuntimePart> parts)
+        {
+            return new RuntimeComposition(parts);
+        }
+
+        public IExportProviderFactory CreateExportProviderFactory()
+        {
+            return new RuntimeExportProviderFactory(this);
+        }
+
+        public IReadOnlyCollection<RuntimeExport> GetExports(string contractName)
+        {
+            IReadOnlyCollection<RuntimeExport> exports;
+            if (this.exportsByContractName.TryGetValue(contractName, out exports))
+            {
+                return exports;
+            }
+
+            return ImmutableList<RuntimeExport>.Empty;
+        }
+
+        public RuntimePart GetPart(RuntimeExport export)
+        {
+            return this.partsByType[export.DeclaringType];
+        }
+
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as RuntimeComposition);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = this.parts.Count;
+            foreach (var part in this.parts)
+            {
+                hashCode += part.GetHashCode();
+            }
+
+            return hashCode;
+        }
+
+        public bool Equals(RuntimeComposition other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            return this.parts.SetEquals(other.parts);
+        }
+
+        private static RuntimePart CreateRuntimePart(ComposedPart part, CompositionConfiguration configuration)
+        {
+            Requires.NotNull(part, "part");
+
+            var runtimePart = new RuntimePart(
+                TypeRef.Get(part.Definition.Type),
+                part.Definition.ImportingConstructorInfo != null ? new ConstructorRef(part.Definition.ImportingConstructorInfo) : default(ConstructorRef),
+                part.GetImportingConstructorImports().Select(kvp => CreateRuntimeImport(kvp.Key, kvp.Value)).ToImmutableArray(),
+                part.Definition.ImportingMembers.Select(idb => CreateRuntimeImport(idb, part.SatisfyingExports[idb])).ToImmutableArray(),
+                part.Definition.ExportDefinitions.Select(ed => CreateRuntimeExport(ed.Value, part.Definition.Type, ed.Key)).ToImmutableArray(),
+                part.Definition.OnImportsSatisfied != null ? new MethodRef(part.Definition.OnImportsSatisfied) : new MethodRef(),
+                part.Definition.IsShared ? configuration.GetEffectiveSharingBoundary(part.Definition) : null);
+            return runtimePart;
+        }
+
+        private static RuntimeImport CreateRuntimeImport(ImportDefinitionBinding importDefinitionBinding, IReadOnlyList<ExportDefinitionBinding> satisfyingExports)
+        {
+            Requires.NotNull(importDefinitionBinding, "importDefinitionBinding");
+            Requires.NotNull(satisfyingExports, "satisfyingExports");
+
+            var runtimeExports = satisfyingExports.Select(export => CreateRuntimeExport(export.ExportDefinition, export.PartDefinition.Type, MemberRef.Get(export.ExportingMember))).ToImmutableArray();
+            if (importDefinitionBinding.ImportingMember != null)
+            {
+                return new RuntimeImport(
+                    new MemberRef(importDefinitionBinding.ImportingMember),
+                    importDefinitionBinding.ImportingSiteTypeRef,
+                    importDefinitionBinding.ImportDefinition.Cardinality,
+                    runtimeExports,
+                    PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinitionBinding.ImportDefinition),
+                    importDefinitionBinding.IsExportFactory,
+                    importDefinitionBinding.ImportDefinition.Metadata,
+                    importDefinitionBinding.ImportDefinition.ExportFactorySharingBoundaries);
+            }
+            else
+            {
+                return new RuntimeImport(
+                    new ParameterRef(importDefinitionBinding.ImportingParameter),
+                    importDefinitionBinding.ImportingSiteTypeRef,
+                    importDefinitionBinding.ImportDefinition.Cardinality,
+                    runtimeExports,
+                    PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinitionBinding.ImportDefinition),
+                    importDefinitionBinding.IsExportFactory,
+                    importDefinitionBinding.ImportDefinition.Metadata,
+                    importDefinitionBinding.ImportDefinition.ExportFactorySharingBoundaries);
+            }
+        }
+
+        private static RuntimeExport CreateRuntimeExport(ExportDefinition exportDefinition, Type partType, MemberRef exportingMember)
+        {
+            Requires.NotNull(exportDefinition, "exportDefinition");
+
+            return new RuntimeExport(
+                exportDefinition.ContractName,
+                TypeRef.Get(partType),
+                exportingMember,
+                TypeRef.Get(ReflectionHelpers.GetExportedValueType(partType, exportingMember.Resolve())),
+                exportDefinition.Metadata);
+        }
+
+        public class RuntimePart : IEquatable<RuntimePart>
+        {
+            private ConstructorInfo importingConstructor;
+            private MethodInfo onImportsSatisfied;
+
+            public RuntimePart(
+                TypeRef type,
+                ConstructorRef importingConstructor,
+                IReadOnlyList<RuntimeImport> importingConstructorArguments,
+                IReadOnlyList<RuntimeImport> importingMembers,
+                IReadOnlyList<RuntimeExport> exports,
+                MethodRef onImportsSatisfied,
+                string sharingBoundary)
+            {
+                this.Type = type;
+                this.ImportingConstructorRef = importingConstructor;
+                this.ImportingConstructorArguments = importingConstructorArguments;
+                this.ImportingMembers = importingMembers;
+                this.Exports = exports;
+                this.OnImportsSatisfiedRef = onImportsSatisfied;
+                this.SharingBoundary = sharingBoundary;
+            }
+
+            public TypeRef Type { get; private set; }
+
+            public ConstructorRef ImportingConstructorRef { get; private set; }
+
+            public IReadOnlyList<RuntimeImport> ImportingConstructorArguments { get; private set; }
+
+            public IReadOnlyList<RuntimeImport> ImportingMembers { get; private set; }
+
+            public IReadOnlyList<RuntimeExport> Exports { get; set; }
+
+            public MethodRef OnImportsSatisfiedRef { get; private set; }
+
+            public string SharingBoundary { get; private set; }
+
+            public bool IsShared
+            {
+                get { return this.SharingBoundary != null; }
+            }
+
+            public bool IsInstantiable
+            {
+                get { return !this.ImportingConstructorRef.IsEmpty; }
+            }
+
+            public ConstructorInfo ImportingConstructor
+            {
+                get
+                {
+                    if (this.importingConstructor == null)
+                    {
+                        this.importingConstructor = this.ImportingConstructorRef.Resolve();
+                    }
+
+                    return this.importingConstructor;
+                }
+            }
+
+            public MethodInfo OnImportsSatisfied
+            {
+                get
+                {
+                    if (this.onImportsSatisfied == null)
+                    {
+                        this.onImportsSatisfied = this.OnImportsSatisfiedRef.Resolve();
+                    }
+
+                    return this.onImportsSatisfied;
+                }
+            }
+
+            public override bool Equals(object obj)
+            {
+                return this.Equals(obj as RuntimePart);
+            }
+
+            public override int GetHashCode()
+            {
+                return this.Type.GetHashCode();
+            }
+
+            public bool Equals(RuntimePart other)
+            {
+                if (other == null)
+                {
+                    return false;
+                }
+
+                bool result = this.Type.Equals(other.Type)
+                    && this.ImportingConstructorRef.Equals(other.ImportingConstructorRef)
+                    && this.ImportingConstructorArguments.SequenceEqual(other.ImportingConstructorArguments)
+                    && ByValueEquality.EquivalentIgnoreOrder<RuntimeImport>().Equals(this.ImportingMembers, other.ImportingMembers)
+                    && ByValueEquality.EquivalentIgnoreOrder<RuntimeExport>().Equals(this.Exports, other.Exports)
+                    && this.OnImportsSatisfiedRef.Equals(other.OnImportsSatisfiedRef)
+                    && this.SharingBoundary == other.SharingBoundary;
+                return result;
+            }
+        }
+
+        public class RuntimeImport : IEquatable<RuntimeImport>
+        {
+            private bool? isLazy;
+            private Type importingSiteType;
+            private Type importingSiteTypeWithoutCollection;
+            private ParameterInfo importingParameter;
+            private MemberInfo importingMember;
+
+            private RuntimeImport(TypeRef importingSiteTypeRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
+            {
+                Requires.NotNull(importingSiteTypeRef, "importingSiteTypeRef");
+                Requires.NotNull(satisfyingExports, "satisfyingExports");
+
+                this.Cardinality = cardinality;
+                this.SatisfyingExports = satisfyingExports;
+                this.IsNonSharedInstanceRequired = isNonSharedInstanceRequired;
+                this.IsExportFactory = isExportFactory;
+                this.Metadata = metadata;
+                this.ImportingSiteTypeRef = importingSiteTypeRef;
+                this.ExportFactorySharingBoundaries = exportFactorySharingBoundaries;
+            }
+
+            public RuntimeImport(MemberRef importingMember, TypeRef importingSiteTypeRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
+                : this(importingSiteTypeRef, cardinality, satisfyingExports, isNonSharedInstanceRequired, isExportFactory, metadata, exportFactorySharingBoundaries)
+            {
+                this.ImportingMemberRef = importingMember;
+            }
+
+            public RuntimeImport(ParameterRef importingParameter, TypeRef importingSiteTypeRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
+                : this(importingSiteTypeRef, cardinality, satisfyingExports, isNonSharedInstanceRequired, isExportFactory, metadata, exportFactorySharingBoundaries)
+            {
+                this.ImportingParameterRef = importingParameter;
+            }
+
+            /// <summary>
+            /// Gets the importing member. May be empty if the import site is an importing constructor parameter.
+            /// </summary>
+            public MemberRef ImportingMemberRef { get; private set; }
+
+            /// <summary>
+            /// Gets the importing parameter. May be empty if the import site is an importing field or property.
+            /// </summary>
+            public ParameterRef ImportingParameterRef { get; private set; }
+
+            public TypeRef ImportingSiteTypeRef { get; private set; }
+
+            public ImportCardinality Cardinality { get; private set; }
+
+            public IReadOnlyCollection<RuntimeExport> SatisfyingExports { get; private set; }
+
+            public bool IsExportFactory { get; private set; }
+
+            public bool IsNonSharedInstanceRequired { get; private set; }
+
+            public IReadOnlyDictionary<string, object> Metadata { get; private set; }
+
+            public Type ExportFactory
+            {
+                get
+                {
+                    return this.IsExportFactory
+                        ? this.ImportingSiteTypeWithoutCollection
+                        : null;
+                }
+            }
+
+            /// <summary>
+            /// Gets the sharing boundaries created when the export factory is used.
+            /// </summary>
+            public IReadOnlyCollection<string> ExportFactorySharingBoundaries { get; private set; }
+
+            public MemberInfo ImportingMember
+            {
+                get
+                {
+                    if (this.importingMember == null)
+                    {
+                        this.importingMember = this.ImportingMemberRef.Resolve();
+                    }
+
+                    return this.importingMember;
+                }
+            }
+
+            public ParameterInfo ImportingParameter
+            {
+                get
+                {
+                    if (this.importingParameter == null)
+                    {
+                        this.importingParameter = this.ImportingParameterRef.Resolve();
+                    }
+
+                    return this.importingParameter;
+                }
+            }
+
+            public bool IsLazy
+            {
+                get
+                {
+                    if (!this.isLazy.HasValue)
+                    {
+                        this.isLazy = this.ImportingSiteTypeWithoutCollection.IsAnyLazyType();
+                    }
+
+                    return this.isLazy.Value;
+                }
+            }
+
+            public Type ImportingSiteType
+            {
+                get
+                {
+                    if (this.importingSiteType == null)
+                    {
+                        this.importingSiteType = this.ImportingSiteTypeRef.Resolve();
+                    }
+
+                    return this.importingSiteType;
+                }
+            }
+
+            public Type ImportingSiteTypeWithoutCollection
+            {
+                get
+                {
+                    if (this.importingSiteTypeWithoutCollection == null)
+                    {
+                        this.importingSiteTypeWithoutCollection = this.Cardinality == ImportCardinality.ZeroOrMore
+                            ? PartDiscovery.GetElementTypeFromMany(this.ImportingSiteType)
+                            : this.ImportingSiteType;
+                    }
+
+                    return this.importingSiteTypeWithoutCollection;
+                }
+            }
+
+            /// <summary>
+            /// Gets the type of the member, with the ImportMany collection and Lazy/ExportFactory stripped off, when present.
+            /// </summary>
+            public Type ImportingSiteElementType
+            {
+                get
+                {
+                    return PartDiscovery.GetTypeIdentityFromImportingType(this.ImportingSiteType, this.Cardinality == ImportCardinality.ZeroOrMore);
+                }
+            }
+
+            public Type MetadataType
+            {
+                get
+                {
+                    return this.ImportingSiteTypeWithoutCollection.IsGenericType && this.ImportingSiteTypeWithoutCollection.GetGenericTypeDefinition() == typeof(Lazy<,>)
+                        ? this.ImportingSiteTypeWithoutCollection.GenericTypeArguments[1]
+                        : null;
+                }
+            }
+
+            public TypeRef DeclaringType
+            {
+                get
+                {
+                    return
+                        this.ImportingParameterRef.IsEmpty ? this.ImportingMemberRef.DeclaringType :
+                        this.ImportingParameterRef.DeclaringType;
+                }
+            }
+
+            public override int GetHashCode()
+            {
+                return this.ImportingMemberRef.GetHashCode();
+            }
+
+            public override bool Equals(object obj)
+            {
+                return this.Equals(obj as RuntimeImport);
+            }
+
+            public bool Equals(RuntimeImport other)
+            {
+                if (other == null)
+                {
+                    return false;
+                }
+
+                bool result = EqualityComparer<TypeRef>.Default.Equals(this.ImportingSiteTypeRef, other.ImportingSiteTypeRef)
+                    && this.Cardinality == other.Cardinality
+                    && ByValueEquality.EquivalentIgnoreOrder<RuntimeExport>().Equals(this.SatisfyingExports, other.SatisfyingExports)
+                    && this.IsNonSharedInstanceRequired == other.IsNonSharedInstanceRequired
+                    && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata)
+                    && ByValueEquality.EquivalentIgnoreOrder<string>().Equals(this.ExportFactorySharingBoundaries, other.ExportFactorySharingBoundaries)
+                    && this.ImportingMemberRef.Equals(other.ImportingMemberRef)
+                    && this.ImportingParameterRef.Equals(other.ImportingParameterRef);
+                return result;
+            }
+        }
+
+        public class RuntimeExport : IEquatable<RuntimeExport>
+        {
+            private MemberInfo member;
+
+            public RuntimeExport(string contractName, TypeRef declaringType, MemberRef memberRef, TypeRef exportedValueType, IReadOnlyDictionary<string, object> metadata)
+            {
+                Requires.NotNull(metadata, "metadata");
+                Requires.NotNullOrEmpty(contractName, "contractName");
+
+                this.ContractName = contractName;
+                this.DeclaringType = declaringType;
+                this.MemberRef = memberRef;
+                this.ExportedValueType = exportedValueType;
+                this.Metadata = metadata;
+            }
+
+            public string ContractName { get; private set; }
+
+            public TypeRef DeclaringType { get; private set; }
+
+            public MemberRef MemberRef { get; private set; }
+
+            public TypeRef ExportedValueType { get; private set; }
+
+            public IReadOnlyDictionary<string, object> Metadata { get; private set; }
+
+            public MemberInfo Member
+            {
+                get
+                {
+                    if (this.member == null)
+                    {
+                        this.member = this.MemberRef.Resolve();
+                    }
+
+                    return this.member;
+                }
+            }
+
+            public override int GetHashCode()
+            {
+                return this.ContractName.GetHashCode() + this.DeclaringType.GetHashCode();
+            }
+
+            public override bool Equals(object obj)
+            {
+                return this.Equals(obj as RuntimeExport);
+            }
+
+            public bool Equals(RuntimeExport other)
+            {
+                if (other == null)
+                {
+                    return false;
+                }
+
+                bool result = this.ContractName == other.ContractName
+                    && EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType)
+                    && EqualityComparer<MemberRef>.Default.Equals(this.MemberRef, other.MemberRef)
+                    && EqualityComparer<TypeRef>.Default.Equals(this.ExportedValueType, other.ExportedValueType)
+                    && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata);
+                return result;
+            }
+        }
+    }
+}

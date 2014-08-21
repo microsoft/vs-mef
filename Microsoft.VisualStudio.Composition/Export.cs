@@ -11,14 +11,19 @@
 
     public class Export
     {
-        private readonly ILazy<object> exportedValueGetter;
+        private readonly Lazy<object> exportedValueGetter;
 
         public Export(string contractName, IReadOnlyDictionary<string, object> metadata, Func<object> exportedValueGetter)
-            : this(new ExportDefinition(contractName, metadata), new LazyPart<object>(exportedValueGetter))
+            : this(new ExportDefinition(contractName, metadata), exportedValueGetter)
         {
         }
 
-        public Export(ExportDefinition definition, ILazy<object> exportedValueGetter)
+        public Export(ExportDefinition definition, Func<object> exportedValueGetter)
+            : this(definition, new Lazy<object>(exportedValueGetter))
+        {
+        }
+
+        public Export(ExportDefinition definition, Lazy<object> exportedValueGetter)
         {
             Requires.NotNull(definition, "definition");
             Requires.NotNull(exportedValueGetter, "exportedValueGetter");
@@ -46,22 +51,6 @@
         public object Value
         {
             get { return this.exportedValueGetter.Value; }
-        }
-
-        internal Export CloseGenericExport(Type[] genericTypeArguments)
-        {
-            Requires.NotNull(genericTypeArguments, "genericTypeArguments");
-
-            string openGenericExportTypeIdentity = (string)this.Metadata[CompositionConstants.ExportTypeIdentityMetadataName];
-            string genericTypeDefinitionIdentityPattern = openGenericExportTypeIdentity;
-            string[] genericTypeArgumentIdentities = genericTypeArguments.Select(ContractNameServices.GetTypeIdentity).ToArray();
-            string closedTypeIdentity = string.Format(CultureInfo.InvariantCulture, genericTypeDefinitionIdentityPattern, genericTypeArgumentIdentities);
-            var metadata = ImmutableDictionary.CreateRange(this.Metadata).SetItem(CompositionConstants.ExportTypeIdentityMetadataName, closedTypeIdentity);
-
-            string contractName = this.Definition.ContractName == openGenericExportTypeIdentity
-                ? closedTypeIdentity : this.Definition.ContractName;
-
-            return new Export(new ExportDefinition(contractName, metadata), this.exportedValueGetter);
         }
     }
 }

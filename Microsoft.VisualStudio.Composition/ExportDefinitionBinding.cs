@@ -10,7 +10,7 @@
     using System.Threading.Tasks;
     using Validation;
 
-    public class ExportDefinitionBinding
+    public class ExportDefinitionBinding : IEquatable<ExportDefinitionBinding>
     {
         public ExportDefinitionBinding(ExportDefinition exportDefinition, ComposablePartDefinition partDefinition, MemberInfo exportingMember)
         {
@@ -24,6 +24,10 @@
 
         public ExportDefinition ExportDefinition { get; private set; }
 
+        // TODO: remove this member, perhaps in favor of just a property of type System.Type,
+        // so that ComposablePartDefinition can contain a collection of ExportDefinitionBinding
+        // instead of just ExportDefinition in a dictionary.
+        // This would make it parallel to ImportDefinitionBinding.
         public ComposablePartDefinition PartDefinition { get; private set; }
 
         /// <summary>
@@ -41,57 +45,7 @@
 
         public Type ExportedValueType
         {
-            get
-            {
-                if (this.ExportingMember == null)
-                {
-                    return this.PartDefinition.Type;
-                }
-
-                var exportingField = this.ExportingMember as FieldInfo;
-                if (exportingField != null)
-                {
-                    return exportingField.FieldType;
-                }
-
-                var exportingProperty = this.ExportingMember as PropertyInfo;
-                if (exportingProperty != null)
-                {
-                    return exportingProperty.PropertyType;
-                }
-
-                var exportingMethod = this.ExportingMember as MethodInfo;
-                if (exportingMethod != null)
-                {
-                    return GetContractTypeForDelegate(exportingMethod);
-                }
-
-                throw new NotSupportedException();
-            }
-        }
-
-        internal static Type GetContractTypeForDelegate(MethodInfo method)
-        {
-            Type genericTypeDefinition;
-            int parametersCount = method.GetParameters().Length;
-            var typeArguments = method.GetParameters().Select(p => p.ParameterType).ToList();
-            var voidResult = method.ReturnType.Equals(typeof(void));
-            if (voidResult)
-            {
-                if (typeArguments.Count == 0)
-                {
-                    return typeof(Action);
-                }
-
-                genericTypeDefinition = Type.GetType("System.Action`" + typeArguments.Count);
-            }
-            else
-            {
-                typeArguments.Add(method.ReturnType);
-                genericTypeDefinition = Type.GetType("System.Func`" + typeArguments.Count);
-            }
-
-            return genericTypeDefinition.MakeGenericType(typeArguments.ToArray());
+            get { return ReflectionHelpers.GetExportedValueType(this.PartDefinition.Type, this.ExportingMember); }
         }
 
         internal ExportDefinitionBinding CloseGenericExport(Type[] genericTypeArguments)
@@ -108,6 +62,30 @@
                 new ExportDefinition(this.ExportDefinition.ContractName, updatedMetadata),
                 this.PartDefinition,
                 this.ExportingMember);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as ExportDefinitionBinding);
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = this.PartDefinition.Type.GetHashCode();
+            if (this.ExportingMember != null)
+            {
+                hashCode += this.ExportingMember.GetHashCode();
+            }
+
+            return hashCode;
+        }
+
+        public bool Equals(ExportDefinitionBinding other)
+        {
+            bool result = this.PartDefinition.Type == other.PartDefinition.Type
+                && this.ExportDefinition.Equals(other.ExportDefinition)
+                && this.ExportingMember == other.ExportingMember;
+            return result;
         }
     }
 }

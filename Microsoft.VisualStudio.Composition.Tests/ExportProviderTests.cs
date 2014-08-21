@@ -24,6 +24,14 @@
                 ImmutableDictionary<string, object>.Empty,
                 ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty);
             IEnumerable<Export> exports = exportProvider.GetExports(importDefinition);
+
+            // Verify the re-enumeration does not recreate the objects.
+            Assert.Same(exports.Single(), exports.Single());
+
+            // Verify that getting the exported value returns the same value every time.
+            Assert.Same(exports.Single().Value, exports.Single().Value);
+
+            // Verify that the value isn't null.
             var otherPart2 = exports.Single().Value;
             Assert.NotNull(otherPart2);
         }
@@ -36,7 +44,7 @@
             Assert.NotNull(export.Value);
         }
 
-        [MefFact(CompositionEngines.V1/*Compat | CompositionEngines.V3EmulatingV2*/, typeof(SomeOtherPart))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
         public void GetExportWithMetadataView(IContainer container)
         {
             var export = container.GetExport<SomeOtherPart, SomeOtherPartMetadataView>();
@@ -44,7 +52,7 @@
             Assert.NotNull(export.Value);
         }
 
-        [MefFact(CompositionEngines.V1/*Compat | CompositionEngines.V3EmulatingV2*/, typeof(SomeOtherPart))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
         public void GetExportWithFilteringMetadataView(IContainer container)
         {
             var exports = container.GetExports<SomeOtherPart, MetadataViewWithBMember>();
@@ -212,6 +220,19 @@
         [Export]
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class NonSharedPart { }
+
+        #endregion
+
+        #region GUID contract name
+
+        [MefFact(CompositionEngines.V2Compat, typeof(SomeExportedPartWithGuidContractName))]
+        public void GuidContractName(IContainer container)
+        {
+            var part = container.GetExportedValue<SomeExportedPartWithGuidContractName>("{C18E5D73-E6D1-43AA-AC5E-58D82E44DA9C}");
+        }
+
+        [Export("{C18E5D73-E6D1-43AA-AC5E-58D82E44DA9C}")]
+        public class SomeExportedPartWithGuidContractName { }
 
         #endregion
     }

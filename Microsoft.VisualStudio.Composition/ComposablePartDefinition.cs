@@ -2,15 +2,18 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
     [DebuggerDisplay("{Type.Name}")]
-    public class ComposablePartDefinition
+    public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="ComposablePartDefinition"/> class.
@@ -22,30 +25,32 @@
         /// <param name="sharingBoundary">The sharing boundary that this part is shared within.</param>
         /// <param name="onImportsSatisfied">The method to invoke after satisfying imports, if any.</param>
         /// <param name="importingConstructor">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy)
+        /// <param name="partCreationPolicy">The creation policy for this part.</param>
+        /// <param name="isSharingBoundaryInferred">A value indicating whether the part does not have an explicit sharing boundary, and therefore can obtain its sharing boundary based on its imports.</param>
+        public ComposablePartDefinition(TypeRef partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodRef onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
         {
             Requires.NotNull(partType, "partType");
             Requires.NotNull(exportedTypes, "exportedTypes");
             Requires.NotNull(exportingMembers, "exportingMembers");
             Requires.NotNull(importingMembers, "importingMembers");
 
-            this.Type = partType;
+            this.TypeRef = partType;
             this.ExportedTypes = exportedTypes;
             this.ExportingMembers = exportingMembers;
-            this.ImportingMembers = importingMembers;
+            this.ImportingMembers = ImmutableHashSet.CreateRange(importingMembers);
             this.SharingBoundary = sharingBoundary;
-            this.OnImportsSatisfied = onImportsSatisfied;
+            this.OnImportsSatisfiedRef = onImportsSatisfied;
             this.ImportingConstructor = importingConstructor;
             this.CreationPolicy = partCreationPolicy;
+            this.IsSharingBoundaryInferred = isSharingBoundaryInferred;
         }
 
-        public ComposablePartDefinition(Type partType, IReadOnlyCollection<ExportDefinition> exportsOnType, IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> exportsOnMembers, IReadOnlyList<ImportDefinitionBinding> imports, MethodInfo onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy)
-            : this(partType, exportsOnType, exportsOnMembers, imports, partCreationPolicy != CreationPolicy.NonShared ? string.Empty : null, onImportsSatisfied, importingConstructor, partCreationPolicy)
+        public Type Type
         {
-            this.IsSharingBoundaryInferred = partCreationPolicy != Composition.CreationPolicy.NonShared;
+            get { return this.TypeRef.Resolve(); }
         }
 
-        public Type Type { get; private set; }
+        public TypeRef TypeRef { get; private set; }
 
         public string Id
         {
@@ -73,7 +78,12 @@
             get { return this.SharingBoundary != null; }
         }
 
-        public MethodInfo OnImportsSatisfied { get; private set; }
+        public MethodInfo OnImportsSatisfied
+        {
+            get { return this.OnImportsSatisfiedRef.Resolve(); }
+        }
+
+        public MethodRef OnImportsSatisfiedRef { get; private set; }
 
         /// <summary>
         /// Gets the types exported on the part itself.
@@ -83,31 +93,31 @@
         /// <summary>
         /// Gets the exports found on members of the part (exporting properties, fields, methods.)
         /// </summary>
-        public IReadOnlyDictionary<MemberInfo, IReadOnlyList<ExportDefinition>> ExportingMembers { get; private set; }
+        public IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> ExportingMembers { get; private set; }
 
         /// <summary>
         /// Gets a sequence of all exports found on this part (both the type directly and its members).
         /// </summary>
-        public IEnumerable<KeyValuePair<MemberInfo, ExportDefinition>> ExportDefinitions
+        public IEnumerable<KeyValuePair<MemberRef, ExportDefinition>> ExportDefinitions
         {
             get
             {
                 foreach (var export in this.ExportedTypes)
                 {
-                    yield return new KeyValuePair<MemberInfo, ExportDefinition>(null, export);
+                    yield return new KeyValuePair<MemberRef, ExportDefinition>(default(MemberRef), export);
                 }
 
                 foreach (var member in this.ExportingMembers)
                 {
                     foreach (var export in member.Value)
                     {
-                        yield return new KeyValuePair<MemberInfo, ExportDefinition>(member.Key, export);
+                        yield return new KeyValuePair<MemberRef, ExportDefinition>(member.Key, export);
                     }
                 }
             }
         }
 
-        public IReadOnlyList<ImportDefinitionBinding> ImportingMembers { get; private set; }
+        public ImmutableHashSet<ImportDefinitionBinding> ImportingMembers { get; private set; }
 
         /// <summary>
         /// Gets the list of parameters on the importing constructor.
@@ -143,6 +153,99 @@
                 }
 
                 return result;
+            }
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Type.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as ComposablePartDefinition);
+        }
+
+        public bool Equals(ComposablePartDefinition other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            bool result = this.Type == other.Type
+                && this.SharingBoundary == other.SharingBoundary
+                && this.IsSharingBoundaryInferred == other.IsSharingBoundaryInferred
+                && this.CreationPolicy == other.CreationPolicy
+                && this.OnImportsSatisfied == other.OnImportsSatisfied
+                && ByValueEquality.EquivalentIgnoreOrder<ExportDefinition>().Equals(this.ExportedTypes, other.ExportedTypes)
+                && ByValueEquality.Dictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>(ByValueEquality.EquivalentIgnoreOrder<ExportDefinition>()).Equals(this.ExportingMembers, other.ExportingMembers)
+                && this.ImportingMembers.SetEquals(other.ImportingMembers)
+                && ((this.ImportingConstructor == null && other.ImportingConstructor == null) || (this.ImportingConstructor != null && other.ImportingConstructor != null && this.ImportingConstructor.SequenceEqual(other.ImportingConstructor)));
+            return result;
+        }
+
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+            indentingWriter.WriteLine("Type: {0}", this.Type.FullName);
+            indentingWriter.WriteLine("SharingBoundary: {0}", this.SharingBoundary.SpecifyIfNull());
+            indentingWriter.WriteLine("IsSharingBoundaryInferred: {0}", this.IsSharingBoundaryInferred);
+            indentingWriter.WriteLine("CreationPolicy: {0}", this.CreationPolicy);
+            indentingWriter.WriteLine("OnImportsSatisfied: {0}", this.OnImportsSatisfied.SpecifyIfNull());
+
+            indentingWriter.WriteLine("ExportedTypes:");
+            using (indentingWriter.Indent())
+            {
+                foreach (var item in this.ExportedTypes.OrderBy(et => et.ContractName))
+                {
+                    indentingWriter.WriteLine("ExportDefinition");
+                    using (indentingWriter.Indent())
+                    {
+                        item.ToString(indentingWriter);
+                    }
+                }
+            }
+
+            indentingWriter.WriteLine("ExportingMembers:");
+            using (indentingWriter.Indent())
+            {
+                foreach (var exportingMember in this.ExportingMembers)
+                {
+                    indentingWriter.WriteLine(exportingMember.Key.Resolve().Name);
+                    using (indentingWriter.Indent())
+                    {
+                        foreach (var export in exportingMember.Value)
+                        {
+                            export.ToString(indentingWriter);
+                        }
+                    }
+                }
+            }
+
+            indentingWriter.WriteLine("ImportingMembers:");
+            using (indentingWriter.Indent())
+            {
+                foreach (var importingMember in this.ImportingMembers)
+                {
+                    importingMember.ToString(indentingWriter);
+                }
+            }
+
+            if (this.ImportingConstructor == null)
+            {
+                indentingWriter.WriteLine("ImportingConstructor: <null>");
+            }
+            else
+            {
+                indentingWriter.WriteLine("ImportingConstructor:");
+                using (indentingWriter.Indent())
+                {
+                    foreach (var import in this.ImportingConstructor)
+                    {
+                        import.ToString(indentingWriter);
+                    }
+                }
             }
         }
     }

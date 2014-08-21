@@ -43,15 +43,24 @@
 
         public IEnumerable<KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>> GetImportingConstructorImports()
         {
-            foreach (var import in this.Definition.ImportingConstructor)
+            if (this.Definition.ImportingConstructorInfo != null)
             {
-                var key = this.SatisfyingExports.Keys.Single(k => k.ImportDefinition == import.ImportDefinition);
-                yield return new KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>(key, this.SatisfyingExports[key]);
+                foreach (var import in this.Definition.ImportingConstructor)
+                {
+                    var key = this.SatisfyingExports.Keys.Single(k => k.ImportDefinition == import.ImportDefinition);
+                    yield return new KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>(key, this.SatisfyingExports[key]);
+                }
             }
         }
 
         public IEnumerable<ComposedPartDiagnostic> Validate()
         {
+            if (this.Definition.ExportDefinitions.Any(ed => CompositionConfiguration.ExportDefinitionPracticallyEqual.Default.Equals(ExportProvider.ExportProviderExportDefinition, ed.Value)) &&
+                !this.Definition.Equals(ExportProvider.ExportProviderPartDefinition))
+            {
+                yield return new ComposedPartDiagnostic(this, "{0}: Export of ExportProvider is not allowed.", this.Definition.Type.FullName);
+            }
+
             foreach (var pair in this.SatisfyingExports)
             {
                 var importDefinition = pair.Key.ImportDefinition;
@@ -93,6 +102,22 @@
                             "{0}: is not assignable from exported MEF value {1}.",
                             GetDiagnosticLocation(pair.Key),
                             GetDiagnosticLocation(export));
+                    }
+
+                    // Some parts exist exclusively for their metadata and the parts themselves are not instantiable.
+                    // But that only makes sense if all importers do it lazily. If this part imports one of these
+                    // non-instantiable parts in a non-lazy fashion, it's doomed to fail at runtime, so call it a graph error.
+                    if (!pair.Key.IsLazy && !export.IsStaticExport && !export.PartDefinition.IsInstantiable)
+                    {
+                        // Special case around our export provider.
+                        if (export.ExportDefinition != ExportProvider.ExportProviderExportDefinition)
+                        {
+                            yield return new ComposedPartDiagnostic(
+                                this,
+                                "{0}: cannot import exported value from {1} because the exporting part cannot be instantiated. Is it missing an importing constructor?",
+                                GetDiagnosticLocation(pair.Key),
+                                GetDiagnosticLocation(export));
+                        }
                     }
                 }
 

@@ -4,13 +4,15 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.ComponentModel;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
-    public class ComposableCatalog
+    public class ComposableCatalog : IEquatable<ComposableCatalog>
     {
         /// <summary>
         /// The types behind the parts in the catalog.
@@ -46,7 +48,7 @@
 
             // For those imports of generic types, we also want to consider exports that are based on open generic exports,
             string genericTypeDefinitionContractName;
-            Type[] genericTypeArguments; 
+            Type[] genericTypeArguments;
             if (TryGetOpenGenericExport(importDefinition, out genericTypeDefinitionContractName, out genericTypeArguments))
             {
                 var openGenericExports = this.exportsByContract.GetValueOrDefault(genericTypeDefinitionContractName, ImmutableList.Create<ExportDefinitionBinding>());
@@ -113,7 +115,7 @@
         public static ComposableCatalog Create(IEnumerable<ComposablePartDefinition> parts)
         {
             Requires.NotNull(parts, "parts");
-            return parts.Aggregate(Create(), (catalog, part) => catalog.WithPart(part));
+            return Create().WithParts(parts);
         }
 
         public static ComposableCatalog Create(DiscoveredParts parts)
@@ -127,7 +129,7 @@
             Requires.NotNull(partDefinition, "partDefinition");
 
             var parts = this.parts.Add(partDefinition);
-            if (parts.SetEquals(this.parts))
+            if (parts == this.parts)
             {
                 // This part is already in the catalog.
                 return this;
@@ -148,7 +150,7 @@
                 foreach (var export in exportPair.Value)
                 {
                     var list = exportsByContract.GetValueOrDefault(export.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
-                    exportsByContract = exportsByContract.SetItem(export.ContractName, list.Add(new ExportDefinitionBinding(export, partDefinition, member)));
+                    exportsByContract = exportsByContract.SetItem(export.ContractName, list.Add(new ExportDefinitionBinding(export, partDefinition, member.Resolve())));
                 }
             }
 
@@ -159,6 +161,9 @@
         {
             Requires.NotNull(parts, "parts");
 
+            // PERF: This has shown up on ETL traces as inefficient and expensive
+            //       WithPart should call WithParts instead, and WithParts should
+            //       execute a more efficient batch operation.
             return parts.Aggregate(this, (catalog, part) => catalog.WithPart(part));
         }
 
@@ -168,6 +173,46 @@
 
             var catalog = this.WithParts(parts.Parts);
             return new ComposableCatalog(catalog.types, catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts));
+        }
+
+        public bool Equals(ComposableCatalog other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            // A catalog is just the sum of its parts. Anything else is a side-effect of how it was discovered,
+            // which shouldn't impact an equivalence check.
+            bool result = this.parts.SetEquals(other.parts);
+            return result;
+        }
+
+        public override int GetHashCode()
+        {
+            int hashCode = this.Parts.Count;
+            foreach (var part in this.Parts)
+            {
+                hashCode += part.GetHashCode();
+            }
+
+            return hashCode;
+        }
+
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+            using (indentingWriter.Indent())
+            {
+                foreach (var part in this.parts)
+                {
+                    indentingWriter.WriteLine("Part");
+                    using (indentingWriter.Indent())
+                    {
+                        part.ToString(indentingWriter);
+                    }
+                }
+            }
         }
     }
 }

@@ -28,6 +28,11 @@
         public void ComposeEditor(IContainer container)
         {
             var editorFactory = container.GetExportedValue<ITextEditorFactoryService>();
+
+            container.GetExportedValue<ICompletionBroker>();
+            container.GetExportedValue<ISignatureHelpBroker>();
+            container.GetExportedValue<ISmartTagBroker>();
+            container.GetExportedValue<IQuickInfoBroker>();
         }
 
         [MefV1.Export(typeof(IWpfKeyboardTrackingService))]

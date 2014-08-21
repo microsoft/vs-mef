@@ -27,6 +27,7 @@
             Assert.NotNull(partFactory.Factory);
             Assert.NotNull(partFactory.FactoryWithMetadata);
             Assert.Equal("V", partFactory.FactoryWithMetadata.Metadata["N"]);
+            Assert.Equal("V", partFactory.FactoryWithTMetadata.Metadata.N);
             using (var exportContext = partFactory.Factory.CreateExport())
             {
                 Assert.NotNull(exportContext);
@@ -126,6 +127,9 @@
 
             [MefV1.Import]
             public MefV1.ExportFactory<NonSharedPart, IDictionary<string, object>> FactoryWithMetadata { get; set; }
+
+            [MefV1.Import]
+            public MefV1.ExportFactory<NonSharedPart, IMetadata> FactoryWithTMetadata { get; set; }
         }
 
         [MefV1.Export]
@@ -311,6 +315,30 @@
 
         #endregion
 
+        #region ExportFactory with CreatePolicy == Any
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3SkipCodeGenScenario, typeof(ExportWithAnyCreationPolicy), typeof(ExportFactoryOfAnyCreationPolicyPartV1Part))]
+        public void ExportFactoryOfAnyCreationPolicyPartV1(IContainer container)
+        {
+            var factory = container.GetExportedValue<ExportFactoryOfAnyCreationPolicyPartV1Part>();
+            var value1 = factory.Factory.CreateExport().Value;
+            var value2 = factory.Factory.CreateExport().Value;
+            Assert.NotSame(value1, value2);
+        }
+
+        [MefV1.Export]
+        [Export]
+        public class ExportWithAnyCreationPolicy { }
+
+        [MefV1.Export]
+        public class ExportFactoryOfAnyCreationPolicyPartV1Part
+        {
+            [MefV1.Import]
+            public MefV1.ExportFactory<ExportWithAnyCreationPolicy> Factory { get; set; }
+        }
+
+        #endregion
+
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [MefV1.ExportMetadata("N", "V")]
         [Export]
@@ -337,6 +365,11 @@
         [ExportMetadata("N", "V2")]
         public class NonSharedPart2 : NonSharedPart
         {
+        }
+
+        public interface IMetadata
+        {
+            string N { get; }
         }
     }
 }

@@ -34,6 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Composition.AttributedModel, Version=1.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Composition.1.0.20\lib\portable-net45+win8\System.Composition.AttributedModel.dll</HintPath>
@@ -64,9 +65,16 @@
   <ItemGroup>
     <Compile Include="ExternalExport.cs" />
     <Compile Include="ExternalExportWithLazy.cs" />
+    <Compile Include="OpenGenericExport.cs" />
+    <Compile Include="PartThatLazyImportsExportWithTypeMetadataViaTMetadata.cs" />
+    <Compile Include="PartThatLazyImportsExportWithTypeMetadataViaDictionary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AppDomainTests2\Microsoft.VisualStudio.Composition.AppDomainTests2.csproj">
+      <Project>{8fea4ed5-0504-43a6-92c0-e9dacb20f1c8}</Project>
+      <Name>Microsoft.VisualStudio.Composition.AppDomainTests2</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj">
       <Project>{1ca6a92c-5dd9-4be5-b5b7-ee4a1318b4c2}</Project>
       <Name>Microsoft.VisualStudio.Composition</Name>

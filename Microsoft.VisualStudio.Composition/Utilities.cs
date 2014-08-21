@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
+    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -19,7 +21,7 @@
 
             return value;
         }
-        
+
         internal static bool EqualsByValue<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> expected, IReadOnlyDictionary<TKey, TValue> actual, IEqualityComparer<TValue> valueComparer = null)
         {
             Requires.NotNull(expected, "expected");
@@ -72,7 +74,84 @@
                 .Replace('}', '_')
                 .Replace('(', '_')
                 .Replace(')', '_')
-                .Replace(',', '_');
+                .Replace(',', '_')
+                .Replace('-', '_');
+        }
+
+        internal static bool Contains<T>(this ImmutableStack<T> stack, T value)
+        {
+            Requires.NotNull(stack, "stack");
+
+            while (!stack.IsEmpty)
+            {
+                if (EqualityComparer<T>.Default.Equals(value, stack.Peek()))
+                {
+                    return true;
+                }
+
+                stack = stack.Pop();
+            }
+
+            return false;
+        }
+
+        internal static bool EqualsByValue<T>(this ImmutableArray<T> array, ImmutableArray<T> other)
+            where T : IEquatable<T>
+        {
+            if (array.Length != other.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < array.Length; i++)
+            {
+                if (!array[i].Equals(other[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        internal static void ToString(this IReadOnlyDictionary<string, object> metadata, IndentingTextWriter writer)
+        {
+            Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(writer, "writer");
+
+            foreach (var item in metadata)
+            {
+                writer.WriteLine("{0} = {1}", item.Key, item.Value);
+            }
+        }
+
+        internal static void ToString(this object value, TextWriter writer)
+        {
+            Requires.NotNull(value, "value");
+            Requires.NotNull(writer, "writer");
+
+            var descriptiveValue = value as IDescriptiveToString;
+            if (descriptiveValue != null)
+            {
+                descriptiveValue.ToString(writer);
+            }
+            else
+            {
+                writer.WriteLine(value);
+            }
+        }
+
+        internal static object SpecifyIfNull(this object value)
+        {
+            return value == null ? "<null>" : value;
+        }
+
+        internal static void ReportNullSafe<T>(this IProgress<T> progress, T value)
+        {
+            if (progress != null)
+            {
+                progress.Report(value);
+            }
         }
     }
 }

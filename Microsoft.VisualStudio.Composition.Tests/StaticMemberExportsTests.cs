@@ -12,13 +12,18 @@
     [Trait("Static", "")]
     public class StaticMemberExportsTests
     {
-        [MefFact(CompositionEngines.V1, typeof(StaticPartWithStaticExports), typeof(ImportingPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(StaticPartWithStaticExports), typeof(ImportingPart))]
         public void ExportingStaticPartStaticProperty(IContainer container)
         {
-            container.GetExportedValue<ImportingPart>();
+            var part = container.GetExportedValue<ImportingPart>();
+            Assert.Equal("Hello", part.ImportOfProperty);
+
+            // These stay null because the exports for these values are not included in the test.
+            Assert.Null(part.ImportOfField);
+            Assert.Null(part.ImportOfMethod);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithStaticExports), typeof(ImportingPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithStaticExports), typeof(ImportingPart))]
         public void ExportingStaticMembers(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPart>();
@@ -27,7 +32,15 @@
             Assert.Equal(PartWithStaticExports.ExportingMethod(), part.ImportOfMethod());
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithStaticExports), typeof(ImportManyWithMetadataPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithStaticExports), typeof(ImportingPart))]
+        public void GetExportsOfExportingStaticMembers(IContainer container)
+        {
+            Assert.Equal(PartWithStaticExports.ExportingProperty, container.GetExportedValue<string>("Property"));
+            Assert.Equal(PartWithStaticExports.ExportingField, container.GetExportedValue<string>("Field"));
+            Assert.Equal(PartWithStaticExports.ExportingMethod(), container.GetExportedValue<Func<string>>("Method")());
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithStaticExports), typeof(ImportManyWithMetadataPart))]
         public void ImportManyMetadataStaticPropertyExport(IContainer container)
         {
             var part = container.GetExportedValue<ImportManyWithMetadataPart>();

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -12,13 +13,11 @@
     /// A constraint that may be included in an <see cref="ImportDefinition"/> that only matches
     /// exports whose parts have a compatible <see cref="CreationPolicy"/>.
     /// </summary>
-    public class PartCreationPolicyConstraint : IImportSatisfiabilityConstraint
+    public class PartCreationPolicyConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
-        private readonly CreationPolicy requiredCreationPolicy;
-
         private PartCreationPolicyConstraint(CreationPolicy creationPolicy)
         {
-            this.requiredCreationPolicy = creationPolicy;
+            this.RequiredCreationPolicy = creationPolicy;
         }
 
         /// <summary>
@@ -30,6 +29,8 @@
         /// The constraint to include in the <see cref="ImportDefinition"/> when a non-shared part is required.
         /// </summary>
         public static readonly PartCreationPolicyConstraint NonSharedPartRequired = new PartCreationPolicyConstraint(CreationPolicy.NonShared);
+
+        public CreationPolicy RequiredCreationPolicy { get; private set; }
 
         /// <summary>
         /// Gets a dictionary of metadata to include in an <see cref="ExportDefinition"/> to signify the exporting part's CreationPolicy.
@@ -50,24 +51,30 @@
             return result;
         }
 
+        public static PartCreationPolicyConstraint GetRequiredCreationPolicyConstraint(CreationPolicy requiredCreationPolicy)
+        {
+            switch (requiredCreationPolicy)
+            {
+                case CreationPolicy.Shared:
+                    return SharedPartRequired;
+                case CreationPolicy.NonShared:
+                    return NonSharedPartRequired;
+                case CreationPolicy.Any:
+                default:
+                    return null;
+            }
+        }
+
         /// <summary>
         /// Creates a set of constraints to apply to an import given its required part creation policy.
         /// </summary>
         public static ImmutableHashSet<IImportSatisfiabilityConstraint> GetRequiredCreationPolicyConstraints(CreationPolicy requiredCreationPolicy)
         {
             var result = ImmutableHashSet.Create<IImportSatisfiabilityConstraint>();
-
-            switch (requiredCreationPolicy)
+            var constraint = GetRequiredCreationPolicyConstraint(requiredCreationPolicy);
+            if (constraint != null)
             {
-                case CreationPolicy.Shared:
-                    result = result.Add(SharedPartRequired);
-                    break;
-                case CreationPolicy.NonShared:
-                    result = result.Add(NonSharedPartRequired);
-                    break;
-                case CreationPolicy.Any:
-                default:
-                    break;
+                result = result.Add(constraint);
             }
 
             return result;
@@ -89,11 +96,17 @@
             {
                 var partCreationPolicy = (CreationPolicy)value;
                 return partCreationPolicy == CreationPolicy.Any
-                    || partCreationPolicy == this.requiredCreationPolicy;
+                    || partCreationPolicy == this.RequiredCreationPolicy;
             }
 
             // No policy => our requirements are met
             return true;
+        }
+
+        public void ToString(TextWriter writer)
+        {
+            var indentingWriter = IndentingTextWriter.Get(writer);
+            indentingWriter.WriteLine("RequiredCreationPolicy: {0}", this.RequiredCreationPolicy);
         }
     }
 }

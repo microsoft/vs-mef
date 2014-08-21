@@ -10,6 +10,7 @@
 
 namespace $rootnamespace$
 {
+    using System.IO;
     using System.Reflection;
     using Microsoft.VisualStudio.Composition;
 
@@ -17,7 +18,14 @@ namespace $rootnamespace$
     {
         internal static IExportProviderFactory LoadDefault()
         {
-            return CompositionConfiguration.Load(Assembly.Load("$ConfigurationAssemblyName$"));
+            var cacheManager = new CachedComposition();
+            string cachePath = Path.Combine(
+                Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+                "$ConfigurationAssemblyName$");
+            using (var cacheStream = File.OpenRead(cachePath))
+            {
+                return cacheManager.LoadExportProviderFactoryAsync(cacheStream).GetAwaiter().GetResult();
+            }
         }
    }
 }

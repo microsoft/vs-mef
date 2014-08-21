@@ -11,74 +11,116 @@
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
+    using Xunit;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
     using MefV1 = System.ComponentModel.Composition;
 
     internal static class TestUtilities
     {
-        internal static ExportProvider CreateContainer(this CompositionConfiguration configuration)
+        internal static ExportProvider CreateContainer(this CompositionConfiguration configuration, bool runtime)
         {
             Requires.NotNull(configuration, "configuration");
 
-            if (Debugger.IsAttached)
+            if (runtime)
             {
-                bool debug = true;
-                string basePath = Path.GetTempFileName();
-                string assemblyPath = basePath + ".dll";
-                string pdbPath = basePath + ".pdb";
-                string sourcePath = basePath + ".cs";
-                configuration.SaveAsync(
-                    assemblyPath,
-                    pdbPath,
-                    sourcePath,
-                    debug: debug).GetAwaiter().GetResult();
-                var exportProviderFactory = CompositionConfiguration.Load(Assembly.LoadFile(assemblyPath));
-                return exportProviderFactory.CreateExportProvider();
+                var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
+
+                // Round-trip serialization to make sure the result is equivalent.
+                var cacheManager = new CachedComposition();
+                var ms = new MemoryStream();
+                cacheManager.SaveAsync(runtimeComposition, ms).GetAwaiter().GetResult();
+                Console.WriteLine("Cache file size: {0}", ms.Length);
+                ms.Position = 0;
+                var deserializedRuntimeComposition = cacheManager.LoadRuntimeCompositionAsync(ms).GetAwaiter().GetResult();
+                Assert.Equal(runtimeComposition, deserializedRuntimeComposition);
+
+                return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();
             }
             else
             {
-                var sourceFileStream = new MemoryStream();
-                try
+                string basePath = Path.GetTempFileName();
+                string assemblyPath = basePath + ".dll";
+                var compiledCacheManager = new CompiledComposition
                 {
-                    var exportProvider = configuration.CreateContainerFactoryAsync(sourceFileStream, Console.Out).Result.CreateExportProvider();
-                    return exportProvider;
-                }
-                finally
-                {
-                    bool includeLineNumbers;
-                    TextWriter sourceFileWriter;
-                    if (sourceFileStream.Length < 200 * 1024) // the test results window doesn't do well with large output
-                    {
-                        includeLineNumbers = true;
-                        sourceFileWriter = Console.Out;
-                    }
-                    else
-                    {
-                        // Write to a file instead and then emit its path to the output window.
-                        string sourceFileName = Path.GetTempFileName() + ".cs";
-                        sourceFileWriter = new StreamWriter(File.OpenWrite(sourceFileName));
-                        Console.WriteLine("Source file written to: {0}", sourceFileName);
-                        includeLineNumbers = false;
-                    }
+                    AssemblyName = Path.GetFileNameWithoutExtension(assemblyPath),
+                    BuildOutput = Console.Out,
+                };
 
-                    sourceFileStream.Position = 0;
-                    var sourceFileReader = new StreamReader(sourceFileStream);
-                    int lineNumber = 0;
-                    string line;
-                    while ((line = sourceFileReader.ReadLine()) != null)
+                if (Debugger.IsAttached)
+                {
+                    compiledCacheManager.Optimize = false;
+                    using (var pdb = File.Open(basePath + ".pdb", FileMode.Create))
                     {
-                        if (includeLineNumbers)
+                        using (var source = File.Open(basePath + ".cs", FileMode.Create))
                         {
-                            sourceFileWriter.Write("Line {0,5}: ", ++lineNumber);
+                            compiledCacheManager.Optimize = false;
+                            compiledCacheManager.PdbSymbols = pdb;
+                            compiledCacheManager.Source = source;
+                            using (var assemblyStream = File.Open(assemblyPath, FileMode.CreateNew))
+                            {
+                                compiledCacheManager.SaveAsync(configuration, assemblyStream).GetAwaiter().GetResult();
+                            }
                         }
-
-                        sourceFileWriter.WriteLine(line);
                     }
 
-                    sourceFileWriter.Flush();
-                    if (sourceFileWriter != Console.Out)
+                    var exportProviderFactory = CompiledComposition.LoadExportProviderFactory(assemblyPath);
+                    return exportProviderFactory.CreateExportProvider();
+                }
+                else
+                {
+                    Stream sourceFileStream = null;
+#if DEBUG
+                    sourceFileStream = new MemoryStream();
+#endif
+                    try
                     {
-                        sourceFileWriter.Close();
+                        compiledCacheManager.Source = sourceFileStream;
+                        var assemblyStream = new MemoryStream();
+                        compiledCacheManager.SaveAsync(configuration, assemblyStream).Wait();
+                        assemblyStream.Position = 0;
+                        var exportProvider = compiledCacheManager.LoadExportProviderFactoryAsync(assemblyStream).Result.CreateExportProvider();
+                        return exportProvider;
+                    }
+                    finally
+                    {
+                        if (sourceFileStream != null)
+                        {
+                            bool includeLineNumbers;
+                            TextWriter sourceFileWriter;
+                            if (sourceFileStream.Length < 200 * 1024) // the test results window doesn't do well with large output
+                            {
+                                includeLineNumbers = true;
+                                sourceFileWriter = Console.Out;
+                            }
+                            else
+                            {
+                                // Write to a file instead and then emit its path to the output window.
+                                string sourceFileName = Path.GetTempFileName() + ".cs";
+                                sourceFileWriter = new StreamWriter(File.OpenWrite(sourceFileName));
+                                Console.WriteLine("Source file written to: {0}", sourceFileName);
+                                includeLineNumbers = false;
+                            }
+
+                            sourceFileStream.Position = 0;
+                            var sourceFileReader = new StreamReader(sourceFileStream);
+                            int lineNumber = 0;
+                            string line;
+                            while ((line = sourceFileReader.ReadLine()) != null)
+                            {
+                                if (includeLineNumbers)
+                                {
+                                    sourceFileWriter.Write("Line {0,5}: ", ++lineNumber);
+                                }
+
+                                sourceFileWriter.WriteLine(line);
+                            }
+
+                            sourceFileWriter.Flush();
+                            if (sourceFileWriter != Console.Out)
+                            {
+                                sourceFileWriter.Close();
+                            }
+                        }
                     }
                 }
             }
@@ -93,7 +135,7 @@
         {
             return CompositionConfiguration.Create(
                 await new AttributedPartDiscovery().CreatePartsAsync(parts))
-                .CreateContainer();
+                .CreateContainer(true);
         }
 
         internal static IContainer CreateContainerV1(params Type[] parts)
@@ -191,7 +233,9 @@
 
         private static IContainer CreateContainerV3(ComposableCatalog catalog, CompositionEngines options, ImmutableHashSet<Assembly> additionalAssemblies = null)
         {
-            var catalogWithCompositionService = catalog.WithCompositionService();
+            var catalogWithCompositionService = catalog
+                .WithCompositionService()
+                .WithDesktopSupport();
             var configuration = CompositionConfiguration.Create(catalogWithCompositionService)
                 .WithReferenceAssemblies(additionalAssemblies ?? ImmutableHashSet<Assembly>.Empty);
             if (!options.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors))
@@ -204,7 +248,7 @@
             configuration.CreateDgml().Save(dgmlFile);
             Console.WriteLine("DGML saved to: " + dgmlFile);
 #endif
-            var container = configuration.CreateContainer();
+            var container = configuration.CreateContainer(true);
             return new V3ContainerWrapper(container, configuration);
         }
 
@@ -243,28 +287,13 @@
                 test(CreateContainerV1(assemblies, parts));
             }
 
-            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1))
-            {
-                test(CreateContainerV3(assemblies, CompositionEngines.V1 | (CompositionEngines.V3OptionsMask & attributesVersion), parts));
-            }
-
             if (attributesVersion.HasFlag(CompositionEngines.V2))
             {
                 test(CreateContainerV2(assemblies, parts));
             }
-
-            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV2))
-            {
-                test(CreateContainerV3(assemblies, CompositionEngines.V2 | (CompositionEngines.V3OptionsMask & attributesVersion), parts));
-            }
-
-            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1AndV2AtOnce))
-            {
-                test(CreateContainerV3(assemblies, CompositionEngines.V1 | CompositionEngines.V2 | (CompositionEngines.V3OptionsMask & attributesVersion), parts));
-            }
         }
 
-        private class DebuggableCompositionContainer : MefV1.Hosting.CompositionContainer
+        internal class DebuggableCompositionContainer : MefV1.Hosting.CompositionContainer
         {
             protected override IEnumerable<MefV1.Primitives.Export> GetExportsCore(MefV1.Primitives.ImportDefinition definition, MefV1.Hosting.AtomicComposition atomicComposition)
             {
@@ -274,6 +303,7 @@
                 {
                     // Set breakpoint here
                 }
+
                 return result;
             }
 
@@ -283,11 +313,11 @@
             }
         }
 
-        private class V1ContainerWrapper : IContainer
+        internal class V1ContainerWrapper : IContainer
         {
             private readonly DebuggableCompositionContainer container;
 
-            public DebuggableCompositionContainer Container
+            internal DebuggableCompositionContainer Container
             {
                 get { return container; }
             }
@@ -461,7 +491,7 @@
             public Lazy<T> GetExport<T>()
             {
                 // MEF v2 doesn't support this, so emulate it.
-                return new LazyPart<T>(() =>
+                return new Lazy<T>(() =>
                 {
                     try
                     {
@@ -477,7 +507,7 @@
             public Lazy<T> GetExport<T>(string contractName)
             {
                 // MEF v2 doesn't support this, so emulate it.
-                return new LazyPart<T>(() =>
+                return new Lazy<T>(() =>
                 {
                     try
                     {

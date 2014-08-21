@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
@@ -11,7 +12,18 @@
 
     public static class NetFxAdapters
     {
-        private static readonly ComposablePartDefinition compositionServicePart = (new AttributedPartDiscoveryV1()).CreatePart(typeof(CompositionService));
+        private static readonly ComposablePartDefinition compositionServicePart;
+        private static readonly ComposablePartDefinition metadataViewImplProxyPart;
+        private static readonly ComposablePartDefinition assemblyNameCodeBasePathPath;
+
+        static NetFxAdapters()
+        {
+            var discovery = new AttributedPartDiscoveryV1();
+            compositionServicePart = discovery.CreatePart(typeof(CompositionService));
+            metadataViewImplProxyPart = discovery.CreatePart(typeof(MetadataViewImplProxy));
+            assemblyNameCodeBasePathPath = discovery.CreatePart(typeof(AssemblyLoadCodeBasePathLoader));
+        }
+
         /// <summary>
         /// Creates an instance of a <see cref="MefV1.Hosting.ExportProvider"/>
         /// for purposes of compatibility with the version of MEF found in the .NET Framework.
@@ -38,8 +50,29 @@
             return modifiedCatalog;
         }
 
+        /// <summary>
+        /// Adds parts that allow MEF to work on .NET Framework platforms.
+        /// </summary>
+        /// <param name="catalog">The catalog to add desktop support to.</param>
+        /// <returns>The catalog that includes desktop support.</returns>
+        public static ComposableCatalog WithDesktopSupport(this ComposableCatalog catalog)
+        {
+            Requires.NotNull(catalog, "catalog");
+
+            return catalog
+                .WithPart(metadataViewImplProxyPart)
+                .WithPart(assemblyNameCodeBasePathPath)
+                .WithMetadataViewEmitProxySupport()
+                .WithMetadataViewProxySupport();
+        }
+
         private class MefV1ExportProvider : MefV1.Hosting.ExportProvider
         {
+            private static readonly Type ExportFactoryV1Type = typeof(MefV1.ExportFactory<object, IDictionary<string, object>>);
+            private static readonly Type IPartCreatorImportDefinition = typeof(MefV1.Primitives.ImportDefinition).Assembly.GetType("System.ComponentModel.Composition.Primitives.IPartCreatorImportDefinition");
+            private static readonly PropertyInfo ProductImportDefinition = IPartCreatorImportDefinition.GetProperty("ProductImportDefinition", BindingFlags.Instance | BindingFlags.Public);
+            private static readonly string ExportFactoryV1TypeIdentity = PartDiscovery.GetContractName(ExportFactoryV1Type);
+
             private readonly ExportProvider exportProvider;
 
             internal MefV1ExportProvider(ExportProvider exportProvider)
@@ -54,15 +87,63 @@
                 var v3ImportDefinition = WrapImportDefinition(definition);
                 var result = ImmutableList.CreateBuilder<MefV1.Primitives.Export>();
                 var exports = this.exportProvider.GetExports(v3ImportDefinition);
-                return exports.Select(e => new MefV1.Primitives.Export(e.Definition.ContractName, (IDictionary<string, object>)e.Metadata, () => e.Value));
+                return exports.Select(UnwrapExport).ToArray();
             }
 
             private static ImportDefinition WrapImportDefinition(MefV1.Primitives.ImportDefinition definition)
             {
                 Requires.NotNull(definition, "definition");
-                var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty.Add(new ImportConstraint(definition));
+
+                var contractImportDefinition = definition as MefV1.Primitives.ContractBasedImportDefinition;
+
+                var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty
+                    .Add(new ImportConstraint(definition));
+                if (contractImportDefinition != null)
+                {
+                    constraints = constraints.Union(PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraints(WrapCreationPolicy(contractImportDefinition.RequiredCreationPolicy)));
+                }
+
                 var cardinality = WrapCardinality(definition.Cardinality);
-                return new ImportDefinition(definition.ContractName, cardinality, (IReadOnlyDictionary<string, object>)definition.Metadata, constraints);
+                var metadata = (IReadOnlyDictionary<string, object>)definition.Metadata;
+
+                if (IPartCreatorImportDefinition.IsInstanceOfType(definition))
+                {
+                    var productImportDefinitionV1 = (MefV1.Primitives.ImportDefinition)ProductImportDefinition.GetValue(definition);
+                    var productImportDefinitionV3 = WrapImportDefinition(productImportDefinitionV1);
+                    metadata = metadata.ToImmutableDictionary()
+                        .Add(CompositionConstants.ExportFactoryProductImportDefinition, productImportDefinitionV3)
+                        .Add(CompositionConstants.ExportFactoryTypeMetadataName, ExportFactoryV1Type);
+                }
+
+                return new ImportDefinition(definition.ContractName, cardinality, metadata, constraints);
+            }
+
+            private static IDictionary<string, object> GetMefV1ExportDefinitionMetadataFromV3(IReadOnlyDictionary<string, object> exportDefinitionMetadata)
+            {
+                Requires.NotNull(exportDefinitionMetadata, "exportDefinitionMetadata");
+                var metadata = exportDefinitionMetadata.ToImmutableDictionary();
+
+                CreationPolicy creationPolicy;
+                if (metadata.TryGetValue(CompositionConstants.PartCreationPolicyMetadataName, out creationPolicy))
+                {
+                    metadata = metadata.SetItem(
+                        CompositionConstants.PartCreationPolicyMetadataName,
+                        UnwrapCreationPolicy(creationPolicy));
+                }
+
+                ExportDefinition productDefinitionMetadatum;
+                if (metadata.TryGetValue(CompositionConstants.ProductDefinitionMetadataName, out productDefinitionMetadatum))
+                {
+                    // The value of this metadata is expected to be a V3 ExportDefinition. We must adapt it to be a V1 ExportDefinition
+                    // so that MEFv1 can deal with it.
+                    metadata = metadata.SetItem(
+                        CompositionConstants.ProductDefinitionMetadataName,
+                        new MefV1.Primitives.ExportDefinition(
+                            productDefinitionMetadatum.ContractName,
+                            GetMefV1ExportDefinitionMetadataFromV3(productDefinitionMetadatum.Metadata)));
+                }
+
+                return metadata;
             }
 
             private static ImportCardinality WrapCardinality(MefV1.Primitives.ImportCardinality cardinality)
@@ -79,6 +160,124 @@
                         throw new ArgumentException();
                 }
             }
+
+            private static MefV1.CreationPolicy UnwrapCreationPolicy(CreationPolicy creationPolicy)
+            {
+                switch (creationPolicy)
+                {
+                    case CreationPolicy.Any:
+                        return MefV1.CreationPolicy.Any;
+                    case CreationPolicy.Shared:
+                        return MefV1.CreationPolicy.Shared;
+                    case CreationPolicy.NonShared:
+                        return MefV1.CreationPolicy.NonShared;
+                    default:
+                        throw new ArgumentException();
+                }
+            }
+
+            private static CreationPolicy WrapCreationPolicy(MefV1.CreationPolicy creationPolicy)
+            {
+                switch (creationPolicy)
+                {
+                    case MefV1.CreationPolicy.Any:
+                        return CreationPolicy.Any;
+                    case MefV1.CreationPolicy.Shared:
+                        return CreationPolicy.Shared;
+                    case MefV1.CreationPolicy.NonShared:
+                        return CreationPolicy.NonShared;
+                    default:
+                        throw new ArgumentException();
+                }
+            }
+
+            private static MefV1.Primitives.Export UnwrapExport(Export export)
+            {
+                var metadata = GetMefV1ExportDefinitionMetadataFromV3(export.Metadata);
+
+                if (export.Definition.ContractName == ExportFactoryV1TypeIdentity)
+                {
+                    return new MefV1.Primitives.Export(
+                        "System.ComponentModel.Composition.Contracts.ExportFactory",
+                        metadata,
+                        () => new ComposablePartDefinitionForExportFactory((MefV1.ExportFactory<object, IDictionary<string, object>>)export.Value));
+                }
+
+                return new MefV1.Primitives.Export(
+                    export.Definition.ContractName,
+                    metadata,
+                    () => export.Value);
+            }
+
+            private class ComposablePartForExportFactory : MefV1.Primitives.ComposablePart, IDisposable
+            {
+                internal static readonly MefV1.Primitives.ExportDefinition ExportFactoryDefinitionSentinel = new MefV1.Primitives.ExportDefinition("ExportFactoryValue", ImmutableDictionary<string, object>.Empty);
+
+                private readonly MefV1.ExportLifetimeContext<object> value;
+
+                internal ComposablePartForExportFactory(MefV1.ExportLifetimeContext<object> value)
+                {
+                    this.value = value;
+                }
+
+                public override IEnumerable<MefV1.Primitives.ExportDefinition> ExportDefinitions
+                {
+                    get { throw new NotImplementedException(); }
+                }
+
+                public override object GetExportedValue(MefV1.Primitives.ExportDefinition definition)
+                {
+                    if (definition == ExportFactoryDefinitionSentinel)
+                    {
+                        return this.value.Value;
+                    }
+
+                    throw new NotImplementedException();
+                }
+
+                public override IEnumerable<MefV1.Primitives.ImportDefinition> ImportDefinitions
+                {
+                    get { throw new NotImplementedException(); }
+                }
+
+                public override void SetImport(MefV1.Primitives.ImportDefinition definition, IEnumerable<MefV1.Primitives.Export> exports)
+                {
+                    throw new NotImplementedException();
+                }
+
+                public void Dispose()
+                {
+                    this.value.Dispose();
+                }
+            }
+
+            private class ComposablePartDefinitionForExportFactory : MefV1.Primitives.ComposablePartDefinition
+            {
+                private static readonly MefV1.Primitives.ExportDefinition[] SentinelExportDefinitionArray = new[] { ComposablePartForExportFactory.ExportFactoryDefinitionSentinel };
+                private readonly MefV1.ExportFactory<object, IDictionary<string, object>> exportFactory;
+
+                internal ComposablePartDefinitionForExportFactory(MefV1.ExportFactory<object, IDictionary<string, object>> exportFactory)
+                {
+                    Requires.NotNull(exportFactory, "exportFactory");
+                    this.exportFactory = exportFactory;
+                }
+
+                public override MefV1.Primitives.ComposablePart CreatePart()
+                {
+                    MefV1.ExportLifetimeContext<object> value = this.exportFactory.CreateExport();
+                    return new ComposablePartForExportFactory(value);
+                }
+
+                public override IEnumerable<MefV1.Primitives.ExportDefinition> ExportDefinitions
+                {
+                    get { return SentinelExportDefinitionArray; }
+                }
+
+                public override IEnumerable<MefV1.Primitives.ImportDefinition> ImportDefinitions
+                {
+                    get { return Enumerable.Empty<MefV1.Primitives.ImportDefinition>(); }
+                }
+            }
         }
 
         private class ImportConstraint : IImportSatisfiabilityConstraint
@@ -93,10 +292,10 @@
 
             public bool IsSatisfiedBy(ExportDefinition exportDefinition)
             {
-                var v3ExportDefinition = new MefV1.Primitives.ExportDefinition(
+                var v1ExportDefinition = new MefV1.Primitives.ExportDefinition(
                     exportDefinition.ContractName,
                     (IDictionary<string, object>)exportDefinition.Metadata);
-                return this.definition.IsConstraintSatisfiedBy(v3ExportDefinition);
+                return this.definition.IsConstraintSatisfiedBy(v1ExportDefinition);
             }
         }
 
@@ -121,6 +320,65 @@
             public void Dispose()
             {
                 this.container.Dispose();
+            }
+        }
+
+        [MefV1.Export(typeof(IMetadataViewProvider))]
+        [MefV1.ExportMetadata("OrderPrecedence", 100)] // should take precedence over the transparent or emitted proxy providers
+        private class MetadataViewImplProxy : IMetadataViewProvider
+        {
+            public bool IsMetadataViewSupported(Type metadataType)
+            {
+                return FindImplClassConstructor(metadataType) != null;
+            }
+
+            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
+            {
+                var ctor = FindImplClassConstructor(metadataViewType);
+                return ctor.Invoke(new object[] { metadata });
+            }
+
+            private static ConstructorInfo FindImplClassConstructor(Type metadataType)
+            {
+                Requires.NotNull(metadataType, "metadataType");
+                var attr = (MefV1.MetadataViewImplementationAttribute)metadataType.GetCustomAttributesCached<MefV1.MetadataViewImplementationAttribute>()
+                    .FirstOrDefault();
+                if (attr != null)
+                {
+                    if (metadataType.IsAssignableFrom(attr.ImplementationType))
+                    {
+                        var ctors = from ctor in attr.ImplementationType.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+                                    let parameters = ctor.GetParameters()
+                                    where parameters.Length == 1 && (
+                                        parameters[0].ParameterType.IsAssignableFrom(typeof(IDictionary<string, object>)) ||
+                                        parameters[0].ParameterType.IsAssignableFrom(typeof(IReadOnlyDictionary<string, object>)))
+                                    select ctor;
+                        return ctors.FirstOrDefault();
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// An assembly loader that includes the code base path so we can load assemblies by path when necessary.
+        /// </summary>
+        [MefV1.Export(typeof(IAssemblyLoader))]
+        [MefV1.ExportMetadata("OrderPrecedence", 100)] // should take precedence over one without codebase path handling
+        private class AssemblyLoadCodeBasePathLoader : IAssemblyLoader
+        {
+            public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
+            {
+                Requires.NotNullOrEmpty(assemblyFullName, "assemblyFullName");
+
+                var assemblyName = new AssemblyName(assemblyFullName);
+                if (!string.IsNullOrEmpty(codeBasePath))
+                {
+                    assemblyName.CodeBase = codeBasePath;
+                }
+
+                return Assembly.Load(assemblyName);
             }
         }
     }

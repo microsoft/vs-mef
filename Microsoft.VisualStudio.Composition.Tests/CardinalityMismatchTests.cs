@@ -7,6 +7,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using MefV1 = System.ComponentModel.Composition;
 
     public class CardinalityMismatchTests
     {
@@ -25,6 +26,14 @@
             Assert.Null(export.MissingOptionalImport);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(NonPublicOptionalImportMissing))]
+        public void MissingOptionalImportNonPublic(IContainer container)
+        {
+            var export = container.GetExportedValue<NonPublicOptionalImportMissing>();
+            Assert.NotNull(export);
+            Assert.Null(export.MissingOptionalImport);
+        }
+
         [Export]
         public class RequiredImportMissing
         {
@@ -38,5 +47,19 @@
             [Import(AllowDefault = true)]
             public ICustomFormatter MissingOptionalImport { get; set; }
         }
+
+        [MefV1.Export]
+        public class NonPublicOptionalImportMissing
+        {
+            [MefV1.ImportingConstructor]
+            internal NonPublicOptionalImportMissing([MefV1.Import(AllowDefault = true)] IFoo missingImport)
+            {
+            }
+
+            [MefV1.Import(AllowDefault = true)]
+            internal IFoo MissingOptionalImport { get; set; }
+        }
+
+        internal interface IFoo { }
     }
 }
