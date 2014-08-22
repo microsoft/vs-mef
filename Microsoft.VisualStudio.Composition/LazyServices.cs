@@ -65,7 +65,12 @@
         {
             Requires.NotNull(lazy, "lazy");
 
-            return Helper<T>.GetLazyValueFunc.PresupplyArgument<Lazy<T>, T>(lazy);
+            return new Func<T>(lazy.GetLazyValue);
+        }
+
+        private static T GetLazyValue<T>(this Lazy<T> lazy)
+        {
+            return lazy.Value;
         }
 
         /// <summary>
