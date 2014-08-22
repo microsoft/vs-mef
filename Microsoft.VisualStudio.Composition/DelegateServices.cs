@@ -42,6 +42,23 @@
             return value.AsFunc();
         }
 
+        /// <summary>
+        /// Creates a delegate that invokes another delegate and casts the result to a given type.
+        /// </summary>
+        /// <typeparam name="T">The type to cast the result of <paramref name="valueFactory"/> to.</typeparam>
+        /// <param name="valueFactory">The delegate to chain execution to.</param>
+        /// <returns>A delegate which, when invoked, will invoke <paramref name="valueFactory"/>.</returns>
+        internal static Func<T> As<T>(this Func<object> valueFactory)
+        {
+            // This is a very specific syntax that leverages the C# compiler
+            // to emit very efficient code for constructing a delegate that
+            // uses the "Target" property to store the first parameter to
+            // the method.
+            // It allows us to construct a Func<T> that returns a T
+            // without actually allocating a closure -- we only allocate the delegate.
+            return new Func<T>(valueFactory.AsHelper<T>);
+        }
+
         private static Func<T> AsFunc<T>(this T value)
             where T : class
         {
@@ -59,26 +76,9 @@
             return value;
         }
 
-        /// <summary>
-        /// Creates a Func{T} from a delegate that takes one parameter
-        /// (for the cost of a delegate, but without incurring the cost of a closure).
-        /// </summary>
-        /// <typeparam name="TArg">The type of argument to be passed to the function. If a value type, this will be boxed.</typeparam>
-        /// <typeparam name="T">The type of value returned by the function.</typeparam>
-        /// <param name="function">The functino.</param>
-        /// <param name="arg">The argument to be passed to the function.</param>
-        /// <returns>The function constructed with one less argument.</returns>
-        internal static Func<T> PresupplyArgument<TArg, T>(this Func<TArg, T> function, TArg arg)
+        private static T AsHelper<T>(this Func<object> value)
         {
-            Requires.NotNull(function, "function");
-            Requires.Argument(function.Target == null, "function", "Only static methods or delegates without closures are allowed.");
-
-            using (var args = ArrayRental<object>.Get(2))
-            {
-                args.Value[0] = arg;
-                args.Value[1] = function.Method.MethodHandle.GetFunctionPointer();
-                return (Func<T>)Helper<T>.FuncOfTCtor.Invoke(args.Value);
-            }
+            return (T)value();
         }
 
         private static MethodInfo GetFromValueGenericFactoryMethod<T>()

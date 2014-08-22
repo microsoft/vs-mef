@@ -17,28 +17,13 @@
             Assert.Same(expectedValue, func());
         }
 
-        private static int executed = 0;
-
         [Fact]
-        public void PresupplyArgument()
+        public void As()
         {
-            executed = 0;
-            Func<string, int> getLength = v => { executed++; return v.Length; };
-            Func<int> getLengthOfFive = getLength.PresupplyArgument("five");
-            Assert.Equal(0, executed);
-            Assert.Equal(4, getLengthOfFive());
-            Assert.Equal(1, executed);
-            Assert.Equal(4, getLengthOfFive());
-            Assert.Equal(2, executed);
-        }
-
-        [Fact]
-        public void PresupplyArgumentOnMethodWithClosure()
-        {
-            int local = 0;
-            Func<string, int> getLength = v => { local++; return v.Length; };
-
-            Assert.Throws<ArgumentException>(() => getLength.PresupplyArgument("hi"));
+            Func<object> fo = () => 5;
+            Func<int> fi = fo.As<int>();
+            int result = fi();
+            Assert.Equal(5, result);
         }
     }
 }
