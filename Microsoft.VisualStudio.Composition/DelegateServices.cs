@@ -36,32 +36,27 @@
         /// </summary>
         /// <param name="value">The value to return from the lazy.</param>
         /// <returns>The lazy instance.</returns>
-        internal static Func<object> FromValue(object value)
+        internal static Func<T> FromValue<T>(T value)
+            where T : class
         {
-            using (var args = ArrayRental<object>.Get(2))
-            {
-                args.Value[0] = value;
-                args.Value[1] = returnObjectValue.MethodHandle.GetFunctionPointer();
-                return (Func<object>)FuncOfObjectCtor.Invoke(args.Value);
-            }
+            return value.AsFunc();
         }
 
-        /// <summary>
-        /// Creates a Func{T} from a delegate that takes one parameter
-        /// (for the cost of a delegate, but without incurring the cost of a closure).
-        /// </summary>
-        /// <param name="value">The value to return from the lazy.</param>
-        /// <returns>The lazy instance.</returns>
-        internal static Func<T> FromValue<T>(T value)
+        private static Func<T> AsFunc<T>(this T value)
+            where T : class
         {
-            MethodInfo returnTValueClosed = GetFromValueGenericFactoryMethod<T>();
+            // This is a very specific syntax that leverages the C# compiler
+            // to emit very efficient code for constructing a delegate that
+            // uses the "Target" property to store the first parameter to
+            // the method.
+            // It allows us to construct a Func<T> that returns a T
+            // without actually allocating a closure -- we only allocate the delegate.
+            return new Func<T>(value.Return);
+        }
 
-            using (var args = ArrayRental<object>.Get(2))
-            {
-                args.Value[0] = value;
-                args.Value[1] = returnTValueClosed.MethodHandle.GetFunctionPointer();
-                return (Func<T>)Helper<T>.FuncOfTCtor.Invoke(args.Value);
-            }
+        private static T Return<T>(this T value)
+        {
+            return value;
         }
 
         /// <summary>

@@ -10,18 +10,10 @@
     public class DelegateServicesTests
     {
         [Fact]
-        public void FromValueOfT()
+        public void FromValue()
         {
             string expectedValue = "hi";
             Func<string> func = DelegateServices.FromValue(expectedValue);
-            Assert.Same(expectedValue, func());
-        }
-
-        [Fact]
-        public void FromValue()
-        {
-            object expectedValue = new object();
-            Func<object> func = DelegateServices.FromValue(expectedValue);
             Assert.Same(expectedValue, func());
         }
 
