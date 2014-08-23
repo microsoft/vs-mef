@@ -190,6 +190,7 @@
     <Compile Include="SkippableFactAttribute.cs" />
     <Compile Include="StaticMemberExportsTests.cs" />
     <Compile Include="TestUtilities.cs" />
+    <Compile Include="ThreadSafetyTests.cs" />
     <Compile Include="ThrowingPartsTests.cs" />
   </ItemGroup>
   <ItemGroup>
