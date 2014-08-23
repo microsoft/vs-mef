@@ -25,11 +25,6 @@
     /// </remarks>
     internal static class DelegateServices
     {
-        private static readonly Dictionary<Type, MethodInfo> closedReturnTValues = new Dictionary<Type, MethodInfo>();
-        private static readonly ConstructorInfo FuncOfObjectCtor = typeof(Func<object>).GetConstructors().Single();
-        private static readonly MethodInfo returnObjectValue = typeof(DelegateServices).GetMethod("ReturnObjectValue", BindingFlags.NonPublic | BindingFlags.Static);
-        private static readonly MethodInfo returnTValue = typeof(DelegateServices).GetMethod("ReturnTValue", BindingFlags.NonPublic | BindingFlags.Static);
-
         /// <summary>
         /// Creates a Func{T} from a delegate that takes one parameter
         /// (for the cost of a delegate, but without incurring the cost of a closure).
@@ -79,49 +74,6 @@
         private static T AsHelper<T>(this Func<object> value)
         {
             return (T)value();
-        }
-
-        private static MethodInfo GetFromValueGenericFactoryMethod<T>()
-        {
-            MethodInfo returnTValueClosed;
-            lock (closedReturnTValues)
-            {
-                closedReturnTValues.TryGetValue(typeof(T), out returnTValueClosed);
-            }
-
-            if (returnTValueClosed == null)
-            {
-                using (var typeArray = ArrayRental<Type>.Get(1))
-                {
-                    typeArray.Value[0] = typeof(T);
-                    returnTValueClosed = returnTValue.MakeGenericMethod(typeArray.Value);
-                }
-
-                lock (closedReturnTValues)
-                {
-                    closedReturnTValues[typeof(T)] = returnTValueClosed;
-                }
-            }
-            return returnTValueClosed;
-        }
-
-        private static object ReturnObjectValue(object value)
-        {
-            return value;
-        }
-
-        private static T ReturnTValue<T>(T value)
-        {
-            return value;
-        }
-
-        /// <summary>
-        /// A class that caches the results of generic type args in an inexpensive way.
-        /// </summary>
-        /// <typeparam name="T">The generic type argument used in the cached values.</typeparam>
-        private static class Helper<T>
-        {
-            internal static readonly ConstructorInfo FuncOfTCtor = typeof(Func<T>).GetConstructors().Single();
         }
     }
 }
