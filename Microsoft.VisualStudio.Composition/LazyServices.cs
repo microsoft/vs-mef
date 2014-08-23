@@ -30,13 +30,19 @@
             if (type.IsGenericType)
             {
                 Type genericTypeDefinition = type.GetGenericTypeDefinition();
-                if (typeof(Lazy<>) == genericTypeDefinition || typeof(Lazy<,>) == genericTypeDefinition)
+                if (genericTypeDefinition == typeof(Lazy<>) || genericTypeDefinition == typeof(Lazy<,>))
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        internal static Lazy<T> FromValue<T>(T value)
+            where T : class
+        {
+            return new Lazy<T>(DelegateServices.FromValue(value), LazyThreadSafetyMode.PublicationOnly);
         }
 
         /// <summary>
