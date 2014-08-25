@@ -315,7 +315,7 @@
 
         #endregion
 
-        #region ExportFactory with CreatePolicy == Any
+        #region ExportFactory with CreationPolicy == Any
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3SkipCodeGenScenario, typeof(ExportWithAnyCreationPolicy), typeof(ExportFactoryOfAnyCreationPolicyPartV1Part))]
         public void ExportFactoryOfAnyCreationPolicyPartV1(IContainer container)
@@ -327,7 +327,6 @@
         }
 
         [MefV1.Export]
-        [Export]
         public class ExportWithAnyCreationPolicy { }
 
         [MefV1.Export]
