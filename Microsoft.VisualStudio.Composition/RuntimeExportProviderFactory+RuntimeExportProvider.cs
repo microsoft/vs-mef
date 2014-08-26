@@ -283,7 +283,7 @@
                     provisionalSharedObjects,
                     exportingRuntimePart.SharingBoundary,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
-                Func<object> exportedValue = export.Member != null
+                Func<object> exportedValue = !export.MemberRef.IsEmpty
                     ? () => this.GetValueFromMember(export.Member.IsStatic() ? null : partFactory(), export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve())
                     : partFactory;
                 return exportedValue;
