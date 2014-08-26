@@ -326,6 +326,19 @@
             Assert.NotSame(value1, value2);
         }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3SkipCodeGenScenario, typeof(ExportWithAnyCreationPolicy), typeof(ExportFactoryAndImportOfAnyCreationPolicyPartV1), typeof(ImportOfAnyCreationPolicyPartV1))]
+        public void AnyCreationPolicyPartCreatedViaExportFactroyAndAsRegularImport(IContainer container)
+        {
+            var factory = container.GetExportedValue<ExportFactoryAndImportOfAnyCreationPolicyPartV1>();
+            var importer = container.GetExportedValue<ImportOfAnyCreationPolicyPartV1>();
+            Assert.NotNull(importer.SharedImport);
+            Assert.Same(factory.SharedImport, importer.SharedImport);
+
+            var value1 = factory.Factory.CreateExport().Value;
+            var value2 = factory.Factory.CreateExport().Value;
+            Assert.NotSame(value1, value2);
+        }
+
         [MefV1.Export]
         public class ExportWithAnyCreationPolicy { }
 
@@ -334,6 +347,20 @@
         {
             [MefV1.Import]
             public MefV1.ExportFactory<ExportWithAnyCreationPolicy> Factory { get; set; }
+        }
+
+        [MefV1.Export]
+        public class ExportFactoryAndImportOfAnyCreationPolicyPartV1 : ExportFactoryOfAnyCreationPolicyPartV1Part
+        {
+            [MefV1.Import]
+            public ExportWithAnyCreationPolicy SharedImport { get; set; }
+        }
+
+        [MefV1.Export]
+        public class ImportOfAnyCreationPolicyPartV1
+        {
+            [MefV1.Import]
+            public ExportWithAnyCreationPolicy SharedImport { get; set; }
         }
 
         #endregion
