@@ -25,22 +25,6 @@
     /// </remarks>
     internal static class DelegateServices
     {
-        private static readonly Dictionary<Type, MethodInfo> closedReturnTValues = new Dictionary<Type, MethodInfo>();
-
-        private static readonly MethodInfo returnObjectValue = typeof(DelegateServices).GetMethod("ReturnObjectValue", BindingFlags.NonPublic | BindingFlags.Static);
-        private static readonly MethodInfo returnTValue = typeof(DelegateServices).GetMethod("ReturnTValue", BindingFlags.NonPublic | BindingFlags.Static);
-
-        /// <summary>
-        /// Creates a Func{T} from a delegate that takes one parameter
-        /// (for the cost of a delegate, but without incurring the cost of a closure).
-        /// </summary>
-        /// <param name="value">The value to return from the lazy.</param>
-        /// <returns>The lazy instance.</returns>
-        internal static Func<object> FromValue(object value)
-        {
-            return (Func<object>)Delegate.CreateDelegate(typeof(Func<object>), value, returnObjectValue);
-        }
-
         /// <summary>
         /// Creates a Func{T} from a delegate that takes one parameter
         /// (for the cost of a delegate, but without incurring the cost of a closure).
@@ -48,60 +32,48 @@
         /// <param name="value">The value to return from the lazy.</param>
         /// <returns>The lazy instance.</returns>
         internal static Func<T> FromValue<T>(T value)
+            where T : class
         {
-            MethodInfo returnTValueClosed = GetFromValueGenericFactoryMethod<T>();
-            return (Func<T>)Delegate.CreateDelegate(typeof(Func<T>), value, returnTValueClosed);
+            return value.AsFunc();
         }
 
         /// <summary>
-        /// Creates a Func{T} from a delegate that takes one parameter
-        /// (for the cost of a delegate, but without incurring the cost of a closure).
+        /// Creates a delegate that invokes another delegate and casts the result to a given type.
         /// </summary>
-        /// <typeparam name="TArg">The type of argument to be passed to the function. If a value type, this will be boxed.</typeparam>
-        /// <typeparam name="T">The type of value returned by the function.</typeparam>
-        /// <param name="function">The functino.</param>
-        /// <param name="arg">The argument to be passed to the function.</param>
-        /// <returns>The function constructed with one less argument.</returns>
-        internal static Func<T> PresupplyArgument<TArg, T>(this Func<TArg, T> function, TArg arg)
+        /// <typeparam name="T">The type to cast the result of <paramref name="valueFactory"/> to.</typeparam>
+        /// <param name="valueFactory">The delegate to chain execution to.</param>
+        /// <returns>A delegate which, when invoked, will invoke <paramref name="valueFactory"/>.</returns>
+        internal static Func<T> As<T>(this Func<object> valueFactory)
         {
-            Requires.NotNull(function, "function");
-            Requires.Argument(function.Target == null, "function", "Only static methods or delegates without closures are allowed.");
-
-            return (Func<T>)Delegate.CreateDelegate(typeof(Func<T>), arg, function.Method);
+            // This is a very specific syntax that leverages the C# compiler
+            // to emit very efficient code for constructing a delegate that
+            // uses the "Target" property to store the first parameter to
+            // the method.
+            // It allows us to construct a Func<T> that returns a T
+            // without actually allocating a closure -- we only allocate the delegate.
+            return new Func<T>(valueFactory.AsHelper<T>);
         }
 
-        private static MethodInfo GetFromValueGenericFactoryMethod<T>()
+        private static Func<T> AsFunc<T>(this T value)
+            where T : class
         {
-            MethodInfo returnTValueClosed;
-            lock (closedReturnTValues)
-            {
-                closedReturnTValues.TryGetValue(typeof(T), out returnTValueClosed);
-            }
-
-            if (returnTValueClosed == null)
-            {
-                using (var typeArray = ArrayRental<Type>.Get(1))
-                {
-                    typeArray.Value[0] = typeof(T);
-                    returnTValueClosed = returnTValue.MakeGenericMethod(typeArray.Value);
-                }
-
-                lock (closedReturnTValues)
-                {
-                    closedReturnTValues[typeof(T)] = returnTValueClosed;
-                }
-            }
-            return returnTValueClosed;
+            // This is a very specific syntax that leverages the C# compiler
+            // to emit very efficient code for constructing a delegate that
+            // uses the "Target" property to store the first parameter to
+            // the method.
+            // It allows us to construct a Func<T> that returns a T
+            // without actually allocating a closure -- we only allocate the delegate.
+            return new Func<T>(value.Return);
         }
 
-        private static object ReturnObjectValue(object value)
+        private static T Return<T>(this T value)
         {
             return value;
         }
 
-        private static T ReturnTValue<T>(T value)
+        private static T AsHelper<T>(this Func<object> value)
         {
-            return value;
+            return (T)value();
         }
     }
 }

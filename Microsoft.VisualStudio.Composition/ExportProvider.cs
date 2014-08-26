@@ -121,7 +121,7 @@
             }
 
             var nonDisposableWrapper = (this as ExportProviderAsExport) ?? new ExportProviderAsExport(this);
-            this.NonDisposableWrapper = new Lazy<object>(DelegateServices.FromValue((object)nonDisposableWrapper), LazyThreadSafetyMode.PublicationOnly);
+            this.NonDisposableWrapper = LazyServices.FromValue<object>(nonDisposableWrapper);
             this.NonDisposableWrapperExportAsListOfOne = ImmutableList.Create(
                 new Export(ExportProviderExportDefinition, this.NonDisposableWrapper));
             this.metadataViewProviders = new Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>>(
