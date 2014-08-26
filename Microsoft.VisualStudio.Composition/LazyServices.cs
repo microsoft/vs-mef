@@ -5,9 +5,13 @@
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Validation;
 
+    /// <summary>
+    /// Static factory methods for creating .NET Lazy{T} instances.
+    /// </summary>
     internal static class LazyServices
     {
         private static readonly MethodInfo createStronglyTypedLazyOfTM = typeof(LazyServices).GetMethod("CreateStronglyTypedLazyOfTM", BindingFlags.NonPublic | BindingFlags.Static);
@@ -16,6 +20,11 @@
         internal static readonly Type DefaultMetadataViewType = typeof(IDictionary<string, object>);
         internal static readonly Type DefaultExportedValueType = typeof(object);
 
+        /// <summary>
+        /// Gets a value indicating whether a type is a Lazy`1 or Lazy`2 type.
+        /// </summary>
+        /// <param name="type">The type to be tested.</param>
+        /// <returns><c>true</c> if <paramref name="type"/> is some Lazy type.</returns>
         internal static bool IsAnyLazyType(this Type type)
         {
             if (type.IsGenericType)
@@ -30,6 +39,19 @@
             return false;
         }
 
+        internal static Lazy<T> FromValue<T>(T value)
+            where T : class
+        {
+            return new Lazy<T>(DelegateServices.FromValue(value), LazyThreadSafetyMode.PublicationOnly);
+        }
+
+        /// <summary>
+        /// Creates a factory that takes a Func{object} and object-typed metadata
+        /// and returns a strongly-typed Lazy{T, TMetadata} instance.
+        /// </summary>
+        /// <param name="exportType">The type of values created by the Func{object} value factories. Null is interpreted to be <c>typeof(object)</c>.</param>
+        /// <param name="metadataViewType">The type of metadata passed to the lazy factory. Null is interpreted to be <c>typeof(IDictionary{string, object})</c>.</param>
+        /// <returns>A function that takes a Func{object} value factory and metadata, and produces a Lazy{T, TMetadata} instance.</returns>
         internal static Func<Func<object>, object, object> CreateStronglyTypedLazyFactory(Type exportType, Type metadataViewType)
         {
             MethodInfo genericMethod;
@@ -45,14 +67,31 @@
             return (Func<Func<object>, object, object>)Delegate.CreateDelegate(typeof(Func<Func<object>, object, object>), genericMethod);
         }
 
-        internal static Lazy<T> CreateStronglyTypedLazyOfT<T>(Func<object> funcOfObject, object metadata)
+        internal static Func<T> AsFunc<T>(this Lazy<T> lazy)
         {
-            return new Lazy<T>(() => (T)funcOfObject());
+            Requires.NotNull(lazy, "lazy");
+
+            return new Func<T>(lazy.GetLazyValue);
         }
 
-        internal static Lazy<T> CreateStronglyTypedLazyOfTM<T, TMetadata>(Func<object> funcOfObject, object metadata)
+        private static T GetLazyValue<T>(this Lazy<T> lazy)
         {
-            return new Lazy<T, TMetadata>(() => (T)funcOfObject(), (TMetadata)metadata);
+            return lazy.Value;
+        }
+
+        private static Lazy<T> CreateStronglyTypedLazyOfT<T>(Func<object> funcOfObject, object metadata)
+        {
+            Requires.NotNull(funcOfObject, "funcOfObject");
+
+            return new Lazy<T>(funcOfObject.As<T>());
+        }
+
+        private static Lazy<T, TMetadata> CreateStronglyTypedLazyOfTM<T, TMetadata>(Func<object> funcOfObject, object metadata)
+        {
+            Requires.NotNull(funcOfObject, "funcOfObject");
+            Requires.NotNullAllowStructs(metadata, "metadata");
+
+            return new Lazy<T, TMetadata>(funcOfObject.As<T>(), (TMetadata)metadata);
         }
     }
 }

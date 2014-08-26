@@ -99,8 +99,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Microsoft.VisualStudio.Composition\ArrayRental`1.cs">
+      <Link>ArrayRental`1.cs</Link>
+    </Compile>
     <Compile Include="..\Microsoft.VisualStudio.Composition\CompressedUInt.cs">
       <Link>CompressedUInt.cs</Link>
+    </Compile>
+    <Compile Include="..\Microsoft.VisualStudio.Composition\DelegateServices.cs">
+      <Link>DelegateServices.cs</Link>
+    </Compile>
+    <Compile Include="..\Microsoft.VisualStudio.Composition\LazyServices.cs">
+      <Link>LazyServices.cs</Link>
+    </Compile>
+    <Compile Include="..\Microsoft.VisualStudio.Composition\Rental`1.cs">
+      <Link>Rental`1.cs</Link>
     </Compile>
     <Compile Include="AmbiguousPartNamesTests.cs" />
     <Compile Include="AssembliesLazyLoadedCompilationCacheTests.cs" />
@@ -120,6 +132,7 @@
     <Compile Include="CustomAttributeDataRefTests.cs" />
     <Compile Include="DataFileCacheAndReloadTests.cs" />
     <Compile Include="CompiledCacheAndReloadTests.cs" />
+    <Compile Include="DelegateServicesTests.cs" />
     <Compile Include="DelegatingExportProviderTests.cs" />
     <Compile Include="DynamicImportTests.cs" />
     <Compile Include="EmbeddableTypesTests.cs" />
@@ -133,6 +146,7 @@
     <Compile Include="ImportOfTResolvedByDerivedClassTests.cs" />
     <Compile Include="InheritedExportTests.cs" />
     <Compile Include="InvalidGraphTests.cs" />
+    <Compile Include="LazyServicesTests.cs" />
     <Compile Include="Mef3TestCommand.cs" />
     <Compile Include="MefV1ExportProviderAdapterTests.cs" />
     <Compile Include="MefV3DiscoveryTestCommand.cs" />
