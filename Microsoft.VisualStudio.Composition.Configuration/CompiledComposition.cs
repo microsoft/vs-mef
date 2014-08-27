@@ -166,8 +166,7 @@
                 references: referenceAssemblies.Select(a => MetadataFileReferenceProvider.Default.GetReference(a.Location, MetadataReferenceProperties.Assembly)),
                 options: new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
-                    optimize: !debug,
-                    debugInformationKind: debug ? DebugInformationKind.Full : DebugInformationKind.None,
+                    optimizationLevel: debug ? OptimizationLevel.Debug : OptimizationLevel.Release,
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
                     specificDiagnosticOptions: diagnosticOptions));
         }

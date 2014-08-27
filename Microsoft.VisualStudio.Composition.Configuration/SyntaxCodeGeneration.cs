@@ -130,8 +130,7 @@
                     continue;
                 }
 
-                var switchLabel = SyntaxFactory.SwitchLabel(
-                    SyntaxKind.CaseSwitchLabel,
+                var switchLabel = SyntaxFactory.CaseSwitchLabel(
                     SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(exportsByContract.Key)));
 
                 var returnStatement = SyntaxFactory.ReturnStatement(
@@ -146,7 +145,7 @@
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("importDefinition"))))));
 
                 switchSections.Add(SyntaxFactory.SwitchSection(
-                    SyntaxFactory.SingletonList(switchLabel),
+                    SyntaxFactory.SingletonList<SwitchLabelSyntax>(switchLabel),
                     SyntaxFactory.SingletonList<StatementSyntax>(returnStatement)));
             }
 
@@ -157,7 +156,7 @@
             }
 
             switchSections.Add(SyntaxFactory.SwitchSection(
-                SyntaxFactory.SingletonList(SyntaxFactory.SwitchLabel(SyntaxKind.DefaultSwitchLabel)),
+                SyntaxFactory.SingletonList<SwitchLabelSyntax>(SyntaxFactory.DefaultSwitchLabel()),
                 SyntaxFactory.SingletonList<StatementSyntax>(SyntaxFactory.ReturnStatement(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
@@ -226,8 +225,7 @@
 
                 this.extraMembers.Add(bucketMethod);
 
-                var switchLabel = SyntaxFactory.SwitchLabel(
-                    SyntaxKind.CaseSwitchLabel,
+                var switchLabel = SyntaxFactory.CaseSwitchLabel(
                     SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(bucket)));
 
                 var returnStatement = SyntaxFactory.ReturnStatement(
@@ -240,12 +238,12 @@
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("importDefinition"))))));
 
                 switchSections.Add(SyntaxFactory.SwitchSection(
-                    SyntaxFactory.SingletonList(switchLabel),
+                    SyntaxFactory.SingletonList<SwitchLabelSyntax>(switchLabel),
                     SyntaxFactory.SingletonList<StatementSyntax>(returnStatement)));
             }
 
             switchSections.Add(SyntaxFactory.SwitchSection(
-                SyntaxFactory.SingletonList(SyntaxFactory.SwitchLabel(SyntaxKind.DefaultSwitchLabel)),
+                SyntaxFactory.SingletonList<SwitchLabelSyntax>(SyntaxFactory.DefaultSwitchLabel()),
                 SyntaxFactory.SingletonList<StatementSyntax>(SyntaxFactory.ReturnStatement(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
