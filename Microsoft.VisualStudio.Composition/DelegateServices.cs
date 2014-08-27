@@ -25,6 +25,8 @@
     /// </remarks>
     internal static class DelegateServices
     {
+        private static readonly MethodInfo CastAsFuncMethodInfo = new Func<Func<object>, Delegate>(As<object>).GetMethodInfo().GetGenericMethodDefinition();
+
         /// <summary>
         /// Creates a Func{T} from a delegate that takes one parameter
         /// (for the cost of a delegate, but without incurring the cost of a closure).
@@ -52,6 +54,21 @@
             // It allows us to construct a Func<T> that returns a T
             // without actually allocating a closure -- we only allocate the delegate.
             return new Func<T>(valueFactory.AsHelper<T>);
+        }
+
+        /// <summary>
+        /// Creates a <see cref="Func{T}"/> delegate for a given <see cref="Func{Object}"/> delegate.
+        /// </summary>
+        /// <param name="func">The function that produces the T value typed as <see cref="object"/>.</param>
+        /// <param name="typeArg">The <c>T</c> type argument for the returned function's return type.</param>
+        /// <returns>An instance of <see cref="Func{T}"/>, typed as <see cref="Func{Object}"/>.</returns>
+        internal static Func<object> As(this Func<object> func, Type typeArg)
+        {
+            using (var args = ArrayRental<object>.Get(1))
+            {
+                args.Value[0] = func;
+                return (Func<object>)CastAsFuncMethodInfo.MakeGenericMethod(typeArg).Invoke(null, args.Value);
+            }
         }
 
         private static Func<T> AsFunc<T>(this T value)

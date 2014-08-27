@@ -364,7 +364,7 @@
 
             using (var ctorArgs = ArrayRental<object>.Get(exportFactoryType.GenericTypeArguments.Length))
             {
-                ctorArgs.Value[0] = ReflectionHelpers.CreateFuncOfType(tupleType, factory);
+                ctorArgs.Value[0] = DelegateServices.As(factory, tupleType);
                 if (ctorArgs.Value.Length > 1)
                 {
                     ctorArgs.Value[1] = this.GetStrongTypedMetadata(exportMetadata, exportFactoryType.GenericTypeArguments[1]);

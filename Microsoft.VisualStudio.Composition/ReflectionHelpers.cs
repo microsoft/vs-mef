@@ -15,8 +15,6 @@
     {
         private static readonly Assembly mscorlib = typeof(int).GetTypeInfo().Assembly;
 
-        private static readonly MethodInfo CastAsFuncMethodInfo = new Func<Func<object>, Delegate>(CastAsFunc<object>).GetMethodInfo().GetGenericMethodDefinition();
-
         internal static readonly ReflectionCache Cache = new ReflectionCache();
 
         /// <summary>
@@ -27,7 +25,7 @@
         /// <returns>An instance of <see cref="Func{T}"/>, typed as <see cref="Func{Object}"/>.</returns>
         public static Func<object> CreateFuncOfType(Type typeArg, Func<object> func)
         {
-            return (Func<object>)CastAsFuncMethodInfo.MakeGenericMethod(typeArg).Invoke(null, new object[] { func });
+            return DelegateServices.As(func, typeArg);
         }
 
         internal static bool IsEquivalentTo(this Type type1, Type type2)
@@ -602,11 +600,6 @@
             {
                 yield return iface;
             }
-        }
-
-        private static Delegate CastAsFunc<T>(Func<object> func)
-        {
-            return new Func<T>(() => (T)func());
         }
     }
 }
