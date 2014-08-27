@@ -166,8 +166,15 @@
                     }
                 }
 
+                var partMetadata = ImmutableDictionary.CreateBuilder<string, object>();
+                foreach (var partMetadataAttribute in partType.GetCustomAttributesCached<PartMetadataAttribute>())
+                {
+                    partMetadata[partMetadataAttribute.Name] = partMetadataAttribute.Value;
+                }
+
                 return new ComposablePartDefinition(
                     TypeRef.Get(partType),
+                    partMetadata.ToImmutable(),
                     exportsOnType.ToImmutable(),
                     exportsOnMembers.ToImmutable(),
                     imports.ToImmutable(),

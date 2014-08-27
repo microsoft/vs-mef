@@ -19,6 +19,7 @@
         /// Initializes a new instance of the <see cref="ComposablePartDefinition"/> class.
         /// </summary>
         /// <param name="partType">Type of the part.</param>
+        /// <param name="metadata">The metadata discovered on the part.</param>
         /// <param name="exportedTypes">The exported types.</param>
         /// <param name="exportingMembers">The exporting members.</param>
         /// <param name="importingMembers">The importing members.</param>
@@ -27,14 +28,16 @@
         /// <param name="importingConstructor">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
         /// <param name="partCreationPolicy">The creation policy for this part.</param>
         /// <param name="isSharingBoundaryInferred">A value indicating whether the part does not have an explicit sharing boundary, and therefore can obtain its sharing boundary based on its imports.</param>
-        public ComposablePartDefinition(TypeRef partType, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodRef onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
+        public ComposablePartDefinition(TypeRef partType, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodRef onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
         {
             Requires.NotNull(partType, "partType");
+            Requires.NotNull(metadata, "metadata");
             Requires.NotNull(exportedTypes, "exportedTypes");
             Requires.NotNull(exportingMembers, "exportingMembers");
             Requires.NotNull(importingMembers, "importingMembers");
 
             this.TypeRef = partType;
+            this.Metadata = metadata;
             this.ExportedTypes = exportedTypes;
             this.ExportingMembers = exportingMembers;
             this.ImportingMembers = ImmutableHashSet.CreateRange(importingMembers);
@@ -77,6 +80,15 @@
         {
             get { return this.SharingBoundary != null; }
         }
+
+        /// <summary>
+        /// Gets the metadata for this part.
+        /// </summary>
+        /// <remarks>
+        /// This metadata has no effect on composition, but may be useful if the host
+        /// wishes to filter a catalog based on part metadata prior to creating a composition.
+        /// </remarks>
+        public IReadOnlyDictionary<string, object> Metadata { get; private set; }
 
         public MethodInfo OnImportsSatisfied
         {
@@ -174,6 +186,7 @@
             }
 
             bool result = this.Type == other.Type
+                && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata)
                 && this.SharingBoundary == other.SharingBoundary
                 && this.IsSharingBoundaryInferred == other.IsSharingBoundaryInferred
                 && this.CreationPolicy == other.CreationPolicy
@@ -189,6 +202,18 @@
         {
             var indentingWriter = IndentingTextWriter.Get(writer);
             indentingWriter.WriteLine("Type: {0}", this.Type.FullName);
+            if (this.Metadata.Count > 0)
+            {
+                indentingWriter.WriteLine("Part metadata:");
+                using (indentingWriter.Indent())
+                {
+                    foreach (var item in this.Metadata)
+                    {
+                        indentingWriter.WriteLine("{0} = {1}", item.Key, item.Value);
+                    }
+                }
+            }
+
             indentingWriter.WriteLine("SharingBoundary: {0}", this.SharingBoundary.SpecifyIfNull());
             indentingWriter.WriteLine("IsSharingBoundaryInferred: {0}", this.IsSharingBoundaryInferred);
             indentingWriter.WriteLine("CreationPolicy: {0}", this.CreationPolicy);
