@@ -117,13 +117,23 @@
             catch (FileNotFoundException) { }
 
             var result = await this.DiscoveryService.CreatePartsAsync(
-                new List<Assembly>{ 
-                    typeof(TypeWithMissingAttribute).Assembly, 
+                new List<Assembly>{
+                    typeof(TypeWithMissingAttribute).Assembly,
                     typeof(GoodType).Assembly });
 
             // Verify that we still found parts.
             Assert.NotEqual(0, result.Parts.Count);
         }
+
+        #region TypeDiscoveryOmitsNestedTypes test
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(OuterClass))]
+        public void TypeDiscoveryOmitsNestedTypes(IContainer container)
+        {
+            Assert.Equal(0, container.GetExportedValues<OuterClass.NestedPart>().Count());
+        }
+
+        #endregion
 
         [Export]
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]

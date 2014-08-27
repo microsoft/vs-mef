@@ -91,6 +91,7 @@
     <Compile Include="CompressedUInt.cs" />
     <Compile Include="ContractNameServices.cs" />
     <Compile Include="CreationPolicy.cs" />
+    <Compile Include="DelegateServices.cs" />
     <Compile Include="DelegatingExportProvider.cs" />
     <Compile Include="Dgml.cs" />
     <Compile Include="DiscoveredParts.cs" />

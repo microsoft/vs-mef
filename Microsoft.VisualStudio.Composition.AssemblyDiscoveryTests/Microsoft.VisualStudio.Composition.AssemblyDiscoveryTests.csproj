@@ -75,9 +75,6 @@
     <Compile Include="TypeWithMissingAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.MissingAssemblyTests\Microsoft.VisualStudio.Composition.MissingAssemblyTests.csproj">
       <Project>{635a4876-52ba-47c7-874c-8dfb125c020a}</Project>
       <Name>Microsoft.VisualStudio.Composition.MissingAssemblyTests</Name>

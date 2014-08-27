@@ -17,6 +17,32 @@
 
     internal static class TestUtilities
     {
+        /// <summary>
+        /// Gets the timeout value to use for tests that do not expect the timeout to occur.
+        /// </summary>
+        internal static TimeSpan UnexpectedTimeout
+        {
+            get
+            {
+                return Debugger.IsAttached
+                    ? TimeSpan.MaxValue
+                    : TimeSpan.FromSeconds(2);
+            }
+        }
+
+        /// <summary>
+        /// Gets a timeout value to use for tests that expect the timeout to occur.
+        /// </summary>
+        internal static TimeSpan ExpectedTimeout
+        {
+            get
+            {
+                return Debugger.IsAttached
+                    ? TimeSpan.FromSeconds(5)
+                    : TimeSpan.FromMilliseconds(200);
+            }
+        }
+
         internal static ExportProvider CreateContainer(this CompositionConfiguration configuration, bool runtime)
         {
             Requires.NotNull(configuration, "configuration");
@@ -158,7 +184,7 @@
         private static IContainer CreateContainerV1(MefV1.Primitives.ComposablePartCatalog catalog)
         {
             Requires.NotNull(catalog, "catalog");
-            var container = new DebuggableCompositionContainer(catalog, MefV1.Hosting.CompositionOptions.ExportCompositionService);
+            var container = new DebuggableCompositionContainer(catalog, MefV1.Hosting.CompositionOptions.ExportCompositionService | MefV1.Hosting.CompositionOptions.IsThreadSafe);
             return new V1ContainerWrapper(container);
         }
 
@@ -315,14 +341,14 @@
 
         internal class V1ContainerWrapper : IContainer
         {
-            private readonly DebuggableCompositionContainer container;
+            private readonly MefV1.Hosting.CompositionContainer container;
 
-            internal DebuggableCompositionContainer Container
+            internal MefV1.Hosting.CompositionContainer Container
             {
                 get { return container; }
             }
 
-            internal V1ContainerWrapper(DebuggableCompositionContainer container)
+            internal V1ContainerWrapper(MefV1.Hosting.CompositionContainer container)
             {
                 Requires.NotNull(container, "container");
                 this.container = container;
