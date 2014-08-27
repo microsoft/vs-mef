@@ -178,6 +178,59 @@
 
         #endregion
 
+        #region Part Metadata tests
+
+        /// <summary>
+        /// Verifies that part metadata is available in the catalog.
+        /// </summary>
+        /// <remarks>
+        /// Although part metadata is not used at runtime for the composition,
+        /// some hosts such as VS may want to use it to filter the catalog
+        /// before creating the composition.
+        /// </remarks>
+        [Fact]
+        public void PartMetadataInCatalogIsPresent()
+        {
+            var part = this.DiscoveryService.CreatePart(typeof(SomePartWithPartMetadata));
+            Assert.Equal("V1", part.Metadata["PM1"]);
+            Assert.Equal("V2", part.Metadata["PM2"]);
+        }
+
+        /// <summary>
+        /// Verifies that part metadata does not become export metadata.
+        /// </summary>
+        /// <remarks>
+        /// This behavior isn't important, we're just documenting it.
+        /// If we want to allow part metadata to be exposed through export metadata,
+        /// simply update this test.
+        /// </remarks>
+        [Fact]
+        public void PartMetadataInCatalogDoesNotPropagateToExportMetadata()
+        {
+            var part = this.DiscoveryService.CreatePart(typeof(SomePartWithPartMetadata));
+            Assert.False(part.ExportDefinitions.Single().Value.Metadata.ContainsKey("PM1"));
+        }
+
+        [Fact]
+        public void PartMetadataInCatalogOmitsBaseClassMetadata()
+        {
+            var part = this.DiscoveryService.CreatePart(typeof(SomePartWithPartMetadata));
+            Assert.False(part.Metadata.ContainsKey("BasePM"));
+        }
+
+        [PartMetadata("BasePM", "V1"), MefV1.PartMetadata("BasePM", "V1")]
+        public class BaseClassForPartWithMetadata { }
+
+        [PartMetadata("PM1", "V1"), MefV1.PartMetadata("PM1", "V1")]
+        [PartMetadata("PM2", "V2"), MefV1.PartMetadata("PM2", "V2")]
+        public class SomePartWithPartMetadata : BaseClassForPartWithMetadata
+        {
+            [Export, MefV1.Export]
+            public bool MemberExport { get { return true; } }
+        }
+
+        #endregion
+
         /// <summary>
         /// A discovery mock that produces no parts, but includes all types for consideration.
         /// </summary>

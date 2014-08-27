@@ -24,6 +24,7 @@
 
         internal static readonly ComposablePartDefinition ExportProviderPartDefinition = new ComposablePartDefinition(
             TypeRef.Get(typeof(ExportProviderAsExport)),
+            ImmutableDictionary<string, object>.Empty,
             new[] { ExportProviderExportDefinition },
             ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
             ImmutableList<ImportDefinitionBinding>.Empty,
