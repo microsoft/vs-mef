@@ -8,14 +8,14 @@
 
     public class FieldDesc : MemberDesc
     {
-        public FieldDesc(FieldDesc fieldRef, TypeDesc fieldType, string name, bool isStatic)
+        public FieldDesc(FieldRef fieldRef, TypeDesc fieldType, string name, bool isStatic)
             : base(name, isStatic)
         {
             this.Field = fieldRef;
             this.FieldType = fieldType;
         }
 
-        public FieldDesc Field { get; private set; }
+        public FieldRef Field { get; private set; }
 
         public TypeDesc FieldType { get; private set; }
     }

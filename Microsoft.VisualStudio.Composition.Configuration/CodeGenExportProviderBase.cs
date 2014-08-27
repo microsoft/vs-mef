@@ -13,7 +13,7 @@
     using Validation;
 
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public abstract  class CodeGenExportProviderBase : ExportProvider
+    public abstract class CodeGenExportProviderBase : ExportProvider
     {
         private static readonly IAssemblyLoader BuiltInAssemblyLoader = new AssemblyLoaderByFullName();
 
