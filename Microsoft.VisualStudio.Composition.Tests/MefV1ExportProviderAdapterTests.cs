@@ -105,7 +105,7 @@
             public Apple SharedApple { get; set; }
         }
 
-        [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(Tree))]
+        [MefFact(CompositionEngines.V1Compat, typeof(Apple))]
         public void SatisfyImportsOnceWithExportFactory(IContainer container)
         {
             MefV1.Hosting.CompositionContainer v1Container = GetMefV1Container(container);
