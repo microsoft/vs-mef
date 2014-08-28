@@ -153,6 +153,7 @@
 
                 return new ComposablePartDefinition(
                     TypeRef.Get(typeof(int)),
+                    ImmutableDictionary<string, object>.Empty,
                     ImmutableList.Create<ExportDefinition>(),
                     ImmutableDictionary.Create<MemberRef, IReadOnlyCollection<ExportDefinition>>(),
                     ImmutableList.Create<ImportDefinitionBinding>(),

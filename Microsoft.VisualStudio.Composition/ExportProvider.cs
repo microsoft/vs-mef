@@ -24,6 +24,7 @@
 
         internal static readonly ComposablePartDefinition ExportProviderPartDefinition = new ComposablePartDefinition(
             TypeRef.Get(typeof(ExportProviderAsExport)),
+            ImmutableDictionary<string, object>.Empty,
             new[] { ExportProviderExportDefinition },
             ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
             ImmutableList<ImportDefinitionBinding>.Empty,
@@ -311,7 +312,7 @@
         /// </remarks>
         protected abstract IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition);
 
-        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, TypeRef partTypeRef, Func<ExportProvider, Dictionary<TypeRef, object>, object> valueFactory, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
+        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, TypeRef partTypeRef, Func<ExportProvider, Dictionary<TypeRef, object>, bool, object> valueFactory, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(metadata, "metadata");
@@ -364,7 +365,7 @@
 
             using (var ctorArgs = ArrayRental<object>.Get(exportFactoryType.GenericTypeArguments.Length))
             {
-                ctorArgs.Value[0] = ReflectionHelpers.CreateFuncOfType(tupleType, factory);
+                ctorArgs.Value[0] = DelegateServices.As(factory, tupleType);
                 if (ctorArgs.Value.Length > 1)
                 {
                     ctorArgs.Value[1] = this.GetStrongTypedMetadata(exportMetadata, exportFactoryType.GenericTypeArguments[1]);
@@ -464,7 +465,7 @@
             throw new NotSupportedException();
         }
 
-        protected Func<object> GetOrCreateShareableValue(TypeRef partTypeRef, Func<ExportProvider, Dictionary<TypeRef, object>, object> valueFactory, Dictionary<TypeRef, object> provisionalSharedObjects, string partSharingBoundary, bool nonSharedInstanceRequired)
+        protected Func<object> GetOrCreateShareableValue(TypeRef partTypeRef, Func<ExportProvider, Dictionary<TypeRef, object>, bool, object> valueFactory, Dictionary<TypeRef, object> provisionalSharedObjects, string partSharingBoundary, bool nonSharedInstanceRequired)
         {
             Requires.NotNull(partTypeRef, "partTypeRef");
 
@@ -483,7 +484,7 @@
                 }
             }
 
-            Func<object> result = () => valueFactory(this, provisionalSharedObjects);
+            Func<object> result = () => valueFactory(this, provisionalSharedObjects, nonSharedInstanceRequired);
 
             if (!nonSharedInstanceRequired)
             {

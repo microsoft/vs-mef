@@ -125,13 +125,20 @@
             var typeArgs = (Type[])importDefinition.Metadata[CompositionConstants.GenericParametersMetadataName];
             var valueFactoryOpenGenericMethodInfo = this.GetMethodWithArity(valueFactoryMethodDeclaringType, valueFactoryMethodName, typeArgs.Length);
             var valueFactoryMethodInfo = valueFactoryOpenGenericMethodInfo.MakeGenericMethod(typeArgs);
-            var valueFactory = (Func<ExportProvider, Dictionary<TypeRef, object>, object>)valueFactoryMethodInfo.CreateDelegate(typeof(Func<ExportProvider, Dictionary<TypeRef, object>, object>), null);
+            var valueFactory = (Func<ExportProvider, Dictionary<TypeRef, object>, bool, object>)valueFactoryMethodInfo.CreateDelegate(typeof(Func<ExportProvider, Dictionary<TypeRef, object>, bool, object>), null);
 
             Type partOpenGenericType = partOpenGenericTypeRef.Resolve();
             TypeRef partType = partOpenGenericTypeRef.MakeGenericType(typeArgs.Select(TypeRef.Get).ToImmutableArray());
 
             return this.CreateExport(importDefinition, metadata, partType, valueFactory, partSharingBoundary, nonSharedInstanceRequired, exportingMember);
         }
+
+        protected sealed override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
+        {
+            return this.GetExportsCore(importDefinition, PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition));
+        }
+
+        protected abstract IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition, bool nonSharedInstanceRequired);
 
         private class AssemblyLoaderByFullName : IAssemblyLoader
         {

@@ -41,13 +41,13 @@
                         importDefinition,
                         export.Metadata,
                         GetPartConstructedTypeRef(part, importDefinition.Metadata),
-                        (ep, provisionalSharedObjects) => this.CreatePart(provisionalSharedObjects, part, importDefinition.Metadata),
+                        (ep, provisionalSharedObjects, nonSharedInstanceRequired) => this.CreatePart(provisionalSharedObjects, part, importDefinition.Metadata, nonSharedInstanceRequired),
                         part.SharingBoundary,
                         !part.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
                         export.Member);
             }
 
-            private object CreatePart(Dictionary<TypeRef, object> provisionalSharedObjects, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata)
+            private object CreatePart(Dictionary<TypeRef, object> provisionalSharedObjects, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata, bool nonSharedInstanceRequired)
             {
                 if (partDefinition.Type.Equals(Reflection.TypeRef.Get(ExportProvider.ExportProviderPartDefinition.Type)))
                 {
@@ -72,7 +72,7 @@
 
                 object part = importingConstructor.Invoke(ctorArgs);
 
-                if (partDefinition.IsShared)
+                if (partDefinition.IsShared && !nonSharedInstanceRequired)
                 {
                     lock (provisionalSharedObjects)
                     {
@@ -279,7 +279,7 @@
 
                 Func<object> partFactory = this.GetOrCreateShareableValue(
                     constructedType,
-                    (ep, pso) => this.CreatePart(pso, exportingRuntimePart, import.Metadata),
+                    (ep, pso, nonSharedInstanceRequired) => this.CreatePart(pso, exportingRuntimePart, import.Metadata, nonSharedInstanceRequired),
                     provisionalSharedObjects,
                     exportingRuntimePart.SharingBoundary,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);

@@ -119,7 +119,7 @@
                 {
                     try
                     {
-                        var assembly = Assembly.LoadFrom(path);
+                        var assembly = Assembly.Load(AssemblyName.GetAssemblyName(path));
                         return new Assembly[] { assembly };
                     }
                     catch (Exception ex)

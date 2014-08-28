@@ -82,6 +82,28 @@
             Assert.True(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(OuterClass.NestedPart))));
         }
 
+        /// <summary>
+        /// Verifies that assemblies are loaded into the Load context rather than the LoadFrom context.
+        /// </summary>
+        /// <see cref="http://blogs.msdn.com/b/suzcook/archive/2003/05/29/57143.aspx">Choosing a Binding Context</see>
+        [Fact]
+        public async Task AssemblyLoadContext()
+        {
+            // The way this test works is we copy an assembly that we reference to another location.
+            // Then we perform discovery at that other location explicitly.
+            // If discovery is using the LoadFrom context, this will cause the assembly to be loaded twice
+            // such that we won't be able to consume the result and GetExportedValue will throw.
+            string alternateReadLocation = Path.GetTempFileName();
+            File.Copy(typeof(DiscoverablePart1).Assembly.Location, alternateReadLocation, true);
+
+            var parts = await this.DiscoveryService.CreatePartsAsync(new[] { alternateReadLocation });
+            var catalog = ComposableCatalog.Create(parts);
+            var configuration = CompositionConfiguration.Create(catalog);
+            var exportProviderFactory = configuration.CreateExportProviderFactory();
+            var exportProvider = exportProviderFactory.CreateExportProvider();
+            var discoverablePart = exportProvider.GetExportedValue<DiscoverablePart1>();
+        }
+
         [SkippableFact]
         public async Task AssemblyDiscoveryDropsTypesWithProblematicAttributes()
         {
@@ -174,6 +196,59 @@
                 get { throw new NotImplementedException(); }
                 set { throw new NotImplementedException(); }
             }
+        }
+
+        #endregion
+
+        #region Part Metadata tests
+
+        /// <summary>
+        /// Verifies that part metadata is available in the catalog.
+        /// </summary>
+        /// <remarks>
+        /// Although part metadata is not used at runtime for the composition,
+        /// some hosts such as VS may want to use it to filter the catalog
+        /// before creating the composition.
+        /// </remarks>
+        [Fact]
+        public void PartMetadataInCatalogIsPresent()
+        {
+            var part = this.DiscoveryService.CreatePart(typeof(SomePartWithPartMetadata));
+            Assert.Equal("V1", part.Metadata["PM1"]);
+            Assert.Equal("V2", part.Metadata["PM2"]);
+        }
+
+        /// <summary>
+        /// Verifies that part metadata does not become export metadata.
+        /// </summary>
+        /// <remarks>
+        /// This behavior isn't important, we're just documenting it.
+        /// If we want to allow part metadata to be exposed through export metadata,
+        /// simply update this test.
+        /// </remarks>
+        [Fact]
+        public void PartMetadataInCatalogDoesNotPropagateToExportMetadata()
+        {
+            var part = this.DiscoveryService.CreatePart(typeof(SomePartWithPartMetadata));
+            Assert.False(part.ExportDefinitions.Single().Value.Metadata.ContainsKey("PM1"));
+        }
+
+        [Fact]
+        public void PartMetadataInCatalogOmitsBaseClassMetadata()
+        {
+            var part = this.DiscoveryService.CreatePart(typeof(SomePartWithPartMetadata));
+            Assert.False(part.Metadata.ContainsKey("BasePM"));
+        }
+
+        [PartMetadata("BasePM", "V1"), MefV1.PartMetadata("BasePM", "V1")]
+        public class BaseClassForPartWithMetadata { }
+
+        [PartMetadata("PM1", "V1"), MefV1.PartMetadata("PM1", "V1")]
+        [PartMetadata("PM2", "V2"), MefV1.PartMetadata("PM2", "V2")]
+        public class SomePartWithPartMetadata : BaseClassForPartWithMetadata
+        {
+            [Export, MefV1.Export]
+            public bool MemberExport { get { return true; } }
         }
 
         #endregion

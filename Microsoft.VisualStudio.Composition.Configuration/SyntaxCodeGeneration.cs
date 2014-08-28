@@ -120,6 +120,7 @@
         private MethodDeclarationSyntax CreateGetExportsCoreBucketMethod(int bucket, int bucketCount)
         {
             var importDefinition = SyntaxFactory.IdentifierName("importDefinition");
+            var nonSharedInstanceRequired = SyntaxFactory.IdentifierName("nonSharedInstanceRequired");
 
             var switchSections = new List<SwitchSectionSyntax>();
             foreach (var exportsByContract in this.ExportsByContract)
@@ -142,7 +143,8 @@
                         SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
                             SyntaxKind.CommaToken,
                             SyntaxFactory.Argument(SyntaxFactory.ThisExpression()),
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("importDefinition"))))));
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(importDefinition.Identifier)),
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nonSharedInstanceRequired.Identifier))))));
 
                 switchSections.Add(SyntaxFactory.SwitchSection(
                     SyntaxFactory.SingletonList<SwitchLabelSyntax>(switchLabel),
@@ -176,7 +178,8 @@
                 SyntaxFactory.ParseName("IEnumerable<ExportInfo>"),
                 "GetExportsCore" + bucket)
                 .AddParameterListParameters(
-                    SyntaxFactory.Parameter(importDefinition.Identifier).WithType(this.GetTypeNameSyntax(typeof(ImportDefinition))))
+                    SyntaxFactory.Parameter(importDefinition.Identifier).WithType(this.GetTypeNameSyntax(typeof(ImportDefinition))),
+                    SyntaxFactory.Parameter(nonSharedInstanceRequired.Identifier).WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword))))
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
                 .WithBody(body);
 
@@ -186,6 +189,7 @@
         private MethodDeclarationSyntax CreateGetExportsCoreMethod()
         {
             var importDefinition = SyntaxFactory.IdentifierName("importDefinition");
+            var nonSharedInstanceRequired = SyntaxFactory.IdentifierName("nonSharedInstanceRequired");
 
             var contractName = SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
@@ -234,8 +238,10 @@
                             SyntaxKind.SimpleMemberAccessExpression,
                             SyntaxFactory.ThisExpression(),
                             SyntaxFactory.IdentifierName("GetExportsCore" + bucket)),
-                        SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName("importDefinition"))))));
+                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                            SyntaxKind.CommaToken,
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(importDefinition.Identifier)),
+                            SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nonSharedInstanceRequired.Identifier))))));
 
                 switchSections.Add(SyntaxFactory.SwitchSection(
                     SyntaxFactory.SingletonList<SwitchLabelSyntax>(switchLabel),
@@ -253,12 +259,13 @@
             var body = SyntaxFactory.Block(
                 SyntaxFactory.SwitchStatement(contractNameBucket, SyntaxFactory.List(switchSections)));
 
-            // protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
+            // protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition, bool nonSharedInstanceRequired)
             var method = SyntaxFactory.MethodDeclaration(
                 SyntaxFactory.ParseName("IEnumerable<ExportInfo>"),
                 "GetExportsCore")
                 .AddParameterListParameters(
-                    SyntaxFactory.Parameter(importDefinition.Identifier).WithType(this.GetTypeNameSyntax(typeof(ImportDefinition))))
+                    SyntaxFactory.Parameter(importDefinition.Identifier).WithType(this.GetTypeNameSyntax(typeof(ImportDefinition))),
+                    SyntaxFactory.Parameter(nonSharedInstanceRequired.Identifier).WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword))))
                 .AddModifiers(
                     SyntaxFactory.Token(SyntaxKind.ProtectedKeyword),
                     SyntaxFactory.Token(SyntaxKind.OverrideKeyword))
@@ -306,7 +313,7 @@
                                 SyntaxFactory.Argument(parentIdentifier),
                                 SyntaxFactory.Argument(freshSharingBoundaries))))))
                 .WithBody(SyntaxFactory.Block(
-                // this.assemblyNames
+                    // this.assemblyNames
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -322,7 +329,7 @@
                                 CodeGen.JoinSyntaxNodes(
                                     SyntaxKind.CommaToken,
                                     this.reflectionLoadedAssemblies.Select(a => GetSyntaxToReconstructValue(a.FullName, SyntaxFactory.ThisExpression())).ToArray()))))),
-                // this.assemblyCodeBasePaths
+                    // this.assemblyCodeBasePaths
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -338,7 +345,7 @@
                                 CodeGen.JoinSyntaxNodes(
                                     SyntaxKind.CommaToken,
                                     this.reflectionLoadedAssemblies.Select(a => GetSyntaxToReconstructValue(a.CodeBase, SyntaxFactory.ThisExpression())).ToArray()))))),
-                // this.cachedManifests = new Module[<#= reflectionLoadedAssemblies.Count #>];
+                    // this.cachedManifests = new Module[<#= reflectionLoadedAssemblies.Count #>];
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -349,7 +356,7 @@
                             this.GetTypeNameSyntax(typeof(Module)),
                             SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
                                 SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(this.reflectionLoadedAssemblies.Count))))))))),
-                // this.typeRefs = new TypeRef[<#= reflectionLoadedTypes.Count #>];
+                    // this.typeRefs = new TypeRef[<#= reflectionLoadedTypes.Count #>];
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -1384,6 +1391,7 @@
         private MethodDeclarationSyntax CreateInstantiatePartMethod(ComposedPart part)
         {
             var provisionalSharedObjectsIdentifier = SyntaxFactory.IdentifierName("provisionalSharedObjects");
+            var nonSharedInstanceRequired = SyntaxFactory.IdentifierName("nonSharedInstanceRequired");
             var partInstanceIdentifier = SyntaxFactory.IdentifierName(InstantiatedPartLocalVarName);
             var thisExportProviderIdentifier = SyntaxFactory.IdentifierName("that");
             var thisExportProvider = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(
@@ -1401,7 +1409,8 @@
                     SyntaxFactory.Token(SyntaxKind.StaticKeyword))
                 .AddParameterListParameters(
                     SyntaxFactory.Parameter(thisExportProviderIdentifier.Identifier).WithType(ExportProviderIdentifierName),
-                    SyntaxFactory.Parameter(provisionalSharedObjectsIdentifier.Identifier).WithType(dictionaryOfTypeRefObject));
+                    SyntaxFactory.Parameter(provisionalSharedObjectsIdentifier.Identifier).WithType(dictionaryOfTypeRefObject),
+                    SyntaxFactory.Parameter(nonSharedInstanceRequired.Identifier).WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword))));
 
             var statements = new List<StatementSyntax>();
             if (part.Definition.IsInstantiable)
@@ -1485,16 +1494,19 @@
                                     SyntaxFactory.ArgumentList())))))
                         : this.GetTypeRefSyntax(part.Definition.Type, thisExportProvider);
 
-                    // provisionalSharedObjects.Add(partTypeId, result);
-                    statements.Add(SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(
-                        SyntaxFactory.MemberAccessExpression(
-                            SyntaxKind.SimpleMemberAccessExpression,
-                            provisionalSharedObjectsIdentifier,
-                            SyntaxFactory.IdentifierName("Add")),
-                        SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
-                            SyntaxKind.CommaToken,
-                            SyntaxFactory.Argument(partTypeSyntax),
-                            SyntaxFactory.Argument(partInstanceIdentifier))))));
+                    // if (!nonSharedInstanceRequired)  provisionalSharedObjects.Add(partTypeId, result);
+                    statements.Add(
+                        SyntaxFactory.IfStatement(
+                            SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, SyntaxFactory.IdentifierName(nonSharedInstanceRequired.Identifier)),
+                            SyntaxFactory.ExpressionStatement(SyntaxFactory.InvocationExpression(
+                                SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    provisionalSharedObjectsIdentifier,
+                                    SyntaxFactory.IdentifierName("Add")),
+                                SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
+                                    SyntaxKind.CommaToken,
+                                    SyntaxFactory.Argument(partTypeSyntax),
+                                    SyntaxFactory.Argument(partInstanceIdentifier)))))));
                 }
 
                 foreach (var satisfyingExport in part.SatisfyingExports.Where(i => i.Key.ImportingMember != null))
@@ -1918,8 +1930,9 @@
             Requires.NotNull(exports, "exports");
 
             var thisExportProviderIdentifier = SyntaxFactory.IdentifierName("that");
+            var nonSharedInstanceRequired = SyntaxFactory.IdentifierName("nonSharedInstanceRequired");
             var thisExportProvider = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.CastExpression(SyntaxFactory.IdentifierName(CompiledExportProviderTypeName), thisExportProviderIdentifier));
-            var exportExpressions = exports.Select(e => this.ExportCreationSyntax(e, importDefinition, thisExportProvider)).ToArray();
+            var exportExpressions = exports.Select(e => this.ExportCreationSyntax(e, importDefinition, nonSharedInstanceRequired, thisExportProvider)).ToArray();
 
             var exportArrayType = SyntaxFactory.ArrayType(
                     SyntaxFactory.IdentifierName("ExportInfo"),
@@ -1939,7 +1952,8 @@
                     SyntaxFactory.Token(SyntaxKind.StaticKeyword))
                 .AddParameterListParameters(
                     SyntaxFactory.Parameter(thisExportProviderIdentifier.Identifier).WithType(ExportProviderIdentifierName),
-                    SyntaxFactory.Parameter(importDefinition.Identifier).WithType(SyntaxFactory.IdentifierName("ImportDefinition")))
+                    SyntaxFactory.Parameter(importDefinition.Identifier).WithType(SyntaxFactory.IdentifierName("ImportDefinition")),
+                    SyntaxFactory.Parameter(nonSharedInstanceRequired.Identifier).WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword))))
                 .AddBodyStatements(SyntaxFactory.ReturnStatement(exportArrayExpression));
             return method;
         }
@@ -2310,10 +2324,11 @@
             return typeExpression;
         }
 
-        private ExpressionSyntax ExportCreationSyntax(ExportDefinitionBinding export, IdentifierNameSyntax importDefinition, ExpressionSyntax thisExportProvider)
+        private ExpressionSyntax ExportCreationSyntax(ExportDefinitionBinding export, IdentifierNameSyntax importDefinition, IdentifierNameSyntax nonSharedInstanceRequiredParameter, ExpressionSyntax thisExportProvider)
         {
             Requires.NotNull(export, "export");
             Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(nonSharedInstanceRequiredParameter, "nonSharedInstanceRequiredParameter");
 
             bool isOpenGenericExport = export.ExportedValueType.ContainsGenericParameters;
             var partDefinition = export.PartDefinition;
@@ -2343,7 +2358,9 @@
                 ? SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(this.Configuration.GetEffectiveSharingBoundary(partDefinition)))
                 : SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
-            bool nonSharedInstanceRequired = !partDefinition.IsShared;
+            ExpressionSyntax nonSharedInstanceRequired = partDefinition.IsShared
+                ? (ExpressionSyntax)SyntaxFactory.IdentifierName(nonSharedInstanceRequiredParameter.Identifier)
+                : SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression);
 
             ExpressionSyntax exportingMemberExpression = export.ExportingMember != null
                 ? this.GetMemberInfoSyntax(export.ExportingMember, thisExportProvider)
@@ -2355,7 +2372,7 @@
                 partTypeExpression,
                 partFactoryMethod,
                 sharingBoundary,
-                SyntaxFactory.LiteralExpression(nonSharedInstanceRequired ? SyntaxKind.TrueLiteralExpression : SyntaxKind.FalseLiteralExpression),
+                nonSharedInstanceRequired,
                 exportingMemberExpression,
             };
 
@@ -2453,10 +2470,11 @@
                         getMethodWithArity,
                         SyntaxFactory.IdentifierName("MakeGenericMethod")),
                     SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(SyntaxKind.CommaToken, typeArgsExpressionSyntax.Select(SyntaxFactory.Argument).ToArray())));
-                var funcOfProviderDictionaryObject = SyntaxFactory.GenericName("Func")
+                var funcOfProviderDictionaryBoolObject = SyntaxFactory.GenericName("Func")
                     .AddTypeArgumentListArguments(
                         ExportProviderIdentifierName,
                         dictionaryOfTypeRefObject,
+                        SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)),
                         SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)));
                 var createDelegate = SyntaxFactory.InvocationExpression(
                     SyntaxFactory.MemberAccessExpression(
@@ -2465,9 +2483,9 @@
                         SyntaxFactory.IdentifierName("CreateDelegate")),
                     SyntaxFactory.ArgumentList(CodeGen.JoinSyntaxNodes(
                         SyntaxKind.CommaToken,
-                        SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(funcOfProviderDictionaryObject)),
+                        SyntaxFactory.Argument(SyntaxFactory.TypeOfExpression(funcOfProviderDictionaryBoolObject)),
                         SyntaxFactory.Argument(NullSyntax))));
-                partFactoryMethod = SyntaxFactory.CastExpression(funcOfProviderDictionaryObject, createDelegate);
+                partFactoryMethod = SyntaxFactory.CastExpression(funcOfProviderDictionaryBoolObject, createDelegate);
             }
 
             ExpressionSyntax sharingBoundary = partDefinition.IsShared

@@ -10,6 +10,7 @@
     using System.Threading.Tasks;
     using Validation;
 
+    [DebuggerDisplay("{ResolvedType.FullName,nq}")]
     public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
     {
         /// <summary>
@@ -61,6 +62,17 @@
         public bool IsGenericTypeDefinition
         {
             get { return this.GenericTypeParameterCount > 0 && this.GenericTypeArguments.Length == 0; }
+        }
+
+        /// <summary>
+        /// Gets the resolved type.
+        /// </summary>
+        /// <remarks>
+        /// This member exists solely to support the DebuggerDisplay attribute on the declaring type.
+        /// </remarks>
+        private Type ResolvedType
+        {
+            get { return this.Resolve(); }
         }
 
         public static TypeRef Get(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
