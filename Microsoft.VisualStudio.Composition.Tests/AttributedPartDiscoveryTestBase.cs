@@ -89,6 +89,10 @@
         [Fact]
         public async Task AssemblyLoadContext()
         {
+            // The way this test works is we copy an assembly that we reference to another location.
+            // Then we perform discovery at that other location explicitly.
+            // If discovery is using the LoadFrom context, this will cause the assembly to be loaded twice
+            // such that we won't be able to consume the result and GetExportedValue will throw.
             string alternateReadLocation = Path.GetTempFileName();
             File.Copy(typeof(DiscoverablePart1).Assembly.Location, alternateReadLocation, true);
 
