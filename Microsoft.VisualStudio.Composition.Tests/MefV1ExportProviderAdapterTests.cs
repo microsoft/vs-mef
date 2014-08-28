@@ -108,17 +108,7 @@
         [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(Tree))]
         public void SatisfyImportsOnceWithExportFactory(IContainer container)
         {
-            MefV1.Hosting.CompositionContainer v1Container;
-
-            var v3Container = container as TestUtilities.V3ContainerWrapper;
-            if (v3Container != null)
-            {
-                v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
-            }
-            else
-            {
-                v1Container = ((TestUtilities.V1ContainerWrapper)container).Container;
-            }
+            MefV1.Hosting.CompositionContainer v1Container = GetMefV1Container(container);
 
             var receiver = new SatisfyImportsOnceWithExportFactoryReceiver();
             MefV1.AttributedModelServices.SatisfyImportsOnce(v1Container, receiver);
@@ -143,17 +133,7 @@
         [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(Tree))]
         public void SatisfyImportsOnceWithExportFactoryAndMetadata(IContainer container)
         {
-            MefV1.Hosting.CompositionContainer v1Container;
-
-            var v3Container = container as TestUtilities.V3ContainerWrapper;
-            if (v3Container != null)
-            {
-                v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
-            }
-            else
-            {
-                v1Container = ((TestUtilities.V1ContainerWrapper)container).Container;
-            }
+            MefV1.Hosting.CompositionContainer v1Container = GetMefV1Container(container);
 
             var receiver = new SatisfyImportsOnceWithExportFactoryMetadataReceiver();
             MefV1.AttributedModelServices.SatisfyImportsOnce(v1Container, receiver);
@@ -180,17 +160,7 @@
         [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(Tree))]
         public void SatisfyImportsOnceWithExportFactoryAndTMetadata(IContainer container)
         {
-            MefV1.Hosting.CompositionContainer v1Container;
-
-            var v3Container = container as TestUtilities.V3ContainerWrapper;
-            if (v3Container != null)
-            {
-                v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
-            }
-            else
-            {
-                v1Container = ((TestUtilities.V1ContainerWrapper)container).Container;
-            }
+            MefV1.Hosting.CompositionContainer v1Container = GetMefV1Container(container);
 
             var receiver = new SatisfyImportsOnceWithExportFactoryTMetadataReceiver();
             MefV1.AttributedModelServices.SatisfyImportsOnce(v1Container, receiver);
@@ -218,17 +188,7 @@
         [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(Tree))]
         public void SatisfyImportsOnceWithListOfExportFactory(IContainer container)
         {
-            MefV1.Hosting.CompositionContainer v1Container;
-
-            var v3Container = container as TestUtilities.V3ContainerWrapper;
-            if (v3Container != null)
-            {
-                v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
-            }
-            else
-            {
-                v1Container = ((TestUtilities.V1ContainerWrapper)container).Container;
-            }
+            MefV1.Hosting.CompositionContainer v1Container = GetMefV1Container(container);
 
             var receiver = new SatisfyImportsOnceWithListOfExportFactoryReceiver();
             MefV1.AttributedModelServices.SatisfyImportsOnce(v1Container, receiver);
@@ -254,17 +214,7 @@
         [MefFact(CompositionEngines.V1Compat, typeof(Tree<>))]
         public void SatisfyImportsOnceWithListOfExportFactoryOfOpenGenericExport(IContainer container)
         {
-            MefV1.Hosting.CompositionContainer v1Container;
-
-            var v3Container = container as TestUtilities.V3ContainerWrapper;
-            if (v3Container != null)
-            {
-                v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
-            }
-            else
-            {
-                v1Container = ((TestUtilities.V1ContainerWrapper)container).Container;
-            }
+            MefV1.Hosting.CompositionContainer v1Container = GetMefV1Container(container);
 
             var receiver = new SatisfyImportsOnceWithListOfExportFactoryOfOpenGenericExportReceiver();
             MefV1.AttributedModelServices.SatisfyImportsOnce(v1Container, receiver);
@@ -326,6 +276,23 @@
 
             [DefaultValue("c")]
             string B { get; }
+        }
+
+        private static MefV1.Hosting.CompositionContainer GetMefV1Container(IContainer container)
+        {
+            MefV1.Hosting.CompositionContainer v1Container;
+
+            var v3Container = container as TestUtilities.V3ContainerWrapper;
+            if (v3Container != null)
+            {
+                v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
+            }
+            else
+            {
+                v1Container = ((TestUtilities.V1ContainerWrapper)container).Container;
+            }
+
+            return v1Container;
         }
     }
 }
