@@ -82,6 +82,28 @@
             Assert.True(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(OuterClass.NestedPart))));
         }
 
+        /// <summary>
+        /// Verifies that assemblies are loaded into the Load context rather than the LoadFrom context.
+        /// </summary>
+        /// <see cref="http://blogs.msdn.com/b/suzcook/archive/2003/05/29/57143.aspx">Choosing a Binding Context</see>
+        [Fact]
+        public async Task AssemblyLoadContext()
+        {
+            // The way this test works is we copy an assembly that we reference to another location.
+            // Then we perform discovery at that other location explicitly.
+            // If discovery is using the LoadFrom context, this will cause the assembly to be loaded twice
+            // such that we won't be able to consume the result and GetExportedValue will throw.
+            string alternateReadLocation = Path.GetTempFileName();
+            File.Copy(typeof(DiscoverablePart1).Assembly.Location, alternateReadLocation, true);
+
+            var parts = await this.DiscoveryService.CreatePartsAsync(new[] { alternateReadLocation });
+            var catalog = ComposableCatalog.Create(parts);
+            var configuration = CompositionConfiguration.Create(catalog);
+            var exportProviderFactory = configuration.CreateExportProviderFactory();
+            var exportProvider = exportProviderFactory.CreateExportProvider();
+            var discoverablePart = exportProvider.GetExportedValue<DiscoverablePart1>();
+        }
+
         [SkippableFact]
         public async Task AssemblyDiscoveryDropsTypesWithProblematicAttributes()
         {

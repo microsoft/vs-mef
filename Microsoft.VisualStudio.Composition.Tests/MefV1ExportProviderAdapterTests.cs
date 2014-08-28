@@ -130,6 +130,36 @@
             public MefV1.ExportFactory<Apple> AppleFactory { get; set; }
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(ApplePartCreationAny))]
+        public void SatisfyImportsOnceWithExportFactoryOfCreationPolicyAny(IContainer container)
+        {
+            MefV1.Hosting.CompositionContainer v1Container = GetMefV1Container(container);
+
+            var receiver = new SatisfyImportsOnceWithExportFactoryOfCreationPolicyAnyReceiver();
+            MefV1.AttributedModelServices.SatisfyImportsOnce(v1Container, receiver);
+            Assert.NotNull(receiver.AppleFactory);
+            MefV1.ExportLifetimeContext<ApplePartCreationAny> apple1 = receiver.AppleFactory.CreateExport();
+            Assert.NotNull(apple1);
+            Assert.NotNull(apple1.Value);
+            MefV1.ExportLifetimeContext<ApplePartCreationAny> apple2 = receiver.AppleFactory.CreateExport();
+            Assert.NotNull(apple2);
+            Assert.NotNull(apple2.Value);
+
+            Assert.NotSame(apple1, apple2);
+            Assert.NotSame(apple1.Value, apple2.Value);
+        }
+
+        private class SatisfyImportsOnceWithExportFactoryOfCreationPolicyAnyReceiver
+        {
+            [MefV1.Import]
+            public MefV1.ExportFactory<ApplePartCreationAny> AppleFactory { get; set; }
+        }
+
+        [MefV1.Export]
+        private class ApplePartCreationAny
+        {
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(Tree))]
         public void SatisfyImportsOnceWithExportFactoryAndMetadata(IContainer container)
         {

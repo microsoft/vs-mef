@@ -312,7 +312,7 @@
         /// </remarks>
         protected abstract IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition);
 
-        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, TypeRef partTypeRef, Func<ExportProvider, Dictionary<TypeRef, object>, object> valueFactory, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
+        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, TypeRef partTypeRef, Func<ExportProvider, Dictionary<TypeRef, object>, bool, object> valueFactory, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(metadata, "metadata");
@@ -465,7 +465,7 @@
             throw new NotSupportedException();
         }
 
-        protected Func<object> GetOrCreateShareableValue(TypeRef partTypeRef, Func<ExportProvider, Dictionary<TypeRef, object>, object> valueFactory, Dictionary<TypeRef, object> provisionalSharedObjects, string partSharingBoundary, bool nonSharedInstanceRequired)
+        protected Func<object> GetOrCreateShareableValue(TypeRef partTypeRef, Func<ExportProvider, Dictionary<TypeRef, object>, bool, object> valueFactory, Dictionary<TypeRef, object> provisionalSharedObjects, string partSharingBoundary, bool nonSharedInstanceRequired)
         {
             Requires.NotNull(partTypeRef, "partTypeRef");
 
@@ -484,7 +484,7 @@
                 }
             }
 
-            Func<object> result = () => valueFactory(this, provisionalSharedObjects);
+            Func<object> result = () => valueFactory(this, provisionalSharedObjects, nonSharedInstanceRequired);
 
             if (!nonSharedInstanceRequired)
             {
