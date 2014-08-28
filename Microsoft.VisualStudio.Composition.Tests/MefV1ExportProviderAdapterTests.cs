@@ -130,7 +130,7 @@
             public MefV1.ExportFactory<Apple> AppleFactory { get; set; }
         }
 
-        [MefFact(CompositionEngines.V1Compat, typeof(ApplePartCreationAny))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3SkipCodeGenScenario, typeof(ApplePartCreationAny))]
         public void SatisfyImportsOnceWithExportFactoryOfCreationPolicyAny(IContainer container)
         {
             MefV1.Hosting.CompositionContainer v1Container = GetMefV1Container(container);

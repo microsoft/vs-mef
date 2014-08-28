@@ -37,17 +37,18 @@
                 return
                     from export in exports
                     let part = this.composition.GetPart(export)
+                    let nonSharedInstanceRequired = !part.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition)
                     select this.CreateExport(
                         importDefinition,
                         export.Metadata,
                         GetPartConstructedTypeRef(part, importDefinition.Metadata),
-                        (ep, provisionalSharedObjects) => this.CreatePart(provisionalSharedObjects, part, importDefinition.Metadata),
+                        (ep, provisionalSharedObjects) => this.CreatePart(provisionalSharedObjects, part, importDefinition.Metadata, nonSharedInstanceRequired),
                         part.SharingBoundary,
-                        !part.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
+                        nonSharedInstanceRequired,
                         export.Member);
             }
 
-            private object CreatePart(Dictionary<TypeRef, object> provisionalSharedObjects, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata)
+            private object CreatePart(Dictionary<TypeRef, object> provisionalSharedObjects, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata, bool nonSharedInstanceRequired)
             {
                 if (partDefinition.Type.Equals(Reflection.TypeRef.Get(ExportProvider.ExportProviderPartDefinition.Type)))
                 {
@@ -72,7 +73,7 @@
 
                 object part = importingConstructor.Invoke(ctorArgs);
 
-                if (partDefinition.IsShared)
+                if (partDefinition.IsShared && !nonSharedInstanceRequired)
                 {
                     lock (provisionalSharedObjects)
                     {
@@ -279,7 +280,7 @@
 
                 Func<object> partFactory = this.GetOrCreateShareableValue(
                     constructedType,
-                    (ep, pso) => this.CreatePart(pso, exportingRuntimePart, import.Metadata),
+                    (ep, pso) => this.CreatePart(pso, exportingRuntimePart, import.Metadata, nonSharedInstanceRequired: false),
                     provisionalSharedObjects,
                     exportingRuntimePart.SharingBoundary,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
