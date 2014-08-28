@@ -37,14 +37,13 @@
                 return
                     from export in exports
                     let part = this.composition.GetPart(export)
-                    let nonSharedInstanceRequired = !part.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition)
                     select this.CreateExport(
                         importDefinition,
                         export.Metadata,
                         GetPartConstructedTypeRef(part, importDefinition.Metadata),
-                        (ep, provisionalSharedObjects) => this.CreatePart(provisionalSharedObjects, part, importDefinition.Metadata, nonSharedInstanceRequired),
+                        (ep, provisionalSharedObjects, nonSharedInstanceRequired) => this.CreatePart(provisionalSharedObjects, part, importDefinition.Metadata, nonSharedInstanceRequired),
                         part.SharingBoundary,
-                        nonSharedInstanceRequired,
+                        !part.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
                         export.Member);
             }
 
@@ -280,7 +279,7 @@
 
                 Func<object> partFactory = this.GetOrCreateShareableValue(
                     constructedType,
-                    (ep, pso) => this.CreatePart(pso, exportingRuntimePart, import.Metadata, nonSharedInstanceRequired: false),
+                    (ep, pso, nonSharedInstanceRequired) => this.CreatePart(pso, exportingRuntimePart, import.Metadata, nonSharedInstanceRequired),
                     provisionalSharedObjects,
                     exportingRuntimePart.SharingBoundary,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
