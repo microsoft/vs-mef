@@ -782,6 +782,14 @@
             {
                 Trace("Metadata", reader.BaseStream);
 
+                // PERF TIP: if ReadMetadata shows up on startup perf traces,
+                // we could simply read the blob containing the metadata into a byte[]
+                // and defer actually deserializing it until such time as the metadata
+                // is actually required.
+                // We might do this with minimal impact to other code by implementing
+                // IReadOnlyDictionary<string, object> ourselves such that on the first
+                // access of any of its contents, we'll do a just-in-time deserialization,
+                // and perhaps only of the requested values.
                 uint count = this.ReadCompressedUInt();
                 var metadata = ImmutableDictionary<string, object>.Empty;
 
