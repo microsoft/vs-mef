@@ -755,26 +755,14 @@
                 Trace("Metadata", writer.BaseStream);
 
                 this.WriteCompressedUInt((uint)metadata.Count);
-                foreach (var entry in metadata)
+
+                // Special case certain values to avoid defeating lazy load later.
+                // Check out the ReadMetadata below, how it wraps the return value.
+                var serializedMetadata = new LazyMetadataWrapper(metadata.ToImmutableDictionary(), LazyMetadataWrapper.Direction.ToSubstitutedValue);
+                foreach (var entry in serializedMetadata)
                 {
                     this.Write(entry.Key);
-
-                    // Special case values of type Type or Type[] to avoid defeating lazy load later.
-                    // We deserialize keeping the replaced TypeRef values so that they can be resolved
-                    // at the last possible moment by the metadata view at runtime.
-                    // Check out the ReadMetadata below, how it wraps the return value.
-                    if (entry.Value is Type)
-                    {
-                        this.WriteObject(TypeRef.Get((Type)entry.Value));
-                    }
-                    else if (entry.Value is Type[])
-                    {
-                        this.WriteObject(((Type[])entry.Value).Select(TypeRef.Get).ToArray());
-                    }
-                    else
-                    {
-                        this.WriteObject(entry.Value);
-                    }
+                    this.WriteObject(entry.Value);
                 }
             }
 
@@ -798,7 +786,7 @@
                     metadata = builder.ToImmutable();
                 }
 
-                return new LazyMetadataWrapper(metadata);
+                return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue);
             }
 
             private void Write(ImportCardinality cardinality)

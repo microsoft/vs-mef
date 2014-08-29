@@ -6,16 +6,40 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Reflection;
     using Validation;
 
     internal class LazyMetadataWrapper : ExportProvider.IMetadataDictionary
     {
+        internal enum Direction
+        {
+            /// <summary>
+            /// The metadata wrapper will replace instances of Type with TypeRef, and other such serialization substitutions.
+            /// </summary>
+            ToSubstitutedValue,
+
+            /// <summary>
+            /// The metadata wrapper will reverse the <see cref="ToSubstitutedValue"/> operation, restoring Type where TypeRef is found, etc.
+            /// </summary>
+            ToOriginalValue,
+        }
+
+        /// <summary>
+        /// The direction of value translation for this instance.
+        /// </summary>
+        private readonly Direction direction;
+
+        /// <summary>
+        /// The underlying metadata, which may be partially translated since value translation may choose
+        /// to persist the translated result.
+        /// </summary>
         protected ImmutableDictionary<string, object> underlyingMetadata;
 
-        internal LazyMetadataWrapper(ImmutableDictionary<string, object> metadata)
+        internal LazyMetadataWrapper(ImmutableDictionary<string, object> metadata, Direction direction)
         {
             Requires.NotNull(metadata, "metadata");
 
+            this.direction = direction;
             this.underlyingMetadata = metadata;
         }
 
@@ -168,21 +192,50 @@
 
         protected virtual LazyMetadataWrapper Clone(LazyMetadataWrapper oldVersion, IReadOnlyDictionary<string, object> newMetadata)
         {
-            return new LazyMetadataWrapper(newMetadata.ToImmutableDictionary());
+            return new LazyMetadataWrapper(newMetadata.ToImmutableDictionary(), oldVersion.direction);
         }
 
         protected virtual object SubstituteValueIfRequired(string key, object value)
         {
             Requires.NotNull(key, "key");
 
-            if (value is Reflection.TypeRef)
+            bool preserveTranslation = false;
+            switch (this.direction)
             {
-                value = Reflection.Resolver.Resolve((Reflection.TypeRef)value);
-            }
-            else if (value is Reflection.TypeRef[])
-            {
-                value = ((Reflection.TypeRef[])value).Select(Reflection.Resolver.Resolve).ToArray();
+                case Direction.ToSubstitutedValue:
+                    Type valueAsType;
+                    Type[] valueAsTypeArray;
+                    if ((valueAsType = value as Type) != null)
+                    {
+                        value = TypeRef.Get(valueAsType);
+                    }
+                    else if ((valueAsTypeArray = value as Type[]) != null)
+                    {
+                        value = valueAsTypeArray.Select(TypeRef.Get).ToArray();
+                        preserveTranslation = true;
+                    }
 
+                    break;
+                case Direction.ToOriginalValue:
+                    TypeRef valueAsTypeRef;
+                    TypeRef[] valueAsTypeRefArray;
+                    if ((valueAsTypeRef = value as TypeRef) != null)
+                    {
+                        value = Resolver.Resolve(valueAsTypeRef);
+                    }
+                    else if ((valueAsTypeRefArray = value as TypeRef[]) != null)
+                    {
+                        value = valueAsTypeRefArray.Select(Resolver.Resolve).ToArray();
+                        preserveTranslation = true;
+                    }
+
+                    break;
+                default:
+                    throw Assumes.NotReachable();
+            }
+
+            if (preserveTranslation)
+            {
                 // Update our metadata dictionary with the substitution to avoid
                 // the translation costs next time.
                 this.underlyingMetadata = this.underlyingMetadata.SetItem(key, value);

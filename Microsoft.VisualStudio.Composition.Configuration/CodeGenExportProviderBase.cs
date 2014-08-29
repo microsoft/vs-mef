@@ -113,7 +113,7 @@
         protected IMetadataDictionary GetTypeRefResolvingMetadata(ImmutableDictionary<string, object> metadata)
         {
             Requires.NotNull(metadata, "metadata");
-            return new LazyMetadataWrapper(metadata);
+            return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue);
         }
 
         protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, TypeRef partOpenGenericTypeRef, Type valueFactoryMethodDeclaringType, string valueFactoryMethodName, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
