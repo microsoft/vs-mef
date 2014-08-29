@@ -74,6 +74,8 @@
 
         private class SerializationContext
         {
+            private static readonly char[] StringSegmentSeparator = { '.' };
+
             private BinaryReader reader;
 
             private BinaryWriter writer;
@@ -597,9 +599,21 @@
             {
                 Trace("String", writer.BaseStream);
 
-                if (this.TryPrepareSerializeReusableObject(value))
+                if (value != null)
                 {
-                    writer.Write(value);
+                    string[] segments = value.Split(StringSegmentSeparator);
+                    this.WriteCompressedUInt((uint)segments.Length);
+                    foreach (string segment in segments)
+                    {
+                        if (this.TryPrepareSerializeReusableObject(segment))
+                        {
+                            writer.Write(segment);
+                        }
+                    }
+                }
+                else
+                {
+                    this.WriteCompressedUInt(0);
                 }
             }
 
@@ -607,15 +621,32 @@
             {
                 Trace("String", reader.BaseStream);
 
-                uint id;
-                string value;
-                if (this.TryPrepareDeserializeReusableObject(out id, out value))
+                uint segmentsCount = this.ReadCompressedUInt();
+                if (segmentsCount == 0)
                 {
-                    value = reader.ReadString();
-                    this.OnDeserializedReusableObject(id, value);
+                    return null;
                 }
 
-                return value;
+                var builder = new StringBuilder();
+                for (int i = 0; i < segmentsCount; i++)
+                {
+                    if (i > 0)
+                    {
+                        builder.Append(StringSegmentSeparator[0]);
+                    }
+
+                    uint id;
+                    string value;
+                    if (this.TryPrepareDeserializeReusableObject(out id, out value))
+                    {
+                        value = reader.ReadString();
+                        this.OnDeserializedReusableObject(id, value);
+                    }
+
+                    builder.Append(value);
+                }
+
+                return builder.ToString();
             }
 
             private void WriteCompressedUInt(uint value)
