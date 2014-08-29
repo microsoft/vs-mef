@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Collections.ObjectModel;
+    using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -160,6 +161,7 @@
                 exportDefinition.Metadata);
         }
 
+        [DebuggerDisplay("{Type.ResolvedType.FullName,nq}")]
         public class RuntimePart : IEquatable<RuntimePart>
         {
             private ConstructorInfo importingConstructor;
