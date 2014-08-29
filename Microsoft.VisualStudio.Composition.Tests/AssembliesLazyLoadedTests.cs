@@ -177,7 +177,7 @@
             {
                 var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
                 driver.Initialize(this.cacheManager.GetType(), compositionCache);
-                driver.TestPartThatLazyImportsExportWithMetadataOfCustomType(typeof(CustomEnum).Assembly.Location);
+                driver.TestPartThatLazyImportsExportWithMetadataOfCustomType(typeof(CustomEnum).Assembly.Location, this is AssembliesLazyLoadedDataFileCacheTests);
             }
             finally
             {
@@ -274,15 +274,15 @@
                 Assert.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
-            internal void TestPartThatLazyImportsExportWithMetadataOfCustomType(string lazyLoadedAssemblyPath)
+            internal void TestPartThatLazyImportsExportWithMetadataOfCustomType(string lazyLoadedAssemblyPath, bool isRuntime)
             {
                 Assert.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 var exportWithLazy = container.GetExportedValue<PartThatLazyImportsExportWithMetadataOfCustomType>();
 
-                // This next segment we'll permit an assembly load, but ideally it shouldn't be required yet.
-                ////Assert.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                // This next segment we'll permit an assembly load only for code gen cases, which aren't as well tuned at present.
+                Assert.False(isRuntime && GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 Assert.Equal("Value", exportWithLazy.ImportingProperty.Metadata["Simple"]);
-                ////Assert.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                Assert.False(isRuntime && GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
 
                 // At this point, loading the assembly is absolutely required.
                 object customEnum = exportWithLazy.ImportingProperty.Metadata["CustomValue"];

@@ -253,22 +253,6 @@
                         return false;
                     }
 
-                    if (IsTypeRelated(x.GetType()) && IsTypeRelated(y.GetType()))
-                    {
-                        if (x.GetType().IsArray && y.GetType().IsArray)
-                        {
-                            return ArrayEquals((Array)x, (Array)y, GetTypeRef);
-                        }
-                        else if (!x.GetType().IsArray && !y.GetType().IsArray)
-                        {
-                            return GetTypeRef(x).Equals(GetTypeRef(y));
-                        }
-                        else
-                        {
-                            return false;
-                        }
-                    }
-
                     var xSubstituted = x as LazyMetadataWrapper.ISubstitutedValue;
                     var ySubstituted = y as LazyMetadataWrapper.ISubstitutedValue;
                     if (xSubstituted != null || ySubstituted != null)
@@ -320,19 +304,6 @@
                 public int GetHashCode(object obj)
                 {
                     throw new NotImplementedException();
-                }
-
-                private static bool IsTypeRelated(Type type)
-                {
-                    Requires.NotNull(type, "type");
-                    return typeof(Type).IsAssignableFrom(type)
-                        || typeof(Reflection.TypeRef).IsAssignableFrom(type)
-                        || (type.IsArray && IsTypeRelated(type.GetElementType()));
-                }
-
-                private static TypeRef GetTypeRef(object type1)
-                {
-                    return type1 as TypeRef ?? TypeRef.Get((Type)type1);
                 }
             }
         }

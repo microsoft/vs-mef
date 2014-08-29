@@ -201,7 +201,7 @@
             return new LazyMetadataWrapper(newMetadata.ToImmutableDictionary(), oldVersion.direction);
         }
 
-        protected virtual object SubstituteValueIfRequired(string key, object value)
+        protected object SubstituteValueIfRequired(string key, object value)
         {
             Requires.NotNull(key, "key");
 
@@ -210,45 +210,33 @@
                 return null;
             }
 
-            bool preserveTranslation = false;
+            value = this.SubstituteValueIfRequired(value);
+
+            // Update our metadata dictionary with the substitution to avoid
+            // the translation costs next time.
+            this.underlyingMetadata = this.underlyingMetadata.SetItem(key, value);
+
+            return value;
+        }
+
+        protected virtual object SubstituteValueIfRequired(object value)
+        {
+            Requires.NotNull(value, "value");
+
             ISubstitutedValue substitutedValue;
             switch (this.direction)
             {
                 case Direction.ToSubstitutedValue:
-                    Type valueAsType;
-                    Type[] valueAsTypeArray;
-                    Type typeOfValue;
-                    if ((valueAsType = value as Type) != null)
+                    if (Enum32Substitution.TrySubstituteValue(value, out substitutedValue) ||
+                        TypeSubstitution.TrySubstituteValue(value, out substitutedValue) ||
+                        TypeArraySubstitution.TrySubstituteValue(value, out substitutedValue))
                     {
-                        value = TypeRef.Get(valueAsType);
-                    }
-                    else if ((valueAsTypeArray = value as Type[]) != null)
-                    {
-                        value = valueAsTypeArray.Select(TypeRef.Get).ToArray();
-                        preserveTranslation = true;
-                    }
-                    else if (IsTypeWorthDeferring(typeOfValue = value.GetType()))
-                    {
-                        if (Enum32Substitution.TrySubstituteValue(value, out substitutedValue))
-                        {
-                            value = substitutedValue;
-                        }
+                        value = substitutedValue;
                     }
 
                     break;
                 case Direction.ToOriginalValue:
-                    TypeRef valueAsTypeRef;
-                    TypeRef[] valueAsTypeRefArray;
-                    if ((valueAsTypeRef = value as TypeRef) != null)
-                    {
-                        value = Resolver.Resolve(valueAsTypeRef);
-                    }
-                    else if ((valueAsTypeRefArray = value as TypeRef[]) != null)
-                    {
-                        value = valueAsTypeRefArray.Select(Resolver.Resolve).ToArray();
-                        preserveTranslation = true;
-                    }
-                    else if ((substitutedValue = value as ISubstitutedValue) != null)
+                    if ((substitutedValue = value as ISubstitutedValue) != null)
                     {
                         value = substitutedValue.ActualValue;
                     }
@@ -256,13 +244,6 @@
                     break;
                 default:
                     throw Assumes.NotReachable();
-            }
-
-            if (preserveTranslation)
-            {
-                // Update our metadata dictionary with the substitution to avoid
-                // the translation costs next time.
-                this.underlyingMetadata = this.underlyingMetadata.SetItem(key, value);
             }
 
             return value;
@@ -293,7 +274,7 @@
                 if (value != null)
                 {
                     Type valueType = value.GetType();
-                    if (valueType.IsEnum && Enum.GetUnderlyingType(valueType) == typeof(int))
+                    if (valueType.IsEnum && Enum.GetUnderlyingType(valueType) == typeof(int) && IsTypeWorthDeferring(valueType))
                     {
                         substitutedValue = new Enum32Substitution(TypeRef.Get(valueType), (int)value);
                         return true;
@@ -348,6 +329,135 @@
 
                 return this.EnumType.Equals(other.EnumType)
                     && this.RawValue == other.RawValue;
+            }
+        }
+
+        internal class TypeSubstitution : ISubstitutedValue, IEquatable<TypeSubstitution>
+        {
+            internal TypeSubstitution(TypeRef typeRef)
+            {
+                Requires.NotNull(typeRef, "typeRef");
+
+                this.TypeRef = typeRef;
+            }
+
+            internal TypeRef TypeRef { get; private set; }
+
+            public object ActualValue
+            {
+                get { return this.TypeRef.Resolve(); }
+            }
+
+            internal static bool TrySubstituteValue(object value, out ISubstitutedValue substitutedValue)
+            {
+                if (value is Type)
+                {
+                    substitutedValue = new TypeSubstitution(TypeRef.Get((Type)value));
+                    return true;
+                }
+
+                substitutedValue = null;
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                return this.TypeRef.GetHashCode();
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj == null)
+                {
+                    return false;
+                }
+
+                if (obj is TypeSubstitution)
+                {
+                    return this.Equals((TypeSubstitution)obj);
+                }
+
+                ISubstitutedValue other;
+                if (TrySubstituteValue(obj, out other))
+                {
+                    return this.Equals((TypeSubstitution)other);
+                }
+
+                return false;
+            }
+
+            public bool Equals(TypeSubstitution other)
+            {
+                if (other == null)
+                {
+                    return false;
+                }
+
+                return this.TypeRef.Equals(other.TypeRef);
+            }
+        }
+
+        internal class TypeArraySubstitution : ISubstitutedValue, IEquatable<TypeArraySubstitution>
+        {
+            internal TypeArraySubstitution(IReadOnlyList<TypeRef> typeRefArray)
+            {
+                Requires.NotNull(typeRefArray, "typeRefArray");
+                this.TypeRefArray = typeRefArray;
+            }
+
+            internal IReadOnlyList<TypeRef> TypeRefArray { get; private set; }
+
+            public object ActualValue
+            {
+                get { return this.TypeRefArray.Select(Resolver.Resolve).ToArray(); }
+            }
+
+            internal static bool TrySubstituteValue(object value, out ISubstitutedValue substitutedValue)
+            {
+                if (value is Type[])
+                {
+                    substitutedValue = new TypeArraySubstitution(((Type[])value).Select(TypeRef.Get).ToImmutableArray());
+                    return true;
+                }
+
+                substitutedValue = null;
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                return this.TypeRefArray.Count > 0 ? this.TypeRefArray[0].GetHashCode() : 0;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj == null)
+                {
+                    return false;
+                }
+
+                if (obj is TypeArraySubstitution)
+                {
+                    return this.Equals((TypeArraySubstitution)obj);
+                }
+
+                ISubstitutedValue other;
+                if (TrySubstituteValue(obj, out other))
+                {
+                    return this.Equals((TypeArraySubstitution)other);
+                }
+
+                return false;
+            }
+
+            public bool Equals(TypeArraySubstitution other)
+            {
+                if (other == null)
+                {
+                    return false;
+                }
+
+                return this.TypeRefArray.SequenceEqual(other.TypeRefArray);
             }
         }
     }

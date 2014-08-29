@@ -817,6 +817,8 @@
                 Char,
                 Guid,
                 Enum32Substitution,
+                TypeSubstitution,
+                TypeArraySubstitution,
             }
 
             private void WriteObject(object value)
@@ -883,6 +885,18 @@
                         this.Write(substValue.EnumType);
                         writer.Write(substValue.RawValue);
                     }
+                    else if (typeof(LazyMetadataWrapper.TypeSubstitution) == valueType)
+                    {
+                        var substValue = (LazyMetadataWrapper.TypeSubstitution)value;
+                        this.Write(ObjectType.TypeSubstitution);
+                        this.Write(substValue.TypeRef);
+                    }
+                    else if (typeof(LazyMetadataWrapper.TypeArraySubstitution) == valueType)
+                    {
+                        var substValue = (LazyMetadataWrapper.TypeArraySubstitution)value;
+                        this.Write(ObjectType.TypeArraySubstitution);
+                        this.Write(substValue.TypeRefArray, this.Write);
+                    }
                     else
                     {
                         Debug.WriteLine("Falling back to binary formatter for value of type: {0}", valueType);
@@ -927,6 +941,12 @@
                         TypeRef enumType = this.ReadTypeRef();
                         int rawValue = reader.ReadInt32();
                         return new LazyMetadataWrapper.Enum32Substitution(enumType, rawValue);
+                    case ObjectType.TypeSubstitution:
+                        TypeRef typeRef = this.ReadTypeRef();
+                        return new LazyMetadataWrapper.TypeSubstitution(typeRef);
+                    case ObjectType.TypeArraySubstitution:
+                        IReadOnlyList<TypeRef> typeRefArray = this.ReadList(reader, this.ReadTypeRef);
+                        return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray);
                     case ObjectType.BinaryFormattedObject:
                         var formatter = new BinaryFormatter();
                         return formatter.Deserialize(reader.BaseStream);

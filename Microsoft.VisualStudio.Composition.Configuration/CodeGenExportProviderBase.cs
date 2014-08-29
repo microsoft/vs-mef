@@ -57,6 +57,22 @@
         }
 
         /// <summary>
+        /// Gets a value that will be translated to System.Type when the metadata value is pulled on by the client.
+        /// </summary>
+        protected static object GetMetadataValueForType(TypeRef typeRef)
+        {
+            return new LazyMetadataWrapper.TypeSubstitution(typeRef);
+        }
+
+        /// <summary>
+        /// Gets a value that will be translated to System.Type[] when the metadata value is pulled on by the client.
+        /// </summary>
+        protected static object GetMetadataValueForTypeArray(IReadOnlyList<TypeRef> typeRefArray)
+        {
+            return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray);
+        }
+
+        /// <summary>
         /// Gets the manifest module for an assembly.
         /// </summary>
         /// <param name="assemblyId">The index into the cached manifest array.</param>
