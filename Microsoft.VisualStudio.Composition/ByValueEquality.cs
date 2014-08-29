@@ -269,6 +269,15 @@
                         }
                     }
 
+                    var xSubstituted = x as LazyMetadataWrapper.ISubstitutedValue;
+                    var ySubstituted = y as LazyMetadataWrapper.ISubstitutedValue;
+                    if (xSubstituted != null || ySubstituted != null)
+                    {
+                        return xSubstituted != null
+                            ? xSubstituted.Equals(y)
+                            : ySubstituted.Equals(x);
+                    }
+
                     if (x.GetType() != y.GetType())
                     {
                         // Whitelist Type[] and RuntimeType[] arrays as equivalent.

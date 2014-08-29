@@ -816,6 +816,7 @@
                 Int32,
                 Char,
                 Guid,
+                Enum32Substitution,
             }
 
             private void WriteObject(object value)
@@ -875,6 +876,13 @@
                         this.Write(ObjectType.TypeRef);
                         this.Write((TypeRef)value);
                     }
+                    else if (typeof(LazyMetadataWrapper.Enum32Substitution) == valueType)
+                    {
+                        var substValue = (LazyMetadataWrapper.Enum32Substitution)value;
+                        this.Write(ObjectType.Enum32Substitution);
+                        this.Write(substValue.EnumType);
+                        writer.Write(substValue.RawValue);
+                    }
                     else
                     {
                         Debug.WriteLine("Falling back to binary formatter for value of type: {0}", valueType);
@@ -915,6 +923,10 @@
                         return this.ReadTypeRef().Resolve();
                     case ObjectType.TypeRef:
                         return this.ReadTypeRef();
+                    case ObjectType.Enum32Substitution:
+                        TypeRef enumType = this.ReadTypeRef();
+                        int rawValue = reader.ReadInt32();
+                        return new LazyMetadataWrapper.Enum32Substitution(enumType, rawValue);
                     case ObjectType.BinaryFormattedObject:
                         var formatter = new BinaryFormatter();
                         return formatter.Deserialize(reader.BaseStream);
