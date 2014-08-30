@@ -71,7 +71,13 @@
         {
             Requires.NotNull(lazy, "lazy");
 
-            return new Func<T>(lazy.GetLazyValue);
+            // Theoretically, this is the most efficient approach. It only allocates a delegate (no closure).
+            // But it unfortunately results in a slow path within the CLR (clr!COMDelegate::DelegateConstruct)
+            // That ends up taking 52ms in Auto7 solution open.
+            ////return new Func<T>(lazy.GetLazyValue);
+
+            // So instead, we allocate the closure and qualify for the CLR's fast path.
+            return () => lazy.Value;
         }
 
         private static T GetLazyValue<T>(this Lazy<T> lazy)
