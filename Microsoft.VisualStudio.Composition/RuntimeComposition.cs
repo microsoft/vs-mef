@@ -268,6 +268,7 @@
             private bool? isLazy;
             private Type importingSiteType;
             private Type importingSiteTypeWithoutCollection;
+            private Type importingSiteElementType;
             private Func<Func<object>, object, object> lazyFactory;
             private ParameterInfo importingParameter;
             private MemberInfo importingMember;
@@ -409,7 +410,12 @@
             {
                 get
                 {
-                    return PartDiscovery.GetTypeIdentityFromImportingType(this.ImportingSiteType, this.Cardinality == ImportCardinality.ZeroOrMore);
+                    if (this.importingSiteElementType == null)
+                    {
+                        this.importingSiteElementType = PartDiscovery.GetTypeIdentityFromImportingType(this.ImportingSiteType, this.Cardinality == ImportCardinality.ZeroOrMore);
+                    }
+
+                    return this.importingSiteElementType;
                 }
             }
 
