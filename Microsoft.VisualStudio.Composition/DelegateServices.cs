@@ -47,13 +47,19 @@
         /// <returns>A delegate which, when invoked, will invoke <paramref name="valueFactory"/>.</returns>
         internal static Func<T> As<T>(this Func<object> valueFactory)
         {
-            // This is a very specific syntax that leverages the C# compiler
-            // to emit very efficient code for constructing a delegate that
-            // uses the "Target" property to store the first parameter to
-            // the method.
-            // It allows us to construct a Func<T> that returns a T
-            // without actually allocating a closure -- we only allocate the delegate.
-            return new Func<T>(valueFactory.AsHelper<T>);
+            // Theoretically, this is the most efficient approach. It only allocates a delegate (no closure).
+            // But it unfortunately results in a slow path within the CLR (clr!COMDelegate::DelegateConstruct)
+            // That ends up taking 19ms in Auto7 solution open.
+            ////// This is a very specific syntax that leverages the C# compiler
+            ////// to emit very efficient code for constructing a delegate that
+            ////// uses the "Target" property to store the first parameter to
+            ////// the method.
+            ////// It allows us to construct a Func<T> that returns a T
+            ////// without actually allocating a closure -- we only allocate the delegate.
+            ////return new Func<T>(valueFactory.AsHelper<T>);
+
+            // So instead, we allocate the closure and qualify for the CLR's fast path.
+            return () => (T)valueFactory();
         }
 
         /// <summary>
@@ -74,13 +80,19 @@
         private static Func<T> AsFunc<T>(this T value)
             where T : class
         {
-            // This is a very specific syntax that leverages the C# compiler
-            // to emit very efficient code for constructing a delegate that
-            // uses the "Target" property to store the first parameter to
-            // the method.
-            // It allows us to construct a Func<T> that returns a T
-            // without actually allocating a closure -- we only allocate the delegate.
-            return new Func<T>(value.Return);
+            // Theoretically, this is the most efficient approach. It only allocates a delegate (no closure).
+            // But it unfortunately results in a slow path within the CLR (clr!COMDelegate::DelegateConstruct)
+            // That ends up taking 9ms in Auto7 solution open.
+            ////// This is a very specific syntax that leverages the C# compiler
+            ////// to emit very efficient code for constructing a delegate that
+            ////// uses the "Target" property to store the first parameter to
+            ////// the method.
+            ////// It allows us to construct a Func<T> that returns a T
+            ////// without actually allocating a closure -- we only allocate the delegate.
+            ////return new Func<T>(value.Return);
+
+            // So instead, we allocate the closure and qualify for the CLR's fast path.
+            return () => value;
         }
 
         private static T Return<T>(this T value)
