@@ -17,3 +17,14 @@ IF /I "%1"=="FI" (
 )
 
 robocopy "%ORIGIN%" "%TARGET%" /MIR /xd .git bin obj *.ide /XF *.err *.log *.wrn *.suo *.vspscc *asmmeta %~nx0 /NDL 
+
+IF /I "%1"=="RI" (
+	ECHO.
+	ECHO *********************
+	ECHO *
+	ECHO * Execute the following command in Razzle:
+	ECHO *
+	ECHO *     tfpt online /r /deletes %%SDXROOT%%\platform\mef
+	ECHO *
+	ECHO *********************
+)
