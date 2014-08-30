@@ -22,6 +22,11 @@
         /// </remarks>
         private static readonly Dictionary<Type, WeakReference<TypeRef>> instanceCache = new Dictionary<Type, WeakReference<TypeRef>>();
 
+        /// <summary>
+        /// Backing field for the lazily initialized <see cref="ResolvedType"/> property.
+        /// </summary>
+        private Type resolvedType;
+
         private TypeRef(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
             Requires.NotNull(assemblyName, "assemblyName");
@@ -67,12 +72,29 @@
         /// <summary>
         /// Gets the resolved type.
         /// </summary>
-        /// <remarks>
-        /// This member exists solely to support the DebuggerDisplay attribute on the declaring type.
-        /// </remarks>
-        private Type ResolvedType
+        internal Type ResolvedType
         {
-            get { return this.Resolve(); }
+            get
+            {
+                if (this.resolvedType == null)
+                {
+                    Type type = Resolver.GetManifest(this.AssemblyName).ResolveType(this.MetadataToken);
+                    if (this.GenericTypeArguments.Length > 0)
+                    {
+                        type = type.MakeGenericType(this.GenericTypeArguments.Select(a => a.ResolvedType).ToArray());
+                    }
+
+                    if (this.IsArray)
+                    {
+                        type = type.MakeArrayType();
+                    }
+
+                    // Only assign the field once we've fully decided what the type is.
+                    this.resolvedType = type;
+                }
+
+                return this.resolvedType;
+            }
         }
 
         public static TypeRef Get(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
