@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Collections.ObjectModel;
+    using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -160,6 +161,7 @@
                 exportDefinition.Metadata);
         }
 
+        [DebuggerDisplay("{Type.ResolvedType.FullName,nq}")]
         public class RuntimePart : IEquatable<RuntimePart>
         {
             private ConstructorInfo importingConstructor;
@@ -266,6 +268,8 @@
             private bool? isLazy;
             private Type importingSiteType;
             private Type importingSiteTypeWithoutCollection;
+            private Type importingSiteElementType;
+            private Func<Func<object>, object, object> lazyFactory;
             private ParameterInfo importingParameter;
             private MemberInfo importingMember;
 
@@ -406,7 +410,12 @@
             {
                 get
                 {
-                    return PartDiscovery.GetTypeIdentityFromImportingType(this.ImportingSiteType, this.Cardinality == ImportCardinality.ZeroOrMore);
+                    if (this.importingSiteElementType == null)
+                    {
+                        this.importingSiteElementType = PartDiscovery.GetTypeIdentityFromImportingType(this.ImportingSiteType, this.Cardinality == ImportCardinality.ZeroOrMore);
+                    }
+
+                    return this.importingSiteElementType;
                 }
             }
 
@@ -427,6 +436,20 @@
                     return
                         this.ImportingParameterRef.IsEmpty ? this.ImportingMemberRef.DeclaringType :
                         this.ImportingParameterRef.DeclaringType;
+                }
+            }
+
+            internal Func<Func<object>, object, object> LazyFactory
+            {
+                get
+                {
+                    if (this.lazyFactory == null && this.IsLazy)
+                    {
+                        Type[] lazyTypeArgs = this.ImportingSiteTypeWithoutCollection.GenericTypeArguments;
+                        this.lazyFactory = LazyServices.CreateStronglyTypedLazyFactory(this.ImportingSiteElementType, lazyTypeArgs.Length > 1 ? lazyTypeArgs[1] : null);
+                    }
+
+                    return this.lazyFactory;
                 }
             }
 

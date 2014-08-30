@@ -122,13 +122,7 @@
                 Requires.NotNull(import, "import");
                 Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
 
-                Func<Func<object>, object, object> lazyFactory = null;
-                if (import.IsLazy)
-                {
-                    Type[] lazyTypeArgs = import.ImportingSiteTypeWithoutCollection.GenericTypeArguments;
-                    lazyFactory = LazyServices.CreateStronglyTypedLazyFactory(import.ImportingSiteElementType, lazyTypeArgs.Length > 1 ? lazyTypeArgs[1] : null);
-                }
-
+                Func<Func<object>, object, object> lazyFactory = import.LazyFactory;
                 var exports = import.SatisfyingExports;
                 if (import.Cardinality == ImportCardinality.ZeroOrMore)
                 {
@@ -303,11 +297,9 @@
                     object typeArgsObject;
                     if (bareMetadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out typeArgsObject))
                     {
-                        IEnumerable<Reflection.TypeRef> typeArgs = typeArgsObject as Reflection.TypeRef[];
-                        if (typeArgs == null)
-                        {
-                            typeArgs = ((Type[])typeArgsObject).Select(t => Reflection.TypeRef.Get(t));
-                        }
+                        IEnumerable<TypeRef> typeArgs = typeArgsObject is LazyMetadataWrapper.TypeArraySubstitution
+                            ? ((LazyMetadataWrapper.TypeArraySubstitution)typeArgsObject).TypeRefArray
+                            : ((Type[])typeArgsObject).Select(t => TypeRef.Get(t));
 
                         return part.Type.MakeGenericType(typeArgs.ToImmutableArray());
                     }
