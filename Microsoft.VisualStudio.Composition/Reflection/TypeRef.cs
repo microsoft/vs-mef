@@ -27,6 +27,11 @@
         /// </summary>
         private Type resolvedType;
 
+        /// <summary>
+        /// A lazily initialized cache of the result of calling <see cref="GetHashCode"/>.
+        /// </summary>
+        private int? hashCode;
+
         private TypeRef(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
             Requires.NotNull(assemblyName, "assemblyName");
@@ -143,7 +148,12 @@
 
         public override int GetHashCode()
         {
-            return ByValueEquality.AssemblyName.GetHashCode(this.AssemblyName) + this.MetadataToken;
+            if (!this.hashCode.HasValue)
+            {
+                this.hashCode = ByValueEquality.AssemblyName.GetHashCode(this.AssemblyName) + this.MetadataToken;
+            }
+
+            return this.hashCode.Value;
         }
 
         public override bool Equals(object obj)
