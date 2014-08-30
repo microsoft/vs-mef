@@ -122,13 +122,7 @@
                 Requires.NotNull(import, "import");
                 Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
 
-                Func<Func<object>, object, object> lazyFactory = null;
-                if (import.IsLazy)
-                {
-                    Type[] lazyTypeArgs = import.ImportingSiteTypeWithoutCollection.GenericTypeArguments;
-                    lazyFactory = LazyServices.CreateStronglyTypedLazyFactory(import.ImportingSiteElementType, lazyTypeArgs.Length > 1 ? lazyTypeArgs[1] : null);
-                }
-
+                Func<Func<object>, object, object> lazyFactory = import.LazyFactory;
                 var exports = import.SatisfyingExports;
                 if (import.Cardinality == ImportCardinality.ZeroOrMore)
                 {
