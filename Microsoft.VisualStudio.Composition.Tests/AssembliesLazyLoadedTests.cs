@@ -24,7 +24,7 @@
         protected AssembliesLazyLoadedTests(ICompositionCacheManager cacheManager)
         {
             Requires.NotNull(cacheManager, "cacheManager");
-            
+
             this.cacheManager = cacheManager;
             this.tfc = new TempFileCollection();
         }
@@ -161,6 +161,30 @@
             }
         }
 
+        /// <summary>
+        /// Verifies that the assemblies that MEF parts belong to are only loaded when the custom metadata types they define
+        /// are actually required by some import.
+        /// </summary>
+        [Fact]
+        public async Task ComposableAssembliesLazyLoadedWhenCustomMetadataIsRequired()
+        {
+            var configuration = CompositionConfiguration.Create(await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExportWithCustomMetadata), typeof(PartThatLazyImportsExportWithMetadataOfCustomType)));
+            var compositionCache = await this.SaveConfigurationAsync(configuration);
+
+            // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
+            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
+            try
+            {
+                var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache);
+                driver.TestPartThatLazyImportsExportWithMetadataOfCustomType(typeof(CustomEnum).Assembly.Location, this is AssembliesLazyLoadedDataFileCacheTests);
+            }
+            finally
+            {
+                AppDomain.Unload(appDomain);
+            }
+        }
+
         private async Task<Stream> SaveConfigurationAsync(CompositionConfiguration configuration)
         {
             Requires.NotNull(configuration, "configuration");
@@ -247,6 +271,22 @@
             {
                 Assert.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 var exportWithLazy = container.GetExportedValue<PartImportingOpenGenericExport>();
+                Assert.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            internal void TestPartThatLazyImportsExportWithMetadataOfCustomType(string lazyLoadedAssemblyPath, bool isRuntime)
+            {
+                Assert.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                var exportWithLazy = container.GetExportedValue<PartThatLazyImportsExportWithMetadataOfCustomType>();
+
+                // This next segment we'll permit an assembly load only for code gen cases, which aren't as well tuned at present.
+                Assert.False(isRuntime && GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                Assert.Equal("Value", exportWithLazy.ImportingProperty.Metadata["Simple"]);
+                Assert.False(isRuntime && GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+
+                // At this point, loading the assembly is absolutely required.
+                object customEnum = exportWithLazy.ImportingProperty.Metadata["CustomValue"];
+                Assert.Equal("CustomEnum", customEnum.GetType().Name);
                 Assert.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 

@@ -755,26 +755,14 @@
                 Trace("Metadata", writer.BaseStream);
 
                 this.WriteCompressedUInt((uint)metadata.Count);
-                foreach (var entry in metadata)
+
+                // Special case certain values to avoid defeating lazy load later.
+                // Check out the ReadMetadata below, how it wraps the return value.
+                var serializedMetadata = new LazyMetadataWrapper(metadata.ToImmutableDictionary(), LazyMetadataWrapper.Direction.ToSubstitutedValue);
+                foreach (var entry in serializedMetadata)
                 {
                     this.Write(entry.Key);
-
-                    // Special case values of type Type or Type[] to avoid defeating lazy load later.
-                    // We deserialize keeping the replaced TypeRef values so that they can be resolved
-                    // at the last possible moment by the metadata view at runtime.
-                    // Check out the ReadMetadata below, how it wraps the return value.
-                    if (entry.Value is Type)
-                    {
-                        this.WriteObject(TypeRef.Get((Type)entry.Value));
-                    }
-                    else if (entry.Value is Type[])
-                    {
-                        this.WriteObject(((Type[])entry.Value).Select(TypeRef.Get).ToArray());
-                    }
-                    else
-                    {
-                        this.WriteObject(entry.Value);
-                    }
+                    this.WriteObject(entry.Value);
                 }
             }
 
@@ -806,7 +794,7 @@
                     metadata = builder.ToImmutable();
                 }
 
-                return new LazyMetadataWrapper(metadata);
+                return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue);
             }
 
             private void Write(ImportCardinality cardinality)
@@ -836,6 +824,9 @@
                 Int32,
                 Char,
                 Guid,
+                Enum32Substitution,
+                TypeSubstitution,
+                TypeArraySubstitution,
             }
 
             private void WriteObject(object value)
@@ -895,6 +886,25 @@
                         this.Write(ObjectType.TypeRef);
                         this.Write((TypeRef)value);
                     }
+                    else if (typeof(LazyMetadataWrapper.Enum32Substitution) == valueType)
+                    {
+                        var substValue = (LazyMetadataWrapper.Enum32Substitution)value;
+                        this.Write(ObjectType.Enum32Substitution);
+                        this.Write(substValue.EnumType);
+                        writer.Write(substValue.RawValue);
+                    }
+                    else if (typeof(LazyMetadataWrapper.TypeSubstitution) == valueType)
+                    {
+                        var substValue = (LazyMetadataWrapper.TypeSubstitution)value;
+                        this.Write(ObjectType.TypeSubstitution);
+                        this.Write(substValue.TypeRef);
+                    }
+                    else if (typeof(LazyMetadataWrapper.TypeArraySubstitution) == valueType)
+                    {
+                        var substValue = (LazyMetadataWrapper.TypeArraySubstitution)value;
+                        this.Write(ObjectType.TypeArraySubstitution);
+                        this.Write(substValue.TypeRefArray, this.Write);
+                    }
                     else
                     {
                         Debug.WriteLine("Falling back to binary formatter for value of type: {0}", valueType);
@@ -935,6 +945,16 @@
                         return this.ReadTypeRef().Resolve();
                     case ObjectType.TypeRef:
                         return this.ReadTypeRef();
+                    case ObjectType.Enum32Substitution:
+                        TypeRef enumType = this.ReadTypeRef();
+                        int rawValue = reader.ReadInt32();
+                        return new LazyMetadataWrapper.Enum32Substitution(enumType, rawValue);
+                    case ObjectType.TypeSubstitution:
+                        TypeRef typeRef = this.ReadTypeRef();
+                        return new LazyMetadataWrapper.TypeSubstitution(typeRef);
+                    case ObjectType.TypeArraySubstitution:
+                        IReadOnlyList<TypeRef> typeRefArray = this.ReadList(reader, this.ReadTypeRef);
+                        return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray);
                     case ObjectType.BinaryFormattedObject:
                         var formatter = new BinaryFormatter();
                         return formatter.Deserialize(reader.BaseStream);

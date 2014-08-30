@@ -297,11 +297,9 @@
                     object typeArgsObject;
                     if (bareMetadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out typeArgsObject))
                     {
-                        IEnumerable<Reflection.TypeRef> typeArgs = typeArgsObject as Reflection.TypeRef[];
-                        if (typeArgs == null)
-                        {
-                            typeArgs = ((Type[])typeArgsObject).Select(t => Reflection.TypeRef.Get(t));
-                        }
+                        IEnumerable<TypeRef> typeArgs = typeArgsObject is LazyMetadataWrapper.TypeArraySubstitution
+                            ? ((LazyMetadataWrapper.TypeArraySubstitution)typeArgsObject).TypeRefArray
+                            : ((Type[])typeArgsObject).Select(t => TypeRef.Get(t));
 
                         return part.Type.MakeGenericType(typeArgs.ToImmutableArray());
                     }

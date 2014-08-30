@@ -1064,14 +1064,21 @@
             if (value is Type)
             {
                 substitutionRequired = true;
-
-                return this.GetSyntaxToReconstructValue(TypeRef.Get((Type)value), thisExportProvider);
+                var typeRefConstruction = this.GetSyntaxToReconstructValue(TypeRef.Get((Type)value), thisExportProvider);
+                var substitutionConstruction = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.IdentifierName("GetMetadataValueForType"),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(typeRefConstruction))));
+                return substitutionConstruction;
             }
             else if (value is Type[])
             {
                 substitutionRequired = true;
                 var valueAsTypeArray = (Type[])value;
-                return this.GetSyntaxToReconstructValue(valueAsTypeArray.Select(TypeRef.Get).ToArray(), thisExportProvider);
+                var typeRefArrayConstruction = this.GetSyntaxToReconstructValue(valueAsTypeArray.Select(TypeRef.Get).ToArray(), thisExportProvider);
+                var substitutionConstruction = SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.IdentifierName("GetMetadataValueForTypeArray"),
+                    SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(typeRefArrayConstruction))));
+                return substitutionConstruction;
             }
             else
             {
