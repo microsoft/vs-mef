@@ -39,6 +39,12 @@
             return this.inner.GetExports(importDefinition);
         }
 
+        /// <inheritdoc />
+        internal override IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
+        {
+            return this.inner.GetMetadataViewProvider(metadataView);
+        }
+
         /// <summary>
         /// Throws <see cref="NotImplementedException"/>.
         /// </summary>

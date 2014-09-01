@@ -109,6 +109,7 @@
                 Trace("RuntimeComposition", writer.BaseStream);
 
                 this.Write(compositionRuntime.Parts, this.Write);
+                this.Write(compositionRuntime.MetadataViewsAndProviders);
             }
 
             internal RuntimeComposition ReadRuntimeComposition()
@@ -117,7 +118,9 @@
                 Trace("RuntimeComposition", reader.BaseStream);
 
                 var parts = this.ReadList(reader, this.ReadRuntimePart);
-                return RuntimeComposition.CreateRuntimeComposition(parts);
+                var metadataViewsAndProviders = this.ReadMetadataViewsAndProviders();
+
+                return RuntimeComposition.CreateRuntimeComposition(parts, metadataViewsAndProviders);
             }
 
             private void Write(RuntimeComposition.RuntimeExport export)
@@ -795,6 +798,34 @@
                 }
 
                 return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue);
+            }
+
+            private void Write(IReadOnlyDictionary<TypeRef, RuntimeComposition.RuntimeExport> metadataTypesAndProviders)
+            {
+                Trace("MetadataTypesAndProviders", writer.BaseStream);
+
+                this.WriteCompressedUInt((uint)metadataTypesAndProviders.Count);
+                foreach (var item in metadataTypesAndProviders)
+                {
+                    this.Write(item.Key);
+                    this.Write(item.Value);
+                }
+            }
+
+            private IReadOnlyDictionary<TypeRef, RuntimeComposition.RuntimeExport> ReadMetadataViewsAndProviders()
+            {
+                Trace("MetadataTypesAndProviders", reader.BaseStream);
+
+                uint count = this.ReadCompressedUInt();
+                var builder = ImmutableDictionary.CreateBuilder<TypeRef, RuntimeComposition.RuntimeExport>();
+                for (uint i = 0; i < count; i++)
+                {
+                    var key = this.ReadTypeRef();
+                    var value = this.ReadRuntimeExport();
+                    builder.Add(key, value);
+                }
+
+                return builder.ToImmutable();
             }
 
             private void Write(ImportCardinality cardinality)

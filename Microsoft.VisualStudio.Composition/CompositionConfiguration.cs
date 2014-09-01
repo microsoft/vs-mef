@@ -20,17 +20,24 @@
 
     public class CompositionConfiguration
     {
+        private static readonly ImmutableHashSet<ComposablePartDefinition> AlwaysBundledParts = ImmutableHashSet.Create(
+            ExportProvider.ExportProviderPartDefinition,
+            PassthroughMetadataViewProvider.PartDefinition,
+            MetadataViewClassProvider.PartDefinition);
+
         private ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides;
 
-        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposedPart> parts, IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> compositionErrors, ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides)
+        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposedPart> parts, IReadOnlyDictionary<Type, ExportDefinitionBinding> metadataViewsAndProviders, IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> compositionErrors, ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides)
         {
             Requires.NotNull(catalog, "catalog");
             Requires.NotNull(parts, "parts");
+            Requires.NotNull(metadataViewsAndProviders, "metadataViewsAndProviders");
             Requires.NotNull(compositionErrors, "compositionErrors");
             Requires.NotNull(effectiveSharingBoundaryOverrides, "effectiveSharingBoundaryOverrides");
 
             this.Catalog = catalog;
             this.Parts = parts;
+            this.MetadataViewsAndProviders = metadataViewsAndProviders;
             this.CompositionErrors = compositionErrors;
             this.AdditionalReferenceAssemblies = ImmutableHashSet<Assembly>.Empty;
             this.effectiveSharingBoundaryOverrides = effectiveSharingBoundaryOverrides;
@@ -47,6 +54,11 @@
         /// The composed parts, with exports satisfied, that make up this configuration.
         /// </summary>
         public ISet<ComposedPart> Parts { get; private set; }
+
+        /// <summary>
+        /// Gets a map of metadata views and their matching providers.
+        /// </summary>
+        public IReadOnlyDictionary<Type, ExportDefinitionBinding> MetadataViewsAndProviders { get; private set; }
 
         public ImmutableHashSet<Assembly> AdditionalReferenceAssemblies { get; private set; }
 
@@ -66,9 +78,9 @@
         {
             Requires.NotNull(catalog, "catalog");
 
-            // We consider all the parts in the catalog, plus the specially synthesized one
-            // so that folks can import the ExportProvider itself.
-            var customizedCatalog = catalog.WithPart(ExportProvider.ExportProviderPartDefinition);
+            // We consider all the parts in the catalog, plus the specially synthesized ones
+            // that should always be applied.
+            var customizedCatalog = catalog.WithParts(AlwaysBundledParts);
 
             // Construct our part builders, initialized with all their imports satisfied.
             var partBuilders = new Dictionary<ComposablePartDefinition, PartBuilder>();
@@ -111,11 +123,14 @@
 
             var parts = partsBuilder.ToImmutable();
 
+            // Determine which metadata views to use for each applicable import.
+            var metadataViewsAndProviders = GetMetadataViewProvidersMap(customizedCatalog);
+
             // Validate configuration.
             var errors = new List<ComposedPartDiagnostic>();
             foreach (var part in parts)
             {
-                errors.AddRange(part.Validate());
+                errors.AddRange(part.Validate(metadataViewsAndProviders));
             }
 
             // Detect loops of all non-shared parts.
@@ -140,7 +155,51 @@
                 return configuration.WithErrors(errors);
             }
 
-            return new CompositionConfiguration(catalog, parts, ImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>>.Empty, sharingBoundaryOverrides);
+            return new CompositionConfiguration(
+                catalog,
+                parts,
+                metadataViewsAndProviders,
+                ImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>>.Empty,
+                sharingBoundaryOverrides);
+        }
+
+        private static ImmutableDictionary<Type, ExportDefinitionBinding> GetMetadataViewProvidersMap(ComposableCatalog customizedCatalog)
+        {
+            Requires.NotNull(customizedCatalog, "customizedCatalog");
+
+            var providers = (
+                from part in customizedCatalog.Parts
+                from export in part.ExportDefinitions
+                where export.Value.ContractName == ContractNameServices.GetTypeIdentity(typeof(IMetadataViewProvider))
+                orderby ExportProvider.GetOrderMetadata(export.Value.Metadata) descending
+                let exportDefinitionBinding = new ExportDefinitionBinding(export.Value, part, null)
+                let provider = (IMetadataViewProvider)part.ImportingConstructorInfo.Invoke(Type.EmptyTypes)
+                select Tuple.Create(provider, exportDefinitionBinding)).ToList();
+
+            var metadataTypes = new HashSet<Type>(
+                from part in customizedCatalog.Parts
+                from import in part.Imports
+                where import.MetadataType != null
+                select import.MetadataType);
+
+            // Make sure that a couple of "primitive" metadata types are included.
+            metadataTypes.Add(typeof(IDictionary<string, object>));
+            metadataTypes.Add(typeof(IReadOnlyDictionary<string, object>));
+
+            // Find metadata view providers for each metadata type.
+            // Don't worry about the ones we can't find. Part validation happens later
+            // and they will notice when metadata view providers aren't available and create errors at that time.
+            var metadataViewsAndProviders = ImmutableDictionary.CreateBuilder<Type, ExportDefinitionBinding>();
+            foreach (var metadataType in metadataTypes)
+            {
+                var provider = providers.FirstOrDefault(p => p.Item1.IsMetadataViewSupported(metadataType));
+                if (provider != null)
+                {
+                    metadataViewsAndProviders.Add(metadataType, provider.Item2);
+                }
+            }
+
+            return metadataViewsAndProviders.ToImmutable();
         }
 
         public static CompositionConfiguration Create(IEnumerable<ComposablePartDefinition> parts)
@@ -163,7 +222,7 @@
         {
             Requires.NotNull(additionalReferenceAssemblies, "additionalReferenceAssemblies");
 
-            return new CompositionConfiguration(this.Catalog, this.Parts, this.CompositionErrors, this.effectiveSharingBoundaryOverrides)
+            return new CompositionConfiguration(this.Catalog, this.Parts, this.MetadataViewsAndProviders, this.CompositionErrors, this.effectiveSharingBoundaryOverrides)
             {
                 AdditionalReferenceAssemblies = this.AdditionalReferenceAssemblies.Union(additionalReferenceAssemblies)
             };
@@ -201,7 +260,7 @@
         {
             Requires.NotNull(errors, "errors");
 
-            return new CompositionConfiguration(this.Catalog, this.Parts, this.CompositionErrors.Push(errors), this.effectiveSharingBoundaryOverrides);
+            return new CompositionConfiguration(this.Catalog, this.Parts, this.MetadataViewsAndProviders, this.CompositionErrors.Push(errors), this.effectiveSharingBoundaryOverrides);
         }
 
         private static bool IsLoopPresent(IEnumerable<ComposedPart> parts)

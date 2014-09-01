@@ -17,12 +17,16 @@
         private readonly ImmutableHashSet<RuntimePart> parts;
         private readonly IReadOnlyDictionary<TypeRef, RuntimePart> partsByType;
         private readonly IReadOnlyDictionary<string, IReadOnlyCollection<RuntimeExport>> exportsByContractName;
+        private readonly IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders;
 
-        private RuntimeComposition(IEnumerable<RuntimePart> parts)
+        private RuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders)
         {
             Requires.NotNull(parts, "parts");
+            Requires.NotNull(metadataViewsAndProviders, "metadataViewsAndProviders");
 
             this.parts = ImmutableHashSet.CreateRange(parts);
+            this.metadataViewsAndProviders = metadataViewsAndProviders;
+
             this.partsByType = this.parts.ToDictionary(p => p.Type);
 
             var exports =
@@ -41,18 +45,28 @@
             get { return this.parts; }
         }
 
+        public IReadOnlyDictionary<TypeRef, RuntimeExport> MetadataViewsAndProviders
+        {
+            get { return this.metadataViewsAndProviders; }
+        }
+
         public static RuntimeComposition CreateRuntimeComposition(CompositionConfiguration configuration)
         {
             Requires.NotNull(configuration, "configuration");
 
-            // TODO: create all RuntimeExports first, and then reuse them at each import site.
+            // PERF/memory tip: We could create all RuntimeExports first, and then reuse them at each import site.
             var parts = configuration.Parts.Select(part => CreateRuntimePart(part, configuration));
-            return new RuntimeComposition(parts);
+            var metadataViewsAndProviders = ImmutableDictionary.CreateRange(
+                from viewAndProvider in configuration.MetadataViewsAndProviders
+                let viewTypeRef = TypeRef.Get(viewAndProvider.Key)
+                let runtimeExport = CreateRuntimeExport(viewAndProvider.Value)
+                select new KeyValuePair<TypeRef, RuntimeExport>(viewTypeRef, runtimeExport));
+            return new RuntimeComposition(parts, metadataViewsAndProviders);
         }
 
-        public static RuntimeComposition CreateRuntimeComposition(IEnumerable<RuntimePart> parts)
+        public static RuntimeComposition CreateRuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders)
         {
-            return new RuntimeComposition(parts);
+            return new RuntimeComposition(parts, metadataViewsAndProviders);
         }
 
         public IExportProviderFactory CreateExportProviderFactory()
@@ -99,7 +113,8 @@
                 return false;
             }
 
-            return this.parts.SetEquals(other.parts);
+            return this.parts.SetEquals(other.parts)
+                && ByValueEquality.Dictionary<TypeRef, RuntimeExport>().Equals(this.metadataViewsAndProviders, other.metadataViewsAndProviders);
         }
 
         private static RuntimePart CreateRuntimePart(ComposedPart part, CompositionConfiguration configuration)
@@ -122,7 +137,7 @@
             Requires.NotNull(importDefinitionBinding, "importDefinitionBinding");
             Requires.NotNull(satisfyingExports, "satisfyingExports");
 
-            var runtimeExports = satisfyingExports.Select(export => CreateRuntimeExport(export.ExportDefinition, export.PartDefinition.Type, MemberRef.Get(export.ExportingMember))).ToImmutableArray();
+            var runtimeExports = satisfyingExports.Select(export => CreateRuntimeExport(export)).ToImmutableArray();
             if (importDefinitionBinding.ImportingMember != null)
             {
                 return new RuntimeImport(
@@ -159,6 +174,15 @@
                 exportingMember,
                 TypeRef.Get(ReflectionHelpers.GetExportedValueType(partType, exportingMember.Resolve())),
                 exportDefinition.Metadata);
+        }
+
+        private static RuntimeExport CreateRuntimeExport(ExportDefinitionBinding exportDefinitionBinding)
+        {
+            Requires.NotNull(exportDefinitionBinding, "exportDefinitionBinding");
+            return CreateRuntimeExport(
+                exportDefinitionBinding.ExportDefinition,
+                exportDefinitionBinding.PartDefinition.Type,
+                MemberRef.Get(exportDefinitionBinding.ExportingMember));
         }
 
         [DebuggerDisplay("{Type.ResolvedType.FullName,nq}")]
