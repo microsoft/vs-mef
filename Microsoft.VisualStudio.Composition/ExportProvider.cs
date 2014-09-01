@@ -54,14 +54,6 @@
         private Dictionary<Type, IMetadataViewProvider> typeAndSelectedMetadataViewProviderCache = new Dictionary<Type, IMetadataViewProvider>();
 
         /// <summary>
-        /// A list of built-in metadata view providers that should be used before trying to get additional ones
-        /// from the extensions.
-        /// </summary>
-        private static readonly ImmutableArray<IMetadataViewProvider> BuiltInMetadataViewProviders = ImmutableArray.Create(
-            PassthroughMetadataViewProvider.Default,
-            MetadataViewClassProvider.Default);
-
-        /// <summary>
         /// The metadata view providers available to this ExportProvider.
         /// </summary>
         /// <remarks>
@@ -125,8 +117,10 @@
             this.NonDisposableWrapper = LazyServices.FromValue<object>(nonDisposableWrapper);
             this.NonDisposableWrapperExportAsListOfOne = ImmutableList.Create(
                 new Export(ExportProviderExportDefinition, this.NonDisposableWrapper));
-            this.metadataViewProviders = new Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>>(
-                this.GetMetadataViewProviderExtensions);
+            this.metadataViewProviders = parent != null
+                ? parent.metadataViewProviders
+                : new Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>>(
+                    this.GetMetadataViewProviderExtensions);
         }
 
         bool IDisposableObservable.IsDisposed
@@ -614,7 +608,7 @@
             return result;
         }
 
-        protected static int GetOrderMetadata(IReadOnlyDictionary<string, object> metadata)
+        protected internal static int GetOrderMetadata(IReadOnlyDictionary<string, object> metadata)
         {
             Requires.NotNull(metadata, "metadata");
 
@@ -662,9 +656,15 @@
 
         private ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>> GetMetadataViewProviderExtensions()
         {
-            var extensions = this.GetExports<IMetadataViewProvider, IReadOnlyDictionary<string, object>>();
-            var sorted = extensions.OrderByDescending(v => GetOrderMetadata(v.Metadata));
-            var result = ImmutableArray.CreateRange(sorted);
+            var importDefinition = new ImportDefinition(
+                ContractNameServices.GetTypeIdentity(typeof(IMetadataViewProvider)),
+                ImportCardinality.ZeroOrMore,
+                ImmutableDictionary<string, object>.Empty,
+                ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty);
+            var extensions = from export in this.GetExports(importDefinition)
+                             orderby GetOrderMetadata(export.Metadata) descending
+                             select new Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>(() => (IMetadataViewProvider)export.Value, export.Metadata);
+            var result = ImmutableArray.CreateRange(extensions);
             return result;
         }
 
@@ -674,7 +674,7 @@
         /// <param name="metadataView">The type of metadata view required.</param>
         /// <returns>A metadata view provider.</returns>
         /// <exception cref="NotSupportedException">Thrown if no metadata view provider available is compatible with the type.</exception>
-        internal IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
+        internal virtual IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
         {
             Requires.NotNull(metadataView, "metadataView");
 
@@ -686,24 +686,12 @@
 
             if (metadataViewProvider == null)
             {
-                foreach (var viewProvider in BuiltInMetadataViewProviders)
+                foreach (var viewProvider in this.metadataViewProviders.Value)
                 {
-                    if (viewProvider.IsMetadataViewSupported(metadataView))
+                    if (viewProvider.Value.IsMetadataViewSupported(metadataView))
                     {
-                        metadataViewProvider = viewProvider;
+                        metadataViewProvider = viewProvider.Value;
                         break;
-                    }
-                }
-
-                if (metadataViewProvider == null)
-                {
-                    foreach (var viewProvider in this.metadataViewProviders.Value)
-                    {
-                        if (viewProvider.Value.IsMetadataViewSupported(metadataView))
-                        {
-                            metadataViewProvider = viewProvider.Value;
-                            break;
-                        }
                     }
                 }
 
@@ -784,72 +772,6 @@
             protected override void Dispose(bool disposing)
                 {
                 throw new InvalidOperationException("This instance is an import and cannot be directly disposed.");
-            }
-        }
-
-        /// <summary>
-        /// Supports metadata views that are any type that <see cref="ImmutableDictionary{TKey, TValue}"/>
-        /// could be assigned to, including <see cref="IDictionary{TKey, TValue}"/> and <see cref="IReadOnlyDictionary{TKey, TValue}"/>.
-        /// </summary>
-        private class PassthroughMetadataViewProvider : IMetadataViewProvider
-        {
-            private PassthroughMetadataViewProvider() { }
-
-            internal static readonly IMetadataViewProvider Default = new PassthroughMetadataViewProvider();
-
-            public bool IsMetadataViewSupported(Type metadataType)
-            {
-                Requires.NotNull(metadataType, "metadataType");
-
-                return metadataType.GetTypeInfo().IsAssignableFrom(typeof(IReadOnlyDictionary<string, object>).GetTypeInfo())
-                    || metadataType.GetTypeInfo().IsAssignableFrom(typeof(IDictionary<string, object>).GetTypeInfo());
-            }
-
-            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
-            {
-                Requires.NotNull(metadata, "metadata");
-
-                // This cast should work because our IsMetadataViewSupported method filters to those that do.
-                return metadata;
-            }
-        }
-
-        /// <summary>
-        /// Supports metadata views that are concrete classes with a public constructor
-        /// that accepts the metadata dictionary as its only parameter.
-        /// </summary>
-        private class MetadataViewClassProvider : IMetadataViewProvider
-        {
-            private MetadataViewClassProvider() { }
-
-            internal static readonly IMetadataViewProvider Default = new MetadataViewClassProvider();
-
-            public bool IsMetadataViewSupported(Type metadataType)
-            {
-                Requires.NotNull(metadataType, "metadataType");
-                var typeInfo = metadataType.GetTypeInfo();
-
-                return typeInfo.IsClass && !typeInfo.IsAbstract && FindConstructor(typeInfo) != null;
-            }
-
-            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
-            {
-                return FindConstructor(metadataViewType.GetTypeInfo())
-                    .Invoke(new object[] { ImmutableDictionary.CreateRange(metadata) });
-            }
-
-            private static ConstructorInfo FindConstructor(TypeInfo metadataType)
-            {
-                Requires.NotNull(metadataType, "metadataType");
-
-                var publicCtorsWithOneParameter = from ctor in metadataType.DeclaredConstructors
-                                                  where ctor.IsPublic
-                                                  let parameters = ctor.GetParameters()
-                                                  where parameters.Length == 1
-                                                  let paramInfo = parameters[0].ParameterType.GetTypeInfo()
-                                                  where paramInfo.IsAssignableFrom(typeof(ImmutableDictionary<string, object>).GetTypeInfo())
-                                                  select ctor;
-                return publicCtorsWithOneParameter.FirstOrDefault();
             }
         }
     }

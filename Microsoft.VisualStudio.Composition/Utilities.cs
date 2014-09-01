@@ -7,10 +7,36 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
     internal static class Utilities
     {
+        internal static ComposablePartDefinition GetMetadataViewProviderPartDefinition(Type providerType, int orderPrecedence)
+        {
+            Requires.NotNull(providerType, "providerType");
+
+            var exportDefinition = new ExportDefinition(
+                ContractNameServices.GetTypeIdentity(typeof(IMetadataViewProvider)),
+                PartCreationPolicyConstraint.GetExportMetadata(CreationPolicy.Shared)
+                    .AddRange(ExportTypeIdentityConstraint.GetExportMetadata(typeof(IMetadataViewProvider)))
+                    .SetItem("OrderPrecedence", orderPrecedence));
+
+            var partDefinition = new ComposablePartDefinition(
+                TypeRef.Get(providerType),
+                ImmutableDictionary<string, object>.Empty,
+                new[] { exportDefinition },
+                ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
+                ImmutableList<ImportDefinitionBinding>.Empty,
+                string.Empty,
+                default(MethodRef),
+                ImmutableList<ImportDefinitionBinding>.Empty,
+                CreationPolicy.Shared,
+                false);
+
+            return partDefinition;
+        }
+
         internal static TValue GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue = default(TValue))
         {
             TValue value;

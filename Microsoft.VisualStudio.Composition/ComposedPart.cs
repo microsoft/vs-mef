@@ -53,8 +53,10 @@
             }
         }
 
-        public IEnumerable<ComposedPartDiagnostic> Validate()
+        public IEnumerable<ComposedPartDiagnostic> Validate(IReadOnlyDictionary<Type, ExportDefinitionBinding> metadataViews)
         {
+            Requires.NotNull(metadataViews, "metadataViews");
+
             if (this.Definition.ExportDefinitions.Any(ed => CompositionConfiguration.ExportDefinitionPracticallyEqual.Default.Equals(ExportProvider.ExportProviderExportDefinition, ed.Value)) &&
                 !this.Definition.Equals(ExportProvider.ExportProviderPartDefinition))
             {
@@ -126,6 +128,15 @@
                     yield return new ComposedPartDiagnostic(
                         this,
                         "Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable<T> are supported.");
+                }
+
+                if (pair.Key.MetadataType != null && !metadataViews.ContainsKey(pair.Key.MetadataType))
+                {
+                    yield return new ComposedPartDiagnostic(
+                        this,
+                        "{0}: metadata type {1} is not supported.",
+                        GetDiagnosticLocation(pair.Key),
+                        pair.Key.MetadataType.FullName);
                 }
             }
         }

@@ -149,6 +149,19 @@
             return this.CreateExport(importDefinition, metadata, partType, valueFactory, partSharingBoundary, nonSharedInstanceRequired, exportingMember);
         }
 
+        internal override IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
+        {
+            if (metadataView == typeof(IDictionary<string, object>) || metadataView == typeof(IReadOnlyDictionary<string, object>))
+            {
+                // Avoid bootstrapping problem when metadata view providers are being initialized.
+                return PassthroughMetadataViewProvider.Default;
+            }
+            else
+            {
+                return base.GetMetadataViewProvider(metadataView);
+            }
+        }
+
         protected sealed override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
         {
             return this.GetExportsCore(importDefinition, PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition));

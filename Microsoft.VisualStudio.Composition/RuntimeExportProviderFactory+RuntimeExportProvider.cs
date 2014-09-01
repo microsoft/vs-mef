@@ -47,6 +47,30 @@
                         export.Member);
             }
 
+            private static readonly RuntimeComposition.RuntimeImport metadataViewProviderImport = new RuntimeComposition.RuntimeImport(
+                default(MemberRef),
+                TypeRef.Get(typeof(IMetadataViewProvider)),
+                ImportCardinality.ExactlyOne,
+                ImmutableList<RuntimeComposition.RuntimeExport>.Empty,
+                isNonSharedInstanceRequired: false,
+                isExportFactory: false,
+                metadata: ImmutableDictionary<string, object>.Empty,
+                exportFactorySharingBoundaries: ImmutableHashSet<string>.Empty);
+
+            internal override IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
+            {
+                RuntimeComposition.RuntimeExport metadataViewProviderExport;
+                if (this.composition.MetadataViewsAndProviders.TryGetValue(TypeRef.Get(metadataView), out metadataViewProviderExport))
+                {
+                    Func<object> providerFactory = GetExportedValue(metadataViewProviderImport, metadataViewProviderExport, new Dictionary<TypeRef, object>());
+                    return (IMetadataViewProvider)providerFactory();
+                }
+                else
+                {
+                    return base.GetMetadataViewProvider(metadataView);
+                }
+            }
+
             private object CreatePart(Dictionary<TypeRef, object> provisionalSharedObjects, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata, bool nonSharedInstanceRequired)
             {
                 if (partDefinition.Type.Equals(Reflection.TypeRef.Get(ExportProvider.ExportProviderPartDefinition.Type)))
