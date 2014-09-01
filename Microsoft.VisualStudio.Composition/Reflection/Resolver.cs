@@ -13,23 +13,7 @@
 
         public static Type Resolve(this TypeRef typeRef)
         {
-            if (typeRef == null)
-            {
-                return null;
-            }
-
-            Type type = GetManifest(typeRef.AssemblyName).ResolveType(typeRef.MetadataToken);
-            if (typeRef.GenericTypeArguments.Length > 0)
-            {
-                type = type.MakeGenericType(typeRef.GenericTypeArguments.Select(Resolve).ToArray());
-            }
-
-            if (typeRef.IsArray)
-            {
-                type = type.MakeArrayType();
-            }
-
-            return type;
+            return typeRef == null ? null : typeRef.ResolvedType;
         }
 
         public static ConstructorInfo Resolve(this ConstructorRef constructorRef)
@@ -176,7 +160,7 @@
             throw new NotSupportedException();
         }
 
-        private static Module GetManifest(AssemblyName assemblyName)
+        internal static Module GetManifest(AssemblyName assemblyName)
         {
             Module module;
             lock (assemblyManifests)
