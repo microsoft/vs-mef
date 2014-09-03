@@ -108,5 +108,16 @@
             var indentingWriter = IndentingTextWriter.Get(writer);
             indentingWriter.WriteLine("RequiredCreationPolicy: {0}", this.RequiredCreationPolicy);
         }
+
+        public bool Equals(IImportSatisfiabilityConstraint obj)
+        {
+            var other = obj as PartCreationPolicyConstraint;
+            if (other == null)
+            {
+                return false;
+            }
+
+            return this.RequiredCreationPolicy == other.RequiredCreationPolicy;
+        }
     }
 }

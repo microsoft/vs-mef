@@ -297,6 +297,17 @@
                     (IDictionary<string, object>)exportDefinition.Metadata);
                 return this.definition.IsConstraintSatisfiedBy(v1ExportDefinition);
             }
+
+            public bool Equals(IImportSatisfiabilityConstraint obj)
+            {
+                var other = obj as ImportConstraint;
+                if (other == null)
+                {
+                    return false;
+                }
+
+                return this.definition.Equals(other.definition);
+            }
         }
 
         // The part creation policy is NonShared so that it can satisfy exports within any sharing boundary.
