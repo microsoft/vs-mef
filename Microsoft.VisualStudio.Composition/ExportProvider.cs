@@ -30,6 +30,7 @@
             ImmutableList<ImportDefinitionBinding>.Empty,
             string.Empty,
             default(MethodRef),
+            default(ConstructorRef),
             null,
             CreationPolicy.Shared,
             true);

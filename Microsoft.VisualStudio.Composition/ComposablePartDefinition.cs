@@ -25,10 +25,11 @@
         /// <param name="importingMembers">The importing members.</param>
         /// <param name="sharingBoundary">The sharing boundary that this part is shared within.</param>
         /// <param name="onImportsSatisfied">The method to invoke after satisfying imports, if any.</param>
-        /// <param name="importingConstructor">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
+        /// <param name="importingConstructorRef">The constructor to invoke to construct the part.</param>
+        /// <param name="importingConstructorImports">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
         /// <param name="partCreationPolicy">The creation policy for this part.</param>
         /// <param name="isSharingBoundaryInferred">A value indicating whether the part does not have an explicit sharing boundary, and therefore can obtain its sharing boundary based on its imports.</param>
-        public ComposablePartDefinition(TypeRef partType, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodRef onImportsSatisfied, IReadOnlyList<ImportDefinitionBinding> importingConstructor, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
+        public ComposablePartDefinition(TypeRef partType, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers, IReadOnlyList<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodRef onImportsSatisfied, ConstructorRef importingConstructorRef, IReadOnlyList<ImportDefinitionBinding> importingConstructorImports, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
         {
             Requires.NotNull(partType, "partType");
             Requires.NotNull(metadata, "metadata");
@@ -43,7 +44,8 @@
             this.ImportingMembers = ImmutableHashSet.CreateRange(importingMembers);
             this.SharingBoundary = sharingBoundary;
             this.OnImportsSatisfiedRef = onImportsSatisfied;
-            this.ImportingConstructor = importingConstructor;
+            this.ImportingConstructorRef = importingConstructorRef;
+            this.ImportingConstructorImports = importingConstructorImports;
             this.CreationPolicy = partCreationPolicy;
             this.IsSharingBoundaryInferred = isSharingBoundaryInferred;
         }
@@ -134,21 +136,18 @@
         /// <summary>
         /// Gets the list of parameters on the importing constructor.
         /// </summary>
-        public IReadOnlyList<ImportDefinitionBinding> ImportingConstructor { get; private set; }
+        public IReadOnlyList<ImportDefinitionBinding> ImportingConstructorImports { get; private set; }
 
         public bool IsInstantiable
         {
-            get { return this.ImportingConstructor != null; }
+            get { return this.ImportingConstructorImports != null; }
         }
+
+        public ConstructorRef ImportingConstructorRef { get; private set; }
 
         public ConstructorInfo ImportingConstructorInfo
         {
-            get
-            {
-                return this.ImportingConstructor != null
-                    ? this.Type.GetTypeInfo().DeclaredConstructors.FirstOrDefault(ctor => !ctor.IsStatic && ctor.HasParameters(this.ImportingConstructor.Select(i => i.ImportingParameter.ParameterType).ToArray()))
-                    : null;
-            }
+            get { return this.ImportingConstructorRef.Resolve(); }
         }
 
         /// <summary>
@@ -159,9 +158,9 @@
             get
             {
                 IEnumerable<ImportDefinitionBinding> result = this.ImportingMembers;
-                if (this.ImportingConstructor != null)
+                if (this.ImportingConstructorImports != null)
                 {
-                    result = result.Concat(this.ImportingConstructor);
+                    result = result.Concat(this.ImportingConstructorImports);
                 }
 
                 return result;
@@ -194,7 +193,7 @@
                 && ByValueEquality.EquivalentIgnoreOrder<ExportDefinition>().Equals(this.ExportedTypes, other.ExportedTypes)
                 && ByValueEquality.Dictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>(ByValueEquality.EquivalentIgnoreOrder<ExportDefinition>()).Equals(this.ExportingMembers, other.ExportingMembers)
                 && this.ImportingMembers.SetEquals(other.ImportingMembers)
-                && ((this.ImportingConstructor == null && other.ImportingConstructor == null) || (this.ImportingConstructor != null && other.ImportingConstructor != null && this.ImportingConstructor.SequenceEqual(other.ImportingConstructor)));
+                && ((this.ImportingConstructorImports == null && other.ImportingConstructorImports == null) || (this.ImportingConstructorImports != null && other.ImportingConstructorImports != null && this.ImportingConstructorImports.SequenceEqual(other.ImportingConstructorImports)));
             return result;
         }
 
@@ -257,7 +256,7 @@
                 }
             }
 
-            if (this.ImportingConstructor == null)
+            if (this.ImportingConstructorImports == null)
             {
                 indentingWriter.WriteLine("ImportingConstructor: <null>");
             }
@@ -266,7 +265,7 @@
                 indentingWriter.WriteLine("ImportingConstructor:");
                 using (indentingWriter.Indent())
                 {
-                    foreach (var import in this.ImportingConstructor)
+                    foreach (var import in this.ImportingConstructorImports)
                     {
                         import.ToString(indentingWriter);
                     }

@@ -30,6 +30,7 @@
                 ImmutableList<ImportDefinitionBinding>.Empty,
                 string.Empty,
                 default(MethodRef),
+                ConstructorRef.Get(providerType.GetConstructor(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance, null, new Type[0], null)),
                 ImmutableList<ImportDefinitionBinding>.Empty,
                 CreationPolicy.Shared,
                 false);

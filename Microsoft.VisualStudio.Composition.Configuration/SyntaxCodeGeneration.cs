@@ -1434,7 +1434,7 @@
                 var localSymbols = new HashSet<string>();
                 var block = SyntaxFactory.Block();
                 int importingConstructorArgIndex = 0;
-                var importingConstructorArgNames = new string[part.Definition.ImportingConstructor.Count];
+                var importingConstructorArgNames = new string[part.Definition.ImportingConstructorImports.Count];
                 foreach (var pair in part.GetImportingConstructorImports())
                 {
                     IReadOnlyList<StatementSyntax> prereqStatements;

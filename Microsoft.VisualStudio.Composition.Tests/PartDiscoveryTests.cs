@@ -159,6 +159,7 @@
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     null,
                     default(MethodRef),
+                    default(ConstructorRef),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     CreationPolicy.Any,
                     true);
