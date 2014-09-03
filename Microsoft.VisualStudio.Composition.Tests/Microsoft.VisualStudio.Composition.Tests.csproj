@@ -144,6 +144,7 @@
     <Compile Include="DynamicImportTests.cs" />
     <Compile Include="EmbeddableTypesTests.cs" />
     <Compile Include="EmbeddedableTypesMixedTests.cs" />
+    <Compile Include="ExportDefinitionTests.cs" />
     <Compile Include="ExportMetadataViewNameCollisionTests.cs" />
     <Compile Include="ExportProviderTests.cs" />
     <Compile Include="GenericImportTests.cs" />

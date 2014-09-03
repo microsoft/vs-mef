@@ -44,7 +44,7 @@
             }
 
             bool result = this.ContractName == other.ContractName
-                && this.Metadata.EqualsByValue(other.Metadata);
+                && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata);
             return result;
         }
 
