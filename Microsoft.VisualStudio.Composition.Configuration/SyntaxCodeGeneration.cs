@@ -1999,7 +1999,7 @@
                 return
                     from part in this.Configuration.Parts
                     from exportingMemberAndDefinition in part.Definition.ExportDefinitions
-                    let export = new ExportDefinitionBinding(exportingMemberAndDefinition.Value, part.Definition, Reflection.Resolver.Resolve(exportingMemberAndDefinition.Key))
+                    let export = new ExportDefinitionBinding(exportingMemberAndDefinition.Value, part.Definition, exportingMemberAndDefinition.Key)
                     where part.Definition.IsInstantiable
                     group export by export.ExportDefinition.ContractName into exportsByContract
                     select exportsByContract;

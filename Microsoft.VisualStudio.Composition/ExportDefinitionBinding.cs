@@ -8,18 +8,19 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
     public class ExportDefinitionBinding : IEquatable<ExportDefinitionBinding>
     {
-        public ExportDefinitionBinding(ExportDefinition exportDefinition, ComposablePartDefinition partDefinition, MemberInfo exportingMember)
+        public ExportDefinitionBinding(ExportDefinition exportDefinition, ComposablePartDefinition partDefinition, MemberRef exportingMemberRef)
         {
             Requires.NotNull(exportDefinition, "exportDefinition");
             Requires.NotNull(partDefinition, "partDefinition");
 
             this.ExportDefinition = exportDefinition;
             this.PartDefinition = partDefinition;
-            this.ExportingMember = exportingMember;
+            this.ExportingMemberRef = exportingMemberRef;
         }
 
         public ExportDefinition ExportDefinition { get; private set; }
@@ -33,7 +34,16 @@
         /// <summary>
         /// Gets the member with the ExportAttribute applied. <c>null</c> when the export is on the type itself.
         /// </summary>
-        public MemberInfo ExportingMember { get; private set; }
+        public MemberInfo ExportingMember
+        {
+            get { return this.ExportingMemberRef.Resolve(); }
+        }
+
+        /// <summary>
+        /// Gets the member with the ExportAttribute applied. The return value's <see cref="MemberRef.IsEmpty"/> 
+        /// is <c>true</c> when the export is on the type itself.
+        /// </summary>
+        public MemberRef ExportingMemberRef { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether the exporting member is static.
@@ -61,7 +71,7 @@
             return new ExportDefinitionBinding(
                 new ExportDefinition(this.ExportDefinition.ContractName, updatedMetadata),
                 this.PartDefinition,
-                this.ExportingMember);
+                this.ExportingMemberRef);
         }
 
         public override bool Equals(object obj)
