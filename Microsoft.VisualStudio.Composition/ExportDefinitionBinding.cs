@@ -82,9 +82,9 @@
         public override int GetHashCode()
         {
             int hashCode = this.PartDefinition.Type.GetHashCode();
-            if (this.ExportingMember != null)
+            if (!this.ExportingMemberRef.IsEmpty)
             {
-                hashCode += this.ExportingMember.GetHashCode();
+                hashCode += this.ExportingMemberRef.GetHashCode();
             }
 
             return hashCode;
@@ -94,7 +94,7 @@
         {
             bool result = this.PartDefinition.Type == other.PartDefinition.Type
                 && this.ExportDefinition.Equals(other.ExportDefinition)
-                && this.ExportingMember == other.ExportingMember;
+                && this.ExportingMemberRef.Equals(other.ExportingMemberRef);
             return result;
         }
     }

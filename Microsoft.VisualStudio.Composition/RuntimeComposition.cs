@@ -182,7 +182,7 @@
             return CreateRuntimeExport(
                 exportDefinitionBinding.ExportDefinition,
                 exportDefinitionBinding.PartDefinition.Type,
-                MemberRef.Get(exportDefinitionBinding.ExportingMember));
+                exportDefinitionBinding.ExportingMemberRef);
         }
 
         [DebuggerDisplay("{Type.ResolvedType.FullName,nq}")]
