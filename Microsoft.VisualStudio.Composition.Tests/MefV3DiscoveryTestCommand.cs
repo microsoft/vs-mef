@@ -69,33 +69,11 @@
                 bool anyStringRepresentationDifferences = false;
                 for (int i = 1; i < resultingCatalogs.Count; i++)
                 {
-                    var d = new Differ();
-                    var inlineBuilder = new InlineDiffBuilder(d);
-                    var result = inlineBuilder.BuildDiffModel(catalogStringRepresentations[0], catalogStringRepresentations[i]);
-                    if (result.Lines.Any(l => l.Type != ChangeType.Unchanged))
-                    {
-                        Console.WriteLine("Catalog {0} vs. {1}", v3DiscoveryModules[0], v3DiscoveryModules[i]);
-                        foreach (var line in result.Lines)
-                        {
-                            if (line.Type == ChangeType.Inserted)
-                            {
-                                Console.Write("+ ");
-                            }
-                            else if (line.Type == ChangeType.Deleted)
-                            {
-                                Console.Write("- ");
-                            }
-                            else
-                            {
-                                Console.Write("  ");
-                            }
-
-                            Console.WriteLine(line.Text);
-                        }
-
-                        anyStringRepresentationDifferences = true;
-                        ////Assert.False(anyStringRepresentationDifferences, "Catalogs not equivalent");
-                    }
+                    anyStringRepresentationDifferences = PrintDiff(
+                        v3DiscoveryModules[0].GetType().Name,
+                        v3DiscoveryModules[i].GetType().Name,
+                        catalogStringRepresentations[0],
+                        catalogStringRepresentations[i]);
                 }
 
                 // Verify that the catalogs are identical.
@@ -118,6 +96,10 @@
                     var catalogWithSupport = uniqueCatalog
                         .WithCompositionService()
                         .WithDesktopSupport();
+
+                    // Round-trip the catalog through serialization to verify that as well.
+                    RoundtripCatalogSerialization(catalogWithSupport);
+
                     var configuration = CompositionConfiguration.Create(catalogWithSupport);
 
                     if (!this.compositionVersions.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors))
@@ -136,6 +118,59 @@
             {
                 return this.Result = new FailedResult(this.testMethod, ex, this.DisplayName);
             }
+        }
+
+        private static bool PrintDiff(string beforeDescription, string afterDescription, string before, string after)
+        {
+            var d = new Differ();
+            var inlineBuilder = new InlineDiffBuilder(d);
+            var result = inlineBuilder.BuildDiffModel(before, after);
+            if (result.Lines.Any(l => l.Type != ChangeType.Unchanged))
+            {
+                Console.WriteLine("Catalog {0} vs. {1}", beforeDescription, afterDescription);
+                foreach (var line in result.Lines)
+                {
+                    if (line.Type == ChangeType.Inserted)
+                    {
+                        Console.Write("+ ");
+                    }
+                    else if (line.Type == ChangeType.Deleted)
+                    {
+                        Console.Write("- ");
+                    }
+                    else
+                    {
+                        Console.Write("  ");
+                    }
+
+                    Console.WriteLine(line.Text);
+                }
+
+                return true;
+                ////Assert.False(anyStringRepresentationDifferences, "Catalogs not equivalent");
+            }
+
+            return false;
+        }
+
+        private static void RoundtripCatalogSerialization(ComposableCatalog catalog)
+        {
+            Requires.NotNull(catalog, "catalog");
+
+            var catalogSerialization = new CachedCatalog();
+            var ms = new MemoryStream();
+            catalogSerialization.SaveAsync(catalog, ms).Wait();
+            ms.Position = 0;
+            var deserializedCatalog = catalogSerialization.LoadAsync(ms).Result;
+
+            var before = new StringWriter();
+            catalog.ToString(before);
+            var after = new StringWriter();
+            deserializedCatalog.ToString(after);
+
+            PrintDiff("BeforeSerialization", "AfterSerialization", before.ToString(), after.ToString());
+
+            Assert.True(catalog.Equals(deserializedCatalog));
         }
 
         private IReadOnlyList<PartDiscovery> GetV3DiscoveryModules()

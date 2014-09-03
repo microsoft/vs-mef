@@ -105,12 +105,14 @@
   <ItemGroup>
     <Compile Include="AttributedPartDiscovery.cs" />
     <Compile Include="AttributedPartDiscoveryV1.cs" />
+    <Compile Include="CachedCatalog.cs" />
     <Compile Include="CachedComposition.cs" />
     <Compile Include="CodeGen.cs" />
     <Compile Include="CodeGenExportProviderBase.cs" />
     <Compile Include="CompiledComposition.cs" />
     <Compile Include="ExportMetadataViewInterfaceEmitProxy.cs" />
     <Compile Include="MetadataViewGenerator.cs" />
+    <Compile Include="SerializationContextBase.cs" />
     <Compile Include="SyntaxCodeGeneration.cs" />
     <Compile Include="ExportMetadataViewInterfaceProxy.cs" />
     <Compile Include="NetFxAdapters.cs" />
