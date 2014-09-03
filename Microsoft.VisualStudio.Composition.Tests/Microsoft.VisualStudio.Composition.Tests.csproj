@@ -197,6 +197,7 @@
     <Compile Include="NamedTypedExportTests.cs" />
     <Compile Include="PartDiscoveryTests.cs" />
     <Compile Include="ProjectSystemMockTests.cs" />
+    <Compile Include="Reflection\TypeRefTests.cs" />
     <Compile Include="SharedNoBoundaryExportsTests.cs" />
     <Compile Include="SharingBoundaryInvalidTests.cs" />
     <Compile Include="SharingBoundaryTwoPathsToPartTests.cs" />
