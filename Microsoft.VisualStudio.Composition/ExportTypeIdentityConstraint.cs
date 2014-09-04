@@ -12,10 +12,10 @@
 
     public class ExportTypeIdentityConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
-        public ExportTypeIdentityConstraint(TypeRef typeIdentity)
+        public ExportTypeIdentityConstraint(Type typeIdentity)
         {
             Requires.NotNull(typeIdentity, "typeIdentity");
-            this.TypeIdentityName = ContractNameServices.GetTypeIdentity(typeIdentity.Resolve());
+            this.TypeIdentityName = ContractNameServices.GetTypeIdentity(typeIdentity);
         }
 
         public ExportTypeIdentityConstraint(string typeIdentityName)
