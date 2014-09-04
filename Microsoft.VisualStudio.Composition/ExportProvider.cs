@@ -652,7 +652,7 @@
                     result.Metadata,
                     GetMetadataViewDefaults(typeof(TMetadataView)),
                     typeof(TMetadataView))))
-                .ToImmutableHashSet();
+                .ToArray();
         }
 
         private ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>> GetMetadataViewProviderExtensions()
