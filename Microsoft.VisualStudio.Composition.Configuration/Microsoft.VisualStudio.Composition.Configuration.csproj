@@ -114,7 +114,6 @@
     <Compile Include="MetadataViewGenerator.cs" />
     <Compile Include="SerializationContextBase.cs" />
     <Compile Include="SyntaxCodeGeneration.cs" />
-    <Compile Include="ExportMetadataViewInterfaceProxy.cs" />
     <Compile Include="NetFxAdapters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tasks\ExceptionHelpers.cs" />

@@ -62,8 +62,7 @@
             return catalog
                 .WithPart(metadataViewImplProxyPart)
                 .WithPart(assemblyNameCodeBasePathPath)
-                .WithMetadataViewEmitProxySupport()
-                .WithMetadataViewProxySupport();
+                .WithMetadataViewEmitProxySupport();
         }
 
         private class MefV1ExportProvider : MefV1.Hosting.ExportProvider
