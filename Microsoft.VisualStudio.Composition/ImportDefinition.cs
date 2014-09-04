@@ -14,7 +14,7 @@
     [DebuggerDisplay("{ContractName,nq} ({Cardinality})")]
     public class ImportDefinition : IEquatable<ImportDefinition>
     {
-        private readonly ImmutableHashSet<IImportSatisfiabilityConstraint> exportConstraints;
+        private readonly ImmutableList<IImportSatisfiabilityConstraint> exportConstraints;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportDefinition"/> class
@@ -30,7 +30,7 @@
             this.ContractName = contractName;
             this.Cardinality = cardinality;
             this.Metadata = metadata.ToImmutableDictionary();
-            this.exportConstraints = additionalConstraints.ToImmutableHashSet();
+            this.exportConstraints = additionalConstraints.ToImmutableList();
             this.ExportFactorySharingBoundaries = exportFactorySharingBoundaries.ToImmutableHashSet();
         }
 
