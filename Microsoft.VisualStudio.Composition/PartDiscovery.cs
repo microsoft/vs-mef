@@ -434,7 +434,7 @@
                     }
                     catch (Exception ex)
                     {
-                        var partDiscoveryException = new PartDiscoveryException("Unable to enumerate types.", ex) { AssemblyPath = a.Location };
+                        var partDiscoveryException = new PartDiscoveryException("Unable to enumerate types in assembly \"" + a.Location + "\".", ex) { AssemblyPath = a.Location };
                         lock (exceptions)
                         {
                             exceptions.Add(partDiscoveryException);
