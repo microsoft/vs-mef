@@ -175,6 +175,17 @@
             return new ComposableCatalog(catalog.types, catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts));
         }
 
+        public IReadOnlyCollection<AssemblyName> GetInputAssemblies()
+        {
+            var inputAssemblies = ImmutableHashSet.CreateBuilder<AssemblyName>();
+            foreach (var part in this.Parts)
+            {
+                part.GetInputAssemblies(inputAssemblies);
+            }
+
+            return inputAssemblies.ToImmutable();
+        }
+
         public bool Equals(ComposableCatalog other)
         {
             if (other == null)

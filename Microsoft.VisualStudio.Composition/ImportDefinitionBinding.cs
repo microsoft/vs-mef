@@ -197,5 +197,17 @@
             indentingWriter.WriteLine("ParameterInfo: {0}", this.ImportingParameter);
             indentingWriter.WriteLine("ImportingSiteType: {0}", this.ImportingSiteType);
         }
+
+        internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
+        {
+            Requires.NotNull(assemblies, "assemblies");
+
+            this.ImportDefinition.GetInputAssemblies(assemblies);
+            this.ComposablePartTypeRef.GetInputAssemblies(assemblies);
+            this.ImportingMemberRef.GetInputAssemblies(assemblies);
+            this.ImportingParameterRef.GetInputAssemblies(assemblies);
+            this.ImportingSiteTypeRef.GetInputAssemblies(assemblies);
+            this.ComposablePartTypeRef.GetInputAssemblies(assemblies);
+        }
     }
 }

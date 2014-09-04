@@ -6,6 +6,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Validation;
 
     public static class Resolver
     {
@@ -180,6 +181,96 @@
             }
 
             return module;
+        }
+
+        internal static void GetInputAssemblies(this TypeRef typeRef, ISet<AssemblyName> assemblies)
+        {
+            Requires.NotNull(assemblies, "assemblies");
+
+            if (typeRef != null)
+            {
+                assemblies.Add(typeRef.AssemblyName);
+                foreach (var typeArg in typeRef.GenericTypeArguments)
+                {
+                    GetInputAssemblies(typeArg, assemblies);
+                }
+            }
+        }
+
+        internal static void GetInputAssemblies(this MemberRef memberRef, ISet<AssemblyName> assemblies)
+        {
+            Requires.NotNull(assemblies, "assemblies");
+
+            if (memberRef.IsConstructor)
+            {
+                GetInputAssemblies(memberRef.Constructor, assemblies);
+            }
+            else if (memberRef.IsField)
+            {
+                GetInputAssemblies(memberRef.Field, assemblies);
+            }
+            else if (memberRef.IsMethod)
+            {
+                GetInputAssemblies(memberRef.Method, assemblies);
+            }
+            else if (memberRef.IsProperty)
+            {
+                GetInputAssemblies(memberRef.Property, assemblies);
+            }
+        }
+
+        internal static void GetInputAssemblies(this MethodRef methodRef, ISet<AssemblyName> assemblies)
+        {
+            Requires.NotNull(assemblies, "assemblies");
+
+            if (!methodRef.IsEmpty)
+            {
+                assemblies.Add(methodRef.DeclaringType.AssemblyName);
+                foreach (var typeArg in methodRef.GenericMethodArguments)
+                {
+                    GetInputAssemblies(typeArg, assemblies);
+                }
+            }
+        }
+
+        internal static void GetInputAssemblies(this PropertyRef propertyRef, ISet<AssemblyName> assemblies)
+        {
+            Requires.NotNull(assemblies, "assemblies");
+
+            if (!propertyRef.IsEmpty)
+            {
+                assemblies.Add(propertyRef.DeclaringType.AssemblyName);
+            }
+        }
+
+        internal static void GetInputAssemblies(this FieldRef fieldRef, ISet<AssemblyName> assemblies)
+        {
+            Requires.NotNull(assemblies, "assemblies");
+
+            if (!fieldRef.IsEmpty)
+            {
+                assemblies.Add(fieldRef.DeclaringType.AssemblyName);
+            }
+        }
+
+        internal static void GetInputAssemblies(this ConstructorRef constructorRef, ISet<AssemblyName> assemblies)
+        {
+            Requires.NotNull(assemblies, "assemblies");
+
+            if (!constructorRef.IsEmpty)
+            {
+                assemblies.Add(constructorRef.DeclaringType.AssemblyName);
+            }
+        }
+
+        internal static void GetInputAssemblies(this ParameterRef parameterRef, ISet<AssemblyName> assemblies)
+        {
+            Requires.NotNull(assemblies, "assemblies");
+
+            if (!parameterRef.IsEmpty)
+            {
+                assemblies.Add(parameterRef.AssemblyName);
+            }
         }
     }
 }

@@ -127,5 +127,13 @@
                 }
             }
         }
+
+        internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
+        {
+            Requires.NotNull(assemblies, "assemblies");
+
+            // TODO: consider the assembly dependencies brought in by constraints.
+            ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata);
+        }
     }
 }

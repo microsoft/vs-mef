@@ -570,6 +570,14 @@
             return attribute;
         }
 
+        internal static void GetInputAssembliesFromMetadata(ISet<AssemblyName> assemblies, IReadOnlyDictionary<string, object> metadata)
+        {
+            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(metadata, "metadata");
+
+            // TODO: code here
+        }
+
         private static string FilterTypeNameForGenericTypeDefinition(Type type, bool fullName)
         {
             Requires.NotNull(type, "type");
