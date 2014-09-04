@@ -6,7 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    public interface IImportSatisfiabilityConstraint
+    public interface IImportSatisfiabilityConstraint : IEquatable<IImportSatisfiabilityConstraint>
     {
         bool IsSatisfiedBy(ExportDefinition exportDefinition);
     }

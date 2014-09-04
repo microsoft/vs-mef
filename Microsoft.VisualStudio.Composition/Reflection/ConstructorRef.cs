@@ -28,6 +28,13 @@
             get { return this.DeclaringType == null; }
         }
 
+        public static ConstructorRef Get(ConstructorInfo constructor)
+        {
+            return constructor != null
+                ? new ConstructorRef(constructor)
+                : default(ConstructorRef);
+        }
+
         public bool Equals(ConstructorRef other)
         {
             return EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType)

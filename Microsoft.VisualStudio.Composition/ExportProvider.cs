@@ -30,6 +30,7 @@
             ImmutableList<ImportDefinitionBinding>.Empty,
             string.Empty,
             default(MethodRef),
+            default(ConstructorRef),
             null,
             CreationPolicy.Shared,
             true);
@@ -651,7 +652,7 @@
                     result.Metadata,
                     GetMetadataViewDefaults(typeof(TMetadataView)),
                     typeof(TMetadataView))))
-                .ToImmutableHashSet();
+                .ToArray();
         }
 
         private ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>> GetMetadataViewProviderExtensions()

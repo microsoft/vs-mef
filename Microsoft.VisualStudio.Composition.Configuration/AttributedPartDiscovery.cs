@@ -150,6 +150,7 @@
                     imports.ToImmutable(),
                     sharingBoundary,
                     MethodRef.Get(onImportsSatisfied),
+                    ConstructorRef.Get(importingCtor),
                     importingConstructorParameters.ToImmutable(),
                     partCreationPolicy);
             }

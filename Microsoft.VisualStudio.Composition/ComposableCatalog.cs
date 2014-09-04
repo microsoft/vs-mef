@@ -141,7 +141,7 @@
             foreach (var exportDefinition in partDefinition.ExportedTypes)
             {
                 var list = exportsByContract.GetValueOrDefault(exportDefinition.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
-                exportsByContract = exportsByContract.SetItem(exportDefinition.ContractName, list.Add(new ExportDefinitionBinding(exportDefinition, partDefinition, exportingMember: null)));
+                exportsByContract = exportsByContract.SetItem(exportDefinition.ContractName, list.Add(new ExportDefinitionBinding(exportDefinition, partDefinition, default(MemberRef))));
             }
 
             foreach (var exportPair in partDefinition.ExportingMembers)
@@ -150,7 +150,7 @@
                 foreach (var export in exportPair.Value)
                 {
                     var list = exportsByContract.GetValueOrDefault(export.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
-                    exportsByContract = exportsByContract.SetItem(export.ContractName, list.Add(new ExportDefinitionBinding(export, partDefinition, member.Resolve())));
+                    exportsByContract = exportsByContract.SetItem(export.ContractName, list.Add(new ExportDefinitionBinding(export, partDefinition, member)));
                 }
             }
 

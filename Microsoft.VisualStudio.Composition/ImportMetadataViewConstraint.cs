@@ -135,6 +135,17 @@
             }
         }
 
+        public bool Equals(IImportSatisfiabilityConstraint obj)
+        {
+            var other = obj as ImportMetadataViewConstraint;
+            if (other == null)
+            {
+                return false;
+            }
+
+            return ByValueEquality.Dictionary<string, MetadatumRequirement>().Equals(this.Requirements, other.Requirements);
+        }
+
         private static ImmutableDictionary<string, MetadatumRequirement> GetRequiredMetadata(TypeRef metadataViewRef)
         {
             Requires.NotNull(metadataViewRef, "metadataViewRef");

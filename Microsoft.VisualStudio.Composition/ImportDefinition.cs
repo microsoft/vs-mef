@@ -93,7 +93,10 @@
             }
 
             bool result = this.ContractName == other.ContractName
-                && this.Cardinality == other.Cardinality;
+                && this.Cardinality == other.Cardinality
+                && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata)
+                && ByValueEquality.EquivalentIgnoreOrder<IImportSatisfiabilityConstraint>().Equals(this.ExportConstraints, other.ExportConstraints)
+                && ByValueEquality.EquivalentIgnoreOrder<string>().Equals(this.ExportFactorySharingBoundaries, other.ExportFactorySharingBoundaries);
             return result;
         }
 

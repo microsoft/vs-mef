@@ -165,6 +165,7 @@
         {
             return ByValueEquality.AssemblyName.Equals(this.AssemblyName, other.AssemblyName)
                 && this.MetadataToken == other.MetadataToken
+                && this.IsArray == other.IsArray
                 && this.GenericTypeParameterCount == other.GenericTypeParameterCount
                 && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments);
         }

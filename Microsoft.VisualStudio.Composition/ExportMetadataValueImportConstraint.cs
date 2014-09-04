@@ -38,6 +38,18 @@
             return false;
         }
 
+        public bool Equals(IImportSatisfiabilityConstraint obj)
+        {
+            var other = obj as ExportMetadataValueImportConstraint;
+            if (other == null)
+            {
+                return false;
+            }
+
+            return this.Name == other.Name
+                && EqualityComparer<object>.Default.Equals(this.Value, other.Value);
+        }
+
         public void ToString(TextWriter writer)
         {
             var indentingWriter = IndentingTextWriter.Get(writer);

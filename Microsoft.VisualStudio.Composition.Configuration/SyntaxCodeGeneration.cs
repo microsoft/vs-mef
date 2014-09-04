@@ -1432,7 +1432,7 @@
                 var localSymbols = new HashSet<string>();
                 var block = SyntaxFactory.Block();
                 int importingConstructorArgIndex = 0;
-                var importingConstructorArgNames = new string[part.Definition.ImportingConstructor.Count];
+                var importingConstructorArgNames = new string[part.Definition.ImportingConstructorImports.Count];
                 foreach (var pair in part.GetImportingConstructorImports())
                 {
                     IReadOnlyList<StatementSyntax> prereqStatements;
@@ -1997,7 +1997,7 @@
                 return
                     from part in this.Configuration.Parts
                     from exportingMemberAndDefinition in part.Definition.ExportDefinitions
-                    let export = new ExportDefinitionBinding(exportingMemberAndDefinition.Value, part.Definition, Reflection.Resolver.Resolve(exportingMemberAndDefinition.Key))
+                    let export = new ExportDefinitionBinding(exportingMemberAndDefinition.Value, part.Definition, exportingMemberAndDefinition.Key)
                     where part.Definition.IsInstantiable
                     group export by export.ExportDefinition.ContractName into exportsByContract
                     select exportsByContract;

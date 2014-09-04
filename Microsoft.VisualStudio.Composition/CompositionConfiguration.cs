@@ -15,6 +15,7 @@
     using System.Threading.Tasks;
     using System.Xml;
     using System.Xml.Linq;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
     using Task = System.Threading.Tasks.Task;
 
@@ -172,7 +173,7 @@
                 from export in part.ExportDefinitions
                 where export.Value.ContractName == ContractNameServices.GetTypeIdentity(typeof(IMetadataViewProvider))
                 orderby ExportProvider.GetOrderMetadata(export.Value.Metadata) descending
-                let exportDefinitionBinding = new ExportDefinitionBinding(export.Value, part, null)
+                let exportDefinitionBinding = new ExportDefinitionBinding(export.Value, part, default(MemberRef))
                 let provider = (IMetadataViewProvider)part.ImportingConstructorInfo.Invoke(Type.EmptyTypes)
                 select Tuple.Create(provider, exportDefinitionBinding)).ToList();
 

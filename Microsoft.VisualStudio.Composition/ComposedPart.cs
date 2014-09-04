@@ -45,7 +45,7 @@
         {
             if (this.Definition.ImportingConstructorInfo != null)
             {
-                foreach (var import in this.Definition.ImportingConstructor)
+                foreach (var import in this.Definition.ImportingConstructorImports)
                 {
                     var key = this.SatisfyingExports.Keys.Single(k => k.ImportDefinition == import.ImportDefinition);
                     yield return new KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>(key, this.SatisfyingExports[key]);

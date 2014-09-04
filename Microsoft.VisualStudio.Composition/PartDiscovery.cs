@@ -229,7 +229,7 @@
 
             if (!contractType.IsEquivalentTo(typeof(object)))
             {
-                constraints = constraints.Add(new ExportTypeIdentityConstraint(TypeRef.Get(contractType)));
+                constraints = constraints.Add(new ExportTypeIdentityConstraint(contractType));
             }
 
             return constraints;

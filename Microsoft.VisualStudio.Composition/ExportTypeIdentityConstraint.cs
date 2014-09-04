@@ -12,10 +12,10 @@
 
     public class ExportTypeIdentityConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
-        public ExportTypeIdentityConstraint(TypeRef typeIdentity)
+        public ExportTypeIdentityConstraint(Type typeIdentity)
         {
             Requires.NotNull(typeIdentity, "typeIdentity");
-            this.TypeIdentityName = ContractNameServices.GetTypeIdentity(typeIdentity.Resolve());
+            this.TypeIdentityName = ContractNameServices.GetTypeIdentity(typeIdentity);
         }
 
         public ExportTypeIdentityConstraint(string typeIdentityName)
@@ -57,6 +57,17 @@
         {
             var indentingWriter = IndentingTextWriter.Get(writer);
             indentingWriter.WriteLine("TypeIdentityName: {0}", this.TypeIdentityName);
+        }
+
+        public bool Equals(IImportSatisfiabilityConstraint obj)
+        {
+            var other = obj as ExportTypeIdentityConstraint;
+            if (other == null)
+            {
+                return false;
+            }
+
+            return this.TypeIdentityName == other.TypeIdentityName;
         }
     }
 }
