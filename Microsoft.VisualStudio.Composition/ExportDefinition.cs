@@ -6,6 +6,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Validation;
@@ -64,6 +65,13 @@
                     indentingWriter.WriteLine("{0} = {1}", item.Key, item.Value);
                 }
             }
+        }
+
+        internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
+        {
+            Requires.NotNull(assemblies, "assemblies");
+
+            ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata);
         }
     }
 }

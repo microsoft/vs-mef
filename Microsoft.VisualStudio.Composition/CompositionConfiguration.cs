@@ -40,7 +40,6 @@
             this.Parts = parts;
             this.MetadataViewsAndProviders = metadataViewsAndProviders;
             this.CompositionErrors = compositionErrors;
-            this.AdditionalReferenceAssemblies = ImmutableHashSet<Assembly>.Empty;
             this.effectiveSharingBoundaryOverrides = effectiveSharingBoundaryOverrides;
         }
 
@@ -60,8 +59,6 @@
         /// Gets a map of metadata views and their matching providers.
         /// </summary>
         public IReadOnlyDictionary<Type, ExportDefinitionBinding> MetadataViewsAndProviders { get; private set; }
-
-        public ImmutableHashSet<Assembly> AdditionalReferenceAssemblies { get; private set; }
 
         /// <summary>
         /// Gets the compositional errors detected while creating this configuration that led to the removal
@@ -217,16 +214,6 @@
         {
             var composition = RuntimeComposition.CreateRuntimeComposition(this);
             return new RuntimeExportProviderFactory(composition);
-        }
-
-        public CompositionConfiguration WithReferenceAssemblies(ImmutableHashSet<Assembly> additionalReferenceAssemblies)
-        {
-            Requires.NotNull(additionalReferenceAssemblies, "additionalReferenceAssemblies");
-
-            return new CompositionConfiguration(this.Catalog, this.Parts, this.MetadataViewsAndProviders, this.CompositionErrors, this.effectiveSharingBoundaryOverrides)
-            {
-                AdditionalReferenceAssemblies = this.AdditionalReferenceAssemblies.Union(additionalReferenceAssemblies)
-            };
         }
 
         public string GetEffectiveSharingBoundary(ComposablePartDefinition partDefinition)
