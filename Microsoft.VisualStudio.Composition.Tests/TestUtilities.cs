@@ -232,7 +232,7 @@
                 catalog = ComposableCatalog.Create(catalog.Parts.Concat(typeCatalog.Parts));
             }
 
-            return CreateContainerV3(catalog, attributesDiscovery, assemblies.ToImmutableHashSet());
+            return CreateContainerV3(catalog, attributesDiscovery);
         }
 
         private static PartDiscovery GetDiscoveryService(CompositionEngines attributesDiscovery)
@@ -257,13 +257,12 @@
             return PartDiscovery.Combine(discovery.ToArray());
         }
 
-        private static IContainer CreateContainerV3(ComposableCatalog catalog, CompositionEngines options, ImmutableHashSet<Assembly> additionalAssemblies = null)
+        private static IContainer CreateContainerV3(ComposableCatalog catalog, CompositionEngines options)
         {
             var catalogWithCompositionService = catalog
                 .WithCompositionService()
                 .WithDesktopSupport();
-            var configuration = CompositionConfiguration.Create(catalogWithCompositionService)
-                .WithReferenceAssemblies(additionalAssemblies ?? ImmutableHashSet<Assembly>.Empty);
+            var configuration = CompositionConfiguration.Create(catalogWithCompositionService);
             if (!options.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors))
             {
                 configuration.ThrowOnErrors();

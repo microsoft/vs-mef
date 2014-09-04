@@ -196,7 +196,6 @@
 
             cancellationToken.ThrowIfCancellationRequested();
             var assemblies = ImmutableHashSet.Create<Assembly>()
-                .Union(configuration.AdditionalReferenceAssemblies)
                 .Union(templateFactory.RelevantAssemblies);
             var embeddedInteropAssemblies = CreateEmbeddedInteropAssemblies(templateFactory.RelevantEmbeddedTypes, assemblies, debug);
 
