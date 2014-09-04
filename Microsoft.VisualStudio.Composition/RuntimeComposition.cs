@@ -296,6 +296,8 @@
             private Func<Func<object>, object, object> lazyFactory;
             private ParameterInfo importingParameter;
             private MemberInfo importingMember;
+            private volatile bool isMetadataTypeInitialized;
+            private Type metadataType;
 
             private RuntimeImport(TypeRef importingSiteTypeRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
             {
@@ -447,9 +449,15 @@
             {
                 get
                 {
-                    return this.ImportingSiteTypeWithoutCollection.IsGenericType && this.ImportingSiteTypeWithoutCollection.GetGenericTypeDefinition() == typeof(Lazy<,>)
-                        ? this.ImportingSiteTypeWithoutCollection.GenericTypeArguments[1]
-                        : null;
+                    if (!this.isMetadataTypeInitialized)
+                    {
+                        this.metadataType = this.IsLazy && this.ImportingSiteTypeWithoutCollection.GenericTypeArguments.Length == 2
+                            ? this.ImportingSiteTypeWithoutCollection.GenericTypeArguments[1]
+                            : null;
+                        this.isMetadataTypeInitialized = true;
+                    }
+
+                    return this.metadataType;
                 }
             }
 
