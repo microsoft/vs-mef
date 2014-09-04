@@ -18,7 +18,8 @@
     <RestorePackages>true</RestorePackages>
     <MinimumVisualStudioVersion>11.0</MinimumVisualStudioVersion>
     <ModuleReferenceAssembly>true</ModuleReferenceAssembly>
-    <PublishMetaAssemblyPath>$(PlatformRefPath)</PublishMetaAssemblyPath>
+    <CreateAsmMeta>true</CreateAsmMeta>
+    <CreateMetaAssembly>true</CreateMetaAssembly>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

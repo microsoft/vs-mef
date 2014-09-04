@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<root>
+    <assembly publish="$(PLATFORM_REF_PATH)\Microsoft.VisualStudio.Composition.Configuration.dll"/>
+</root>
