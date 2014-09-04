@@ -19,7 +19,11 @@
             Requires.NotNull(metadata, "metadata");
 
             this.ContractName = contractName;
-            this.Metadata = ImmutableDictionary.CreateRange(metadata);
+
+            // Don't call ToImmutableDictionary() on the metadata. We have to trust that it's immutable
+            // because forcing it to be immutable can defeat LazyMetadataWrapper's laziness, forcing
+            // assembly loads and copying a dictionary when it's for practical interests immutable underneath anyway.
+            this.Metadata = metadata;
         }
 
         public string ContractName { get; private set; }
