@@ -177,7 +177,7 @@
 
         public IReadOnlyCollection<AssemblyName> GetInputAssemblies()
         {
-            var inputAssemblies = ImmutableHashSet.CreateBuilder<AssemblyName>();
+            var inputAssemblies = ImmutableHashSet.CreateBuilder(ByValueEquality.AssemblyName);
             foreach (var part in this.Parts)
             {
                 part.GetInputAssemblies(inputAssemblies);
