@@ -169,7 +169,7 @@
 
         public override int GetHashCode()
         {
-            return this.Type.GetHashCode();
+            return this.TypeRef.GetHashCode();
         }
 
         public override bool Equals(object obj)
@@ -184,7 +184,7 @@
                 return false;
             }
 
-            bool result = this.Type == other.Type
+            bool result = this.TypeRef.Equals(other.TypeRef)
                 && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata)
                 && this.SharingBoundary == other.SharingBoundary
                 && this.IsSharingBoundaryInferred == other.IsSharingBoundaryInferred

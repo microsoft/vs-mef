@@ -29,7 +29,7 @@
 
             this.ContractName = contractName;
             this.Cardinality = cardinality;
-            this.Metadata = metadata.ToImmutableDictionary();
+            this.Metadata = metadata; // don't clone metadata as that will defeat lazy assembly loads when metadata values would require it.
             this.exportConstraints = additionalConstraints.ToImmutableList();
             this.ExportFactorySharingBoundaries = exportFactorySharingBoundaries.ToImmutableHashSet();
         }

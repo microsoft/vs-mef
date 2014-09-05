@@ -15,25 +15,18 @@
     public class ComposableCatalog : IEquatable<ComposableCatalog>
     {
         /// <summary>
-        /// The types behind the parts in the catalog.
-        /// </summary>
-        private ImmutableHashSet<Type> types;
-
-        /// <summary>
         /// The parts in the catalog.
         /// </summary>
         private ImmutableHashSet<ComposablePartDefinition> parts;
 
         private ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract;
 
-        private ComposableCatalog(ImmutableHashSet<Type> types, ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, DiscoveredParts discoveredParts)
+        private ComposableCatalog(ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, DiscoveredParts discoveredParts)
         {
-            Requires.NotNull(types, "types");
             Requires.NotNull(parts, "parts");
             Requires.NotNull(exportsByContract, "exportsByContract");
             Requires.NotNull(discoveredParts, "discoveredParts");
 
-            this.types = types;
             this.parts = parts;
             this.exportsByContract = exportsByContract;
             this.DiscoveredParts = discoveredParts;
@@ -87,7 +80,7 @@
         /// </summary>
         public IEnumerable<Assembly> Assemblies
         {
-            get { return this.types.Select(t => t.GetTypeInfo().Assembly).Distinct(); }
+            get { return this.Parts.Select(p => p.Type.GetTypeInfo().Assembly).Distinct(); }
         }
 
         /// <summary>
@@ -106,7 +99,6 @@
         public static ComposableCatalog Create()
         {
             return new ComposableCatalog(
-                ImmutableHashSet.Create<Type>(),
                 ImmutableHashSet.Create<ComposablePartDefinition>(),
                 ImmutableDictionary.Create<string, ImmutableList<ExportDefinitionBinding>>(),
                 DiscoveredParts.Empty);
@@ -135,7 +127,6 @@
                 return this;
             }
 
-            var types = this.types.Add(partDefinition.Type);
             var exportsByContract = this.exportsByContract;
 
             foreach (var exportDefinition in partDefinition.ExportedTypes)
@@ -154,7 +145,7 @@
                 }
             }
 
-            return new ComposableCatalog(types, parts, exportsByContract, this.DiscoveredParts);
+            return new ComposableCatalog(parts, exportsByContract, this.DiscoveredParts);
         }
 
         public ComposableCatalog WithParts(IEnumerable<ComposablePartDefinition> parts)
@@ -172,7 +163,7 @@
             Requires.NotNull(parts, "parts");
 
             var catalog = this.WithParts(parts.Parts);
-            return new ComposableCatalog(catalog.types, catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts));
+            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts));
         }
 
         public IReadOnlyCollection<AssemblyName> GetInputAssemblies()
