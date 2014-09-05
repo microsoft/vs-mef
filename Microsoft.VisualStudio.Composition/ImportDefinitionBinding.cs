@@ -12,6 +12,8 @@
 
     public class ImportDefinitionBinding : IEquatable<ImportDefinitionBinding>
     {
+        private TypeRef importingSiteTypeRef;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
         /// to represent an importing member.
@@ -24,7 +26,6 @@
             this.ImportDefinition = importDefinition;
             this.ComposablePartTypeRef = composablePartType;
             this.ImportingMemberRef = importingMember;
-            this.ImportingSiteTypeRef = TypeRef.Get(ReflectionHelpers.GetMemberType(importingMember.Resolve()));
         }
 
         /// <summary>
@@ -39,7 +40,6 @@
             this.ImportDefinition = importDefinition;
             this.ComposablePartTypeRef = composablePartType;
             this.ImportingParameterRef = importingConstructorParameter;
-            this.ImportingSiteTypeRef = TypeRef.Get(importingConstructorParameter.Resolve().ParameterType);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@
             Requires.NotNull(contractType, "contractType");
 
             this.ImportDefinition = importDefinition;
-            this.ImportingSiteTypeRef = TypeRef.Get(typeof(IEnumerable<>).MakeGenericType(typeof(Lazy<>).MakeGenericType(contractType.Resolve())));
+            this.importingSiteTypeRef = TypeRef.Get(typeof(IEnumerable<>).MakeGenericType(typeof(Lazy<>).MakeGenericType(contractType.Resolve())));
         }
 
         /// <summary>
@@ -102,7 +102,29 @@
         /// This includes any Lazy, ExportFactory or collection wrappers.
         /// </summary>
         /// <value>Never null.</value>
-        public TypeRef ImportingSiteTypeRef { get; private set; }
+        public TypeRef ImportingSiteTypeRef
+        {
+            get
+            {
+                if (this.importingSiteTypeRef == null)
+                {
+                    if (!this.ImportingMemberRef.IsEmpty)
+                    {
+                        this.importingSiteTypeRef = TypeRef.Get(ReflectionHelpers.GetMemberType(this.ImportingMemberRef.Resolve()));
+                    }
+                    else if (!this.ImportingParameterRef.IsEmpty)
+                    {
+                        this.importingSiteTypeRef = TypeRef.Get(this.ImportingParameterRef.Resolve().ParameterType);
+                    }
+                    else
+                    {
+                        throw Assumes.NotReachable();
+                    }
+                }
+
+                return this.importingSiteTypeRef;
+            }
+        }
 
         public Type ImportingSiteTypeWithoutCollection
         {
@@ -175,9 +197,9 @@
             }
 
             bool result = this.ImportDefinition.Equals(other.ImportDefinition)
-                && EqualityComparer<Type>.Default.Equals(this.ComposablePartType, other.ComposablePartType)
-                && EqualityComparer<MemberInfo>.Default.Equals(this.ImportingMember, other.ImportingMember)
-                && EqualityComparer<ParameterInfo>.Default.Equals(this.ImportingParameter, other.ImportingParameter);
+                && EqualityComparer<TypeRef>.Default.Equals(this.ComposablePartTypeRef, other.ComposablePartTypeRef)
+                && EqualityComparer<MemberRef>.Default.Equals(this.ImportingMemberRef, other.ImportingMemberRef)
+                && EqualityComparer<ParameterRef>.Default.Equals(this.ImportingParameterRef, other.ImportingParameterRef);
 
             return result;
         }
