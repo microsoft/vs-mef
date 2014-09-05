@@ -5,10 +5,14 @@ namespace Microsoft.VisualStudio.Composition
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.Reflection;
     using Validation;
 
     internal static partial class CollectionServices
     {
+        private static readonly ConstructorInfo collectionOfObjectCtor = typeof(CollectionOfObject<>).GetConstructors()[0];
+        private static readonly Dictionary<Type, Func<object, ICollection<object>>> cachedCollectionWrapperFactories = new Dictionary<Type, Func<object, ICollection<object>>>();
+
         internal static ICollection<object> GetCollectionWrapper(Type itemType, object collectionObject)
         {
             Requires.NotNull(itemType, "itemType");
@@ -29,9 +33,33 @@ namespace Microsoft.VisualStudio.Composition
                 return new CollectionOfObjectList((IList)collectionObject);
             }
 
-            Type collectionType = typeof(CollectionOfObject<>).MakeGenericType(underlyingItemType);
+            Func<object, ICollection<object>> factory;
+            lock (cachedCollectionWrapperFactories)
+            {
+                cachedCollectionWrapperFactories.TryGetValue(underlyingItemType, out factory);
+            }
 
-            return (ICollection<object>)Activator.CreateInstance(collectionType, collectionObject);
+            if (factory == null)
+            {
+                Type collectionType = typeof(CollectionOfObject<>).MakeGenericType(underlyingItemType);
+                var ctor = (ConstructorInfo)MethodBase.GetMethodFromHandle(collectionOfObjectCtor.MethodHandle, collectionType.TypeHandle);
+
+                factory = collection =>
+                {
+                    using (var args = ArrayRental<object>.Get(1))
+                    {
+                        args.Value[0] = collection;
+                        return (ICollection<object>)ctor.Invoke(args.Value);
+                    }
+                };
+
+                lock (cachedCollectionWrapperFactories)
+                {
+                    cachedCollectionWrapperFactories[underlyingItemType] = factory;
+                }
+            }
+
+            return factory(collectionObject);
         }
 
         private class CollectionOfObjectList : ICollection<object>
