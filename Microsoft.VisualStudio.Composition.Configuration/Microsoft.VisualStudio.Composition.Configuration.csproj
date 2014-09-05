@@ -19,6 +19,7 @@
     <ModuleReferenceAssembly>true</ModuleReferenceAssembly>
     <CreateAsmMeta>true</CreateAsmMeta>
     <CreateMetaAssembly>true</CreateMetaAssembly>
+    <AsmmetaDependsOnMSBuildInVS Condition="'$(VSMSBUILD)' != '1'">true</AsmmetaDependsOnMSBuildInVS>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
