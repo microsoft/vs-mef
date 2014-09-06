@@ -120,49 +120,6 @@
             }
         }
 
-        /// <summary>
-        /// Produces a sequence of attributes, grouped by the type that they are declared on.
-        /// The first group of attributes are those found on the type itself.
-        /// Each successive group contains the set of attributes on the next type up the inheritance hierarchy.
-        /// After walking up the type hierarchy, all attributes on interfaces are produced.
-        /// </summary>
-        /// <typeparam name="T">The type of attribute sought for.</typeparam>
-        /// <param name="type">The type to being searching for attributes to be applied to.</param>
-        /// <returns>A sequence of groups.</returns>
-        internal static IEnumerable<IGrouping<Type, T>> GetCustomAttributesByType<T>(this Type type)
-            where T : Attribute
-        {
-            Requires.NotNull(type, "type");
-
-            var byType = from t in EnumTypeAndBaseTypes(type)
-                         from attribute in t.GetAttributes<T>()
-                         group attribute by t into attributesByType
-                         select attributesByType;
-            foreach (var group in byType)
-            {
-                yield return group;
-            }
-
-            var byInterface = from t in type.GetTypeInfo().ImplementedInterfaces
-                              from attribute in t.GetAttributes<T>()
-                              group attribute by t into attributesByType
-                              select attributesByType;
-            foreach (var group in byInterface)
-            {
-                yield return group;
-            }
-        }
-
-        internal static ImmutableArray<Attribute> GetCustomAttributesCached(this MemberInfo member)
-        {
-            return Cache.GetCustomAttributes(member);
-        }
-
-        internal static ImmutableArray<Attribute> GetCustomAttributesCached(this ParameterInfo parameter)
-        {
-            return Cache.GetCustomAttributes(parameter);
-        }
-
         internal static IEnumerable<T> GetCustomAttributesCached<T>(this MemberInfo member)
             where T : Attribute
         {
@@ -172,52 +129,6 @@
         internal static IEnumerable<PropertyInfo> WherePublicInstance(this IEnumerable<PropertyInfo> infos)
         {
             return infos.Where(p => p.GetMethod.IsPublicInstance() || p.SetMethod.IsPublicInstance());
-        }
-
-        internal static IEnumerable<FieldInfo> EnumFields(this Type type)
-        {
-            Requires.NotNull(type, "type");
-
-            // We look at each type in the hierarchy for their individual properties.
-            // This allows us to find private property setters defined on base classes,
-            // which otherwise we are unable to see.
-            var types = new List<Type> { type };
-            if (type.GetTypeInfo().IsInterface)
-            {
-                types.AddRange(type.GetTypeInfo().ImplementedInterfaces);
-            }
-            else
-            {
-                while (type != null)
-                {
-                    type = type.GetTypeInfo().BaseType;
-                    if (type != null)
-                    {
-                        types.Add(type);
-                    }
-                }
-            }
-
-            return types.SelectMany(t => t.GetTypeInfo().DeclaredFields);
-        }
-
-        internal static bool HasParameters(this ConstructorInfo ctor, Type[] parameterTypes)
-        {
-            var p = ctor.GetParameters();
-            if (p.Length != parameterTypes.Length)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < p.Length; i++)
-            {
-                if (!p[i].ParameterType.Equals(parameterTypes[i]))
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         internal static bool IsStatic(this MemberInfo exportingMember)
