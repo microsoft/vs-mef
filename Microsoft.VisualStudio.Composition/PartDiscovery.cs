@@ -546,9 +546,12 @@
 
             protected override IEnumerable<Type> GetTypes(Assembly assembly)
             {
-                return this.discoveryMechanisms
-                    .SelectMany(discovery => discovery.GetTypes(assembly))
-                    .Distinct();
+                // Don't ask each PartDiscovery component for types
+                // because Assembly.GetTypes() is expensive and we don't want to call it multiple times.
+                // Also, even if the individual modules returned a filtered set of types,
+                // they'll all see the union of types returned from this method anyway,
+                // so they have to be prepared for arbitrary types.
+                return assembly.GetTypes();
             }
         }
     }

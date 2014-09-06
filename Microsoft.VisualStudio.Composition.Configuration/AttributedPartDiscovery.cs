@@ -42,9 +42,19 @@
         {
             Requires.NotNull(partType, "partType");
 
-            if (!typeExplicitlyRequested && partType.GetCustomAttributesCached<PartNotDiscoverableAttribute>().Any())
+            if (!typeExplicitlyRequested)
             {
-                return null;
+                bool isPublic = partType.IsNested ? partType.IsNestedPublic : partType.IsPublic;
+                if (!this.IsNonPublicSupported && !isPublic)
+                {
+                    // Skip non-public types.
+                    return null;
+                }
+
+                if (partType.GetCustomAttributesCached<PartNotDiscoverableAttribute>().Any())
+                {
+                    return null;
+                }
             }
 
             var sharedAttribute = partType.GetCustomAttributesCached<SharedAttribute>().FirstOrDefault();
