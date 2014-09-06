@@ -135,7 +135,7 @@
             Requires.NotNull(type, "type");
 
             var byType = from t in EnumTypeAndBaseTypes(type)
-                         from attribute in Cache.GetCustomAttributes(t.GetTypeInfo()).OfType<T>()
+                         from attribute in t.GetAttributes<T>()
                          group attribute by t into attributesByType
                          select attributesByType;
             foreach (var group in byType)
@@ -144,7 +144,7 @@
             }
 
             var byInterface = from t in type.GetTypeInfo().ImplementedInterfaces
-                              from attribute in Cache.GetCustomAttributes(t.GetTypeInfo()).OfType<T>()
+                              from attribute in t.GetAttributes<T>()
                               group attribute by t into attributesByType
                               select attributesByType;
             foreach (var group in byInterface)
@@ -161,13 +161,6 @@
         internal static ImmutableArray<Attribute> GetCustomAttributesCached(this ParameterInfo parameter)
         {
             return Cache.GetCustomAttributes(parameter);
-        }
-
-        internal static AttributeUsageAttribute GetAttributeUsage(Type attributeType)
-        {
-            Requires.NotNull(attributeType, "attributeType");
-
-            return attributeType.EnumTypeAndBaseTypes().SelectMany(t => t.GetTypeInfo().GetCustomAttributesCached<AttributeUsageAttribute>()).FirstOrDefault();
         }
 
         internal static IEnumerable<T> GetCustomAttributesCached<T>(this MemberInfo member)

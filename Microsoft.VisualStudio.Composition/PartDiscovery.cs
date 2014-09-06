@@ -199,7 +199,7 @@
             Requires.NotNull(type, "type");
 
             var ctors = type.GetTypeInfo().DeclaredConstructors.Where(ctor => !ctor.IsStatic && (ctor.IsPublic || !publicOnly));
-            var taggedCtor = ctors.SingleOrDefault(ctor => ctor.GetCustomAttributesCached<TImportingConstructorAttribute>().Any());
+            var taggedCtor = ctors.SingleOrDefault(ctor => ctor.IsAttributeDefined<TImportingConstructorAttribute>());
             var defaultCtor = ctors.SingleOrDefault(ctor => ctor.GetParameters().Length == 0);
             var importingCtor = taggedCtor ?? defaultCtor;
             return importingCtor;
