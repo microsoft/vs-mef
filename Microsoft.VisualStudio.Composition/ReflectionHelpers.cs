@@ -242,15 +242,21 @@
             var exportingProperty = exportingMember as PropertyInfo;
             if (exportingProperty != null)
             {
-                return exportingProperty.GetMethod.IsStatic;
+                return (exportingProperty.GetMethod ?? exportingProperty.SetMethod).IsStatic;
             }
 
             throw new NotSupportedException();
         }
 
-        internal static Type GetMemberType(MemberInfo fieldOrProperty)
+        internal static Type GetMemberType(MemberInfo fieldOrPropertyOrType)
         {
-            return Cache.GetMemberType(fieldOrProperty);
+            Type type = fieldOrPropertyOrType as Type;
+            if (type != null)
+            {
+                return type;
+            }
+
+            return Cache.GetMemberType(fieldOrPropertyOrType);
         }
 
         internal static bool IsPublicInstance(this MethodInfo methodInfo)
