@@ -27,6 +27,35 @@
                 return null;
             }
 
+            BindingFlags everythingLocal = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+            var declaredMethods = partType.GetMethods(everythingLocal);
+            var declaredProperties = partType.GetProperties(everythingLocal);
+            var declaredFields = partType.GetFields(everythingLocal);
+
+            var allLocalMembers = declaredMethods.Concat<MemberInfo>(declaredProperties).Concat(declaredFields);
+            var exportingMembers = from member in allLocalMembers
+                                   from export in member.GetAttributes<ExportAttribute>()
+                                   select new KeyValuePair<MemberInfo, ExportAttribute>(member, export);
+            var exportedTypes = from export in partType.GetAttributes<ExportAttribute>(true)
+                                select new KeyValuePair<MemberInfo, ExportAttribute>(partType, export);
+            var inheritedExportInterfaces = from iface in partType.GetInterfaces()
+                                            from export in iface.GetAttributes<InheritedExportAttribute>()
+                                            select new KeyValuePair<MemberInfo, ExportAttribute>(iface, export);
+
+            var exportsByMember = from export in exportingMembers.Concat(exportedTypes).Concat(inheritedExportInterfaces)
+                                  group export.Value by export.Key into exportsByType
+                                  select exportsByType;
+
+            if (!exportingMembers.Concat(exportedTypes).Concat(inheritedExportInterfaces).Any())
+            {
+                return null;
+            }
+
+            // Check for PartNotDiscoverable only after we've established it's an interesting part.
+            // This optimizes for the fact that most types have no exports, in which case it's not a discoverable
+            // part anyway. Checking for the PartNotDiscoverableAttribute first, which is rarely defined,
+            // doesn't usually pay for itself in terms of short-circuiting. But it does add an extra
+            // attribute to look for that we don't need to find for all the types that have no export attributes either.
             if (!typeExplicitlyRequested && partType.IsAttributeDefined<PartNotDiscoverableAttribute>())
             {
                 return null;
@@ -85,7 +114,14 @@
                 }
             }
 
-            var flags = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            var flags = BindingFlags.DeclaredOnly | BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+
+            // If the type is abstract only find local static exports
+            if (partType.IsAbstract)
+            {
+                flags &= ~BindingFlags.Instance;
+            }
+
             foreach (var member in Enumerable.Concat<MemberInfo>(partType.EnumProperties(), partType.EnumFields()))
             {
                 var property = member as PropertyInfo;
@@ -306,7 +342,7 @@
                 else
                 {
                     Type attrType = attribute.GetType();
-                    
+
                     // Perf optimization, relies on short circuit evaluation, often a property attribute is an ExportAttribute
                     if (attrType != typeof(ExportAttribute) && attrType.IsAttributeDefined<MetadataAttributeAttribute>(true))
                     {
