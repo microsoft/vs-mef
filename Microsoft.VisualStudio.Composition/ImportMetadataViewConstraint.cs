@@ -157,7 +157,7 @@
 
                 foreach (var property in metadataView.EnumProperties().WherePublicInstance())
                 {
-                    bool required = !property.GetCustomAttributesCached<DefaultValueAttribute>().Any();
+                    bool required = !property.IsAttributeDefined<DefaultValueAttribute>();
                     requiredMetadata.Add(property.Name, new MetadatumRequirement(TypeRef.Get(ReflectionHelpers.GetMemberType(property)), required));
                 }
 

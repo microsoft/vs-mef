@@ -41,24 +41,6 @@
         }
 
         [Fact]
-        public async Task Combined_CreatePartsAsync_Assembly_ResilientAgainstReflectionErrors()
-        {
-            var discovery = PartDiscovery.Combine(new SketchyPartDiscovery(), new NoOpDiscovery());
-            var parts = await discovery.CreatePartsAsync(this.GetType().Assembly);
-            Assert.Equal(1, parts.DiscoveryErrors.Count);
-            Assert.Equal(0, parts.Parts.Count);
-        }
-
-        [Fact]
-        public async Task Combined_CreatePartsAsync_AssemblyEnumerable_ResilientAgainstReflectionErrors()
-        {
-            var discovery = PartDiscovery.Combine(new SketchyPartDiscovery(), new NoOpDiscovery());
-            var parts = await discovery.CreatePartsAsync(new[] { this.GetType().Assembly });
-            Assert.Equal(1, parts.DiscoveryErrors.Count);
-            Assert.Equal(0, parts.Parts.Count);
-        }
-
-        [Fact]
         public async Task Combined_CreatePartsAsync_AssemblyPathEnumerable()
         {
             var discovery = PartDiscovery.Combine(new AttributedPartDiscovery(), new AttributedPartDiscoveryV1());
