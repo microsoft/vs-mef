@@ -40,7 +40,9 @@
         [Fact]
         public async Task ComposableAssembliesLazyLoadedWhenQueried()
         {
-            var configuration = CompositionConfiguration.Create(await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExternalExport), typeof(YetAnotherExport)));
+            var catalog = ComposableCatalog.Create(await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExternalExport), typeof(YetAnotherExport)));
+            var catalogCache = await this.SaveCatalogAsync(catalog);
+            var configuration = CompositionConfiguration.Create(catalog);
             var compositionCache = await this.SaveConfigurationAsync(configuration);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
@@ -48,7 +50,7 @@
             try
             {
                 var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
-                driver.Initialize(this.cacheManager.GetType(), compositionCache);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache, catalogCache);
                 driver.TestExternalExport(typeof(ExternalExport).Assembly.Location);
                 driver.TestYetAnotherExport(typeof(YetAnotherExport).Assembly.Location);
             }
@@ -64,8 +66,9 @@
         [Fact]
         public async Task ComposableAssembliesLazyLoadedByLazyImport()
         {
-            var configuration = CompositionConfiguration.Create(
-                await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExternalExportWithLazy), typeof(YetAnotherExport)));
+            var catalog = ComposableCatalog.Create(await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExternalExportWithLazy), typeof(YetAnotherExport)));
+            var catalogCache = await this.SaveCatalogAsync(catalog);
+            var configuration = CompositionConfiguration.Create(catalog);
             var compositionCache = await this.SaveConfigurationAsync(configuration);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
@@ -73,7 +76,7 @@
             try
             {
                 var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
-                driver.Initialize(this.cacheManager.GetType(), compositionCache);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache, catalogCache);
                 driver.TestExternalExportWithLazy(typeof(YetAnotherExport).Assembly.Location);
             }
             finally
@@ -89,8 +92,9 @@
         [Fact]
         public async Task ComposableAssembliesLazyLoadedByLazyMetadataDictionary()
         {
-            var configuration = CompositionConfiguration.Create(
-                await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaDictionary), typeof(AnExportWithMetadataTypeValue)));
+            var catalog = ComposableCatalog.Create(await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaDictionary), typeof(AnExportWithMetadataTypeValue)));
+            var catalogCache = await this.SaveCatalogAsync(catalog);
+            var configuration = CompositionConfiguration.Create(catalog);
             var compositionCache = await this.SaveConfigurationAsync(configuration);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
@@ -98,7 +102,7 @@
             try
             {
                 var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
-                driver.Initialize(this.cacheManager.GetType(), compositionCache);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache, catalogCache);
                 driver.TestPartThatImportsExportWithTypeMetadataViaDictionary(typeof(YetAnotherExport).Assembly.Location);
             }
             finally
@@ -117,6 +121,7 @@
             var catalog = ComposableCatalog.Create(
                 await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaTMetadata), typeof(AnExportWithMetadataTypeValue)))
                 .WithDesktopSupport();
+            var catalogCache = await this.SaveCatalogAsync(catalog);
             var configuration = CompositionConfiguration.Create(catalog);
             var compositionCache = await this.SaveConfigurationAsync(configuration);
 
@@ -125,7 +130,7 @@
             try
             {
                 var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
-                driver.Initialize(this.cacheManager.GetType(), compositionCache);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache, catalogCache);
                 driver.TestPartThatImportsExportWithTypeMetadataViaTMetadata(typeof(YetAnotherExport).Assembly.Location);
             }
             finally
@@ -144,6 +149,7 @@
             var catalog = ComposableCatalog.Create(
                 await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartImportingOpenGenericExport), typeof(OpenGenericExport<>)))
                 .WithDesktopSupport();
+            var catalogCache = await this.SaveCatalogAsync(catalog);
             var configuration = CompositionConfiguration.Create(catalog);
             var compositionCache = await this.SaveConfigurationAsync(configuration);
 
@@ -152,7 +158,7 @@
             try
             {
                 var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
-                driver.Initialize(this.cacheManager.GetType(), compositionCache);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache, catalogCache);
                 driver.TestPartThatImportsExportWithGenericTypeArg(typeof(SomeOtherType).Assembly.Location);
             }
             finally
@@ -168,7 +174,9 @@
         [Fact]
         public async Task ComposableAssembliesLazyLoadedWhenCustomMetadataIsRequired()
         {
-            var configuration = CompositionConfiguration.Create(await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExportWithCustomMetadata), typeof(PartThatLazyImportsExportWithMetadataOfCustomType)));
+            var catalog = ComposableCatalog.Create(await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExportWithCustomMetadata), typeof(PartThatLazyImportsExportWithMetadataOfCustomType)));
+            var catalogCache = await this.SaveCatalogAsync(catalog);
+            var configuration = CompositionConfiguration.Create(catalog);
             var compositionCache = await this.SaveConfigurationAsync(configuration);
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
@@ -176,7 +184,7 @@
             try
             {
                 var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
-                driver.Initialize(this.cacheManager.GetType(), compositionCache);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache, catalogCache);
                 driver.TestPartThatLazyImportsExportWithMetadataOfCustomType(typeof(CustomEnum).Assembly.Location, this is AssembliesLazyLoadedDataFileCacheTests);
             }
             finally
@@ -195,20 +203,35 @@
             return ms;
         }
 
+        private async Task<Stream> SaveCatalogAsync(ComposableCatalog catalog)
+        {
+            Requires.NotNull(catalog, "catalog");
+
+            var ms = new MemoryStream();
+            await (new CachedCatalog()).SaveAsync(catalog, ms);
+            ms.Position = 0;
+            return ms;
+        }
+
         private class AppDomainTestDriver : MarshalByRefObject
         {
             private ExportProvider container;
 
-            internal void Initialize(Type cacheManagerType, Stream cachedComposition)
+            internal void Initialize(Type cacheManagerType, Stream cachedComposition, Stream cachedCatalog)
             {
                 Requires.NotNull(cacheManagerType, "cacheManagerType");
                 Requires.NotNull(cachedComposition, "cachedComposition");
+                Requires.NotNull(cachedCatalog, "cachedCatalog");
 
-                // Copy the stream to one inside our app domain.
-                Stream cachedCompositionLocal = new MemoryStream();
-                cachedComposition.CopyTo(cachedCompositionLocal);
-                cachedCompositionLocal.Position = 0;
+                // Copy the streams to ones inside our app domain.
+                Stream cachedCompositionLocal = CopyStream(cachedComposition);
+                Stream cachedCatalogLocal = CopyStream(cachedCatalog);
 
+                // Deserialize the catalog to verify that it doesn't load any assemblies.
+                var catalogManager = new CachedCatalog();
+                catalogManager.LoadAsync(cachedCatalogLocal).Wait();
+
+                // Deserialize the composition to prepare for the rest of the test.
                 var cacheManager = (ICompositionCacheManager)Activator.CreateInstance(cacheManagerType);
                 var containerFactory = cacheManager.LoadExportProviderFactoryAsync(cachedCompositionLocal).GetAwaiter().GetResult();
                 this.container = containerFactory.CreateExportProvider();
@@ -293,6 +316,14 @@
             private static IEnumerable<Assembly> GetLoadedAssemblies()
             {
                 return AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic);
+            }
+
+            private static Stream CopyStream(Stream source)
+            {
+                Stream copy = new MemoryStream();
+                source.CopyTo(copy);
+                copy.Position = 0;
+                return copy;
             }
 
             [MethodImpl(MethodImplOptions.NoInlining)] // if this method is inlined, it defeats the point of it being a separate method in the test and causes test failure.

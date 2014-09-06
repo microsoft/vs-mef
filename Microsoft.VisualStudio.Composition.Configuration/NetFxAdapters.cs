@@ -351,8 +351,7 @@
             private static ConstructorInfo FindImplClassConstructor(Type metadataType)
             {
                 Requires.NotNull(metadataType, "metadataType");
-                var attr = metadataType.GetCustomAttributesCached<MefV1.MetadataViewImplementationAttribute>()
-                    .FirstOrDefault();
+                var attr = metadataType.GetFirstAttribute<MefV1.MetadataViewImplementationAttribute>();
                 if (attr != null)
                 {
                     if (metadataType.IsAssignableFrom(attr.ImplementationType))

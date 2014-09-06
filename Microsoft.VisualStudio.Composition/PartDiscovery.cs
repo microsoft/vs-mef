@@ -199,7 +199,7 @@
             Requires.NotNull(type, "type");
 
             var ctors = type.GetTypeInfo().DeclaredConstructors.Where(ctor => !ctor.IsStatic && (ctor.IsPublic || !publicOnly));
-            var taggedCtor = ctors.SingleOrDefault(ctor => ctor.GetCustomAttributesCached<TImportingConstructorAttribute>().Any());
+            var taggedCtor = ctors.SingleOrDefault(ctor => ctor.IsAttributeDefined<TImportingConstructorAttribute>());
             var defaultCtor = ctors.SingleOrDefault(ctor => ctor.GetParameters().Length == 0);
             var importingCtor = taggedCtor ?? defaultCtor;
             return importingCtor;
@@ -546,9 +546,12 @@
 
             protected override IEnumerable<Type> GetTypes(Assembly assembly)
             {
-                return this.discoveryMechanisms
-                    .SelectMany(discovery => discovery.GetTypes(assembly))
-                    .Distinct();
+                // Don't ask each PartDiscovery component for types
+                // because Assembly.GetTypes() is expensive and we don't want to call it multiple times.
+                // Also, even if the individual modules returned a filtered set of types,
+                // they'll all see the union of types returned from this method anyway,
+                // so they have to be prepared for arbitrary types.
+                return assembly.GetTypes();
             }
         }
     }
