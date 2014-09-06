@@ -104,10 +104,7 @@
                     foreach (var exportAttribute in export.Value)
                     {
                         Type exportedType = exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? partType;
-                        string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
-                        var exportMetadata = memberExportMetadata
-                            .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
-                        var exportDefinition = new ExportDefinition(contractName, exportMetadata);
+                        ExportDefinition exportDefinition = CreateExportDefinition(memberExportMetadata, exportAttribute, exportedType);
                         exportsOnType.Add(exportDefinition);
                     }
                 }
@@ -119,10 +116,7 @@
                     foreach (var exportAttribute in export.Value)
                     {
                         Type exportedType = exportAttribute.ContractType ?? property.PropertyType;
-                        string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
-                        var exportMetadata = memberExportMetadata
-                            .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
-                        var exportDefinition = new ExportDefinition(contractName, exportMetadata);
+                        ExportDefinition exportDefinition = CreateExportDefinition(memberExportMetadata, exportAttribute, exportedType);
                         exportDefinitions.Add(exportDefinition);
                     }
 
@@ -343,6 +337,15 @@
                 select new ExportMetadataValueImportConstraint(importConstraint.Name, importConstraint.Value));
 
             return constraints;
+        }
+
+        private static ExportDefinition CreateExportDefinition(ImmutableDictionary<string, object> memberExportMetadata, ExportAttribute exportAttribute, Type exportedType)
+        {
+            string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
+            var exportMetadata = memberExportMetadata
+                .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
+            var exportDefinition = new ExportDefinition(contractName, exportMetadata);
+            return exportDefinition;
         }
     }
 }
