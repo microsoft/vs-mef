@@ -23,7 +23,7 @@
   <Import Project="$(NuProjPath)\NuProj.props" Condition="Exists('$(NuProjPath)\NuProj.props')" />
   <PropertyGroup Label="Configuration">
     <Id>Microsoft.VisualStudio.Composition</Id>
-    <Version>0.1.0-alpha5</Version>
+    <Version>0.1.0-beta1</Version>
     <Title>Visual Studio MEF</Title>
     <Authors>Andrew Arnott</Authors>
     <Owners>Andrew Arnott</Owners>
