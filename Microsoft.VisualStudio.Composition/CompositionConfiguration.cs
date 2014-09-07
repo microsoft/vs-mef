@@ -81,7 +81,8 @@
             var customizedCatalog = catalog.WithParts(AlwaysBundledParts);
 
             // Construct our part builders, initialized with all their imports satisfied.
-            var partBuilders = new Dictionary<ComposablePartDefinition, PartBuilder>();
+            // We explicitly use reference equality because ComposablePartDefinition.Equals is too slow, and unnecessary for this.
+            var partBuilders = new Dictionary<ComposablePartDefinition, PartBuilder>(ReferenceEquality<ComposablePartDefinition>.Default);
             foreach (ComposablePartDefinition partDefinition in customizedCatalog.Parts)
             {
                 var satisfyingImports = partDefinition.Imports.ToImmutableDictionary(i => i, i => customizedCatalog.GetExports(i.ImportDefinition));
@@ -95,7 +96,7 @@
                     (from entry in partBuilder.SatisfyingExports
                      where !entry.Key.IsExportFactory
                      from export in entry.Value
-                     select export.PartDefinition).Distinct();
+                     select export.PartDefinition).Distinct(ReferenceEquality<ComposablePartDefinition>.Default);
                 foreach (var importedPartDefinition in importedPartsExcludingFactories)
                 {
                     var importedPartBuilder = partBuilders[importedPartDefinition];
@@ -581,6 +582,26 @@
             public int GetHashCode(ExportDefinition obj)
             {
                 return obj.ContractName.GetHashCode();
+            }
+        }
+
+        private class ReferenceEquality<T> : IEqualityComparer<T>
+            where T : class
+        {
+            internal static readonly ReferenceEquality<T> Default = new ReferenceEquality<T>();
+
+            private ReferenceEquality()
+            {
+            }
+
+            public bool Equals(T x, T y)
+            {
+                return ReferenceEquals(x, y);
+            }
+
+            public int GetHashCode(T obj)
+            {
+                return obj.GetHashCode();
             }
         }
     }
