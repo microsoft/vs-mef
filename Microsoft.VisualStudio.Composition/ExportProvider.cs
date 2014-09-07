@@ -585,7 +585,7 @@
                     {
                         if (!metadataBuilder.ContainsKey(property.Name))
                         {
-                            var defaultValueAttribute = property.GetCustomAttributesCached<DefaultValueAttribute>().FirstOrDefault();
+                            var defaultValueAttribute = property.GetFirstAttribute<DefaultValueAttribute>();
                             if (defaultValueAttribute != null)
                             {
                                 metadataBuilder.Add(property.Name, defaultValueAttribute.Value);

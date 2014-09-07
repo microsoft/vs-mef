@@ -2088,7 +2088,7 @@
                 ? (ExpressionSyntax)SyntaxFactory.CastExpression(this.GetTypeNameSyntax(ReflectionHelpers.GetMemberType(property)), elementAccess)
                 : SyntaxFactory.BinaryExpression(SyntaxKind.AsExpression, elementAccess, this.GetTypeNameSyntax(ReflectionHelpers.GetMemberType(property)));
 
-            var defaultValueAttribute = property.GetCustomAttributesCached<DefaultValueAttribute>().FirstOrDefault();
+            var defaultValueAttribute = property.GetFirstAttribute<DefaultValueAttribute>();
             if (defaultValueAttribute != null)
             {
                 var defaultValue = SyntaxFactory.CastExpression(
@@ -2168,7 +2168,7 @@
                 return false;
             }
 
-            var obsoleteAttribute = memberInfo.GetCustomAttributesCached<ObsoleteAttribute>().FirstOrDefault();
+            var obsoleteAttribute = memberInfo.GetFirstAttribute<ObsoleteAttribute>();
             if (obsoleteAttribute != null && obsoleteAttribute.IsError)
             {
                 // It would generate a compile error if we referenced this member directly, so consider it non-public.
