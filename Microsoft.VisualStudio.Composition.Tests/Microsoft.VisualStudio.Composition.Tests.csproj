@@ -192,7 +192,7 @@
     <Compile Include="MefTestCommand.cs" />
     <Compile Include="MefFactAttribute.cs" />
     <Compile Include="ContainerIsolationTests.cs" />
-    <Compile Include="DgmlProduction.cs" />
+    <Compile Include="DgmlProductionTests.cs" />
     <Compile Include="DisposablePartsTests.cs" />
     <Compile Include="CompositionEngines.cs" />
     <Compile Include="ExportImportViaBaseType.cs" />

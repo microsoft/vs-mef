@@ -15,8 +15,6 @@
     {
         private static readonly Assembly mscorlib = typeof(int).GetTypeInfo().Assembly;
 
-        internal static readonly ReflectionCache Cache = new ReflectionCache();
-
         /// <summary>
         /// Creates a <see cref="Func{T}"/> delegate for a given <see cref="Func{Object}"/> delegate.
         /// </summary>
@@ -120,12 +118,6 @@
             }
         }
 
-        internal static IEnumerable<T> GetCustomAttributesCached<T>(this MemberInfo member)
-            where T : Attribute
-        {
-            return Cache.GetCustomAttributes(member).OfType<T>();
-        }
-
         internal static IEnumerable<PropertyInfo> WherePublicInstance(this IEnumerable<PropertyInfo> infos)
         {
             return infos.Where(p => p.GetMethod.IsPublicInstance() || p.SetMethod.IsPublicInstance());
@@ -161,13 +153,25 @@
 
         internal static Type GetMemberType(MemberInfo fieldOrPropertyOrType)
         {
-            Type type = fieldOrPropertyOrType as Type;
+            var type = fieldOrPropertyOrType as Type;
             if (type != null)
             {
                 return type;
             }
 
-            return Cache.GetMemberType(fieldOrPropertyOrType);
+            var property = fieldOrPropertyOrType as PropertyInfo;
+            if (property != null)
+            {
+                return property.PropertyType;
+            }
+
+            var field = fieldOrPropertyOrType as FieldInfo;
+            if (field != null)
+            {
+                return field.FieldType;
+            }
+
+            throw new ArgumentException("Unexpected member type.");
         }
 
         internal static bool IsPublicInstance(this MethodInfo methodInfo)
@@ -381,7 +385,7 @@
             {
                 // TypeIdentifierAttribute signifies an embeddED type.
                 // ComImportAttribute suggests an embeddABLE type.
-                if (typeInfo.GetCustomAttributesCached<TypeIdentifierAttribute>().Any() && typeInfo.GetCustomAttributesCached<GuidAttribute>().Any())
+                if (typeInfo.IsAttributeDefined<TypeIdentifierAttribute>() && typeInfo.IsAttributeDefined<GuidAttribute>())
                 {
                     return true;
                 }
@@ -394,7 +398,7 @@
         {
             Requires.NotNull(assembly, "assembly");
 
-            return Cache.GetCustomAttributes(assembly)
+            return assembly.GetCustomAttributes()
                 .Any(a => a.GetType().FullName == "System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute"
                     || a.GetType().FullName == "System.Runtime.InteropServices.ImportedFromTypeLibAttribute");
         }

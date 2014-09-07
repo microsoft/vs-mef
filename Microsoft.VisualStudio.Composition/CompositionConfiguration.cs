@@ -81,7 +81,8 @@
             var customizedCatalog = catalog.WithParts(AlwaysBundledParts);
 
             // Construct our part builders, initialized with all their imports satisfied.
-            var partBuilders = new Dictionary<ComposablePartDefinition, PartBuilder>();
+            // We explicitly use reference equality because ComposablePartDefinition.Equals is too slow, and unnecessary for this.
+            var partBuilders = new Dictionary<ComposablePartDefinition, PartBuilder>(ReferenceEquality<ComposablePartDefinition>.Default);
             foreach (ComposablePartDefinition partDefinition in customizedCatalog.Parts)
             {
                 var satisfyingImports = partDefinition.Imports.ToImmutableDictionary(i => i, i => customizedCatalog.GetExports(i.ImportDefinition));
@@ -95,7 +96,7 @@
                     (from entry in partBuilder.SatisfyingExports
                      where !entry.Key.IsExportFactory
                      from export in entry.Value
-                     select export.PartDefinition).Distinct();
+                     select export.PartDefinition).Distinct(ReferenceEquality<ComposablePartDefinition>.Default);
                 foreach (var importedPartDefinition in importedPartsExcludingFactories)
                 {
                     var importedPartBuilder = partBuilders[importedPartDefinition];
@@ -396,10 +397,31 @@
 
             XElement nodes, links;
             var dgml = Dgml.Create(out nodes, out links, direction: "RightToLeft");
+            dgml.WithStyle(
+                "ExportFactory",
+                new Dictionary<string, string>
+                {
+                    { "StrokeDashArray", "2,2" },
+                },
+                "Link");
+
+            foreach (string sharingBoundary in parts.Select(p => p.Definition.SharingBoundary).Distinct())
+            {
+                if (!string.IsNullOrEmpty(sharingBoundary))
+                {
+                    nodes.Add(Dgml.Node(sharingBoundary, sharingBoundary, "Expanded"));
+                }
+            }
 
             foreach (var part in parts)
             {
-                nodes.Add(Dgml.Node(part.Definition.Id, ReflectionHelpers.GetTypeName(part.Definition.Type, false, true, null, null)));
+                var node = Dgml.Node(part.Definition.Id, ReflectionHelpers.GetTypeName(part.Definition.Type, false, true, null, null));
+                if (!string.IsNullOrEmpty(part.Definition.SharingBoundary))
+                {
+                    node.ContainedBy(part.Definition.SharingBoundary, dgml);
+                }
+
+                nodes.Add(node);
                 foreach (var import in part.SatisfyingExports.Keys)
                 {
                     foreach (ExportDefinitionBinding export in part.SatisfyingExports[import])
@@ -407,7 +429,13 @@
                         string linkLabel = !export.ExportedValueType.Equals(export.PartDefinition.Type)
                             ? export.ExportedValueType.ToString()
                             : null;
-                        links.Add(Dgml.Link(export.PartDefinition.Id, part.Definition.Id, linkLabel));
+                        var link = Dgml.Link(export.PartDefinition.Id, part.Definition.Id, linkLabel);
+                        if (import.IsExportFactory)
+                        {
+                            link = link.WithCategories("ExportFactory");
+                        }
+
+                        links.Add(link);
                     }
                 }
             }
@@ -554,6 +582,26 @@
             public int GetHashCode(ExportDefinition obj)
             {
                 return obj.ContractName.GetHashCode();
+            }
+        }
+
+        private class ReferenceEquality<T> : IEqualityComparer<T>
+            where T : class
+        {
+            internal static readonly ReferenceEquality<T> Default = new ReferenceEquality<T>();
+
+            private ReferenceEquality()
+            {
+            }
+
+            public bool Equals(T x, T y)
+            {
+                return ReferenceEquals(x, y);
+            }
+
+            public int GetHashCode(T obj)
+            {
+                return obj.GetHashCode();
             }
         }
     }
