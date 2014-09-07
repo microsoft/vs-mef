@@ -27,6 +27,7 @@
         }
 
         [PartNotDiscoverable]
+        [PartMetadata(CompositionConstants.DgmlCategoryPartMetadataName, new string[] { "VsMEFBuiltIn" })]
         [Export(typeof(IMetadataViewProvider))]
         [ExportMetadata("OrderPrecedence", 50)]
         private class MetadataViewProxyProvider : IMetadataViewProvider

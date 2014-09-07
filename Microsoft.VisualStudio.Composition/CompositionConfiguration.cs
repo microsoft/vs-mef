@@ -396,14 +396,20 @@
             Requires.NotNull(parts, "parts");
 
             XElement nodes, links;
-            var dgml = Dgml.Create(out nodes, out links, direction: "RightToLeft");
-            dgml.WithStyle(
-                "ExportFactory",
-                new Dictionary<string, string>
-                {
-                    { "StrokeDashArray", "2,2" },
-                },
-                "Link");
+            var dgml = Dgml.Create(out nodes, out links, direction: "RightToLeft")
+                .WithStyle(
+                    "ExportFactory",
+                    new Dictionary<string, string>
+                    {
+                        { "StrokeDashArray", "2,2" },
+                    },
+                    "Link")
+                .WithStyle(
+                    "VsMEFBuiltIn",
+                    new Dictionary<string, string>
+                    {
+                        { "Visibility", "Hidden" },
+                    });
 
             foreach (string sharingBoundary in parts.Select(p => p.Definition.SharingBoundary).Distinct())
             {
@@ -419,6 +425,12 @@
                 if (!string.IsNullOrEmpty(part.Definition.SharingBoundary))
                 {
                     node.ContainedBy(part.Definition.SharingBoundary, dgml);
+                }
+
+                string[] partDgmlCategories;
+                if (part.Definition.Metadata.TryGetValue(CompositionConstants.DgmlCategoryPartMetadataName, out partDgmlCategories))
+                {
+                    node = node.WithCategories(partDgmlCategories);
                 }
 
                 nodes.Add(node);

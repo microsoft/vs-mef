@@ -24,7 +24,7 @@
 
             var partDefinition = new ComposablePartDefinition(
                 TypeRef.Get(providerType),
-                ImmutableDictionary<string, object>.Empty,
+                ImmutableDictionary<string, object>.Empty.Add(CompositionConstants.DgmlCategoryPartMetadataName, new[] { "VsMEFBuiltIn" }),
                 new[] { exportDefinition },
                 ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
                 ImmutableList<ImportDefinitionBinding>.Empty,

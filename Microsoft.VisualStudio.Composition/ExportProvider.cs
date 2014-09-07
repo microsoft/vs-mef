@@ -24,7 +24,7 @@
 
         internal static readonly ComposablePartDefinition ExportProviderPartDefinition = new ComposablePartDefinition(
             TypeRef.Get(typeof(ExportProviderAsExport)),
-            ImmutableDictionary<string, object>.Empty,
+            ImmutableDictionary<string, object>.Empty.Add(CompositionConstants.DgmlCategoryPartMetadataName, new [] { "VsMEFBuiltIn" }),
             new[] { ExportProviderExportDefinition },
             ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
             ImmutableList<ImportDefinitionBinding>.Empty,
