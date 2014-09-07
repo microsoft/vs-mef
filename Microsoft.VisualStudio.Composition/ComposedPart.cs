@@ -20,9 +20,11 @@
             Requires.NotNull(satisfyingExports, "satisfyingExports");
             Requires.NotNull(requiredSharingBoundaries, "requiredSharingBoundaries");
 
+#if DEBUG   // These checks are expensive. Don't do them in production.
             // Make sure we have entries for every import.
             Requires.Argument(satisfyingExports.Count == definition.Imports.Count() && definition.Imports.All(d => satisfyingExports.ContainsKey(d)), "satisfyingExports", "There should be exactly one entry for every import.");
             Requires.Argument(satisfyingExports.All(kv => kv.Value != null), "satisfyingExports", "All values must be non-null.");
+#endif
 
             this.Definition = definition;
             this.SatisfyingExports = satisfyingExports;
