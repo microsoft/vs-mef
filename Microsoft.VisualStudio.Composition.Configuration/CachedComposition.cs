@@ -1,9 +1,4 @@
-﻿#if DEBUG
-////#define TRACESTATS
-////#define TRACESERIALIZATION
-#endif
-
-namespace Microsoft.VisualStudio.Composition
+﻿namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -94,7 +89,7 @@ namespace Microsoft.VisualStudio.Composition
                 Requires.NotNull(writer, "writer");
                 Requires.NotNull(compositionRuntime, "compositionRuntime");
 
-                using (Trace("RuntimeComposition", writer.BaseStream))
+                using (Trace("RuntimeComposition"))
                 {
                     this.Write(compositionRuntime.Parts, this.Write);
                     this.Write(compositionRuntime.MetadataViewsAndProviders);
@@ -108,7 +103,7 @@ namespace Microsoft.VisualStudio.Composition
                 Requires.NotNull(reader, "reader");
 
                 RuntimeComposition result;
-                using (Trace("RuntimeComposition", reader.BaseStream))
+                using (Trace("RuntimeComposition"))
                 {
                     var parts = this.ReadList(reader, this.ReadRuntimePart);
                     var metadataViewsAndProviders = this.ReadMetadataViewsAndProviders();
@@ -122,7 +117,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private void Write(RuntimeComposition.RuntimeExport export)
             {
-                using (Trace("RuntimeExport", writer.BaseStream))
+                using (Trace("RuntimeExport"))
                 {
                     if (this.TryPrepareSerializeReusableObject(export))
                     {
@@ -137,7 +132,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private RuntimeComposition.RuntimeExport ReadRuntimeExport()
             {
-                using (Trace("RuntimeExport", reader.BaseStream))
+                using (Trace("RuntimeExport"))
                 {
                     uint id;
                     RuntimeComposition.RuntimeExport value;
@@ -164,7 +159,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private void Write(RuntimeComposition.RuntimePart part)
             {
-                using (Trace("RuntimePart", writer.BaseStream))
+                using (Trace("RuntimePart"))
                 {
                     this.Write(part.Type);
                     this.Write(part.Exports, this.Write);
@@ -187,7 +182,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private RuntimeComposition.RuntimePart ReadRuntimePart()
             {
-                using (Trace("RuntimePart", reader.BaseStream))
+                using (Trace("RuntimePart"))
                 {
                     ConstructorRef importingCtor = default(ConstructorRef);
                     IReadOnlyList<RuntimeComposition.RuntimeImport> importingCtorArguments = ImmutableList<RuntimeComposition.RuntimeImport>.Empty;
@@ -228,7 +223,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private void Write(RuntimeComposition.RuntimeImport import)
             {
-                using (Trace("RuntimeImport", writer.BaseStream))
+                using (Trace("RuntimeImport"))
                 {
                     RuntimeImportFlags flags = RuntimeImportFlags.None;
                     flags |= import.ImportingMemberRef.IsEmpty ? RuntimeImportFlags.IsParameter : 0;
@@ -260,7 +255,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private RuntimeComposition.RuntimeImport ReadRuntimeImport()
             {
-                using (Trace("RuntimeImport", reader.BaseStream))
+                using (Trace("RuntimeImport"))
                 {
                     var flags = (RuntimeImportFlags)reader.ReadByte();
                     var cardinality =
@@ -311,7 +306,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private void Write(IReadOnlyDictionary<TypeRef, RuntimeComposition.RuntimeExport> metadataTypesAndProviders)
             {
-                using (Trace("MetadataTypesAndProviders", writer.BaseStream))
+                using (Trace("MetadataTypesAndProviders"))
                 {
                     this.WriteCompressedUInt((uint)metadataTypesAndProviders.Count);
                     foreach (var item in metadataTypesAndProviders)
@@ -324,7 +319,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private IReadOnlyDictionary<TypeRef, RuntimeComposition.RuntimeExport> ReadMetadataViewsAndProviders()
             {
-                using (Trace("MetadataTypesAndProviders", reader.BaseStream))
+                using (Trace("MetadataTypesAndProviders"))
                 {
 
                     uint count = this.ReadCompressedUInt();
