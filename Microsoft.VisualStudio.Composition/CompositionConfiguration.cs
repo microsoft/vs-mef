@@ -396,6 +396,13 @@
 
             XElement nodes, links;
             var dgml = Dgml.Create(out nodes, out links, direction: "RightToLeft");
+            dgml.WithStyle(
+                "ExportFactory",
+                new Dictionary<string, string>
+                {
+                    { "StrokeDashArray", "2,2" },
+                },
+                "Link");
 
             foreach (string sharingBoundary in parts.Select(p => p.Definition.SharingBoundary).Distinct())
             {
@@ -421,7 +428,13 @@
                         string linkLabel = !export.ExportedValueType.Equals(export.PartDefinition.Type)
                             ? export.ExportedValueType.ToString()
                             : null;
-                        links.Add(Dgml.Link(export.PartDefinition.Id, part.Definition.Id, linkLabel));
+                        var link = Dgml.Link(export.PartDefinition.Id, part.Definition.Id, linkLabel);
+                        if (import.IsExportFactory)
+                        {
+                            link = link.WithCategories("ExportFactory");
+                        }
+
+                        links.Add(link);
                     }
                 }
             }
