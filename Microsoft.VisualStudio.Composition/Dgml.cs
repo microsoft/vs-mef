@@ -81,6 +81,12 @@
             return document;
         }
 
+        /// <summary>
+        /// Creates a new DGML Node element.
+        /// </summary>
+        /// <param name="id">The ID by which the node can be referenced in links. Used as label if label is null.</param>
+        /// <param name="label">The node's caption.</param>
+        /// <param name="group">May be empty, "Expanded" or "Collapsed" (for container nodes).</param>
         internal static XElement Node(string id = null, string label = null, string group = null)
         {
             var element = new XElement(NodeName);

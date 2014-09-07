@@ -9,6 +9,7 @@
     using Xunit;
     using System.Composition.Hosting;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
+    using System.IO;
 
     [Trait("SharingBoundary", "")]
     public class ProjectSystemMockTests
@@ -96,6 +97,18 @@
             var projectService = container.GetExportedValue<ProjectService>();
             var project = projectService.CreateProject();
             Assert.NotNull(project.Value.ActiveConfiguredProjectSubscriptionService.ImportHelper);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV2 | CompositionEngines.V3SkipCodeGenScenario)]
+        public void ProjectSystemDgml(IContainer container)
+        {
+            var v3container = (TestUtilities.V3ContainerWrapper)container;
+            var dgml = v3container.Configuration.CreateDgml();
+
+            string dgmlPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".dgml");
+            File.WriteAllText(dgmlPath, dgml.ToString());
+            Console.WriteLine("DGML written to: \"{0}\"", dgmlPath);
+            Console.WriteLine(dgml);
         }
 
         #region MEF parts

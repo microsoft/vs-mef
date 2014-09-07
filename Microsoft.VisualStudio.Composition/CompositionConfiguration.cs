@@ -397,9 +397,23 @@
             XElement nodes, links;
             var dgml = Dgml.Create(out nodes, out links, direction: "RightToLeft");
 
+            foreach (string sharingBoundary in parts.Select(p => p.Definition.SharingBoundary).Distinct())
+            {
+                if (!string.IsNullOrEmpty(sharingBoundary))
+                {
+                    nodes.Add(Dgml.Node(sharingBoundary, sharingBoundary, "Expanded"));
+                }
+            }
+
             foreach (var part in parts)
             {
-                nodes.Add(Dgml.Node(part.Definition.Id, ReflectionHelpers.GetTypeName(part.Definition.Type, false, true, null, null)));
+                var node = Dgml.Node(part.Definition.Id, ReflectionHelpers.GetTypeName(part.Definition.Type, false, true, null, null));
+                if (!string.IsNullOrEmpty(part.Definition.SharingBoundary))
+                {
+                    node.ContainedBy(part.Definition.SharingBoundary, dgml);
+                }
+
+                nodes.Add(node);
                 foreach (var import in part.SatisfyingExports.Keys)
                 {
                     foreach (ExportDefinitionBinding export in part.SatisfyingExports[import])
