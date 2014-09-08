@@ -104,6 +104,9 @@
     <Reference Include="xunit">
       <HintPath>..\packages\xunit.1.9.2\lib\net20\xunit.dll</HintPath>
     </Reference>
+    <Reference Include="xunit.runner.visualstudio.testadapter">
+      <HintPath>..\packages\xunit.runner.visualstudio.0.99.2\lib\xunit.runner.visualstudio.testadapter.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Microsoft.VisualStudio.Composition\ArrayRental`1.cs">
