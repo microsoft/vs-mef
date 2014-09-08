@@ -288,7 +288,7 @@
                 var exportingRuntimePart = this.composition.GetPart(export);
 
                 // Special case importing of ExportProvider
-                if (exportingRuntimePart.Type.Equals(ExportProvider.ExportProviderPartDefinition.Type))
+                if (exportingRuntimePart.Type.Equals(ExportProvider.ExportProviderPartDefinition.TypeRef))
                 {
                     return () => this.NonDisposableWrapper.Value;
                 }
