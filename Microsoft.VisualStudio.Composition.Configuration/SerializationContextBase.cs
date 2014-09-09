@@ -34,19 +34,60 @@ namespace Microsoft.VisualStudio.Composition
 
         protected Dictionary<string, int> sizeStats;
 
+        private long objectTableCapacityStreamPosition = -1; // -1 indicates the stream isn't capable of seeking.
+
         internal SerializationContextBase(BinaryReader reader)
         {
             Requires.NotNull(reader, "reader");
             this.reader = reader;
-            this.deserializingObjectTable = new Dictionary<uint, object>();
+
+            // At the head of the stream, read in the estimated or actual size of the object table we will require.
+            // This reduces GC pressure and time spent resizing the object table during deserialization.
+            int objectTableCapacity = reader.ReadInt32();
+            int objectTableSafeCapacity = Math.Min(objectTableCapacity, 1000000); // protect against OOM in case of data corruption.
+            this.deserializingObjectTable = new Dictionary<uint, object>(objectTableSafeCapacity);
         }
 
-        internal SerializationContextBase(BinaryWriter writer)
+        internal SerializationContextBase(BinaryWriter writer, int estimatedObjectCount)
         {
             Requires.NotNull(writer, "writer");
             this.writer = writer;
-            this.serializingObjectTable = new Dictionary<object, uint>(SmartInterningEqualityComparer.Default);
+            this.serializingObjectTable = new Dictionary<object, uint>(estimatedObjectCount, SmartInterningEqualityComparer.Default);
             this.sizeStats = new Dictionary<string, int>();
+
+            // Don't use compressed uint here. It must be a fixed size because we *may*
+            // come back and rewrite this at the end of serialization if this stream is seekable.
+            // Otherwise, we'll leave it at our best estimate given the size of the data being serialized.
+            Stream writerStream = writer.BaseStream;
+            this.objectTableCapacityStreamPosition = writerStream.CanSeek ? writer.BaseStream.Position : -1;
+            this.writer.Write(estimatedObjectCount);
+        }
+
+        protected internal void FinalizeObjectTableCapacity()
+        {
+            Verify.Operation(this.writer != null, "Only supported on write operations.");
+
+            // For efficiency in deserialization, go back and write the actual number of objects
+            // in the object table so the deserializer can allocate space up front and avoid dictionary resizing
+            // which can otherwise produce a *lot* of garbage.
+            // We can only do this on streams that support seeking.
+            if (this.objectTableCapacityStreamPosition >= 0)
+            {
+                // Always flush the writer before repositioning the stream to avoid corrupting data.
+                writer.Flush();
+                Stream writerStream = writer.BaseStream;
+
+                // Reposition the stream to the point at which we wrote out our estimated required capacity.
+                long tailPosition = writerStream.Position;
+                writerStream.Position = this.objectTableCapacityStreamPosition;
+
+                // Overwrite the estimate with the actual size.
+                this.writer.Write(this.serializingObjectTable.Count);
+
+                // Reposition the stream back to the end of our own serialization.
+                this.writer.Flush();
+                writerStream.Position = tailPosition;
+            }
         }
 
         protected SerializationTrace Trace(string elementName)
