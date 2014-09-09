@@ -20,8 +20,6 @@ namespace Microsoft.VisualStudio.Composition
 
     internal abstract class SerializationContextBase
     {
-        private static readonly char[] StringSegmentSeparator = { '.' };
-
         protected BinaryReader reader;
 
         protected BinaryWriter writer;
@@ -416,21 +414,9 @@ namespace Microsoft.VisualStudio.Composition
         {
             using (Trace("String"))
             {
-                if (value != null)
+                if (this.TryPrepareSerializeReusableObject(value))
                 {
-                    string[] segments = value.Split(StringSegmentSeparator);
-                    this.WriteCompressedUInt((uint)segments.Length);
-                    foreach (string segment in segments)
-                    {
-                        if (this.TryPrepareSerializeReusableObject(segment))
-                        {
-                            writer.Write(segment);
-                        }
-                    }
-                }
-                else
-                {
-                    this.WriteCompressedUInt(0);
+                    writer.Write(value);
                 }
             }
         }
@@ -439,32 +425,15 @@ namespace Microsoft.VisualStudio.Composition
         {
             using (Trace("String"))
             {
-                uint segmentsCount = this.ReadCompressedUInt();
-                if (segmentsCount == 0)
+                uint id;
+                string value;
+                if (this.TryPrepareDeserializeReusableObject(out id, out value))
                 {
-                    return null;
+                    value = reader.ReadString();
+                    this.OnDeserializedReusableObject(id, value);
                 }
 
-                var builder = new StringBuilder();
-                for (int i = 0; i < segmentsCount; i++)
-                {
-                    if (i > 0)
-                    {
-                        builder.Append(StringSegmentSeparator[0]);
-                    }
-
-                    uint id;
-                    string value;
-                    if (this.TryPrepareDeserializeReusableObject(out id, out value))
-                    {
-                        value = reader.ReadString();
-                        this.OnDeserializedReusableObject(id, value);
-                    }
-
-                    builder.Append(value);
-                }
-
-                return builder.ToString();
+                return value;
             }
         }
 
