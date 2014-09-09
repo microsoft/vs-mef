@@ -20,8 +20,6 @@ namespace Microsoft.VisualStudio.Composition
 
     internal abstract class SerializationContextBase
     {
-        private static readonly char[] StringSegmentSeparator = { '.' };
-
         protected BinaryReader reader;
 
         protected BinaryWriter writer;
@@ -34,22 +32,67 @@ namespace Microsoft.VisualStudio.Composition
 
         protected Dictionary<string, int> sizeStats;
 
+        private readonly ImmutableDictionary<string, object>.Builder metadataBuilder = ImmutableDictionary.CreateBuilder<string, object>();
+
+        private long objectTableCapacityStreamPosition = -1; // -1 indicates the stream isn't capable of seeking.
+
         internal SerializationContextBase(BinaryReader reader)
         {
             Requires.NotNull(reader, "reader");
             this.reader = reader;
-            this.deserializingObjectTable = new Dictionary<uint, object>();
+
+            // At the head of the stream, read in the estimated or actual size of the object table we will require.
+            // This reduces GC pressure and time spent resizing the object table during deserialization.
+            int objectTableCapacity = reader.ReadInt32();
+            int objectTableSafeCapacity = Math.Min(objectTableCapacity, 1000000); // protect against OOM in case of data corruption.
+            this.deserializingObjectTable = new Dictionary<uint, object>(objectTableSafeCapacity);
         }
 
-        internal SerializationContextBase(BinaryWriter writer)
+        internal SerializationContextBase(BinaryWriter writer, int estimatedObjectCount)
         {
             Requires.NotNull(writer, "writer");
             this.writer = writer;
-            this.serializingObjectTable = new Dictionary<object, uint>(SmartInterningEqualityComparer.Default);
+            this.serializingObjectTable = new Dictionary<object, uint>(estimatedObjectCount, SmartInterningEqualityComparer.Default);
+#if TRACESTATS
             this.sizeStats = new Dictionary<string, int>();
+#endif
+
+            // Don't use compressed uint here. It must be a fixed size because we *may*
+            // come back and rewrite this at the end of serialization if this stream is seekable.
+            // Otherwise, we'll leave it at our best estimate given the size of the data being serialized.
+            Stream writerStream = writer.BaseStream;
+            this.objectTableCapacityStreamPosition = writerStream.CanSeek ? writer.BaseStream.Position : -1;
+            this.writer.Write(estimatedObjectCount);
         }
 
-        protected SerializationTrace Trace(string elementName)
+        protected internal void FinalizeObjectTableCapacity()
+        {
+            Verify.Operation(this.writer != null, "Only supported on write operations.");
+
+            // For efficiency in deserialization, go back and write the actual number of objects
+            // in the object table so the deserializer can allocate space up front and avoid dictionary resizing
+            // which can otherwise produce a *lot* of garbage.
+            // We can only do this on streams that support seeking.
+            if (this.objectTableCapacityStreamPosition >= 0)
+            {
+                // Always flush the writer before repositioning the stream to avoid corrupting data.
+                writer.Flush();
+                Stream writerStream = writer.BaseStream;
+
+                // Reposition the stream to the point at which we wrote out our estimated required capacity.
+                long tailPosition = writerStream.Position;
+                writerStream.Position = this.objectTableCapacityStreamPosition;
+
+                // Overwrite the estimate with the actual size.
+                this.writer.Write(this.serializingObjectTable.Count);
+
+                // Reposition the stream back to the end of our own serialization.
+                this.writer.Flush();
+                writerStream.Position = tailPosition;
+            }
+        }
+
+        protected SerializationTrace Trace(string elementName, bool isArray = false)
         {
             Stream stream = null;
 #if TRACESERIALIZATION || TRACESTATS
@@ -60,7 +103,7 @@ namespace Microsoft.VisualStudio.Composition
             stream = reader != null ? reader.BaseStream : writer.BaseStream;
 #endif
 
-            return new SerializationTrace(this, elementName, stream);
+            return new SerializationTrace(this, elementName, isArray, stream);
         }
 
         protected void Write(MethodRef methodRef)
@@ -373,21 +416,9 @@ namespace Microsoft.VisualStudio.Composition
         {
             using (Trace("String"))
             {
-                if (value != null)
+                if (this.TryPrepareSerializeReusableObject(value))
                 {
-                    string[] segments = value.Split(StringSegmentSeparator);
-                    this.WriteCompressedUInt((uint)segments.Length);
-                    foreach (string segment in segments)
-                    {
-                        if (this.TryPrepareSerializeReusableObject(segment))
-                        {
-                            writer.Write(segment);
-                        }
-                    }
-                }
-                else
-                {
-                    this.WriteCompressedUInt(0);
+                    writer.Write(value);
                 }
             }
         }
@@ -396,32 +427,15 @@ namespace Microsoft.VisualStudio.Composition
         {
             using (Trace("String"))
             {
-                uint segmentsCount = this.ReadCompressedUInt();
-                if (segmentsCount == 0)
+                uint id;
+                string value;
+                if (this.TryPrepareDeserializeReusableObject(out id, out value))
                 {
-                    return null;
+                    value = reader.ReadString();
+                    this.OnDeserializedReusableObject(id, value);
                 }
 
-                var builder = new StringBuilder();
-                for (int i = 0; i < segmentsCount; i++)
-                {
-                    if (i > 0)
-                    {
-                        builder.Append(StringSegmentSeparator[0]);
-                    }
-
-                    uint id;
-                    string value;
-                    if (this.TryPrepareDeserializeReusableObject(out id, out value))
-                    {
-                        value = reader.ReadString();
-                        this.OnDeserializedReusableObject(id, value);
-                    }
-
-                    builder.Append(value);
-                }
-
-                return builder.ToString();
+                return value;
             }
         }
 
@@ -468,7 +482,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected IReadOnlyList<T> ReadList<T>(BinaryReader reader, Func<T> itemReader)
         {
-            using (Trace("List<" + typeof(T).Name + ">"))
+            using (Trace(typeof(T).Name, isArray: true))
             {
                 uint count = this.ReadCompressedUInt();
                 if (count > 0xffff)
@@ -490,7 +504,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected Array ReadArray(BinaryReader reader, Func<object> itemReader, Type elementType)
         {
-            using (Trace("List<" + elementType.Name + ">"))
+            using (Trace(elementType.Name, isArray: true))
             {
                 uint count = this.ReadCompressedUInt();
                 if (count > 0xffff)
@@ -545,7 +559,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 if (count > 0)
                 {
-                    var builder = metadata.ToBuilder();
+                    var builder = this.metadataBuilder; // reuse builder to save on GC pressure
                     for (int i = 0; i < count; i++)
                     {
                         string key = this.ReadString();
@@ -554,6 +568,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
 
                     metadata = builder.ToImmutable();
+                    builder.Clear(); // clean up for the next user.
                 }
 
                 return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue);
@@ -820,13 +835,15 @@ namespace Microsoft.VisualStudio.Composition
             private const string Indent = "  ";
             private readonly SerializationContextBase context;
             private readonly string elementName;
+            private readonly bool isArray;
             private readonly Stream stream;
             private readonly int startStreamPosition;
 
-            internal SerializationTrace(SerializationContextBase context, string elementName, Stream stream)
+            internal SerializationTrace(SerializationContextBase context, string elementName, bool isArray, Stream stream)
             {
                 this.context = context;
                 this.elementName = elementName;
+                this.isArray = isArray;
                 this.stream = stream;
 
                 this.context.indentationLevel++;
@@ -838,7 +855,7 @@ namespace Microsoft.VisualStudio.Composition
                         Debug.Write(Indent);
                     }
 
-                    Debug.WriteLine("Serialization: {1,7} {0}", elementName, stream.Position);
+                    Debug.WriteLine("Serialization: {2,7} {0}{1}", elementName, isArray ? "[]" : string.Empty, stream.Position);
 #endif
             }
 
@@ -851,7 +868,8 @@ namespace Microsoft.VisualStudio.Composition
                     if (this.context.sizeStats != null)
                     {
                         int length = (int)this.stream.Position - startStreamPosition;
-                        this.context.sizeStats[this.elementName] = this.context.sizeStats.GetValueOrDefault(this.elementName) + length;
+                        string elementNameWitharray = this.isArray ? (this.elementName + "[]") : this.elementName;
+                        this.context.sizeStats[elementNameWitharray] = this.context.sizeStats.GetValueOrDefault(elementNameWitharray) + length;
                     }
                 }
             }

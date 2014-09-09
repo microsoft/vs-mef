@@ -44,8 +44,9 @@
             {
                 using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
                 {
-                    var context = new SerializationContext(writer);
+                    var context = new SerializationContext(writer, composition.Parts.Count * 5);
                     context.Write(composition);
+                    context.FinalizeObjectTableCapacity();
                 }
             });
         }
@@ -79,8 +80,8 @@
             {
             }
 
-            internal SerializationContext(BinaryWriter writer)
-                : base(writer)
+            internal SerializationContext(BinaryWriter writer, int estimatedObjectCount)
+                : base(writer, estimatedObjectCount)
             {
             }
 
