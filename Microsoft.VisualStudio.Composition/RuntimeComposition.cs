@@ -27,7 +27,7 @@
             this.parts = ImmutableHashSet.CreateRange(parts);
             this.metadataViewsAndProviders = metadataViewsAndProviders;
 
-            this.partsByType = this.parts.ToDictionary(p => p.Type);
+            this.partsByType = this.parts.ToDictionary(p => p.Type, this.parts.Count);
 
             var exports =
                 from part in this.parts

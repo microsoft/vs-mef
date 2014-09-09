@@ -180,5 +180,16 @@
                 progress.Report(value);
             }
         }
+
+        internal static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this IEnumerable<TValue> source, Func<TValue, TKey> keySelector, int capacity)
+        {
+            var dictionary = new Dictionary<TKey, TValue>(capacity);
+            foreach (var item in source)
+            {
+                dictionary.Add(keySelector(item), item);
+            }
+
+            return dictionary;
+        }
     }
 }
