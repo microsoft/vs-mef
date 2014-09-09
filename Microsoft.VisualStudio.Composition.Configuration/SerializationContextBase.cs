@@ -32,6 +32,8 @@ namespace Microsoft.VisualStudio.Composition
 
         protected Dictionary<string, int> sizeStats;
 
+        private readonly ImmutableDictionary<string, object>.Builder metadataBuilder = ImmutableDictionary.CreateBuilder<string, object>();
+
         private long objectTableCapacityStreamPosition = -1; // -1 indicates the stream isn't capable of seeking.
 
         internal SerializationContextBase(BinaryReader reader)
@@ -557,7 +559,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 if (count > 0)
                 {
-                    var builder = metadata.ToBuilder();
+                    var builder = this.metadataBuilder; // reuse builder to save on GC pressure
                     for (int i = 0; i < count; i++)
                     {
                         string key = this.ReadString();
@@ -566,6 +568,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
 
                     metadata = builder.ToImmutable();
+                    builder.Clear(); // clean up for the next user.
                 }
 
                 return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue);
