@@ -311,6 +311,7 @@
 
         // The part creation policy is NonShared so that it can satisfy exports within any sharing boundary.
         [MefV1.Export(typeof(MefV1.ICompositionService)), MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        [MefV1.PartMetadata(CompositionConstants.DgmlCategoryPartMetadataName, new string[] { "VsMEFBuiltIn" })]
         private class CompositionService : MefV1.ICompositionService, IDisposable
         {
             private MefV1.Hosting.CompositionContainer container;
@@ -335,6 +336,7 @@
 
         [MefV1.Export(typeof(IMetadataViewProvider))]
         [MefV1.ExportMetadata("OrderPrecedence", 100)] // should take precedence over the transparent or emitted proxy providers
+        [MefV1.PartMetadata(CompositionConstants.DgmlCategoryPartMetadataName, new string[] { "VsMEFBuiltIn" })]
         private class MetadataViewImplProxy : IMetadataViewProvider
         {
             public bool IsMetadataViewSupported(Type metadataType)
@@ -375,6 +377,7 @@
         /// </summary>
         [MefV1.Export(typeof(IAssemblyLoader))]
         [MefV1.ExportMetadata("OrderPrecedence", 100)] // should take precedence over one without codebase path handling
+        [MefV1.PartMetadata(CompositionConstants.DgmlCategoryPartMetadataName, new string[] { "VsMEFBuiltIn" })]
         private class AssemblyLoadCodeBasePathLoader : IAssemblyLoader
         {
             public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)

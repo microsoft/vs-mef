@@ -8,6 +8,8 @@
 
     public static class CompositionConstants
     {
+        internal const string DgmlCategoryPartMetadataName = "VsMEFDgmlCategories";
+
         internal const string PartCreationPolicyMetadataName = MefV1CompositionNamespace + ".CreationPolicy";
         internal const string GenericContractMetadataName = MefV1CompositionNamespace + ".GenericContractName";
         public const string GenericParametersMetadataName = MefV1CompositionNamespace + ".GenericParameters";
