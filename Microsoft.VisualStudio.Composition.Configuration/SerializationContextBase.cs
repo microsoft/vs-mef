@@ -53,7 +53,9 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(writer, "writer");
             this.writer = writer;
             this.serializingObjectTable = new Dictionary<object, uint>(estimatedObjectCount, SmartInterningEqualityComparer.Default);
+#if TRACESTATS
             this.sizeStats = new Dictionary<string, int>();
+#endif
 
             // Don't use compressed uint here. It must be a fixed size because we *may*
             // come back and rewrite this at the end of serialization if this stream is seekable.
@@ -90,7 +92,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected SerializationTrace Trace(string elementName)
+        protected SerializationTrace Trace(string elementName, bool isArray = false)
         {
             Stream stream = null;
 #if TRACESERIALIZATION || TRACESTATS
@@ -101,7 +103,7 @@ namespace Microsoft.VisualStudio.Composition
             stream = reader != null ? reader.BaseStream : writer.BaseStream;
 #endif
 
-            return new SerializationTrace(this, elementName, stream);
+            return new SerializationTrace(this, elementName, isArray, stream);
         }
 
         protected void Write(MethodRef methodRef)
@@ -509,7 +511,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected IReadOnlyList<T> ReadList<T>(BinaryReader reader, Func<T> itemReader)
         {
-            using (Trace("List<" + typeof(T).Name + ">"))
+            using (Trace(typeof(T).Name, isArray: true))
             {
                 uint count = this.ReadCompressedUInt();
                 if (count > 0xffff)
@@ -531,7 +533,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected Array ReadArray(BinaryReader reader, Func<object> itemReader, Type elementType)
         {
-            using (Trace("List<" + elementType.Name + ">"))
+            using (Trace(elementType.Name, isArray: true))
             {
                 uint count = this.ReadCompressedUInt();
                 if (count > 0xffff)
@@ -861,13 +863,15 @@ namespace Microsoft.VisualStudio.Composition
             private const string Indent = "  ";
             private readonly SerializationContextBase context;
             private readonly string elementName;
+            private readonly bool isArray;
             private readonly Stream stream;
             private readonly int startStreamPosition;
 
-            internal SerializationTrace(SerializationContextBase context, string elementName, Stream stream)
+            internal SerializationTrace(SerializationContextBase context, string elementName, bool isArray, Stream stream)
             {
                 this.context = context;
                 this.elementName = elementName;
+                this.isArray = isArray;
                 this.stream = stream;
 
                 this.context.indentationLevel++;
@@ -879,7 +883,7 @@ namespace Microsoft.VisualStudio.Composition
                         Debug.Write(Indent);
                     }
 
-                    Debug.WriteLine("Serialization: {1,7} {0}", elementName, stream.Position);
+                    Debug.WriteLine("Serialization: {2,7} {0}{1}", elementName, isArray ? "[]" : string.Empty, stream.Position);
 #endif
             }
 
@@ -892,7 +896,8 @@ namespace Microsoft.VisualStudio.Composition
                     if (this.context.sizeStats != null)
                     {
                         int length = (int)this.stream.Position - startStreamPosition;
-                        this.context.sizeStats[this.elementName] = this.context.sizeStats.GetValueOrDefault(this.elementName) + length;
+                        string elementNameWitharray = this.isArray ? (this.elementName + "[]") : this.elementName;
+                        this.context.sizeStats[elementNameWitharray] = this.context.sizeStats.GetValueOrDefault(elementNameWitharray) + length;
                     }
                 }
             }
