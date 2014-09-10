@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -23,6 +24,11 @@
         private static readonly Dictionary<Type, WeakReference<TypeRef>> instanceCache = new Dictionary<Type, WeakReference<TypeRef>>();
 
         /// <summary>
+        /// A cache of normalized AssemblyNames with any CodeBase using 8.3 short names expanded.
+        /// </summary>
+        private static readonly Dictionary<string, AssemblyName> assemblyNameCache = new Dictionary<string, AssemblyName>();
+
+        /// <summary>
         /// Backing field for the lazily initialized <see cref="ResolvedType"/> property.
         /// </summary>
         private Type resolvedType;
@@ -37,7 +43,7 @@
             Requires.NotNull(assemblyName, "assemblyName");
             Requires.Argument(metadataToken != 0x02000000, "metadataToken", "Unresolvable metadata token.");
 
-            this.AssemblyName = assemblyName;
+            this.AssemblyName = GetNormalizedAssemblyName(assemblyName);
             this.MetadataToken = metadataToken;
             this.IsArray = isArray;
             this.GenericTypeParameterCount = genericTypeParameterCount;
@@ -48,7 +54,7 @@
         {
             Requires.NotNull(type, "type");
 
-            this.AssemblyName = type.Assembly.GetName();
+            this.AssemblyName = GetNormalizedAssemblyName(type.Assembly.GetName());
             this.IsArray = type.IsArray;
 
             Type elementType = type.IsArray ? type.GetElementType() : type;
@@ -138,6 +144,39 @@
 
             return result;
         }
+
+        private static AssemblyName GetNormalizedAssemblyName(AssemblyName assemblyName)
+        {
+            Requires.NotNull(assemblyName, "assemblyName");
+
+            AssemblyName normalizedAssemblyName;
+            lock (assemblyNameCache)
+            {
+                assemblyNameCache.TryGetValue(assemblyName.FullName, out normalizedAssemblyName);
+            }
+
+            if (normalizedAssemblyName == null)
+            {
+                {
+                    normalizedAssemblyName = assemblyName;
+                    if (assemblyName.CodeBase.IndexOf('~') >= 0)
+                    {
+                        // Using ToString() rather than AbsoluteUri here to match the CLR's AssemblyName.CodeBase convention of paths without %20 space characters.
+                        string normalizedCodeBase = new Uri(Path.GetFullPath(new Uri(assemblyName.CodeBase).LocalPath)).ToString();
+                        normalizedAssemblyName = new AssemblyName(assemblyName.FullName);
+                        normalizedAssemblyName.CodeBase = normalizedCodeBase;
+                    }
+
+                    lock (assemblyNameCache)
+                    {
+                        assemblyNameCache[assemblyName.FullName] = normalizedAssemblyName;
+                    }
+                }
+            }
+
+            return normalizedAssemblyName;
+        }
+
 
         public TypeRef MakeGenericType(ImmutableArray<TypeRef> genericTypeArguments)
         {
