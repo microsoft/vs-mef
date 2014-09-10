@@ -16,7 +16,7 @@ IF /I "%1"=="FI" (
 	EXIT /b 1
 )
 
-robocopy "%ORIGIN%" "%TARGET%" /MIR /xd .git bin obj *.ide /XF *.err *.log *.wrn *.suo *.vspscc *asmmeta %~nx0 /NDL 
+robocopy "%ORIGIN%" "%TARGET%" /MIR /xd packages testresults .git bin obj *.ide /XF *.err *.log *.wrn *.suo *.vspscc *asmmeta %~nx0 /NDL 
 
 IF /I "%1"=="RI" (
 	ECHO.
