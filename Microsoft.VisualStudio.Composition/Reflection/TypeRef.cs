@@ -145,39 +145,6 @@
             return result;
         }
 
-        private static AssemblyName GetNormalizedAssemblyName(AssemblyName assemblyName)
-        {
-            Requires.NotNull(assemblyName, "assemblyName");
-
-            AssemblyName normalizedAssemblyName;
-            lock (assemblyNameCache)
-            {
-                assemblyNameCache.TryGetValue(assemblyName.FullName, out normalizedAssemblyName);
-            }
-
-            if (normalizedAssemblyName == null)
-            {
-                {
-                    normalizedAssemblyName = assemblyName;
-                    if (assemblyName.CodeBase.IndexOf('~') >= 0)
-                    {
-                        // Using ToString() rather than AbsoluteUri here to match the CLR's AssemblyName.CodeBase convention of paths without %20 space characters.
-                        string normalizedCodeBase = new Uri(Path.GetFullPath(new Uri(assemblyName.CodeBase).LocalPath)).ToString();
-                        normalizedAssemblyName = new AssemblyName(assemblyName.FullName);
-                        normalizedAssemblyName.CodeBase = normalizedCodeBase;
-                    }
-
-                    lock (assemblyNameCache)
-                    {
-                        assemblyNameCache[assemblyName.FullName] = normalizedAssemblyName;
-                    }
-                }
-            }
-
-            return normalizedAssemblyName;
-        }
-
-
         public TypeRef MakeGenericType(ImmutableArray<TypeRef> genericTypeArguments)
         {
             Requires.Argument(!genericTypeArguments.IsDefault, "genericTypeArguments", "Not initialized.");
@@ -212,6 +179,36 @@
         public bool Equals(Type other)
         {
             return this.Equals(TypeRef.Get(other));
+        }
+
+        private static AssemblyName GetNormalizedAssemblyName(AssemblyName assemblyName)
+        {
+            Requires.NotNull(assemblyName, "assemblyName");
+
+            AssemblyName normalizedAssemblyName;
+            lock (assemblyNameCache)
+            {
+                assemblyNameCache.TryGetValue(assemblyName.FullName, out normalizedAssemblyName);
+            }
+
+            if (normalizedAssemblyName == null)
+            {
+                normalizedAssemblyName = assemblyName;
+                if (assemblyName.CodeBase.IndexOf('~') >= 0)
+                {
+                    // Using ToString() rather than AbsoluteUri here to match the CLR's AssemblyName.CodeBase convention of paths without %20 space characters.
+                    string normalizedCodeBase = new Uri(Path.GetFullPath(new Uri(assemblyName.CodeBase).LocalPath)).ToString();
+                    normalizedAssemblyName = new AssemblyName(assemblyName.FullName);
+                    normalizedAssemblyName.CodeBase = normalizedCodeBase;
+                }
+
+                lock (assemblyNameCache)
+                {
+                    assemblyNameCache[assemblyName.FullName] = normalizedAssemblyName;
+                }
+            }
+
+            return normalizedAssemblyName;
         }
     }
 }
