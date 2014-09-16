@@ -23,7 +23,7 @@
             Assert.IsType<SomeOtherPart>(genericPart.Value);
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors, InvalidConfiguration = true, Skip = "Still a bug")]
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors, InvalidConfiguration = true)]
         public void GenericPartImportsTypeParameterFailsGracefullyInV3(IContainer container)
         {
             Assert.NotNull(container.GetExportedValue<SomeOtherPart>());
