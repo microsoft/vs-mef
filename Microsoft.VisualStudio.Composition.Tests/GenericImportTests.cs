@@ -16,11 +16,18 @@
         /// could change based on the type argument. We may never be able to support it.
         /// </summary>
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2, NoCompatGoal = true)]
-        public void GenericPartImportsTypeArgument(IContainer container)
+        public void GenericPartImportsTypeParameter(IContainer container)
         {
             var genericPart = container.GetExportedValue<PartThatImportsT<SomeOtherPart>>();
             Assert.NotNull(genericPart);
             Assert.IsType<SomeOtherPart>(genericPart.Value);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors, InvalidConfiguration = true)]
+        public void GenericPartImportsTypeParameterFailsGracefullyInV3(IContainer container)
+        {
+            Assert.NotNull(container.GetExportedValue<SomeOtherPart>());
+            Assert.Equal(0, container.GetExportedValues<PartThatImportsT<SomeOtherPart>>().Count());
         }
 
         [Export, Shared, MefV1.Export]
