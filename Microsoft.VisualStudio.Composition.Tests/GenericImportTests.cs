@@ -21,6 +21,10 @@
             var genericPart = container.GetExportedValue<PartThatImportsT<SomeOtherPart>>();
             Assert.NotNull(genericPart);
             Assert.IsType<SomeOtherPart>(genericPart.Value);
+
+            var genericPartLazy = container.GetExportedValue<PartThatImportsLazyT<SomeOtherPart>>();
+            Assert.NotNull(genericPartLazy);
+            Assert.IsType<SomeOtherPart>(genericPartLazy.Value.Value);
         }
 
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors, InvalidConfiguration = true)]
@@ -28,6 +32,7 @@
         {
             Assert.NotNull(container.GetExportedValue<SomeOtherPart>());
             Assert.Equal(0, container.GetExportedValues<PartThatImportsT<SomeOtherPart>>().Count());
+            Assert.Equal(0, container.GetExportedValues<PartThatImportsLazyT<SomeOtherPart>>().Count());
         }
 
         [Export, Shared, MefV1.Export]
@@ -35,6 +40,13 @@
         {
             [Import, MefV1.Import]
             public T Value { get; set; }
+        }
+
+        [Export, Shared, MefV1.Export]
+        public class PartThatImportsLazyT<T>
+        {
+            [Import, MefV1.Import]
+            public Lazy<T> Value { get; set; }
         }
 
         [Export, Shared, MefV1.Export]
