@@ -365,7 +365,7 @@
                             SyntaxKind.SimpleMemberAccessExpression,
                             SyntaxFactory.ThisExpression(),
                             TypeRefsArrayFieldName),
-                        GetSyntaxToReconstructValue(this.reflectionLoadedTypes.Select(TypeRef.Get).ToArray(), SyntaxFactory.ThisExpression())))));
+                        GetSyntaxToReconstructValue(this.reflectionLoadedTypes.Select(t => TypeRef.Get(t)).ToArray(), SyntaxFactory.ThisExpression())))));
         }
 
         internal CompilationUnitSyntax CreateSourceFile()
@@ -1074,7 +1074,7 @@
             {
                 substitutionRequired = true;
                 var valueAsTypeArray = (Type[])value;
-                var typeRefArrayConstruction = this.GetSyntaxToReconstructValue(valueAsTypeArray.Select(TypeRef.Get).ToArray(), thisExportProvider);
+                var typeRefArrayConstruction = this.GetSyntaxToReconstructValue(valueAsTypeArray.Select(t => TypeRef.Get(t)).ToArray(), thisExportProvider);
                 var substitutionConstruction = SyntaxFactory.InvocationExpression(
                     SyntaxFactory.IdentifierName("GetMetadataValueForTypeArray"),
                     SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(typeRefArrayConstruction))));

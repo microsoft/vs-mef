@@ -110,11 +110,13 @@
                 {
                     if (!this.ImportingMemberRef.IsEmpty)
                     {
-                        this.importingSiteTypeRef = TypeRef.Get(ReflectionHelpers.GetMemberType(this.ImportingMemberRef.Resolve()));
+                        var member = this.ImportingMemberRef.Resolve();
+                        this.importingSiteTypeRef = TypeRef.Get(ReflectionHelpers.GetMemberType(member));
                     }
                     else if (!this.ImportingParameterRef.IsEmpty)
                     {
-                        this.importingSiteTypeRef = TypeRef.Get(this.ImportingParameterRef.Resolve().ParameterType);
+                        var parameter = this.ImportingParameterRef.Resolve();
+                        this.importingSiteTypeRef = TypeRef.Get(parameter.ParameterType);
                     }
                     else
                     {

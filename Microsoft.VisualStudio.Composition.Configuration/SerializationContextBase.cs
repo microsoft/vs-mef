@@ -346,6 +346,17 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+        [Flags]
+        private enum TypeRefFlags : byte
+        {
+            None = 0x0,
+            IsArray = 0x1,
+            HasDeclaringTypeGenericArguments = 0x2,
+            HasDeclaringMethodGenericArguments = 0x4,
+            HasDeclaringMember = 0x8,
+            HasDeclaringMethodParameterIndex = 0x10,
+        }
+
         protected void Write(TypeRef typeRef)
         {
             using (Trace("TypeRef"))
@@ -354,9 +365,36 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     this.Write(typeRef.AssemblyName);
                     this.WriteCompressedMetadataToken(typeRef.MetadataToken, MetadataTokenType.Type);
-                    writer.Write(typeRef.IsArray);
-                    writer.Write((byte)typeRef.GenericTypeParameterCount);
+
+                    var flags = TypeRefFlags.None;
+                    flags |= typeRef.IsArray ? TypeRefFlags.IsArray : TypeRefFlags.None;
+                    flags |= !typeRef.DeclaringTypeGenericArguments.IsDefault ? TypeRefFlags.HasDeclaringTypeGenericArguments : TypeRefFlags.None;
+                    flags |= !typeRef.DeclaringMethodGenericArguments.IsDefault ? TypeRefFlags.HasDeclaringMethodGenericArguments : TypeRefFlags.None;
+                    flags |= !typeRef.GenericParameterDeclaringMember.IsEmpty ? TypeRefFlags.HasDeclaringMember : TypeRefFlags.None;
+                    flags |= typeRef.GenericParameterDeclaringMemberIndex >= 0 ? TypeRefFlags.HasDeclaringMethodParameterIndex : TypeRefFlags.None;
+                    writer.Write((byte)flags);
+
+                    this.WriteCompressedUInt((uint)typeRef.GenericTypeParameterCount);
                     this.Write(typeRef.GenericTypeArguments, this.Write);
+                    if (!typeRef.DeclaringTypeGenericArguments.IsDefault)
+                    {
+                        this.Write(typeRef.DeclaringTypeGenericArguments, this.Write);
+                    }
+
+                    if (!typeRef.DeclaringMethodGenericArguments.IsDefault)
+                    {
+                        this.Write(typeRef.DeclaringMethodGenericArguments, this.Write);
+                    }
+
+                    if (!typeRef.GenericParameterDeclaringMember.IsEmpty)
+                    {
+                        this.Write(typeRef.GenericParameterDeclaringMember);
+                    }
+
+                    if (typeRef.GenericParameterDeclaringMemberIndex >= 0)
+                    {
+                        this.WriteCompressedUInt((uint)typeRef.GenericParameterDeclaringMemberIndex);
+                    }
                 }
             }
         }
@@ -371,10 +409,22 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     var assemblyName = this.ReadAssemblyName();
                     var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Type);
-                    bool isArray = reader.ReadBoolean();
-                    int genericTypeParameterCount = reader.ReadByte();
-                    var genericTypeArguments = this.ReadList(reader, this.ReadTypeRef);
-                    value = TypeRef.Get(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments.ToImmutableArray());
+                    var flags = (TypeRefFlags)reader.ReadByte();
+                    int genericTypeParameterCount = (int)this.ReadCompressedUInt();
+                    var genericTypeArguments = this.ReadList(reader, this.ReadTypeRef).ToImmutableArray();
+                    var declaringTypeGenericArguments = flags.HasFlag(TypeRefFlags.HasDeclaringTypeGenericArguments) ? this.ReadList(this.ReadTypeRef).ToImmutableArray() : default(ImmutableArray<TypeRef>);
+                    var declaringMethodGenericArguments = flags.HasFlag(TypeRefFlags.HasDeclaringMethodGenericArguments) ? this.ReadList(this.ReadTypeRef).ToImmutableArray() : default(ImmutableArray<TypeRef>);
+                    var declaringMember = flags.HasFlag(TypeRefFlags.HasDeclaringMember) ? this.ReadMemberRef() : default(MemberRef);
+                    var declaringMethodParameterIndex = flags.HasFlag(TypeRefFlags.HasDeclaringMethodParameterIndex) ? (int)this.ReadCompressedUInt() : -1;
+                    if (declaringMember.IsEmpty)
+                    {
+                        value = TypeRef.Get(assemblyName, metadataToken, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments, declaringTypeGenericArguments, declaringMethodGenericArguments);
+                    }
+                    else
+                    {
+                        value = TypeRef.Get(assemblyName, metadataToken, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments, declaringMember, declaringMethodParameterIndex);
+                    }
+
                     this.OnDeserializedReusableObject(id, value);
                 }
 

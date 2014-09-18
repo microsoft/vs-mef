@@ -34,6 +34,12 @@
             this.Method = method;
         }
 
+        public MemberRef(TypeRef type)
+            : this()
+        {
+            this.Type = type;
+        }
+
         public MemberRef(MemberInfo member)
             : this()
         {
@@ -54,7 +60,16 @@
                     this.Property = new PropertyRef((PropertyInfo)member);
                     break;
                 default:
-                    throw new NotSupportedException();
+                    if (member is Type)
+                    {
+                        this.Type = TypeRef.Get((Type)member);
+                    }
+                    else
+                    {
+                        throw new NotSupportedException();
+                    }
+
+                    break;
             }
         }
 
@@ -65,6 +80,8 @@
         public PropertyRef Property { get; private set; }
 
         public MethodRef Method { get; private set; }
+
+        public TypeRef Type { get; private set; }
 
         public TypeRef DeclaringType
         {
@@ -86,6 +103,10 @@
                 {
                     return this.Method.DeclaringType;
                 }
+                else if (this.IsType)
+                {
+                    throw new NotSupportedException();
+                }
                 else
                 {
                     return null;
@@ -95,7 +116,7 @@
 
         public bool IsEmpty
         {
-            get { return this.Constructor.IsEmpty && this.Field.IsEmpty && this.Property.IsEmpty && this.Method.IsEmpty; }
+            get { return this.Constructor.IsEmpty && this.Field.IsEmpty && this.Property.IsEmpty && this.Method.IsEmpty && this.Type == null; }
         }
 
         public bool IsConstructor
@@ -118,6 +139,11 @@
             get { return !this.Method.IsEmpty; }
         }
 
+        public bool IsType
+        {
+            get { return this.Type != null; }
+        }
+
         public static MemberRef Get(MemberInfo member)
         {
             return member != null ? new MemberRef(member) : default(MemberRef);
@@ -128,7 +154,8 @@
             return this.Constructor.Equals(other.Constructor)
                 && this.Field.Equals(other.Field)
                 && this.Property.Equals(other.Property)
-                && this.Method.Equals(other.Method);
+                && this.Method.Equals(other.Method)
+                && EqualityComparer<TypeRef>.Default.Equals(this.Type, other.Type);
         }
 
         public override int GetHashCode()
@@ -138,6 +165,7 @@
                 this.IsProperty ? this.Property.GetHashCode() :
                 this.IsMethod ? this.Method.GetHashCode() :
                 this.IsConstructor ? this.Constructor.GetHashCode() :
+                this.IsType ? this.Type.GetHashCode() :
                 0;
         }
 
