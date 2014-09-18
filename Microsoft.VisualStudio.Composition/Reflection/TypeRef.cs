@@ -38,7 +38,7 @@
         /// </summary>
         private int? hashCode;
 
-        private TypeRef(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, ImmutableArray<TypeRef> declaringTypeGenericArguments, ImmutableArray<TypeRef> declaringMethodGenericArguments, MemberRef declaringMember, int declaringMethodParameterIndex)
+        private TypeRef(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex)
         {
             Requires.NotNull(assemblyName, "assemblyName");
             Requires.Argument(((MetadataTokenType)metadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type, "metadataToken", "Not a type spec.");
@@ -49,8 +49,6 @@
             this.IsArray = isArray;
             this.GenericTypeParameterCount = genericTypeParameterCount;
             this.GenericTypeArguments = genericTypeArguments;
-            this.DeclaringTypeGenericArguments = declaringTypeGenericArguments;
-            this.DeclaringMethodGenericArguments = declaringMethodGenericArguments;
             this.GenericParameterDeclaringMember = declaringMember;
             this.GenericParameterDeclaringMemberIndex = declaringMethodParameterIndex;
         }
@@ -75,11 +73,6 @@
                 var declaringMember = (MemberInfo)elementType.DeclaringMethod ?? elementType.DeclaringType;
                 this.GenericParameterDeclaringMember = MemberRef.Get(declaringMember);
                 this.GenericParameterDeclaringMemberIndex = Array.IndexOf(GetGenericTypeArguments(declaringMember), elementType);
-            }
-            else
-            {
-                //this.DeclaringTypeGenericArguments = declaringMember != null ? GetTypeRefArray(declaringMember.DeclaringType.GetGenericArguments(), declaringMember.DeclaringType) : default(ImmutableArray<TypeRef>);
-                //this.DeclaringMethodGenericArguments = declaringMember is MethodInfo ? GetTypeRefArray(((MethodInfo)declaringMember).GetGenericArguments(), declaringMember.DeclaringType) : default(ImmutableArray<TypeRef>);
             }
         }
 
@@ -109,18 +102,6 @@
 
         public ImmutableArray<TypeRef> GenericTypeArguments { get; private set; }
 
-        /// <summary>
-        /// Gets the list of generic type arguments for the type that declares the member on which this type is found.
-        /// May be null if it does not apply.
-        /// </summary>
-        public ImmutableArray<TypeRef> DeclaringTypeGenericArguments { get; private set; }
-
-        /// <summary>
-        /// Gets the list of generic arguments for the method that declares the parameter on which this type is found.
-        /// May be null if it does not apply.
-        /// </summary>
-        public ImmutableArray<TypeRef> DeclaringMethodGenericArguments { get; private set; }
-
         public MemberRef GenericParameterDeclaringMember { get; private set; }
 
         public int GenericParameterDeclaringMemberIndex { get; private set; }
@@ -142,24 +123,18 @@
                     Type type;
                     if (((MetadataTokenType)this.MetadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type)
                     {
-                        using (var declaringTypeGenericArgs = GetResolvedTypeArray(this.DeclaringTypeGenericArguments))
+                        var manifest = Resolver.GetManifest(this.AssemblyName);
+                        var resolvedType = manifest.ResolveType(this.MetadataToken);
+                        if (this.GenericTypeArguments.Length > 0)
                         {
-                            using (var declaringMethodGenericArgs = GetResolvedTypeArray(this.DeclaringMethodGenericArguments))
+                            using (var genericTypeArguments = GetResolvedTypeArray(this.GenericTypeArguments))
                             {
-                                var manifest = Resolver.GetManifest(this.AssemblyName);
-                                var resolvedType = manifest.ResolveType(this.MetadataToken, declaringTypeGenericArgs.Value, declaringMethodGenericArgs.Value);
-                                if (this.GenericTypeArguments.Length > 0)
-                                {
-                                    using (var genericTypeArguments = GetResolvedTypeArray(this.GenericTypeArguments))
-                                    {
-                                        type = resolvedType.MakeGenericType(genericTypeArguments.Value);
-                                    }
-                                }
-                                else
-                                {
-                                    type = resolvedType;
-                                }
+                                type = resolvedType.MakeGenericType(genericTypeArguments.Value);
                             }
+                        }
+                        else
+                        {
+                            type = resolvedType;
                         }
                     }
                     else
@@ -184,17 +159,12 @@
 
         public static TypeRef Get(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
-            return Get(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments, default(ImmutableArray<TypeRef>), default(ImmutableArray<TypeRef>));
-        }
-
-        public static TypeRef Get(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, ImmutableArray<TypeRef> declaringTypeGenericArguments, ImmutableArray<TypeRef> declaringMethodGenericArguments)
-        {
-            return new TypeRef(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments, declaringTypeGenericArguments, declaringMethodGenericArguments, default(MemberRef), -1);
+            return new TypeRef(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments, default(MemberRef), -1);
         }
 
         public static TypeRef Get(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = -1)
         {
-            return new TypeRef(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments, default(ImmutableArray<TypeRef>), default(ImmutableArray<TypeRef>), declaringMember, declaringMethodParameterIndex);
+            return new TypeRef(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments, declaringMember, declaringMethodParameterIndex);
         }
 
         /// <summary>
@@ -237,7 +207,7 @@
         {
             Requires.Argument(!genericTypeArguments.IsDefault, "genericTypeArguments", "Not initialized.");
             Verify.Operation(this.IsGenericTypeDefinition, "This is not a generic type definition.");
-            return new Reflection.TypeRef(this.AssemblyName, this.MetadataToken, this.IsArray, this.GenericTypeParameterCount, genericTypeArguments, default(ImmutableArray<TypeRef>), default(ImmutableArray<TypeRef>), default(MemberRef), -1);
+            return new Reflection.TypeRef(this.AssemblyName, this.MetadataToken, this.IsArray, this.GenericTypeParameterCount, genericTypeArguments, default(MemberRef), -1);
         }
 
         public override int GetHashCode()
@@ -261,9 +231,7 @@
                 && this.MetadataToken == other.MetadataToken
                 && this.IsArray == other.IsArray
                 && this.GenericTypeParameterCount == other.GenericTypeParameterCount
-                && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments)
-                && EqualityComparer<ImmutableArray<TypeRef>>.Default.Equals(this.DeclaringTypeGenericArguments, other.DeclaringTypeGenericArguments)
-                && EqualityComparer<ImmutableArray<TypeRef>>.Default.Equals(this.DeclaringMethodGenericArguments, other.DeclaringMethodGenericArguments);
+                && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments);
         }
 
         public bool Equals(Type other)
