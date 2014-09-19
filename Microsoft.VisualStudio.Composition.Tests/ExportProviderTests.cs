@@ -235,5 +235,26 @@
         public class SomeExportedPartWithGuidContractName { }
 
         #endregion
+
+        #region Static exports tests
+
+        [MefFact(CompositionEngines.V1Compat, typeof(StaticPart))]
+        public void GetExports_StaticExports(IContainer container)
+        {
+            List<string> exports = container.GetExportedValues<string>().ToList();
+            Assert.Equal(1, exports.Count);
+            Assert.Equal("PASS", exports[0]);
+        }
+
+        public static class StaticPart
+        {
+            [MefV1.Export]
+            public static string Foo
+            {
+                get { return "PASS"; }
+            }
+        }
+
+        #endregion
     }
 }
