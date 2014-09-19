@@ -106,12 +106,20 @@
 
         public delegate object SomeDelegate(string arg1, object arg2);
 
-        [MefFact(CompositionEngines.V3EmulatingV1, typeof(DelegateExportingPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(DelegateExportingPart))]
         public void GetExportsImportDefinitionForDelegateExport(IContainer container)
         {
-            var v3Container = (TestUtilities.V3ContainerWrapper)container;
+            MefV1.Hosting.ExportProvider exportProvider;
+            if (container is TestUtilities.V3ContainerWrapper)
+            {
+                var v3Container = (TestUtilities.V3ContainerWrapper)container;
+                exportProvider = v3Container.ExportProvider.AsExportProvider();
+            }
+            else
+            {
+                exportProvider = ((TestUtilities.V1ContainerWrapper)container).Container;
+            }
 
-            var exportProvider = v3Container.ExportProvider.AsExportProvider();
             var importDefinition = new MefV1.Primitives.ContractBasedImportDefinition(
                 MefV1.AttributedModelServices.GetTypeIdentity(typeof(SomeDelegate)),
                 MefV1.AttributedModelServices.GetTypeIdentity(typeof(SomeDelegate)),
@@ -128,6 +136,17 @@
             Assert.Equal(2, results.Length);
             Assert.Equal(1, results.Count(r => r.Metadata["A"].Equals("instance")));
             Assert.Equal(1, results.Count(r => r.Metadata["A"].Equals("static")));
+
+            foreach (var export in results)
+            {
+                Assert.IsAssignableFrom(typeof(MefV1.Primitives.ExportedDelegate), export.Value);
+                var exportedDelegate = (MefV1.Primitives.ExportedDelegate)export.Value;
+                SomeDelegate asSomeDelegate = (SomeDelegate)exportedDelegate.CreateDelegate(typeof(SomeDelegate));
+                Assert.Null(asSomeDelegate(null, null));
+
+                Delegate asDelegate = exportedDelegate.CreateDelegate(typeof(Delegate));
+                Assert.Null(asDelegate.DynamicInvoke(new object[2]));
+            }
         }
 
         #region SatisfyImportsOnce
