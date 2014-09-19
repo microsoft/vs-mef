@@ -65,6 +65,19 @@
                 yield return new ComposedPartDiagnostic(this, "{0}: Export of ExportProvider is not allowed.", this.Definition.Type.FullName);
             }
 
+            var importsWithGenericTypeParameters = this.Definition.Imports
+                .Where(import => import.ImportingSiteElementType.ContainsGenericParameters);
+            if (importsWithGenericTypeParameters.Any())
+            {
+                foreach (var import in importsWithGenericTypeParameters)
+                {
+                    yield return new ComposedPartDiagnostic(
+                        this,
+                        "{0}: imports that use generic type parameters are not supported.",
+                        GetDiagnosticLocation(import));
+                }
+            }
+
             foreach (var pair in this.SatisfyingExports)
             {
                 var importDefinition = pair.Key.ImportDefinition;

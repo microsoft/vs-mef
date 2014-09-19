@@ -38,16 +38,19 @@
         /// </summary>
         private int? hashCode;
 
-        private TypeRef(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
+        private TypeRef(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex)
         {
             Requires.NotNull(assemblyName, "assemblyName");
-            Requires.Argument(metadataToken != 0x02000000, "metadataToken", "Unresolvable metadata token.");
+            Requires.Argument(((MetadataTokenType)metadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type, "metadataToken", "Not a type spec.");
+            Requires.Argument(metadataToken != (int)MetadataTokenType.Type, "metadataToken", "Unresolvable metadata token.");
 
             this.AssemblyName = GetNormalizedAssemblyName(assemblyName);
             this.MetadataToken = metadataToken;
             this.IsArray = isArray;
             this.GenericTypeParameterCount = genericTypeParameterCount;
             this.GenericTypeArguments = genericTypeArguments;
+            this.GenericParameterDeclaringMember = declaringMember;
+            this.GenericParameterDeclaringMemberIndex = declaringMethodParameterIndex;
         }
 
         private TypeRef(Type type)
@@ -63,6 +66,14 @@
             this.GenericTypeArguments = elementType.GenericTypeArguments != null && elementType.GenericTypeArguments.Length > 0
                 ? elementType.GenericTypeArguments.Select(t => new TypeRef(t)).ToImmutableArray()
                 : ImmutableArray<TypeRef>.Empty;
+
+            if (elementType.IsGenericParameter)
+            {
+                // Generic type parameters may come in without be type specs. So the only way to reconstruct them is by way of who references them.
+                var declaringMember = (MemberInfo)elementType.DeclaringMethod ?? elementType.DeclaringType;
+                this.GenericParameterDeclaringMember = MemberRef.Get(declaringMember);
+                this.GenericParameterDeclaringMemberIndex = Array.IndexOf(GetGenericTypeArguments(declaringMember), elementType);
+            }
         }
 
         public AssemblyName AssemblyName { get; private set; }
@@ -74,6 +85,10 @@
         public int GenericTypeParameterCount { get; private set; }
 
         public ImmutableArray<TypeRef> GenericTypeArguments { get; private set; }
+
+        public MemberRef GenericParameterDeclaringMember { get; private set; }
+
+        public int GenericParameterDeclaringMemberIndex { get; private set; }
 
         public bool IsGenericTypeDefinition
         {
@@ -89,10 +104,28 @@
             {
                 if (this.resolvedType == null)
                 {
-                    Type type = Resolver.GetManifest(this.AssemblyName).ResolveType(this.MetadataToken);
-                    if (this.GenericTypeArguments.Length > 0)
+                    Type type;
+                    if (((MetadataTokenType)this.MetadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type)
                     {
-                        type = type.MakeGenericType(this.GenericTypeArguments.Select(a => a.ResolvedType).ToArray());
+                        var manifest = Resolver.GetManifest(this.AssemblyName);
+                        var resolvedType = manifest.ResolveType(this.MetadataToken);
+                        if (this.GenericTypeArguments.Length > 0)
+                        {
+                            using (var genericTypeArguments = GetResolvedTypeArray(this.GenericTypeArguments))
+                            {
+                                type = resolvedType.MakeGenericType(genericTypeArguments.Value);
+                            }
+                        }
+                        else
+                        {
+                            type = resolvedType;
+                        }
+                    }
+                    else
+                    {
+                        MemberInfo declaringMember = this.GenericParameterDeclaringMember.Resolve();
+                        Type[] genericTypeArgs = GetGenericTypeArguments(declaringMember);
+                        type = genericTypeArgs[this.GenericParameterDeclaringMemberIndex];
                     }
 
                     if (this.IsArray)
@@ -110,9 +143,19 @@
 
         public static TypeRef Get(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
-            return new TypeRef(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments);
+            return new TypeRef(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments, default(MemberRef), 0);
         }
 
+        public static TypeRef Get(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = 0)
+        {
+            return new TypeRef(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments, declaringMember, declaringMethodParameterIndex);
+        }
+
+        /// <summary>
+        /// Gets a TypeRef that represents a given Type instance.
+        /// </summary>
+        /// <param name="type">The Type to represent. May be <c>null</c> to get a <c>null</c> result.</param>
+        /// <returns>An instance of TypeRef if <paramref name="type"/> is not <c>null</c>; otherwise <c>null</c>.</returns>
         public static TypeRef Get(Type type)
         {
             if (type == null)
@@ -120,7 +163,6 @@
                 return null;
             }
 
-            Requires.Argument(!type.IsGenericParameter, "type", "Generic type parameters are not allowed.");
             TypeRef result;
             lock (instanceCache)
             {
@@ -149,7 +191,7 @@
         {
             Requires.Argument(!genericTypeArguments.IsDefault, "genericTypeArguments", "Not initialized.");
             Verify.Operation(this.IsGenericTypeDefinition, "This is not a generic type definition.");
-            return new Reflection.TypeRef(this.AssemblyName, this.MetadataToken, this.IsArray, this.GenericTypeParameterCount, genericTypeArguments);
+            return new Reflection.TypeRef(this.AssemblyName, this.MetadataToken, this.IsArray, this.GenericTypeParameterCount, genericTypeArguments, default(MemberRef), 0);
         }
 
         public override int GetHashCode()
@@ -169,16 +211,51 @@
 
         public bool Equals(TypeRef other)
         {
-            return ByValueEquality.AssemblyName.Equals(this.AssemblyName, other.AssemblyName)
+            bool result = ByValueEquality.AssemblyName.Equals(this.AssemblyName, other.AssemblyName)
                 && this.MetadataToken == other.MetadataToken
                 && this.IsArray == other.IsArray
                 && this.GenericTypeParameterCount == other.GenericTypeParameterCount
-                && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments);
+                && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments)
+                && this.GenericParameterDeclaringMember.Equals(other.GenericParameterDeclaringMember)
+                && this.GenericParameterDeclaringMemberIndex == other.GenericParameterDeclaringMemberIndex;
+            return result;
         }
 
         public bool Equals(Type other)
         {
             return this.Equals(TypeRef.Get(other));
+        }
+
+        private static Rental<Type[]> GetResolvedTypeArray(ImmutableArray<TypeRef> typeRefs)
+        {
+            if (typeRefs.IsDefault)
+            {
+                return new Rental<Type[]>();
+            }
+
+            var result = ArrayRental<Type>.Get(typeRefs.Length);
+            for (int i = 0; i < typeRefs.Length; i++)
+            {
+                result.Value[i] = typeRefs[i].ResolvedType;
+            }
+
+            return result;
+        }
+
+        private static Type[] GetGenericTypeArguments(MemberInfo member)
+        {
+            if (member is Type)
+            {
+                return ((Type)member).GetGenericArguments();
+            }
+            else if (member is MethodInfo)
+            {
+                return ((MethodInfo)member).GetGenericArguments();
+            }
+            else
+            {
+                throw new ArgumentException();
+            }
         }
 
         private static AssemblyName GetNormalizedAssemblyName(AssemblyName assemblyName)

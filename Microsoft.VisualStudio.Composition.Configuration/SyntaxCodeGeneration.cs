@@ -315,7 +315,7 @@
                                 SyntaxFactory.Argument(parentIdentifier),
                                 SyntaxFactory.Argument(freshSharingBoundaries))))))
                 .WithBody(SyntaxFactory.Block(
-                    // this.assemblyNames
+                // this.assemblyNames
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -331,7 +331,7 @@
                                 CodeGen.JoinSyntaxNodes(
                                     SyntaxKind.CommaToken,
                                     this.reflectionLoadedAssemblies.Select(a => GetSyntaxToReconstructValue(a.FullName, SyntaxFactory.ThisExpression())).ToArray()))))),
-                    // this.assemblyCodeBasePaths
+                // this.assemblyCodeBasePaths
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -347,7 +347,7 @@
                                 CodeGen.JoinSyntaxNodes(
                                     SyntaxKind.CommaToken,
                                     this.reflectionLoadedAssemblies.Select(a => GetSyntaxToReconstructValue(a.CodeBase, SyntaxFactory.ThisExpression())).ToArray()))))),
-                    // this.cachedManifests = new Module[<#= reflectionLoadedAssemblies.Count #>];
+                // this.cachedManifests = new Module[<#= reflectionLoadedAssemblies.Count #>];
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
@@ -358,7 +358,7 @@
                             this.GetTypeNameSyntax(typeof(Module)),
                             SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier(SyntaxFactory.SingletonSeparatedList<ExpressionSyntax>(
                                 SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(this.reflectionLoadedAssemblies.Count))))))))),
-                    // this.typeRefs = new TypeRef[<#= reflectionLoadedTypes.Count #>];
+                // this.typeRefs = new TypeRef[<#= reflectionLoadedTypes.Count #>];
                     SyntaxFactory.ExpressionStatement(SyntaxFactory.BinaryExpression(
                         SyntaxKind.SimpleAssignmentExpression,
                         SyntaxFactory.MemberAccessExpression(
