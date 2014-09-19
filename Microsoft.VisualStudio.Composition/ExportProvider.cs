@@ -312,7 +312,6 @@
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(metadata, "metadata");
             Requires.NotNull(partTypeRef, "partTypeRef");
-            Requires.NotNull(valueFactory, "valueFactory");
 
             var provisionalSharedObjects = new Dictionary<TypeRef, object>();
             Func<object> maybeSharedValueFactory = this.GetOrCreateShareableValue(partTypeRef, valueFactory, provisionalSharedObjects, partSharingBoundary, nonSharedInstanceRequired);
@@ -487,7 +486,9 @@
                 }
             }
 
-            Func<object> result = () => valueFactory(this, provisionalSharedObjects, nonSharedInstanceRequired);
+            Func<object> result = valueFactory != null
+                ? (() => valueFactory(this, provisionalSharedObjects, nonSharedInstanceRequired))
+                : DelegateServices.FromValue<object>(null);
 
             if (!nonSharedInstanceRequired)
             {

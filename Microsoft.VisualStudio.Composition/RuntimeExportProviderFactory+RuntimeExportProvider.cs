@@ -37,11 +37,15 @@
                 return
                     from export in exports
                     let part = this.composition.GetPart(export)
+                    let isValueFactoryRequired = export.Member == null || !export.Member.IsStatic()
+                    let valueFactory = isValueFactoryRequired
+                        ? (ep, provisionalSharedObjects, nonSharedInstanceRequired) => this.CreatePart(provisionalSharedObjects, part, importDefinition.Metadata, nonSharedInstanceRequired)
+                        : (Func<ExportProvider, Dictionary<TypeRef, object>, bool, object>)null
                     select this.CreateExport(
                         importDefinition,
                         export.Metadata,
                         GetPartConstructedTypeRef(part, importDefinition.Metadata),
-                        (ep, provisionalSharedObjects, nonSharedInstanceRequired) => this.CreatePart(provisionalSharedObjects, part, importDefinition.Metadata, nonSharedInstanceRequired),
+                        valueFactory,
                         part.SharingBoundary,
                         !part.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
                         export.Member);
