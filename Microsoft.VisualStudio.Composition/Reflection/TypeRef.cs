@@ -182,7 +182,7 @@
                 }
             }
 
-            //Debug.Assert(type.IsEquivalentTo(result.Resolve()));
+            Debug.Assert(type.IsEquivalentTo(result.Resolve()));
 
             return result;
         }
@@ -223,14 +223,7 @@
 
         public bool Equals(Type other)
         {
-            if (other.ContainsGenericParameters)
-            {
-                return this.Resolve().IsEquivalentTo(other);
-            }
-            else
-            {
-                return this.Equals(TypeRef.Get(other));
-            }
+            return this.Equals(TypeRef.Get(other));
         }
 
         private static Rental<Type[]> GetResolvedTypeArray(ImmutableArray<TypeRef> typeRefs)
