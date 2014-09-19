@@ -416,7 +416,7 @@
             {
                 if (value is Type[])
                 {
-                    substitutedValue = new TypeArraySubstitution(((Type[])value).Select(t => TypeRef.Get(t)).ToImmutableArray());
+                    substitutedValue = new TypeArraySubstitution(((Type[])value).Select(TypeRef.Get).ToImmutableArray());
                     return true;
                 }
 

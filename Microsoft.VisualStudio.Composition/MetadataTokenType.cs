@@ -16,7 +16,6 @@
         Method = 0x06000000,
         Parameter = 0x08000000,
         Property = 0x17000000,
-        GenericParameter = 0x2a000000,
         Mask = 0xff000000,
     }
 }

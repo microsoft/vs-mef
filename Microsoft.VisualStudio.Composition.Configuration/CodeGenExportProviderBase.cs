@@ -144,7 +144,7 @@
             var valueFactory = (Func<ExportProvider, Dictionary<TypeRef, object>, bool, object>)valueFactoryMethodInfo.CreateDelegate(typeof(Func<ExportProvider, Dictionary<TypeRef, object>, bool, object>), null);
 
             Type partOpenGenericType = partOpenGenericTypeRef.Resolve();
-            TypeRef partType = partOpenGenericTypeRef.MakeGenericType(typeArgs.Select(t => TypeRef.Get(t)).ToImmutableArray());
+            TypeRef partType = partOpenGenericTypeRef.MakeGenericType(typeArgs.Select(TypeRef.Get).ToImmutableArray());
 
             return this.CreateExport(importDefinition, metadata, partType, valueFactory, partSharingBoundary, nonSharedInstanceRequired, exportingMember);
         }
