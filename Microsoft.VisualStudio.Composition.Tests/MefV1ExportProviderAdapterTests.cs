@@ -149,6 +149,41 @@
             }
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(MismatchSignatureDelegateExportingPart))]
+        public void GetExportsImportDefinitionForDelegateExportWithMismatchingSignature(IContainer container)
+        {
+            MefV1.Hosting.ExportProvider exportProvider;
+            if (container is TestUtilities.V3ContainerWrapper)
+            {
+                var v3Container = (TestUtilities.V3ContainerWrapper)container;
+                exportProvider = v3Container.ExportProvider.AsExportProvider();
+            }
+            else
+            {
+                exportProvider = ((TestUtilities.V1ContainerWrapper)container).Container;
+            }
+
+            var importDefinition = new MefV1.Primitives.ContractBasedImportDefinition(
+                MefV1.AttributedModelServices.GetTypeIdentity(typeof(SomeDelegate)),
+                MefV1.AttributedModelServices.GetTypeIdentity(typeof(SomeDelegate)),
+                new KeyValuePair<string, Type>[0],
+                MefV1.Primitives.ImportCardinality.ZeroOrMore,
+                false,
+                true,
+                MefV1.CreationPolicy.Any);
+
+            var results = exportProvider.GetExports(importDefinition).ToArray();
+            Assert.Equal(1, results.Length);
+
+            foreach (var export in results)
+            {
+                Assert.IsAssignableFrom(typeof(MefV1.Primitives.ExportedDelegate), export.Value);
+                var exportedDelegate = (MefV1.Primitives.ExportedDelegate)export.Value;
+                Delegate asDelegate = exportedDelegate.CreateDelegate(typeof(Delegate));
+                Assert.Null(asDelegate.DynamicInvoke(new object[1]));
+            }
+        }
+
         #region SatisfyImportsOnce
 
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Apple))]
@@ -392,6 +427,12 @@
             }
 
             return v1Container;
+        }
+
+        internal class MismatchSignatureDelegateExportingPart
+        {
+            [MefV1.Export(typeof(SomeDelegate))]
+            public void InstanceMethod(string arg1) { }
         }
 
         internal class DelegateExportingPart
