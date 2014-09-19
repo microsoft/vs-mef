@@ -76,22 +76,6 @@
             }
         }
 
-        private static Type[] GetGenericTypeArguments(MemberInfo member)
-        {
-            if (member is Type)
-            {
-                return ((Type)member).GetGenericArguments();
-            }
-            else if (member is MethodInfo)
-            {
-                return ((MethodInfo)member).GetGenericArguments();
-            }
-            else
-            {
-                throw new ArgumentException();
-            }
-        }
-
         public AssemblyName AssemblyName { get; private set; }
 
         public int MetadataToken { get; private set; }
@@ -260,6 +244,22 @@
             }
 
             return result;
+        }
+
+        private static Type[] GetGenericTypeArguments(MemberInfo member)
+        {
+            if (member is Type)
+            {
+                return ((Type)member).GetGenericArguments();
+            }
+            else if (member is MethodInfo)
+            {
+                return ((MethodInfo)member).GetGenericArguments();
+            }
+            else
+            {
+                throw new ArgumentException();
+            }
         }
 
         private static AssemblyName GetNormalizedAssemblyName(AssemblyName assemblyName)
