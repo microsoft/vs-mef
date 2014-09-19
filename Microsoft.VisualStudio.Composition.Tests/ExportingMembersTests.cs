@@ -2,14 +2,15 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Composition;
     using System.Composition.Hosting;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
-    using MefV1 = System.ComponentModel.Composition;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
+    using MefV1 = System.ComponentModel.Composition;
 
     public class ExportingMembersTests
     {
@@ -54,6 +55,47 @@
         public void ExportedPropertyGenericTypeWrongTypeArgs(IContainer container)
         {
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<Comparer<bool>>("PropertyGenericType"));
+        }
+
+        /// <summary>
+        /// Verifies that properties that return delegates result in exports that
+        /// are *not* wrapped by ExportedDelegate.
+        /// </summary>
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ExportingMembersClass))]
+        public void ImportDefinition_ExportedPropertyReturnsDelegate(IContainer container)
+        {
+            var v3ExportProvider = ((TestUtilities.V3ContainerWrapper)container).ExportProvider;
+            var importDefinition = new ImportDefinition(
+                "DelegateReturningProperty",
+                ImportCardinality.ZeroOrMore,
+                ImmutableDictionary.Create<string, object>(),
+                ImmutableHashSet.Create<IImportSatisfiabilityConstraint>());
+            List<Export> exports = v3ExportProvider.GetExports(importDefinition).ToList();
+            Assert.Equal(1, exports.Count);
+            Assert.Equal("b", exports[0].Metadata["A"]);
+            Assert.IsAssignableFrom(typeof(Func<string, string>), exports[0].Value);
+        }
+
+        /// <summary>
+        /// Verifies that exported methods result in exports that
+        /// *are* wrapped by ExportedDelegate.
+        /// </summary>
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ExportingMembersClass))]
+        public void ImportDefinition_ExportedDelegate(IContainer container)
+        {
+            var v3ExportProvider = ((TestUtilities.V3ContainerWrapper)container).ExportProvider;
+            var importDefinition = new ImportDefinition(
+                "Method",
+                ImportCardinality.ZeroOrMore,
+                ImmutableDictionary.Create<string, object>(),
+                ImmutableHashSet.Create<IImportSatisfiabilityConstraint>());
+            List<Export> exports = v3ExportProvider.GetExports(importDefinition).ToList();
+            Assert.NotEqual(0, exports.Count);
+            foreach (var export in exports)
+            {
+                Assert.Equal("b", export.Metadata["A"]);
+                Assert.IsAssignableFrom(typeof(ExportedDelegate), export.Value);
+            }
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersClass))]
@@ -153,25 +195,36 @@
 
             [MefV1.Export("Method")]
             [MefV1.Export("Method_Extra_Export")]
+            [MefV1.ExportMetadata("A", "b")]
             public void SomeAction()
             {
             }
 
             [MefV1.Export("Method")]
+            [MefV1.ExportMetadata("A", "b")]
             public void SomeAction(int a, string b)
             {
             }
 
             [MefV1.Export("Method")]
+            [MefV1.ExportMetadata("A", "b")]
             public bool SomeFunc()
             {
                 return true;
             }
 
             [MefV1.Export("Method")]
+            [MefV1.ExportMetadata("A", "b")]
             public bool SomeFunc(int a, string b)
             {
                 return true;
+            }
+
+            [MefV1.Export("DelegateReturningProperty")]
+            [MefV1.ExportMetadata("A", "b")]
+            public Func<string, string> DelegateReturningProperty
+            {
+                get { return v => v == "TEST" ? "PASS" : "FAIL"; }
             }
         }
 

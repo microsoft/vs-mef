@@ -210,9 +210,9 @@
 
             private static object UnwrapExportedValue(object value)
             {
-                if (value is Delegate)
+                if (value is ExportedDelegate)
                 {
-                    var del = (Delegate)value;
+                    var del = ((ExportedDelegate)value).CreateDelegate(typeof(Delegate));
                     return new MefV1.Primitives.ExportedDelegate(del.Target, del.Method);
                 }
                 else
