@@ -5,6 +5,7 @@
     using System.Collections.Immutable;
     using System.Globalization;
     using System.Linq;
+    using System.Linq.Expressions;
     using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Text;
@@ -442,26 +443,19 @@
 
         internal static Type GetContractTypeForDelegate(MethodInfo method)
         {
-            Type genericTypeDefinition;
-            int parametersCount = method.GetParameters().Length;
-            var typeArguments = method.GetParameters().Select(p => p.ParameterType).ToList();
-            var voidResult = method.ReturnType.Equals(typeof(void));
-            if (voidResult)
-            {
-                if (typeArguments.Count == 0)
-                {
-                    return typeof(Action);
-                }
+            Requires.NotNull(method, "method");
 
-                genericTypeDefinition = Type.GetType("System.Action`" + typeArguments.Count);
-            }
-            else
+            ParameterInfo[] parameters = method.GetParameters();
+
+            // This array should contains a lit of all argument types, and the last one is the return type (could be void)
+            Type[] parameterTypes = new Type[parameters.Length + 1];
+            parameterTypes[parameters.Length] = method.ReturnType;
+            for (int i = 0; i < parameters.Length; i++)
             {
-                typeArguments.Add(method.ReturnType);
-                genericTypeDefinition = Type.GetType("System.Func`" + typeArguments.Count);
+                parameterTypes[i] = parameters[i].ParameterType;
             }
 
-            return genericTypeDefinition.MakeGenericType(typeArguments.ToArray());
+            return Expression.GetDelegateType(parameterTypes);
         }
 
         internal static Attribute Instantiate(this CustomAttributeData attributeData)

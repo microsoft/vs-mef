@@ -29,6 +29,10 @@
             var genericPartArray = container.GetExportedValue<PartThatImportsArrayOfT<SomeOtherPart>>();
             Assert.NotNull(genericPartArray);
             Assert.IsType<SomeOtherPart>(genericPartArray.Value[0]);
+
+            var genericPartList = container.GetExportedValue<PartThatImportsEnumerableOfT<SomeOtherPart>>();
+            Assert.NotNull(genericPartList);
+            Assert.IsType<SomeOtherPart>(genericPartList.Value.First());
         }
 
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors, InvalidConfiguration = true)]
@@ -38,6 +42,7 @@
             Assert.Equal(0, container.GetExportedValues<PartThatImportsT<SomeOtherPart>>().Count());
             Assert.Equal(0, container.GetExportedValues<PartThatImportsLazyT<SomeOtherPart>>().Count());
             Assert.Equal(0, container.GetExportedValues<PartThatImportsArrayOfT<SomeOtherPart>>().Count());
+            Assert.Equal(0, container.GetExportedValues<PartThatImportsEnumerableOfT<SomeOtherPart>>().Count());
         }
 
         [Export, Shared, MefV1.Export]
@@ -59,6 +64,13 @@
         {
             [ImportMany, MefV1.ImportMany]
             public T[] Value { get; set; }
+        }
+
+        [Export, Shared, MefV1.Export]
+        public class PartThatImportsEnumerableOfT<T>
+        {
+            [ImportMany, MefV1.ImportMany]
+            public IEnumerable<T> Value { get; set; }
         }
 
         [Export, Shared, MefV1.Export]

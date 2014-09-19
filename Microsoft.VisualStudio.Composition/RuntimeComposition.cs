@@ -31,7 +31,6 @@
 
             var exports =
                 from part in this.parts
-                where part.IsInstantiable // TODO: why are we limiting these to instantiable ones? Why not make static exports available?
                 from export in part.Exports
                 group export by export.ContractName into exportsByContract
                 select exportsByContract;

@@ -205,7 +205,20 @@
                 return new MefV1.Primitives.Export(
                     export.Definition.ContractName,
                     metadata,
-                    () => export.Value);
+                    () => UnwrapExportedValue(export.Value));
+            }
+
+            private static object UnwrapExportedValue(object value)
+            {
+                if (value is ExportedDelegate)
+                {
+                    var del = ((ExportedDelegate)value).CreateDelegate(typeof(Delegate));
+                    return new MefV1.Primitives.ExportedDelegate(del.Target, del.Method);
+                }
+                else
+                {
+                    return value;
+                }
             }
 
             private class ComposablePartForExportFactory : MefV1.Primitives.ComposablePart, IDisposable

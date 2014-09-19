@@ -101,6 +101,7 @@
     <Compile Include="DiscoveryProgress.cs" />
     <Compile Include="DisposableWithAction.cs" />
     <Compile Include="ExportDefinitionBinding.cs" />
+    <Compile Include="ExportedDelegate.cs" />
     <Compile Include="ExportFactory.cs" />
     <Compile Include="Export.cs" />
     <Compile Include="ExportTypeIdentityConstraint.cs" />
