@@ -28,18 +28,19 @@
 
         public void Dispose()
         {
-            Assumes.NotNull(this.value);
-
-            var value = this.value;
-            this.value = null;
-            if (this.cleanup != null)
+            if (this.value != null)
             {
-                this.cleanup(value);
-            }
+                var value = this.value;
+                this.value = null;
+                if (this.cleanup != null)
+                {
+                    this.cleanup(value);
+                }
 
-            if (this.returnTo != null)
-            {
-                this.returnTo.Push(value);
+                if (this.returnTo != null)
+                {
+                    this.returnTo.Push(value);
+                }
             }
         }
     }

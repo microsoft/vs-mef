@@ -346,6 +346,15 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+        [Flags]
+        private enum TypeRefFlags : byte
+        {
+            None = 0x0,
+            IsArray = 0x1,
+            HasGenericParameterDeclaringMember = 0x8,
+            HasGenericParameterDeclaringMemberIndex = 0x10,
+        }
+
         protected void Write(TypeRef typeRef)
         {
             using (Trace("TypeRef"))
@@ -354,9 +363,25 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     this.Write(typeRef.AssemblyName);
                     this.WriteCompressedMetadataToken(typeRef.MetadataToken, MetadataTokenType.Type);
-                    writer.Write(typeRef.IsArray);
-                    writer.Write((byte)typeRef.GenericTypeParameterCount);
+
+                    var flags = TypeRefFlags.None;
+                    flags |= typeRef.IsArray ? TypeRefFlags.IsArray : TypeRefFlags.None;
+                    flags |= !typeRef.GenericParameterDeclaringMember.IsEmpty ? TypeRefFlags.HasGenericParameterDeclaringMember : TypeRefFlags.None;
+                    flags |= typeRef.GenericParameterDeclaringMemberIndex >= 0 ? TypeRefFlags.HasGenericParameterDeclaringMemberIndex : TypeRefFlags.None;
+                    writer.Write((byte)flags);
+
+                    this.WriteCompressedUInt((uint)typeRef.GenericTypeParameterCount);
                     this.Write(typeRef.GenericTypeArguments, this.Write);
+
+                    if (!typeRef.GenericParameterDeclaringMember.IsEmpty)
+                    {
+                        this.Write(typeRef.GenericParameterDeclaringMember);
+                    }
+
+                    if (typeRef.GenericParameterDeclaringMemberIndex >= 0)
+                    {
+                        this.WriteCompressedUInt((uint)typeRef.GenericParameterDeclaringMemberIndex);
+                    }
                 }
             }
         }
@@ -371,10 +396,20 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     var assemblyName = this.ReadAssemblyName();
                     var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Type);
-                    bool isArray = reader.ReadBoolean();
-                    int genericTypeParameterCount = reader.ReadByte();
-                    var genericTypeArguments = this.ReadList(reader, this.ReadTypeRef);
-                    value = TypeRef.Get(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments.ToImmutableArray());
+                    var flags = (TypeRefFlags)reader.ReadByte();
+                    int genericTypeParameterCount = (int)this.ReadCompressedUInt();
+                    var genericTypeArguments = this.ReadList(reader, this.ReadTypeRef).ToImmutableArray();
+                    var genericParameterDeclaringMember = flags.HasFlag(TypeRefFlags.HasGenericParameterDeclaringMember) ? this.ReadMemberRef() : default(MemberRef);
+                    var genericParameterDeclaringMemberIndex = flags.HasFlag(TypeRefFlags.HasGenericParameterDeclaringMemberIndex) ? (int)this.ReadCompressedUInt() : -1;
+                    if (genericParameterDeclaringMember.IsEmpty)
+                    {
+                        value = TypeRef.Get(assemblyName, metadataToken, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments);
+                    }
+                    else
+                    {
+                        value = TypeRef.Get(assemblyName, metadataToken, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments, genericParameterDeclaringMember, genericParameterDeclaringMemberIndex);
+                    }
+
                     this.OnDeserializedReusableObject(id, value);
                 }
 

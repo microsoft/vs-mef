@@ -129,6 +129,11 @@
                 return memberRef.Constructor.Resolve();
             }
 
+            if (memberRef.IsType)
+            {
+                return memberRef.Type.Resolve();
+            }
+
             throw new NotSupportedException();
         }
 
