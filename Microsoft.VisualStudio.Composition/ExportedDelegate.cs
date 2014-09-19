@@ -24,7 +24,7 @@
 
             if (delegateType == typeof(Delegate) || delegateType == typeof(MulticastDelegate))
             {
-                delegateType = this.CreateStandardDelegateType();
+                delegateType = ReflectionHelpers.GetContractTypeForDelegate(this.method);
             }
             try
             {
@@ -35,21 +35,6 @@
                 // Bind failure occurs return null;
                 return null;
             }
-        }
-
-        private Type CreateStandardDelegateType()
-        {
-            ParameterInfo[] parameters = this.method.GetParameters();
-
-            // This array should contains a lit of all argument types, and the last one is the return type (could be void)
-            Type[] parameterTypes = new Type[parameters.Length + 1];
-            parameterTypes[parameters.Length] = this.method.ReturnType;
-            for (int i = 0; i < parameters.Length; i++)
-            {
-                parameterTypes[i] = parameters[i].ParameterType;
-            }
-
-            return Expression.GetDelegateType(parameterTypes);
         }
     }
 }
