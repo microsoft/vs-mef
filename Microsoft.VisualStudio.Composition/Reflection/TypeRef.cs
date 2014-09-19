@@ -262,27 +262,6 @@
             return result;
         }
 
-        private static ImmutableArray<TypeRef> GetTypeRefArray(Type[] types, MemberInfo declaringMember)
-        {
-            if (types == null)
-            {
-                return default(ImmutableArray<TypeRef>);
-            }
-
-            if (types.Length == 0)
-            {
-                return ImmutableArray.Create<TypeRef>();
-            }
-
-            var builder = ImmutableArray.CreateBuilder<TypeRef>(types.Length);
-            for (int i = 0; i < types.Length; i++)
-            {
-                builder[i] = TypeRef.Get(types[i]);
-            }
-
-            return builder.ToImmutable();
-        }
-
         private static AssemblyName GetNormalizedAssemblyName(AssemblyName assemblyName)
         {
             Requires.NotNull(assemblyName, "assemblyName");
