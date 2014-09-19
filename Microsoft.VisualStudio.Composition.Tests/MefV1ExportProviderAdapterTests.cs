@@ -106,19 +106,32 @@
 
         public delegate object SomeDelegate(string arg1, object arg2);
 
+        [MefFact(CompositionEngines.V1Compat, typeof(PartExportingPropertyThatReturnsDelegate))]
+        public void GetExportsImportDefinitionForDelegateReturningProperty(IContainer container)
+        {
+            var exportProvider = GetMefV1Container(container);
+
+            SomeDelegate del = exportProvider.GetExportedValue<SomeDelegate>();
+            Assert.Null(del(null, null));
+
+            var importDefinition = new MefV1.Primitives.ContractBasedImportDefinition(
+                MefV1.AttributedModelServices.GetTypeIdentity(typeof(SomeDelegate)),
+                MefV1.AttributedModelServices.GetTypeIdentity(typeof(SomeDelegate)),
+                new KeyValuePair<string, Type>[0],
+                MefV1.Primitives.ImportCardinality.ZeroOrMore,
+                false,
+                true,
+                MefV1.CreationPolicy.Any);
+
+            var results = exportProvider.GetExports(importDefinition).ToArray();
+            Assert.Equal(1, results.Length);
+            Assert.IsAssignableFrom(typeof(SomeDelegate), results[0].Value);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(DelegateExportingPart))]
         public void GetExportsImportDefinitionForDelegateExport(IContainer container)
         {
-            MefV1.Hosting.ExportProvider exportProvider;
-            if (container is TestUtilities.V3ContainerWrapper)
-            {
-                var v3Container = (TestUtilities.V3ContainerWrapper)container;
-                exportProvider = v3Container.ExportProvider.AsExportProvider();
-            }
-            else
-            {
-                exportProvider = ((TestUtilities.V1ContainerWrapper)container).Container;
-            }
+            var exportProvider = GetMefV1Container(container);
 
             var importDefinition = new MefV1.Primitives.ContractBasedImportDefinition(
                 MefV1.AttributedModelServices.GetTypeIdentity(typeof(SomeDelegate)),
@@ -152,16 +165,7 @@
         [MefFact(CompositionEngines.V1Compat, typeof(MismatchSignatureDelegateExportingPart))]
         public void GetExportsImportDefinitionForDelegateExportWithMismatchingSignature(IContainer container)
         {
-            MefV1.Hosting.ExportProvider exportProvider;
-            if (container is TestUtilities.V3ContainerWrapper)
-            {
-                var v3Container = (TestUtilities.V3ContainerWrapper)container;
-                exportProvider = v3Container.ExportProvider.AsExportProvider();
-            }
-            else
-            {
-                exportProvider = ((TestUtilities.V1ContainerWrapper)container).Container;
-            }
+            var exportProvider = GetMefV1Container(container);
 
             var importDefinition = new MefV1.Primitives.ContractBasedImportDefinition(
                 MefV1.AttributedModelServices.GetTypeIdentity(typeof(SomeDelegate)),
@@ -444,6 +448,15 @@
             [MefV1.Export(typeof(SomeDelegate))]
             [MefV1.ExportMetadata("A", "static")]
             public static object StaticMethod(string arg1, object arg2) { return null; }
+        }
+
+        internal class PartExportingPropertyThatReturnsDelegate
+        {
+            [MefV1.Export]
+            public SomeDelegate Property
+            {
+                get { return new SomeDelegate(DelegateExportingPart.StaticMethod); }
+            }
         }
     }
 }
