@@ -1,6 +1,6 @@
 @ECHO OFF
 
-SET RAZZLE=C:\dd\VSPro_VBCS\src\Platform\MEF
+IF "%RAZZLE%"=="" SET RAZZLE=d:\VSPro_Platform\src\Platform\MEF
 SET GIT=%~dp0\
 
 IF /I "%1"=="FI" (
