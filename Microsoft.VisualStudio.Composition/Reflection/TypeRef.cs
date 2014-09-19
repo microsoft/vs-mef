@@ -143,10 +143,10 @@
 
         public static TypeRef Get(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
-            return new TypeRef(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments, default(MemberRef), -1);
+            return new TypeRef(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments, default(MemberRef), 0);
         }
 
-        public static TypeRef Get(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = -1)
+        public static TypeRef Get(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = 0)
         {
             return new TypeRef(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments, declaringMember, declaringMethodParameterIndex);
         }
@@ -191,7 +191,7 @@
         {
             Requires.Argument(!genericTypeArguments.IsDefault, "genericTypeArguments", "Not initialized.");
             Verify.Operation(this.IsGenericTypeDefinition, "This is not a generic type definition.");
-            return new Reflection.TypeRef(this.AssemblyName, this.MetadataToken, this.IsArray, this.GenericTypeParameterCount, genericTypeArguments, default(MemberRef), -1);
+            return new Reflection.TypeRef(this.AssemblyName, this.MetadataToken, this.IsArray, this.GenericTypeParameterCount, genericTypeArguments, default(MemberRef), 0);
         }
 
         public override int GetHashCode()
@@ -211,11 +211,14 @@
 
         public bool Equals(TypeRef other)
         {
-            return ByValueEquality.AssemblyName.Equals(this.AssemblyName, other.AssemblyName)
+            bool result = ByValueEquality.AssemblyName.Equals(this.AssemblyName, other.AssemblyName)
                 && this.MetadataToken == other.MetadataToken
                 && this.IsArray == other.IsArray
                 && this.GenericTypeParameterCount == other.GenericTypeParameterCount
-                && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments);
+                && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments)
+                && this.GenericParameterDeclaringMember.Equals(other.GenericParameterDeclaringMember)
+                && this.GenericParameterDeclaringMemberIndex == other.GenericParameterDeclaringMemberIndex;
+            return result;
         }
 
         public bool Equals(Type other)
