@@ -21,6 +21,7 @@
     <CreateMetaAssembly>true</CreateMetaAssembly>
     <AsmmetaDependsOnMSBuildInVS Condition="'$(VSMSBUILD)' != '1'">true</AsmmetaDependsOnMSBuildInVS>
     <AssemblyAttributeClsCompliant>false</AssemblyAttributeClsCompliant>
+    <CopyToSuiteBin>true</CopyToSuiteBin>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
