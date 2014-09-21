@@ -5,6 +5,6 @@
     <ModuleDefinitionsDirectory>$(MSBuildThisFileDirectory)Tools\ModuleTargets\Modules\</ModuleDefinitionsDirectory>
   </PropertyGroup>
 
-  <Import Project="EnlistmentInfo.xml"/>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), EnlistmentInfo.xml))\EnlistmentInfo.xml" />
   <Import Project="$(DepotRoot)\Tools\Derazzle\Common.props"/>
 </Project>
