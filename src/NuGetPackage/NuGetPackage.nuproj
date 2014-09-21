@@ -77,8 +77,8 @@
       <Link>build\System.Composition.Runtime.dll</Link>
       <AlwaysInclude>true</AlwaysInclude>
     </Content>
-    <Content Include="$(BinariesSourceLocation)Validation.dll">
-      <Link>build\Validation.dll</Link>
+    <Content Include="$(BinariesSourceLocation)Microsoft.VisualStudio.Validation.dll">
+      <Link>build\Microsoft.VisualStudio.Validation.dll</Link>
       <AlwaysInclude>true</AlwaysInclude>
     </Content>
     <Content Include="$(BinariesSourceLocation)System.Threading.Tasks.Dataflow.dll">
