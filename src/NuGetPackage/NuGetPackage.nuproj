@@ -51,7 +51,7 @@
   </ItemGroup>
   <Import Project="$(NuProjPath)\NuProj.targets" />
   <PropertyGroup>
-    <BinariesSourceLocation>..\Microsoft.VisualStudio.Composition.Configuration\bin\$(Configuration)\</BinariesSourceLocation>
+    <BinariesSourceLocation>..\..\bin\$(Configuration)\</BinariesSourceLocation>
     <BinariesSourceLocation Condition=" !Exists('$(BinariesSourceLocation)') ">$(OutDir)\</BinariesSourceLocation>
   </PropertyGroup>
   <ItemGroup>
