@@ -1,3 +1,0 @@
-IF "%CONFIG%"=="" SET CONFIG=Release
-msbuild "%~dp0Microsoft.VisualStudio.Composition.Configuration\Microsoft.VisualStudio.Composition.Configuration.csproj" /p:configuration=%CONFIG% /v:minimal
-nuget.exe pack "%~dp0nuget\Microsoft.VisualStudio.Composition.nuspec" -Properties TargetPath=%~dp0Microsoft.VisualStudio.Composition.Configuration\bin\%CONFIG%\ -OutputDirectory %~dp0Microsoft.VisualStudio.Composition\bin\%CONFIG%\
