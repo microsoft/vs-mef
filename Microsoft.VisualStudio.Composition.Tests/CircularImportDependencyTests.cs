@@ -12,13 +12,13 @@
 
     public class CircularImportDependencyTests
     {
-        static IContainer _container = null;
+        private static IContainer ContainerForRunningTest = null;
 
         [Fact(Skip = "Still need to handle circular MEF dependencies.")]
         [MefFact(CompositionEngines.V1Compat)]
         public void CircularImportDependency(IContainer container)
         {
-            _container = container;
+            ContainerForRunningTest = container;
             IPackageRestoreManager packageRestoreManager = container.GetExportedValue<IPackageRestoreManager>();
             Assert.NotNull(packageRestoreManager);
         }
@@ -27,10 +27,12 @@
         {
             int Method1();
         }
+
         public interface IVsPackageInstaller
         {
             int Method2();
         }
+
         public interface IPackageRestoreManager
         {
             int Method3();
@@ -49,12 +51,12 @@
         [MefV1.Export(typeof(IPackageRestoreManager))]
         public class PackageRestoreManager : IPackageRestoreManager
         {
-            ISolutionManager _solutionManager = null;
+            private ISolutionManager solutionManager;
 
             [MefV1.ImportingConstructor]
             public PackageRestoreManager(ISolutionManager solutionManager)
             {
-                _solutionManager = solutionManager;
+                this.solutionManager = solutionManager;
             }
 
             public int Method3() { return 3; }
@@ -73,7 +75,7 @@
             {
                 // This matches what Microsoft.VisualStudio.Web.Application GetNugetProjectTypeContext is doing when it uses
                 // IComponentModel.GetService<IVsPackageInstallerServices>() on the callstack above the SolutionManager constructor.
-                IVsPackageInstallerServices packageInstallerServices = _container.GetExportedValue<IVsPackageInstallerServices>();
+                IVsPackageInstallerServices packageInstallerServices = ContainerForRunningTest.GetExportedValue<IVsPackageInstallerServices>();
             }
 
             public int Method1() { return 1; }
@@ -83,12 +85,12 @@
         [MefV1.Export(typeof(IVsPackageInstallerServices))]
         public class VsPackageInstallerServices : IVsPackageInstallerServices
         {
+            private IVsPackageManagerFactory packageManagerFactory;
 
-            IVsPackageManagerFactory _packageManagerFactory = null;
             [MefV1.ImportingConstructor]
             public VsPackageInstallerServices(IVsPackageManagerFactory packageManagerFactory)
             {
-                _packageManagerFactory = packageManagerFactory;
+                this.packageManagerFactory = packageManagerFactory;
             }
 
             public int Method4() { return 4; }
@@ -98,13 +100,13 @@
         [MefV1.Export(typeof(IVsPackageManagerFactory))]
         public class VsPackageManagerFactory : IVsPackageManagerFactory
         {
-            private readonly ISolutionManager _solutionManager;
+            private readonly ISolutionManager solutionManager;
 
             [MefV1.ImportingConstructor]
             public VsPackageManagerFactory(ISolutionManager solutionManager)
             {
-                _solutionManager = solutionManager;
-                int i = _solutionManager.Method1();
+                this.solutionManager = solutionManager;
+                int i = solutionManager.Method1();
             }
 
             public int Method5() { return 5; }
