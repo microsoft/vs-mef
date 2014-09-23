@@ -363,6 +363,10 @@
                 {
                     throw new CompositionFailedException(ex.Message, ex);
                 }
+                catch (MefV1.CompositionException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public Lazy<T> GetExport<T>(string contractName)
@@ -372,6 +376,10 @@
                     return this.container.GetExport<T>(contractName);
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
+                catch (MefV1.CompositionException ex)
                 {
                     throw new CompositionFailedException(ex.Message, ex);
                 }
@@ -387,6 +395,10 @@
                 {
                     throw new CompositionFailedException(ex.Message, ex);
                 }
+                catch (MefV1.CompositionException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public Lazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
@@ -396,6 +408,10 @@
                     return this.container.GetExport<T, TMetadataView>(contractName);
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
+                catch (MefV1.CompositionException ex)
                 {
                     throw new CompositionFailedException(ex.Message, ex);
                 }
@@ -411,6 +427,10 @@
                 {
                     throw new CompositionFailedException(ex.Message, ex);
                 }
+                catch (MefV1.CompositionException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public IEnumerable<Lazy<T>> GetExports<T>(string contractName)
@@ -420,6 +440,10 @@
                     return this.container.GetExports<T>(contractName);
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
+                catch (MefV1.CompositionException ex)
                 {
                     throw new CompositionFailedException(ex.Message, ex);
                 }
@@ -435,6 +459,10 @@
                 {
                     throw new CompositionFailedException(ex.Message, ex);
                 }
+                catch (MefV1.CompositionException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
@@ -444,6 +472,10 @@
                     return this.container.GetExports<T, TMetadataView>(contractName);
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
+                catch (MefV1.CompositionException ex)
                 {
                     throw new CompositionFailedException(ex.Message, ex);
                 }
@@ -459,6 +491,10 @@
                 {
                     throw new CompositionFailedException(ex.Message, ex);
                 }
+                catch (MefV1.CompositionException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public T GetExportedValue<T>(string contractName)
@@ -468,6 +504,10 @@
                     return this.container.GetExportedValue<T>(contractName);
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
+                catch (MefV1.CompositionException ex)
                 {
                     throw new CompositionFailedException(ex.Message, ex);
                 }
@@ -483,6 +523,10 @@
                 {
                     throw new CompositionFailedException(ex.Message, ex);
                 }
+                catch (MefV1.CompositionException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
             }
 
             public IEnumerable<T> GetExportedValues<T>(string contractName)
@@ -492,6 +536,10 @@
                     return this.container.GetExportedValues<T>(contractName);
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
+                {
+                    throw new CompositionFailedException(ex.Message, ex);
+                }
+                catch (MefV1.CompositionException ex)
                 {
                     throw new CompositionFailedException(ex.Message, ex);
                 }
