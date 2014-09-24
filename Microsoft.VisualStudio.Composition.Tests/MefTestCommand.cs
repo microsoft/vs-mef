@@ -34,7 +34,7 @@
         {
             if (this.invalidConfiguration)
             {
-                bool exceptionThrown;
+                bool compositionExceptionThrown;
                 try
                 {
                     RunMultiEngineTest(
@@ -43,14 +43,24 @@
                         this.assemblies,
                         container => this.testMethod.Invoke(testClass, container));
 
-                    exceptionThrown = false;
+                    compositionExceptionThrown = false;
                 }
-                catch
+                catch (CompositionFailedException)
                 {
-                    exceptionThrown = true;
+                    compositionExceptionThrown = true;
+                }
+                catch (InvalidOperationException)
+                {
+                    // MEFv1 throws this sometimes (CustomMetadataValueV1 test).
+                    compositionExceptionThrown = true;
+                }
+                catch (System.Composition.Hosting.CompositionFailedException)
+                {
+                    // MEFv2 can throw this from ExportFactory`1.CreateExport.
+                    compositionExceptionThrown = true;
                 }
 
-                Assert.True(exceptionThrown, "Composition exception expected but not thrown.");
+                Assert.True(compositionExceptionThrown, "Composition exception expected but not thrown.");
             }
             else
             {

@@ -202,8 +202,15 @@
 
         private static IContainer CreateContainerV2(ContainerConfiguration configuration)
         {
-            var container = configuration.CreateContainer();
-            return new V2ContainerWrapper(container);
+            try
+            {
+                var container = configuration.CreateContainer();
+                return new V2ContainerWrapper(container);
+            }
+            catch (System.Composition.Hosting.CompositionFailedException ex)
+            {
+                throw new CompositionFailedException(ex.Message, ex);
+            }
         }
 
         internal static IContainer CreateContainerV3(params Type[] parts)

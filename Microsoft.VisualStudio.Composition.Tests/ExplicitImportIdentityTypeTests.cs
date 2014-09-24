@@ -29,7 +29,7 @@
         public void InvalidDowncastingExplicitImportType(IContainer container)
         {
             // Since this can be statically proven to never succeed, the configuration should be rejected.
-            Assert.Throws<InvalidOperationException>(() => container.GetExportedValue<InvalidDowncastingExplicitImporter>());
+            container.GetExportedValue<InvalidDowncastingExplicitImporter>();
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(LazyUpcastingExplicitImporter), typeof(Implementor))]
