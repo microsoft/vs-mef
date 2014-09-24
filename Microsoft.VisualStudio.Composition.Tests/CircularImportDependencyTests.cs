@@ -14,8 +14,7 @@
     {
         private static IContainer ContainerForRunningTest = null;
 
-        [Fact(Skip = "Still need to handle circular MEF dependencies.")]
-        [MefFact(CompositionEngines.V1Compat)]
+        [MefFact(CompositionEngines.V1Compat, Skip = "Still need to handle circular MEF dependencies.")]
         public void CircularImportDependency(IContainer container)
         {
             ContainerForRunningTest = container;
