@@ -88,7 +88,7 @@
                 var v3DiscoveryTest = new MefV3DiscoveryTestCommand(method, this.compositionVersions, parts ?? new Type[0], this.assemblies ?? ImmutableList<string>.Empty, this.InvalidConfiguration);
                 yield return v3DiscoveryTest;
 
-                if (v3DiscoveryTest.Result is PassedResult && !this.InvalidConfiguration)
+                if (v3DiscoveryTest.Result is PassedResult && (!this.InvalidConfiguration || this.compositionVersions.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors)))
                 {
                     foreach (var configuration in v3DiscoveryTest.ResultingConfigurations)
                     {

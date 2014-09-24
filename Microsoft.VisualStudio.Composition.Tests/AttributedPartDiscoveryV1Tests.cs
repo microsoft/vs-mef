@@ -16,5 +16,13 @@
         {
             get { return this.discovery; }
         }
+
+        [Fact]
+        public void MissingImportingConstructor()
+        {
+            var part = this.DiscoveryService.CreatePart(typeof(SomePartWithoutImportingConstructor));
+            Assert.NotNull(part);
+            Assert.False(part.IsInstantiable);
+        }
     }
 }

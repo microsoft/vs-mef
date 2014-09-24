@@ -49,6 +49,10 @@
                 {
                     compositionExceptionThrown = true;
                 }
+                catch (System.ComponentModel.Composition.CompositionException)
+                {
+                    compositionExceptionThrown = true;
+                }
                 catch (InvalidOperationException)
                 {
                     // MEFv1 throws this sometimes (CustomMetadataValueV1 test).
