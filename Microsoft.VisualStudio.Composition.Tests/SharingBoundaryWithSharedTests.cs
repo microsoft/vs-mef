@@ -115,11 +115,46 @@
             Assert.Equal(1, subcontainerPart.DisposalCount);
         }
 
+        [MefFact(CompositionEngines.V2)]
+        public void DisposeExportReleasesContainer(IContainer container)
+        {
+            var root = container.GetExportedValue<RootPart>();
+            var boundaryExport = root.Factory.CreateExport();
+            var subcontainerPart = boundaryExport.Value.BoundaryScopedSharedParts.OfType<SharedPartThatImportsBoundaryPart>().Single();
+
+            WeakReference boundaryExportWeak = new WeakReference(boundaryExport.Value);
+            WeakReference subcontainerPartWeak = new WeakReference(subcontainerPart);
+            WeakReference sharedSubScopePart = new WeakReference(boundaryExport.Value.BoundaryScopedSharedParts[0]);
+
+            boundaryExport.Dispose();
+            boundaryExport = null;
+            subcontainerPart = null;
+
+            GC.Collect();
+
+            Assert.False(boundaryExportWeak.IsAlive);
+            Assert.False(subcontainerPartWeak.IsAlive);
+            Assert.False(sharedSubScopePart.IsAlive);
+        }
+
         [Export]
         public class RootPart
         {
             [Import, SharingBoundary("SomeBoundary")]
             public ExportFactory<BoundaryPart> Factory { get; set; }
+        }
+
+        /// <summary>
+        /// This part is part of a test for root parts that are constructed from a child scope.
+        /// It should not be imported by any part in the root scope or it will defeat the test.
+        /// </summary>
+        [Export, Shared]
+        public class SharedRootPartOnlyImportedFromChildScope
+        {
+            public SharedRootPartOnlyImportedFromChildScope()
+            {
+                Assert.False(true, "This type should ever be constructed. It should be imported lazily and never constructed as part of a GC test.");
+            }
         }
 
         [Export]
@@ -149,6 +184,13 @@
 
             [Import]
             public AnotherPartWithImportManyOfScopedExports ImportManyPart2 { get; set; }
+
+            /// <summary>
+            /// A lazy import that is meant to help with GC tests.
+            /// It must never be constructed, lest the value factory be released and defeat the test.
+            /// </summary>
+            [Import]
+            public Lazy<SharedRootPartOnlyImportedFromChildScope> SharedRootPart { get; set; }
 
             public void Dispose()
             {
