@@ -115,7 +115,7 @@
             Assert.Equal(1, subcontainerPart.DisposalCount);
         }
 
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2Compat)]
         public void DisposeExportReleasesContainer(IContainer container)
         {
             var root = container.GetExportedValue<RootPart>();

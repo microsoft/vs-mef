@@ -299,14 +299,24 @@
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
+                return GetExportedValueHelper(import, export, provisionalSharedObjects, exportingRuntimePart, constructedType);
+            }
+
+            /// <remarks>
+            /// This method is separate from its one caller to avoid a csc.exe compiler bug
+            /// where it captures "this" in the closure for exportedValue, resulting in a memory leak
+            /// which caused one of our GC unit tests to fail.
+            /// </remarks>
+            private Func<object> GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Dictionary<TypeRef, object> provisionalSharedObjects, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef constructedType)
+            {
                 Func<object> partFactory = this.GetOrCreateShareableValue(
                     constructedType,
-                    (ep, pso, nonSharedInstanceRequired) => this.CreatePart(pso, exportingRuntimePart, import.Metadata, nonSharedInstanceRequired),
+                    (ep, pso, nonSharedInstanceRequired) => ((RuntimeExportProvider)ep).CreatePart(pso, exportingRuntimePart, import.Metadata, nonSharedInstanceRequired),
                     provisionalSharedObjects,
                     exportingRuntimePart.SharingBoundary,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
                 Func<object> exportedValue = !export.MemberRef.IsEmpty
-                    ? () => this.GetValueFromMember(export.Member.IsStatic() ? null : partFactory(), export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve())
+                    ? () => GetValueFromMember(export.Member.IsStatic() ? null : partFactory(), export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve())
                     : partFactory;
                 return exportedValue;
             }
