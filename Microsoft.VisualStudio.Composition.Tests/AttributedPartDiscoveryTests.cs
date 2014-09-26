@@ -18,5 +18,11 @@
         {
             get { return this.discovery; }
         }
+
+        [Fact]
+        public void MissingImportingConstructor()
+        {
+            Assert.Throws<InvalidOperationException>(() => this.DiscoveryService.CreatePart(typeof(SomePartWithoutImportingConstructor)));
+        }
     }
 }

@@ -92,12 +92,19 @@
             // Create a lookup table that gets all immediate importers for each part.
             foreach (PartBuilder partBuilder in partBuilders.Values)
             {
-                var importedPartsExcludingFactories =
+                // We want to understand who imports each part so we can properly propagate sharing boundaries
+                // for MEFv1 attributed parts. ExportFactory's that create sharing boundaries are an exception
+                // because if a part has a factory that creates new sharing boundaries, the requirement for
+                // that sharing boundary of the child scope shouldn't be interpreted as a requirement for that
+                // same boundary by the parent part.
+                // However, if the ExportFactory does not create sharing boundaries, it does in fact need all
+                // the same sharing boundaries as the parts it constructs.
+                var importedPartsExcludingFactoriesWithSharingBoundaries =
                     (from entry in partBuilder.SatisfyingExports
-                     where !entry.Key.IsExportFactory
+                     where !entry.Key.IsExportFactory || entry.Key.ImportDefinition.ExportFactorySharingBoundaries.Count == 0
                      from export in entry.Value
                      select export.PartDefinition).Distinct(ReferenceEquality<ComposablePartDefinition>.Default);
-                foreach (var importedPartDefinition in importedPartsExcludingFactories)
+                foreach (var importedPartDefinition in importedPartsExcludingFactoriesWithSharingBoundaries)
                 {
                     var importedPartBuilder = partBuilders[importedPartDefinition];
                     importedPartBuilder.ReportImportingPart(partBuilder);

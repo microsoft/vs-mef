@@ -140,6 +140,7 @@
     <Compile Include="CacheAndReloadTests.cs" />
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="CircularDependencyTests.cs" />
+    <Compile Include="CircularImportDependencyTests.cs" />
     <Compile Include="ClosedGenericExportedTypeTests.cs" />
     <Compile Include="CompositionFailedExceptionTests.cs" />
     <Compile Include="CompressedUIntTests.cs" />
@@ -206,8 +207,10 @@
     <Compile Include="PartDiscoveryTests.cs" />
     <Compile Include="ProjectSystemMockTests.cs" />
     <Compile Include="Reflection\TypeRefTests.cs" />
+    <Compile Include="RejectionTests.cs" />
     <Compile Include="SharedNoBoundaryExportsTests.cs" />
     <Compile Include="SharingBoundaryInvalidTests.cs" />
+    <Compile Include="SharingBoundaryMixedAttributesTests.cs" />
     <Compile Include="SharingBoundaryTwoPathsToPartTests.cs" />
     <Compile Include="SharingBoundaryAcquiresSharedRootScopeExport.cs" />
     <Compile Include="SharingBoundaryWithMixedMefParts.cs" />

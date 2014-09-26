@@ -46,14 +46,24 @@
 
         private readonly Lazy<IAssemblyLoader> assemblyLoadProvider;
 
-        private readonly ThreadLocal<bool> initializingAssemblyLoader = new ThreadLocal<bool>();
+        private readonly ThreadLocal<bool> initializingAssemblyLoader;
 
         protected CodeGenExportProviderBase(ExportProvider parent, IReadOnlyCollection<string> freshSharingBoundaries)
             : base(parent, freshSharingBoundaries)
         {
-            this.assemblyLoadProvider = new Lazy<IAssemblyLoader>(
-                () => ImmutableList.CreateRange(this.GetExports<IAssemblyLoader, IReadOnlyDictionary<string, object>>())
-                    .Sort((first, second) => -GetOrderMetadata(first.Metadata).CompareTo(GetOrderMetadata(second.Metadata))).Select(v => v.Value).FirstOrDefault() ?? BuiltInAssemblyLoader);
+            var myparent = (CodeGenExportProviderBase)parent;
+            if (myparent != null)
+            {
+                this.assemblyLoadProvider = myparent.assemblyLoadProvider;
+                this.initializingAssemblyLoader = myparent.initializingAssemblyLoader;
+            }
+            else
+            {
+                this.assemblyLoadProvider = new Lazy<IAssemblyLoader>(
+                    () => ImmutableList.CreateRange(this.GetExports<IAssemblyLoader, IReadOnlyDictionary<string, object>>())
+                        .Sort((first, second) => -GetOrderMetadata(first.Metadata).CompareTo(GetOrderMetadata(second.Metadata))).Select(v => v.Value).FirstOrDefault() ?? BuiltInAssemblyLoader);
+                this.initializingAssemblyLoader = new ThreadLocal<bool>();
+            }
         }
 
         /// <summary>

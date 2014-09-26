@@ -71,6 +71,11 @@
         private readonly ImmutableDictionary<string, Dictionary<TypeRef, object>> sharedInstantiatedExports = ImmutableDictionary.Create<string, Dictionary<TypeRef, object>>();
 
         /// <summary>
+        /// A map of sharing boundary names to the ExportProvider that owns them.
+        /// </summary>
+        private readonly ImmutableDictionary<string, ExportProvider> sharingBoundaryExportProviderOwners = ImmutableDictionary.Create<string, ExportProvider>();
+
+        /// <summary>
         /// The disposable objects whose lifetimes are shared and tied to a specific sharing boundary.
         /// </summary>
         private readonly ImmutableDictionary<string, HashSet<IDisposable>> disposableInstantiatedSharedParts = ImmutableDictionary.Create<string, HashSet<IDisposable>>();
@@ -100,6 +105,7 @@
             }
             else
             {
+                this.sharingBoundaryExportProviderOwners = parent.sharingBoundaryExportProviderOwners;
                 this.sharedInstantiatedExports = parent.sharedInstantiatedExports;
                 this.disposableInstantiatedSharedParts = parent.disposableInstantiatedSharedParts;
             }
@@ -113,6 +119,9 @@
                     this.disposableInstantiatedSharedParts = this.disposableInstantiatedSharedParts.SetItem(freshSharingBoundary, new HashSet<IDisposable>());
                 }
             }
+
+            this.sharingBoundaryExportProviderOwners = this.sharingBoundaryExportProviderOwners.SetItems(
+                this.freshSharingBoundaries.Select(boundary => new KeyValuePair<string, ExportProvider>(boundary, this)));
 
             var nonDisposableWrapper = (this as ExportProviderAsExport) ?? new ExportProviderAsExport(this);
             this.NonDisposableWrapper = LazyServices.FromValue<object>(nonDisposableWrapper);
@@ -407,11 +416,6 @@
                 metadataType);
         }
 
-        protected object GetValueFromMember(object exportingPart, ImportDefinitionBinding import, ExportDefinitionBinding export)
-        {
-            return this.GetValueFromMember(exportingPart, export.ExportingMember, import.ImportingSiteElementType, export.ExportedValueType);
-        }
-
         /// <summary>
         /// Gets the value from some member of a part.
         /// </summary>
@@ -420,7 +424,7 @@
         /// <param name="importingSiteElementType">The type of the importing member, with ImportMany collections and Lazy/ExportFactory stripped away.</param>
         /// <param name="exportedValueType">The contractually exported value type.</param>
         /// <returns>The value of the member.</returns>
-        protected object GetValueFromMember(object exportingPart, MemberInfo exportingMember, Type importingSiteElementType = null, Type exportedValueType = null)
+        protected static object GetValueFromMember(object exportingPart, MemberInfo exportingMember, Type importingSiteElementType = null, Type exportedValueType = null)
         {
             Requires.NotNull(exportingMember, "exportingMember");
 
@@ -486,9 +490,26 @@
                 }
             }
 
-            Func<object> result = valueFactory != null
-                ? (() => valueFactory(this, provisionalSharedObjects, nonSharedInstanceRequired))
-                : DelegateServices.FromValue<object>(null);
+            Func<object> result;
+            if (valueFactory != null)
+            {
+                // Be careful to pass the export provider that owns the sharing boundary for this part into the value factory.
+                // If we accidentally capture "this", then if this is a sub-scope ExportProvider and we're constructing
+                // a parent scope shared part, then we tie the lifetime of this child scope to the lifetime of the 
+                // parent scoped part's value factory. If it never evaluates, we never get released even after our own disposal.
+                ExportProvider owningExportProvider = partSharingBoundary != null ? this.sharingBoundaryExportProviderOwners[partSharingBoundary] : this;
+
+                // If we're calling into a parent ExportProvider, not only should it NOT need our provisionalSharedObjects,
+                // we mustn't pass them in because some of them may be holding references to "this", which could
+                // tie our lifetime to the lifetime of our longer-lived parent who will end up owning this value factory.
+                var pso = owningExportProvider == this ? provisionalSharedObjects : new Dictionary<TypeRef, object>();
+
+                result = () => valueFactory(owningExportProvider, pso, nonSharedInstanceRequired);
+            }
+            else
+            {
+                result = DelegateServices.FromValue<object>(null);
+            }
 
             if (!nonSharedInstanceRequired)
             {

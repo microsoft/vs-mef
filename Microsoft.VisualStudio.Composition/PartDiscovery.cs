@@ -126,7 +126,7 @@
                     {
                         lock (exceptions)
                         {
-                            exceptions.Add(new PartDiscoveryException("Unable to load assembly for scanning.", ex) { AssemblyPath = path });
+                            exceptions.Add(new PartDiscoveryException("Unable to load assembly \"" + path + "\" for scanning.", ex) { AssemblyPath = path });
                         }
 
                         return Enumerable.Empty<Assembly>();
@@ -368,7 +368,7 @@
                     }
                     catch (Exception ex)
                     {
-                        return new PartDiscoveryException("Unable to scan type for MEF attributes.", ex) { AssemblyPath = type.Assembly.Location, ScannedType = type };
+                        return new PartDiscoveryException("Failure while scanning type \"" + type.FullName + "\".", ex) { AssemblyPath = type.Assembly.Location, ScannedType = type };
                     }
                 },
                 new ExecutionDataflowBlockOptions

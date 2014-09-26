@@ -177,7 +177,7 @@
         public void SelfImportingNonSharedPartThrowsV1()
         {
             var container = TestUtilities.CreateContainerV1(typeof(SelfImportingNonSharedPart));
-            Assert.Throws<MefV1.CompositionException>(() => container.GetExportedValue<SelfImportingNonSharedPart>());
+            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<SelfImportingNonSharedPart>());
         }
 
         [Fact]
@@ -280,6 +280,85 @@
 
         [Export]
         public class ValidMultiplePathCommonImport { }
+
+        #endregion
+
+        #region Unresolvable, non-analyzable circular dependency test
+
+        [MefFact(CompositionEngines.V1, typeof(RootPartThatImperativelyQueriesForPartWithImportingConstructor), typeof(PartThatImportsRootPartViaImportingConstructor))]
+        public void NonAnalyzableCircularDependencyFromImperativeQueryWithImportingConstructor(IContainer container)
+        {
+            RootPartThatImperativelyQueriesForPartWithImportingConstructor.ContainerForRunningTest = container;
+            Assert.Throws<Microsoft.VisualStudio.Composition.CompositionFailedException>(() => container.GetExportedValue<RootPartThatImperativelyQueriesForPartWithImportingConstructor>());
+        }
+
+        [MefV1.Export]
+        public class RootPartThatImperativelyQueriesForPartWithImportingConstructor
+        {
+            internal static IContainer ContainerForRunningTest;
+
+            public RootPartThatImperativelyQueriesForPartWithImportingConstructor()
+            {
+                // This matches what Microsoft.VisualStudio.Web.Application GetNugetProjectTypeContext is doing when it uses
+                // IComponentModel.GetService<VsPackageInstallerServices>() on the callstack above the SolutionManager constructor.
+                var nonAnalyzableDependency = ContainerForRunningTest.GetExportedValue<PartThatImportsRootPartViaImportingConstructor>();
+            }
+        }
+
+        [MefV1.Export]
+        public class PartThatImportsRootPartViaImportingConstructor
+        {
+            [MefV1.ImportingConstructor]
+            public PartThatImportsRootPartViaImportingConstructor(RootPartThatImperativelyQueriesForPartWithImportingConstructor rootPart)
+            {
+            }
+        }
+
+        #endregion
+
+        #region Semi-resolvable, non-analyzable circular dependency test
+
+        [MefFact(CompositionEngines.V1, typeof(RootPartThatImperativelyQueriesForPartWithImportingProperty), typeof(PartThatImportsRootPartViaImportingProperty))]
+        public void NonAnalyzableCircularDependencyFromImperativeQueryWithImportingProperty(IContainer container)
+        {
+            RootPartThatImperativelyQueriesForPartWithImportingProperty.CtorCounter = 0;
+            RootPartThatImperativelyQueriesForPartWithImportingProperty.ContainerForRunningTest = container;
+            var export = container.GetExportedValue<RootPartThatImperativelyQueriesForPartWithImportingProperty>();
+
+            // Make sure that despite MEFv1 tricks, that we get to see only one instance of the shared part.
+            Assert.Same(export, export.ImperativelyAcquiredExport.RootPart);
+
+            // Interestingly enough, MEFv1 resolves this dependency by creating a *second* instance of the shared part.
+            // We assert here not because we care so much about their technique (in fact I dislike it),
+            // but to document their behavior.
+            Assert.Equal(2, RootPartThatImperativelyQueriesForPartWithImportingProperty.CtorCounter);
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.Shared)]
+        public class RootPartThatImperativelyQueriesForPartWithImportingProperty
+        {
+            internal static int CtorCounter;
+            internal static IContainer ContainerForRunningTest;
+
+            public RootPartThatImperativelyQueriesForPartWithImportingProperty()
+            {
+                CtorCounter++;
+
+                // This matches what Microsoft.VisualStudio.Web.Application GetNugetProjectTypeContext is doing when it uses
+                // IComponentModel.GetService<VsPackageInstallerServices>() on the callstack above the SolutionManager constructor.
+                var nonAnalyzableDependency = ContainerForRunningTest.GetExportedValue<PartThatImportsRootPartViaImportingProperty>();
+                this.ImperativelyAcquiredExport = nonAnalyzableDependency;
+            }
+
+            public PartThatImportsRootPartViaImportingProperty ImperativelyAcquiredExport { get; set; }
+        }
+
+        [MefV1.Export]
+        public class PartThatImportsRootPartViaImportingProperty
+        {
+            [MefV1.Import]
+            internal RootPartThatImperativelyQueriesForPartWithImportingProperty RootPart { get; set; }
+        }
 
         #endregion
     }
