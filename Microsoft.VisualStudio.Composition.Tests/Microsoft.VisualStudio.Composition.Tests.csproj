@@ -206,6 +206,7 @@
     <Compile Include="RejectionTests.cs" />
     <Compile Include="SharedNoBoundaryExportsTests.cs" />
     <Compile Include="SharingBoundaryInvalidTests.cs" />
+    <Compile Include="SharingBoundaryMixedAttributesTests.cs" />
     <Compile Include="SharingBoundaryTwoPathsToPartTests.cs" />
     <Compile Include="SharingBoundaryAcquiresSharedRootScopeExport.cs" />
     <Compile Include="SharingBoundaryWithMixedMefParts.cs" />
