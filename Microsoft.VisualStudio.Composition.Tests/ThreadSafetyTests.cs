@@ -76,27 +76,27 @@
             }
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(P1), typeof(P2))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithBlockingImportPropertySetter), typeof(PartThatImportsPartWithBlockingImportPropertySetter))]
         public void SharedPartNotExposedBeforeImportsAreTransitivelySatisfied(IContainer container)
         {
-            P1.UnblockPart2Setter.Reset();
-            P1.Part2SetterInvoked.Reset();
-            var t = Task.Run(delegate
+            PartWithBlockingImportPropertySetter.UnblockSetter.Reset();
+            PartWithBlockingImportPropertySetter.SetterInvoked.Reset();
+            var t1 = Task.Run(delegate
             {
                 Task t2;
                 try
                 {
-                    P1.Part2SetterInvoked.WaitOne();
+                    PartWithBlockingImportPropertySetter.SetterInvoked.WaitOne();
                     t2 = Task.Run(delegate
                     {
-                        var p2 = container.GetExportedValue<P2>();
-                        Console.WriteLine("GetExportedValue<P2> returned");
-                        var p2ViaCycle = p2.Part1.Part2;
-                        Assert.Same(p2, p2ViaCycle); // if this fails, then MEF exposed a part that imports parts that are not yet initialized.
+                        var leafPart = container.GetExportedValue<PartThatImportsPartWithBlockingImportPropertySetter>();
+                        Console.WriteLine("GetExportedValue<PartThatImportsPartWithBlockingImportPropertySetter> has returned.");
+                        var leafPartViaCycle = leafPart.PartWithBlockingImport.OtherPartThatImportsThis;
+                        Assert.Same(leafPart, leafPartViaCycle); // if this fails, then MEF exposed a part that imports parts that are not yet initialized.
                     });
 
                     // We expect this Wait to timeout because if MEF is doing the right thing,
-                    // it would block t2 from finishing until we allow P1 to finish initializing.
+                    // it would block t2 from finishing until we allow PartWithBlockingImportPropertySetter to finish initializing.
                     // But that can't happen unless we give up waiting and we don't want to
                     // deadlock when the right thing happens.
                     Assert.False(t2.Wait(1000));
@@ -109,18 +109,18 @@
                 }
                 finally
                 {
-                    Console.WriteLine("Unblocking completion of P1.set_Part2.");
-                    P1.UnblockPart2Setter.Set();
+                    Console.WriteLine("Unblocking completion of PartWithBlockingImportPropertySetter.set_OtherPartThatImportsThis.");
+                    PartWithBlockingImportPropertySetter.UnblockSetter.Set();
                 }
 
                 Console.WriteLine("Getting t2 result.");
                 t2.GetAwaiter().GetResult(); // this not only propagates exceptions, but waits for completion in case of a timeout earlier.
             });
 
-            var p1 = container.GetExportedValue<P1>();
-            Assert.Same(p1, p1.Part2.Part1);
+            var rootPart = container.GetExportedValue<PartWithBlockingImportPropertySetter>();
+            Assert.Same(rootPart, rootPart.OtherPartThatImportsThis.PartWithBlockingImport);
 
-            t.GetAwaiter().GetResult();
+            t1.GetAwaiter().GetResult();
         }
 
         [Export]
@@ -148,31 +148,35 @@
 
         [Export, Shared]
         [MefV1.Export]
-        public class P1
+        public class PartWithBlockingImportPropertySetter
         {
-            internal static readonly ManualResetEventSlim UnblockPart2Setter = new ManualResetEventSlim();
-            internal static readonly AutoResetEvent Part2SetterInvoked = new AutoResetEvent(false);
-            private P2 part2;
+            internal static readonly ManualResetEventSlim UnblockSetter = new ManualResetEventSlim();
+            internal static readonly AutoResetEvent SetterInvoked = new AutoResetEvent(false);
+            private PartThatImportsPartWithBlockingImportPropertySetter otherPartThatImportsThis;
 
             [Import, MefV1.Import]
-            public P2 Part2
+            public PartThatImportsPartWithBlockingImportPropertySetter OtherPartThatImportsThis
             {
-                get { return this.part2; }
+                get
+                {
+                    return this.otherPartThatImportsThis;
+                }
+
                 set
                 {
-                    Part2SetterInvoked.Set();
-                    UnblockPart2Setter.Wait();
-                    this.part2 = value;
+                    SetterInvoked.Set();
+                    UnblockSetter.Wait();
+                    this.otherPartThatImportsThis = value;
                 }
             }
         }
 
         [Export, Shared]
         [MefV1.Export]
-        public class P2
+        public class PartThatImportsPartWithBlockingImportPropertySetter
         {
             [Import, MefV1.Import]
-            public P1 Part1 { get; set; }
+            public PartWithBlockingImportPropertySetter PartWithBlockingImport { get; set; }
         }
     }
 }
