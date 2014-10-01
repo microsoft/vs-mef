@@ -12,6 +12,8 @@
 
     public class ThreadSafetyTests
     {
+        #region PartRequestedAcrossMultipleThreads
+
         /// <summary>
         /// Exercises code that relies on provisionalSharedObjects
         /// to break circular dependencies in a way that tries to force
@@ -76,6 +78,33 @@
             }
         }
 
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class PartThatImportsSharedPartWithBlockableConstructor
+        {
+            [Import, MefV1.Import]
+            public Lazy<SharedPartWithBlockableConstructor> ImportingProperty { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class SharedPartWithBlockableConstructor
+        {
+            internal static readonly ManualResetEventSlim ImportingConstructorBlockEvent = new ManualResetEventSlim();
+            internal static readonly CountdownEvent ConstructorEnteredCountdown = new CountdownEvent(0);
+            internal static CancellationToken CancellationToken;
+
+            public SharedPartWithBlockableConstructor()
+            {
+                ConstructorEnteredCountdown.Signal();
+                ImportingConstructorBlockEvent.Wait(CancellationToken);
+            }
+        }
+
+        #endregion
+
+        #region SharedPartNotExposedBeforeImportsAreTransitivelySatisfied Test
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithBlockingImportPropertySetter), typeof(PartThatImportsPartWithBlockingImportPropertySetter))]
         public void SharedPartNotExposedBeforeImportsAreTransitivelySatisfied(IContainer container)
         {
@@ -123,29 +152,6 @@
             t1.GetAwaiter().GetResult();
         }
 
-        [Export]
-        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
-        public class PartThatImportsSharedPartWithBlockableConstructor
-        {
-            [Import, MefV1.Import]
-            public Lazy<SharedPartWithBlockableConstructor> ImportingProperty { get; set; }
-        }
-
-        [Export, Shared]
-        [MefV1.Export]
-        public class SharedPartWithBlockableConstructor
-        {
-            internal static readonly ManualResetEventSlim ImportingConstructorBlockEvent = new ManualResetEventSlim();
-            internal static readonly CountdownEvent ConstructorEnteredCountdown = new CountdownEvent(0);
-            internal static CancellationToken CancellationToken;
-
-            public SharedPartWithBlockableConstructor()
-            {
-                ConstructorEnteredCountdown.Signal();
-                ImportingConstructorBlockEvent.Wait(CancellationToken);
-            }
-        }
-
         [Export, Shared]
         [MefV1.Export]
         public class PartWithBlockingImportPropertySetter
@@ -178,5 +184,7 @@
             [Import, MefV1.Import]
             public PartWithBlockingImportPropertySetter PartWithBlockingImport { get; set; }
         }
+
+        #endregion
     }
 }
