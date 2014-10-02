@@ -2161,7 +2161,17 @@
         {
             Requires.NotNull(memberInfo, "memberInfo");
             Requires.NotNull(reflectedType, "reflectedType");
-            Requires.Argument(memberInfo.ReflectedType.IsAssignableFrom(reflectedType), "reflectedType", "Type must be the one that defines memberInfo or a derived type.");
+
+            if (memberInfo.ReflectedType.IsGenericTypeDefinition)
+            {
+                // We don't actually need the result of this, but it will throw for us if the
+                // Types don't match.
+                ReflectionHelpers.CloseGenericType(memberInfo.ReflectedType, reflectedType);
+            }
+            else
+            {
+                Requires.Argument(memberInfo.ReflectedType.IsAssignableFrom(reflectedType), "reflectedType", "Type must be the one that defines memberInfo or a derived type.");
+            }
 
             if (!IsPublic(reflectedType, true))
             {
