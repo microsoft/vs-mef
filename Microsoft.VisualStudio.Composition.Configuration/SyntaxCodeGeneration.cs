@@ -2162,7 +2162,7 @@
             Requires.NotNull(memberInfo, "memberInfo");
             Requires.NotNull(reflectedType, "reflectedType");
 
-            if (memberInfo.ReflectedType.IsGenericTypeDefinition)
+            if (memberInfo.ReflectedType.IsGenericTypeDefinition && !reflectedType.IsGenericTypeDefinition)
             {
                 // We don't actually need the result of this, but it will throw for us if the
                 // Types don't match.
