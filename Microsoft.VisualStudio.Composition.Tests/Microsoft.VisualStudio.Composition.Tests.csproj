@@ -157,6 +157,7 @@
     <Compile Include="ImportedExportProviderTests.cs" />
     <Compile Include="ImportOfTResolvedByDerivedClassTests.cs" />
     <Compile Include="InheritedExportTests.cs" />
+    <Compile Include="InheritedImportTests.cs" />
     <Compile Include="InvalidGraphTests.cs" />
     <Compile Include="LazyServicesTests.cs" />
     <Compile Include="Mef3TestCommand.cs" />
