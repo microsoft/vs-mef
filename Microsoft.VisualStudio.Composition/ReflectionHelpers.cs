@@ -415,9 +415,19 @@
         {
             Requires.NotNull(genericTypeDefinition, "genericTypeDefinition");
             Requires.NotNull(constructedType, "constructedType");
-            Requires.Argument(genericTypeDefinition.GetTypeInfo().IsAssignableFrom(constructedType.GetGenericTypeDefinition().GetTypeInfo()), "constructedType", "Not a closed form of the other.");
 
-            return genericTypeDefinition.MakeGenericType(constructedType.GenericTypeArguments.Take(genericTypeDefinition.GetTypeInfo().GenericTypeParameters.Length).ToArray());
+            var genericTypeDefinitionInfo = genericTypeDefinition.GetTypeInfo();
+
+            // The generic type arguments may be buried in the base type of the "constructedType" that we were given.
+            var constructedGenericType = constructedType;
+            while (constructedGenericType != null && (!constructedGenericType.IsGenericType || !genericTypeDefinitionInfo.IsAssignableFrom(constructedGenericType.GetGenericTypeDefinition().GetTypeInfo())))
+            {
+                constructedGenericType = constructedGenericType.BaseType;
+            }
+
+            Requires.Argument(constructedGenericType != null, "constructedType", "Not a closed form of the other.");
+
+            return genericTypeDefinition.MakeGenericType(constructedGenericType.GenericTypeArguments.Take(genericTypeDefinitionInfo.GenericTypeParameters.Length).ToArray());
         }
 
         internal static Type GetExportedValueType(Type declaringType, MemberInfo exportingMember)
