@@ -15,7 +15,7 @@
         public void ClosedGenericBaseClassWithImportingField(IContainer container)
         {
             var derived = container.GetExportedValue<DerivedClass>();
-            Assert.IsType<DerivedClass>(derived);
+            Assert.NotNull(derived.ImportingField);
         }
 
         [MefV1.Export]
