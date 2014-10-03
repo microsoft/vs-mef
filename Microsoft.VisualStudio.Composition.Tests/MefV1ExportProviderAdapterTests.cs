@@ -188,6 +188,17 @@
             }
         }
 
+        [MefFact(CompositionEngines.V1Compat, new Type[0])]
+        public void GetExportsForNonExistingExport(IContainer container)
+        {
+            var exportProvider = GetMefV1Container(container);
+
+            var exports = exportProvider.GetExports<Apple>();
+            Assert.Equal(0, exports.Count());
+
+            Assert.Throws<MefV1.ImportCardinalityMismatchException>(() => exportProvider.GetExport<Apple>());
+        }
+
         #region SatisfyImportsOnce
 
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Apple))]
