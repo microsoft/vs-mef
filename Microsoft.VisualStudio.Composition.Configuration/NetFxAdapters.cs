@@ -102,7 +102,14 @@
                     constraints = constraints.Union(PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraints(WrapCreationPolicy(contractImportDefinition.RequiredCreationPolicy)));
                 }
 
-                var cardinality = WrapCardinality(definition.Cardinality);
+                // Do NOT propagate the cardinality otherwise the export provider will throw
+                // if the cardinality is not met. But it's not our job to throw, since the caller
+                // is going to aggregate our response with other export providers and finally
+                // be responsible for throwing if the ultimate receiver of the result doesn't
+                // get what they expect.
+                // We use ZeroOrMore to indicate we'll accept any response.
+                var cardinality = ImportCardinality.ZeroOrMore;
+
                 var metadata = (IReadOnlyDictionary<string, object>)definition.Metadata;
 
                 if (IPartCreatorImportDefinition.IsInstanceOfType(definition))
@@ -143,21 +150,6 @@
                 }
 
                 return metadata;
-            }
-
-            private static ImportCardinality WrapCardinality(MefV1.Primitives.ImportCardinality cardinality)
-            {
-                switch (cardinality)
-                {
-                    case System.ComponentModel.Composition.Primitives.ImportCardinality.ExactlyOne:
-                        return ImportCardinality.ExactlyOne;
-                    case System.ComponentModel.Composition.Primitives.ImportCardinality.ZeroOrMore:
-                        return ImportCardinality.ZeroOrMore;
-                    case System.ComponentModel.Composition.Primitives.ImportCardinality.ZeroOrOne:
-                        return ImportCardinality.OneOrZero;
-                    default:
-                        throw new ArgumentException();
-                }
             }
 
             private static MefV1.CreationPolicy UnwrapCreationPolicy(CreationPolicy creationPolicy)
