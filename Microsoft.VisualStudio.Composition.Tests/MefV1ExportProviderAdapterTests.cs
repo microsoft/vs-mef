@@ -199,6 +199,33 @@
             Assert.Throws<MefV1.ImportCardinalityMismatchException>(() => exportProvider.GetExport<Apple>());
         }
 
+        [MefFact(CompositionEngines.V1Compat, new Type[0])]
+        public void GetExportsForOneExportFromAlternateExportProvider(IContainer container)
+        {
+            var exportProvider = GetMefV1Container(container);
+
+            // This is delicate work to test what we want.
+            // We need to arrange for our own ExportProvider shim to be called prior to the MEFv1 version
+            // that will ultimately provide the answer. The CompositionContainer respects the order of
+            // ExportProviders as they are provided in its constructor. So we pass in our own exportProvider
+            // first, then the real MEFv1 export provider that will have the answer to the export queries.
+            // In order to get a catalog to be acceptable as a second parameter, we have to turn it into
+            // an ExportProvider ourselves.
+            var v1Catalog = new MefV1.Hosting.TypeCatalog(typeof(Apple));
+            var v1CatalogExportProvider = new MefV1.Hosting.CatalogExportProvider(v1Catalog);
+            var childContainer = new MefV1.Hosting.CompositionContainer(exportProvider, v1CatalogExportProvider);
+            v1CatalogExportProvider.SourceProvider = childContainer;
+
+            var exports = childContainer.GetExports<Apple>();
+            Assert.Equal(1, exports.Count());
+            Assert.NotNull(exports.First().Value);
+
+            var export = childContainer.GetExport<Apple>();
+            Assert.NotNull(export.Value);
+
+            Assert.Throws<MefV1.ImportCardinalityMismatchException>(() => childContainer.GetExport<Tree>());
+        }
+
         #region SatisfyImportsOnce
 
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Apple))]
