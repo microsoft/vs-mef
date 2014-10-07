@@ -105,7 +105,7 @@
 
         #region SharedPartNotExposedBeforeImportsAreTransitivelySatisfied Test
 
-        [MefFact(CompositionEngines.V2, typeof(PartWithBlockingImportPropertySetter), typeof(PartThatImportsPartWithBlockingImportPropertySetter))]
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V2Compat, typeof(PartWithBlockingImportPropertySetter), typeof(PartThatImportsPartWithBlockingImportPropertySetter))]
         public void SharedPartNotExposedBeforeImportsAreTransitivelySatisfied(IContainer container)
         {
             PartWithBlockingImportPropertySetter.UnblockSetter.Reset();
