@@ -187,6 +187,12 @@
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<SelfImportingNonSharedPart>());
         }
 
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(SelfImportingNonSharedPartViaExportingProperty), InvalidConfiguration = true)]
+        public void SelfImportingNonSharedPartViaExportingPropertyThrows(IContainer container)
+        {
+            container.GetExportedValue<SelfImportingNonSharedPartViaExportingProperty>();
+        }
+
         [MefFact(CompositionEngines.V2Compat | CompositionEngines.V1Compat, typeof(SelfImportingSharedPart))]
         public void SelfImportingSharedPartSucceeds(IContainer container)
         {
@@ -209,6 +215,21 @@
             [Import]
             [MefV1.Import]
             public SelfImportingNonSharedPart Self { get; set; }
+        }
+
+        [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class SelfImportingNonSharedPartViaExportingProperty
+        {
+            [Export]
+            [MefV1.Export]
+            public SelfImportingNonSharedPartViaExportingProperty SelfExport
+            {
+                get { return this; }
+            }
+
+            [Import]
+            [MefV1.Import]
+            public SelfImportingNonSharedPartViaExportingProperty SelfImport { get; set; }
         }
 
         [MefV1.Export]
