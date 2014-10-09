@@ -42,6 +42,7 @@
                     select this.CreateExport(
                         importDefinition,
                         export.Metadata,
+                        part.Type,
                         GetPartConstructedTypeRef(part, importDefinition.Metadata),
                         part.SharingBoundary,
                         !part.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
@@ -255,7 +256,7 @@
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
-                return GetExportedValueHelper(import, export, exportingRuntimePart, constructedType);
+                return GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.Type, constructedType);
             }
 
             /// <remarks>
@@ -263,10 +264,11 @@
             /// where it captures "this" in the closure for exportedValue, resulting in a memory leak
             /// which caused one of our GC unit tests to fail.
             /// </remarks>
-            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef constructedType)
+            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef)
             {
                 PartLifecycleTracker partLifecycle = this.GetOrCreateShareableValue(
-                    constructedType,
+                    originalPartTypeRef,
+                    constructedPartTypeRef,
                     exportingRuntimePart.SharingBoundary,
                     import.Metadata,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);

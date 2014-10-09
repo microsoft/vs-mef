@@ -317,13 +317,14 @@
         /// </remarks>
         protected abstract IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition);
 
-        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> exportMetadata, TypeRef partTypeRef, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
+        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> exportMetadata, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
         {
             Requires.NotNull(importDefinition, "importDefinition");
             Requires.NotNull(exportMetadata, "metadata");
-            Requires.NotNull(partTypeRef, "partTypeRef");
+            Requires.NotNull(originalPartTypeRef, "originalPartTypeRef");
+            Requires.NotNull(constructedPartTypeRef, "constructedPartTypeRef");
 
-            PartLifecycleTracker maybeSharedValueFactory = this.GetOrCreateShareableValue(partTypeRef, partSharingBoundary, importDefinition.Metadata, nonSharedInstanceRequired);
+            PartLifecycleTracker maybeSharedValueFactory = this.GetOrCreateShareableValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importDefinition.Metadata, nonSharedInstanceRequired);
             Func<object> memberValueFactory;
             if (exportingMember == null)
             {
@@ -471,14 +472,15 @@
             throw new NotSupportedException();
         }
 
-        protected PartLifecycleTracker GetOrCreateShareableValue(TypeRef partTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata, bool nonSharedInstanceRequired)
+        protected PartLifecycleTracker GetOrCreateShareableValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata, bool nonSharedInstanceRequired)
         {
-            Requires.NotNull(partTypeRef, "partTypeRef");
+            Requires.NotNull(originalPartTypeRef, "originalPartTypeRef");
+            Requires.NotNull(constructedPartTypeRef, "constructedPartTypeRef");
 
             if (!nonSharedInstanceRequired)
             {
                 PartLifecycleTracker existingLifecycle;
-                if (this.TryGetSharedInstanceFactory(partSharingBoundary, partTypeRef, out existingLifecycle))
+                if (this.TryGetSharedInstanceFactory(partSharingBoundary, constructedPartTypeRef, out existingLifecycle))
                 {
                     return existingLifecycle;
                 }
@@ -489,13 +491,13 @@
             // a parent scope shared part, then we tie the lifetime of this child scope to the lifetime of the 
             // parent scoped part's value factory. If it never evaluates, we never get released even after our own disposal.
             ExportProvider owningExportProvider = partSharingBoundary != null ? this.sharingBoundaryExportProviderOwners[partSharingBoundary] : this;
-            var partLifecycle = owningExportProvider.CreatePartLifecycleTracker(partTypeRef, importMetadata);
+            var partLifecycle = owningExportProvider.CreatePartLifecycleTracker(originalPartTypeRef, importMetadata);
 
             if (!nonSharedInstanceRequired)
             {
                 // Since we have not been holding a lock, we must now reconcile the creation of this
                 // shared instance with a dictionary of shared instances to make sure there is only one that survives.
-                partLifecycle = this.GetOrAddSharedInstanceFactory(partSharingBoundary, partTypeRef, partLifecycle);
+                partLifecycle = this.GetOrAddSharedInstanceFactory(partSharingBoundary, constructedPartTypeRef, partLifecycle);
             }
 
             return partLifecycle;

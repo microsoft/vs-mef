@@ -156,7 +156,7 @@
             Type partOpenGenericType = partOpenGenericTypeRef.Resolve();
             TypeRef partType = partOpenGenericTypeRef.MakeGenericType(typeArgs.Select(TypeRef.Get).ToImmutableArray());
 
-            return this.CreateExport(importDefinition, metadata, partType, partSharingBoundary, nonSharedInstanceRequired, exportingMember);
+            return this.CreateExport(importDefinition, metadata, partOpenGenericTypeRef, partType, partSharingBoundary, nonSharedInstanceRequired, exportingMember);
         }
 
         internal override IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
