@@ -903,7 +903,7 @@
             // Consider how it can detect a circular dependency and throw appropriately rather than StackOverflow or deadlock.
             public object GetValueReadyToExpose()
             {
-                this.AdvanceToState(PartLifecycleState.OnImportsSatisfiedInvoked);
+                this.AdvanceToState(PartLifecycleState.Final);
                 return this.Value;
             }
 
@@ -917,7 +917,7 @@
             {
                 lock (this)
                 {
-                    this.VerifyState(PartLifecycleState.TransitiveImportsSatisfied);
+                    this.VerifyState(PartLifecycleState.ImmediateImportsSatisfiedTransitively);
                     try
                     {
                         this.InvokeOnImportsSatisfied();
@@ -945,30 +945,33 @@
                 }
             }
 
-            private void SatisfyTransitiveImports()
+            private void AdvanceToStateTransitively(PartLifecycleState requiredState)
             {
-                lock (this)
+                try
                 {
-                    this.VerifyState(PartLifecycleState.ImmediateImportsSatisfied);
-                    try
-                    {
-                        var transitivelyImportedParts = new HashSet<PartLifecycleTracker>();
-                        this.CollectTransitiveCloserOfImportedParts(transitivelyImportedParts, PartLifecycleState.ImmediateImportsSatisfied);
-                        foreach (var importedPart in transitivelyImportedParts)
-                        {
-                            if (importedPart != this)
-                            {
-                                importedPart.AdvanceToState(PartLifecycleState.ImmediateImportsSatisfied);
-                            }
-                        }
+                    this.AdvanceToState(requiredState - 1);
 
-                        this.UpdateState(PartLifecycleState.TransitiveImportsSatisfied);
-                    }
-                    catch (Exception ex)
+                    var transitivelyImportedParts = new HashSet<PartLifecycleTracker>();
+                    this.CollectTransitiveCloserOfImportedParts(transitivelyImportedParts, requiredState);
+                    foreach (var importedPart in transitivelyImportedParts)
                     {
-                        this.Fault(ex);
-                        throw;
+                        if (importedPart != this)
+                        {
+                            importedPart.AdvanceToState(requiredState - 1);
+                        }
                     }
+
+                    // Update everyone involved so they know they're transitively done with this work.
+                    foreach (var importedPart in transitivelyImportedParts)
+                    {
+                        importedPart.VerifyState(requiredState - 1);
+                        importedPart.UpdateState(requiredState);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.Fault(ex);
+                    throw;
                 }
             }
 
@@ -990,11 +993,14 @@
 
             private void VerifyState(PartLifecycleState expectedState)
             {
-                this.ThrowIfFaulted();
-
-                if (this.State != expectedState)
+                lock (this)
                 {
-                    Verify.FailOperation(Strings.UnexpectedSharedPartState, this.State, PartLifecycleState.Created);
+                    this.ThrowIfFaulted();
+
+                    if (this.State != expectedState)
+                    {
+                        Verify.FailOperation(Strings.UnexpectedSharedPartState, this.State, PartLifecycleState.Created);
+                    }
                 }
             }
 
@@ -1008,9 +1014,11 @@
 
             private void UpdateState(PartLifecycleState newState)
             {
-                Assumes.True(Monitor.IsEntered(this));
-                this.State = newState;
-                Monitor.PulseAll(this);
+                lock (this)
+                {
+                    this.State = newState;
+                    Monitor.PulseAll(this);
+                }
             }
 
             private void Fault(Exception exception)
@@ -1029,25 +1037,29 @@
             {
                 lock (this)
                 {
-                    switch (this.State)
+                    switch (this.State + 1)
                     {
-                        case PartLifecycleState.NotCreated:
+                        case PartLifecycleState.Created:
                             this.Create();
                             break;
-                        case PartLifecycleState.Created:
+                        case PartLifecycleState.ImmediateImportsSatisfied:
                             this.SatisfyImmediateImports();
                             break;
-                        case PartLifecycleState.ImmediateImportsSatisfied:
-                            this.SatisfyTransitiveImports();
-                            break;
-                        case PartLifecycleState.TransitiveImportsSatisfied:
-                            this.NotifyTransitiveImportsSatisfied();
+                        case PartLifecycleState.ImmediateImportsSatisfiedTransitively:
+                            this.AdvanceToStateTransitively(PartLifecycleState.ImmediateImportsSatisfiedTransitively);
                             break;
                         case PartLifecycleState.OnImportsSatisfiedInvoked:
-                            Verify.FailOperation("MEF part already in final state.");
+                            this.NotifyTransitiveImportsSatisfied();
+                            break;
+                        case PartLifecycleState.OnImportsSatisfiedInvokedTransitively:
+                            this.AdvanceToStateTransitively(PartLifecycleState.OnImportsSatisfiedInvokedTransitively);
+                            break;
+                        case PartLifecycleState.Final:
+                            // Nothing to do here. This state is just a marker.
+                            this.UpdateState(PartLifecycleState.Final);
                             break;
                         default:
-                            throw Assumes.NotReachable();
+                            throw Verify.FailOperation("MEF part already in final state.");
                     }
                 }
             }
@@ -1068,8 +1080,10 @@
             NotCreated,
             Created,
             ImmediateImportsSatisfied,
-            TransitiveImportsSatisfied,
+            ImmediateImportsSatisfiedTransitively,
             OnImportsSatisfiedInvoked,
+            OnImportsSatisfiedInvokedTransitively,
+            Final,
         }
 
         private class ExportProviderAsExport : DelegatingExportProvider
