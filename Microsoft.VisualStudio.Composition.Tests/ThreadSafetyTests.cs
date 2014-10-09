@@ -10,6 +10,7 @@
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
+    [Trait("Multithreaded", "")]
     public class ThreadSafetyTests
     {
         #region PartRequestedAcrossMultipleThreads

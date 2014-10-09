@@ -939,9 +939,12 @@
 
             protected void ReportImportedPart(PartLifecycleTracker importedPart)
             {
-                lock (this)
+                if (importedPart != null)
                 {
-                    this.importedParts.Add(importedPart);
+                    lock (this)
+                    {
+                        this.importedParts.Add(importedPart);
+                    }
                 }
             }
 
@@ -964,7 +967,6 @@
                     // Update everyone involved so they know they're transitively done with this work.
                     foreach (var importedPart in transitivelyImportedParts)
                     {
-                        importedPart.VerifyState(requiredState - 1);
                         importedPart.UpdateState(requiredState);
                     }
                 }
@@ -1016,8 +1018,11 @@
             {
                 lock (this)
                 {
-                    this.State = newState;
-                    Monitor.PulseAll(this);
+                    if (this.State < newState)
+                    {
+                        this.State = newState;
+                        Monitor.PulseAll(this);
+                    }
                 }
             }
 
