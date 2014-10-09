@@ -955,7 +955,7 @@
                     this.AdvanceToState(requiredState - 1);
 
                     var transitivelyImportedParts = new HashSet<PartLifecycleTracker>();
-                    this.CollectTransitiveCloserOfImportedParts(transitivelyImportedParts, requiredState);
+                    this.CollectTransitiveCloserOfNonLazyImportedParts(transitivelyImportedParts, requiredState);
                     foreach (var importedPart in transitivelyImportedParts)
                     {
                         if (importedPart != this)
@@ -977,17 +977,17 @@
                 }
             }
 
-            private void CollectTransitiveCloserOfImportedParts(HashSet<PartLifecycleTracker> parts, PartLifecycleState excludePartsAfterState)
+            private void CollectTransitiveCloserOfNonLazyImportedParts(HashSet<PartLifecycleTracker> parts, PartLifecycleState excludePartsAfterState)
             {
                 Requires.NotNull(parts, "parts");
 
                 lock (this)
                 {
-                    if (this.State <= excludePartsAfterState && parts.Add(this))
+                    if (this.State <= excludePartsAfterState && this.State > PartLifecycleState.NotCreated && parts.Add(this))
                     {
                         foreach (var importedPart in this.importedParts)
                         {
-                            importedPart.CollectTransitiveCloserOfImportedParts(parts, excludePartsAfterState);
+                            importedPart.CollectTransitiveCloserOfNonLazyImportedParts(parts, excludePartsAfterState);
                         }
                     }
                 }
