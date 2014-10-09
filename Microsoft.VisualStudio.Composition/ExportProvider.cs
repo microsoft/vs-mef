@@ -1033,7 +1033,6 @@
                 if (exception != null)
                 {
                     this.fault = exception;
-                    this.Dispose();
                     Monitor.PulseAll(this);
                 }
             }
