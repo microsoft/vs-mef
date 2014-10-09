@@ -804,6 +804,7 @@
 
         protected internal abstract class PartLifecycleTracker : IDisposable
         {
+            private readonly object syncObject = new object();
             private readonly int ownerThreadId;
             private readonly string sharingBoundary;
             private readonly HashSet<PartLifecycleTracker> importedParts;
@@ -833,7 +834,7 @@
 
             public void Create()
             {
-                lock (this)
+                lock (this.syncObject)
                 {
                     this.VerifyState(PartLifecycleState.NotCreated);
                     try
@@ -856,7 +857,7 @@
 
             public void SatisfyImmediateImports()
             {
-                lock (this)
+                lock (this.syncObject)
                 {
                     this.VerifyState(PartLifecycleState.Created);
                     try
@@ -874,13 +875,13 @@
 
             private void WaitForState(PartLifecycleState requiredState)
             {
-                lock (this)
+                lock (this.syncObject)
                 {
                     this.ThrowIfFaulted();
 
                     while (this.State < requiredState)
                     {
-                        Monitor.Wait(this);
+                        Monitor.Wait(this.syncObject);
                         this.ThrowIfFaulted();
                     }
                 }
@@ -888,7 +889,7 @@
 
             private void MoveToState(PartLifecycleState requiredState)
             {
-                lock (this)
+                lock (this.syncObject)
                 {
                     this.ThrowIfFaulted();
 
@@ -936,7 +937,7 @@
 
             public void NotifyTransitiveImportsSatisfied()
             {
-                lock (this)
+                lock (this.syncObject)
                 {
                     this.VerifyState(PartLifecycleState.ImmediateImportsSatisfiedTransitively);
                     try
@@ -962,7 +963,7 @@
             {
                 if (importedPart != null)
                 {
-                    lock (this)
+                    lock (this.syncObject)
                     {
                         this.importedParts.Add(importedPart);
                     }
@@ -1002,7 +1003,7 @@
             {
                 Requires.NotNull(parts, "parts");
 
-                lock (this)
+                lock (this.syncObject)
                 {
                     if (this.State <= excludePartsAfterState && this.State > PartLifecycleState.NotCreated && parts.Add(this))
                     {
@@ -1016,7 +1017,7 @@
 
             private void VerifyState(PartLifecycleState expectedState)
             {
-                lock (this)
+                lock (this.syncObject)
                 {
                     this.ThrowIfFaulted();
 
@@ -1037,30 +1038,30 @@
 
             private void UpdateState(PartLifecycleState newState)
             {
-                lock (this)
+                lock (this.syncObject)
                 {
                     if (this.State < newState)
                     {
                         this.State = newState;
-                        Monitor.PulseAll(this);
+                        Monitor.PulseAll(this.syncObject);
                     }
                 }
             }
 
             private void Fault(Exception exception)
             {
-                Assumes.True(Monitor.IsEntered(this));
+                Assumes.True(Monitor.IsEntered(this.syncObject));
                 Report.If(this.fault != null, "We shouldn't have faulted twice in a row. The first should have done us in.");
                 if (exception != null)
                 {
                     this.fault = exception;
-                    Monitor.PulseAll(this);
+                    Monitor.PulseAll(this.syncObject);
                 }
             }
 
             private void MoveNext()
             {
-                lock (this)
+                lock (this.syncObject)
                 {
                     switch (this.State + 1)
                     {
