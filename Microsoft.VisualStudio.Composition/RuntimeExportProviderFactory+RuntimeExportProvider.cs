@@ -266,7 +266,7 @@
             /// </remarks>
             private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef)
             {
-                PartLifecycleTracker partLifecycle = this.GetOrCreateShareableValue(
+                PartLifecycleTracker partLifecycle = this.GetOrCreateValue(
                     originalPartTypeRef,
                     constructedPartTypeRef,
                     exportingRuntimePart.SharingBoundary,
