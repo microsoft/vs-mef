@@ -805,7 +805,6 @@
         protected internal abstract class PartLifecycleTracker : IDisposable
         {
             private readonly object syncObject = new object();
-            private readonly int ownerThreadId;
             private readonly string sharingBoundary;
             private readonly HashSet<PartLifecycleTracker> importedParts;
             private Exception fault;
@@ -814,7 +813,6 @@
             {
                 Requires.NotNull(owningExportProvider, "owningExportProvider");
 
-                this.ownerThreadId = Thread.CurrentThread.ManagedThreadId;
                 this.OwningExportProvider = owningExportProvider;
                 this.sharingBoundary = sharingBoundary;
                 this.importedParts = new HashSet<PartLifecycleTracker>();
@@ -827,25 +825,37 @@
 
             protected ExportProvider OwningExportProvider { get; private set; }
 
-            private bool IsOwnedByThisThread
-            {
-                get { return Thread.CurrentThread.ManagedThreadId == this.ownerThreadId; }
-            }
-
             public void Create()
             {
-                lock (this.syncObject)
+                if (this.ShouldMoveTo(PartLifecycleState.Created))
                 {
-                    this.VerifyState(PartLifecycleState.NotCreated);
                     try
                     {
-                        this.Value = this.CreateValue();
-                        if (this.Value is IDisposable)
-                        {
-                            this.OwningExportProvider.TrackDisposableValue(this, this.sharingBoundary);
-                        }
+                        Assumes.False(Monitor.IsEntered(this.syncObject)); // Avoid holding locks while calling 3rd party code.
+                        object value = this.CreateValue();
 
-                        this.UpdateState(PartLifecycleState.Created);
+                        lock (this.syncObject)
+                        {
+                            if (this.ShouldMoveTo(PartLifecycleState.Created))
+                            {
+                                this.Value = value;
+                                if (value is IDisposable)
+                                {
+                                    this.OwningExportProvider.TrackDisposableValue(this, this.sharingBoundary);
+                                }
+
+                                this.UpdateState(PartLifecycleState.Created);
+                            }
+                            else
+                            {
+                                // We lost a race to create this value. Dispose of it.
+                                var disposableValue = value as IDisposable;
+                                if (disposableValue != null)
+                                {
+                                    disposableValue.Dispose();
+                                }
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -857,59 +867,35 @@
 
             public void SatisfyImmediateImports()
             {
+                // DEADLOCK danger: I'm not sure how to avoid holding a lock around
+                // setting of imports since we can't afford to have two threads doing it at once.
+                // But it does mean we're holding a lock while executing arbitrary 3rd party code.
                 lock (this.syncObject)
                 {
-                    this.VerifyState(PartLifecycleState.Created);
-                    try
+                    if (this.ShouldMoveTo(PartLifecycleState.ImmediateImportsSatisfied))
                     {
-                        this.SatisfyImports();
-                        this.UpdateState(PartLifecycleState.ImmediateImportsSatisfied);
-                    }
-                    catch (Exception ex)
-                    {
-                        this.Fault(ex);
-                        throw;
-                    }
-                }
-            }
-
-            private void WaitForState(PartLifecycleState requiredState)
-            {
-                lock (this.syncObject)
-                {
-                    this.ThrowIfFaulted();
-
-                    while (this.State < requiredState)
-                    {
-                        Monitor.Wait(this.syncObject);
-                        this.ThrowIfFaulted();
+                        try
+                        {
+                            this.SatisfyImports();
+                            this.UpdateState(PartLifecycleState.ImmediateImportsSatisfied);
+                        }
+                        catch (Exception ex)
+                        {
+                            this.Fault(ex);
+                            throw;
+                        }
                     }
                 }
             }
 
             private void MoveToState(PartLifecycleState requiredState)
             {
-                lock (this.syncObject)
+                this.ThrowIfFaulted();
+
+                while (this.State < requiredState)
                 {
+                    this.MoveNext();
                     this.ThrowIfFaulted();
-
-                    while (this.State < requiredState)
-                    {
-                        this.MoveNext();
-                        this.ThrowIfFaulted();
-                    }
-                }
-            }
-
-            private void AdvanceToState(PartLifecycleState requiredState)
-            {
-                if (this.IsOwnedByThisThread)
-                {
-                    this.MoveToState(requiredState);
-                }
-                else
-                {
-                    this.WaitForState(requiredState);
                 }
             }
 
@@ -920,7 +906,7 @@
             // Consider how it can detect a circular dependency and throw appropriately rather than StackOverflow or deadlock.
             public object GetValueReadyToExpose()
             {
-                this.AdvanceToState(PartLifecycleState.Final);
+                this.MoveToState(PartLifecycleState.Final);
                 if (this.Value == null)
                 {
                     throw new CompositionFailedException("This part cannot be instantiated.");
@@ -931,25 +917,35 @@
 
             public object GetValueReadyToRetrieveExportingMembers()
             {
-                this.AdvanceToState(PartLifecycleState.Created);
+                this.MoveToState(PartLifecycleState.Created);
                 return this.Value;
             }
 
             public void NotifyTransitiveImportsSatisfied()
             {
-                lock (this.syncObject)
+                try
                 {
-                    this.VerifyState(PartLifecycleState.ImmediateImportsSatisfiedTransitively);
-                    try
+                    bool shouldInvoke = false;
+                    lock (this.syncObject)
                     {
+                        // We have to advance the state of this object forward within the lock
+                        // without having actually already invoked the method to avoid
+                        // both holding a lock while executing 3rd party code as well as avoid
+                        // two threads executing the delegate.
+                        shouldInvoke = this.ShouldMoveTo(PartLifecycleState.OnImportsSatisfiedInvoked)
+                            && this.UpdateState(PartLifecycleState.OnImportsSatisfiedInvoked);
+                    }
+
+                    if (shouldInvoke)
+                    {
+                        Assumes.False(Monitor.IsEntered(this.syncObject)); // avoid holding locks while invoking others' code.
                         this.InvokeOnImportsSatisfied();
-                        this.UpdateState(PartLifecycleState.OnImportsSatisfiedInvoked);
                     }
-                    catch (Exception ex)
-                    {
-                        this.Fault(ex);
-                        throw;
-                    }
+                }
+                catch (Exception ex)
+                {
+                    this.Fault(ex);
+                    throw;
                 }
             }
 
@@ -970,11 +966,11 @@
                 }
             }
 
-            private void AdvanceToStateTransitively(PartLifecycleState requiredState)
+            private void MoveToStateTransitively(PartLifecycleState requiredState)
             {
                 try
                 {
-                    this.AdvanceToState(requiredState - 1);
+                    this.MoveToState(requiredState - 1);
 
                     var transitivelyImportedParts = new HashSet<PartLifecycleTracker>();
                     this.CollectTransitiveCloserOfNonLazyImportedParts(transitivelyImportedParts, requiredState);
@@ -982,7 +978,7 @@
                     {
                         if (importedPart != this)
                         {
-                            importedPart.AdvanceToState(requiredState - 1);
+                            importedPart.MoveToState(requiredState - 1);
                         }
                     }
 
@@ -1003,28 +999,32 @@
             {
                 Requires.NotNull(parts, "parts");
 
-                lock (this.syncObject)
+                if (this.State <= excludePartsAfterState && this.State > PartLifecycleState.NotCreated && parts.Add(this))
                 {
-                    if (this.State <= excludePartsAfterState && this.State > PartLifecycleState.NotCreated && parts.Add(this))
+                    foreach (var importedPart in this.importedParts)
                     {
-                        foreach (var importedPart in this.importedParts)
-                        {
-                            importedPart.CollectTransitiveCloserOfNonLazyImportedParts(parts, excludePartsAfterState);
-                        }
+                        importedPart.CollectTransitiveCloserOfNonLazyImportedParts(parts, excludePartsAfterState);
                     }
                 }
             }
 
-            private void VerifyState(PartLifecycleState expectedState)
+            private bool ShouldMoveTo(PartLifecycleState nextState)
             {
                 lock (this.syncObject)
                 {
                     this.ThrowIfFaulted();
 
-                    if (this.State != expectedState)
+                    if (this.State >= nextState)
                     {
-                        Verify.FailOperation(Strings.UnexpectedSharedPartState, this.State, PartLifecycleState.Created);
+                        return false;
                     }
+
+                    if (this.State < nextState - 1)
+                    {
+                        Verify.FailOperation(Strings.UnexpectedSharedPartState, this.State, nextState - 1);
+                    }
+
+                    return true;
                 }
             }
 
@@ -1036,57 +1036,57 @@
                 }
             }
 
-            private void UpdateState(PartLifecycleState newState)
+            private bool UpdateState(PartLifecycleState newState)
             {
                 lock (this.syncObject)
                 {
                     if (this.State < newState)
                     {
                         this.State = newState;
-                        Monitor.PulseAll(this.syncObject);
+                        return true;
                     }
+
+                    return false;
                 }
             }
 
             private void Fault(Exception exception)
             {
-                Assumes.True(Monitor.IsEntered(this.syncObject));
-                Report.If(this.fault != null, "We shouldn't have faulted twice in a row. The first should have done us in.");
-                if (exception != null)
+                lock (this.syncObject)
                 {
-                    this.fault = exception;
-                    Monitor.PulseAll(this.syncObject);
+                    Report.If(this.fault != null, "We shouldn't have faulted twice in a row. The first should have done us in.");
+                    if (exception != null)
+                    {
+                        this.fault = exception;
+                    }
                 }
             }
 
             private void MoveNext()
             {
-                lock (this.syncObject)
+                switch (this.State + 1)
                 {
-                    switch (this.State + 1)
-                    {
-                        case PartLifecycleState.Created:
-                            this.Create();
-                            break;
-                        case PartLifecycleState.ImmediateImportsSatisfied:
-                            this.SatisfyImmediateImports();
-                            break;
-                        case PartLifecycleState.ImmediateImportsSatisfiedTransitively:
-                            this.AdvanceToStateTransitively(PartLifecycleState.ImmediateImportsSatisfiedTransitively);
-                            break;
-                        case PartLifecycleState.OnImportsSatisfiedInvoked:
-                            this.NotifyTransitiveImportsSatisfied();
-                            break;
-                        case PartLifecycleState.OnImportsSatisfiedInvokedTransitively:
-                            this.AdvanceToStateTransitively(PartLifecycleState.OnImportsSatisfiedInvokedTransitively);
-                            break;
-                        case PartLifecycleState.Final:
-                            // Nothing to do here. This state is just a marker.
-                            this.UpdateState(PartLifecycleState.Final);
-                            break;
-                        default:
-                            throw Verify.FailOperation("MEF part already in final state.");
-                    }
+                    case PartLifecycleState.Created:
+                        this.Create();
+                        break;
+                    case PartLifecycleState.ImmediateImportsSatisfied:
+                        this.SatisfyImmediateImports();
+                        break;
+                    case PartLifecycleState.ImmediateImportsSatisfiedTransitively:
+                        this.MoveToStateTransitively(PartLifecycleState.ImmediateImportsSatisfiedTransitively);
+                        break;
+                    case PartLifecycleState.OnImportsSatisfiedInvoked:
+                        this.NotifyTransitiveImportsSatisfied();
+                        break;
+                    case PartLifecycleState.OnImportsSatisfiedInvokedTransitively:
+                        this.MoveToStateTransitively(PartLifecycleState.OnImportsSatisfiedInvokedTransitively);
+                        break;
+                    case PartLifecycleState.Final:
+                        // Nothing to do here. This state is just a marker.
+                        this.UpdateState(PartLifecycleState.Final);
+                        break;
+                    default:
+                        throw Verify.FailOperation("MEF part already in final state.");
                 }
             }
 
