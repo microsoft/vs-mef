@@ -283,7 +283,6 @@
                 public ExportedValueConstructor(PartLifecycleTracker exportingPart, Func<object> valueConstructor)
                     : this()
                 {
-                    Requires.NotNull(exportingPart, "exportingPart");
                     Requires.NotNull(valueConstructor, "valueConstructor");
 
                     this.ExportingPart = exportingPart;
