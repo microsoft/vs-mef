@@ -272,9 +272,14 @@
                     exportingRuntimePart.SharingBoundary,
                     import.Metadata,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
+
+                // We should fully prepare an exported value only if it is lazy.
+                // Lazy indicates the client will call this value factory by itself and we need it to throw
+                // as appropriate if the value cannot be fully initialized.
+                // But if it isn't lazy, we must allow delaying initialization of the value till later.
                 Func<object> exportedValue = !export.MemberRef.IsEmpty
-                    ? () => GetValueFromMember(export.Member.IsStatic() ? null : partLifecycle.GetValueReadyToRetrieveExportingMembers(), export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve())
-                    : new Func<object>(partLifecycle.GetValueReadyToRetrieveExportingMembers);
+                    ? () => GetValueFromMember(export.Member.IsStatic() ? null : (import.IsLazy ? partLifecycle.GetValueReadyToExpose() : partLifecycle.GetValueReadyToRetrieveExportingMembers()), export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve())
+                    : (import.IsLazy ? new Func<object>(partLifecycle.GetValueReadyToExpose) : partLifecycle.GetValueReadyToRetrieveExportingMembers);
                 return new ExportedValueConstructor(partLifecycle, exportedValue);
             }
 

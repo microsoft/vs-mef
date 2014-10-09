@@ -906,6 +906,11 @@
             public object GetValueReadyToExpose()
             {
                 this.AdvanceToState(PartLifecycleState.Final);
+                if (this.Value == null)
+                {
+                    throw new CompositionFailedException("This part cannot be instantiated.");
+                }
+
                 return this.Value;
             }
 
