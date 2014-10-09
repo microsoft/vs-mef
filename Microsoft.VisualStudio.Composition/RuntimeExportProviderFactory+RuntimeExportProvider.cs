@@ -422,7 +422,7 @@
 
                     if (!this.partDefinition.IsInstantiable)
                     {
-                        throw new CompositionFailedException("Cannot instantiate this part.");
+                        return null;
                     }
 
                     var constructedPartType = GetPartConstructedTypeRef(this.partDefinition, this.importMetadata);
