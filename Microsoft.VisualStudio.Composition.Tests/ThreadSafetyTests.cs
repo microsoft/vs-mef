@@ -329,5 +329,83 @@
         }
 
         #endregion
+
+        #region ImportingConstructorImportsAreFullyInitialized test
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartThatImportsPartWithOwnImports), typeof(PartThatImportsRandomExport), typeof(RandomExport))]
+        public void ImportingConstructorImportsAreFullyInitialized(IContainer container)
+        {
+            PartThatImportsRandomExport.UnblockImportingPropertySetters.Reset();
+            PartThatImportsRandomExport.ImportingPropertySettersInvoked.Reset();
+
+            var partDependencyTask = Task.Run(delegate
+            {
+                var part = container.GetExportedValue<PartThatImportsRandomExport>();
+                Assert.NotNull(part.RandomExport);
+                return part;
+            });
+
+            PartThatImportsRandomExport.ImportingPropertySettersInvoked.Wait();
+
+            var partWithImportingConstructorTask = Task.Run(delegate
+            {
+                var part = container.GetExportedValue<PartThatImportsPartWithOwnImports>();
+                return part;
+            });
+
+            Assert.False(partWithImportingConstructorTask.Wait(TestUtilities.ExpectedTimeout)); // we expect this task cannot proceed till we unblock its importing constructor arguments.
+            PartThatImportsRandomExport.UnblockImportingPropertySetters.Set();
+            Assert.True(partWithImportingConstructorTask.Wait(TestUtilities.UnexpectedTimeout));
+
+            partDependencyTask.Wait(); // rethrow any failures here
+
+            Assert.Same(partDependencyTask.Result, partWithImportingConstructorTask.Result.ImportingConstructorArgument);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartThatImportsPartWithOwnImports
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartThatImportsPartWithOwnImports(PartThatImportsRandomExport export)
+            {
+                Assert.NotNull(export.RandomExport);
+                this.ImportingConstructorArgument = export;
+            }
+
+            public PartThatImportsRandomExport ImportingConstructorArgument { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartThatImportsRandomExport
+        {
+            internal static readonly ManualResetEventSlim UnblockImportingPropertySetters = new ManualResetEventSlim();
+            internal static readonly ManualResetEventSlim ImportingPropertySettersInvoked = new ManualResetEventSlim();
+
+            private RandomExport randomExport;
+
+            [Import, MefV1.Import]
+            public RandomExport RandomExport
+            {
+                get
+                {
+                    return this.randomExport;
+                }
+
+                set
+                {
+                    ImportingPropertySettersInvoked.Set();
+                    UnblockImportingPropertySetters.Wait();
+                    this.randomExport = value;
+                }
+            }
+        }
+
+        #endregion
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class RandomExport { }
     }
 }
