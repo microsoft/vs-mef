@@ -65,6 +65,39 @@
             Assert.IsType<RandomExport>(part.ConstructorImports[0]);
         }
 
+        #region ImportingConstructorImportsAreFullyInitialized test
+
+        /// <summary>
+        /// Verifies that ImportingConstructor's imports are satisfied by exports from parts that
+        /// are themselves fully initialized.
+        /// </summary>
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(PartThatImportsPartWithOwnImports), typeof(PartThatImportsRandomExport), typeof(RandomExport))]
+        public void ImportingConstructorImportsAreFullyInitialized(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsPartWithOwnImports>();
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartThatImportsPartWithOwnImports
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartThatImportsPartWithOwnImports(PartThatImportsRandomExport export)
+            {
+                Assert.NotNull(export.RandomExport);
+            }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartThatImportsRandomExport
+        {
+            [Import, MefV1.Import]
+            public RandomExport RandomExport { get; set; }
+        }
+
+        #endregion
+
         #region AllowDefault tests
 
         [Trait("AllowDefault", "true")]
