@@ -187,5 +187,147 @@
         }
 
         #endregion
+
+        // TODO: write test to verify that visibility is not granted to types till their OnImportsSatisfied methods are finished.
+        // Artificially control when OnImportsSatisfied is finished and try to prove that other parts are unveiled before they're done.
+
+        #region SharedPartCircularDependencyCreationAcrossMultipleThreads test
+
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V2Compat, typeof(CircularDependencySharedPart1), typeof(CircularDependencySharedPart2))]
+        public void SharedPartCircularDependencyCreationAcrossMultipleThreads(IContainer container)
+        {
+            CircularDependencySharedPart1.UnblockSurroundingImportingProperties.Reset();
+            CircularDependencySharedPart1.SurroundingImportingPropertiesHit.Reset();
+            CircularDependencySharedPart2.UnblockSurroundingImportingProperties.Reset();
+            CircularDependencySharedPart2.SurroundingImportingPropertiesHit.Reset();
+
+            var part1Task = Task.Run(delegate
+            {
+                Console.WriteLine("Part1 being requested on thread {0}", Thread.CurrentThread.ManagedThreadId);
+                var part1 = container.GetExportedValue<CircularDependencySharedPart1>();
+                Assert.NotNull(part1.OnImportsSatisfiedInvokedThread);
+                return part1;
+            });
+
+            var part2Task = Task.Run(delegate
+            {
+                Console.WriteLine("Part2 being requested on thread {0}", Thread.CurrentThread.ManagedThreadId);
+                var part2 = container.GetExportedValue<CircularDependencySharedPart2>();
+                Assert.NotNull(part2.OnImportsSatisfiedInvokedThread);
+                return part2;
+            });
+
+            // Wait for each thread to construct the first part to the point of initializing imports.
+            if (!CircularDependencySharedPart1.SurroundingImportingPropertiesHit.Wait(500))
+            {
+                Console.WriteLine("Timed out waiting for Part1 to hit the importing property setter.");
+            }
+
+            if (!CircularDependencySharedPart2.SurroundingImportingPropertiesHit.Wait(500))
+            {
+                Console.WriteLine("Timed out waiting for Part2 to hit the importing property setter.");
+            }
+
+            // Unleash the satisfying of imports now, which allows the MEF container to discover the need for
+            // another part and have to interact with the other thread as necessary.
+            CircularDependencySharedPart1.UnblockSurroundingImportingProperties.Set();
+            CircularDependencySharedPart2.UnblockSurroundingImportingProperties.Set();
+
+            // Get the two parts.
+            var p1 = part1Task.Result;
+            var p2 = part2Task.Result;
+
+            Assert.Same(p1, p2.Part1);
+            Assert.Same(p2, p1.Part2);
+
+            // Verify (for the validity of the test itself) that the parts were initialized from different threads.
+            Console.WriteLine(
+                "Each part initialized from unique threads: {0}",
+                CircularDependencySharedPart1.ThreadSatisfiedFrom != CircularDependencySharedPart2.ThreadSatisfiedFrom);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class CircularDependencySharedPart1 : MefV1.IPartImportsSatisfiedNotification
+        {
+            internal static readonly ManualResetEventSlim SurroundingImportingPropertiesHit = new ManualResetEventSlim();
+            internal static readonly ManualResetEventSlim UnblockSurroundingImportingProperties = new ManualResetEventSlim();
+            internal static Thread ThreadSatisfiedFrom;
+
+            [ImportMany, MefV1.ImportMany]
+            public object[] DummyImporter
+            {
+                get
+                {
+                    return null;
+                }
+
+                set
+                {
+                    ThreadSatisfiedFrom = Thread.CurrentThread;
+                    SurroundingImportingPropertiesHit.Set();
+                    UnblockSurroundingImportingProperties.Wait();
+                }
+            }
+
+            [Import, MefV1.Import]
+            public CircularDependencySharedPart2 Part2 { get; set; }
+
+            public Thread OnImportsSatisfiedInvokedThread { get; private set; }
+
+            [OnImportsSatisfied]
+            public void OnImportsSatisfied()
+            {
+                this.OnImportsSatisfiedInvokedThread = Thread.CurrentThread;
+                Assert.Same(this, this.Part2.Part1);
+
+                // This isn't a requirement, but log whether the OnImportsSatisfied method
+                // was invoked on this thread because it's interesting.
+                Console.WriteLine("Part1 OnImportsSatisfied invoked on thread {0}", this.OnImportsSatisfiedInvokedThread.ManagedThreadId);
+            }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class CircularDependencySharedPart2 : MefV1.IPartImportsSatisfiedNotification
+        {
+            internal static readonly ManualResetEventSlim SurroundingImportingPropertiesHit = new ManualResetEventSlim();
+            internal static readonly ManualResetEventSlim UnblockSurroundingImportingProperties = new ManualResetEventSlim();
+            internal static Thread ThreadSatisfiedFrom;
+
+            [ImportMany, MefV1.ImportMany]
+            public object[] DummyImporter
+            {
+                get
+                {
+                    return null;
+                }
+
+                set
+                {
+                    ThreadSatisfiedFrom = Thread.CurrentThread;
+                    SurroundingImportingPropertiesHit.Set();
+                    UnblockSurroundingImportingProperties.Wait();
+                }
+            }
+
+            [Import, MefV1.Import]
+            public CircularDependencySharedPart1 Part1 { get; set; }
+
+            public Thread OnImportsSatisfiedInvokedThread { get; private set; }
+
+            [OnImportsSatisfied]
+            public void OnImportsSatisfied()
+            {
+                this.OnImportsSatisfiedInvokedThread = Thread.CurrentThread;
+                Assert.Same(this, this.Part1.Part2);
+
+                // This isn't a requirement, but log whether the OnImportsSatisfied method
+                // was invoked on this thread because it's interesting.
+                Console.WriteLine("Part2 OnImportsSatisfied invoked on thread {0}", this.OnImportsSatisfiedInvokedThread.ManagedThreadId);
+            }
+        }
+
+        #endregion
     }
 }
