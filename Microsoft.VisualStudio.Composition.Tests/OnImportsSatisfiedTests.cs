@@ -68,5 +68,50 @@
 
         [MefV1.Export, Export]
         public class SomeRandomPart { }
+
+        #region OnImportsSatisfiedInvokedAfterTransitiveImportsSatisfied
+
+        [MefFact(CompositionEngines.V2/*Compat | CompositionEngines.V3EmulatingV1*/, typeof(RequestedPart), typeof(TransitivePart))]
+        public void OnImportsSatisfiedInvokedAfterTransitiveImportsSatisfied(IContainer container)
+        {
+            bool invoked = false;
+            TransitivePart.OnImportsSatisfiedHandler = transitive =>
+            {
+                Assert.NotNull(transitive.RequestedPart);
+                Assert.Same(transitive, transitive.RequestedPart.TransitivePart);
+                invoked = true;
+            };
+            var part = container.GetExportedValue<RequestedPart>();
+            Assert.True(invoked);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class RequestedPart
+        {
+            [MefV1.Import, Import]
+            public TransitivePart TransitivePart { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class TransitivePart : MefV1.IPartImportsSatisfiedNotification
+        {
+            [MefV1.Import, Import]
+            public RequestedPart RequestedPart { get; set; }
+
+            internal static Action<TransitivePart> OnImportsSatisfiedHandler;
+
+            [OnImportsSatisfied]
+            public void OnImportsSatisfied()
+            {
+                if (OnImportsSatisfiedHandler != null)
+                {
+                    OnImportsSatisfiedHandler(this);
+                }
+            }
+        }
+
+        #endregion
     }
 }
