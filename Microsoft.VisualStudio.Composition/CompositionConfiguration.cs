@@ -140,7 +140,7 @@
             }
 
             // Detect loops of all non-shared parts.
-            if (IsLoopPresent(parts))
+            if (IsLoopOfNonSharedPartsPresent(parts))
             {
                 // TODO: improve diagnostic reporting of the loop. Disclose which parts are involved.
                 errors.Add(new ComposedPartDiagnostic(ImmutableList.Create<ComposedPart>(), "Loop detected."));
@@ -259,7 +259,7 @@
             return new CompositionConfiguration(this.Catalog, this.Parts, this.MetadataViewsAndProviders, this.CompositionErrors.Push(errors), this.effectiveSharingBoundaryOverrides);
         }
 
-        private static bool IsLoopPresent(IEnumerable<ComposedPart> parts)
+        private static bool IsLoopOfNonSharedPartsPresent(IEnumerable<ComposedPart> parts)
         {
             Requires.NotNull(parts, "parts");
 
@@ -278,10 +278,10 @@
             }
 
             // Now create a map of each part and all the parts it transitively imports.
-            return IsLoopPresent(partsAndDirectImports.Keys, p => partsAndDirectImports[p]);
+            return IsLoopOfNonSharedPartsPresent(partsAndDirectImports.Keys, p => partsAndDirectImports[p]);
         }
 
-        private static bool IsLoopPresent<T>(IEnumerable<T> values, Func<T, IEnumerable<T>> getDirectLinks)
+        private static bool IsLoopOfNonSharedPartsPresent<T>(IEnumerable<T> values, Func<T, IEnumerable<T>> getDirectLinks)
         {
             Requires.NotNull(values, "values");
             Requires.NotNull(getDirectLinks, "getDirectLinks");
