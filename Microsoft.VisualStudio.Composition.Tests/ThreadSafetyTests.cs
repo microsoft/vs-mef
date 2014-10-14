@@ -129,7 +129,7 @@
                     // it would block t2 from finishing until we allow PartWithBlockingImportPropertySetter to finish initializing.
                     // But that can't happen unless we give up waiting and we don't want to
                     // deadlock when the right thing happens.
-                    Assert.False(t2.Wait(1000));
+                    Assert.False(t2.Wait(TestUtilities.ExpectedTimeout));
                     Console.WriteLine("t2.Wait(int) timed out.");
                 }
                 catch (AggregateException)
