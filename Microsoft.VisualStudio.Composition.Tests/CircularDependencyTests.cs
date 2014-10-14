@@ -306,7 +306,7 @@
 
         #region Loop involving one importing constructor and a non-lazy import
 
-        [MefFact(CompositionEngines.V2Compat, typeof(PartWithImportingProperty), typeof(PartWithImportingConstructor))]
+        [MefFact(CompositionEngines.V2, typeof(PartWithImportingProperty), typeof(PartWithImportingConstructor))]
         public void LoopWithImportingConstructorAndImportingPropertyV2(IContainer container)
         {
             var partWithImportingProperty = container.GetExportedValue<PartWithImportingProperty>();
