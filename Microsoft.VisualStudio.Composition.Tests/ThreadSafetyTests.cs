@@ -75,7 +75,7 @@
             // we still ended up with just one shared part satisfying all the imports.
             for (int i = 1; i < threads; i++)
             {
-                Assert.Same(contrivedPartTasks[0].Result, contrivedPartTasks[1].Result);
+                Assert.Same(contrivedPartTasks[0].Result, contrivedPartTasks[i].Result);
             }
         }
 
