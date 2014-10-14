@@ -25,6 +25,7 @@ IF /I "%1"=="RI" (
 	ECHO * Execute the following command in Razzle:
 	ECHO *
 	ECHO *     tfpt online /r /deletes %%SDXROOT%%\platform\mef
+	ECHO *     tfpt uu /r /noprompt /noget %%SDXROOT%%\platform\mef
 	ECHO *
 	ECHO *********************
 )
