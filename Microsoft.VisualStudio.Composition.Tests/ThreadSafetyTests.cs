@@ -13,7 +13,7 @@
     [Trait("Multithreaded", "")]
     public class ThreadSafetyTests
     {
-        #region PartRequestedAcrossMultipleThreads
+        #region Lazy import of shared part
 
         /// <summary>
         /// Exercises code that relies on provisionalSharedObjects
@@ -21,7 +21,7 @@
         /// thread safety issues to show themselves.
         /// </summary>
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartThatImportsSharedPartWithBlockableConstructor), typeof(SharedPartWithBlockableConstructor))]
-        public void PartRequestedAcrossMultipleThreads(IContainer container)
+        public void LazyOfSharedPartConstructsOnlyOneInstanceAcrossThreads(IContainer container)
         {
             var testFailedCancellationSource = new CancellationTokenSource();
             var timeoutCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(testFailedCancellationSource.Token);
@@ -29,6 +29,7 @@
 
             const int threads = 2;
             SharedPartWithBlockableConstructor.ImportingConstructorBlockEvent.Reset();
+            SharedPartWithBlockableConstructor.CtorInvocationCounter = 0;
             SharedPartWithBlockableConstructor.ConstructorEnteredCountdown.Reset(threads);
             SharedPartWithBlockableConstructor.CancellationToken = testFailedCancellationSource.Token;
 
@@ -71,8 +72,9 @@
                 SharedPartWithBlockableConstructor.ImportingConstructorBlockEvent.Set();
             }
 
-            // Verify that although the constructor was started multiple times,
-            // we still ended up with just one shared part satisfying all the imports.
+            Assert.Equal(1, SharedPartWithBlockableConstructor.CtorInvocationCounter);
+
+            // Verify that all threaded saw just one instance of the shared part satisfying all the imports.
             for (int i = 1; i < threads; i++)
             {
                 Assert.Same(contrivedPartTasks[0].Result, contrivedPartTasks[i].Result);
@@ -94,11 +96,100 @@
             internal static readonly ManualResetEventSlim ImportingConstructorBlockEvent = new ManualResetEventSlim();
             internal static readonly CountdownEvent ConstructorEnteredCountdown = new CountdownEvent(0);
             internal static CancellationToken CancellationToken;
+            internal static int CtorInvocationCounter;
 
             public SharedPartWithBlockableConstructor()
             {
+                Interlocked.Increment(ref CtorInvocationCounter);
                 ConstructorEnteredCountdown.Signal();
                 ImportingConstructorBlockEvent.Wait(CancellationToken);
+            }
+        }
+
+        #endregion
+
+        #region Lazy import of non-shared part
+
+        [MefFact(CompositionEngines.V1, typeof(NonSharedPart), typeof(PartThatImportsNonSharedPart))]
+        public void LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreadsV1(IContainer container)
+        {
+            this.LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(container, permitMultipleInstancesOfNonSharedPart: false);
+        }
+
+        // TODO: V3 should emulate V1 behavior -- not V2!
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V2Compat, typeof(NonSharedPart), typeof(PartThatImportsNonSharedPart))]
+        public void LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreadsV2(IContainer container)
+        {
+            this.LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(container, permitMultipleInstancesOfNonSharedPart: true);
+        }
+
+        private void LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(IContainer container, bool permitMultipleInstancesOfNonSharedPart)
+        {
+            NonSharedPart.CtorInvocationCounter = 0;
+            NonSharedPart.UnblockCtor.Reset();
+
+            var root = container.GetExportedValue<PartThatImportsNonSharedPart>();
+
+            // We carefully orchestrate the scheduling here to make sure we have threads ready to go
+            // (not just queued to the threadpool) to maximize concurrent execution.
+            var ready = new CountdownEvent(2);
+            var go = new ManualResetEventSlim();
+
+            var t1 = Task.Run(delegate
+            {
+                ready.Signal();
+                ready.Wait();
+                return root.NonSharedPart.Value;
+            });
+
+            var t2 = Task.Run(delegate
+            {
+                ready.Signal();
+                ready.Wait();
+                return root.NonSharedPart.Value;
+            });
+
+            var unblockingTask = Task.Run(async delegate
+            {
+                // We artificially block the constructor of the non-shared part
+                // to maximize the window that can result in multiple instances being created.
+                ready.Wait();
+                await Task.Delay(TestUtilities.ExpectedTimeout);
+
+                // Now unblock the other threads.
+                NonSharedPart.UnblockCtor.Set();
+
+                // Pri-2: verify that the constructor was only invoked once.
+                if (!permitMultipleInstancesOfNonSharedPart)
+                {
+                    Assert.Equal(1, NonSharedPart.CtorInvocationCounter);
+                }
+            });
+
+            // Pri-1: Verify that only one instance is ever publicly observable.
+            Assert.Same(t1.Result, t2.Result);
+            unblockingTask.Wait();
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class PartThatImportsNonSharedPart
+        {
+            [Import, MefV1.Import]
+            public Lazy<NonSharedPart> NonSharedPart { get; set; }
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class NonSharedPart
+        {
+            internal static int CtorInvocationCounter;
+            internal static readonly ManualResetEventSlim UnblockCtor = new ManualResetEventSlim();
+
+            public NonSharedPart()
+            {
+                Interlocked.Increment(ref CtorInvocationCounter);
+                UnblockCtor.Wait();
             }
         }
 
@@ -399,93 +490,6 @@
                     UnblockImportingPropertySetters.Wait();
                     this.randomExport = value;
                 }
-            }
-        }
-
-        #endregion
-
-        #region Lazy import of non-shared part
-
-        [MefFact(CompositionEngines.V1, typeof(NonSharedPart), typeof(PartThatImportsNonSharedPart))]
-        public void LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreadsV1(IContainer container)
-        {
-            this.LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(container, permitMultipleInstancesOfNonSharedPart: false);
-        }
-
-        // TODO: V3 should emulate V1 behavior -- not V2!
-        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V2Compat, typeof(NonSharedPart), typeof(PartThatImportsNonSharedPart))]
-        public void LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreadsV2(IContainer container)
-        {
-            this.LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(container, permitMultipleInstancesOfNonSharedPart: true);
-        }
-
-        private void LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(IContainer container, bool permitMultipleInstancesOfNonSharedPart)
-        {
-            NonSharedPart.CtorInvocationCounter = 0;
-            NonSharedPart.UnblockCtor.Reset();
-
-            var root = container.GetExportedValue<PartThatImportsNonSharedPart>();
-
-            // We carefully orchestrate the scheduling here to make sure we have threads ready to go
-            // (not just queued to the threadpool) to maximize concurrent execution.
-            var ready = new CountdownEvent(2);
-            var go = new ManualResetEventSlim();
-
-            var t1 = Task.Run(delegate
-            {
-                ready.Signal();
-                ready.Wait();
-                return root.NonSharedPart.Value;
-            });
-
-            var t2 = Task.Run(delegate
-            {
-                ready.Signal();
-                ready.Wait();
-                return root.NonSharedPart.Value;
-            });
-
-            var unblockingTask = Task.Run(async delegate
-            {
-                // We artificially block the constructor of the non-shared part
-                // to maximize the window that can result in multiple instances being created.
-                ready.Wait();
-                await Task.Delay(TestUtilities.ExpectedTimeout);
-
-                // Now unblock the other threads.
-                NonSharedPart.UnblockCtor.Set();
-
-                // Pri-2: verify that the constructor was only invoked once.
-                if (!permitMultipleInstancesOfNonSharedPart)
-                {
-                    Assert.Equal(1, NonSharedPart.CtorInvocationCounter);
-                }
-            });
-
-            // Pri-1: Verify that only one instance is ever publicly observable.
-            Assert.Same(t1.Result, t2.Result);
-            unblockingTask.Wait();
-        }
-
-        [Export]
-        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
-        public class PartThatImportsNonSharedPart
-        {
-            [Import, MefV1.Import]
-            public Lazy<NonSharedPart> NonSharedPart { get; set; }
-        }
-
-        [Export]
-        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
-        public class NonSharedPart
-        {
-            internal static int CtorInvocationCounter;
-            internal static readonly ManualResetEventSlim UnblockCtor = new ManualResetEventSlim();
-
-            public NonSharedPart()
-            {
-                CtorInvocationCounter++;
-                UnblockCtor.Wait();
             }
         }
 
