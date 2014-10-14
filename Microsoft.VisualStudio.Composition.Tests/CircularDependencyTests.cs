@@ -129,6 +129,30 @@
 
         #endregion
 
+        #region Tight loop of all Any parts, imported as non-shared
+
+        [MefFact(CompositionEngines.V1, typeof(AnyPolicyPart1), typeof(AnyPolicyPart2), InvalidConfiguration = true)]
+        public void CircularDependenciesAnyExportsImportedAsAsNonShared(IContainer container)
+        {
+            container.GetExportedValue<AnyPolicyPart1>();
+        }
+
+        [MefV1.Export]
+        public class AnyPolicyPart1
+        {
+            [MefV1.Import(RequiredCreationPolicy = MefV1.CreationPolicy.NonShared)]
+            public AnyPolicyPart2 Export2 { get; set; }
+        }
+
+        [MefV1.Export]
+        public class AnyPolicyPart2
+        {
+            [MefV1.Import(RequiredCreationPolicy = MefV1.CreationPolicy.NonShared)]
+            public AnyPolicyPart1 Export1 { get; set; }
+        }
+
+        #endregion
+
         #region Large loop of all non-shared exports
 
         [Fact]
