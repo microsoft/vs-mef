@@ -347,6 +347,86 @@
 
         #endregion
 
+        #region Loop involving one importing constructor and a lazy import
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithLazyImportingProperty), typeof(PartWithImportingConstructorOfPartWithLazyImportingProperty))]
+        public void LoopWithImportingConstructorAndLazyImportingProperty(IContainer container)
+        {
+            var partWithImportingProperty = container.GetExportedValue<PartWithLazyImportingProperty>();
+            Assert.NotNull(partWithImportingProperty.PartWithImportingConstructor);
+
+            // Verify the Lazy has the proper value, even after having previously thrown
+            // in the part's constructor.
+            Assert.Same(partWithImportingProperty, partWithImportingProperty.PartWithImportingConstructor.Value.PartWithLazyImportingProperty);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithLazyImportingProperty
+        {
+            [Import, MefV1.Import]
+            public Lazy<PartWithImportingConstructorOfPartWithLazyImportingProperty> PartWithImportingConstructor { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorOfPartWithLazyImportingProperty
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorOfPartWithLazyImportingProperty(PartWithLazyImportingProperty other)
+            {
+                this.PartWithLazyImportingProperty = other;
+                Assert.NotNull(other.PartWithImportingConstructor);
+
+                // This not only verifies that we throw appropriately, but it proves later
+                // that it doesn't break the lazy's ability to produce the correct value later
+                // when the test method evaluates it again.
+                // This is possible by constructing Lazy<T> with System.Threading.LazyThreadSafetyMode.PublicationOnly
+                Assert.Throws<InvalidOperationException>(() => other.PartWithImportingConstructor.Value);
+            }
+
+            public PartWithLazyImportingProperty PartWithLazyImportingProperty { get; set; }
+        }
+
+        #endregion
+
+        #region Loop involving one importing constructor with a lazy import, and a part with a non-lazy import
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithImportingPropertyOfLazyImportingConstructor), typeof(PartWithLazyImportingConstructorOfPartWithImportingProperty))]
+        public void LoopWithLazyImportingConstructorAndImportingProperty(IContainer container)
+        {
+            var partWithImportingProperty = container.GetExportedValue<PartWithImportingPropertyOfLazyImportingConstructor>();
+            Assert.NotNull(partWithImportingProperty.PartWithImportingConstructor);
+            Assert.Same(partWithImportingProperty, partWithImportingProperty.PartWithImportingConstructor.PartWithImportingProperty.Value);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingPropertyOfLazyImportingConstructor
+        {
+            [Import, MefV1.Import]
+            public PartWithLazyImportingConstructorOfPartWithImportingProperty PartWithImportingConstructor { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithLazyImportingConstructorOfPartWithImportingProperty
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithLazyImportingConstructorOfPartWithImportingProperty(Lazy<PartWithImportingPropertyOfLazyImportingConstructor> other)
+            {
+                this.PartWithImportingProperty = other;
+
+                // This cannot possibly be non-null because until this constructor returns,
+                // there is no value to assign to it.
+                Assert.Null(other.Value.PartWithImportingConstructor);
+            }
+
+            public Lazy<PartWithImportingPropertyOfLazyImportingConstructor> PartWithImportingProperty { get; set; }
+        }
+
+        #endregion
+
         #region Unresolvable, non-analyzable circular dependency test
 
         [MefFact(CompositionEngines.V1, typeof(RootPartThatImperativelyQueriesForPartWithImportingConstructor), typeof(PartThatImportsRootPartViaImportingConstructor))]
