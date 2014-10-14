@@ -268,7 +268,7 @@
         [Fact]
         public async Task ValidMultiplePaths()
         {
-            CompositionConfiguration.Create(await new AttributedPartDiscovery().CreatePartsAsync( 
+            CompositionConfiguration.Create(await new AttributedPartDiscovery().CreatePartsAsync(
                 typeof(ValidMultiplePathRoot),
                 typeof(ValidMultiplePathTrail1),
                 typeof(ValidMultiplePathTrail2),
@@ -301,6 +301,49 @@
 
         [Export]
         public class ValidMultiplePathCommonImport { }
+
+        #endregion
+
+        #region Loop involving one importing constructor and a non-lazy import
+
+        [MefFact(CompositionEngines.V2Compat, typeof(PartWithImportingProperty), typeof(PartWithImportingConstructor))]
+        public void LoopWithImportingConstructorAndImportingPropertyV2(IContainer container)
+        {
+            var partWithImportingProperty = container.GetExportedValue<PartWithImportingProperty>();
+            Assert.NotNull(partWithImportingProperty.PartWithImportingConstructor);
+            Assert.Same(partWithImportingProperty, partWithImportingProperty.PartWithImportingConstructor.PartWithImportingProperty);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(PartWithImportingProperty), typeof(PartWithImportingConstructor), InvalidConfiguration = true)]
+        public void LoopWithImportingConstructorAndImportingPropertyV1(IContainer container)
+        {
+            var partWithImportingProperty = container.GetExportedValue<PartWithImportingProperty>();
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingProperty
+        {
+            [Import, MefV1.Import]
+            public PartWithImportingConstructor PartWithImportingConstructor { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructor
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructor(PartWithImportingProperty other)
+            {
+                this.PartWithImportingProperty = other;
+
+                // It's impossible to resolve this circular dependency without passing in an uninitialized "other".
+                // It can't get an instance of "this" to stick there.
+                Assert.Null(other.PartWithImportingConstructor);
+            }
+
+            public PartWithImportingProperty PartWithImportingProperty { get; set; }
+        }
 
         #endregion
 
