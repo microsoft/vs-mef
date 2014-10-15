@@ -140,10 +140,11 @@
             }
 
             // Detect loops of all non-shared parts.
-            if (IsLoopOfNonSharedPartsPresent(parts))
+            var partsInLoops = FindPartsInLoops(parts);
+            if (partsInLoops.Count > 0)
             {
-                // TODO: improve diagnostic reporting of the loop. Disclose which parts are involved.
-                errors.Add(new ComposedPartDiagnostic(ImmutableList.Create<ComposedPart>(), "Loop detected."));
+                // TODO: improve diagnostic reporting of the loops discovered. Disclose which parts are involved in each loop.
+                errors.Add(new ComposedPartDiagnostic(partsInLoops, "Loop(s) detected."));
             }
 
             if (errors.Count > 0)
@@ -259,35 +260,14 @@
             return new CompositionConfiguration(this.Catalog, this.Parts, this.MetadataViewsAndProviders, this.CompositionErrors.Push(errors), this.effectiveSharingBoundaryOverrides);
         }
 
-        private static bool IsLoopOfNonSharedPartsPresent(IEnumerable<ComposedPart> parts)
-        {
-            Requires.NotNull(parts, "parts");
-
-            var partByPartDefinition = parts.ToDictionary(p => p.Definition);
-            var partsAndDirectImports = new Dictionary<ComposedPart, ImmutableHashSet<ComposedPart>>();
-
-            // First create a map of each NonShared part and the NonShared parts it directly imports.
-            foreach (var part in parts.Where(p => !p.Definition.IsShared))
-            {
-                var directlyImportedParts = (from exportList in part.SatisfyingExports.Values
-                                             from export in exportList
-                                             let exportingPart = partByPartDefinition[export.PartDefinition]
-                                             where !exportingPart.Definition.IsShared
-                                             select exportingPart).ToImmutableHashSet();
-                partsAndDirectImports.Add(part, directlyImportedParts);
-            }
-
-            // Now create a map of each part and all the parts it transitively imports.
-            return IsLoopOfNonSharedPartsPresent(partsAndDirectImports.Keys, p => partsAndDirectImports[p]);
-        }
-
-        private static bool IsLoopOfNonSharedPartsPresent<T>(IEnumerable<T> values, Func<T, IEnumerable<T>> getDirectLinks)
+        private static ISet<T> FindPartsInLoops<T>(IEnumerable<T> values, Func<T, IEnumerable<T>> getDirectLinks)
         {
             Requires.NotNull(values, "values");
             Requires.NotNull(getDirectLinks, "getDirectLinks");
 
             var visitedNodes = new HashSet<T>();
             var queue = new Queue<T>();
+            var partsFoundInLoops = new HashSet<T>();
             foreach (T value in values)
             {
                 visitedNodes.Clear();
@@ -304,7 +284,8 @@
                         // to the part we're looking at now.
                         if (value.Equals(node))
                         {
-                            return true;
+                            partsFoundInLoops.Add(value);
+                            break;
                         }
                     }
 
@@ -315,7 +296,32 @@
                 }
             }
 
-            return false;
+            return partsFoundInLoops;
+        }
+
+        private static ISet<ComposedPart> FindPartsInLoops(IEnumerable<ComposedPart> parts)
+        {
+            Requires.NotNull(parts, "parts");
+
+            var partByPartDefinition = parts.ToDictionary(p => p.Definition);
+            var partsAndDirectImports = new Dictionary<ComposedPart, ImmutableDictionary<ImportDefinitionBinding, ComposedPart>>();
+
+            foreach (var part in parts)
+            {
+                var directlyImportedParts = (from importAndExports in part.SatisfyingExports
+                                             from export in importAndExports.Value
+                                             let exportingPart = partByPartDefinition[export.PartDefinition]
+                                             select new KeyValuePair<ImportDefinitionBinding, ComposedPart>(importAndExports.Key, exportingPart)).ToImmutableDictionary();
+                partsAndDirectImports.Add(part, directlyImportedParts);
+            }
+
+            var partsFoundInLoops = new HashSet<ComposedPart>();
+
+            // Find any loops of exclusively non-shared parts.
+            partsFoundInLoops.UnionWith(
+                FindPartsInLoops(partsAndDirectImports.Keys, p => partsAndDirectImports[p].Where(ip => !ip.Value.Definition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(ip.Key.ImportDefinition)).Select(ip => ip.Value)));
+
+            return partsFoundInLoops;
         }
 
         /// <summary>

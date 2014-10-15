@@ -129,17 +129,37 @@
 
         #endregion
 
+        #region Tight loop of all Any parts, imported as non-shared
+
+        [MefFact(CompositionEngines.V1Compat, typeof(AnyPolicyPart1), typeof(AnyPolicyPart2), InvalidConfiguration = true)]
+        public void CircularDependenciesAnyExportsImportedAsAsNonShared(IContainer container)
+        {
+            container.GetExportedValue<AnyPolicyPart1>();
+        }
+
+        [MefV1.Export]
+        public class AnyPolicyPart1
+        {
+            [MefV1.Import(RequiredCreationPolicy = MefV1.CreationPolicy.NonShared)]
+            public AnyPolicyPart2 Export2 { get; set; }
+        }
+
+        [MefV1.Export]
+        public class AnyPolicyPart2
+        {
+            [MefV1.Import(RequiredCreationPolicy = MefV1.CreationPolicy.NonShared)]
+            public AnyPolicyPart1 Export1 { get; set; }
+        }
+
+        #endregion
+
         #region Large loop of all non-shared exports
 
-        [Fact]
-        public void LoopOfNonSharedExports()
+        [MefFact(CompositionEngines.V2Compat, typeof(NonSharedPart1), typeof(NonSharedPart2), typeof(NonSharedPart3), InvalidConfiguration = true)]
+        public void LoopOfNonSharedExports(IContainer container)
         {
-            // There is no way to resolve this catalog. It would instantiate parts forever.
-            Assert.Throws<CompositionFailedException>(() => CompositionConfiguration.Create(
-                new AttributedPartDiscovery().CreatePartsAsync(
-                    typeof(NonSharedPart1),
-                    typeof(NonSharedPart2),
-                    typeof(NonSharedPart3)).GetAwaiter().GetResult()));
+            // There is no way to resolve this loop. It would instantiate parts forever.
+            container.GetExportedValue<NonSharedPart1>();
         }
 
         [Export]
@@ -167,24 +187,10 @@
 
         #region Imports self
 
-        [Fact]
-        public void SelfImportingNonSharedPartThrows()
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(SelfImportingNonSharedPart), InvalidConfiguration = true)]
+        public void SelfImportingNonSharedPartIsInvalid(IContainer container)
         {
-            Assert.Throws<CompositionFailedException>(() => TestUtilities.CreateContainer(typeof(SelfImportingNonSharedPart)));
-        }
-
-        [Fact]
-        public void SelfImportingNonSharedPartThrowsV1()
-        {
-            var container = TestUtilities.CreateContainerV1(typeof(SelfImportingNonSharedPart));
-            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<SelfImportingNonSharedPart>());
-        }
-
-        [Fact]
-        public void SelfImportingNonSharedPartThrowsV2()
-        {
-            var container = TestUtilities.CreateContainerV2(typeof(SelfImportingNonSharedPart));
-            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<SelfImportingNonSharedPart>());
+            container.GetExportedValue<SelfImportingNonSharedPart>();
         }
 
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(SelfImportingNonSharedPartViaExportingProperty), InvalidConfiguration = true)]
