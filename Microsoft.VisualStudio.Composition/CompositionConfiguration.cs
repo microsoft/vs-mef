@@ -325,7 +325,7 @@
                 }
 
                 visited.Clear();
-                var path = PathExistsBetween(part, part, getDirectLinksWithFilter(ip => !ip.Value.Definition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(ip.Key.ImportDefinition)), visited);
+                var path = PathExistsBetween(part, part, getDirectLinksWithFilter(ip => !ip.Key.IsExportFactory && (!ip.Value.Definition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(ip.Key.ImportDefinition))), visited);
                 if (!path.IsEmpty)
                 {
                     path = path.Push(part);

@@ -396,7 +396,7 @@
 
         #endregion
 
-        #region
+        #region LoopWithImportingConstructorAndLazyImportPropertyOfPartiallyInitializedPart
 
         /// <summary>
         /// Verifies that initializing a part with an importing constructor works even
@@ -469,6 +469,33 @@
             }
 
             public Lazy<PartWithImportingPropertyOfLazyImportingConstructor> PartWithImportingProperty { get; set; }
+        }
+
+        #endregion
+
+        #region Loop involving an ExportFactory<T>
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithExportFactory), typeof(PartConstructedByExportFactory))]
+        public void LoopWithExportFactory(IContainer container)
+        {
+            var factory = container.GetExportedValue<PartWithExportFactory>();
+            var constructedPart = factory.Factory.CreateExport().Value;
+            Assert.NotSame(factory, constructedPart.PartWithExportFactory);
+        }
+
+        [MefV1.Export]
+        [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class PartWithExportFactory
+        {
+            [MefV1.Import]
+            public MefV1.ExportFactory<PartConstructedByExportFactory> Factory { get; set; }
+        }
+
+        [MefV1.Export]
+        public class PartConstructedByExportFactory
+        {
+            [MefV1.Import]
+            public PartWithExportFactory PartWithExportFactory { get; set; }
         }
 
         #endregion
