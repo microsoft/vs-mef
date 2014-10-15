@@ -12,6 +12,10 @@
 
     public class ImportDefinitionBinding : IEquatable<ImportDefinitionBinding>
     {
+        private bool? isLazy;
+
+        private Type importingSiteTypeWithoutCollection;
+
         private TypeRef importingSiteTypeRef;
 
         /// <summary>
@@ -130,9 +134,14 @@
         {
             get
             {
-                return this.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore
-                    ? PartDiscovery.GetElementTypeFromMany(this.ImportingSiteType)
-                    : this.ImportingSiteType;
+                if (this.importingSiteTypeWithoutCollection == null)
+                {
+                    this.importingSiteTypeWithoutCollection = this.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore
+                        ? PartDiscovery.GetElementTypeFromMany(this.ImportingSiteType)
+                        : this.ImportingSiteType;
+                }
+
+                return this.importingSiteTypeWithoutCollection;
             }
         }
 
@@ -149,7 +158,15 @@
 
         public bool IsLazy
         {
-            get { return this.ImportingSiteTypeWithoutCollection.IsAnyLazyType(); }
+            get
+            {
+                if (!this.isLazy.HasValue)
+                {
+                    this.isLazy = this.ImportingSiteTypeWithoutCollection.IsAnyLazyType();
+                }
+
+                return this.isLazy.Value;
+            }
         }
 
         public Type MetadataType
