@@ -279,6 +279,7 @@
             Requires.NotNull(visited, "visited");
             Requires.NotNull(queue, "queue");
 
+            bool firstNode = true;
             visited.Clear();
             queue.Clear();
 
@@ -286,22 +287,24 @@
             while (queue.Count > 0)
             {
                 var node = queue.Dequeue();
-                if (!visited.Add(node))
+                if (visited.Add(node))
                 {
-                    if (target.Equals(node))
+                    distinct.Clear();
+                    foreach (var directLink in getDirectLinks(node))
                     {
-                        return true;
+                        if (distinct.Add(directLink))
+                        {
+                            queue.Enqueue(directLink);
+                        }
                     }
                 }
 
-                distinct.Clear();
-                foreach (var directLink in getDirectLinks(node))
+                if (!firstNode && target.Equals(node))
                 {
-                    if (distinct.Add(directLink))
-                    {
-                        queue.Enqueue(directLink);
-                    }
+                    return true;
                 }
+
+                firstNode = false;
             }
 
             return false;
