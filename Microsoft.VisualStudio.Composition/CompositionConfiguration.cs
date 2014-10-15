@@ -269,9 +269,8 @@
         /// <param name="getDirectLinks">A function that enumerates the allowable steps to take from a given node.</param>
         /// <param name="visited">A reusable collection to use as part of the algorithm to avoid allocations for each call.</param>
         /// <param name="queue">A reusable collection to use as part of the algorithm to avoid allocations for each call</param>
-        /// <param name="distinct">A reusable collection to use as part of the algorithm to avoid allocations for each call.</param>
         /// <returns><c>true</c> if a path was found between the two nodes; <c>false</c> otherwise.</returns>
-        private static bool PathExistsBetween<T>(T origin, T target, Func<T, IEnumerable<T>> getDirectLinks, HashSet<T> visited, Queue<T> queue, HashSet<T> distinct)
+        private static bool PathExistsBetween<T>(T origin, T target, Func<T, IEnumerable<T>> getDirectLinks, HashSet<T> visited, Queue<T> queue)
         {
             Requires.NotNullAllowStructs(origin, "origin");
             Requires.NotNullAllowStructs(target, "target");
@@ -289,13 +288,9 @@
                 var node = queue.Dequeue();
                 if (visited.Add(node))
                 {
-                    distinct.Clear();
                     foreach (var directLink in getDirectLinks(node))
                     {
-                        if (distinct.Add(directLink))
-                        {
-                            queue.Enqueue(directLink);
-                        }
+                        queue.Enqueue(directLink);
                     }
                 }
 
@@ -331,12 +326,11 @@
                 filter => (part => partsAndDirectImports[part].Where(filter).Select(ip => ip.Value));
             var queue = new Queue<ComposedPart>();
             var visited = new HashSet<ComposedPart>();
-            var distinct = new HashSet<ComposedPart>();
 
             // Find any loops of exclusively non-shared parts.
             foreach (var part in partsAndDirectImports.Keys)
             {
-                if (PathExistsBetween(part, part, getDirectLinksWithFilter(ip => !ip.Value.Definition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(ip.Key.ImportDefinition)), visited, queue, distinct))
+                if (PathExistsBetween(part, part, getDirectLinksWithFilter(ip => !ip.Value.Definition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(ip.Key.ImportDefinition)), visited, queue))
                 {
                     partsFoundInLoops.Add(part);
                 }
@@ -352,7 +346,7 @@
                     var satisfyingPart = import.Value;
                     if (!importDefinitionBinding.ImportingParameterRef.IsEmpty)
                     {
-                        if (PathExistsBetween(satisfyingPart, importingPart, getDirectLinksWithFilter(ip => !ip.Key.IsLazy), visited, queue, distinct))
+                        if (PathExistsBetween(satisfyingPart, importingPart, getDirectLinksWithFilter(ip => !ip.Key.IsLazy), visited, queue))
                         {
                             partsFoundInLoops.Add(importingPart);
                         }
