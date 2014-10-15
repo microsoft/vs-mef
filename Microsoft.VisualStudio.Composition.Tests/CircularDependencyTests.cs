@@ -320,7 +320,7 @@
             Assert.Same(partWithImportingProperty, partWithImportingProperty.PartWithImportingConstructor.PartWithImportingProperty);
         }
 
-        [MefFact(CompositionEngines.V1, typeof(PartWithImportingProperty), typeof(PartWithImportingConstructor), InvalidConfiguration = true)]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithImportingProperty), typeof(PartWithImportingConstructor), InvalidConfiguration = true)]
         public void LoopWithImportingConstructorAndImportingPropertyV1(IContainer container)
         {
             var partWithImportingProperty = container.GetExportedValue<PartWithImportingProperty>();
