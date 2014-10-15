@@ -396,6 +396,46 @@
 
         #endregion
 
+        #region
+
+        /// <summary>
+        /// Verifies that initializing a part with an importing constructor works even
+        /// when there is a loop that involves a lazy when the lazily initialized part is half-initialized.
+        /// </summary>
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(PartWithImportingConstructorOfPartWithLazyImportOfPartiallyInitializedPart), typeof(PartWithLazyImportOfPartiallyInitializedPart), typeof(PartiallyInitializedPart))]
+        public void LoopWithImportingConstructorAndLazyImportPropertyOfPartiallyInitializedPart(IContainer container)
+        {
+            var a = container.GetExportedValue<PartiallyInitializedPart>();
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorOfPartWithLazyImportOfPartiallyInitializedPart
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorOfPartWithLazyImportOfPartiallyInitializedPart(PartWithLazyImportOfPartiallyInitializedPart b)
+            {
+            }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithLazyImportOfPartiallyInitializedPart
+        {
+            [Import, MefV1.Import]
+            public Lazy<PartiallyInitializedPart> C { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartiallyInitializedPart
+        {
+            [Import, MefV1.Import]
+            public PartWithImportingConstructorOfPartWithLazyImportOfPartiallyInitializedPart A { get; set; }
+        }
+
+        #endregion
+
         #region Loop involving one importing constructor with a lazy import, and a part with a non-lazy import
 
         [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(PartWithImportingPropertyOfLazyImportingConstructor), typeof(PartWithLazyImportingConstructorOfPartWithImportingProperty))]
