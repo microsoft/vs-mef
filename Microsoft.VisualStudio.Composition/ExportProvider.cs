@@ -853,7 +853,7 @@
                                 this.OwningExportProvider.TrackDisposableValue(this, this.sharingBoundary);
                             }
 
-                            this.UpdateState(PartLifecycleState.Created);
+                            Assumes.True(this.UpdateState(PartLifecycleState.Created));
                         }
                     }
                     catch (Exception ex)
@@ -927,18 +927,22 @@
                     bool shouldInvoke = false;
                     lock (this.syncObject)
                     {
-                        // We have to advance the state of this object forward within the lock
-                        // without having actually already invoked the method to avoid
-                        // both holding a lock while executing 3rd party code as well as avoid
-                        // two threads executing the delegate.
-                        shouldInvoke = this.ShouldMoveTo(PartLifecycleState.OnImportsSatisfiedInvoked)
-                            && this.UpdateState(PartLifecycleState.OnImportsSatisfiedInvoked);
+                        // To avoid holding the lock while executing 3rd party code, but still protect
+                        // against the instantiated part being exposed too soon, we advance the state
+                        // to indicate that we're in progress, then proceed without the lock.
+                        shouldInvoke = this.ShouldMoveTo(PartLifecycleState.OnImportsSatisfiedInProgress);
+                        if (shouldInvoke)
+                        {
+                            Assumes.True(this.UpdateState(PartLifecycleState.OnImportsSatisfiedInProgress));
+                        }
                     }
 
                     if (shouldInvoke)
                     {
                         Assumes.False(Monitor.IsEntered(this.syncObject)); // avoid holding locks while invoking others' code.
                         this.InvokeOnImportsSatisfied();
+
+                        Assumes.True(this.UpdateState(PartLifecycleState.OnImportsSatisfiedInvoked));
                     }
                 }
                 catch (Exception ex)
@@ -1092,8 +1096,12 @@
                     case PartLifecycleState.ImmediateImportsSatisfiedTransitively:
                         this.MoveToStateTransitively(PartLifecycleState.ImmediateImportsSatisfiedTransitively);
                         break;
-                    case PartLifecycleState.OnImportsSatisfiedInvoked:
+                    case PartLifecycleState.OnImportsSatisfiedInProgress:
                         this.NotifyTransitiveImportsSatisfied();
+                        break;
+                    case PartLifecycleState.OnImportsSatisfiedInvoked:
+                        // Another thread put this in the OnImportsSatisfiedInProgress state. Just wait for that thread to finish.
+                        this.WaitForState(PartLifecycleState.OnImportsSatisfiedInvoked);
                         break;
                     case PartLifecycleState.OnImportsSatisfiedInvokedTransitively:
                         this.MoveToStateTransitively(PartLifecycleState.OnImportsSatisfiedInvokedTransitively);
@@ -1125,6 +1133,7 @@
             Created,
             ImmediateImportsSatisfied,
             ImmediateImportsSatisfiedTransitively,
+            OnImportsSatisfiedInProgress,
             OnImportsSatisfiedInvoked,
             OnImportsSatisfiedInvokedTransitively,
             Final,
