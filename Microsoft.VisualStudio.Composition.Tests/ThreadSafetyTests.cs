@@ -279,8 +279,57 @@
 
         #endregion
 
-        // TODO: write test to verify that visibility is not granted to types till their OnImportsSatisfied methods are finished.
-        // Artificially control when OnImportsSatisfied is finished and try to prove that other parts are unveiled before they're done.
+        #region OnImportsSatisfied must complete before the part becomes visible
+
+        /// <summary>
+        /// Verify that visibility is not granted to types till their OnImportsSatisfied methods are finished.
+        /// </summary>
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        public void OnImportsSatisfiedMustCompleteBeforePartIsVisible(IContainer container)
+        {
+            // Artificially control when OnImportsSatisfied is finished and try to prove that other parts are unveiled before they're done.
+            PartWithBlockableOnImportsSatisfied.UnblockOnImportsSatisfied.Reset();
+            PartWithBlockableOnImportsSatisfied.OnImportsSatsifiedInvoked.Reset();
+
+            var getExportTask = Task.Run(delegate
+            {
+                var part = container.GetExportedValue<PartWithBlockableOnImportsSatisfied>();
+                return part;
+            });
+
+            var secondGetExportTask = Task.Run(delegate
+            {
+                PartWithBlockableOnImportsSatisfied.OnImportsSatsifiedInvoked.Wait();
+                var part = container.GetExportedValue<PartWithBlockableOnImportsSatisfied>();
+
+                // If this assertion fails, then the instantiated part was exposed before it finished initializing.
+                Assert.True(PartWithBlockableOnImportsSatisfied.UnblockOnImportsSatisfied.IsSet);
+                return part;
+            });
+
+            Assert.False(getExportTask.Wait(TestUtilities.ExpectedTimeout));
+            PartWithBlockableOnImportsSatisfied.OnImportsSatsifiedInvoked.Wait();
+            PartWithBlockableOnImportsSatisfied.UnblockOnImportsSatisfied.Set();
+
+            // rethrow any exceptions
+            Task.WaitAll(getExportTask, secondGetExportTask);
+        }
+
+        [Export, MefV1.Export]
+        public class PartWithBlockableOnImportsSatisfied : MefV1.IPartImportsSatisfiedNotification
+        {
+            internal static readonly ManualResetEventSlim OnImportsSatsifiedInvoked = new ManualResetEventSlim();
+            internal static readonly ManualResetEventSlim UnblockOnImportsSatisfied = new ManualResetEventSlim();
+
+            [OnImportsSatisfied]
+            public void OnImportsSatisfied()
+            {
+                OnImportsSatsifiedInvoked.Set();
+                UnblockOnImportsSatisfied.Wait();
+            }
+        }
+
+        #endregion
 
         #region SharedPartCircularDependencyCreationAcrossMultipleThreads test
 
