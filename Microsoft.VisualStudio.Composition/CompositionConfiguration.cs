@@ -302,25 +302,6 @@
             return false;
         }
 
-        private static ISet<T> FindPartsInLoops<T>(IEnumerable<T> values, Func<T, IEnumerable<T>> getDirectLinks)
-        {
-            Requires.NotNull(values, "values");
-            Requires.NotNull(getDirectLinks, "getDirectLinks");
-
-            var visitedNodes = new HashSet<T>();
-            var queue = new Queue<T>();
-            var partsFoundInLoops = new HashSet<T>();
-            foreach (T value in values)
-            {
-                if (PathExistsBetween(value, value, getDirectLinks, visitedNodes, queue))
-                {
-                    partsFoundInLoops.Add(value);
-                }
-            }
-
-            return partsFoundInLoops;
-        }
-
         private static ISet<ComposedPart> FindPartsInLoops(IEnumerable<ComposedPart> parts)
         {
             Requires.NotNull(parts, "parts");
@@ -340,14 +321,19 @@
             var partsFoundInLoops = new HashSet<ComposedPart>();
             Func<Func<KeyValuePair<ImportDefinitionBinding, ComposedPart>, bool>, Func<ComposedPart, IEnumerable<ComposedPart>>> getDirectLinksWithFilter =
                 filter => (part => partsAndDirectImports[part].Where(filter).Select(ip => ip.Value));
-
-            // Find any loops of exclusively non-shared parts.
-            partsFoundInLoops.UnionWith(
-                FindPartsInLoops(partsAndDirectImports.Keys, getDirectLinksWithFilter(ip => !ip.Value.Definition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(ip.Key.ImportDefinition))));
-
-            // Find loops even with shared parts where an importing constructor is involved.
             var queue = new Queue<ComposedPart>();
             var visited = new HashSet<ComposedPart>();
+
+            // Find any loops of exclusively non-shared parts.
+            foreach (var part in partsAndDirectImports.Keys)
+            {
+                if (PathExistsBetween(part, part, getDirectLinksWithFilter(ip => !ip.Value.Definition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(ip.Key.ImportDefinition)), visited, queue))
+                {
+                    partsFoundInLoops.Add(part);
+                }
+            }
+
+            // Find loops even with shared parts where an importing constructor is involved.
             foreach (var partAndImports in partsAndDirectImports)
             {
                 var importingPart = partAndImports.Key;
