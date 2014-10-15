@@ -402,7 +402,7 @@
         /// Verifies that initializing a part with an importing constructor works even
         /// when there is a loop that involves a lazy when the lazily initialized part is half-initialized.
         /// </summary>
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(PartWithImportingConstructorOfPartWithLazyImportOfPartiallyInitializedPart), typeof(PartWithLazyImportOfPartiallyInitializedPart), typeof(PartiallyInitializedPart))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithImportingConstructorOfPartWithLazyImportOfPartiallyInitializedPart), typeof(PartWithLazyImportOfPartiallyInitializedPart), typeof(PartiallyInitializedPart))]
         public void LoopWithImportingConstructorAndLazyImportPropertyOfPartiallyInitializedPart(IContainer container)
         {
             var a = container.GetExportedValue<PartiallyInitializedPart>();

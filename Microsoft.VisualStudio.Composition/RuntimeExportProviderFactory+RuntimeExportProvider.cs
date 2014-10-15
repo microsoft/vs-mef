@@ -110,7 +110,7 @@
                             {
                                 intArray.Value[0] = i++;
                                 var exportedValue = this.GetValueForImportElement(part, import, export, lazyFactory);
-                                tracker.ReportImportedPart(exportedValue.ExportingPart);
+                                tracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy);
                                 array.SetValue(exportedValue.Value, intArray.Value);
                             }
                         }
@@ -162,7 +162,7 @@
                         foreach (var export in exports)
                         {
                             var exportedValue = this.GetValueForImportElement(part, import, export, lazyFactory);
-                            tracker.ReportImportedPart(exportedValue.ExportingPart);
+                            tracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy);
                             collectionAccessor.Add(exportedValue.Value);
                         }
 
@@ -178,7 +178,7 @@
                     }
 
                     var exportedValue = this.GetValueForImportElement(part, import, export, lazyFactory);
-                    tracker.ReportImportedPart(exportedValue.ExportingPart);
+                    tracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy);
                     return new ValueForImportSite(exportedValue.Value);
                 }
             }
@@ -409,9 +409,9 @@
                     this.importMetadata = importMetadata;
                 }
 
-                internal new void ReportImportedPart(PartLifecycleTracker part)
+                internal new void ReportImportedPart(PartLifecycleTracker part, bool isLazy)
                 {
-                    base.ReportImportedPart(part);
+                    base.ReportImportedPart(part, isLazy);
                 }
 
                 protected new RuntimeExportProvider OwningExportProvider

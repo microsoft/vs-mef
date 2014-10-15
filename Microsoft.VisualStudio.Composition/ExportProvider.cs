@@ -806,7 +806,7 @@
         {
             private readonly object syncObject = new object();
             private readonly string sharingBoundary;
-            private readonly HashSet<PartLifecycleTracker> importedParts;
+            private readonly HashSet<PartLifecycleTracker> nonLazilyImportedParts;
             private Exception fault;
 
             public PartLifecycleTracker(ExportProvider owningExportProvider, string sharingBoundary)
@@ -815,7 +815,7 @@
 
                 this.OwningExportProvider = owningExportProvider;
                 this.sharingBoundary = sharingBoundary;
-                this.importedParts = new HashSet<PartLifecycleTracker>();
+                this.nonLazilyImportedParts = new HashSet<PartLifecycleTracker>();
                 this.State = PartLifecycleState.NotCreated;
             }
 
@@ -958,13 +958,13 @@
 
             protected abstract void InvokeOnImportsSatisfied();
 
-            protected void ReportImportedPart(PartLifecycleTracker importedPart)
+            protected void ReportImportedPart(PartLifecycleTracker importedPart, bool isLazy)
             {
-                if (importedPart != null)
+                if (importedPart != null && !isLazy)
                 {
                     lock (this.syncObject)
                     {
-                        this.importedParts.Add(importedPart);
+                        this.nonLazilyImportedParts.Add(importedPart);
                     }
                 }
             }
@@ -1002,9 +1002,9 @@
             {
                 Requires.NotNull(parts, "parts");
 
-                if (this.State <= excludePartsAfterState && this.State > PartLifecycleState.NotCreated && parts.Add(this))
+                if (this.State <= excludePartsAfterState && parts.Add(this))
                 {
-                    foreach (var importedPart in this.importedParts)
+                    foreach (var importedPart in this.nonLazilyImportedParts)
                     {
                         importedPart.CollectTransitiveCloserOfNonLazyImportedParts(parts, excludePartsAfterState);
                     }
