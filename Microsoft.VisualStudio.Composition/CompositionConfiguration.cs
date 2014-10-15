@@ -346,6 +346,7 @@
                     var satisfyingPart = import.Value;
                     if (!importDefinitionBinding.ImportingParameterRef.IsEmpty)
                     {
+                        // TODO: skip over lazy importing constructor arguments
                         if (PathExistsBetween(satisfyingPart, importingPart, getDirectLinksWithFilter(ip => !ip.Key.IsLazy), visited, queue))
                         {
                             partsFoundInLoops.Add(importingPart);
