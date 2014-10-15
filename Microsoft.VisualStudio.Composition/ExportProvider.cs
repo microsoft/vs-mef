@@ -827,34 +827,33 @@
 
             public void Create()
             {
-                if (this.ShouldMoveTo(PartLifecycleState.Created))
+                bool creating = false;
+                lock (this.syncObject)
+                {
+                    creating = this.ShouldMoveTo(PartLifecycleState.Creating);
+                    if (creating)
+                    {
+                        this.UpdateState(PartLifecycleState.Creating);
+                    }
+                }
+
+                Assumes.False(Monitor.IsEntered(this.syncObject)); // Avoid holding locks while calling 3rd party code.
+                if (creating)
                 {
                     try
                     {
-                        Assumes.False(Monitor.IsEntered(this.syncObject)); // Avoid holding locks while calling 3rd party code.
                         object value = this.CreateValue();
 
                         lock (this.syncObject)
                         {
-                            if (this.ShouldMoveTo(PartLifecycleState.Created))
+                            Assumes.True(this.State == PartLifecycleState.Creating);
+                            this.Value = value;
+                            if (value is IDisposable)
                             {
-                                this.Value = value;
-                                if (value is IDisposable)
-                                {
-                                    this.OwningExportProvider.TrackDisposableValue(this, this.sharingBoundary);
-                                }
+                                this.OwningExportProvider.TrackDisposableValue(this, this.sharingBoundary);
+                            }
 
-                                this.UpdateState(PartLifecycleState.Created);
-                            }
-                            else
-                            {
-                                // We lost a race to create this value. Dispose of it.
-                                var disposableValue = value as IDisposable;
-                                if (disposableValue != null)
-                                {
-                                    disposableValue.Dispose();
-                                }
-                            }
+                            this.UpdateState(PartLifecycleState.Created);
                         }
                     }
                     catch (Exception ex)
@@ -1043,6 +1042,7 @@
                     if (this.State < newState)
                     {
                         this.State = newState;
+                        Monitor.PulseAll(this.syncObject);
                         return true;
                     }
 
@@ -1059,6 +1059,19 @@
                     {
                         this.fault = exception;
                     }
+
+                    this.UpdateState(PartLifecycleState.Final);
+                }
+            }
+
+            private void WaitForState(PartLifecycleState state)
+            {
+                lock (this.syncObject)
+                {
+                    while (this.State < state)
+                    {
+                        Monitor.Wait(this.syncObject);
+                    }
                 }
             }
 
@@ -1066,8 +1079,12 @@
             {
                 switch (this.State + 1)
                 {
-                    case PartLifecycleState.Created:
+                    case PartLifecycleState.Creating:
                         this.Create();
+                        break;
+                    case PartLifecycleState.Created:
+                        // Another thread put this in the Creating state. Just wait for that thread to finish.
+                        this.WaitForState(PartLifecycleState.Created);
                         break;
                     case PartLifecycleState.ImmediateImportsSatisfied:
                         this.SatisfyImmediateImports();
@@ -1104,6 +1121,7 @@
         protected internal enum PartLifecycleState
         {
             NotCreated,
+            Creating,
             Created,
             ImmediateImportsSatisfied,
             ImmediateImportsSatisfiedTransitively,
