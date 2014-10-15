@@ -315,7 +315,6 @@
                 if (PathExistsBetween(value, value, getDirectLinks, visitedNodes, queue))
                 {
                     partsFoundInLoops.Add(value);
-                    break;
                 }
             }
 
