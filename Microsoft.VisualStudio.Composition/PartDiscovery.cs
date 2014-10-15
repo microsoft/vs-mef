@@ -182,7 +182,7 @@
             {
                 // Discover the ICollection<T> or ICollection<Lazy<T, TMetadata>> interface implemented by this type.
                 var icollectionTypes =
-                    from iface in ImmutableList.Create(type).AddRange(type.GetTypeInfo().ImplementedInterfaces)
+                    from iface in new[] { type }.Concat(type.GetTypeInfo().ImplementedInterfaces)
                     let ifaceInfo = iface.GetTypeInfo()
                     where ifaceInfo.IsGenericType
                     let genericTypeDef = ifaceInfo.GetGenericTypeDefinition()
