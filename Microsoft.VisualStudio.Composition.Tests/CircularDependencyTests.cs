@@ -193,7 +193,7 @@
             container.GetExportedValue<SelfImportingNonSharedPart>();
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(SelfImportingNonSharedPartViaExportingProperty), InvalidConfiguration = true)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(SelfImportingNonSharedPartViaExportingProperty), InvalidConfiguration = true)]
         public void SelfImportingNonSharedPartViaExportingPropertyThrows(IContainer container)
         {
             container.GetExportedValue<SelfImportingNonSharedPartViaExportingProperty>();
