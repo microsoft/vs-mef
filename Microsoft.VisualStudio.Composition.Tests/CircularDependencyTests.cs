@@ -129,17 +129,37 @@
 
         #endregion
 
+        #region Tight loop of all Any parts, imported as non-shared
+
+        [MefFact(CompositionEngines.V1Compat, typeof(AnyPolicyPart1), typeof(AnyPolicyPart2), InvalidConfiguration = true)]
+        public void CircularDependenciesAnyExportsImportedAsAsNonShared(IContainer container)
+        {
+            container.GetExportedValue<AnyPolicyPart1>();
+        }
+
+        [MefV1.Export]
+        public class AnyPolicyPart1
+        {
+            [MefV1.Import(RequiredCreationPolicy = MefV1.CreationPolicy.NonShared)]
+            public AnyPolicyPart2 Export2 { get; set; }
+        }
+
+        [MefV1.Export]
+        public class AnyPolicyPart2
+        {
+            [MefV1.Import(RequiredCreationPolicy = MefV1.CreationPolicy.NonShared)]
+            public AnyPolicyPart1 Export1 { get; set; }
+        }
+
+        #endregion
+
         #region Large loop of all non-shared exports
 
-        [Fact]
-        public void LoopOfNonSharedExports()
+        [MefFact(CompositionEngines.V2Compat, typeof(NonSharedPart1), typeof(NonSharedPart2), typeof(NonSharedPart3), InvalidConfiguration = true)]
+        public void LoopOfNonSharedExports(IContainer container)
         {
-            // There is no way to resolve this catalog. It would instantiate parts forever.
-            Assert.Throws<CompositionFailedException>(() => CompositionConfiguration.Create(
-                new AttributedPartDiscovery().CreatePartsAsync(
-                    typeof(NonSharedPart1),
-                    typeof(NonSharedPart2),
-                    typeof(NonSharedPart3)).GetAwaiter().GetResult()));
+            // There is no way to resolve this loop. It would instantiate parts forever.
+            container.GetExportedValue<NonSharedPart1>();
         }
 
         [Export]
@@ -167,24 +187,16 @@
 
         #region Imports self
 
-        [Fact]
-        public void SelfImportingNonSharedPartThrows()
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(SelfImportingNonSharedPart), InvalidConfiguration = true)]
+        public void SelfImportingNonSharedPartIsInvalid(IContainer container)
         {
-            Assert.Throws<CompositionFailedException>(() => TestUtilities.CreateContainer(typeof(SelfImportingNonSharedPart)));
+            container.GetExportedValue<SelfImportingNonSharedPart>();
         }
 
-        [Fact]
-        public void SelfImportingNonSharedPartThrowsV1()
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(SelfImportingNonSharedPartViaExportingProperty), InvalidConfiguration = true)]
+        public void SelfImportingNonSharedPartViaExportingPropertyThrows(IContainer container)
         {
-            var container = TestUtilities.CreateContainerV1(typeof(SelfImportingNonSharedPart));
-            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<SelfImportingNonSharedPart>());
-        }
-
-        [Fact]
-        public void SelfImportingNonSharedPartThrowsV2()
-        {
-            var container = TestUtilities.CreateContainerV2(typeof(SelfImportingNonSharedPart));
-            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<SelfImportingNonSharedPart>());
+            container.GetExportedValue<SelfImportingNonSharedPartViaExportingProperty>();
         }
 
         [MefFact(CompositionEngines.V2Compat | CompositionEngines.V1Compat, typeof(SelfImportingSharedPart))]
@@ -209,6 +221,21 @@
             [Import]
             [MefV1.Import]
             public SelfImportingNonSharedPart Self { get; set; }
+        }
+
+        [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class SelfImportingNonSharedPartViaExportingProperty
+        {
+            [Export]
+            [MefV1.Export]
+            public SelfImportingNonSharedPartViaExportingProperty SelfExport
+            {
+                get { return this; }
+            }
+
+            [Import]
+            [MefV1.Import]
+            public SelfImportingNonSharedPartViaExportingProperty SelfImport { get; set; }
         }
 
         [MefV1.Export]
@@ -247,7 +274,7 @@
         [Fact]
         public async Task ValidMultiplePaths()
         {
-            CompositionConfiguration.Create(await new AttributedPartDiscovery().CreatePartsAsync( 
+            CompositionConfiguration.Create(await new AttributedPartDiscovery().CreatePartsAsync(
                 typeof(ValidMultiplePathRoot),
                 typeof(ValidMultiplePathTrail1),
                 typeof(ValidMultiplePathTrail2),
@@ -280,6 +307,129 @@
 
         [Export]
         public class ValidMultiplePathCommonImport { }
+
+        #endregion
+
+        #region Loop involving one importing constructor and a non-lazy import
+
+        [MefFact(CompositionEngines.V2, typeof(PartWithImportingProperty), typeof(PartWithImportingConstructor), NoCompatGoal = true)]
+        public void LoopWithImportingConstructorAndImportingPropertyV2(IContainer container)
+        {
+            var partWithImportingProperty = container.GetExportedValue<PartWithImportingProperty>();
+            Assert.NotNull(partWithImportingProperty.PartWithImportingConstructor);
+            Assert.Same(partWithImportingProperty, partWithImportingProperty.PartWithImportingConstructor.PartWithImportingProperty);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithImportingProperty), typeof(PartWithImportingConstructor), InvalidConfiguration = true)]
+        public void LoopWithImportingConstructorAndImportingPropertyV1(IContainer container)
+        {
+            var partWithImportingProperty = container.GetExportedValue<PartWithImportingProperty>();
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingProperty
+        {
+            [Import, MefV1.Import]
+            public PartWithImportingConstructor PartWithImportingConstructor { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructor
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructor(PartWithImportingProperty other)
+            {
+                this.PartWithImportingProperty = other;
+
+                // It's impossible to resolve this circular dependency without passing in an uninitialized "other".
+                // It can't get an instance of "this" to stick there.
+                Assert.Null(other.PartWithImportingConstructor);
+            }
+
+            public PartWithImportingProperty PartWithImportingProperty { get; set; }
+        }
+
+        #endregion
+
+        #region Loop involving one importing constructor and a lazy import
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithLazyImportingProperty), typeof(PartWithImportingConstructorOfPartWithLazyImportingProperty))]
+        public void LoopWithImportingConstructorAndLazyImportingProperty(IContainer container)
+        {
+            var partWithImportingProperty = container.GetExportedValue<PartWithLazyImportingProperty>();
+            Assert.NotNull(partWithImportingProperty.PartWithImportingConstructor);
+
+            // Verify the Lazy has the proper value, even after having previously thrown
+            // in the part's constructor.
+            Assert.Same(partWithImportingProperty, partWithImportingProperty.PartWithImportingConstructor.Value.PartWithLazyImportingProperty);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithLazyImportingProperty
+        {
+            [Import, MefV1.Import]
+            public Lazy<PartWithImportingConstructorOfPartWithLazyImportingProperty> PartWithImportingConstructor { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorOfPartWithLazyImportingProperty
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorOfPartWithLazyImportingProperty(PartWithLazyImportingProperty other)
+            {
+                this.PartWithLazyImportingProperty = other;
+                Assert.NotNull(other.PartWithImportingConstructor);
+
+                // This not only verifies that we throw appropriately, but it proves later
+                // that it doesn't break the lazy's ability to produce the correct value later
+                // when the test method evaluates it again.
+                // This is possible by constructing Lazy<T> with System.Threading.LazyThreadSafetyMode.PublicationOnly
+                Assert.Throws<InvalidOperationException>(() => other.PartWithImportingConstructor.Value);
+            }
+
+            public PartWithLazyImportingProperty PartWithLazyImportingProperty { get; set; }
+        }
+
+        #endregion
+
+        #region Loop involving one importing constructor with a lazy import, and a part with a non-lazy import
+
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(PartWithImportingPropertyOfLazyImportingConstructor), typeof(PartWithLazyImportingConstructorOfPartWithImportingProperty))]
+        public void LoopWithLazyImportingConstructorAndImportingProperty(IContainer container)
+        {
+            var partWithImportingProperty = container.GetExportedValue<PartWithImportingPropertyOfLazyImportingConstructor>();
+            Assert.NotNull(partWithImportingProperty.PartWithImportingConstructor);
+            Assert.Same(partWithImportingProperty, partWithImportingProperty.PartWithImportingConstructor.PartWithImportingProperty.Value);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingPropertyOfLazyImportingConstructor
+        {
+            [Import, MefV1.Import]
+            public PartWithLazyImportingConstructorOfPartWithImportingProperty PartWithImportingConstructor { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithLazyImportingConstructorOfPartWithImportingProperty
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithLazyImportingConstructorOfPartWithImportingProperty(Lazy<PartWithImportingPropertyOfLazyImportingConstructor> other)
+            {
+                this.PartWithImportingProperty = other;
+
+                // This cannot possibly be non-null because until this constructor returns,
+                // there is no value to assign to it.
+                Assert.Null(other.Value.PartWithImportingConstructor);
+            }
+
+            public Lazy<PartWithImportingPropertyOfLazyImportingConstructor> PartWithImportingProperty { get; set; }
+        }
 
         #endregion
 

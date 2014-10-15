@@ -140,10 +140,11 @@
             }
 
             // Detect loops of all non-shared parts.
-            if (IsLoopPresent(parts))
+            var partsInLoops = FindPartsInLoops(parts);
+            if (partsInLoops.Count > 0)
             {
-                // TODO: improve diagnostic reporting of the loop. Disclose which parts are involved.
-                errors.Add(new ComposedPartDiagnostic(ImmutableList.Create<ComposedPart>(), "Loop detected."));
+                // TODO: improve diagnostic reporting of the loops discovered. Disclose which parts are involved in each loop.
+                errors.Add(new ComposedPartDiagnostic(partsInLoops, "Loop(s) detected."));
             }
 
             if (errors.Count > 0)
@@ -259,63 +260,101 @@
             return new CompositionConfiguration(this.Catalog, this.Parts, this.MetadataViewsAndProviders, this.CompositionErrors.Push(errors), this.effectiveSharingBoundaryOverrides);
         }
 
-        private static bool IsLoopPresent(IEnumerable<ComposedPart> parts)
+        /// <summary>
+        /// Detects whether a path exists between two nodes.
+        /// </summary>
+        /// <typeparam name="T">The type of node.</typeparam>
+        /// <param name="origin">The node to start the search from.</param>
+        /// <param name="target">The node to try to find a path to.</param>
+        /// <param name="getDirectLinks">A function that enumerates the allowable steps to take from a given node.</param>
+        /// <param name="visited">A reusable collection to use as part of the algorithm to avoid allocations for each call.</param>
+        /// <param name="queue">A reusable collection to use as part of the algorithm to avoid allocations for each call</param>
+        /// <returns><c>true</c> if a path was found between the two nodes; <c>false</c> otherwise.</returns>
+        private static bool PathExistsBetween<T>(T origin, T target, Func<T, IEnumerable<T>> getDirectLinks, HashSet<T> visited, Queue<T> queue)
         {
-            Requires.NotNull(parts, "parts");
-
-            var partByPartDefinition = parts.ToDictionary(p => p.Definition);
-            var partsAndDirectImports = new Dictionary<ComposedPart, ImmutableHashSet<ComposedPart>>();
-
-            // First create a map of each NonShared part and the NonShared parts it directly imports.
-            foreach (var part in parts.Where(p => !p.Definition.IsShared))
-            {
-                var directlyImportedParts = (from exportList in part.SatisfyingExports.Values
-                                             from export in exportList
-                                             let exportingPart = partByPartDefinition[export.PartDefinition]
-                                             where !exportingPart.Definition.IsShared
-                                             select exportingPart).ToImmutableHashSet();
-                partsAndDirectImports.Add(part, directlyImportedParts);
-            }
-
-            // Now create a map of each part and all the parts it transitively imports.
-            return IsLoopPresent(partsAndDirectImports.Keys, p => partsAndDirectImports[p]);
-        }
-
-        private static bool IsLoopPresent<T>(IEnumerable<T> values, Func<T, IEnumerable<T>> getDirectLinks)
-        {
-            Requires.NotNull(values, "values");
+            Requires.NotNullAllowStructs(origin, "origin");
+            Requires.NotNullAllowStructs(target, "target");
             Requires.NotNull(getDirectLinks, "getDirectLinks");
+            Requires.NotNull(visited, "visited");
+            Requires.NotNull(queue, "queue");
 
-            var visitedNodes = new HashSet<T>();
-            var queue = new Queue<T>();
-            foreach (T value in values)
+            bool firstNode = true;
+            visited.Clear();
+            queue.Clear();
+
+            queue.Enqueue(origin);
+            while (queue.Count > 0)
             {
-                visitedNodes.Clear();
-                queue.Clear();
-
-                queue.Enqueue(value);
-                while (queue.Count > 0)
+                var node = queue.Dequeue();
+                if (visited.Add(node))
                 {
-                    var node = queue.Dequeue();
-                    if (!visitedNodes.Add(node))
-                    {
-                        // Only claim to have detected a loop if we got back to the *original* part.
-                        // This is because they may be multiple legit routes from the original part
-                        // to the part we're looking at now.
-                        if (value.Equals(node))
-                        {
-                            return true;
-                        }
-                    }
-
-                    foreach (var directLink in getDirectLinks(node).Distinct())
+                    foreach (var directLink in getDirectLinks(node))
                     {
                         queue.Enqueue(directLink);
                     }
                 }
+
+                if (!firstNode && target.Equals(node))
+                {
+                    return true;
+                }
+
+                firstNode = false;
             }
 
             return false;
+        }
+
+        private static ISet<ComposedPart> FindPartsInLoops(IEnumerable<ComposedPart> parts)
+        {
+            Requires.NotNull(parts, "parts");
+
+            var partByPartDefinition = parts.ToDictionary(p => p.Definition);
+            var partsAndDirectImports = new Dictionary<ComposedPart, IReadOnlyList<KeyValuePair<ImportDefinitionBinding, ComposedPart>>>();
+
+            foreach (var part in parts)
+            {
+                var directlyImportedParts = (from importAndExports in part.SatisfyingExports
+                                             from export in importAndExports.Value
+                                             let exportingPart = partByPartDefinition[export.PartDefinition]
+                                             select new KeyValuePair<ImportDefinitionBinding, ComposedPart>(importAndExports.Key, exportingPart)).ToList();
+                partsAndDirectImports.Add(part, directlyImportedParts);
+            }
+
+            var partsFoundInLoops = new HashSet<ComposedPart>();
+            Func<Func<KeyValuePair<ImportDefinitionBinding, ComposedPart>, bool>, Func<ComposedPart, IEnumerable<ComposedPart>>> getDirectLinksWithFilter =
+                filter => (part => partsAndDirectImports[part].Where(filter).Select(ip => ip.Value));
+            var queue = new Queue<ComposedPart>();
+            var visited = new HashSet<ComposedPart>();
+
+            // Find any loops of exclusively non-shared parts.
+            foreach (var part in partsAndDirectImports.Keys)
+            {
+                if (PathExistsBetween(part, part, getDirectLinksWithFilter(ip => !ip.Value.Definition.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(ip.Key.ImportDefinition)), visited, queue))
+                {
+                    partsFoundInLoops.Add(part);
+                }
+            }
+
+            // Find loops even with shared parts where an importing constructor is involved.
+            foreach (var partAndImports in partsAndDirectImports)
+            {
+                var importingPart = partAndImports.Key;
+                foreach (var import in partAndImports.Value)
+                {
+                    var importDefinitionBinding = import.Key;
+                    var satisfyingPart = import.Value;
+                    if (!importDefinitionBinding.ImportingParameterRef.IsEmpty)
+                    {
+                        if (PathExistsBetween(satisfyingPart, importingPart, getDirectLinksWithFilter(ip => !ip.Key.IsLazy), visited, queue))
+                        {
+                            partsFoundInLoops.Add(importingPart);
+                        }
+                    }
+                }
+            }
+
+            return partsFoundInLoops;
         }
 
         /// <summary>

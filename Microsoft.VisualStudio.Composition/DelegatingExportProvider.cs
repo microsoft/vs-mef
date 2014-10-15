@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Validation;
 
     /// <summary>
@@ -53,6 +54,11 @@
             // This should never be called, because our GetExports override calls the inner one instead,
             // which IS implemented.
             throw new NotImplementedException();
+        }
+
+        protected internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata)
+        {
+            return this.inner.CreatePartLifecycleTracker(partType, importMetadata);
         }
     }
 }
