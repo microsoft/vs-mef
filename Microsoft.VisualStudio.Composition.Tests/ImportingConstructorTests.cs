@@ -492,12 +492,13 @@
         #region ImportingConstructor imports another part that has a lazy importing property pointing back
 
         // V2 fails to set the OtherLazy property to a non-null value.
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty), typeof(PartWithLazyLoopbackImportingProperty))]
+        [MefFact(CompositionEngines.V1, typeof(PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty), typeof(PartWithLazyLoopbackImportingProperty))]
         public void ImportingConstructorOfPartWithLoopbackLazyImportingProperty(IContainer container)
         {
             var root = container.GetExportedValue<PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty>();
             Assert.NotNull(root.Other.OtherLazy);
-            Assert.Same(root, root.Other.OtherLazy.Value);
+            Assert.Equal(1, root.Other.OtherLazy.Length);
+            Assert.Same(root, root.Other.OtherLazy[0].Value);
         }
 
         [Export, Shared]
@@ -518,8 +519,8 @@
         [MefV1.Export]
         public class PartWithLazyLoopbackImportingProperty
         {
-            [Import, MefV1.Import]
-            public Lazy<PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty> OtherLazy { get; private set; }
+            [ImportMany, MefV1.ImportMany]
+            public Lazy<PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty>[] OtherLazy { get; private set; }
         }
 
         #endregion
