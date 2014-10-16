@@ -473,19 +473,19 @@
 
         #endregion
 
-        #region Loop involving an ExportFactory<T>
+        #region Loop involving an non-shared parts and ExportFactory<T>
 
-        [MefFact(CompositionEngines.V1Compat, typeof(PartWithExportFactory), typeof(PartConstructedByExportFactory))]
-        public void LoopWithExportFactory(IContainer container)
+        [MefFact(CompositionEngines.V1Compat, typeof(NonSharedPartWithExportFactory), typeof(PartConstructedByExportFactory))]
+        public void LoopWithNonSharedPartsAndExportFactory(IContainer container)
         {
-            var factory = container.GetExportedValue<PartWithExportFactory>();
+            var factory = container.GetExportedValue<NonSharedPartWithExportFactory>();
             var constructedPart = factory.Factory.CreateExport().Value;
-            Assert.NotSame(factory, constructedPart.PartWithExportFactory);
+            Assert.NotSame(factory, constructedPart.NonSharedPartWithExportFactory);
         }
 
         [MefV1.Export]
         [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
-        public class PartWithExportFactory
+        public class NonSharedPartWithExportFactory
         {
             [MefV1.Import]
             public MefV1.ExportFactory<PartConstructedByExportFactory> Factory { get; set; }
@@ -495,7 +495,7 @@
         public class PartConstructedByExportFactory
         {
             [MefV1.Import]
-            public PartWithExportFactory PartWithExportFactory { get; set; }
+            public NonSharedPartWithExportFactory NonSharedPartWithExportFactory { get; set; }
         }
 
         #endregion
