@@ -452,6 +452,43 @@
 
         #endregion
 
+        #region ImportingConstructor imports another part that itself has an importing constructor that lazily imports the original
+
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        public void ImportingConstructorImportsOtherPartWithImportingConstructorWithLazyLoopBack(IContainer container)
+        {
+            var root = container.GetExportedValue<PartWithImportingConstructorImportingOtherPartWithLazyLoopBack>();
+            Assert.Same(root, root.Other.Other.Value);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorImportingOtherPartWithLazyLoopBack
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorImportingOtherPartWithLazyLoopBack(PartWithImportingConstructorWithLazyLoopBack other)
+            {
+                this.Other = other;
+            }
+
+            public PartWithImportingConstructorWithLazyLoopBack Other { get; private set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorWithLazyLoopBack
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorWithLazyLoopBack(Lazy<PartWithImportingConstructorImportingOtherPartWithLazyLoopBack> other)
+            {
+                this.Other = other;
+            }
+
+            public Lazy<PartWithImportingConstructorImportingOtherPartWithLazyLoopBack> Other { get; private set; }
+        }
+
+        #endregion
+
         #region Query for importing constructor parts in various orders.
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]
