@@ -266,6 +266,12 @@
             /// </remarks>
             private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef)
             {
+                Requires.NotNull(import, "import");
+                Requires.NotNull(export, "export");
+                Requires.NotNull(exportingRuntimePart, "exportingRuntimePart");
+                Requires.NotNull(originalPartTypeRef, "originalPartTypeRef");
+                Requires.NotNull(constructedPartTypeRef, "constructedPartTypeRef");
+
                 PartLifecycleTracker partLifecycle = this.GetOrCreateValue(
                     originalPartTypeRef,
                     constructedPartTypeRef,
@@ -276,8 +282,8 @@
                 bool exportMustBeFullyInitialized = IsFullyInitializedExportRequiredWhenSettingImport(import.IsLazy, !import.ImportingParameterRef.IsEmpty);
 
                 Func<object> exportedValue = !export.MemberRef.IsEmpty
-                    ? () => GetValueFromMember(export.Member.IsStatic() ? null : (exportMustBeFullyInitialized ? partLifecycle.GetValueReadyToExpose() : partLifecycle.GetValueReadyToRetrieveExportingMembers()), export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve())
-                    : (exportMustBeFullyInitialized ? new Func<object>(partLifecycle.GetValueReadyToExpose) : partLifecycle.GetValueReadyToRetrieveExportingMembers);
+                    ? () => GetValueFromMember(export.Member.IsStatic() ? null : (exportMustBeFullyInitialized ? partLifecycle.GetValueReadyToExpose() : partLifecycle.GetValueReadyToRetrieveExportingMembersOrLater()), export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve())
+                    : (exportMustBeFullyInitialized ? new Func<object>(partLifecycle.GetValueReadyToExpose) : partLifecycle.GetValueReadyToRetrieveExportingMembersOrLater);
                 return new ExportedValueConstructor(partLifecycle, exportedValue);
             }
 

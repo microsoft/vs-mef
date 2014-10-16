@@ -843,6 +843,8 @@
 
             protected ExportProvider OwningExportProvider { get; private set; }
 
+            protected internal PartLifecycleState RequestedToTransitionToState { get; private set; }
+
             public void Create()
             {
                 bool creating = false;
@@ -927,9 +929,24 @@
                 return this.Value;
             }
 
+            /// <summary>
+            /// Returns a value that is at least created, although importing properties may not have been satisfied.
+            /// </summary>
             public object GetValueReadyToRetrieveExportingMembers()
             {
                 this.MoveToState(PartLifecycleState.Created);
+                return this.Value;
+            }
+
+            /// <summary>
+            /// Returns a value that is at least created, although importing properties may not have been satisfied.
+            /// Unless this part has been notified that the importing constructor that imported it is done executing
+            /// in which case it returns a more completed value.
+            /// </summary>
+            public object GetValueReadyToRetrieveExportingMembersOrLater()
+            {
+                this.GetValueReadyToRetrieveExportingMembers();
+                this.MoveToState(this.RequestedToTransitionToState);
                 return this.Value;
             }
 
@@ -1011,15 +1028,36 @@
                 }
             }
 
-            private void CollectTransitiveCloserOfNonLazyImportedParts(HashSet<PartLifecycleTracker> parts, PartLifecycleState excludePartsAfterState)
+            private void CollectTransitiveCloserOfNonLazyImportedParts(HashSet<PartLifecycleTracker> parts, PartLifecycleState transitioningToState)
             {
                 Requires.NotNull(parts, "parts");
 
-                if (this.State <= excludePartsAfterState && parts.Add(this))
+                if (this.State <= transitioningToState)
                 {
-                    foreach (var importedPart in this.deferredInitializationParts)
+                    // We don't want to eagerly initialize lazy's that were not evaluated.
+                    // But if a part is created, now is the time we have to finish initializing them.
+                    if (this.State > PartLifecycleState.NotCreated)
                     {
-                        importedPart.CollectTransitiveCloserOfNonLazyImportedParts(parts, excludePartsAfterState);
+                        if (parts.Add(this))
+                        {
+                            foreach (var importedPart in this.deferredInitializationParts)
+                            {
+                                importedPart.CollectTransitiveCloserOfNonLazyImportedParts(parts, transitioningToState);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Record that we've been requested to transition once created.
+                        // This allows Lazy's that are handed to importing constructors to be told
+                        // after the importing constructor is finished that it should initialize
+                        // the value fully rather than partially as is the mode when within an importing constructor.
+                        // Note that if the lazy has already evaluated by the time this method is invoked,
+                        // we would have entered the other branch of this method and taken care of initialization ourselves.
+                        if (transitioningToState > this.RequestedToTransitionToState)
+                        {
+                            this.RequestedToTransitionToState = transitioningToState;
+                        }
                     }
                 }
             }

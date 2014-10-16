@@ -347,6 +347,18 @@
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(RandomExport), typeof(PartWithImportingConstructorOfPartThatInitializesLater), typeof(PartThatInitializesLater))]
         public void ImportingConstructorWithLazyImportPartEventuallyInitializes(IContainer container)
         {
+            PartWithImportingConstructorOfPartThatInitializesLater.EvaluateLazyInCtor = false;
+            var root = container.GetExportedValue<PartWithImportingConstructorOfPartThatInitializesLater>();
+            Assert.False(root.LaterPart.IsValueCreated); // this test means to verify the scenario of the lazy not evaluating till later.
+            Assert.Same(root, root.LaterPart.Value.ImportingConstructorPart);
+            Assert.NotNull(root.LaterPart.Value.RandomExport);
+        }
+
+        // V1 throws InvalidOperationException inside the ctor for this test, which if caught, turns into an InternalErrorException for this test.
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(RandomExport), typeof(PartWithImportingConstructorOfPartThatInitializesLater), typeof(PartThatInitializesLater))]
+        public void ImportingConstructorWithLazyImportPartEventuallyInitializesAfterEvaluatingInCtor(IContainer container)
+        {
+            PartWithImportingConstructorOfPartThatInitializesLater.EvaluateLazyInCtor = true;
             var root = container.GetExportedValue<PartWithImportingConstructorOfPartThatInitializesLater>();
             Assert.Same(root, root.LaterPart.Value.ImportingConstructorPart);
             Assert.NotNull(root.LaterPart.Value.RandomExport);
@@ -356,10 +368,17 @@
         [MefV1.Export]
         public class PartWithImportingConstructorOfPartThatInitializesLater
         {
+            internal static bool EvaluateLazyInCtor;
+
             [ImportingConstructor, MefV1.ImportingConstructor]
             public PartWithImportingConstructorOfPartThatInitializesLater(Lazy<PartThatInitializesLater> laterPart)
             {
                 this.LaterPart = laterPart;
+
+                if (EvaluateLazyInCtor)
+                {
+                    Assert.Null(laterPart.Value.ImportingConstructorPart);
+                }
             }
 
             public Lazy<PartThatInitializesLater> LaterPart { get; set; }
@@ -380,7 +399,7 @@
 
         #region ImportingConstructor lazy import initialization, other part has importing constructor also
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(PartWithImportingConstructorOfPartWithImportingConstructor), typeof(PartWithImportingConstructorOfPartWithLazyImportingConstructor))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithImportingConstructorOfPartWithImportingConstructor), typeof(PartWithImportingConstructorOfPartWithLazyImportingConstructor))]
         public void ImportingConstructorWithLazyImportingConstructorPartEventuallyInitializes(IContainer container)
         {
             PartWithImportingConstructorOfPartWithImportingConstructor.EvaluateLazyInCtor = false;
