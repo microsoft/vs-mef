@@ -500,6 +500,45 @@
 
         #endregion
 
+        #region Loop involving an ImportingConstructor and ExportFactory<T>
+
+        [MefFact(CompositionEngines.V1Compat, typeof(SharedPartWithExportFactory), typeof(PartConstructedBySharedExportFactory), typeof(PartWithImportingConstructorInLoopWithExportFactory))]
+        public void LoopWithImportingConstructorAndExportFactory(IContainer container)
+        {
+            var root = container.GetExportedValue<PartWithImportingConstructorInLoopWithExportFactory>();
+            var factory = root.ExportFactoryPart;
+            var constructedPart = factory.Factory.CreateExport().Value;
+            Assert.Same(factory, constructedPart.NonSharedPartWithExportFactory.ExportFactoryPart);
+        }
+
+        [MefV1.Export]
+        public class SharedPartWithExportFactory
+        {
+            [MefV1.Import]
+            public MefV1.ExportFactory<PartConstructedBySharedExportFactory> Factory { get; set; }
+        }
+
+        [MefV1.Export]
+        public class PartConstructedBySharedExportFactory
+        {
+            [MefV1.Import]
+            public PartWithImportingConstructorInLoopWithExportFactory NonSharedPartWithExportFactory { get; set; }
+        }
+
+        [MefV1.Export]
+        public class PartWithImportingConstructorInLoopWithExportFactory
+        {
+            [MefV1.ImportingConstructor]
+            public PartWithImportingConstructorInLoopWithExportFactory(SharedPartWithExportFactory factory)
+            {
+                this.ExportFactoryPart = factory;
+            }
+
+            public SharedPartWithExportFactory ExportFactoryPart { get; private set; }
+        }
+
+        #endregion
+
         #region Unresolvable, non-analyzable circular dependency test
 
         [MefFact(CompositionEngines.V1, typeof(RootPartThatImperativelyQueriesForPartWithImportingConstructor), typeof(PartThatImportsRootPartViaImportingConstructor))]

@@ -346,7 +346,7 @@
                     {
                         // TODO: skip over lazy importing constructor arguments
                         visited.Clear();
-                        var path = PathExistsBetween(satisfyingPart, importingPart, getDirectLinksWithFilter(ip => !ip.Key.IsLazy), visited);
+                        var path = PathExistsBetween(satisfyingPart, importingPart, getDirectLinksWithFilter(ip => !ip.Key.IsExportFactory && !ip.Key.IsLazy), visited);
                         if (!path.IsEmpty)
                         {
                             path = path.Push(satisfyingPart).Push(partByPartType[importDefinitionBinding.ComposablePartTypeRef]);
