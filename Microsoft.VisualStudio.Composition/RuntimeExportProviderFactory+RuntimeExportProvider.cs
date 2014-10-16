@@ -415,7 +415,7 @@
                 throw new NotSupportedException();
             }
 
-            [DebuggerDisplay("{partDefinition.Type.ResolvedType.FullName,nq}")]
+            [DebuggerDisplay("{partDefinition.Type.ResolvedType.FullName,nq} ({State})")]
             private class RuntimePartLifecycleTracker : PartLifecycleTracker
             {
                 private readonly RuntimeComposition.RuntimePart partDefinition;
