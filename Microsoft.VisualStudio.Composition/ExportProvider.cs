@@ -998,26 +998,32 @@
                 }
             }
 
-            private void MoveToStateTransitively(PartLifecycleState requiredState)
+            private void MoveToStateTransitively(PartLifecycleState requiredState, HashSet<PartLifecycleTracker> visitedNodes = null)
             {
                 try
                 {
-                    this.MoveToState(requiredState - 1);
+                    bool topLevelCall = visitedNodes == null;
+                    visitedNodes = visitedNodes ?? new HashSet<PartLifecycleTracker>();
+                    PartLifecycleState nonTransitiveState = topLevelCall ? requiredState - 1 : requiredState;
 
-                    var transitivelyImportedParts = new HashSet<PartLifecycleTracker>();
-                    this.CollectTransitiveCloserOfNonLazyImportedParts(transitivelyImportedParts, requiredState);
-                    foreach (var importedPart in transitivelyImportedParts)
+                    this.MoveToState(nonTransitiveState);
+                    if (visitedNodes.Add(this))
                     {
-                        if (importedPart != this)
+                        foreach (var importedPart in this.deferredInitializationParts)
                         {
-                            importedPart.MoveToState(requiredState - 1);
+                            // Do not ask these parts to mark themselves as transitively complete.
+                            // Only the top-level call can know when everyone is transitively done.
+                            importedPart.MoveToStateTransitively(nonTransitiveState, visitedNodes);
                         }
-                    }
 
-                    // Update everyone involved so they know they're transitively done with this work.
-                    foreach (var importedPart in transitivelyImportedParts)
-                    {
-                        importedPart.UpdateState(requiredState);
+                        if (topLevelCall)
+                        {
+                            // Update everyone involved so they know they're transitively done with this work.
+                            foreach (var importedPart in visitedNodes)
+                            {
+                                importedPart.UpdateState(requiredState);
+                            }
+                        }
                     }
                 }
                 catch (Exception ex)

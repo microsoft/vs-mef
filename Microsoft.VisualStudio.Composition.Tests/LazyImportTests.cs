@@ -6,7 +6,8 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-using Xunit;
+    using Xunit;
+    using MefV1 = System.ComponentModel.Composition;
 
     public class LazyImportTests
     {
@@ -14,6 +15,8 @@ using Xunit;
         {
             AnotherExport.ConstructionCount = 0;
         }
+
+        #region LazyImport test
 
         [MefFact(CompositionEngines.V2Compat, typeof(ExportWithLazyImport), typeof(AnotherExport))]
         public void LazyImport(IContainer container)
@@ -33,12 +36,34 @@ using Xunit;
             Assert.NotSame(anotherExport, anotherExport2);
         }
 
+        [Export]
+        public class ExportWithLazyImport
+        {
+            [Import]
+            public Lazy<AnotherExport> AnotherExport { get; set; }
+        }
+
+        #endregion
+
+        #region LazyImportByBaseType test
+
         [MefFact(CompositionEngines.V2Compat, typeof(ExportWithLazyImportOfBaseType), typeof(AnotherExport))]
         public void LazyImportByBaseType(IContainer container)
         {
             var lazyImport = container.GetExportedValue<ExportWithLazyImportOfBaseType>();
             Assert.IsType(typeof(AnotherExport), lazyImport.AnotherExport.Value);
         }
+
+        [Export]
+        public class ExportWithLazyImportOfBaseType
+        {
+            [Import("AnotherExport")]
+            public Lazy<object> AnotherExport { get; set; }
+        }
+
+        #endregion
+
+        #region LazyImportMany test
 
         [MefFact(CompositionEngines.V2Compat, typeof(ExportWithListOfLazyImport), typeof(AnotherExport))]
         public void LazyImportMany(IContainer container)
@@ -51,63 +76,6 @@ using Xunit;
             Assert.Equal(1, AnotherExport.ConstructionCount);
         }
 
-        /// <summary>
-        /// Verifies that the Lazy{T} instance itself is shared across all importers.
-        /// </summary>
-        /// <remarks>
-        /// This design goal has been retired. There are too many other concerns that are more impactful,
-        /// and getting this just right is quite tricky, and often Lazy's really can't be shared
-        /// across importers for various reasons.
-        /// </remarks>
-        ////[MefFact(CompositionEngines.Unspecified, typeof(ExportWithLazyImportOfSharedExport), typeof(SharedExport))]
-        [Trait("Efficiency", "InstanceReuse")]
-        public void LazyImportOfSharedExportHasSharedLazy(IContainer container)
-        {
-            var firstInstance = container.GetExportedValue<ExportWithLazyImportOfSharedExport>();
-            var secondInstance = container.GetExportedValue<ExportWithLazyImportOfSharedExport>();
-            Assert.NotSame(firstInstance, secondInstance); // We should get two copies of the non-shared instance
-            Assert.Same(firstInstance.SharedExport.Value, secondInstance.SharedExport.Value);
-
-            // We're intentionally verifying the instance of the Lazy<T> *itself* (not its value).
-            // We want it shared so that if any one service queries Lazy<T>.IsValueCreated, it will return true
-            // if another other lazy importer evaluated it. Plus, as these Lazy's are thread-safe, there is some
-            // sync object overhead that we'd rather minimize by sharing instances.
-            Assert.Same(firstInstance.SharedExport, secondInstance.SharedExport);
-        }
-
-        /// <remarks>
-        /// This design goal has been retired. There are too many other concerns that are more impactful,
-        /// and getting this just right is quite tricky, and often Lazy's really can't be shared
-        /// across importers for various reasons.
-        /// </remarks>
-        ////[Fact(Skip = "Functionality not yet implemented.")]
-        public void LazyImportOfSharedExportHasCreatedValueWhenCreatedByOtherMeans()
-        {
-            var container = TestUtilities.CreateContainer(typeof(ExportWithLazyImportOfSharedExport), typeof(SharedExport));
-
-            var lazyImporter = container.GetExportedValue<ExportWithLazyImportOfSharedExport>();
-            Assert.False(lazyImporter.SharedExport.IsValueCreated);
-            var sharedService = container.GetExportedValue<SharedExport>();
-
-            // This should be true, not because the lazyImporter instance evaluated the lazy,
-            // but because this should reflect whether the service has actually been loaded.
-            Assert.True(lazyImporter.SharedExport.IsValueCreated);
-        }
-
-        [Export]
-        public class ExportWithLazyImport
-        {
-            [Import]
-            public Lazy<AnotherExport> AnotherExport { get; set; }
-        }
-
-        [Export]
-        public class ExportWithLazyImportOfSharedExport
-        {
-            [Import]
-            public Lazy<SharedExport> SharedExport { get; set; }
-        }
-
         [Export]
         public class ExportWithListOfLazyImport
         {
@@ -115,15 +83,120 @@ using Xunit;
             public IList<Lazy<AnotherExport>> AnotherExports { get; set; }
         }
 
-        [Export]
-        public class ExportWithLazyImportOfBaseType
+        #endregion
+
+        #region Lazy entrypoint to a non-lazy chain of imports
+
+        /// <summary>
+        /// Verifies that imports are satisfied deeply.
+        /// </summary>
+        /// <remarks>
+        /// This may seem arbitrary but when this test was written, there was a bug that only manifested
+        /// after the sixth link. I added several more for durability of the test.
+        /// </remarks>
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Link1), typeof(Link2), typeof(Link3), typeof(Link4), typeof(Link5), typeof(Link6), typeof(Link7), typeof(Link8), typeof(Link9), typeof(AnotherExport))]
+        public void LazyEntrypointToNonLazyChain(IContainer container)
         {
-            [Import("AnotherExport")]
-            public Lazy<object> AnotherExport { get; set; }
+            Link2.CtorInvocationCounter = 0;
+            var chain = container.GetExportedValue<Link1>();
+            Assert.NotNull(chain.Link);
+            Assert.Equal(0, Link2.CtorInvocationCounter);
+            Assert.NotNull(chain.Link.Value);
+            Assert.Equal(1, Link2.CtorInvocationCounter);
+            Assert.NotNull(chain.Link.Value.Link);
+            Assert.NotNull(chain.Link.Value.Link.Link);
+            Assert.NotNull(chain.Link.Value.Link.Link.Link);
+            Assert.NotNull(chain.Link.Value.Link.Link.Link.Link);
+            Assert.NotNull(chain.Link.Value.Link.Link.Link.Link.Link);
+            Assert.NotNull(chain.Link.Value.Link.Link.Link.Link.Link.Link);
+            Assert.NotNull(chain.Link.Value.Link.Link.Link.Link.Link.Link.Link);
+            Assert.NotNull(chain.Link.Value.Link.Link.Link.Link.Link.Link.Link.Link);
         }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class Link1
+        {
+            [Import, MefV1.Import]
+            public Lazy<Link2> Link { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class Link2
+        {
+            internal static int CtorInvocationCounter;
+
+            public Link2()
+            {
+                CtorInvocationCounter++;
+            }
+
+            [Import, MefV1.Import]
+            public Link3 Link { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class Link3
+        {
+            [Import, MefV1.Import]
+            public Link4 Link { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class Link4
+        {
+            [Import, MefV1.Import]
+            public Link5 Link { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class Link5
+        {
+            [Import, MefV1.Import]
+            public Link6 Link { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class Link6
+        {
+            [Import, MefV1.Import]
+            public Link7 Link { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class Link7
+        {
+            [Import, MefV1.Import]
+            public Link8 Link { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class Link8
+        {
+            [Import, MefV1.Import]
+            public Link9 Link { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class Link9
+        {
+            [Import, MefV1.Import]
+            public AnotherExport Link { get; set; }
+        }
+
+        #endregion
 
         [Export]
         [Export("AnotherExport", typeof(object))]
+        [MefV1.Export]
         public class AnotherExport
         {
             internal static int ConstructionCount;
@@ -133,8 +206,5 @@ using Xunit;
                 ConstructionCount++;
             }
         }
-
-        [Export, Shared]
-        public class SharedExport { }
     }
 }
