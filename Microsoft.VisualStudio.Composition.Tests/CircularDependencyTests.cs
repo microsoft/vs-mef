@@ -473,19 +473,19 @@
 
         #endregion
 
-        #region Loop involving an ExportFactory<T>
+        #region Loop involving an non-shared parts and ExportFactory<T>
 
-        [MefFact(CompositionEngines.V1Compat, typeof(PartWithExportFactory), typeof(PartConstructedByExportFactory))]
-        public void LoopWithExportFactory(IContainer container)
+        [MefFact(CompositionEngines.V1Compat, typeof(NonSharedPartWithExportFactory), typeof(PartConstructedByExportFactory))]
+        public void LoopWithNonSharedPartsAndExportFactory(IContainer container)
         {
-            var factory = container.GetExportedValue<PartWithExportFactory>();
+            var factory = container.GetExportedValue<NonSharedPartWithExportFactory>();
             var constructedPart = factory.Factory.CreateExport().Value;
-            Assert.NotSame(factory, constructedPart.PartWithExportFactory);
+            Assert.NotSame(factory, constructedPart.NonSharedPartWithExportFactory);
         }
 
         [MefV1.Export]
         [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
-        public class PartWithExportFactory
+        public class NonSharedPartWithExportFactory
         {
             [MefV1.Import]
             public MefV1.ExportFactory<PartConstructedByExportFactory> Factory { get; set; }
@@ -495,7 +495,46 @@
         public class PartConstructedByExportFactory
         {
             [MefV1.Import]
-            public PartWithExportFactory PartWithExportFactory { get; set; }
+            public NonSharedPartWithExportFactory NonSharedPartWithExportFactory { get; set; }
+        }
+
+        #endregion
+
+        #region Loop involving an ImportingConstructor and ExportFactory<T>
+
+        [MefFact(CompositionEngines.V1Compat, typeof(SharedPartWithExportFactory), typeof(PartConstructedBySharedExportFactory), typeof(PartWithImportingConstructorInLoopWithExportFactory))]
+        public void LoopWithImportingConstructorAndExportFactory(IContainer container)
+        {
+            var root = container.GetExportedValue<PartWithImportingConstructorInLoopWithExportFactory>();
+            var factory = root.ExportFactoryPart;
+            var constructedPart = factory.Factory.CreateExport().Value;
+            Assert.Same(factory, constructedPart.NonSharedPartWithExportFactory.ExportFactoryPart);
+        }
+
+        [MefV1.Export]
+        public class SharedPartWithExportFactory
+        {
+            [MefV1.Import]
+            public MefV1.ExportFactory<PartConstructedBySharedExportFactory> Factory { get; set; }
+        }
+
+        [MefV1.Export]
+        public class PartConstructedBySharedExportFactory
+        {
+            [MefV1.Import]
+            public PartWithImportingConstructorInLoopWithExportFactory NonSharedPartWithExportFactory { get; set; }
+        }
+
+        [MefV1.Export]
+        public class PartWithImportingConstructorInLoopWithExportFactory
+        {
+            [MefV1.ImportingConstructor]
+            public PartWithImportingConstructorInLoopWithExportFactory(SharedPartWithExportFactory factory)
+            {
+                this.ExportFactoryPart = factory;
+            }
+
+            public SharedPartWithExportFactory ExportFactoryPart { get; private set; }
         }
 
         #endregion
