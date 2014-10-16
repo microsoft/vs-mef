@@ -916,11 +916,6 @@
                 }
             }
 
-            // TODO: this method should be called at the bottom of a callstack that returns MEF exports,
-            // on each of the exports.
-            // It should also be called on each export before being passed to an importing constructor (to match MEFv1 behavior).
-            // It should also be called when any Lazy<> that is set to an importing property or passed to an importing constructor is evaluated.
-            // Consider how it can detect a circular dependency and throw appropriately rather than StackOverflow or deadlock.
             public object GetValueReadyToExpose()
             {
                 this.MoveToState(PartLifecycleState.Final);
@@ -1092,7 +1087,12 @@
                 {
                     while (this.State < state)
                     {
-                        Monitor.Wait(this.syncObject);
+                        while (!Monitor.Wait(this.syncObject, TimeSpan.FromSeconds(3)))
+                        {
+                            // This area intentionally left blank. It exists so that managed debuggers
+                            // can break out of a hang temporarily to get out of optimized/native frames
+                            // on the top of the stack so the debugger can actually be useful.
+                        }
                     }
                 }
             }
