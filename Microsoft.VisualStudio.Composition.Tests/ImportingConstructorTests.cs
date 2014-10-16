@@ -342,7 +342,7 @@
 
         internal struct NonPublicStruct { }
 
-        #region ImportingConstructor lazy import initialization
+        #region ImportingConstructor lazy import initialization, other part has importing property
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(RandomExport), typeof(PartWithImportingConstructorOfPartThatInitializesLater), typeof(PartThatInitializesLater))]
         public void ImportingConstructorWithLazyImportPartEventuallyInitializes(IContainer container)
@@ -374,6 +374,61 @@
 
             [Import, MefV1.Import]
             public PartWithImportingConstructorOfPartThatInitializesLater ImportingConstructorPart { get; set; }
+        }
+
+        #endregion
+
+        #region ImportingConstructor lazy import initialization, other part has importing constructor also
+
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(PartWithImportingConstructorOfPartWithImportingConstructor), typeof(PartWithImportingConstructorOfPartWithLazyImportingConstructor))]
+        public void ImportingConstructorWithLazyImportingConstructorPartEventuallyInitializes(IContainer container)
+        {
+            PartWithImportingConstructorOfPartWithImportingConstructor.EvaluateLazyInCtor = false;
+            var root = container.GetExportedValue<PartWithImportingConstructorOfPartWithImportingConstructor>();
+            Assert.Same(root, root.Import.Value.Other);
+        }
+
+        // V1 throws an InternalErrorException for this test.
+        // V2 crashes with a StackOverflowException for this test.
+        [MefFact(CompositionEngines.Unspecified, typeof(PartWithImportingConstructorOfPartWithImportingConstructor), typeof(PartWithImportingConstructorOfPartWithLazyImportingConstructor))]
+        public void ImportingConstructorWithLazyImportingConstructorPartEventuallyInitializesAfterThrowingInCtor(IContainer container)
+        {
+            PartWithImportingConstructorOfPartWithImportingConstructor.EvaluateLazyInCtor = true;
+            var root = container.GetExportedValue<PartWithImportingConstructorOfPartWithImportingConstructor>();
+            Assert.Same(root, root.Import.Value.Other);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorOfPartWithImportingConstructor
+        {
+            internal static bool EvaluateLazyInCtor;
+
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorOfPartWithImportingConstructor(Lazy<PartWithImportingConstructorOfPartWithLazyImportingConstructor> import)
+            {
+                if (EvaluateLazyInCtor)
+                {
+                    Assert.Throws<InvalidOperationException>(() => import.Value);
+                }
+
+                this.Import = import;
+            }
+
+            public Lazy<PartWithImportingConstructorOfPartWithLazyImportingConstructor> Import { get; private set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorOfPartWithLazyImportingConstructor
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorOfPartWithLazyImportingConstructor(PartWithImportingConstructorOfPartWithImportingConstructor other)
+            {
+                this.Other = other;
+            }
+
+            public PartWithImportingConstructorOfPartWithImportingConstructor Other { get; private set; }
         }
 
         #endregion
