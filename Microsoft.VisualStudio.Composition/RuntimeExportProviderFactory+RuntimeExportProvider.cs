@@ -110,7 +110,7 @@
                             {
                                 intArray.Value[0] = i++;
                                 var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
-                                importingPartTracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
+                                importingPartTracker.ReportPartiallyInitializedImport(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
                                 array.SetValue(exportedValue.Value, intArray.Value);
                             }
                         }
@@ -162,7 +162,7 @@
                         foreach (var export in exports)
                         {
                             var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
-                            importingPartTracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
+                            importingPartTracker.ReportPartiallyInitializedImport(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
                             collectionAccessor.Add(exportedValue.Value);
                         }
 
@@ -178,12 +178,11 @@
                     }
 
                     var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
-                    importingPartTracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
                     return new ValueForImportSite(exportedValue.Value);
                 }
             }
 
-            private ExportedValue GetValueForImportElement(PartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Func<Func<object>, object, object> lazyFactory)
+            private ExportedValue GetValueForImportElement(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Func<Func<object>, object, object> lazyFactory)
             {
                 if (import.IsExportFactory)
                 {
@@ -215,7 +214,7 @@
                 }
             }
 
-            private ExportedValue CreateExportFactory(PartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export)
+            private ExportedValue CreateExportFactory(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export)
             {
                 Requires.NotNull(importingPartTracker, "importingPartTracker");
                 Requires.NotNull(import, "import");
@@ -243,7 +242,7 @@
                     this.CreateExportFactory(importingSiteElementType, sharingBoundaries, valueFactory, exportFactoryType, exportMetadata));
             }
 
-            private ExportedValueConstructor GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, PartLifecycleTracker importingPartTracker)
+            private ExportedValueConstructor GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker importingPartTracker)
             {
                 Requires.NotNull(import, "import");
                 Requires.NotNull(export, "export");
@@ -266,7 +265,7 @@
             /// where it captures "this" in the closure for exportedValue, resulting in a memory leak
             /// which caused one of our GC unit tests to fail.
             /// </remarks>
-            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, PartLifecycleTracker importingPartTracker)
+            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker importingPartTracker)
             {
                 Requires.NotNull(import, "import");
                 Requires.NotNull(export, "export");
@@ -284,6 +283,11 @@
                 Func<object> exportedValue = () =>
                 {
                     bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(importingPartTracker, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
+                    if (!fullyInitializedValueIsRequired && importingPartTracker != null && !import.IsExportFactory)
+                    {
+                        importingPartTracker.ReportPartiallyInitializedImport(partLifecycle, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
+                    }
+
                     if (!export.MemberRef.IsEmpty)
                     {
                         object part = export.Member.IsStatic()
@@ -429,9 +433,9 @@
                     this.importMetadata = importMetadata;
                 }
 
-                internal new void ReportImportedPart(PartLifecycleTracker part, bool isLazy, bool isImportingConstructorArgument)
+                internal new void ReportPartiallyInitializedImport(PartLifecycleTracker part, bool isLazy, bool isImportingConstructorArgument)
                 {
-                    base.ReportImportedPart(part, isLazy, isImportingConstructorArgument);
+                    base.ReportPartiallyInitializedImport(part, isLazy, isImportingConstructorArgument);
                 }
 
                 protected new RuntimeExportProvider OwningExportProvider

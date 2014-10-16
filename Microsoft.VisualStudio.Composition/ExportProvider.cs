@@ -987,9 +987,9 @@
 
             protected abstract void InvokeOnImportsSatisfied();
 
-            protected void ReportImportedPart(PartLifecycleTracker importedPart, bool isLazy, bool isImportingConstructorArgument)
+            protected void ReportPartiallyInitializedImport(PartLifecycleTracker importedPart, bool isLazy, bool isImportingConstructorArgument)
             {
-                if (importedPart != null && !IsFullyInitializedExportRequiredWhenSettingImport(this, isLazy, isImportingConstructorArgument))
+                if (importedPart != null)
                 {
                     lock (this.syncObject)
                     {
