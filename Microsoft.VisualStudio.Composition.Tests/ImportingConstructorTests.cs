@@ -463,6 +463,23 @@
             container.GetExportedValue<B>();
         }
 
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(A), typeof(B), typeof(C))]
+        public void QueryImportingConstructorPartsEvaluateAfterOne(IContainer container)
+        {
+            // In testing V3 we specifically obtain A first so that Lazy<C>
+            // goes throw a transition of "now I should evaluate to a fully initialized C".
+            var a = container.GetExportedValue<A>();
+            Assert.Same(a, a.C.Value.A);
+
+            // Now get B, which should get its own Lazy<C> that does NOT require a fully initialized value.
+            var b = container.GetExportedValue<B>();
+            Assert.Same(b, b.C.B);
+
+            var c = container.GetExportedValue<C>();
+            Assert.Same(a.C.Value, b.C);
+            Assert.Same(c, b.C);
+        }
+
         /// <summary>
         /// Verifies that MEF can handle querying for parts with importing constructors with Lazy
         /// imports of circular imports.
@@ -476,7 +493,7 @@
         /// V3 doesn't share this asymmetric failure, so we want to verify that it does it correctly.
         /// </remarks>
         [MefFact(CompositionEngines.Unspecified, typeof(A), typeof(B), typeof(C))]
-        public void QueryImportingConstructorPartsTwiceInARow(IContainer container)
+        public void QueryImportingConstructorPartsEvaluateAfterTwo(IContainer container)
         {
             // In testing V3 we specifically obtain A first so that Lazy<C>
             // goes throw a transition of "now I should evaluate to a fully initialized C".
@@ -498,7 +515,10 @@
             {
                 // Do NOT evaluate C because the idea is that C doesn't
                 // initialize till B
+                this.C = c;
             }
+
+            public Lazy<C> C { get; private set; }
         }
 
         [Export, Shared]
