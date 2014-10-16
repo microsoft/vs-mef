@@ -110,7 +110,7 @@
                             {
                                 intArray.Value[0] = i++;
                                 var exportedValue = this.GetValueForImportElement(part, import, export, lazyFactory);
-                                tracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy);
+                                tracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
                                 array.SetValue(exportedValue.Value, intArray.Value);
                             }
                         }
@@ -162,7 +162,7 @@
                         foreach (var export in exports)
                         {
                             var exportedValue = this.GetValueForImportElement(part, import, export, lazyFactory);
-                            tracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy);
+                            tracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
                             collectionAccessor.Add(exportedValue.Value);
                         }
 
@@ -178,7 +178,7 @@
                     }
 
                     var exportedValue = this.GetValueForImportElement(part, import, export, lazyFactory);
-                    tracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy);
+                    tracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
                     return new ValueForImportSite(exportedValue.Value);
                 }
             }
@@ -273,9 +273,7 @@
                     import.Metadata,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
 
-                // We should fully prepare an exported value if it is a lazy property or a non-lazy importing constructor argument.
-                // Non-lazy properties can be initialized after being set, as can lazy importing constructor arguments (go figure!).
-                bool exportMustBeFullyInitialized = import.IsLazy == import.ImportingParameterRef.IsEmpty;
+                bool exportMustBeFullyInitialized = IsFullyInitializedExportRequiredWhenSettingImport(import.IsLazy, !import.ImportingParameterRef.IsEmpty);
 
                 Func<object> exportedValue = !export.MemberRef.IsEmpty
                     ? () => GetValueFromMember(export.Member.IsStatic() ? null : (exportMustBeFullyInitialized ? partLifecycle.GetValueReadyToExpose() : partLifecycle.GetValueReadyToRetrieveExportingMembers()), export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve())
@@ -408,9 +406,9 @@
                     this.importMetadata = importMetadata;
                 }
 
-                internal new void ReportImportedPart(PartLifecycleTracker part, bool isLazy)
+                internal new void ReportImportedPart(PartLifecycleTracker part, bool isLazy, bool isImportingConstructorArgument)
                 {
-                    base.ReportImportedPart(part, isLazy);
+                    base.ReportImportedPart(part, isLazy, isImportingConstructorArgument);
                 }
 
                 protected new RuntimeExportProvider OwningExportProvider

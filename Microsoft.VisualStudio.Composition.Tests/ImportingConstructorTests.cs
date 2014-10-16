@@ -341,5 +341,41 @@
         internal interface IRandomExport { }
 
         internal struct NonPublicStruct { }
+
+        #region ImportingConstructor lazy import initialization
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(RandomExport), typeof(PartWithImportingConstructorOfPartThatInitializesLater), typeof(PartThatInitializesLater))]
+        public void ImportingConstructorWithLazyImportPartEventuallyInitializes(IContainer container)
+        {
+            var root = container.GetExportedValue<PartWithImportingConstructorOfPartThatInitializesLater>();
+            Assert.Same(root, root.LaterPart.Value.ImportingConstructorPart);
+            Assert.NotNull(root.LaterPart.Value.RandomExport);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorOfPartThatInitializesLater
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorOfPartThatInitializesLater(Lazy<PartThatInitializesLater> laterPart)
+            {
+                this.LaterPart = laterPart;
+            }
+
+            public Lazy<PartThatInitializesLater> LaterPart { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartThatInitializesLater
+        {
+            [Import, MefV1.Import]
+            public RandomExport RandomExport { get; set; }
+
+            [Import, MefV1.Import]
+            public PartWithImportingConstructorOfPartThatInitializesLater ImportingConstructorPart { get; set; }
+        }
+
+        #endregion
     }
 }
