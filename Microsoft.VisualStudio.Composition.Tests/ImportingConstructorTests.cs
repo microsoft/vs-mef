@@ -463,7 +463,7 @@
             container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis2>();
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]
         public void QueryImportingConstructorPartsEvaluateAfterOne(IContainer container)
         {
             // In testing V3 we specifically obtain A first so that Lazy<C>
@@ -492,7 +492,7 @@
         /// part. But they *can* handle querying for the importing property part first. 
         /// V3 doesn't share this asymmetric failure, so we want to verify that it does it correctly.
         /// </remarks>
-        [MefFact(CompositionEngines.Unspecified, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]
         public void QueryImportingConstructorPartsEvaluateAfterTwo(IContainer container)
         {
             // In testing V3 we specifically obtain A first so that Lazy<C>

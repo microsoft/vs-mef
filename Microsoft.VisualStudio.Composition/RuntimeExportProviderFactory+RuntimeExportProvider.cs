@@ -69,7 +69,7 @@
                 RuntimeComposition.RuntimeExport metadataViewProviderExport;
                 if (this.composition.MetadataViewsAndProviders.TryGetValue(TypeRef.Get(metadataView), out metadataViewProviderExport))
                 {
-                    var export = GetExportedValue(metadataViewProviderImport, metadataViewProviderExport);
+                    var export = GetExportedValue(metadataViewProviderImport, metadataViewProviderExport, importingPartTracker: null);
                     return (IMetadataViewProvider)export.ValueConstructor();
                 }
                 else
@@ -92,7 +92,7 @@
                 public object Value { get; private set; }
             }
 
-            private ValueForImportSite GetValueForImportSite(object part, RuntimeComposition.RuntimeImport import, RuntimePartLifecycleTracker tracker)
+            private ValueForImportSite GetValueForImportSite(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import)
             {
                 Requires.NotNull(import, "import");
 
@@ -109,8 +109,8 @@
                             foreach (var export in exports)
                             {
                                 intArray.Value[0] = i++;
-                                var exportedValue = this.GetValueForImportElement(part, import, export, lazyFactory);
-                                tracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
+                                var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
+                                importingPartTracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
                                 array.SetValue(exportedValue.Value, intArray.Value);
                             }
                         }
@@ -123,7 +123,7 @@
                         MemberInfo importingMember = import.ImportingMember;
                         if (importingMember != null)
                         {
-                            collectionObject = GetImportingMember(part, importingMember);
+                            collectionObject = GetImportingMember(importingPartTracker.Value, importingMember);
                         }
 
                         bool preexistingInstance = collectionObject != null;
@@ -145,7 +145,7 @@
                                     }
                                 }
 
-                                SetImportingMember(part, importingMember, collectionObject);
+                                SetImportingMember(importingPartTracker.Value, importingMember, collectionObject);
                             }
                             else
                             {
@@ -161,8 +161,8 @@
 
                         foreach (var export in exports)
                         {
-                            var exportedValue = this.GetValueForImportElement(part, import, export, lazyFactory);
-                            tracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
+                            var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
+                            importingPartTracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
                             collectionAccessor.Add(exportedValue.Value);
                         }
 
@@ -177,17 +177,17 @@
                         return new ValueForImportSite(null);
                     }
 
-                    var exportedValue = this.GetValueForImportElement(part, import, export, lazyFactory);
-                    tracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
+                    var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
+                    importingPartTracker.ReportImportedPart(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
                     return new ValueForImportSite(exportedValue.Value);
                 }
             }
 
-            private ExportedValue GetValueForImportElement(object part, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Func<Func<object>, object, object> lazyFactory)
+            private ExportedValue GetValueForImportElement(PartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Func<Func<object>, object, object> lazyFactory)
             {
                 if (import.IsExportFactory)
                 {
-                    return this.CreateExportFactory(import, export);
+                    return this.CreateExportFactory(importingPartTracker, import, export);
                 }
                 else
                 {
@@ -199,13 +199,14 @@
                     if (this.composition.GetPart(export).Type.Equals(import.DeclaringType))
                     {
                         // This is importing itself.
+                        object part = importingPartTracker.Value;
                         object value = import.IsLazy
                             ? lazyFactory(() => part, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
                             : part;
                         return new ExportedValue(null, value);
                     }
 
-                    ExportedValueConstructor exportedValueConstructor = this.GetExportedValue(import, export);
+                    ExportedValueConstructor exportedValueConstructor = this.GetExportedValue(import, export, importingPartTracker);
 
                     object importedValue = import.IsLazy
                         ? lazyFactory(exportedValueConstructor.ValueConstructor, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
@@ -214,8 +215,9 @@
                 }
             }
 
-            private ExportedValue CreateExportFactory(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export)
+            private ExportedValue CreateExportFactory(PartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export)
             {
+                Requires.NotNull(importingPartTracker, "importingPartTracker");
                 Requires.NotNull(import, "import");
                 Requires.NotNull(export, "export");
 
@@ -227,7 +229,7 @@
                     RuntimeExportProvider scope = newSharingScope
                         ? new RuntimeExportProvider(this.composition, this, sharingBoundaries)
                         : this;
-                    var exportedValueConstructor = ((RuntimeExportProvider)scope).GetExportedValue(import, export);
+                    var exportedValueConstructor = ((RuntimeExportProvider)scope).GetExportedValue(import, export, importingPartTracker);
                     exportedValueConstructor.ExportingPart.GetValueReadyToExpose();
                     object constructedValue = exportedValueConstructor.ValueConstructor();
                     var disposableValue = newSharingScope ? scope : constructedValue as IDisposable;
@@ -241,7 +243,7 @@
                     this.CreateExportFactory(importingSiteElementType, sharingBoundaries, valueFactory, exportFactoryType, exportMetadata));
             }
 
-            private ExportedValueConstructor GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export)
+            private ExportedValueConstructor GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, PartLifecycleTracker importingPartTracker)
             {
                 Requires.NotNull(import, "import");
                 Requires.NotNull(export, "export");
@@ -256,7 +258,7 @@
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
-                return GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.Type, constructedType);
+                return GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.Type, constructedType, importingPartTracker);
             }
 
             /// <remarks>
@@ -264,7 +266,7 @@
             /// where it captures "this" in the closure for exportedValue, resulting in a memory leak
             /// which caused one of our GC unit tests to fail.
             /// </remarks>
-            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef)
+            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, PartLifecycleTracker importingPartTracker)
             {
                 Requires.NotNull(import, "import");
                 Requires.NotNull(export, "export");
@@ -279,11 +281,26 @@
                     import.Metadata,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
 
-                bool exportMustBeFullyInitialized = IsFullyInitializedExportRequiredWhenSettingImport(import.IsLazy, !import.ImportingParameterRef.IsEmpty);
+                Func<object> exportedValue = () =>
+                {
+                    bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(importingPartTracker, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
+                    if (!export.MemberRef.IsEmpty)
+                    {
+                        object part = export.Member.IsStatic()
+                            ? null
+                            : (fullyInitializedValueIsRequired
+                                ? partLifecycle.GetValueReadyToExpose() 
+                                : partLifecycle.GetValueReadyToRetrieveExportingMembers());
+                        return GetValueFromMember(part, export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve());
+                    }
+                    else
+                    {
+                        return fullyInitializedValueIsRequired
+                            ? partLifecycle.GetValueReadyToExpose()
+                            : partLifecycle.GetValueReadyToRetrieveExportingMembers();
+                    }
+                };
 
-                Func<object> exportedValue = !export.MemberRef.IsEmpty
-                    ? () => GetValueFromMember(export.Member.IsStatic() ? null : (exportMustBeFullyInitialized ? partLifecycle.GetValueReadyToExpose() : partLifecycle.GetValueReadyToRetrieveExportingMembersOrLater()), export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve())
-                    : (exportMustBeFullyInitialized ? new Func<object>(partLifecycle.GetValueReadyToExpose) : partLifecycle.GetValueReadyToRetrieveExportingMembersOrLater);
                 return new ExportedValueConstructor(partLifecycle, exportedValue);
             }
 
@@ -437,7 +454,7 @@
 
                     var constructedPartType = GetPartConstructedTypeRef(this.partDefinition, this.importMetadata);
                     var ctorArgs = this.partDefinition.ImportingConstructorArguments
-                        .Select(import => this.OwningExportProvider.GetValueForImportSite(null, import, this).Value).ToArray();
+                        .Select(import => this.OwningExportProvider.GetValueForImportSite(this, import).Value).ToArray();
                     ConstructorInfo importingConstructor = this.partDefinition.ImportingConstructor;
                     if (importingConstructor.ContainsGenericParameters)
                     {
@@ -453,7 +470,7 @@
                 {
                     foreach (var import in this.partDefinition.ImportingMembers)
                     {
-                        ValueForImportSite value = this.OwningExportProvider.GetValueForImportSite(this.Value, import, this);
+                        ValueForImportSite value = this.OwningExportProvider.GetValueForImportSite(this, import);
                         if (value.ValueShouldBeSet)
                         {
                             SetImportingMember(this.Value, import.ImportingMember, value.Value);

@@ -312,6 +312,7 @@
         /// Gets a value indicating whether an import with the given characteristics must be initially satisfied
         /// with a fully pre-initialized export.
         /// </summary>
+        /// <param name="importingPartTracker">The tracker for the part that is importing.</param>
         /// <param name="isLazy"><c>true</c> if the import is a Lazy{T} style import; <c>false</c> otherwise.</param>
         /// <param name="isImportingConstructorArgument"><c>true</c> if the import appears in an importing constructor; <c>false</c> otherwise.</param>
         /// <returns>
@@ -319,11 +320,23 @@
         /// prior to being exposed to the receiver; <c>false</c> if the export can be partially initialized when the receiver
         /// first observes it.
         /// </returns>
-        protected static bool IsFullyInitializedExportRequiredWhenSettingImport(bool isLazy, bool isImportingConstructorArgument)
+        protected static bool IsFullyInitializedExportRequiredWhenSettingImport(PartLifecycleTracker importingPartTracker, bool isLazy, bool isImportingConstructorArgument)
         {
             // We should fully prepare an exported value if it is a lazy property or a non-lazy importing constructor argument.
             // Non-lazy properties can be initialized after being set, as can lazy importing constructor arguments (go figure!).
-            return isLazy == !isImportingConstructorArgument;
+            if (isLazy == !isImportingConstructorArgument)
+            {
+                return true;
+            }
+
+            if (isLazy && isImportingConstructorArgument && importingPartTracker != null && importingPartTracker.State >= PartLifecycleState.Created)
+            {
+                // This lazy was an importing constructor argument and that constructor has already finished executing.
+                // So we actually *do* need to fully initialize, even though within the importing constructor we would not have.
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -843,8 +856,6 @@
 
             protected ExportProvider OwningExportProvider { get; private set; }
 
-            protected internal PartLifecycleState RequestedToTransitionToState { get; private set; }
-
             public void Create()
             {
                 bool creating = false;
@@ -938,18 +949,6 @@
                 return this.Value;
             }
 
-            /// <summary>
-            /// Returns a value that is at least created, although importing properties may not have been satisfied.
-            /// Unless this part has been notified that the importing constructor that imported it is done executing
-            /// in which case it returns a more completed value.
-            /// </summary>
-            public object GetValueReadyToRetrieveExportingMembersOrLater()
-            {
-                this.GetValueReadyToRetrieveExportingMembers();
-                this.MoveToState(this.RequestedToTransitionToState);
-                return this.Value;
-            }
-
             public void NotifyTransitiveImportsSatisfied()
             {
                 try
@@ -990,7 +989,7 @@
 
             protected void ReportImportedPart(PartLifecycleTracker importedPart, bool isLazy, bool isImportingConstructorArgument)
             {
-                if (importedPart != null && !IsFullyInitializedExportRequiredWhenSettingImport(isLazy, isImportingConstructorArgument))
+                if (importedPart != null && !IsFullyInitializedExportRequiredWhenSettingImport(this, isLazy, isImportingConstructorArgument))
                 {
                     lock (this.syncObject)
                     {
@@ -1032,32 +1031,13 @@
             {
                 Requires.NotNull(parts, "parts");
 
-                if (this.State <= transitioningToState)
+                // We don't want to eagerly initialize lazy's that were not evaluated.
+                // But if a part is created, now is the time we have to finish initializing them.
+                if (this.State <= transitioningToState && this.State > PartLifecycleState.NotCreated && parts.Add(this))
                 {
-                    // We don't want to eagerly initialize lazy's that were not evaluated.
-                    // But if a part is created, now is the time we have to finish initializing them.
-                    if (this.State > PartLifecycleState.NotCreated)
+                    foreach (var importedPart in this.deferredInitializationParts)
                     {
-                        if (parts.Add(this))
-                        {
-                            foreach (var importedPart in this.deferredInitializationParts)
-                            {
-                                importedPart.CollectTransitiveCloserOfNonLazyImportedParts(parts, transitioningToState);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // Record that we've been requested to transition once created.
-                        // This allows Lazy's that are handed to importing constructors to be told
-                        // after the importing constructor is finished that it should initialize
-                        // the value fully rather than partially as is the mode when within an importing constructor.
-                        // Note that if the lazy has already evaluated by the time this method is invoked,
-                        // we would have entered the other branch of this method and taken care of initialization ourselves.
-                        if (transitioningToState > this.RequestedToTransitionToState)
-                        {
-                            this.RequestedToTransitionToState = transitioningToState;
-                        }
+                        importedPart.CollectTransitiveCloserOfNonLazyImportedParts(parts, transitioningToState);
                     }
                 }
             }
