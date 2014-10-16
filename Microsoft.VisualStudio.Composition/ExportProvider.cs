@@ -312,6 +312,7 @@
         /// Gets a value indicating whether an import with the given characteristics must be initially satisfied
         /// with a fully pre-initialized export.
         /// </summary>
+        /// <param name="importingPartTracker">The tracker for the part that is importing.</param>
         /// <param name="isLazy"><c>true</c> if the import is a Lazy{T} style import; <c>false</c> otherwise.</param>
         /// <param name="isImportingConstructorArgument"><c>true</c> if the import appears in an importing constructor; <c>false</c> otherwise.</param>
         /// <returns>
@@ -319,11 +320,23 @@
         /// prior to being exposed to the receiver; <c>false</c> if the export can be partially initialized when the receiver
         /// first observes it.
         /// </returns>
-        protected static bool IsFullyInitializedExportRequiredWhenSettingImport(bool isLazy, bool isImportingConstructorArgument)
+        protected static bool IsFullyInitializedExportRequiredWhenSettingImport(PartLifecycleTracker importingPartTracker, bool isLazy, bool isImportingConstructorArgument)
         {
             // We should fully prepare an exported value if it is a lazy property or a non-lazy importing constructor argument.
             // Non-lazy properties can be initialized after being set, as can lazy importing constructor arguments (go figure!).
-            return isLazy == !isImportingConstructorArgument;
+            if (isLazy == !isImportingConstructorArgument)
+            {
+                return true;
+            }
+
+            if (isLazy && isImportingConstructorArgument && importingPartTracker != null && importingPartTracker.State >= PartLifecycleState.Created)
+            {
+                // This lazy was an importing constructor argument and that constructor has already finished executing.
+                // So we actually *do* need to fully initialize, even though within the importing constructor we would not have.
+                return true;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -916,11 +929,6 @@
                 }
             }
 
-            // TODO: this method should be called at the bottom of a callstack that returns MEF exports,
-            // on each of the exports.
-            // It should also be called on each export before being passed to an importing constructor (to match MEFv1 behavior).
-            // It should also be called when any Lazy<> that is set to an importing property or passed to an importing constructor is evaluated.
-            // Consider how it can detect a circular dependency and throw appropriately rather than StackOverflow or deadlock.
             public object GetValueReadyToExpose()
             {
                 this.MoveToState(PartLifecycleState.Final);
@@ -932,6 +940,9 @@
                 return this.Value;
             }
 
+            /// <summary>
+            /// Returns a value that is at least created, although importing properties may not have been satisfied.
+            /// </summary>
             public object GetValueReadyToRetrieveExportingMembers()
             {
                 this.MoveToState(PartLifecycleState.Created);
@@ -978,7 +989,7 @@
 
             protected void ReportImportedPart(PartLifecycleTracker importedPart, bool isLazy, bool isImportingConstructorArgument)
             {
-                if (importedPart != null && !IsFullyInitializedExportRequiredWhenSettingImport(isLazy, isImportingConstructorArgument))
+                if (importedPart != null && !IsFullyInitializedExportRequiredWhenSettingImport(this, isLazy, isImportingConstructorArgument))
                 {
                     lock (this.syncObject)
                     {
@@ -1016,15 +1027,17 @@
                 }
             }
 
-            private void CollectTransitiveCloserOfNonLazyImportedParts(HashSet<PartLifecycleTracker> parts, PartLifecycleState excludePartsAfterState)
+            private void CollectTransitiveCloserOfNonLazyImportedParts(HashSet<PartLifecycleTracker> parts, PartLifecycleState transitioningToState)
             {
                 Requires.NotNull(parts, "parts");
 
-                if (this.State <= excludePartsAfterState && parts.Add(this))
+                // We don't want to eagerly initialize lazy's that were not evaluated.
+                // But if a part is created, now is the time we have to finish initializing them.
+                if (this.State <= transitioningToState && this.State > PartLifecycleState.NotCreated && parts.Add(this))
                 {
                     foreach (var importedPart in this.deferredInitializationParts)
                     {
-                        importedPart.CollectTransitiveCloserOfNonLazyImportedParts(parts, excludePartsAfterState);
+                        importedPart.CollectTransitiveCloserOfNonLazyImportedParts(parts, transitioningToState);
                     }
                 }
             }
@@ -1092,7 +1105,12 @@
                 {
                     while (this.State < state)
                     {
-                        Monitor.Wait(this.syncObject);
+                        while (!Monitor.Wait(this.syncObject, TimeSpan.FromSeconds(3)))
+                        {
+                            // This area intentionally left blank. It exists so that managed debuggers
+                            // can break out of a hang temporarily to get out of optimized/native frames
+                            // on the top of the stack so the debugger can actually be useful.
+                        }
                     }
                 }
             }
