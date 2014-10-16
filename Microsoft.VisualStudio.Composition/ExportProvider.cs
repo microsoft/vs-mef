@@ -838,6 +838,7 @@
             private readonly object syncObject = new object();
             private readonly string sharingBoundary;
             private readonly HashSet<PartLifecycleTracker> deferredInitializationParts;
+            private Thread threadExecutingStep;
             private Exception fault;
 
             public PartLifecycleTracker(ExportProvider owningExportProvider, string sharingBoundary)
@@ -873,6 +874,7 @@
                 {
                     try
                     {
+                        this.threadExecutingStep = Thread.CurrentThread;
                         object value = this.CreateValue();
 
                         lock (this.syncObject)
@@ -906,6 +908,7 @@
                     {
                         try
                         {
+                            this.threadExecutingStep = Thread.CurrentThread;
                             this.SatisfyImports();
                             this.UpdateState(PartLifecycleState.ImmediateImportsSatisfied);
                         }
@@ -931,7 +934,14 @@
 
             public object GetValueReadyToExpose()
             {
-                this.MoveToState(PartLifecycleState.Final);
+                // If this very thread is already executing a step on this part, then we have some
+                // form of reentrancy going on. In which case, the general policy seems to be that
+                // we return an incompletely initialized part.
+                if (this.threadExecutingStep != Thread.CurrentThread)
+                {
+                    this.MoveToState(PartLifecycleState.Final);
+                }
+
                 if (this.Value == null)
                 {
                     throw new CompositionFailedException("This part cannot be instantiated.");
@@ -969,6 +979,7 @@
                     if (shouldInvoke)
                     {
                         Assumes.False(Monitor.IsEntered(this.syncObject)); // avoid holding locks while invoking others' code.
+                        this.threadExecutingStep = Thread.CurrentThread;
                         this.InvokeOnImportsSatisfied();
 
                         Assumes.True(this.UpdateState(PartLifecycleState.OnImportsSatisfiedInvoked));
@@ -1083,6 +1094,7 @@
                     if (this.State < newState)
                     {
                         this.State = newState;
+                        this.threadExecutingStep = null;
                         Monitor.PulseAll(this.syncObject);
                         return true;
                     }

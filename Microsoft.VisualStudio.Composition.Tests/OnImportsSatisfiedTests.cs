@@ -113,5 +113,34 @@
         }
 
         #endregion
+
+        #region Imperative query for part from within its own OnImportsSatisfied method
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartThatQueriesForItself))]
+        public void PartQueriesForItselfInOnImportsSatisfied(IContainer container)
+        {
+            PartThatQueriesForItself.Container = container;
+
+            var root = container.GetExportedValue<PartThatQueriesForItself>();
+            Assert.NotNull(root);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartThatQueriesForItself : MefV1.IPartImportsSatisfiedNotification
+        {
+            internal static IContainer Container;
+            private int onImportsSatisfiedInvocationCounter;
+
+            [OnImportsSatisfied]
+            public void OnImportsSatisfied()
+            {
+                Assert.Equal(1, ++this.onImportsSatisfiedInvocationCounter);
+                var self = Container.GetExportedValue<PartThatQueriesForItself>();
+                Assert.Same(this, self);
+            }
+        }
+
+        #endregion
     }
 }
