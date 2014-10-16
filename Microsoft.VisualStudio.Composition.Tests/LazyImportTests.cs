@@ -51,49 +51,6 @@ using Xunit;
             Assert.Equal(1, AnotherExport.ConstructionCount);
         }
 
-        /// <summary>
-        /// Verifies that the Lazy{T} instance itself is shared across all importers.
-        /// </summary>
-        /// <remarks>
-        /// This design goal has been retired. There are too many other concerns that are more impactful,
-        /// and getting this just right is quite tricky, and often Lazy's really can't be shared
-        /// across importers for various reasons.
-        /// </remarks>
-        ////[MefFact(CompositionEngines.Unspecified, typeof(ExportWithLazyImportOfSharedExport), typeof(SharedExport))]
-        [Trait("Efficiency", "InstanceReuse")]
-        public void LazyImportOfSharedExportHasSharedLazy(IContainer container)
-        {
-            var firstInstance = container.GetExportedValue<ExportWithLazyImportOfSharedExport>();
-            var secondInstance = container.GetExportedValue<ExportWithLazyImportOfSharedExport>();
-            Assert.NotSame(firstInstance, secondInstance); // We should get two copies of the non-shared instance
-            Assert.Same(firstInstance.SharedExport.Value, secondInstance.SharedExport.Value);
-
-            // We're intentionally verifying the instance of the Lazy<T> *itself* (not its value).
-            // We want it shared so that if any one service queries Lazy<T>.IsValueCreated, it will return true
-            // if another other lazy importer evaluated it. Plus, as these Lazy's are thread-safe, there is some
-            // sync object overhead that we'd rather minimize by sharing instances.
-            Assert.Same(firstInstance.SharedExport, secondInstance.SharedExport);
-        }
-
-        /// <remarks>
-        /// This design goal has been retired. There are too many other concerns that are more impactful,
-        /// and getting this just right is quite tricky, and often Lazy's really can't be shared
-        /// across importers for various reasons.
-        /// </remarks>
-        ////[Fact(Skip = "Functionality not yet implemented.")]
-        public void LazyImportOfSharedExportHasCreatedValueWhenCreatedByOtherMeans()
-        {
-            var container = TestUtilities.CreateContainer(typeof(ExportWithLazyImportOfSharedExport), typeof(SharedExport));
-
-            var lazyImporter = container.GetExportedValue<ExportWithLazyImportOfSharedExport>();
-            Assert.False(lazyImporter.SharedExport.IsValueCreated);
-            var sharedService = container.GetExportedValue<SharedExport>();
-
-            // This should be true, not because the lazyImporter instance evaluated the lazy,
-            // but because this should reflect whether the service has actually been loaded.
-            Assert.True(lazyImporter.SharedExport.IsValueCreated);
-        }
-
         [Export]
         public class ExportWithLazyImport
         {
