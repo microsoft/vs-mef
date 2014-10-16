@@ -25,7 +25,7 @@
 
         public ExportDefinition ExportDefinition { get; private set; }
 
-        // TODO: remove this member, perhaps in favor of just a property of type System.Type,
+        // TODO: remove this member, perhaps in favor of just a property of type TypeRef,
         // so that ComposablePartDefinition can contain a collection of ExportDefinitionBinding
         // instead of just ExportDefinition in a dictionary.
         // This would make it parallel to ImportDefinitionBinding.

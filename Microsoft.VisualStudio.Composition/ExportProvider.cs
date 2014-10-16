@@ -857,7 +857,61 @@
 
             protected ExportProvider OwningExportProvider { get; private set; }
 
-            public void Create()
+            public object GetValueReadyToExpose()
+            {
+                // If this very thread is already executing a step on this part, then we have some
+                // form of reentrancy going on. In which case, the general policy seems to be that
+                // we return an incompletely initialized part.
+                if (this.threadExecutingStep != Thread.CurrentThread)
+                {
+                    this.MoveToState(PartLifecycleState.Final);
+                }
+
+                if (this.Value == null)
+                {
+                    throw new CompositionFailedException("This part cannot be instantiated.");
+                }
+
+                return this.Value;
+            }
+
+            /// <summary>
+            /// Returns a value that is at least created, although importing properties may not have been satisfied.
+            /// </summary>
+            public object GetValueReadyToRetrieveExportingMembers()
+            {
+                this.MoveToState(PartLifecycleState.Created);
+                return this.Value;
+            }
+
+            public void Dispose()
+            {
+                IDisposable disposableValue = this.Value as IDisposable;
+                this.Value = null;
+                if (disposableValue != null)
+                {
+                    disposableValue.Dispose();
+                }
+            }
+
+            protected abstract object CreateValue();
+
+            protected abstract void SatisfyImports();
+
+            protected abstract void InvokeOnImportsSatisfied();
+
+            protected void ReportPartiallyInitializedImport(PartLifecycleTracker importedPart, bool isLazy, bool isImportingConstructorArgument)
+            {
+                if (importedPart != null)
+                {
+                    lock (this.syncObject)
+                    {
+                        this.deferredInitializationParts.Add(importedPart);
+                    }
+                }
+            }
+
+            private void Create()
             {
                 bool creating = false;
                 lock (this.syncObject)
@@ -897,7 +951,7 @@
                 }
             }
 
-            public void SatisfyImmediateImports()
+            private void SatisfyImmediateImports()
             {
                 // DEADLOCK danger: I'm not sure how to avoid holding a lock around
                 // setting of imports since we can't afford to have two threads doing it at once.
@@ -921,45 +975,7 @@
                 }
             }
 
-            private void MoveToState(PartLifecycleState requiredState)
-            {
-                this.ThrowIfFaulted();
-
-                while (this.State < requiredState)
-                {
-                    this.MoveNext();
-                    this.ThrowIfFaulted();
-                }
-            }
-
-            public object GetValueReadyToExpose()
-            {
-                // If this very thread is already executing a step on this part, then we have some
-                // form of reentrancy going on. In which case, the general policy seems to be that
-                // we return an incompletely initialized part.
-                if (this.threadExecutingStep != Thread.CurrentThread)
-                {
-                    this.MoveToState(PartLifecycleState.Final);
-                }
-
-                if (this.Value == null)
-                {
-                    throw new CompositionFailedException("This part cannot be instantiated.");
-                }
-
-                return this.Value;
-            }
-
-            /// <summary>
-            /// Returns a value that is at least created, although importing properties may not have been satisfied.
-            /// </summary>
-            public object GetValueReadyToRetrieveExportingMembers()
-            {
-                this.MoveToState(PartLifecycleState.Created);
-                return this.Value;
-            }
-
-            public void NotifyTransitiveImportsSatisfied()
+            private void NotifyTransitiveImportsSatisfied()
             {
                 try
                 {
@@ -989,147 +1005,6 @@
                 {
                     this.Fault(ex);
                     throw;
-                }
-            }
-
-            protected abstract object CreateValue();
-
-            protected abstract void SatisfyImports();
-
-            protected abstract void InvokeOnImportsSatisfied();
-
-            protected void ReportPartiallyInitializedImport(PartLifecycleTracker importedPart, bool isLazy, bool isImportingConstructorArgument)
-            {
-                if (importedPart != null)
-                {
-                    lock (this.syncObject)
-                    {
-                        this.deferredInitializationParts.Add(importedPart);
-                    }
-                }
-            }
-
-            private void MoveToStateTransitively(PartLifecycleState requiredState, HashSet<PartLifecycleTracker> visitedNodes = null)
-            {
-                try
-                {
-                    bool topLevelCall = visitedNodes == null;
-                    visitedNodes = visitedNodes ?? new HashSet<PartLifecycleTracker>();
-                    PartLifecycleState nonTransitiveState = topLevelCall ? requiredState - 1 : requiredState;
-
-                    this.MoveToState(nonTransitiveState);
-                    if (visitedNodes.Add(this))
-                    {
-                        foreach (var importedPart in this.deferredInitializationParts)
-                        {
-                            // Do not ask these parts to mark themselves as transitively complete.
-                            // Only the top-level call can know when everyone is transitively done.
-                            importedPart.MoveToStateTransitively(nonTransitiveState, visitedNodes);
-                        }
-
-                        if (topLevelCall)
-                        {
-                            // Update everyone involved so they know they're transitively done with this work.
-                            foreach (var importedPart in visitedNodes)
-                            {
-                                importedPart.UpdateState(requiredState);
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    this.Fault(ex);
-                    throw;
-                }
-            }
-
-            private void CollectTransitiveCloserOfNonLazyImportedParts(HashSet<PartLifecycleTracker> parts, PartLifecycleState transitioningToState)
-            {
-                Requires.NotNull(parts, "parts");
-
-                // We don't want to eagerly initialize lazy's that were not evaluated.
-                // But if a part is created, now is the time we have to finish initializing them.
-                if (this.State <= transitioningToState && this.State > PartLifecycleState.NotCreated && parts.Add(this))
-                {
-                    foreach (var importedPart in this.deferredInitializationParts)
-                    {
-                        importedPart.CollectTransitiveCloserOfNonLazyImportedParts(parts, transitioningToState);
-                    }
-                }
-            }
-
-            private bool ShouldMoveTo(PartLifecycleState nextState)
-            {
-                lock (this.syncObject)
-                {
-                    this.ThrowIfFaulted();
-
-                    if (this.State >= nextState)
-                    {
-                        return false;
-                    }
-
-                    if (this.State < nextState - 1)
-                    {
-                        Verify.FailOperation(Strings.UnexpectedSharedPartState, this.State, nextState - 1);
-                    }
-
-                    return true;
-                }
-            }
-
-            private void ThrowIfFaulted()
-            {
-                if (this.fault != null)
-                {
-                    ExceptionDispatchInfo.Capture(this.fault).Throw();
-                }
-            }
-
-            private bool UpdateState(PartLifecycleState newState)
-            {
-                lock (this.syncObject)
-                {
-                    if (this.State < newState)
-                    {
-                        this.State = newState;
-                        this.threadExecutingStep = null;
-                        Monitor.PulseAll(this.syncObject);
-                        return true;
-                    }
-
-                    return false;
-                }
-            }
-
-            private void Fault(Exception exception)
-            {
-                lock (this.syncObject)
-                {
-                    Report.If(this.fault != null, "We shouldn't have faulted twice in a row. The first should have done us in.");
-                    if (exception != null)
-                    {
-                        this.fault = exception;
-                    }
-
-                    this.UpdateState(PartLifecycleState.Final);
-                }
-            }
-
-            private void WaitForState(PartLifecycleState state)
-            {
-                lock (this.syncObject)
-                {
-                    while (this.State < state)
-                    {
-                        while (!Monitor.Wait(this.syncObject, TimeSpan.FromSeconds(3)))
-                        {
-                            // This area intentionally left blank. It exists so that managed debuggers
-                            // can break out of a hang temporarily to get out of optimized/native frames
-                            // on the top of the stack so the debugger can actually be useful.
-                        }
-                    }
                 }
             }
 
@@ -1169,13 +1044,138 @@
                 }
             }
 
-            public void Dispose()
+            private bool ShouldMoveTo(PartLifecycleState nextState)
             {
-                IDisposable disposableValue = this.Value as IDisposable;
-                this.Value = null;
-                if (disposableValue != null)
+                lock (this.syncObject)
                 {
-                    disposableValue.Dispose();
+                    this.ThrowIfFaulted();
+
+                    if (this.State >= nextState)
+                    {
+                        return false;
+                    }
+
+                    if (this.State < nextState - 1)
+                    {
+                        Verify.FailOperation(Strings.UnexpectedSharedPartState, this.State, nextState - 1);
+                    }
+
+                    return true;
+                }
+            }
+
+            private void MoveToState(PartLifecycleState requiredState)
+            {
+                this.ThrowIfFaulted();
+
+                while (this.State < requiredState)
+                {
+                    this.MoveNext();
+                    this.ThrowIfFaulted();
+                }
+            }
+
+            private void MoveToStateTransitively(PartLifecycleState requiredState, HashSet<PartLifecycleTracker> visitedNodes = null)
+            {
+                try
+                {
+                    bool topLevelCall = visitedNodes == null;
+                    visitedNodes = visitedNodes ?? new HashSet<PartLifecycleTracker>();
+                    PartLifecycleState nonTransitiveState = topLevelCall ? requiredState - 1 : requiredState;
+
+                    this.MoveToState(nonTransitiveState);
+                    if (visitedNodes.Add(this))
+                    {
+                        foreach (var importedPart in this.deferredInitializationParts)
+                        {
+                            // Do not ask these parts to mark themselves as transitively complete.
+                            // Only the top-level call can know when everyone is transitively done.
+                            importedPart.MoveToStateTransitively(nonTransitiveState, visitedNodes);
+                        }
+
+                        if (topLevelCall)
+                        {
+                            // Update everyone involved so they know they're transitively done with this work.
+                            foreach (var importedPart in visitedNodes)
+                            {
+                                importedPart.UpdateState(requiredState);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.Fault(ex);
+                    throw;
+                }
+            }
+
+            private bool UpdateState(PartLifecycleState newState)
+            {
+                lock (this.syncObject)
+                {
+                    if (this.State < newState)
+                    {
+                        this.State = newState;
+                        this.threadExecutingStep = null;
+                        Monitor.PulseAll(this.syncObject);
+                        return true;
+                    }
+
+                    return false;
+                }
+            }
+
+            private void WaitForState(PartLifecycleState state)
+            {
+                lock (this.syncObject)
+                {
+                    while (this.State < state)
+                    {
+                        while (!Monitor.Wait(this.syncObject, TimeSpan.FromSeconds(3)))
+                        {
+                            // This area intentionally left blank. It exists so that managed debuggers
+                            // can break out of a hang temporarily to get out of optimized/native frames
+                            // on the top of the stack so the debugger can actually be useful.
+                        }
+                    }
+                }
+            }
+
+            private void CollectTransitiveCloserOfNonLazyImportedParts(HashSet<PartLifecycleTracker> parts, PartLifecycleState transitioningToState)
+            {
+                Requires.NotNull(parts, "parts");
+
+                // We don't want to eagerly initialize lazy's that were not evaluated.
+                // But if a part is created, now is the time we have to finish initializing them.
+                if (this.State <= transitioningToState && this.State > PartLifecycleState.NotCreated && parts.Add(this))
+                {
+                    foreach (var importedPart in this.deferredInitializationParts)
+                    {
+                        importedPart.CollectTransitiveCloserOfNonLazyImportedParts(parts, transitioningToState);
+                    }
+                }
+            }
+
+            private void ThrowIfFaulted()
+            {
+                if (this.fault != null)
+                {
+                    ExceptionDispatchInfo.Capture(this.fault).Throw();
+                }
+            }
+
+            private void Fault(Exception exception)
+            {
+                lock (this.syncObject)
+                {
+                    Report.If(this.fault != null, "We shouldn't have faulted twice in a row. The first should have done us in.");
+                    if (exception != null)
+                    {
+                        this.fault = exception;
+                    }
+
+                    this.UpdateState(PartLifecycleState.Final);
                 }
             }
         }
