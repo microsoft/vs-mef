@@ -489,6 +489,41 @@
 
         #endregion
 
+        #region ImportingConstructor imports another part that has a lazy importing property pointing back
+
+        // V2 fails to set the OtherLazy property to a non-null value.
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty), typeof(PartWithLazyLoopbackImportingProperty))]
+        public void ImportingConstructorOfPartWithLoopbackLazyImportingProperty(IContainer container)
+        {
+            var root = container.GetExportedValue<PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty>();
+            Assert.NotNull(root.Other.OtherLazy);
+            Assert.Same(root, root.Other.OtherLazy.Value);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty(PartWithLazyLoopbackImportingProperty other)
+            {
+                Assert.NotNull(other);
+                this.Other = other;
+            }
+
+            public PartWithLazyLoopbackImportingProperty Other { get; private set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithLazyLoopbackImportingProperty
+        {
+            [Import, MefV1.Import]
+            public Lazy<PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty> OtherLazy { get; private set; }
+        }
+
+        #endregion
+
         #region Query for importing constructor parts in various orders.
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]
