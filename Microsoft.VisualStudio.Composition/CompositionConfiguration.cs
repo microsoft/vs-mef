@@ -335,6 +335,7 @@
             }
 
             // Find loops even with shared parts where an importing constructor is involved.
+            Func<KeyValuePair<ImportDefinitionBinding, ComposedPart>, bool> importingConstructorFilter = ip => !ip.Key.IsExportFactory && !ip.Key.IsLazy;
             foreach (var partAndImports in partsAndDirectImports)
             {
                 var importingPart = partAndImports.Key;
@@ -342,11 +343,10 @@
                 {
                     var importDefinitionBinding = import.Key;
                     var satisfyingPart = import.Value;
-                    if (!importDefinitionBinding.ImportingParameterRef.IsEmpty)
+                    if (!importDefinitionBinding.ImportingParameterRef.IsEmpty && importingConstructorFilter(import))
                     {
-                        // TODO: skip over lazy importing constructor arguments
                         visited.Clear();
-                        var path = PathExistsBetween(satisfyingPart, importingPart, getDirectLinksWithFilter(ip => !ip.Key.IsExportFactory && !ip.Key.IsLazy), visited);
+                        var path = PathExistsBetween(satisfyingPart, importingPart, getDirectLinksWithFilter(importingConstructorFilter), visited);
                         if (!path.IsEmpty)
                         {
                             path = path.Push(satisfyingPart).Push(partByPartType[importDefinitionBinding.ComposablePartTypeRef]);

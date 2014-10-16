@@ -273,10 +273,9 @@
                     import.Metadata,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
 
-                // We should fully prepare an exported value if it is lazy or an importing constructor parameter.
-                // Lazy indicates the client will call this value factory by itself and we need it to throw
-                // as appropriate if the value cannot be fully initialized.
-                bool exportMustBeFullyInitialized = import.IsLazy || !import.ImportingParameterRef.IsEmpty;
+                // We should fully prepare an exported value if it is a lazy property or a non-lazy importing constructor argument.
+                // Non-lazy properties can be initialized after being set, as can lazy importing constructor arguments (go figure!).
+                bool exportMustBeFullyInitialized = import.IsLazy == import.ImportingParameterRef.IsEmpty;
 
                 Func<object> exportedValue = !export.MemberRef.IsEmpty
                     ? () => GetValueFromMember(export.Member.IsStatic() ? null : (exportMustBeFullyInitialized ? partLifecycle.GetValueReadyToExpose() : partLifecycle.GetValueReadyToRetrieveExportingMembers()), export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve())

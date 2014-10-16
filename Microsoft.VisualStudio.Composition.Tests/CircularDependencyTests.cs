@@ -438,7 +438,7 @@
 
         #region Loop involving one importing constructor with a lazy import, and a part with a non-lazy import
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(PartWithImportingPropertyOfLazyImportingConstructor), typeof(PartWithLazyImportingConstructorOfPartWithImportingProperty))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithImportingPropertyOfLazyImportingConstructor), typeof(PartWithLazyImportingConstructorOfPartWithImportingProperty))]
         public void LoopWithLazyImportingConstructorAndImportingProperty(IContainer container)
         {
             var partWithImportingProperty = container.GetExportedValue<PartWithImportingPropertyOfLazyImportingConstructor>();
