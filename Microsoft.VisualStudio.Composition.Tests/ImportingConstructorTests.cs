@@ -454,7 +454,7 @@
 
         #region ImportingConstructor imports another part that itself has an importing constructor that lazily imports the original
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
         public void ImportingConstructorImportsOtherPartWithImportingConstructorWithLazyLoopBack(IContainer container)
         {
             var root = container.GetExportedValue<PartWithImportingConstructorImportingOtherPartWithLazyLoopBack>();
