@@ -309,6 +309,24 @@
         }
 
         /// <summary>
+        /// Gets a value indicating whether an import with the given characteristics must be initially satisfied
+        /// with a fully pre-initialized export.
+        /// </summary>
+        /// <param name="isLazy"><c>true</c> if the import is a Lazy{T} style import; <c>false</c> otherwise.</param>
+        /// <param name="isImportingConstructorArgument"><c>true</c> if the import appears in an importing constructor; <c>false</c> otherwise.</param>
+        /// <returns>
+        /// <c>true</c> if the export must have its imports transitively satisfied and OnImportsSatisfied methods invoked
+        /// prior to being exposed to the receiver; <c>false</c> if the export can be partially initialized when the receiver
+        /// first observes it.
+        /// </returns>
+        protected static bool IsFullyInitializedExportRequiredWhenSettingImport(bool isLazy, bool isImportingConstructorArgument)
+        {
+            // We should fully prepare an exported value if it is a lazy property or a non-lazy importing constructor argument.
+            // Non-lazy properties can be initialized after being set, as can lazy importing constructor arguments (go figure!).
+            return isLazy == !isImportingConstructorArgument;
+        }
+
+        /// <summary>
         /// When implemented by a derived class, returns an <see cref="IEnumerable{T}"/> of values that
         /// satisfy the contract name of the specified <see cref="ImportDefinition"/>.
         /// </summary>
@@ -806,7 +824,7 @@
         {
             private readonly object syncObject = new object();
             private readonly string sharingBoundary;
-            private readonly HashSet<PartLifecycleTracker> nonLazilyImportedParts;
+            private readonly HashSet<PartLifecycleTracker> deferredInitializationParts;
             private Exception fault;
 
             public PartLifecycleTracker(ExportProvider owningExportProvider, string sharingBoundary)
@@ -815,7 +833,7 @@
 
                 this.OwningExportProvider = owningExportProvider;
                 this.sharingBoundary = sharingBoundary;
-                this.nonLazilyImportedParts = new HashSet<PartLifecycleTracker>();
+                this.deferredInitializationParts = new HashSet<PartLifecycleTracker>();
                 this.State = PartLifecycleState.NotCreated;
             }
 
@@ -958,13 +976,13 @@
 
             protected abstract void InvokeOnImportsSatisfied();
 
-            protected void ReportImportedPart(PartLifecycleTracker importedPart, bool isLazy)
+            protected void ReportImportedPart(PartLifecycleTracker importedPart, bool isLazy, bool isImportingConstructorArgument)
             {
-                if (importedPart != null && !isLazy)
+                if (importedPart != null && !IsFullyInitializedExportRequiredWhenSettingImport(isLazy, isImportingConstructorArgument))
                 {
                     lock (this.syncObject)
                     {
-                        this.nonLazilyImportedParts.Add(importedPart);
+                        this.deferredInitializationParts.Add(importedPart);
                     }
                 }
             }
@@ -1004,7 +1022,7 @@
 
                 if (this.State <= excludePartsAfterState && parts.Add(this))
                 {
-                    foreach (var importedPart in this.nonLazilyImportedParts)
+                    foreach (var importedPart in this.deferredInitializationParts)
                     {
                         importedPart.CollectTransitiveCloserOfNonLazyImportedParts(parts, excludePartsAfterState);
                     }
