@@ -110,7 +110,6 @@
                             {
                                 intArray.Value[0] = i++;
                                 var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
-                                importingPartTracker.ReportPartiallyInitializedImport(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
                                 array.SetValue(exportedValue.Value, intArray.Value);
                             }
                         }
@@ -162,7 +161,6 @@
                         foreach (var export in exports)
                         {
                             var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
-                            importingPartTracker.ReportPartiallyInitializedImport(exportedValue.ExportingPart, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
                             collectionAccessor.Add(exportedValue.Value);
                         }
 
