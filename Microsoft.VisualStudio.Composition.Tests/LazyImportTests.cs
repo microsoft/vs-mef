@@ -6,7 +6,7 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-using Xunit;
+    using Xunit;
 
     public class LazyImportTests
     {
@@ -14,6 +14,8 @@ using Xunit;
         {
             AnotherExport.ConstructionCount = 0;
         }
+
+        #region LazyImport test
 
         [MefFact(CompositionEngines.V2Compat, typeof(ExportWithLazyImport), typeof(AnotherExport))]
         public void LazyImport(IContainer container)
@@ -33,12 +35,34 @@ using Xunit;
             Assert.NotSame(anotherExport, anotherExport2);
         }
 
+        [Export]
+        public class ExportWithLazyImport
+        {
+            [Import]
+            public Lazy<AnotherExport> AnotherExport { get; set; }
+        }
+
+        #endregion
+
+        #region LazyImportByBaseType test
+
         [MefFact(CompositionEngines.V2Compat, typeof(ExportWithLazyImportOfBaseType), typeof(AnotherExport))]
         public void LazyImportByBaseType(IContainer container)
         {
             var lazyImport = container.GetExportedValue<ExportWithLazyImportOfBaseType>();
             Assert.IsType(typeof(AnotherExport), lazyImport.AnotherExport.Value);
         }
+
+        [Export]
+        public class ExportWithLazyImportOfBaseType
+        {
+            [Import("AnotherExport")]
+            public Lazy<object> AnotherExport { get; set; }
+        }
+
+        #endregion
+
+        #region LazyImportMany test
 
         [MefFact(CompositionEngines.V2Compat, typeof(ExportWithListOfLazyImport), typeof(AnotherExport))]
         public void LazyImportMany(IContainer container)
@@ -52,32 +76,13 @@ using Xunit;
         }
 
         [Export]
-        public class ExportWithLazyImport
-        {
-            [Import]
-            public Lazy<AnotherExport> AnotherExport { get; set; }
-        }
-
-        [Export]
-        public class ExportWithLazyImportOfSharedExport
-        {
-            [Import]
-            public Lazy<SharedExport> SharedExport { get; set; }
-        }
-
-        [Export]
         public class ExportWithListOfLazyImport
         {
             [ImportMany]
             public IList<Lazy<AnotherExport>> AnotherExports { get; set; }
         }
 
-        [Export]
-        public class ExportWithLazyImportOfBaseType
-        {
-            [Import("AnotherExport")]
-            public Lazy<object> AnotherExport { get; set; }
-        }
+        #endregion
 
         [Export]
         [Export("AnotherExport", typeof(object))]
@@ -90,8 +95,5 @@ using Xunit;
                 ConstructionCount++;
             }
         }
-
-        [Export, Shared]
-        public class SharedExport { }
     }
 }
