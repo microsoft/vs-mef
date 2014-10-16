@@ -454,28 +454,28 @@
 
         #region Query for importing constructor parts in various orders.
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(A), typeof(B), typeof(C))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]
         public void QueryImportingPropertyPartFirst(IContainer container)
         {
             // Simply querying for C first makes both MEFv1 and MEFv2 happy to then get A and B later.
-            container.GetExportedValue<C>();
-            container.GetExportedValue<A>();
-            container.GetExportedValue<B>();
+            container.GetExportedValue<PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis>();
+            container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis1>();
+            container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis2>();
         }
 
-        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(A), typeof(B), typeof(C))]
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]
         public void QueryImportingConstructorPartsEvaluateAfterOne(IContainer container)
         {
             // In testing V3 we specifically obtain A first so that Lazy<C>
             // goes throw a transition of "now I should evaluate to a fully initialized C".
-            var a = container.GetExportedValue<A>();
+            var a = container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis1>();
             Assert.Same(a, a.C.Value.A);
 
             // Now get B, which should get its own Lazy<C> that does NOT require a fully initialized value.
-            var b = container.GetExportedValue<B>();
+            var b = container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis2>();
             Assert.Same(b, b.C.B);
 
-            var c = container.GetExportedValue<C>();
+            var c = container.GetExportedValue<PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis>();
             Assert.Same(a.C.Value, b.C);
             Assert.Same(c, b.C);
         }
@@ -492,15 +492,15 @@
         /// part. But they *can* handle querying for the importing property part first. 
         /// V3 doesn't share this asymmetric failure, so we want to verify that it does it correctly.
         /// </remarks>
-        [MefFact(CompositionEngines.Unspecified, typeof(A), typeof(B), typeof(C))]
+        [MefFact(CompositionEngines.Unspecified, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]
         public void QueryImportingConstructorPartsEvaluateAfterTwo(IContainer container)
         {
             // In testing V3 we specifically obtain A first so that Lazy<C>
             // goes throw a transition of "now I should evaluate to a fully initialized C".
-            var a = container.GetExportedValue<A>();
+            var a = container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis1>();
 
             // Now get B, which should get its own Lazy<C> that does NOT require a fully initialized value.
-            var b = container.GetExportedValue<B>();
+            var b = container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis2>();
 
             // Now that we have obtained B and B partially evaluated C and returned, the C should be fully initialized.
             Assert.Same(b, b.C.B);
@@ -508,42 +508,42 @@
 
         [Export, Shared]
         [MefV1.Export]
-        public class A
+        public class PartWithImportingConstructorOfLazyPartImportingThis1
         {
             [ImportingConstructor, MefV1.ImportingConstructor]
-            public A(Lazy<C> c)
+            public PartWithImportingConstructorOfLazyPartImportingThis1(Lazy<PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis> c)
             {
                 // Do NOT evaluate C because the idea is that C doesn't
                 // initialize till B
                 this.C = c;
             }
 
-            public Lazy<C> C { get; private set; }
+            public Lazy<PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis> C { get; private set; }
         }
 
         [Export, Shared]
         [MefV1.Export]
-        public class B
+        public class PartWithImportingConstructorOfLazyPartImportingThis2
         {
             [ImportingConstructor, MefV1.ImportingConstructor]
-            public B(Lazy<C> c)
+            public PartWithImportingConstructorOfLazyPartImportingThis2(Lazy<PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis> c)
             {
                 Assert.Null(c.Value.B);
                 this.C = c.Value;
             }
 
-            public C C { get; private set; }
+            public PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis C { get; private set; }
         }
 
         [Export, Shared]
         [MefV1.Export]
-        public class C
+        public class PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis
         {
             [Import, MefV1.Import]
-            public A A { get; set; }
+            public PartWithImportingConstructorOfLazyPartImportingThis1 A { get; set; }
 
             [Import, MefV1.Import]
-            public B B { get; set; }
+            public PartWithImportingConstructorOfLazyPartImportingThis2 B { get; set; }
         }
 
         #endregion
