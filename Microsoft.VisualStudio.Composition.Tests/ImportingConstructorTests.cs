@@ -451,5 +451,81 @@
         }
 
         #endregion
+
+        #region Query for importing constructor parts in various orders.
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(A), typeof(B), typeof(C))]
+        public void QueryImportingPropertyPartFirst(IContainer container)
+        {
+            // Simply querying for C first makes both MEFv1 and MEFv2 happy to then get A and B later.
+            container.GetExportedValue<C>();
+            container.GetExportedValue<A>();
+            container.GetExportedValue<B>();
+        }
+
+        /// <summary>
+        /// Verifies that MEF can handle querying for parts with importing constructors with Lazy
+        /// imports of circular imports.
+        /// </summary>
+        /// <remarks>
+        /// V1 throws an exception because it doesn't like B evaluating its Lazy.
+        /// V2 throws an InternalErrorException for this test.
+        /// 
+        /// Although V1 and V2 fail this one, it's because neither can handle querying for the importing constructor
+        /// part. But they *can* handle querying for the importing property part first. 
+        /// V3 doesn't share this asymmetric failure, so we want to verify that it does it correctly.
+        /// </remarks>
+        [MefFact(CompositionEngines.Unspecified, typeof(A), typeof(B), typeof(C))]
+        public void QueryImportingConstructorPartsTwiceInARow(IContainer container)
+        {
+            // In testing V3 we specifically obtain A first so that Lazy<C>
+            // goes throw a transition of "now I should evaluate to a fully initialized C".
+            var a = container.GetExportedValue<A>();
+
+            // Now get B, which should get its own Lazy<C> that does NOT require a fully initialized value.
+            var b = container.GetExportedValue<B>();
+
+            // Now that we have obtained B and B partially evaluated C and returned, the C should be fully initialized.
+            Assert.Same(b, b.C.B);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class A
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public A(Lazy<C> c)
+            {
+                // Do NOT evaluate C because the idea is that C doesn't
+                // initialize till B
+            }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class B
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public B(Lazy<C> c)
+            {
+                Assert.Null(c.Value.B);
+                this.C = c.Value;
+            }
+
+            public C C { get; private set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class C
+        {
+            [Import, MefV1.Import]
+            public A A { get; set; }
+
+            [Import, MefV1.Import]
+            public B B { get; set; }
+        }
+
+        #endregion
     }
 }
