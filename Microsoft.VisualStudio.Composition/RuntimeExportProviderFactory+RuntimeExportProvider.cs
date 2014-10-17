@@ -110,7 +110,7 @@
                             {
                                 intArray.Value[0] = i++;
                                 var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
-                                array.SetValue(exportedValue.Value, intArray.Value);
+                                array.SetValue(exportedValue, intArray.Value);
                             }
                         }
 
@@ -161,7 +161,7 @@
                         foreach (var export in exports)
                         {
                             var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
-                            collectionAccessor.Add(exportedValue.Value);
+                            collectionAccessor.Add(exportedValue);
                         }
 
                         return new ValueForImportSite(); // signal caller should not set value again.
@@ -176,11 +176,11 @@
                     }
 
                     var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
-                    return new ValueForImportSite(exportedValue.Value);
+                    return new ValueForImportSite(exportedValue);
                 }
             }
 
-            private ExportedValue GetValueForImportElement(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Func<Func<object>, object, object> lazyFactory)
+            private object GetValueForImportElement(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Func<Func<object>, object, object> lazyFactory)
             {
                 if (import.IsExportFactory)
                 {
@@ -200,7 +200,7 @@
                         object value = import.IsLazy
                             ? lazyFactory(() => part, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
                             : part;
-                        return new ExportedValue(null, value);
+                        return value;
                     }
 
                     ExportedValueConstructor exportedValueConstructor = this.GetExportedValue(import, export, importingPartTracker);
@@ -208,11 +208,11 @@
                     object importedValue = import.IsLazy
                         ? lazyFactory(exportedValueConstructor.ValueConstructor, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
                         : exportedValueConstructor.ValueConstructor();
-                    return new ExportedValue(exportedValueConstructor.ExportingPart, importedValue);
+                    return importedValue;
                 }
             }
 
-            private ExportedValue CreateExportFactory(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export)
+            private object CreateExportFactory(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export)
             {
                 Requires.NotNull(importingPartTracker, "importingPartTracker");
                 Requires.NotNull(import, "import");
@@ -235,9 +235,7 @@
                 Type exportFactoryType = import.ImportingSiteTypeWithoutCollection;
                 var exportMetadata = export.Metadata;
 
-                return new ExportedValue(
-                    null,
-                    this.CreateExportFactory(importingSiteElementType, sharingBoundaries, valueFactory, exportFactoryType, exportMetadata));
+                return this.CreateExportFactory(importingSiteElementType, sharingBoundaries, valueFactory, exportFactoryType, exportMetadata);
             }
 
             private ExportedValueConstructor GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker importingPartTracker)
@@ -319,26 +317,6 @@
 
                 public Func<object> ValueConstructor { get; private set; }
 
-                public PartLifecycleTracker ExportingPart { get; private set; }
-            }
-
-            private struct ExportedValue
-            {
-                public ExportedValue(PartLifecycleTracker exportingPart, object value)
-                    : this()
-                {
-                    Requires.NotNull(value, "value");
-
-                    this.ExportingPart = exportingPart;
-                    this.Value = value;
-                }
-
-                public object Value { get; private set; }
-
-                /// <summary>
-                /// Gets the lifecycle tracker for the exporting part.
-                /// </summary>
-                /// <value>May be null when not applicable, such as for built-in values and export factories.</value>
                 public PartLifecycleTracker ExportingPart { get; private set; }
             }
 
