@@ -283,7 +283,7 @@
                     bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(importingPartTracker, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
                     if (!fullyInitializedValueIsRequired && importingPartTracker != null && !import.IsExportFactory)
                     {
-                        importingPartTracker.ReportPartiallyInitializedImport(partLifecycle, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
+                        importingPartTracker.ReportPartiallyInitializedImport(partLifecycle);
                     }
 
                     if (!export.MemberRef.IsEmpty)
@@ -431,9 +431,9 @@
                     this.importMetadata = importMetadata;
                 }
 
-                internal new void ReportPartiallyInitializedImport(PartLifecycleTracker part, bool isLazy, bool isImportingConstructorArgument)
+                internal new void ReportPartiallyInitializedImport(PartLifecycleTracker part)
                 {
-                    base.ReportPartiallyInitializedImport(part, isLazy, isImportingConstructorArgument);
+                    base.ReportPartiallyInitializedImport(part);
                 }
 
                 protected new RuntimeExportProvider OwningExportProvider
