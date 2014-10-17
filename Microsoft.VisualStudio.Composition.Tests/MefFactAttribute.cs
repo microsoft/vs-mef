@@ -94,7 +94,9 @@
                     {
                         if (!this.compositionVersions.HasFlag(CompositionEngines.V3SkipCodeGenScenario))
                         {
-                            // TODO: uncomment this line after getting codegen to work again.
+                            // TODO: Uncomment this line after getting codegen to work again.
+                            //       Also re-enable some codegen tests by removing 'abstract' from classes that have this comment:
+                            //       // TODO: remove "abstract" from the class definition to re-enable these tests when codegen is fixed.
                             ////yield return new Mef3TestCommand(method, configuration, this.compositionVersions, runtime: false);
                         }
 
