@@ -854,6 +854,7 @@
             /// <summary>
             /// A collection of all immediate imports (property and constructor) as they are satisfied
             /// if by an exporting part that has not been fully initialized already.
+            /// It is nulled out upon reaching the final stage of initializatno.
             /// </summary>
             /// <remarks>
             /// This collection is populated from the <see cref="PartLifecycleState.Creating"/>
@@ -861,7 +862,7 @@
             /// occur on a single thread. It is then enumerated from <see cref="MoveToStateTransitively"/>
             /// which *may* be invoked from multiple threads.
             /// </remarks>
-            private readonly HashSet<PartLifecycleTracker> deferredInitializationParts;
+            private HashSet<PartLifecycleTracker> deferredInitializationParts;
 
             /// <summary>
             /// The thread that is currently executing a particular step.
@@ -1135,6 +1136,9 @@
                     case PartLifecycleState.Final:
                         // Nothing to do here. This state is just a marker.
                         this.UpdateState(PartLifecycleState.Final);
+
+                        // Go ahead and free memory now that we're done.
+                        this.deferredInitializationParts = null;
                         break;
                     default:
                         throw Verify.FailOperation("MEF part already in final state.");
@@ -1225,11 +1229,19 @@
                         // We're not holding a lock, but each individual method we're calling is thread-safe.
                         // Enumerating the set of deferred initialization parts is inherently thread-safe as a read,
                         // and all writes to that collection have concluded already for us to reach this point.
-                        foreach (var importedPart in this.deferredInitializationParts)
+                        // However we might race with another thread that *clears* the field entirely as this
+                        // transitions to its Final state on that other thread. So defend against that.
+                        // If we capture the field value and then enumerate over that captured collection after
+                        // another thread clears the field, that's not a problem. The loop will ultimately no-op.
+                        var deferredInitializationParts = this.deferredInitializationParts;
+                        if (deferredInitializationParts != null)
                         {
-                            // Do not ask these parts to mark themselves as transitively complete.
-                            // Only the top-level call can know when everyone is transitively done.
-                            importedPart.MoveToStateTransitively(nonTransitiveState, visitedNodes);
+                            foreach (var importedPart in deferredInitializationParts)
+                            {
+                                // Do not ask these parts to mark themselves as transitively complete.
+                                // Only the top-level call can know when everyone is transitively done.
+                                importedPart.MoveToStateTransitively(nonTransitiveState, visitedNodes);
+                            }
                         }
 
                         if (topLevelCall)
