@@ -1204,10 +1204,21 @@
                 try
                 {
                     bool topLevelCall = visitedNodes == null;
-                    visitedNodes = visitedNodes ?? new HashSet<PartLifecycleTracker>();
                     PartLifecycleState nonTransitiveState = topLevelCall ? requiredState - 1 : requiredState;
+                    PartLifecycleState transitiveState = topLevelCall ? requiredState : requiredState + 1;
+
+                    // Short circuit a recursive walk through a potentially large graph by skipping this node
+                    // and others it points to when this node has already advanced to this *transitive* state.
+                    // If we were to skip for already being at merely the non-transitive state, we'd be
+                    // inappropriately skipping other nodes in the graph that may not be to this level yet,
+                    // and visitedNodes would not be updated either.
+                    if (this.State >= transitiveState)
+                    {
+                        return;
+                    }
 
                     this.MoveToState(nonTransitiveState);
+                    visitedNodes = visitedNodes ?? new HashSet<PartLifecycleTracker>();
                     if (visitedNodes.Add(this))
                     {
                         // This code may execute on this instance from multiple threads concurrently.
@@ -1226,7 +1237,7 @@
                             // Update everyone involved so they know they're transitively done with this work.
                             foreach (var importedPart in visitedNodes)
                             {
-                                importedPart.UpdateState(requiredState);
+                                importedPart.UpdateState(transitiveState);
                             }
                         }
                     }
