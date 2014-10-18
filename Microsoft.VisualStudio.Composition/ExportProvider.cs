@@ -834,16 +834,51 @@
         }
 
         /// <summary>
-        /// Tracks an individual instance of a MEF part.
+        /// A state machine that tracks an individual instance of a MEF part.
         /// Every single instantiated MEF part (including each individual NonShared instance)
         /// has an associated instance of this class to track its lifecycle from initialization to disposal.
         /// </summary>
         protected internal abstract class PartLifecycleTracker : IDisposable
         {
+            /// <summary>
+            /// An object that locks when the state machine is transitioning between states.
+            /// It is Pulsed after each <see cref="State"/> change.
+            /// </summary>
             private readonly object syncObject = new object();
+
+            /// <summary>
+            /// The sharing boundary that the MEF part this tracker is associated with belongs to.
+            /// </summary>
             private readonly string sharingBoundary;
+
+            /// <summary>
+            /// A collection of all immediate imports (property and constructor) as they are satisfied
+            /// if by an exporting part that has not been fully initialized already.
+            /// </summary>
+            /// <remarks>
+            /// This collection is populated from the <see cref="PartLifecycleState.Creating"/>
+            /// and <see cref="PartLifecycleState.ImmediateImportsSatisfied"/> stages, each of which
+            /// occur on a single thread. It is then enumerated from <see cref="MoveToStateTransitively"/>
+            /// which *may* be invoked from multiple threads.
+            /// </remarks>
             private readonly HashSet<PartLifecycleTracker> deferredInitializationParts;
+
+            /// <summary>
+            /// The thread that is currently executing a particular step.
+            /// </summary>
+            /// <remarks>
+            /// This is used to avoid deadlocking when we're executing a particular step
+            /// then while executing 3rd party code, that code calls us back on the same thread
+            /// to ask for an instance of the part.
+            /// In these circumstances we return a partially initialized value rather than
+            /// deadlock by trying to wait for a fully initialized one.
+            /// This matches MEFv1 and MEFv2 behavior.
+            /// </remarks>
             private Thread threadExecutingStep;
+
+            /// <summary>
+            /// Stores any exception captured during initialization.
+            /// </summary>
             private Exception fault;
 
             /// <summary>
@@ -1010,9 +1045,8 @@
             /// </summary>
             private void SatisfyImmediateImports()
             {
-                // DEADLOCK danger: I'm not sure how to avoid holding a lock around
-                // setting of imports since we can't afford to have two threads doing it at once.
-                // But it does mean we're holding a lock while executing arbitrary 3rd party code.
+                // DEADLOCK danger: We could split this up into an in-progress and a complete stage
+                // to avoid holding the lock while calling 3rd party code.
                 lock (this.syncObject)
                 {
                     if (this.ShouldMoveTo(PartLifecycleState.ImmediateImportsSatisfied))
@@ -1176,6 +1210,10 @@
                     this.MoveToState(nonTransitiveState);
                     if (visitedNodes.Add(this))
                     {
+                        // This code may execute on this instance from multiple threads concurrently.
+                        // We're not holding a lock, but each individual method we're calling is thread-safe.
+                        // Enumerating the set of deferred initialization parts is inherently thread-safe as a read,
+                        // and all writes to that collection have concluded already for us to reach this point.
                         foreach (var importedPart in this.deferredInitializationParts)
                         {
                             // Do not ask these parts to mark themselves as transitively complete.
