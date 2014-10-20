@@ -263,7 +263,11 @@
         /// <param name="target">The node to try to find a path to.</param>
         /// <param name="getDirectLinks">A function that enumerates the allowable steps to take from a given node.</param>
         /// <param name="visited">A reusable collection to use as part of the algorithm to avoid allocations for each call.</param>
-        /// <returns><c>true</c> if a path was found between the two nodes; <c>false</c> otherwise.</returns>
+        /// <returns>
+        /// If a path is found, a non-empty stack describing the path including <paramref name="target"/> (as the deepest element)
+        /// and excluding <paramref name="origin"/>.
+        /// If a path is not found, an empty stack is returned.
+        /// </returns>
         private static ImmutableStack<T> PathExistsBetween<T>(T origin, T target, Func<T, IEnumerable<T>> getDirectLinks, HashSet<T> visited)
         {
             Requires.NotNullAllowStructs(origin, "origin");

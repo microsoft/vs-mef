@@ -854,7 +854,7 @@
             /// <summary>
             /// A collection of all immediate imports (property and constructor) as they are satisfied
             /// if by an exporting part that has not been fully initialized already.
-            /// It is nulled out upon reaching the final stage of initializatno.
+            /// It is nulled out upon reaching the final stage of initialization.
             /// </summary>
             /// <remarks>
             /// This collection is populated from the <see cref="PartLifecycleState.Creating"/>
