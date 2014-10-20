@@ -163,7 +163,7 @@
 
             return CSharpCompilation.Create(
                 assemblyName,
-                references: referenceAssemblies.Select(a => MetadataFileReferenceProvider.Default.GetReference(a.Location, MetadataReferenceProperties.Assembly)),
+                references: referenceAssemblies.Select(a => MetadataReference.CreateFromFile(a.Location)),
                 options: new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
                     optimizationLevel: debug ? OptimizationLevel.Debug : OptimizationLevel.Release,
@@ -205,7 +205,7 @@
 
             return compilationTemplate
                 .AddReferences(assemblies.Select(r =>
-                    MetadataFileReferenceProvider.Default.GetReference(
+                    MetadataReference.CreateFromFile(
                         r.Location,
                         r.IsEmbeddableAssembly() ? embedInteropTypesOptions : MetadataReferenceProperties.Assembly)))
                 .AddReferences(embeddedInteropAssemblies.Select(r => r.ToMetadataReference(embedInteropTypes: true)))
@@ -323,7 +323,7 @@
             var compilationUnit = CSharpCompilation.Create("NoPIA")
                 .AddSyntaxTrees(sourceFile.SyntaxTree)
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .AddReferences(assemblies.Select(r => MetadataFileReferenceProvider.Default.GetReference(r.Location, MetadataReferenceProperties.Assembly)));
+                .AddReferences(assemblies.Select(r => MetadataReference.CreateFromFile(r.Location, MetadataReferenceProperties.Assembly)));
 
             // We don't actually need to emit the assembly. We only do that if we think diagnostics will come out of a failed build and we need to know why.
             // Perf wise, Emit is expensive even for something small like this, so we skip it when we can.

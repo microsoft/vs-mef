@@ -389,8 +389,8 @@
 
             var compiledExportProviderType = SyntaxFactory.ClassDeclaration(CompiledExportProviderTypeName)
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InternalKeyword)))
-                .WithBaseList(SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                    ExportProviderBaseIdentifierName)))
+                .WithBaseList(SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
+                    SyntaxFactory.SimpleBaseType(ExportProviderBaseIdentifierName))))
                 .AddMembers(partFactoryNestedTypes.ToArray())
                 .AddMembers(getExportsCoreHelperNestedTypes.ToArray())
                 .AddMembers(this.GetMetadataViewInterfaces().Select(CreateMetadataViewClass).ToArray())
@@ -437,7 +437,7 @@
 
             var view = SyntaxFactory.ClassDeclaration(className)
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
-                .WithBaseList(SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList(interfaceTypeSyntax)))
+                .WithBaseList(SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(SyntaxFactory.SimpleBaseType(interfaceTypeSyntax))))
                 .AddMembers(
                     SyntaxFactory.FieldDeclaration(SyntaxFactory.VariableDeclaration(
                         readonlyDictionaryOfStringObjectSyntax,
