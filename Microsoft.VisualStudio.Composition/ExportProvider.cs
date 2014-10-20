@@ -9,6 +9,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Runtime.CompilerServices;
+    using System.Runtime.ExceptionServices;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -24,7 +25,7 @@
 
         internal static readonly ComposablePartDefinition ExportProviderPartDefinition = new ComposablePartDefinition(
             TypeRef.Get(typeof(ExportProviderAsExport)),
-            ImmutableDictionary<string, object>.Empty.Add(CompositionConstants.DgmlCategoryPartMetadataName, new [] { "VsMEFBuiltIn" }),
+            ImmutableDictionary<string, object>.Empty.Add(CompositionConstants.DgmlCategoryPartMetadataName, new[] { "VsMEFBuiltIn" }),
             new[] { ExportProviderExportDefinition },
             ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
             ImmutableList<ImportDefinitionBinding>.Empty,
@@ -66,9 +67,9 @@
 
         /// <summary>
         /// A map of shared boundary names to their shared instances.
-        /// The value is a dictionary of types to their Lazy{T} factories.
+        /// The value is a dictionary of types to their lazily-constructed instances and state.
         /// </summary>
-        private readonly ImmutableDictionary<string, Dictionary<TypeRef, object>> sharedInstantiatedExports = ImmutableDictionary.Create<string, Dictionary<TypeRef, object>>();
+        private readonly ImmutableDictionary<string, Dictionary<TypeRef, PartLifecycleTracker>> sharedInstantiatedParts = ImmutableDictionary.Create<string, Dictionary<TypeRef, PartLifecycleTracker>>();
 
         /// <summary>
         /// A map of sharing boundary names to the ExportProvider that owns them.
@@ -99,14 +100,14 @@
         {
             if (parent == null)
             {
-                this.sharedInstantiatedExports = this.sharedInstantiatedExports.Add(string.Empty, new Dictionary<TypeRef, object>());
+                this.sharedInstantiatedParts = this.sharedInstantiatedParts.Add(string.Empty, new Dictionary<TypeRef, PartLifecycleTracker>());
                 this.disposableInstantiatedSharedParts = this.disposableInstantiatedSharedParts.Add(string.Empty, new HashSet<IDisposable>());
                 this.freshSharingBoundaries = this.freshSharingBoundaries.Add(string.Empty);
             }
             else
             {
                 this.sharingBoundaryExportProviderOwners = parent.sharingBoundaryExportProviderOwners;
-                this.sharedInstantiatedExports = parent.sharedInstantiatedExports;
+                this.sharedInstantiatedParts = parent.sharedInstantiatedParts;
                 this.disposableInstantiatedSharedParts = parent.disposableInstantiatedSharedParts;
             }
 
@@ -115,7 +116,7 @@
                 this.freshSharingBoundaries = this.freshSharingBoundaries.Union(freshSharingBoundaries);
                 foreach (string freshSharingBoundary in freshSharingBoundaries)
                 {
-                    this.sharedInstantiatedExports = this.sharedInstantiatedExports.SetItem(freshSharingBoundary, new Dictionary<TypeRef, object>());
+                    this.sharedInstantiatedParts = this.sharedInstantiatedParts.SetItem(freshSharingBoundary, new Dictionary<TypeRef, PartLifecycleTracker>());
                     this.disposableInstantiatedSharedParts = this.disposableInstantiatedSharedParts.SetItem(freshSharingBoundary, new HashSet<IDisposable>());
                 }
             }
@@ -308,6 +309,37 @@
         }
 
         /// <summary>
+        /// Gets a value indicating whether an import with the given characteristics must be initially satisfied
+        /// with a fully pre-initialized export.
+        /// </summary>
+        /// <param name="importingPartTracker">The tracker for the part that is importing.</param>
+        /// <param name="isLazy"><c>true</c> if the import is a Lazy{T} style import; <c>false</c> otherwise.</param>
+        /// <param name="isImportingConstructorArgument"><c>true</c> if the import appears in an importing constructor; <c>false</c> otherwise.</param>
+        /// <returns>
+        /// <c>true</c> if the export must have its imports transitively satisfied and OnImportsSatisfied methods invoked
+        /// prior to being exposed to the receiver; <c>false</c> if the export can be partially initialized when the receiver
+        /// first observes it.
+        /// </returns>
+        protected static bool IsFullyInitializedExportRequiredWhenSettingImport(PartLifecycleTracker importingPartTracker, bool isLazy, bool isImportingConstructorArgument)
+        {
+            // We should fully prepare an exported value if it is a lazy property or a non-lazy importing constructor argument.
+            // Non-lazy properties can be initialized after being set, as can lazy importing constructor arguments (go figure!).
+            if (isLazy == !isImportingConstructorArgument)
+            {
+                return true;
+            }
+
+            if (isLazy && isImportingConstructorArgument && importingPartTracker != null && importingPartTracker.State >= PartLifecycleState.Created)
+            {
+                // This lazy was an importing constructor argument and that constructor has already finished executing.
+                // So we actually *do* need to fully initialize, even though within the importing constructor we would not have.
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// When implemented by a derived class, returns an <see cref="IEnumerable{T}"/> of values that
         /// satisfy the contract name of the specified <see cref="ImportDefinition"/>.
         /// </summary>
@@ -316,25 +348,32 @@
         /// </remarks>
         protected abstract IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition);
 
-        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> metadata, TypeRef partTypeRef, Func<ExportProvider, Dictionary<TypeRef, object>, bool, object> valueFactory, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
+        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> exportMetadata, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
         {
             Requires.NotNull(importDefinition, "importDefinition");
-            Requires.NotNull(metadata, "metadata");
-            Requires.NotNull(partTypeRef, "partTypeRef");
+            Requires.NotNull(exportMetadata, "metadata");
+            Requires.NotNull(originalPartTypeRef, "originalPartTypeRef");
+            Requires.NotNull(constructedPartTypeRef, "constructedPartTypeRef");
 
-            var provisionalSharedObjects = new Dictionary<TypeRef, object>();
-            Func<object> maybeSharedValueFactory = this.GetOrCreateShareableValue(partTypeRef, valueFactory, provisionalSharedObjects, partSharingBoundary, nonSharedInstanceRequired);
             Func<object> memberValueFactory;
             if (exportingMember == null)
             {
-                memberValueFactory = maybeSharedValueFactory;
+                memberValueFactory = () =>
+                {
+                    PartLifecycleTracker maybeSharedValueFactory = this.GetOrCreateValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importDefinition.Metadata, nonSharedInstanceRequired);
+                    return maybeSharedValueFactory.GetValueReadyToExpose();
+                };
             }
             else
             {
-                memberValueFactory = () => GetValueFromMember(maybeSharedValueFactory(), exportingMember);
+                memberValueFactory = () =>
+                {
+                    PartLifecycleTracker maybeSharedValueFactory = this.GetOrCreateValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importDefinition.Metadata, nonSharedInstanceRequired);
+                    return GetValueFromMember(maybeSharedValueFactory.GetValueReadyToRetrieveExportingMembers(), exportingMember);
+                };
             }
 
-            return new ExportInfo(importDefinition.ContractName, metadata, memberValueFactory);
+            return new ExportInfo(importDefinition.ContractName, exportMetadata, memberValueFactory);
         }
 
         protected object CreateExportFactory(Type importingSiteElementType, IReadOnlyCollection<string> sharingBoundaries, Func<KeyValuePair<object, IDisposable>> valueFactory, Type exportFactoryType, IReadOnlyDictionary<string, object> exportMetadata)
@@ -471,69 +510,57 @@
             throw new NotSupportedException();
         }
 
-        protected Func<object> GetOrCreateShareableValue(TypeRef partTypeRef, Func<ExportProvider, Dictionary<TypeRef, object>, bool, object> valueFactory, Dictionary<TypeRef, object> provisionalSharedObjects, string partSharingBoundary, bool nonSharedInstanceRequired)
+        protected PartLifecycleTracker GetOrCreateValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata, bool nonSharedInstanceRequired)
         {
-            Requires.NotNull(partTypeRef, "partTypeRef");
-
-            if (!nonSharedInstanceRequired)
-            {
-                object provisionalObject;
-                if (this.TryGetProvisionalSharedExport(provisionalSharedObjects, partTypeRef, out provisionalObject))
-                {
-                    return DelegateServices.FromValue(provisionalObject);
-                }
-
-                Lazy<object> lazyResult;
-                if (this.TryGetSharedInstanceFactory(partSharingBoundary, partTypeRef, out lazyResult))
-                {
-                    return lazyResult.AsFunc();
-                }
-            }
-
-            Func<object> result;
-            if (valueFactory != null)
-            {
-                // Be careful to pass the export provider that owns the sharing boundary for this part into the value factory.
-                // If we accidentally capture "this", then if this is a sub-scope ExportProvider and we're constructing
-                // a parent scope shared part, then we tie the lifetime of this child scope to the lifetime of the 
-                // parent scoped part's value factory. If it never evaluates, we never get released even after our own disposal.
-                ExportProvider owningExportProvider = partSharingBoundary != null ? this.sharingBoundaryExportProviderOwners[partSharingBoundary] : this;
-
-                // If we're calling into a parent ExportProvider, not only should it NOT need our provisionalSharedObjects,
-                // we mustn't pass them in because some of them may be holding references to "this", which could
-                // tie our lifetime to the lifetime of our longer-lived parent who will end up owning this value factory.
-                var pso = owningExportProvider == this ? provisionalSharedObjects : new Dictionary<TypeRef, object>();
-
-                result = () => valueFactory(owningExportProvider, pso, nonSharedInstanceRequired);
-            }
-            else
-            {
-                result = DelegateServices.FromValue<object>(null);
-            }
-
-            if (!nonSharedInstanceRequired)
-            {
-                var lazyResult = new Lazy<object>(result);
-                lazyResult = this.GetOrAddSharedInstanceFactory(partSharingBoundary, partTypeRef, lazyResult);
-                result = lazyResult.AsFunc();
-            }
-
-            return result;
+            return nonSharedInstanceRequired
+                ? this.CreateNewValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importMetadata)
+                : this.GetOrCreateShareableValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importMetadata);
         }
 
-        private bool TryGetSharedInstanceFactory<T>(string partSharingBoundary, TypeRef partTypeRef, out Lazy<T> value)
+        protected PartLifecycleTracker GetOrCreateShareableValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata)
+        {
+            Requires.NotNull(originalPartTypeRef, "originalPartTypeRef");
+            Requires.NotNull(constructedPartTypeRef, "constructedPartTypeRef");
+
+            PartLifecycleTracker existingLifecycle;
+            if (this.TryGetSharedInstanceFactory(partSharingBoundary, constructedPartTypeRef, out existingLifecycle))
+            {
+                return existingLifecycle;
+            }
+
+            var partLifecycle = this.CreateNewValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importMetadata);
+
+            // Since we have not been holding a lock, we must now reconcile the creation of this
+            // shared instance with a dictionary of shared instances to make sure there is only one that survives.
+            partLifecycle = this.GetOrAddSharedInstanceFactory(partSharingBoundary, constructedPartTypeRef, partLifecycle);
+
+            return partLifecycle;
+        }
+
+        protected PartLifecycleTracker CreateNewValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata)
+        {
+            // Be careful to pass the export provider that owns the sharing boundary for this part into the value factory.
+            // If we accidentally capture "this", then if this is a sub-scope ExportProvider and we're constructing
+            // a parent scope shared part, then we tie the lifetime of this child scope to the lifetime of the 
+            // parent scoped part's value factory. If it never evaluates, we never get released even after our own disposal.
+            ExportProvider owningExportProvider = partSharingBoundary != null ? this.sharingBoundaryExportProviderOwners[partSharingBoundary] : this;
+            var partLifecycle = owningExportProvider.CreatePartLifecycleTracker(originalPartTypeRef, importMetadata);
+            return partLifecycle;
+        }
+
+        protected internal abstract PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata);
+
+        private bool TryGetSharedInstanceFactory(string partSharingBoundary, TypeRef partTypeRef, out PartLifecycleTracker value)
         {
             lock (this.syncObject)
             {
                 var sharingBoundary = AcquireSharingBoundaryInstances(partSharingBoundary);
-                object valueObject;
-                bool result = sharingBoundary.TryGetValue(partTypeRef, out valueObject);
-                value = (Lazy<T>)valueObject;
+                bool result = sharingBoundary.TryGetValue(partTypeRef, out value);
                 return result;
             }
         }
 
-        private Lazy<object> GetOrAddSharedInstanceFactory(string partSharingBoundary, TypeRef partTypeRef, Lazy<object> value)
+        private PartLifecycleTracker GetOrAddSharedInstanceFactory(string partSharingBoundary, TypeRef partTypeRef, PartLifecycleTracker value)
         {
             Requires.NotNull(partTypeRef, "partTypeRef");
             Requires.NotNull(value, "value");
@@ -541,10 +568,10 @@
             lock (this.syncObject)
             {
                 var sharingBoundary = AcquireSharingBoundaryInstances(partSharingBoundary);
-                object priorValue;
+                PartLifecycleTracker priorValue;
                 if (sharingBoundary.TryGetValue(partTypeRef, out priorValue))
                 {
-                    return (Lazy<object>)priorValue;
+                    return priorValue;
                 }
 
                 sharingBoundary.Add(partTypeRef, value);
@@ -753,11 +780,11 @@
             return metadataViewProvider;
         }
 
-        private Dictionary<TypeRef, object> AcquireSharingBoundaryInstances(string sharingBoundaryName)
+        private Dictionary<TypeRef, PartLifecycleTracker> AcquireSharingBoundaryInstances(string sharingBoundaryName)
         {
             Requires.NotNull(sharingBoundaryName, "sharingBoundaryName");
 
-            var sharingBoundary = this.sharedInstantiatedExports.GetValueOrDefault(sharingBoundaryName);
+            var sharingBoundary = this.sharedInstantiatedParts.GetValueOrDefault(sharingBoundaryName);
             if (sharingBoundary == null)
             {
                 // This means someone is trying to create a part
@@ -804,6 +831,562 @@
 
                 return new ExportInfo(contractName, metadata, this.ExportedValueGetter);
             }
+        }
+
+        /// <summary>
+        /// A state machine that tracks an individual instance of a MEF part.
+        /// Every single instantiated MEF part (including each individual NonShared instance)
+        /// has an associated instance of this class to track its lifecycle from initialization to disposal.
+        /// </summary>
+        protected internal abstract class PartLifecycleTracker : IDisposable
+        {
+            /// <summary>
+            /// An object that locks when the state machine is transitioning between states.
+            /// It is Pulsed after each <see cref="State"/> change.
+            /// </summary>
+            private readonly object syncObject = new object();
+
+            /// <summary>
+            /// The sharing boundary that the MEF part this tracker is associated with belongs to.
+            /// </summary>
+            private readonly string sharingBoundary;
+
+            /// <summary>
+            /// A collection of all immediate imports (property and constructor) as they are satisfied
+            /// if by an exporting part that has not been fully initialized already.
+            /// It is nulled out upon reaching the final stage of initialization.
+            /// </summary>
+            /// <remarks>
+            /// This collection is populated from the <see cref="PartLifecycleState.Creating"/>
+            /// and <see cref="PartLifecycleState.ImmediateImportsSatisfied"/> stages, each of which
+            /// occur on a single thread. It is then enumerated from <see cref="MoveToStateTransitively"/>
+            /// which *may* be invoked from multiple threads.
+            /// </remarks>
+            private HashSet<PartLifecycleTracker> deferredInitializationParts;
+
+            /// <summary>
+            /// The thread that is currently executing a particular step.
+            /// </summary>
+            /// <remarks>
+            /// This is used to avoid deadlocking when we're executing a particular step
+            /// then while executing 3rd party code, that code calls us back on the same thread
+            /// to ask for an instance of the part.
+            /// In these circumstances we return a partially initialized value rather than
+            /// deadlock by trying to wait for a fully initialized one.
+            /// This matches MEFv1 and MEFv2 behavior.
+            /// </remarks>
+            private Thread threadExecutingStep;
+
+            /// <summary>
+            /// Stores any exception captured during initialization.
+            /// </summary>
+            private Exception fault;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="PartLifecycleTracker"/> class.
+            /// </summary>
+            /// <param name="owningExportProvider">The ExportProvider that owns the lifetime and sharing boundaries for the part to be instantiated.</param>
+            /// <param name="sharingBoundary">The sharing boundary the part belongs to.</param>
+            public PartLifecycleTracker(ExportProvider owningExportProvider, string sharingBoundary)
+            {
+                Requires.NotNull(owningExportProvider, "owningExportProvider");
+
+                this.OwningExportProvider = owningExportProvider;
+                this.sharingBoundary = sharingBoundary;
+                this.deferredInitializationParts = new HashSet<PartLifecycleTracker>();
+                this.State = PartLifecycleState.NotCreated;
+            }
+
+            /// <summary>
+            /// Gets the instantiated part, if applicable and after it has been created. Otherwise <c>null</c>.
+            /// </summary>
+            public object Value { get; private set; }
+
+            /// <summary>
+            /// Gets the level of initialization the MEF part has already undergone.
+            /// </summary>
+            public PartLifecycleState State { get; private set; }
+
+            /// <summary>
+            /// Gets the ExportProvider that owns the lifetime and sharing boundaries for the part to be instantiated.
+            /// </summary>
+            protected ExportProvider OwningExportProvider { get; private set; }
+
+            /// <summary>
+            /// Gets the instance of the part after fully initializing it.
+            /// </summary>
+            /// <remarks>
+            /// In the less common case that this method is called on top of a callstack where this same
+            /// part is actually *in progress* of executing any initialization step, this method will
+            /// simply return the value as-is rather than deadlock or throw.
+            /// This allows certain spec'd MEF behaviors to work.
+            /// </remarks>
+            public object GetValueReadyToExpose()
+            {
+                // If this very thread is already executing a step on this part, then we have some
+                // form of reentrancy going on. In which case, the general policy seems to be that
+                // we return an incompletely initialized part.
+                if (this.threadExecutingStep != Thread.CurrentThread)
+                {
+                    this.MoveToState(PartLifecycleState.Final);
+                }
+
+                if (this.Value == null)
+                {
+                    throw new CompositionFailedException("This part cannot be instantiated.");
+                }
+
+                return this.Value;
+            }
+
+            /// <summary>
+            /// Gets the instance of the part after instantiating it.
+            /// Importing properties may not have been satisfied yet.
+            /// </summary>
+            public object GetValueReadyToRetrieveExportingMembers()
+            {
+                this.MoveToState(PartLifecycleState.Created);
+                return this.Value;
+            }
+
+            /// <summary>
+            /// Disposes of the MEF part if it is disposable.
+            /// </summary>
+            public void Dispose()
+            {
+                IDisposable disposableValue = this.Value as IDisposable;
+                this.Value = null;
+                if (disposableValue != null)
+                {
+                    disposableValue.Dispose();
+                }
+            }
+
+            /// <summary>
+            /// Instantiates the MEF part and initializes it only so much as executing its importing constructor.
+            /// </summary>
+            /// <returns>The instantiated MEF part.</returns>
+            protected abstract object CreateValue();
+
+            /// <summary>
+            /// Satisfies importing members on the MEF part itself.
+            /// </summary>
+            protected abstract void SatisfyImports();
+
+            /// <summary>
+            /// Invokes the OnImportsSatisfied method on the part, if applicable.
+            /// </summary>
+            /// <remarks>
+            /// If not applicable for this MEF part, this method should simply no-op.
+            /// </remarks>
+            protected abstract void InvokeOnImportsSatisfied();
+
+            /// <summary>
+            /// Indicates that a MEF import was satisfied with a value that was not completely initialized
+            /// so that it can be initialized later (before this MEF part is allowed to be observed by the MEF client).
+            /// </summary>
+            /// <param name="importedPart">The part that has been imported by this part without full initialization.</param>
+            protected void ReportPartiallyInitializedImport(PartLifecycleTracker importedPart)
+            {
+                if (importedPart != null)
+                {
+                    lock (this.syncObject)
+                    {
+                        this.deferredInitializationParts.Add(importedPart);
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Invokes <see cref="CreateValue"/> if this part has not already done so
+            /// and performs initial processing of the instance.
+            /// </summary>
+            private void Create()
+            {
+                bool creating = false;
+                lock (this.syncObject)
+                {
+                    creating = this.ShouldMoveTo(PartLifecycleState.Creating);
+                    if (creating)
+                    {
+                        this.UpdateState(PartLifecycleState.Creating);
+                    }
+                }
+
+                Assumes.False(Monitor.IsEntered(this.syncObject)); // Avoid holding locks while calling 3rd party code.
+                if (creating)
+                {
+                    try
+                    {
+                        this.threadExecutingStep = Thread.CurrentThread;
+                        object value = this.CreateValue();
+
+                        lock (this.syncObject)
+                        {
+                            Assumes.True(this.State == PartLifecycleState.Creating);
+                            this.Value = value;
+                            if (value is IDisposable)
+                            {
+                                this.OwningExportProvider.TrackDisposableValue(this, this.sharingBoundary);
+                            }
+
+                            Assumes.True(this.UpdateState(PartLifecycleState.Created));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        this.Fault(ex);
+                        throw;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Invokes <see cref="SatisfyImports"/> if this part has not already done so.
+            /// </summary>
+            private void SatisfyImmediateImports()
+            {
+                // DEADLOCK danger: We could split this up into an in-progress and a complete stage
+                // to avoid holding the lock while calling 3rd party code.
+                lock (this.syncObject)
+                {
+                    if (this.ShouldMoveTo(PartLifecycleState.ImmediateImportsSatisfied))
+                    {
+                        try
+                        {
+                            this.threadExecutingStep = Thread.CurrentThread;
+                            this.SatisfyImports();
+                            this.UpdateState(PartLifecycleState.ImmediateImportsSatisfied);
+                        }
+                        catch (Exception ex)
+                        {
+                            this.Fault(ex);
+                            throw;
+                        }
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Invokes <see cref="InvokeOnImportsSatisfied"/> if this part has not already done so.
+            /// </summary>
+            private void NotifyTransitiveImportsSatisfied()
+            {
+                try
+                {
+                    bool shouldInvoke = false;
+                    lock (this.syncObject)
+                    {
+                        // To avoid holding the lock while executing 3rd party code, but still protect
+                        // against the instantiated part being exposed too soon, we advance the state
+                        // to indicate that we're in progress, then proceed without the lock.
+                        shouldInvoke = this.ShouldMoveTo(PartLifecycleState.OnImportsSatisfiedInProgress);
+                        if (shouldInvoke)
+                        {
+                            Assumes.True(this.UpdateState(PartLifecycleState.OnImportsSatisfiedInProgress));
+                        }
+                    }
+
+                    if (shouldInvoke)
+                    {
+                        Assumes.False(Monitor.IsEntered(this.syncObject)); // avoid holding locks while invoking others' code.
+                        this.threadExecutingStep = Thread.CurrentThread;
+                        this.InvokeOnImportsSatisfied();
+
+                        Assumes.True(this.UpdateState(PartLifecycleState.OnImportsSatisfiedInvoked));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.Fault(ex);
+                    throw;
+                }
+            }
+
+            /// <summary>
+            /// Executes the next step in this part's initialization.
+            /// </summary>
+            private void MoveNext()
+            {
+                switch (this.State + 1)
+                {
+                    case PartLifecycleState.Creating:
+                        this.Create();
+                        break;
+                    case PartLifecycleState.Created:
+                        // Another thread put this in the Creating state. Just wait for that thread to finish.
+                        this.WaitForState(PartLifecycleState.Created);
+                        break;
+                    case PartLifecycleState.ImmediateImportsSatisfied:
+                        this.SatisfyImmediateImports();
+                        break;
+                    case PartLifecycleState.ImmediateImportsSatisfiedTransitively:
+                        this.MoveToStateTransitively(PartLifecycleState.ImmediateImportsSatisfiedTransitively);
+                        break;
+                    case PartLifecycleState.OnImportsSatisfiedInProgress:
+                        this.NotifyTransitiveImportsSatisfied();
+                        break;
+                    case PartLifecycleState.OnImportsSatisfiedInvoked:
+                        // Another thread put this in the OnImportsSatisfiedInProgress state. Just wait for that thread to finish.
+                        this.WaitForState(PartLifecycleState.OnImportsSatisfiedInvoked);
+                        break;
+                    case PartLifecycleState.OnImportsSatisfiedInvokedTransitively:
+                        this.MoveToStateTransitively(PartLifecycleState.OnImportsSatisfiedInvokedTransitively);
+                        break;
+                    case PartLifecycleState.Final:
+                        // Nothing to do here. This state is just a marker.
+                        this.UpdateState(PartLifecycleState.Final);
+
+                        // Go ahead and free memory now that we're done.
+                        this.deferredInitializationParts = null;
+                        break;
+                    default:
+                        throw Verify.FailOperation("MEF part already in final state.");
+                }
+            }
+
+            /// <summary>
+            /// Checks whether the MEF part's next step in initialization is the specified one.
+            /// </summary>
+            /// <param name="nextState">The step that is expected to be the next appropriate one.</param>
+            /// <returns>
+            /// <c>true</c> if <paramref name="nextState"/> is one step beyond the current <see cref="State"/>.
+            /// <c>false</c> if this MEF part has advanced to or beyond that step already.
+            /// </returns>
+            /// <exception cref="InvalidOperationException">
+            /// Thrown if this part is not yet ready for this step because that is a sign of a bug in the caller.
+            /// </exception>
+            private bool ShouldMoveTo(PartLifecycleState nextState)
+            {
+                lock (this.syncObject)
+                {
+                    this.ThrowIfFaulted();
+
+                    if (this.State >= nextState)
+                    {
+                        return false;
+                    }
+
+                    if (this.State < nextState - 1)
+                    {
+                        Verify.FailOperation(Strings.UnexpectedSharedPartState, this.State, nextState - 1);
+                    }
+
+                    return true;
+                }
+            }
+
+            /// <summary>
+            /// Advances this MEF part to the specified stage of initialization.
+            /// </summary>
+            /// <param name="requiredState">The initialization state to advance to.</param>
+            /// <remarks>
+            /// If the specified state has already been reached, this method simply returns to the caller.
+            /// </remarks>
+            private void MoveToState(PartLifecycleState requiredState)
+            {
+                this.ThrowIfFaulted();
+
+                while (this.State < requiredState)
+                {
+                    this.MoveNext();
+                    this.ThrowIfFaulted();
+                }
+            }
+
+            /// <summary>
+            /// Advances this part and everything it imports (transitively) to the specified state.
+            /// </summary>
+            /// <param name="requiredState">The state to advance this and all related parts to.</param>
+            /// <param name="visitedNodes">
+            /// Used in the recursive call to avoid loops leading to stack overflows.
+            /// It also identifies all related parts so they can be "stamped" as being transitively initialized.
+            /// This MUST be <c>null</c> for non-recursive calls.
+            /// </param>
+            private void MoveToStateTransitively(PartLifecycleState requiredState, HashSet<PartLifecycleTracker> visitedNodes = null)
+            {
+                try
+                {
+                    bool topLevelCall = visitedNodes == null;
+                    PartLifecycleState nonTransitiveState = topLevelCall ? requiredState - 1 : requiredState;
+                    PartLifecycleState transitiveState = topLevelCall ? requiredState : requiredState + 1;
+
+                    // Short circuit a recursive walk through a potentially large graph by skipping this node
+                    // and others it points to when this node has already advanced to this *transitive* state.
+                    // If we were to skip for already being at merely the non-transitive state, we'd be
+                    // inappropriately skipping other nodes in the graph that may not be to this level yet,
+                    // and visitedNodes would not be updated either.
+                    if (this.State >= transitiveState)
+                    {
+                        return;
+                    }
+
+                    this.MoveToState(nonTransitiveState);
+                    visitedNodes = visitedNodes ?? new HashSet<PartLifecycleTracker>();
+                    if (visitedNodes.Add(this))
+                    {
+                        // This code may execute on this instance from multiple threads concurrently.
+                        // We're not holding a lock, but each individual method we're calling is thread-safe.
+                        // Enumerating the set of deferred initialization parts is inherently thread-safe as a read,
+                        // and all writes to that collection have concluded already for us to reach this point.
+                        // However we might race with another thread that *clears* the field entirely as this
+                        // transitions to its Final state on that other thread. So defend against that.
+                        // If we capture the field value and then enumerate over that captured collection after
+                        // another thread clears the field, that's not a problem. The loop will ultimately no-op.
+                        var deferredInitializationParts = this.deferredInitializationParts;
+                        if (deferredInitializationParts != null)
+                        {
+                            foreach (var importedPart in deferredInitializationParts)
+                            {
+                                // Do not ask these parts to mark themselves as transitively complete.
+                                // Only the top-level call can know when everyone is transitively done.
+                                importedPart.MoveToStateTransitively(nonTransitiveState, visitedNodes);
+                            }
+                        }
+
+                        if (topLevelCall)
+                        {
+                            // Update everyone involved so they know they're transitively done with this work.
+                            foreach (var importedPart in visitedNodes)
+                            {
+                                importedPart.UpdateState(transitiveState);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.Fault(ex);
+                    throw;
+                }
+            }
+
+            /// <summary>
+            /// Indicates that a new stage of initialization has been reached.
+            /// </summary>
+            /// <param name="newState">The new state.</param>
+            /// <returns><c>true</c> if the new state actually represents an advancement over the prior state.</returns>
+            private bool UpdateState(PartLifecycleState newState)
+            {
+                lock (this.syncObject)
+                {
+                    if (this.State < newState)
+                    {
+                        this.State = newState;
+                        this.threadExecutingStep = null;
+
+                        // Alert any other threads waiting for this (see the WaitForState method).
+                        Monitor.PulseAll(this.syncObject);
+                        return true;
+                    }
+
+                    return false;
+                }
+            }
+
+            /// <summary>
+            /// Blocks the calling thread until this Part reaches the required initialization stage.
+            /// </summary>
+            /// <param name="state">The stage required by the caller.</param>
+            private void WaitForState(PartLifecycleState state)
+            {
+                lock (this.syncObject)
+                {
+                    // Keep sleeping until the state reaches the one required by our caller.
+                    while (this.State < state)
+                    {
+                        // Monitor.Wait releases the lock and sleeps until someone holding the lock calls Monitor.PulseAll.
+                        // We sleep with timeout for reasons given below. But we keep waiting again until we actually are pulsed.
+                        while (!Monitor.Wait(this.syncObject, TimeSpan.FromSeconds(3)))
+                        {
+                            // This area intentionally left blank. It exists so that managed debuggers
+                            // can break out of a hang temporarily to get out of optimized/native frames
+                            // on the top of the stack so the debugger can actually be useful.
+                        }
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Rethrows an exception experienced while initializing this MEF part if there is one.
+            /// </summary>
+            private void ThrowIfFaulted()
+            {
+                if (this.fault != null)
+                {
+                    ExceptionDispatchInfo.Capture(this.fault).Throw();
+                }
+            }
+
+            /// <summary>
+            /// Records that a failure occurred in initializing this part
+            /// and advances this Part to its <see cref="PartLifecycleState.Final"/>.
+            /// </summary>
+            /// <param name="exception">The failure.</param>
+            private void Fault(Exception exception)
+            {
+                lock (this.syncObject)
+                {
+                    Report.If(this.fault != null, "We shouldn't have faulted twice in a row. The first should have done us in.");
+                    if (exception != null)
+                    {
+                        this.fault = exception;
+                    }
+
+                    this.UpdateState(PartLifecycleState.Final);
+                }
+            }
+        }
+
+        /// <summary>
+        /// The several stages of initialization that each MEF part goes through.
+        /// </summary>
+        protected internal enum PartLifecycleState
+        {
+            /// <summary>
+            /// The MEF part has not yet been instantiated.
+            /// </summary>
+            NotCreated,
+
+            /// <summary>
+            /// The MEF part's importing constructor is being invoked.
+            /// </summary>
+            Creating,
+
+            /// <summary>
+            /// The MEF part has been instantiated.
+            /// </summary>
+            Created,
+
+            /// <summary>
+            /// The MEF part's importing members have been satisfied.
+            /// </summary>
+            ImmediateImportsSatisfied,
+
+            /// <summary>
+            /// All MEF parts reachable from this one (through non-lazy import paths) have been satisfied.
+            /// </summary>
+            ImmediateImportsSatisfiedTransitively,
+
+            /// <summary>
+            /// The MEF part's OnImportsSatisfied method is being invoked.
+            /// </summary>
+            OnImportsSatisfiedInProgress,
+
+            /// <summary>
+            /// The MEF part's OnImportsSatisfied method has been invoked (or would have if one was defined).
+            /// </summary>
+            OnImportsSatisfiedInvoked,
+
+            /// <summary>
+            /// The OnImportsSatisfied methods on this and all MEF parts reachable from this one (through non-lazy import paths) have been invoked.
+            /// </summary>
+            OnImportsSatisfiedInvokedTransitively,
+
+            /// <summary>
+            /// This part is ready for exposure to the user.
+            /// </summary>
+            Final,
         }
 
         private class ExportProviderAsExport : DelegatingExportProvider

@@ -120,4 +120,7 @@
   <data name="ScanningMEFAssemblies" xml:space="preserve">
     <value>Scanning MEF assemblies...</value>
   </data>
+  <data name="UnexpectedSharedPartState" xml:space="preserve">
+    <value>This shared part is in state {0} but must be in state {1} for this operation.</value>
+  </data>
 </root>

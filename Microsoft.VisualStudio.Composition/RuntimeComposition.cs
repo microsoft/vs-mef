@@ -86,7 +86,16 @@
 
         public RuntimePart GetPart(RuntimeExport export)
         {
+            Requires.NotNull(export, "export");
+
             return this.partsByType[export.DeclaringType];
+        }
+
+        public RuntimePart GetPart(TypeRef partType)
+        {
+            Requires.NotNull(partType, "partType");
+
+            return this.partsByType[partType];
         }
 
         public override bool Equals(object obj)

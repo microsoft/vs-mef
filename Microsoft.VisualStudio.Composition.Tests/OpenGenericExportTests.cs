@@ -162,20 +162,30 @@
 
         #region Sharing instance distinction tests
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(SharedUserOfSharedUseful), typeof(SharedUseful<>))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat | CompositionEngines.V3SkipCodeGenScenario, typeof(SharedUserOfSharedUseful), typeof(SharedUseful<>))]
         public void OpenGenericExportSharedByTypeArg(IContainer container)
         {
             var part = container.GetExportedValue<SharedUserOfSharedUseful>();
             Assert.NotNull(part.Container);
             Assert.NotNull(part.Disposable);
+
+            var d = container.GetExportedValue<SharedUseful<IDisposable>>();
+            Assert.Same(d, part.Disposable);
+            var c = container.GetExportedValue<SharedUseful<IContainer>>();
+            Assert.Same(c, part.Container);
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2WithNonPublic, typeof(SharedUserOfInternalSharedUseful), typeof(InternalSharedUseful<>))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2WithNonPublic | CompositionEngines.V3SkipCodeGenScenario, typeof(SharedUserOfInternalSharedUseful), typeof(InternalSharedUseful<>))]
         public void OpenGenericExportSharedByTypeArgNonPublic(IContainer container)
         {
             var part = container.GetExportedValue<SharedUserOfInternalSharedUseful>();
             Assert.NotNull(part.Container);
             Assert.NotNull(part.Disposable);
+
+            var d = container.GetExportedValue<InternalSharedUseful<IDisposable>>();
+            Assert.Same(d, part.Disposable);
+            var c = container.GetExportedValue<InternalSharedUseful<IContainer>>();
+            Assert.Same(c, part.Container);
         }
 
         [Export(typeof(SharedUseful<>)), Shared]
