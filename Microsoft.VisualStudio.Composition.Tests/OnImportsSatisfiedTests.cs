@@ -71,7 +71,7 @@
 
         #region OnImportsSatisfiedInvokedAfterTransitiveImportsSatisfied
 
-        [MefFact(CompositionEngines.V2/*Compat | CompositionEngines.V3EmulatingV1*/, typeof(RequestedPart), typeof(TransitivePart))]
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V2Compat, typeof(RequestedPart), typeof(TransitivePart))]
         public void OnImportsSatisfiedInvokedAfterTransitiveImportsSatisfied(IContainer container)
         {
             bool invoked = false;
@@ -109,6 +109,35 @@
                 {
                     OnImportsSatisfiedHandler(this);
                 }
+            }
+        }
+
+        #endregion
+
+        #region Imperative query for part from within its own OnImportsSatisfied method
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartThatQueriesForItself))]
+        public void PartQueriesForItselfInOnImportsSatisfied(IContainer container)
+        {
+            PartThatQueriesForItself.Container = container;
+
+            var root = container.GetExportedValue<PartThatQueriesForItself>();
+            Assert.NotNull(root);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartThatQueriesForItself : MefV1.IPartImportsSatisfiedNotification
+        {
+            internal static IContainer Container;
+            private int onImportsSatisfiedInvocationCounter;
+
+            [OnImportsSatisfied]
+            public void OnImportsSatisfied()
+            {
+                Assert.Equal(1, ++this.onImportsSatisfiedInvocationCounter);
+                var self = Container.GetExportedValue<PartThatQueriesForItself>();
+                Assert.Same(this, self);
             }
         }
 

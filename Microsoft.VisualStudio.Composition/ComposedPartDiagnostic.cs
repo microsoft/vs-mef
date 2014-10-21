@@ -26,7 +26,7 @@
             Requires.NotNull(parts, "parts");
             Requires.NotNullOrEmpty(formattedMessage, "formattedMessage");
 
-            this.Parts = ImmutableHashSet.CreateRange(parts);
+            this.Parts = ImmutableList.CreateRange(parts);
             this.Message = formattedMessage;
         }
 
