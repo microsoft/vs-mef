@@ -24,11 +24,6 @@
         private static readonly Dictionary<Type, WeakReference<TypeRef>> instanceCache = new Dictionary<Type, WeakReference<TypeRef>>();
 
         /// <summary>
-        /// A cache of normalized AssemblyNames with any CodeBase using 8.3 short names expanded.
-        /// </summary>
-        private static readonly Dictionary<string, AssemblyName> assemblyNameCache = new Dictionary<string, AssemblyName>();
-
-        /// <summary>
         /// Backing field for the lazily initialized <see cref="ResolvedType"/> property.
         /// </summary>
         private Type resolvedType;
@@ -262,27 +257,13 @@
         {
             Requires.NotNull(assemblyName, "assemblyName");
 
-            AssemblyName normalizedAssemblyName;
-            lock (assemblyNameCache)
+            AssemblyName normalizedAssemblyName = assemblyName;
+            if (assemblyName.CodeBase.IndexOf('~') >= 0)
             {
-                assemblyNameCache.TryGetValue(assemblyName.FullName, out normalizedAssemblyName);
-            }
-
-            if (normalizedAssemblyName == null)
-            {
-                normalizedAssemblyName = assemblyName;
-                if (assemblyName.CodeBase.IndexOf('~') >= 0)
-                {
-                    // Using ToString() rather than AbsoluteUri here to match the CLR's AssemblyName.CodeBase convention of paths without %20 space characters.
-                    string normalizedCodeBase = new Uri(Path.GetFullPath(new Uri(assemblyName.CodeBase).LocalPath)).ToString();
-                    normalizedAssemblyName = new AssemblyName(assemblyName.FullName);
-                    normalizedAssemblyName.CodeBase = normalizedCodeBase;
-                }
-
-                lock (assemblyNameCache)
-                {
-                    assemblyNameCache[assemblyName.FullName] = normalizedAssemblyName;
-                }
+                // Using ToString() rather than AbsoluteUri here to match the CLR's AssemblyName.CodeBase convention of paths without %20 space characters.
+                string normalizedCodeBase = new Uri(Path.GetFullPath(new Uri(assemblyName.CodeBase).LocalPath)).ToString();
+                normalizedAssemblyName = new AssemblyName(assemblyName.FullName);
+                normalizedAssemblyName.CodeBase = normalizedCodeBase;
             }
 
             return normalizedAssemblyName;
