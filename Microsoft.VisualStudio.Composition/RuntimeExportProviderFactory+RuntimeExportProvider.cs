@@ -289,7 +289,7 @@
                         object part = export.Member.IsStatic()
                             ? null
                             : (fullyInitializedValueIsRequired
-                                ? partLifecycle.GetValueReadyToExpose() 
+                                ? partLifecycle.GetValueReadyToExpose()
                                 : partLifecycle.GetValueReadyToRetrieveExportingMembers());
                         return GetValueFromMember(part, export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve());
                     }
@@ -417,6 +417,14 @@
                 protected new RuntimeExportProvider OwningExportProvider
                 {
                     get { return (RuntimeExportProvider)base.OwningExportProvider; }
+                }
+
+                /// <summary>
+                /// Gets the type that backs this part.
+                /// </summary>
+                protected override Type PartType
+                {
+                    get { return this.partDefinition.Type.Resolve(); }
                 }
 
                 protected override object CreateValue()
