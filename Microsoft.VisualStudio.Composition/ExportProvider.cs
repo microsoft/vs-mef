@@ -933,7 +933,7 @@
 
                 if (this.Value == null)
                 {
-                    throw new CompositionFailedException("This part cannot be instantiated.");
+                    throw new CompositionFailedException(string.Format(CultureInfo.CurrentCulture, "This part ({0}) cannot be instantiated.", this.PartType?.FullName));
                 }
 
                 return this.Value;
@@ -980,6 +980,11 @@
             /// If not applicable for this MEF part, this method should simply no-op.
             /// </remarks>
             protected abstract void InvokeOnImportsSatisfied();
+
+            /// <summary>
+            /// Gets the type behind the part.
+            /// </summary>
+            protected abstract Type PartType { get; }
 
             /// <summary>
             /// Indicates that a MEF import was satisfied with a value that was not completely initialized
