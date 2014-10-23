@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -450,19 +451,33 @@
                         importingConstructor = constructedPartType.Resolve().GetTypeInfo().DeclaredConstructors.First(ctor => true);
                     }
 
-                    object part = importingConstructor.Invoke(ctorArgs);
-                    return part;
+                    try
+                    {
+                        object part = importingConstructor.Invoke(ctorArgs);
+                        return part;
+                    }
+                    catch (TargetInvocationException ex)
+                    {
+                        throw this.PrepareExceptionForFaultedPart(ex);
+                    }
                 }
 
                 protected override void SatisfyImports()
                 {
-                    foreach (var import in this.partDefinition.ImportingMembers)
+                    try
                     {
-                        ValueForImportSite value = this.OwningExportProvider.GetValueForImportSite(this, import);
-                        if (value.ValueShouldBeSet)
+                        foreach (var import in this.partDefinition.ImportingMembers)
                         {
-                            SetImportingMember(this.Value, import.ImportingMember, value.Value);
+                            ValueForImportSite value = this.OwningExportProvider.GetValueForImportSite(this, import);
+                            if (value.ValueShouldBeSet)
+                            {
+                                SetImportingMember(this.Value, import.ImportingMember, value.Value);
+                            }
                         }
+                    }
+                    catch (TargetInvocationException ex)
+                    {
+                        throw this.PrepareExceptionForFaultedPart(ex);
                     }
                 }
 
@@ -470,8 +485,23 @@
                 {
                     if (this.partDefinition.OnImportsSatisfied != null)
                     {
-                        this.partDefinition.OnImportsSatisfied.Invoke(this.Value, EmptyObjectArray);
+                        try
+                        {
+                            this.partDefinition.OnImportsSatisfied.Invoke(this.Value, EmptyObjectArray);
+                        }
+                        catch (TargetInvocationException ex)
+                        {
+                            throw this.PrepareExceptionForFaultedPart(ex);
+                        }
                     }
+                }
+
+                private Exception PrepareExceptionForFaultedPart(TargetInvocationException ex)
+                {
+                    // Discard the TargetInvocationException and throw a MEF related one, with the same inner exception.
+                    return new CompositionFailedException(
+                        String.Format(CultureInfo.CurrentCulture, Strings.ExceptionThrownByPartUnderInitialization, this.PartType.FullName),
+                        ex.InnerException);
                 }
             }
         }
