@@ -852,6 +852,16 @@
             private readonly string sharingBoundary;
 
             /// <summary>
+            /// A value indicating whether this instance has been disposed of.
+            /// </summary>
+            private bool isDisposed;
+
+            /// <summary>
+            /// Backing field for the <see cref="Value"/> property.
+            /// </summary>
+            private object value;
+
+            /// <summary>
             /// A collection of all immediate imports (property and constructor) as they are satisfied
             /// if by an exporting part that has not been fully initialized already.
             /// It is nulled out upon reaching the final stage of initialization.
@@ -900,7 +910,19 @@
             /// <summary>
             /// Gets the instantiated part, if applicable and after it has been created. Otherwise <c>null</c>.
             /// </summary>
-            public object Value { get; private set; }
+            public object Value
+            {
+                get
+                {
+                    this.ThrowIfDisposed();
+                    return this.value;
+                }
+
+                set
+                {
+                    this.value = value;
+                }
+            }
 
             /// <summary>
             /// Gets the level of initialization the MEF part has already undergone.
@@ -956,8 +978,9 @@
             /// </summary>
             public void Dispose()
             {
-                IDisposable disposableValue = this.Value as IDisposable;
-                this.Value = null;
+                this.isDisposed = true;
+                IDisposable disposableValue = this.value as IDisposable;
+                this.value = null;
                 if (disposableValue != null)
                 {
                     disposableValue.Dispose();
@@ -1322,6 +1345,17 @@
                 if (this.fault != null)
                 {
                     ExceptionDispatchInfo.Capture(this.fault).Throw();
+                }
+            }
+
+            /// <summary>
+            /// Throw an <see cref="ObjectDisposedException"/> if this instance has been disposed of previously.
+            /// </summary>
+            private void ThrowIfDisposed()
+            {
+                if (this.isDisposed)
+                {
+                    throw new ObjectDisposedException(this.GetType().FullName);
                 }
             }
 
