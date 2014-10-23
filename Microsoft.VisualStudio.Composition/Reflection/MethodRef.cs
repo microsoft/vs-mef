@@ -5,9 +5,11 @@
     using System.Collections.Immutable;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
 
+    [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
     public struct MethodRef : IEquatable<MethodRef>
     {
         public MethodRef(TypeRef declaringType, int metadataToken, ImmutableArray<TypeRef> genericMethodArguments)
