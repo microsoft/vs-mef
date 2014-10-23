@@ -154,6 +154,7 @@
     <Compile Include="ExportDefinitionTests.cs" />
     <Compile Include="ExportMetadataViewNameCollisionTests.cs" />
     <Compile Include="ExportProviderTests.cs" />
+    <Compile Include="FaultyPartsTests.cs" />
     <Compile Include="GenericImportTests.cs" />
     <Compile Include="GuidMetadataTests.cs" />
     <Compile Include="ImportDefinitionTests.cs" />
