@@ -325,7 +325,7 @@
             private CompositionService([MefV1.Import] ExportProvider exportProvider)
             {
                 Requires.NotNull(exportProvider, "exportProvider");
-                this.container = new MefV1.Hosting.CompositionContainer(exportProvider.AsExportProvider());
+                this.container = new MefV1.Hosting.CompositionContainer(MefV1.Hosting.CompositionOptions.IsThreadSafe, exportProvider.AsExportProvider());
             }
 
             public void SatisfyImportsOnce(MefV1.Primitives.ComposablePart part)
