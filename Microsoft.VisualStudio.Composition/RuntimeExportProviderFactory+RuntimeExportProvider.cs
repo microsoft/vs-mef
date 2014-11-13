@@ -17,6 +17,11 @@
     {
         private class RuntimeExportProvider : ExportProvider
         {
+            /// <summary>
+            /// BindingFlags that find members declared exactly on the receiving type, whether they be public or not, instance or static.
+            /// </summary>
+            private const BindingFlags DeclaredOnlyLookup = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
+
             private readonly RuntimeComposition composition;
 
             internal RuntimeExportProvider(RuntimeComposition composition)
@@ -354,7 +359,8 @@
                 bool containsGenericParameters = member.DeclaringType.GetTypeInfo().ContainsGenericParameters;
                 if (containsGenericParameters)
                 {
-                    member = ReflectionHelpers.CloseGenericType(member.DeclaringType, part.GetType()).GetTypeInfo().DeclaredMembers.First(m => m.Name == member.Name);
+                    member = ReflectionHelpers.CloseGenericType(member.DeclaringType, part.GetType())
+                        .GetMember(member.Name, MemberTypes.Property | MemberTypes.Field, DeclaredOnlyLookup)[0];
                 }
 
                 var property = member as PropertyInfo;
