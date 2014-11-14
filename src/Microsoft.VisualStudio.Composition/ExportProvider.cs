@@ -14,7 +14,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
-    using Validation;
     using DefaultMetadataType = System.Collections.Generic.IDictionary<string, object>;
 
     public abstract class ExportProvider : IDisposableObservable

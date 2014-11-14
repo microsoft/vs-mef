@@ -11,7 +11,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
-    using Validation;
 
     partial class RuntimeExportProviderFactory : IExportProviderFactory
     {

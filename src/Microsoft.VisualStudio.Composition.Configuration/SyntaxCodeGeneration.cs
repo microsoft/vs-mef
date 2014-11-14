@@ -14,7 +14,6 @@
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.VisualStudio.Composition.Reflection;
-    using Validation;
 
     internal class SyntaxCodeGeneration
     {

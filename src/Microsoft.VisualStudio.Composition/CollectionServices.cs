@@ -6,7 +6,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections;
     using System.Collections.Generic;
     using System.Reflection;
-    using Validation;
 
     internal static partial class CollectionServices
     {

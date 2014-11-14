@@ -16,7 +16,6 @@
     using System.Xml;
     using System.Xml.Linq;
     using Microsoft.VisualStudio.Composition.Reflection;
-    using Validation;
     using Task = System.Threading.Tasks.Task;
 
     public class CompositionConfiguration

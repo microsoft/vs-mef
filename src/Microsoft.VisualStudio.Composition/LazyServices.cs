@@ -7,7 +7,6 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Validation;
 
     /// <summary>
     /// Static factory methods for creating .NET Lazy{T} instances.

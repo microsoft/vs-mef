@@ -18,7 +18,6 @@
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Emit;
     using Microsoft.CodeAnalysis.Text;
-    using Validation;
 
     public class CompiledComposition : ICompositionCacheManager
     {

@@ -10,7 +10,6 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
-    using Validation;
     using Xunit;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
     using MefV1 = System.ComponentModel.Composition;

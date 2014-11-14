@@ -7,7 +7,6 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
-    using Validation;
     using MefV1 = System.ComponentModel.Composition;
 
     public static class NetFxAdapters

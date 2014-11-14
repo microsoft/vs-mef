@@ -8,7 +8,6 @@
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
-    using Validation;
 
     public class ImportDefinitionBinding : IEquatable<ImportDefinitionBinding>
     {

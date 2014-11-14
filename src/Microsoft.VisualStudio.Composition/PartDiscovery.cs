@@ -12,7 +12,6 @@
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
     using Microsoft.VisualStudio.Composition.Reflection;
-    using Validation;
 
     public abstract class PartDiscovery
     {

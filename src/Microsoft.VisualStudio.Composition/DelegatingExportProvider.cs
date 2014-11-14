@@ -6,7 +6,6 @@
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
-    using Validation;
 
     /// <summary>
     /// A base class for ExportProviders that wish to intercept queries for exports

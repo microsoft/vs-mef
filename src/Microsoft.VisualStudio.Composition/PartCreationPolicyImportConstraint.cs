@@ -7,7 +7,6 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using Validation;
 
     /// <summary>
     /// A constraint that may be included in an <see cref="ImportDefinition"/> that only matches

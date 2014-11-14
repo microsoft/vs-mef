@@ -7,7 +7,6 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
-    using Validation;
 
     /// <summary>
     /// Supports metadata views that are any type that <see cref="ImmutableDictionary{TKey, TValue}"/>

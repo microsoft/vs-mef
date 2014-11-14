@@ -7,7 +7,6 @@
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
-    using Validation;
 
     [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
     public struct ParameterRef : IEquatable<ParameterRef>

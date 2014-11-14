@@ -9,7 +9,6 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
-    using Validation;
 
     [DebuggerDisplay("{ContractName,nq} ({Cardinality})")]
     public class ImportDefinition : IEquatable<ImportDefinition>

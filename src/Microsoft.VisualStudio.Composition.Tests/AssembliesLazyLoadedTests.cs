@@ -11,7 +11,6 @@
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.AppDomainTests;
     using Microsoft.VisualStudio.Composition.AppDomainTests2;
-    using Validation;
     using Xunit;
 
     [Trait("Efficiency", "LazyLoad")]

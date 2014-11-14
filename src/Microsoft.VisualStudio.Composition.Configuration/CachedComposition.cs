@@ -14,7 +14,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
-    using Validation;
 
     public class CachedComposition : ICompositionCacheManager, IRuntimeCompositionCacheManager
     {

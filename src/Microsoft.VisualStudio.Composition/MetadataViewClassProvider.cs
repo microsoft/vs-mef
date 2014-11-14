@@ -8,7 +8,6 @@
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
-    using Validation;
 
     /// <summary>
     /// Supports metadata views that are concrete classes with a public constructor

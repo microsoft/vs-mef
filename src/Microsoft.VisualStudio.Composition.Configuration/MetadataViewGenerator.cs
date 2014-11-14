@@ -19,7 +19,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.Security;
     using System.Threading;
     using Microsoft.Internal;
-    using Validation;
 
     // // Assume TMetadataView is
     // //interface Foo

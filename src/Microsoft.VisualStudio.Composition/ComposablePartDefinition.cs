@@ -10,7 +10,6 @@
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
-    using Validation;
 
     [DebuggerDisplay("{Type.Name}")]
     public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>

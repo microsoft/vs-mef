@@ -10,7 +10,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
-    using Validation;
 
     [EditorBrowsable(EditorBrowsableState.Never)]
     public abstract class CodeGenExportProviderBase : ExportProvider

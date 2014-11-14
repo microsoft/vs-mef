@@ -8,7 +8,6 @@
     using System.Text;
     using System.Threading.Tasks;
     using Reflection;
-    using Validation;
 
     internal class LazyMetadataWrapper : ExportProvider.IMetadataDictionary
     {

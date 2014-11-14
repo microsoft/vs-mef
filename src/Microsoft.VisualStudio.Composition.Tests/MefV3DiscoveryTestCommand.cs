@@ -10,7 +10,6 @@
     using DiffPlex;
     using DiffPlex.DiffBuilder;
     using DiffPlex.DiffBuilder.Model;
-    using Validation;
     using Xunit;
     using Xunit.Sdk;
 
