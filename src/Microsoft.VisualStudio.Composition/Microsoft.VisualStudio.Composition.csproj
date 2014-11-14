@@ -61,6 +61,10 @@
     <ModuleReference Include="Microsoft.VisualStudio.Validation" />
   </ItemGroup>
   <ItemGroup>
+    <!-- hack to fix the language service in VS. -->
+    <ProjectReference Include="..\..\Microsoft.VisualStudio.Validation\Microsoft.VisualStudio.Validation.csproj" Condition="false" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="ArrayRental`1.cs" />
     <Compile Include="AttributeServices.cs" />
     <Compile Include="ByValueEquality.cs" />
