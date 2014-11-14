@@ -14,6 +14,7 @@
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.VisualStudio.Composition.Reflection;
+    using Validation;
 
     internal class SyntaxCodeGeneration
     {
@@ -130,8 +131,7 @@
                     continue;
                 }
 
-                var switchLabel = SyntaxFactory.SwitchLabel(
-                    SyntaxKind.CaseSwitchLabel,
+                var switchLabel = SyntaxFactory.CaseSwitchLabel(
                     SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(exportsByContract.Key)));
 
                 var returnStatement = SyntaxFactory.ReturnStatement(
@@ -147,7 +147,7 @@
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nonSharedInstanceRequired.Identifier))))));
 
                 switchSections.Add(SyntaxFactory.SwitchSection(
-                    SyntaxFactory.SingletonList(switchLabel),
+                    SyntaxFactory.SingletonList<SwitchLabelSyntax>(switchLabel),
                     SyntaxFactory.SingletonList<StatementSyntax>(returnStatement)));
             }
 
@@ -158,7 +158,7 @@
             }
 
             switchSections.Add(SyntaxFactory.SwitchSection(
-                SyntaxFactory.SingletonList(SyntaxFactory.SwitchLabel(SyntaxKind.DefaultSwitchLabel)),
+                SyntaxFactory.SingletonList<SwitchLabelSyntax>(SyntaxFactory.DefaultSwitchLabel()),
                 SyntaxFactory.SingletonList<StatementSyntax>(SyntaxFactory.ReturnStatement(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
@@ -229,8 +229,7 @@
 
                 this.extraMembers.Add(bucketMethod);
 
-                var switchLabel = SyntaxFactory.SwitchLabel(
-                    SyntaxKind.CaseSwitchLabel,
+                var switchLabel = SyntaxFactory.CaseSwitchLabel(
                     SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(bucket)));
 
                 var returnStatement = SyntaxFactory.ReturnStatement(
@@ -245,12 +244,12 @@
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName(nonSharedInstanceRequired.Identifier))))));
 
                 switchSections.Add(SyntaxFactory.SwitchSection(
-                    SyntaxFactory.SingletonList(switchLabel),
+                    SyntaxFactory.SingletonList<SwitchLabelSyntax>(switchLabel),
                     SyntaxFactory.SingletonList<StatementSyntax>(returnStatement)));
             }
 
             switchSections.Add(SyntaxFactory.SwitchSection(
-                SyntaxFactory.SingletonList(SyntaxFactory.SwitchLabel(SyntaxKind.DefaultSwitchLabel)),
+                SyntaxFactory.SingletonList<SwitchLabelSyntax>(SyntaxFactory.DefaultSwitchLabel()),
                 SyntaxFactory.SingletonList<StatementSyntax>(SyntaxFactory.ReturnStatement(
                     SyntaxFactory.MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
@@ -390,8 +389,8 @@
 
             var compiledExportProviderType = SyntaxFactory.ClassDeclaration(CompiledExportProviderTypeName)
                 .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.InternalKeyword)))
-                .WithBaseList(SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
-                    ExportProviderBaseIdentifierName)))
+                .WithBaseList(SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(
+                    SyntaxFactory.SimpleBaseType(ExportProviderBaseIdentifierName))))
                 .AddMembers(partFactoryNestedTypes.ToArray())
                 .AddMembers(getExportsCoreHelperNestedTypes.ToArray())
                 .AddMembers(this.GetMetadataViewInterfaces().Select(CreateMetadataViewClass).ToArray())
@@ -438,7 +437,7 @@
 
             var view = SyntaxFactory.ClassDeclaration(className)
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
-                .WithBaseList(SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList(interfaceTypeSyntax)))
+                .WithBaseList(SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(SyntaxFactory.SimpleBaseType(interfaceTypeSyntax))))
                 .AddMembers(
                     SyntaxFactory.FieldDeclaration(SyntaxFactory.VariableDeclaration(
                         readonlyDictionaryOfStringObjectSyntax,

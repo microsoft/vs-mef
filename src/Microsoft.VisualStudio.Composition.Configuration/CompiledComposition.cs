@@ -18,7 +18,9 @@
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Emit;
     using Microsoft.CodeAnalysis.Text;
+    using Validation;
 
+    [CLSCompliant(false)]
     public class CompiledComposition : ICompositionCacheManager
     {
         public CompiledComposition()
@@ -59,9 +61,9 @@
         }
 
         public static IExportProviderFactory LoadExportProviderFactory(Assembly assembly)
-        {
+            {
             return new CompiledExportProviderFactory(assembly);
-        }
+                        }
 
         public async Task<EmitResult> SaveGetResultAsync(CompositionConfiguration configuration, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -70,7 +72,7 @@
             Requires.Argument(cacheStream.CanWrite, "cacheStream", "Writable stream required.");
             Verify.Operation(this.AssemblyName != null, "AssemblyName must be set first.");
 
-            cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
             CSharpCompilation templateCompilation = CreateTemplateCompilation(this.AssemblyName, !this.Optimize);
 
@@ -79,46 +81,46 @@
             EmitResult result = compilation.Emit(
                 cacheStream,
                 pdbStream: this.PdbSymbols,
-                cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken);
 
             if (this.BuildOutput != null)
-            {
-                if (!result.Success)
                 {
+                    if (!result.Success)
+                    {
                     await this.BuildOutput.WriteLineAsync("Build failed.");
-                }
+                    }
 
                 string fileName = this.Source is FileStream ? Path.GetFileName(((FileStream)this.Source).Name) : (this.AssemblyName + ".cs");
-                foreach (var diagnostic in result.Diagnostics)
-                {
-                    if (diagnostic.Severity > DiagnosticSeverity.Info)
+                    foreach (var diagnostic in result.Diagnostics)
                     {
-                        string location = fileName;
-                        if (diagnostic.Location != Location.None)
+                        if (diagnostic.Severity > DiagnosticSeverity.Info)
                         {
-                            location += string.Format(
-                                CultureInfo.InvariantCulture,
-                                "({0},{1},{2},{3})",
-                                diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1,
-                                diagnostic.Location.GetLineSpan().StartLinePosition.Character,
-                                diagnostic.Location.GetLineSpan().EndLinePosition.Line + 1,
-                                diagnostic.Location.GetLineSpan().EndLinePosition.Character);
-                        }
+                            string location = fileName;
+                            if (diagnostic.Location != Location.None)
+                            {
+                                location += string.Format(
+                                    CultureInfo.InvariantCulture,
+                                    "({0},{1},{2},{3})",
+                                    diagnostic.Location.GetLineSpan().StartLinePosition.Line + 1,
+                                    diagnostic.Location.GetLineSpan().StartLinePosition.Character,
+                                    diagnostic.Location.GetLineSpan().EndLinePosition.Line + 1,
+                                    diagnostic.Location.GetLineSpan().EndLinePosition.Character);
+                            }
 
-                        string formattedMessage = string.Format(
-                            CultureInfo.CurrentCulture,
-                            "{0}: {1} {2}: {3}",
-                            location,
-                            diagnostic.Severity,
-                            diagnostic.Id,
-                            diagnostic.GetMessage());
+                            string formattedMessage = string.Format(
+                                CultureInfo.CurrentCulture,
+                                "{0}: {1} {2}: {3}",
+                                location,
+                                diagnostic.Severity,
+                                diagnostic.Id,
+                                diagnostic.GetMessage());
 
                         await this.BuildOutput.WriteLineAsync(formattedMessage);
+                        }
                     }
                 }
-            }
 
-            return result;
+                return result;
         }
 
         public async Task SaveAsync(CompositionConfiguration configuration, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
@@ -161,11 +163,10 @@
 
             return CSharpCompilation.Create(
                 assemblyName,
-                references: referenceAssemblies.Select(a => MetadataFileReferenceProvider.Default.GetReference(a.Location, MetadataReferenceProperties.Assembly)),
+                references: referenceAssemblies.Select(a => MetadataReference.CreateFromFile(a.Location)),
                 options: new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,
-                    optimize: !debug,
-                    debugInformationKind: debug ? DebugInformationKind.Full : DebugInformationKind.None,
+                    optimizationLevel: debug ? OptimizationLevel.Debug : OptimizationLevel.Release,
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default,
                     specificDiagnosticOptions: diagnosticOptions));
         }
@@ -204,7 +205,7 @@
 
             return compilationTemplate
                 .AddReferences(assemblies.Select(r =>
-                    MetadataFileReferenceProvider.Default.GetReference(
+                    MetadataReference.CreateFromFile(
                         r.Location,
                         r.IsEmbeddableAssembly() ? embedInteropTypesOptions : MetadataReferenceProperties.Assembly)))
                 .AddReferences(embeddedInteropAssemblies.Select(r => r.ToMetadataReference(embedInteropTypes: true)))
@@ -322,7 +323,7 @@
             var compilationUnit = CSharpCompilation.Create("NoPIA")
                 .AddSyntaxTrees(sourceFile.SyntaxTree)
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .AddReferences(assemblies.Select(r => MetadataFileReferenceProvider.Default.GetReference(r.Location, MetadataReferenceProperties.Assembly)));
+                .AddReferences(assemblies.Select(r => MetadataReference.CreateFromFile(r.Location, MetadataReferenceProperties.Assembly)));
 
             // We don't actually need to emit the assembly. We only do that if we think diagnostics will come out of a failed build and we need to know why.
             // Perf wise, Emit is expensive even for something small like this, so we skip it when we can.
