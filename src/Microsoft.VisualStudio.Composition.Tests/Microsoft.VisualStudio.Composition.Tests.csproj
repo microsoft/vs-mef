@@ -108,6 +108,10 @@
     <ModuleReference Include="Microsoft.VisualStudio.Validation" />
   </ItemGroup>
   <ItemGroup>
+    <!-- hack to fix the language service in VS. -->
+    <ProjectReference Include="..\..\Microsoft.VisualStudio.Validation\Microsoft.VisualStudio.Validation.csproj" Condition="false" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="..\Microsoft.VisualStudio.Composition\ArrayRental`1.cs">
       <Link>ArrayRental`1.cs</Link>
     </Compile>

@@ -1367,10 +1367,13 @@
             {
                 lock (this.syncObject)
                 {
-                    Report.If(this.fault != null, "We shouldn't have faulted twice in a row. The first should have done us in.");
-                    if (exception != null)
+                    if (this.fault != exception)
                     {
-                        this.fault = exception;
+                        Report.If(this.fault != null, "We shouldn't have faulted twice in a row. The first should have done us in.");
+                        if (exception != null)
+                        {
+                            this.fault = exception;
+                        }
                     }
 
                     this.UpdateState(PartLifecycleState.Final);
