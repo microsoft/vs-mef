@@ -9,7 +9,7 @@
   
   <PropertyGroup>
     <ExcludeDirectoryPatterns>$(ExcludeDirectoryPatterns) packages testresults .git bin obj *.ide</ExcludeDirectoryPatterns>
-    <ExcludeFilePatterns>*.err *.log *.wrn *.suo *.vspscc *asmmeta</ExcludeFilePatterns>
+    <ExcludeFilePatterns>*.err *.log *.wrn *.suo *.vspscc *asmmeta*</ExcludeFilePatterns>
     <RobocopySwitches>/MIR /NDL /W:3</RobocopySwitches>
     <RobocopySwitches Condition=" '$(WhatIf)' == 'true' ">$(RobocopySwitches) /L</RobocopySwitches>
   </PropertyGroup>
