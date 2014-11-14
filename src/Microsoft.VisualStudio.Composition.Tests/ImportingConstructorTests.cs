@@ -65,6 +65,39 @@
             Assert.IsType<RandomExport>(part.ConstructorImports[0]);
         }
 
+        #region ImportingConstructorImportsAreFullyInitialized test
+
+        /// <summary>
+        /// Verifies that ImportingConstructor's imports are satisfied by exports from parts that
+        /// are themselves fully initialized.
+        /// </summary>
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(PartThatImportsPartWithOwnImports), typeof(PartThatImportsRandomExport), typeof(RandomExport))]
+        public void ImportingConstructorImportsAreFullyInitialized(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsPartWithOwnImports>();
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartThatImportsPartWithOwnImports
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartThatImportsPartWithOwnImports(PartThatImportsRandomExport export)
+            {
+                Assert.NotNull(export.RandomExport);
+            }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartThatImportsRandomExport
+        {
+            [Import, MefV1.Import]
+            public RandomExport RandomExport { get; set; }
+        }
+
+        #endregion
+
         #region AllowDefault tests
 
         [Trait("AllowDefault", "true")]
@@ -308,5 +341,284 @@
         internal interface IRandomExport { }
 
         internal struct NonPublicStruct { }
+
+        #region ImportingConstructor lazy import initialization, other part has importing property
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(RandomExport), typeof(PartWithImportingConstructorOfPartThatInitializesLater), typeof(PartThatInitializesLater))]
+        public void ImportingConstructorWithLazyImportPartEventuallyInitializes(IContainer container)
+        {
+            PartWithImportingConstructorOfPartThatInitializesLater.EvaluateLazyInCtor = false;
+            var root = container.GetExportedValue<PartWithImportingConstructorOfPartThatInitializesLater>();
+            Assert.False(root.LaterPart.IsValueCreated); // this test means to verify the scenario of the lazy not evaluating till later.
+            Assert.Same(root, root.LaterPart.Value.ImportingConstructorPart);
+            Assert.NotNull(root.LaterPart.Value.RandomExport);
+        }
+
+        // V1 throws InvalidOperationException inside the ctor for this test, which if caught, turns into an InternalErrorException for this test.
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(RandomExport), typeof(PartWithImportingConstructorOfPartThatInitializesLater), typeof(PartThatInitializesLater))]
+        public void ImportingConstructorWithLazyImportPartEventuallyInitializesAfterEvaluatingInCtor(IContainer container)
+        {
+            PartWithImportingConstructorOfPartThatInitializesLater.EvaluateLazyInCtor = true;
+            var root = container.GetExportedValue<PartWithImportingConstructorOfPartThatInitializesLater>();
+            Assert.Same(root, root.LaterPart.Value.ImportingConstructorPart);
+            Assert.NotNull(root.LaterPart.Value.RandomExport);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorOfPartThatInitializesLater
+        {
+            internal static bool EvaluateLazyInCtor;
+
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorOfPartThatInitializesLater(Lazy<PartThatInitializesLater> laterPart)
+            {
+                this.LaterPart = laterPart;
+
+                if (EvaluateLazyInCtor)
+                {
+                    Assert.Null(laterPart.Value.ImportingConstructorPart);
+                }
+            }
+
+            public Lazy<PartThatInitializesLater> LaterPart { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartThatInitializesLater
+        {
+            [Import, MefV1.Import]
+            public RandomExport RandomExport { get; set; }
+
+            [Import, MefV1.Import]
+            public PartWithImportingConstructorOfPartThatInitializesLater ImportingConstructorPart { get; set; }
+        }
+
+        #endregion
+
+        #region ImportingConstructor lazy import initialization, other part has importing constructor also
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithImportingConstructorOfPartWithImportingConstructor), typeof(PartWithImportingConstructorOfPartWithLazyImportingConstructor))]
+        public void ImportingConstructorWithLazyImportingConstructorPartEventuallyInitializes(IContainer container)
+        {
+            PartWithImportingConstructorOfPartWithImportingConstructor.EvaluateLazyInCtor = false;
+            var root = container.GetExportedValue<PartWithImportingConstructorOfPartWithImportingConstructor>();
+            Assert.Same(root, root.Import.Value.Other);
+        }
+
+        // V1 throws an InternalErrorException for this test.
+        // V2 crashes with a StackOverflowException for this test.
+        [MefFact(CompositionEngines.Unspecified, typeof(PartWithImportingConstructorOfPartWithImportingConstructor), typeof(PartWithImportingConstructorOfPartWithLazyImportingConstructor))]
+        public void ImportingConstructorWithLazyImportingConstructorPartEventuallyInitializesAfterThrowingInCtor(IContainer container)
+        {
+            PartWithImportingConstructorOfPartWithImportingConstructor.EvaluateLazyInCtor = true;
+            var root = container.GetExportedValue<PartWithImportingConstructorOfPartWithImportingConstructor>();
+            Assert.Same(root, root.Import.Value.Other);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorOfPartWithImportingConstructor
+        {
+            internal static bool EvaluateLazyInCtor;
+
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorOfPartWithImportingConstructor(Lazy<PartWithImportingConstructorOfPartWithLazyImportingConstructor> import)
+            {
+                if (EvaluateLazyInCtor)
+                {
+                    Assert.Throws<InvalidOperationException>(() => import.Value);
+                }
+
+                this.Import = import;
+            }
+
+            public Lazy<PartWithImportingConstructorOfPartWithLazyImportingConstructor> Import { get; private set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorOfPartWithLazyImportingConstructor
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorOfPartWithLazyImportingConstructor(PartWithImportingConstructorOfPartWithImportingConstructor other)
+            {
+                this.Other = other;
+            }
+
+            public PartWithImportingConstructorOfPartWithImportingConstructor Other { get; private set; }
+        }
+
+        #endregion
+
+        #region ImportingConstructor imports another part that itself has an importing constructor that lazily imports the original
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        public void ImportingConstructorImportsOtherPartWithImportingConstructorWithLazyLoopBack(IContainer container)
+        {
+            var root = container.GetExportedValue<PartWithImportingConstructorImportingOtherPartWithLazyLoopBack>();
+            Assert.Same(root, root.Other.Other.Value);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorImportingOtherPartWithLazyLoopBack
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorImportingOtherPartWithLazyLoopBack(PartWithImportingConstructorWithLazyLoopBack other)
+            {
+                this.Other = other;
+            }
+
+            public PartWithImportingConstructorWithLazyLoopBack Other { get; private set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorWithLazyLoopBack
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorWithLazyLoopBack(Lazy<PartWithImportingConstructorImportingOtherPartWithLazyLoopBack> other)
+            {
+                this.Other = other;
+            }
+
+            public Lazy<PartWithImportingConstructorImportingOtherPartWithLazyLoopBack> Other { get; private set; }
+        }
+
+        #endregion
+
+        #region ImportingConstructor imports another part that has a lazy importing property pointing back
+
+        // V2 fails to set the OtherLazy property to a non-null value.
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty), typeof(PartWithLazyLoopbackImportingProperty))]
+        public void ImportingConstructorOfPartWithLoopbackLazyImportingProperty(IContainer container)
+        {
+            var root = container.GetExportedValue<PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty>();
+            Assert.NotNull(root.Other.OtherLazy);
+            Assert.Equal(1, root.Other.OtherLazy.Length);
+            Assert.Same(root, root.Other.OtherLazy[0].Value);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty(PartWithLazyLoopbackImportingProperty other)
+            {
+                Assert.NotNull(other);
+                this.Other = other;
+            }
+
+            public PartWithLazyLoopbackImportingProperty Other { get; private set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithLazyLoopbackImportingProperty
+        {
+            [ImportMany, MefV1.ImportMany]
+            public Lazy<PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty>[] OtherLazy { get; private set; }
+        }
+
+        #endregion
+
+        #region Query for importing constructor parts in various orders.
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]
+        public void QueryImportingPropertyPartFirst(IContainer container)
+        {
+            // Simply querying for C first makes both MEFv1 and MEFv2 happy to then get A and B later.
+            container.GetExportedValue<PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis>();
+            container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis1>();
+            container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis2>();
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]
+        public void QueryImportingConstructorPartsEvaluateAfterOne(IContainer container)
+        {
+            // In testing V3 we specifically obtain A first so that Lazy<C>
+            // goes throw a transition of "now I should evaluate to a fully initialized C".
+            var a = container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis1>();
+            Assert.Same(a, a.C.Value.A);
+
+            // Now get B, which should get its own Lazy<C> that does NOT require a fully initialized value.
+            var b = container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis2>();
+            Assert.Same(b, b.C.B);
+
+            var c = container.GetExportedValue<PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis>();
+            Assert.Same(a.C.Value, b.C);
+            Assert.Same(c, b.C);
+        }
+
+        /// <summary>
+        /// Verifies that MEF can handle querying for parts with importing constructors with Lazy
+        /// imports of circular imports.
+        /// </summary>
+        /// <remarks>
+        /// V1 throws an exception because it doesn't like B evaluating its Lazy.
+        /// V2 throws an InternalErrorException for this test.
+        /// 
+        /// Although V1 and V2 fail this one, it's because neither can handle querying for the importing constructor
+        /// part. But they *can* handle querying for the importing property part first. 
+        /// V3 doesn't share this asymmetric failure, so we want to verify that it does it correctly.
+        /// </remarks>
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]
+        public void QueryImportingConstructorPartsEvaluateAfterTwo(IContainer container)
+        {
+            // In testing V3 we specifically obtain A first so that Lazy<C>
+            // goes throw a transition of "now I should evaluate to a fully initialized C".
+            var a = container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis1>();
+
+            // Now get B, which should get its own Lazy<C> that does NOT require a fully initialized value.
+            var b = container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis2>();
+
+            // Now that we have obtained B and B partially evaluated C and returned, the C should be fully initialized.
+            Assert.Same(b, b.C.B);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorOfLazyPartImportingThis1
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorOfLazyPartImportingThis1(Lazy<PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis> c)
+            {
+                // Do NOT evaluate C because the idea is that C doesn't
+                // initialize till B
+                this.C = c;
+            }
+
+            public Lazy<PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis> C { get; private set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorOfLazyPartImportingThis2
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartWithImportingConstructorOfLazyPartImportingThis2(Lazy<PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis> c)
+            {
+                Assert.Null(c.Value.B);
+                this.C = c.Value;
+            }
+
+            public PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis C { get; private set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis
+        {
+            [Import, MefV1.Import]
+            public PartWithImportingConstructorOfLazyPartImportingThis1 A { get; set; }
+
+            [Import, MefV1.Import]
+            public PartWithImportingConstructorOfLazyPartImportingThis2 B { get; set; }
+        }
+
+        #endregion
     }
 }

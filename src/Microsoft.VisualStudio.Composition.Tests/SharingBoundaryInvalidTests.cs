@@ -14,24 +14,26 @@
     public class SharingBoundaryInvalidTests
     {
         /// <summary>
-        /// This test documents that V2 considers this an invalid graph.
+        /// Verifies that an illegal import across sharing boundaries is not allowed.
         /// </summary>
-        [MefFact(CompositionEngines.V2, NoCompatGoal = true, InvalidConfiguration = true)]
-        public void InvalidImportAcrossSharingBoundaryV2(IContainer container)
+        [MefFact(CompositionEngines.V2Compat)]
+        public void InvalidImportAcrossSharingBoundary(IContainer container)
         {
             var root = container.GetExportedValue<RootPart>();
-            var boundaryPartExport = root.Factory.CreateExport();
-        }
-
-        /// <summary>
-        /// This test documents that V3 works where V2 doesn't,
-        /// because it automatically propagates sharing boundaries across imports.
-        /// </summary>
-        [MefFact(CompositionEngines.V3EmulatingV2)]
-        public void InvalidImportAcrossSharingBoundaryV3(IContainer container)
-        {
-            var root = container.GetExportedValue<RootPart>();
-            var boundaryPartExport = root.Factory.CreateExport();
+            try
+            {
+                // PartThatImportsBoundaryPartFromOutsideBoundary's own documented sharing boundary is ""
+                // which means it is shared across all other (child) sharing boundaries. Yet it imports
+                // a part from a lower sharing boundary which would be an impossible feat to do both.
+                // An earlier version of MEFv3 *did* claim to do this, by considering that
+                // PartThatImportsBoundaryPartFromOutsideBoundary belonged to multiple sharing boundaries.
+                // But that's not really a tenable prospect and it's harder to reason over anyway.
+                // It makes sense that MEFv2 didn't allow this.
+                root.Factory.CreateExport();
+                Assert.False(true, "Expected exception not thrown.");
+            }
+            catch (CompositionFailedException) { }
+            catch (System.Composition.Hosting.CompositionFailedException) { }
         }
 
         [Export]

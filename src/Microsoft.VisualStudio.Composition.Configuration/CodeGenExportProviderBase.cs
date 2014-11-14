@@ -46,14 +46,24 @@
 
         private readonly Lazy<IAssemblyLoader> assemblyLoadProvider;
 
-        private readonly ThreadLocal<bool> initializingAssemblyLoader = new ThreadLocal<bool>();
+        private readonly ThreadLocal<bool> initializingAssemblyLoader;
 
         protected CodeGenExportProviderBase(ExportProvider parent, IReadOnlyCollection<string> freshSharingBoundaries)
             : base(parent, freshSharingBoundaries)
         {
-            this.assemblyLoadProvider = new Lazy<IAssemblyLoader>(
-                () => ImmutableList.CreateRange(this.GetExports<IAssemblyLoader, IReadOnlyDictionary<string, object>>())
-                    .Sort((first, second) => -GetOrderMetadata(first.Metadata).CompareTo(GetOrderMetadata(second.Metadata))).Select(v => v.Value).FirstOrDefault() ?? BuiltInAssemblyLoader);
+            var myparent = (CodeGenExportProviderBase)parent;
+            if (myparent != null)
+            {
+                this.assemblyLoadProvider = myparent.assemblyLoadProvider;
+                this.initializingAssemblyLoader = myparent.initializingAssemblyLoader;
+            }
+            else
+            {
+                this.assemblyLoadProvider = new Lazy<IAssemblyLoader>(
+                    () => ImmutableList.CreateRange(this.GetExports<IAssemblyLoader, IReadOnlyDictionary<string, object>>())
+                        .Sort((first, second) => -GetOrderMetadata(first.Metadata).CompareTo(GetOrderMetadata(second.Metadata))).Select(v => v.Value).FirstOrDefault() ?? BuiltInAssemblyLoader);
+                this.initializingAssemblyLoader = new ThreadLocal<bool>();
+            }
         }
 
         /// <summary>
@@ -141,12 +151,12 @@
             var typeArgs = (Type[])importDefinition.Metadata[CompositionConstants.GenericParametersMetadataName];
             var valueFactoryOpenGenericMethodInfo = this.GetMethodWithArity(valueFactoryMethodDeclaringType, valueFactoryMethodName, typeArgs.Length);
             var valueFactoryMethodInfo = valueFactoryOpenGenericMethodInfo.MakeGenericMethod(typeArgs);
-            var valueFactory = (Func<ExportProvider, Dictionary<TypeRef, object>, bool, object>)valueFactoryMethodInfo.CreateDelegate(typeof(Func<ExportProvider, Dictionary<TypeRef, object>, bool, object>), null);
+            var valueFactory = (Func<ExportProvider, bool, object>)valueFactoryMethodInfo.CreateDelegate(typeof(Func<ExportProvider, bool, object>), null);
 
             Type partOpenGenericType = partOpenGenericTypeRef.Resolve();
             TypeRef partType = partOpenGenericTypeRef.MakeGenericType(typeArgs.Select(TypeRef.Get).ToImmutableArray());
 
-            return this.CreateExport(importDefinition, metadata, partType, valueFactory, partSharingBoundary, nonSharedInstanceRequired, exportingMember);
+            return this.CreateExport(importDefinition, metadata, partOpenGenericTypeRef, partType, partSharingBoundary, nonSharedInstanceRequired, exportingMember);
         }
 
         internal override IMetadataViewProvider GetMetadataViewProvider(Type metadataView)

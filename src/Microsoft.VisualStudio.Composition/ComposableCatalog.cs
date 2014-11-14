@@ -166,6 +166,31 @@
             return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts));
         }
 
+        /// <summary>
+        /// Merges this catalog with another one, including parts, discovery details and errors.
+        /// </summary>
+        /// <param name="catalogToMerge">The catalog to be merged with this one.</param>
+        /// <returns>The merged version of the catalog.</returns>
+        public ComposableCatalog WithCatalog(ComposableCatalog catalogToMerge)
+        {
+            Requires.NotNull(catalogToMerge, "catalogToMerge");
+
+            var catalog = this.WithParts(catalogToMerge.Parts);
+            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(catalogToMerge.DiscoveredParts));
+        }
+
+        /// <summary>
+        /// Merges this catalog with others, including parts, discovery details and errors.
+        /// </summary>
+        /// <param name="catalogsToMerge">The catalogs to be merged with this one.</param>
+        /// <returns>The merged version of the catalog.</returns>
+        public ComposableCatalog WithCatalogs(IEnumerable<ComposableCatalog> catalogsToMerge)
+        {
+            Requires.NotNull(catalogsToMerge, "catalogsToMerge");
+
+            return catalogsToMerge.Aggregate(this, (aggregate, mergeCatalog) => aggregate.WithCatalog(mergeCatalog));
+        }
+
         public IReadOnlyCollection<AssemblyName> GetInputAssemblies()
         {
             var inputAssemblies = ImmutableHashSet.CreateBuilder(ByValueEquality.AssemblyName);

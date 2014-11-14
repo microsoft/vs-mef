@@ -253,6 +253,16 @@
 
         #endregion
 
+        #region Type discovery failures
+
+        [MefV1.Export, Export]
+        public class SomePartWithoutImportingConstructor
+        {
+            public SomePartWithoutImportingConstructor(int foo) { }
+        }
+
+        #endregion
+
         /// <summary>
         /// A discovery mock that produces no parts, but includes all types for consideration.
         /// </summary>

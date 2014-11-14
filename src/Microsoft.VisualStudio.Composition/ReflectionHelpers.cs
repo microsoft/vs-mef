@@ -413,11 +413,41 @@
         /// <returns>A constructed type.</returns>
         internal static Type CloseGenericType(Type genericTypeDefinition, Type constructedType)
         {
+            using (var typeArguments = ExtractGenericTypeArguments(genericTypeDefinition, constructedType))
+            {
+                return genericTypeDefinition.MakeGenericType(typeArguments.Value);
+            }
+        }
+
+        /// <summary>
+        /// Extracts generic type arguments from a constructed type that are necessary to close a generic type definition.
+        /// </summary>
+        /// <param name="genericTypeDefinition">A generic type definition.</param>
+        /// <param name="constructedType">A closed type from which may be obtained generic type arguments.</param>
+        /// <returns>The type argument necessary to construct the closed type.</returns>
+        internal static Rental<Type[]> ExtractGenericTypeArguments(Type genericTypeDefinition, Type constructedType)
+        {
             Requires.NotNull(genericTypeDefinition, "genericTypeDefinition");
             Requires.NotNull(constructedType, "constructedType");
-            Requires.Argument(genericTypeDefinition.GetTypeInfo().IsAssignableFrom(constructedType.GetGenericTypeDefinition().GetTypeInfo()), "constructedType", "Not a closed form of the other.");
 
-            return genericTypeDefinition.MakeGenericType(constructedType.GenericTypeArguments.Take(genericTypeDefinition.GetTypeInfo().GenericTypeParameters.Length).ToArray());
+            var genericTypeDefinitionInfo = genericTypeDefinition.GetTypeInfo();
+
+            // The generic type arguments may be buried in the base type of the "constructedType" that we were given.
+            var constructedGenericType = constructedType;
+            while (constructedGenericType != null && (!constructedGenericType.IsGenericType || !genericTypeDefinitionInfo.IsAssignableFrom(constructedGenericType.GetGenericTypeDefinition().GetTypeInfo())))
+            {
+                constructedGenericType = constructedGenericType.BaseType;
+            }
+
+            Requires.Argument(constructedGenericType != null, "constructedType", "Not a closed form of the other.");
+
+            var result = ArrayRental<Type>.Get(genericTypeDefinitionInfo.GenericTypeParameters.Length);
+            for (int i = 0; i < result.Value.Length; i++)
+            {
+                result.Value[i] = constructedGenericType.GenericTypeArguments[i];
+            }
+
+            return result;
         }
 
         internal static Type GetExportedValueType(Type declaringType, MemberInfo exportingMember)

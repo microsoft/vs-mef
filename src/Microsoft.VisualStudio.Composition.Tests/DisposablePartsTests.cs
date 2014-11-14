@@ -223,5 +223,107 @@
             container.ToString();
             container.GetHashCode();
         }
+
+        #region Disposal evaluates Lazy import which then tries to import the disposed part
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(PartWithDisposeThatEvaluatesLazyImport), typeof(PartThatImportsDisposeWithLazyImport))]
+        public void DisposeEvaluatesLazyImportThatLoopsBackV1(IContainer container)
+        {
+            var value = container.GetExportedValue<PartWithDisposeThatEvaluatesLazyImport>();
+            Assert.Throws<ObjectDisposedException>(() => container.Dispose());
+        }
+
+        [MefFact(CompositionEngines.V2, typeof(PartWithDisposeThatEvaluatesLazyImport), typeof(PartThatImportsDisposeWithLazyImport), NoCompatGoal = true)]
+        public void DisposeEvaluatesLazyImportThatLoopsBackV2(IContainer container)
+        {
+            var value = container.GetExportedValue<PartWithDisposeThatEvaluatesLazyImport>();
+            container.Dispose();
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithDisposeThatEvaluatesLazyImport : IDisposable
+        {
+            [Import, MefV1.Import]
+            public Lazy<PartThatImportsDisposeWithLazyImport> LazyImport { get; set; }
+
+            public void Dispose()
+            {
+                var other = this.LazyImport.Value;
+
+                // Although we may expect the above line to throw, if it didn't (like in V2)
+                // we assert that the follow should be true.
+                Assert.Same(this, other.ImportingProperty);
+            }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartThatImportsDisposeWithLazyImport
+        {
+            [Import, MefV1.Import]
+            public PartWithDisposeThatEvaluatesLazyImport ImportingProperty { get; set; }
+        }
+
+        #endregion
+
+        #region Disposal of sharing boundary part evaluates Lazy import which then tries to import the disposed part
+
+        [MefFact(CompositionEngines.V2, typeof(SharingBoundaryFactory), typeof(SharingBoundaryPartWithDisposeThatEvaluatesLazyImport), typeof(PartThatImportsSharingBoundaryDisposeWithLazyImport), NoCompatGoal = true)]
+        public void DisposeOfSharingBoundaryPartEvaluatesLazyImportThatLoopsBackV2(IContainer container)
+        {
+            var factory = container.GetExportedValue<SharingBoundaryFactory>();
+            var export = factory.Factory.CreateExport();
+            export.Dispose();
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(SharingBoundaryFactory), typeof(SharingBoundaryPartWithDisposeThatEvaluatesLazyImport), typeof(PartThatImportsSharingBoundaryDisposeWithLazyImport))]
+        public void DisposeOfSharingBoundaryPartEvaluatesLazyImportThatLoopsBackV3(IContainer container)
+        {
+            var factory = container.GetExportedValue<SharingBoundaryFactory>();
+            var export = factory.Factory.CreateExport();
+            Assert.Throws<ObjectDisposedException>(() => export.Dispose());
+        }
+
+        [Export, Shared]
+        public class SharingBoundaryFactory
+        {
+            [Import, SharingBoundary("A")]
+            public ExportFactory<SharingBoundaryPartWithDisposeThatEvaluatesLazyImport> Factory { get; set; }
+        }
+
+        [Export, Shared("A")]
+        public class SharingBoundaryPartWithDisposeThatEvaluatesLazyImport : IDisposable
+        {
+            [Import]
+            public Lazy<PartThatImportsSharingBoundaryDisposeWithLazyImport> LazyImport { get; set; }
+
+            public void Dispose()
+            {
+                var other = this.LazyImport.Value;
+
+                // Although we may expect the above line to throw, if it didn't (like in V2)
+                // we assert that the follow should be true.
+                Assert.Same(this, other.ImportedArgument);
+            }
+        }
+
+        [Export, Shared("A")]
+        public class PartThatImportsSharingBoundaryDisposeWithLazyImport
+        {
+            /// <summary>
+            /// This is deliberately an importing constructor rather than an importing property
+            /// so as to exercise the code path that was misbehaving when we wrote the test.
+            /// </summary>
+            [ImportingConstructor]
+            public PartThatImportsSharingBoundaryDisposeWithLazyImport(SharingBoundaryPartWithDisposeThatEvaluatesLazyImport importingArg)
+            {
+                this.ImportedArgument = importingArg;
+            }
+
+            public SharingBoundaryPartWithDisposeThatEvaluatesLazyImport ImportedArgument { get; set; }
+        }
+
+        #endregion
     }
 }

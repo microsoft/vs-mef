@@ -138,6 +138,7 @@
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="CircularDependencyTests.cs" />
     <Compile Include="ClosedGenericExportedTypeTests.cs" />
+    <Compile Include="ComposableCatalogTests.cs" />
     <Compile Include="CompositionFailedExceptionTests.cs" />
     <Compile Include="CompressedUIntTests.cs" />
     <Compile Include="CustomAttributeDataRefTests.cs" />
@@ -151,12 +152,14 @@
     <Compile Include="ExportDefinitionTests.cs" />
     <Compile Include="ExportMetadataViewNameCollisionTests.cs" />
     <Compile Include="ExportProviderTests.cs" />
+    <Compile Include="FaultyPartsTests.cs" />
     <Compile Include="GenericImportTests.cs" />
     <Compile Include="GuidMetadataTests.cs" />
     <Compile Include="ImportDefinitionTests.cs" />
     <Compile Include="ImportedExportProviderTests.cs" />
     <Compile Include="ImportOfTResolvedByDerivedClassTests.cs" />
     <Compile Include="InheritedExportTests.cs" />
+    <Compile Include="InheritedImportTests.cs" />
     <Compile Include="InvalidGraphTests.cs" />
     <Compile Include="LazyServicesTests.cs" />
     <Compile Include="Mef3TestCommand.cs" />
@@ -203,8 +206,10 @@
     <Compile Include="PartDiscoveryTests.cs" />
     <Compile Include="ProjectSystemMockTests.cs" />
     <Compile Include="Reflection\TypeRefTests.cs" />
+    <Compile Include="RejectionTests.cs" />
     <Compile Include="SharedNoBoundaryExportsTests.cs" />
     <Compile Include="SharingBoundaryInvalidTests.cs" />
+    <Compile Include="SharingBoundaryMixedAttributesTests.cs" />
     <Compile Include="SharingBoundaryTwoPathsToPartTests.cs" />
     <Compile Include="SharingBoundaryAcquiresSharedRootScopeExport.cs" />
     <Compile Include="SharingBoundaryWithMixedMefParts.cs" />
