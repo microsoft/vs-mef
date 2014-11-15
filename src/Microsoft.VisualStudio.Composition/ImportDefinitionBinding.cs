@@ -15,6 +15,8 @@
 
         private Type importingSiteTypeWithoutCollection;
 
+        private Type importingSiteElementType;
+
         private TypeRef importingSiteTypeRef;
 
         /// <summary>
@@ -151,7 +153,12 @@
         {
             get
             {
-                return PartDiscovery.GetTypeIdentityFromImportingType(this.ImportingSiteType, this.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore);
+                if (this.importingSiteElementType == null)
+                {
+                    this.importingSiteElementType = PartDiscovery.GetTypeIdentityFromImportingType(this.ImportingSiteType, this.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore);
+                }
+
+                return this.importingSiteElementType;
             }
         }
 

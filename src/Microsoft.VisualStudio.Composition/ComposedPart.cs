@@ -65,16 +65,13 @@
             }
 
             var importsWithGenericTypeParameters = this.Definition.Imports
-                .Where(import => import.ImportingSiteElementType.ContainsGenericParameters);
-            if (importsWithGenericTypeParameters.Any())
+                .Where(import => import.ImportingSiteElementType.ContainsGenericParameters).ToList();
+            foreach (var import in importsWithGenericTypeParameters)
             {
-                foreach (var import in importsWithGenericTypeParameters)
-                {
-                    yield return new ComposedPartDiagnostic(
-                        this,
-                        "{0}: imports that use generic type parameters are not supported.",
-                        GetDiagnosticLocation(import));
-                }
+                yield return new ComposedPartDiagnostic(
+                    this,
+                    "{0}: imports that use generic type parameters are not supported.",
+                    GetDiagnosticLocation(import));
             }
 
             foreach (var pair in this.SatisfyingExports)
