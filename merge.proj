@@ -39,7 +39,9 @@
 
     <Message Importance="high" Text="$(RobocopyCommand)" Condition=" '$(WhatIf)' == 'true' " />
     <Exec Command="$(RobocopyCommand)" IgnoreExitCode="true" />
-  
+    <Exec Command="attrib -r /s"
+          Condition=" '$(MergeDirection)' == 'FI' " />
+
     <Message Importance="high" 
              Condition=" '$(MergeDirection)' == 'RI' "
              Text="
@@ -59,7 +61,6 @@
              *
              * Execute the following command in git:
              *
-             *     attrib -r /s
              *     git add -A :/src
              *
              *********************
