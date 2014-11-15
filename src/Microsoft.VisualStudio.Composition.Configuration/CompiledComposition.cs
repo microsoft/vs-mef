@@ -20,7 +20,6 @@
     using Microsoft.CodeAnalysis.Text;
     using Validation;
 
-    [CLSCompliant(false)]
     public class CompiledComposition : ICompositionCacheManager
     {
         public CompiledComposition()
