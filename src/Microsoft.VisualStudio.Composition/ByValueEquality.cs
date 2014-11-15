@@ -95,7 +95,12 @@
 
             public bool Equals(IReadOnlyCollection<T> x, IReadOnlyCollection<T> y)
             {
-                if (x == null ^ y == null)
+                if (object.ReferenceEquals(x, y))
+                {
+                    return true;
+                }
+
+                    if (x == null ^ y == null)
                 {
                     return false;
                 }
@@ -173,6 +178,11 @@
 
             public virtual bool Equals(IReadOnlyDictionary<TKey, TValue> x, IReadOnlyDictionary<TKey, TValue> y)
             {
+                if (object.ReferenceEquals(x, y))
+                {
+                    return true;
+                }
+
                 if (x.Count != y.Count)
                 {
                     return false;
@@ -230,6 +240,11 @@
 
             public override bool Equals(IReadOnlyDictionary<string, object> x, IReadOnlyDictionary<string, object> y)
             {
+                if (object.ReferenceEquals(x, y))
+                {
+                    return true;
+                }
+
                 // Be sure we're comparing TypeRefs instead of resolved Types to avoid loading assemblies unnecessarily.
                 return base.Equals(LazyMetadataWrapper.TryUnwrap(x), LazyMetadataWrapper.TryUnwrap(y));
             }

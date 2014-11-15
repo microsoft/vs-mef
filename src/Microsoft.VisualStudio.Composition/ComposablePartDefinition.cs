@@ -183,6 +183,11 @@
                 return false;
             }
 
+            if (object.ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
             bool result = this.TypeRef.Equals(other.TypeRef)
                 && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata)
                 && this.SharingBoundary == other.SharingBoundary
