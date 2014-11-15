@@ -47,8 +47,8 @@
              *
              * Execute the following command in Razzle:
              *
-             *     tfpt online /r /deletes %SDXROOT%\platform\mef
-             *     tfpt uu /r /noprompt /noget %SDXROOT%\platform\mef
+             *     tfpt online /r /deletes $(TfsRepo)
+             *     tfpt uu /r /noprompt /noget $(TfsRepo)
              *
              *********************
 " />
@@ -68,7 +68,6 @@
 
   <Import Project="EnlistmentInfo.targets"/>
 
-  <Target Name="Build">
-    <Error Text="Please specify a target (e.g. RI or FI)" />
+  <Target Name="Build" DependsOnTargets="Merge">
   </Target>
 </Project>
