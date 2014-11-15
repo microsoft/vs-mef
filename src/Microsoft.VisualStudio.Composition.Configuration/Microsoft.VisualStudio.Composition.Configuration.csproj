@@ -89,7 +89,6 @@
     <Reference Include="System.IO" />
     <Reference Include="System.Text.Encoding" />
     <Reference Include="System.Globalization" />
-    <Reference Include="System.Collections" />
     <Reference Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
