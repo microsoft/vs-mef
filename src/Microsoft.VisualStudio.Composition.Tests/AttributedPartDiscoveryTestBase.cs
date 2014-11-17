@@ -125,7 +125,7 @@
         }
 
         [SkippableFact]
-        public async Task AssemblyDiscoveryDropsAssembliesWithProblematicTypes()
+        public async Task AssemblyDiscoveryDropsProblematicTypesAndSalvagesOthersInSameAssembly()
         {
             // If this assert fails, it means that the assembly that is supposed to be undiscoverable
             // by this unit test is actually discoverable. Check that CopyLocal=false for all references
@@ -143,8 +143,12 @@
                     typeof(TypeWithMissingAttribute).Assembly,
                     typeof(GoodType).Assembly });
 
-            // Verify that we still found parts.
-            Assert.NotEqual(0, result.Parts.Count);
+            // Verify that the ReflectionTypeLoadException is logged.
+            Assert.True(result.DiscoveryErrors.Any(ex => ex.InnerException is ReflectionTypeLoadException));
+
+            // Verify that we still found parts in the bad and good assemblies.
+            Assert.True(result.Parts.Any(p => p.Type == typeof(GoodPartInAssemblyWithBadTypes)));
+            Assert.True(result.Parts.Any(p => p.Type == typeof(DiscoverablePart1)));
         }
 
         #region TypeDiscoveryOmitsNestedTypes test

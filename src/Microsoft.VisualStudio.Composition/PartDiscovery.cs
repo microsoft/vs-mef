@@ -423,13 +423,22 @@
             var assemblyBlock = new TransformManyBlock<Assembly, Type>(
                 a =>
                 {
+                    IReadOnlyCollection<Type> types;
                     try
                     {
                         // Fully realize any enumerable now so that we can catch the exception rather than
                         // leave it to dataflow to catch it.
-                        var types = this.GetTypes(a).ToList();
-                        progressFilter.OnDiscoveredMoreTypes(types.Count);
-                        return types;
+                        types = this.GetTypes(a).ToList();
+                    }
+                    catch (ReflectionTypeLoadException ex)
+                    {
+                        var partDiscoveryException = new PartDiscoveryException("ReflectionTypeLoadException while enumerating types in assembly \"" + a.Location + "\". Results will be incomplete.", ex) { AssemblyPath = a.Location };
+                        lock (exceptions)
+                        {
+                            exceptions.Add(partDiscoveryException);
+                        }
+
+                        types = ex.Types.Where(t => t != null).ToList();
                     }
                     catch (Exception ex)
                     {
@@ -441,6 +450,9 @@
 
                         return Enumerable.Empty<Type>();
                     }
+
+                    progressFilter.OnDiscoveredMoreTypes(types.Count);
+                    return types;
                 },
                 new ExecutionDataflowBlockOptions
                 {
