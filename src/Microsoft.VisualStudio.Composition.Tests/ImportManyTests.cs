@@ -623,6 +623,9 @@
 
         public class CustomCollectionWithPublicCtor<T> : ICollection<T>
         {
+            // We have this here just to ensure that VS MEF doesn't mess up when it's present.
+            static CustomCollectionWithPublicCtor() { }
+
             private List<T> inner = new List<T>();
 
             /// <summary>
