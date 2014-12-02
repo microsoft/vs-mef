@@ -11,6 +11,7 @@
     using System.Threading.Tasks;
     using Microsoft.Build.Framework;
     using Microsoft.Build.Utilities;
+    using System.Diagnostics.CodeAnalysis;
 
     public class CreateComposition : AppDomainIsolatedTask, ICancelableTask
     {
@@ -99,6 +100,8 @@
             "System.Collections.Immutable",
         };
 
+        [SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", MessageId = "System.Reflection.Assembly.LoadFile",
+            Justification = "Resolves not finding an assembly in the current domain by looking elsewhere, so LoadFile is needed")]
         private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             var name = new AssemblyName(args.Name);

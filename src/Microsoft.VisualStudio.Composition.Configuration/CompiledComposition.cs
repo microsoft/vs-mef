@@ -19,6 +19,7 @@
     using Microsoft.CodeAnalysis.Emit;
     using Microsoft.CodeAnalysis.Text;
     using Validation;
+    using System.Diagnostics.CodeAnalysis;
 
     public class CompiledComposition : ICompositionCacheManager
     {
@@ -44,6 +45,7 @@
 
         public bool Optimize { get; set; }
 
+        [SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", Justification = "Custom assembly path", MessageId = "System.Reflection.Assembly.LoadFile")]
         public static IExportProviderFactory LoadDefault()
         {
             string exePath = Process.GetCurrentProcess().MainModule.FileName.Replace(".vshost", string.Empty);
@@ -52,6 +54,7 @@
             return LoadExportProviderFactory(Assembly.LoadFile(defaultCompositionFile));
         }
 
+        [SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", Justification = "Custom assembly path", MessageId = "System.Reflection.Assembly.LoadFrom")]
         public static IExportProviderFactory LoadExportProviderFactory(string assemblyCacheFullPath)
         {
             Requires.NotNullOrEmpty(assemblyCacheFullPath, "assemblyCacheFullPath");
