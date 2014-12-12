@@ -70,6 +70,15 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This part ({0}) cannot be instantiated..
+        /// </summary>
+        internal static string PartIsNotInstantiable {
+            get {
+                return ResourceManager.GetString("PartIsNotInstantiable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Scanning MEF assemblies....
         /// </summary>
         internal static string ScanningMEFAssemblies {
