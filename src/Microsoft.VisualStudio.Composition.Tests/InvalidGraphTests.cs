@@ -168,5 +168,44 @@
         }
 
         #endregion
+
+        #region Uncreatable part with import
+
+        /// <summary>
+        /// Verifies that V1 lets folks get away with importing parts that lack importing constructors 
+        /// as long as they import it lazily, all the way to the point of evaluating the lazy.
+        /// </summary>
+        [MefFact(CompositionEngines.V1Compat, typeof(SomePart), typeof(UncreatablePartWithImportingProperty), typeof(PartThatLazilyImportsUncreatablePartWithImportingProperty))]
+        public void UncreatableLazyImportedPartWithImportingPropertyV1(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatLazilyImportsUncreatablePartWithImportingProperty>();
+            Assert.NotNull(part.LazyImportOfUncreatablePart);
+            Assert.NotNull(part.LazyImportOfUncreatablePart.Metadata);
+            try
+            {
+                var throws = part.LazyImportOfUncreatablePart.Value;
+                Assert.False(true, "Expected exception not thrown.");
+            }
+            catch (CompositionFailedException) { }
+            catch (MefV1.CompositionException) { }
+        }
+
+        [Export, MefV1.Export]
+        public class UncreatablePartWithImportingProperty
+        {
+            public UncreatablePartWithImportingProperty(IServiceProvider serviceProvider) { }
+
+            [Import, MefV1.Import]
+            public SomePart ImportingProperty { get; set; }
+        }
+
+        [Export, MefV1.Export]
+        public class PartThatLazilyImportsUncreatablePartWithImportingProperty
+        {
+            [Import, MefV1.Import]
+            public Lazy<UncreatablePartWithImportingProperty, IDictionary<string, object>> LazyImportOfUncreatablePart { get; set; }
+        }
+
+        #endregion
     }
 }
