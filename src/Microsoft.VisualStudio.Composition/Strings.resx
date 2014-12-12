@@ -120,6 +120,9 @@
   <data name="ExceptionThrownByPartUnderInitialization" xml:space="preserve">
     <value>An exception was thrown while initializing part "{0}".</value>
   </data>
+  <data name="PartIsNotInstantiable" xml:space="preserve">
+    <value>This part ({0}) cannot be instantiated.</value>
+  </data>
   <data name="ScanningMEFAssemblies" xml:space="preserve">
     <value>Scanning MEF assemblies...</value>
   </data>

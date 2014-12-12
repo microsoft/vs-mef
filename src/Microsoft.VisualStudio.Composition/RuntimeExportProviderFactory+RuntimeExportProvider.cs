@@ -469,6 +469,13 @@
 
                 protected override void SatisfyImports()
                 {
+                    if (this.Value == null && this.partDefinition.ImportingMembers.Count > 0)
+                    {
+                        // The value should have been instantiated by now. If it hasn't been,
+                        // it's not an instantiable part. And such a part cannot have imports set.
+                        this.ThrowPartNotInstantiableException();
+                    }
+
                     try
                     {
                         foreach (var import in this.partDefinition.ImportingMembers)
