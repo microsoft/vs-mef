@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.ComponentModel.Composition.ReflectionModel;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -67,8 +68,8 @@
         private class MefV1ExportProvider : MefV1.Hosting.ExportProvider
         {
             private static readonly Type ExportFactoryV1Type = typeof(MefV1.ExportFactory<object, IDictionary<string, object>>);
-            private static readonly Type IPartCreatorImportDefinition = typeof(MefV1.Primitives.ImportDefinition).Assembly.GetType("System.ComponentModel.Composition.Primitives.IPartCreatorImportDefinition");
-            private static readonly PropertyInfo ProductImportDefinition = IPartCreatorImportDefinition.GetProperty("ProductImportDefinition", BindingFlags.Instance | BindingFlags.Public);
+            private static readonly Type IPartCreatorImportDefinition_MightFail = typeof(MefV1.Primitives.ImportDefinition).Assembly.GetType("System.ComponentModel.Composition.Primitives.IPartCreatorImportDefinition", throwOnError: false);
+            private static readonly PropertyInfo ProductImportDefinition_MightFail = IPartCreatorImportDefinition_MightFail != null ? IPartCreatorImportDefinition_MightFail.GetProperty("ProductImportDefinition", BindingFlags.Instance | BindingFlags.Public) : null;
             private static readonly string ExportFactoryV1TypeIdentity = PartDiscovery.GetContractName(ExportFactoryV1Type);
 
             private readonly ExportProvider exportProvider;
@@ -111,9 +112,10 @@
 
                 var metadata = (IReadOnlyDictionary<string, object>)definition.Metadata;
 
-                if (IPartCreatorImportDefinition.IsInstanceOfType(definition))
+                MefV1.Primitives.ImportDefinition productImportDefinitionV1 = GetExportFactoryProductImportDefinitionIfApplicable(definition);
+
+                if (productImportDefinitionV1 != null)
                 {
-                    var productImportDefinitionV1 = (MefV1.Primitives.ImportDefinition)ProductImportDefinition.GetValue(definition);
                     var productImportDefinitionV3 = WrapImportDefinition(productImportDefinitionV1);
                     metadata = metadata.ToImmutableDictionary()
                         .Add(CompositionConstants.ExportFactoryProductImportDefinition, productImportDefinitionV3)
@@ -121,6 +123,40 @@
                 }
 
                 return new ImportDefinition(definition.ContractName, cardinality, metadata, constraints);
+            }
+
+            /// <summary>
+            /// Extracts the ImportDefinition for the T in an ExportFactory{T} import, if applicable.
+            /// </summary>
+            /// <param name="definition">The ImportDefinition which may be an ExportFactory.</param>
+            /// <returns>The import definition that describes the created part, or <c>null</c> if the import definition isn't an ExportFactory.</returns>
+            private static MefV1.Primitives.ImportDefinition GetExportFactoryProductImportDefinitionIfApplicable(MefV1.Primitives.ImportDefinition definition)
+            {
+                // The optimal path that we can code for at the moment is using the internal interface.
+                if (IPartCreatorImportDefinition_MightFail != null && ProductImportDefinition_MightFail != null)
+                {
+                    if (IPartCreatorImportDefinition_MightFail.IsInstanceOfType(definition))
+                    {
+                        return (MefV1.Primitives.ImportDefinition)ProductImportDefinition_MightFail.GetValue(definition);
+                    }
+                }
+                else
+                {
+                    // The internal interface, or its member, is gone. Fallback to using the public API that throws.
+                    try
+                    {
+                        if (ReflectionModelServices.IsExportFactoryImportDefinition(definition))
+                        {
+                            return ReflectionModelServices.GetExportFactoryProductImportDefinition(definition);
+                        }
+                    }
+                    catch (ArgumentException)
+                    {
+                        // MEFv1 throws rather than simply returning false when the ImportDefinition is of the incorrect type.
+                    }
+                }
+
+                return null;
             }
 
             private static IDictionary<string, object> GetMefV1ExportDefinitionMetadataFromV3(IReadOnlyDictionary<string, object> exportDefinitionMetadata)
