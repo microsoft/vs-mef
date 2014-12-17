@@ -9,6 +9,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
@@ -24,7 +25,7 @@
             get
             {
                 return Debugger.IsAttached
-                    ? TimeSpan.MaxValue
+                    ? Timeout.InfiniteTimeSpan
                     : TimeSpan.FromSeconds(2);
             }
         }

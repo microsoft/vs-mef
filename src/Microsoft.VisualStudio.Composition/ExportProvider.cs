@@ -954,9 +954,7 @@
 
                 if (this.Value == null)
                 {
-                    Type partType = this.PartType;
-                    string partTypeName = partType != null ? partType.FullName : string.Empty;
-                    throw new CompositionFailedException(string.Format(CultureInfo.CurrentCulture, "This part ({0}) cannot be instantiated.", partTypeName));
+                    this.ThrowPartNotInstantiableException();
                 }
 
                 return this.Value;
@@ -1024,6 +1022,16 @@
                         this.deferredInitializationParts.Add(importedPart);
                     }
                 }
+            }
+
+            /// <summary>
+            /// Throws a <see cref="CompositionFailedException"/> indicating the part cannot be instantiated.
+            /// </summary>
+            protected void ThrowPartNotInstantiableException()
+            {
+                Type partType = this.PartType;
+                string partTypeName = partType != null ? partType.FullName : string.Empty;
+                throw new CompositionFailedException(string.Format(CultureInfo.CurrentCulture, Strings.PartIsNotInstantiable, partTypeName));
             }
 
             /// <summary>
