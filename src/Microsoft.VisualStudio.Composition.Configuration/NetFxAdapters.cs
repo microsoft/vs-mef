@@ -68,8 +68,6 @@
         private class MefV1ExportProvider : MefV1.Hosting.ExportProvider
         {
             private static readonly Type ExportFactoryV1Type = typeof(MefV1.ExportFactory<object, IDictionary<string, object>>);
-            private static readonly Type IPartCreatorImportDefinition_MightFail = typeof(MefV1.Primitives.ImportDefinition).Assembly.GetType("System.ComponentModel.Composition.Primitives.IPartCreatorImportDefinition", throwOnError: false);
-            private static readonly PropertyInfo ProductImportDefinition_MightFail = IPartCreatorImportDefinition_MightFail != null ? IPartCreatorImportDefinition_MightFail.GetProperty("ProductImportDefinition", BindingFlags.Instance | BindingFlags.Public) : null;
             private static readonly string ExportFactoryV1TypeIdentity = PartDiscovery.GetContractName(ExportFactoryV1Type);
 
             private readonly ExportProvider exportProvider;
@@ -132,28 +130,10 @@
             /// <returns>The import definition that describes the created part, or <c>null</c> if the import definition isn't an ExportFactory.</returns>
             private static MefV1.Primitives.ImportDefinition GetExportFactoryProductImportDefinitionIfApplicable(MefV1.Primitives.ImportDefinition definition)
             {
-                // The optimal path that we can code for at the moment is using the internal interface.
-                if (IPartCreatorImportDefinition_MightFail != null && ProductImportDefinition_MightFail != null)
+                var exportFactoryImportDefinition = definition as MefV1.Primitives.IExportFactoryImportDefinition;
+                if (exportFactoryImportDefinition != null)
                 {
-                    if (IPartCreatorImportDefinition_MightFail.IsInstanceOfType(definition))
-                    {
-                        return (MefV1.Primitives.ImportDefinition)ProductImportDefinition_MightFail.GetValue(definition);
-                    }
-                }
-                else
-                {
-                    // The internal interface, or its member, is gone. Fallback to using the public API that throws.
-                    try
-                    {
-                        if (ReflectionModelServices.IsExportFactoryImportDefinition(definition))
-                        {
-                            return ReflectionModelServices.GetExportFactoryProductImportDefinition(definition);
-                        }
-                    }
-                    catch (ArgumentException)
-                    {
-                        // MEFv1 throws rather than simply returning false when the ImportDefinition is of the incorrect type.
-                    }
+                    return exportFactoryImportDefinition.ProductImportDefinition;
                 }
 
                 return null;
