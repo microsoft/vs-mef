@@ -88,6 +88,15 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected {0} export(s) with contract name &quot;{1}&quot; but found {2} after applying applicable constraints..
+        /// </summary>
+        internal static string UnexpectedNumberOfExportsFound {
+            get {
+                return ResourceManager.GetString("UnexpectedNumberOfExportsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This shared part is in state {0} but must be in state {1} for this operation..
         /// </summary>
         internal static string UnexpectedSharedPartState {
