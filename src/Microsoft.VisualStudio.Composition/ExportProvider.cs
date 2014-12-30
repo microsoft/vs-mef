@@ -257,7 +257,13 @@
             var exportsSnapshot = exports.ToArray(); // avoid repeating all the foregoing work each time this sequence is enumerated.
             if (importDefinition.Cardinality == ImportCardinality.ExactlyOne && exportsSnapshot.Length != 1)
             {
-                throw new CompositionFailedException();
+                throw new CompositionFailedException(
+                    String.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.UnexpectedNumberOfExportsFound,
+                        1,
+                        importDefinition.ContractName,
+                        exportsSnapshot.Length));
             }
 
             return exportsSnapshot;

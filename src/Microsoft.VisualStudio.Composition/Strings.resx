@@ -126,6 +126,9 @@
   <data name="ScanningMEFAssemblies" xml:space="preserve">
     <value>Scanning MEF assemblies...</value>
   </data>
+  <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
+    <value>Expected {0} export(s) with contract name "{1}" but found {2} after applying applicable constraints.</value>
+  </data>
   <data name="UnexpectedSharedPartState" xml:space="preserve">
     <value>This shared part is in state {0} but must be in state {1} for this operation.</value>
   </data>
