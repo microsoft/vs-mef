@@ -273,7 +273,7 @@
         /// (the instantiated type) implements the exported type. MEF should produce an error when that occurs.
         /// </remarks>
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartExportingIComparableAsTypeWithoutImplementing), typeof(PartThatImportsIComparableDirectly), InvalidConfiguration = true)]
-        public void ExportingTypeFailsAtCompositionTime(IContainer container)
+        public void ExportingType_FailsAtCompositionTime(IContainer container)
         {
             container.GetExportedValue<PartThatImportsIComparableDirectly>();
         }
@@ -386,6 +386,39 @@
             [ImportMany, MefV1.ImportMany]
             public List<IComparable> ComparableImportManyList { get; set; }
         }
+
+        [MefFact(CompositionEngines.V2Compat, typeof(PartThatExportsFooFromMemberAsBar), typeof(PartThatImportsBar), InvalidConfiguration = true)]
+        public void ImportExportMismatch_FailsAtCompositionTime(IContainer container)
+        {
+            container.GetExportedValue<PartThatImportsBar>();
+        }
+
+        /// <summary>
+        /// Documents an alleged bug in .NET MEF that an unconditional importing property may yet remain null
+        /// if the exported value could never hope to be assigned to it.
+        /// </summary>
+        [MefFact(CompositionEngines.V1, typeof(PartThatExportsFooFromMemberAsBar), typeof(PartThatImportsBar), NoCompatGoal = true)]
+        public void ImportExportMismatch_IsNulledOutAtRuntime(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsBar>();
+            Assert.Null(part.Bar);
+        }
+
+        public class PartThatExportsFooFromMemberAsBar
+        {
+            [Export(typeof(Bar)), MefV1.Export(typeof(Bar))]
+            public Foo Foo { get; set; }
+        }
+
+        [Export, MefV1.Export]
+        public class PartThatImportsBar
+        {
+            [Import, MefV1.Import]
+            public Bar Bar { get; set; }
+        }
+
+        public class Foo { }
+        public class Bar { }
 
         #endregion
     }

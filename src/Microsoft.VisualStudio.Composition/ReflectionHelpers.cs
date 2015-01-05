@@ -118,7 +118,13 @@
                     return Assignability.DefinitelyNot;
                 }
 
-                return Assignability.Maybe;
+                if (receivingType.IsInterface || exportingType.IsAssignableFrom(receivingType))
+                {
+                    // The actual exported value at runtime *may* be a derived type that *is* assignable to the import site.
+                    return Assignability.Maybe;
+                }
+
+                return Assignability.DefinitelyNot;
             }
         }
 
