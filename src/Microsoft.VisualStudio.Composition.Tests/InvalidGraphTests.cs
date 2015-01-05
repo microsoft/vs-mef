@@ -207,5 +207,161 @@
         }
 
         #endregion
+
+        #region Exporting an interface that is not implemented
+
+        // CONSIDER: Add tests where the exporting property/field is typed such that it can be statically determined
+        //           that a failure at runtime is inevitable. For example an Int32 property that exports a String.
+        //           Be careful though, because in VS there *are* cases (in Sharepoint IIRC) where incompatible types
+        //           are impossibly exported, but because they are never Imported directly (only through very carefully
+        //           written calls to the ExportProvider to type the exports as "object") it doesn't fail at runtime.
+        //           We may need to keep that working (at least until we can talk Sharepoint out of doing it).
+
+        [MefFact(CompositionEngines.V1, typeof(PartWithObjectPropertyExportedAsIComparable), typeof(PartThatImportsIComparable))]
+        public void ExportingProperty_FailsAtRuntime(IContainer container)
+        {
+            try
+            {
+                container.GetExportedValue<PartThatImportsIComparable>();
+            }
+            catch (CompositionFailedException ex)
+            {
+                // We also want to ensure that the exception message points at the guilty party.
+                Assert.True(ex.Message.Contains(typeof(PartWithObjectPropertyExportedAsIComparable).Name));
+            }
+        }
+
+        /// <summary>
+        /// Verifies that MEF permits an exporting property to export contract types
+        /// if the returned value implements the exported contract type, even if the type
+        /// of the property itself doesn't guarantee that it would succeed at runtime.
+        /// </summary>
+        [MefFact(CompositionEngines.V1, typeof(PartShouldExportValidValue), typeof(PartWithObjectPropertyExportedAsIComparable), typeof(PartThatImportsIComparable))]
+        public void ExportingProperty_SucceedsAtRuntime(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsIComparable>();
+            Assert.Same(PartWithObjectPropertyExportedAsIComparable.ComparableValue, part.ComparableImport);
+            Assert.Same(PartWithObjectPropertyExportedAsIComparable.ComparableValue, part.ComparableImportManyArray[0]);
+            Assert.Same(PartWithObjectPropertyExportedAsIComparable.ComparableValue, part.ComparableImportManyList[0]);
+        }
+
+        /// <summary>
+        /// Verifies that MEF permits an exporting field to export contract types
+        /// if the returned value implements the exported contract type, even if the type
+        /// of the field itself doesn't guarantee that it would succeed at runtime.
+        /// </summary>
+        [MefFact(CompositionEngines.V1, typeof(PartShouldExportValidValue), typeof(PartWithObjectFieldExportedAsIComparable), typeof(PartThatImportsIComparable))]
+        public void ExportingField_SucceedsAtRuntime(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsIComparable>();
+            Assert.Same(PartWithObjectPropertyExportedAsIComparable.ComparableValue, part.ComparableImport);
+            Assert.Same(PartWithObjectPropertyExportedAsIComparable.ComparableValue, part.ComparableImportManyArray[0]);
+            Assert.Same(PartWithObjectPropertyExportedAsIComparable.ComparableValue, part.ComparableImportManyList[0]);
+        }
+
+        [MefFact(CompositionEngines.V1, typeof(PartWithObjectFieldExportedAsIComparable), typeof(PartThatImportsIComparable))]
+        public void ExportingField_FailsAtRuntime(IContainer container)
+        {
+            try
+            {
+                var part = container.GetExportedValue<PartThatImportsIComparable>();
+            }
+            catch (CompositionFailedException ex)
+            {
+                // We also want to ensure that the exception message points at the guilty party.
+                Assert.True(ex.Message.Contains(typeof(PartWithObjectFieldExportedAsIComparable).Name));
+            }
+        }
+
+        /// <summary>
+        /// Verifies that MEF recognizes exporting a type not implemented by an exported type as an error.
+        /// </summary>
+        /// <remarks>
+        /// When a type itself has an export on it, we know by static analysis whether the value
+        /// (the instantiated type) implements the exported type. MEF should produce an error when that occurs.
+        /// </remarks>
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartExportingIComparableAsTypeWithoutImplementing), typeof(PartThatImportsIComparable), InvalidConfiguration = true)]
+        public void ExportingTypeFailsAtCompositionTime(IContainer container)
+        {
+            container.GetExportedValue<PartThatImportsIComparable>();
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartShouldExportValidValue { }
+
+        public class PartWithObjectPropertyExportedAsIComparable
+        {
+            internal static readonly object ComparableValue = "strings are comparable";
+
+            [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
+            public PartShouldExportValidValue ShouldExportValidValue { get; set; }
+
+            [Export(typeof(IComparable)), MefV1.Export(typeof(IComparable))]
+            public object SomeExportedValue
+            {
+                get
+                {
+                    if (this.ShouldExportValidValue != null)
+                    {
+                        return ComparableValue;
+                    }
+                    else
+                    {
+                        // Return a value that does not implement the exported interface.
+                        // This is interesting to test for because MEF cannot tell what actual
+                        // reference type will be returned at runtime from this property so
+                        // it cannot know that the interface will not be implemented.
+                        // So this tests how MEF deals with the failure at runtime.
+                        return new object();
+                    }
+                }
+            }
+        }
+
+        public class PartWithObjectFieldExportedAsIComparable
+        {
+            internal static readonly object ComparableValue = "strings are comparable";
+
+            [MefV1.ImportingConstructor]
+            public PartWithObjectFieldExportedAsIComparable([MefV1.Import(AllowDefault = true)] PartShouldExportValidValue shouldExportValidValue)
+            {
+                if (shouldExportValidValue != null)
+                {
+                    this.SomeExportedValue = ComparableValue;
+                }
+                else
+                {
+                    // Return a value that does not implement the exported interface.
+                    // This is interesting to test for because MEF cannot tell what actual
+                    // reference type will be returned at runtime from this property so
+                    // it cannot know that the interface will not be implemented.
+                    // So this tests how MEF deals with the failure at runtime.
+                    this.SomeExportedValue = new object();
+                }
+            }
+
+            [MefV1.Export(typeof(IComparable))]
+            public object SomeExportedValue;
+        }
+
+        [Export(typeof(IComparable)), MefV1.Export(typeof(IComparable))]
+        public class PartExportingIComparableAsTypeWithoutImplementing { }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartThatImportsIComparable
+        {
+            [Import, MefV1.Import]
+            public IComparable ComparableImport { get; set; }
+
+            [ImportMany, MefV1.ImportMany]
+            public IComparable[] ComparableImportManyArray { get; set; }
+
+            [ImportMany, MefV1.ImportMany]
+            public List<IComparable> ComparableImportManyList { get; set; }
+        }
+
+        #endregion
     }
 }
