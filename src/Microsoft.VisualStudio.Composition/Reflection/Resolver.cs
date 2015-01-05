@@ -198,6 +198,20 @@
                 {
                     GetInputAssemblies(typeArg, assemblies);
                 }
+
+                // Base types may define [InheritedExport] attributes or otherwise influence MEF
+                // so we should include them as input assemblies.
+                // Resolving a TypeRef is a necessary cost in order to identify the transitive closure of base types.
+                foreach (var baseType in typeRef.Resolve().EnumTypeAndBaseTypes())
+                {
+                    assemblies.Add(baseType.Assembly.GetName());
+                }
+
+                // Interfaces may also define [InheritedExport] attributes, metadata view filters, etc.
+                foreach (var iface in typeRef.Resolve().GetInterfaces())
+                {
+                    assemblies.Add(iface.Assembly.GetName());
+                }
             }
         }
 
