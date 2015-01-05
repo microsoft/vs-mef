@@ -5,6 +5,7 @@
     using System.Collections.Immutable;
     using System.Collections.ObjectModel;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -122,6 +123,35 @@
 
             return this.parts.SetEquals(other.parts)
                 && ByValueEquality.Dictionary<TypeRef, RuntimeExport>().Equals(this.metadataViewsAndProviders, other.metadataViewsAndProviders);
+        }
+
+        internal static string GetDiagnosticLocation(RuntimeImport import)
+        {
+            Requires.NotNull(import, "import");
+
+            return string.Format(
+                CultureInfo.CurrentCulture,
+                "{0}.{1}",
+                import.DeclaringType.Resolve().FullName,
+                import.ImportingMember == null ? ("ctor(" + import.ImportingParameter.Name + ")") : import.ImportingMember.Name);
+        }
+
+        internal static string GetDiagnosticLocation(RuntimeExport export)
+        {
+            Requires.NotNull(export, "export");
+
+            if (export.Member != null)
+            {
+                return string.Format(
+                    CultureInfo.CurrentCulture,
+                    "{0}.{1}",
+                    export.DeclaringType.Resolve().FullName,
+                    export.Member.Name);
+            }
+            else
+            {
+                return export.DeclaringType.Resolve().FullName;
+            }
         }
 
         private static RuntimePart CreateRuntimePart(ComposedPart part, CompositionConfiguration configuration)

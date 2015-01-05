@@ -16,6 +16,37 @@
         private static readonly Assembly mscorlib = typeof(int).GetTypeInfo().Assembly;
 
         /// <summary>
+        /// Describes how compatible an export and import site pair are.
+        /// </summary>
+        internal enum Assignability
+        {
+            /// <summary>
+            /// Static analysis of the types involved guarantee that assignment will succeed at runtime.
+            /// </summary>
+            /// <remarks>
+            /// For example, a property typed as string will always export a value assignable to an import of type string.
+            /// </remarks>
+            Definitely,
+
+            /// <summary>
+            /// Static analysis cannot definitively say whether assignment at runtime will succeed.
+            /// </summary>
+            /// <remarks>
+            /// For example, a property typed as "object" that exports IFoo may return an IFoo object at runtime (success),
+            /// or it may return a System.String object (failure).
+            /// </remarks>
+            Maybe,
+
+            /// <summary>
+            /// Static analysis of the types involved guarantee that assignment will fail at runtime.
+            /// </summary>
+            /// <remarks>
+            /// For example, a property typed as string will never export a value assignable to an import of type int.
+            /// </remarks>
+            DefinitelyNot,
+        }
+
+        /// <summary>
         /// Creates a <see cref="Func{T}"/> delegate for a given <see cref="Func{Object}"/> delegate.
         /// </summary>
         /// <param name="typeArg">The <c>T</c> type argument for the returned function's return type.</param>
@@ -42,7 +73,7 @@
                 && type2Info.IsAssignableFrom(type1Info);
         }
 
-        internal static bool IsAssignableTo(ImportDefinitionBinding import, ExportDefinitionBinding export)
+        internal static Assignability IsAssignableTo(ImportDefinitionBinding import, ExportDefinitionBinding export)
         {
             Requires.NotNull(import, "import");
             Requires.NotNull(export, "export");
@@ -63,17 +94,31 @@
                 try
                 {
                     ((MethodInfo)export.ExportingMember).CreateDelegate(receivingType, null);
-                    return true;
+                    return Assignability.Definitely;
                 }
                 catch (ArgumentException)
                 {
-                    return false;
+                    return Assignability.DefinitelyNot;
                 }
             }
             else
             {
                 // Utilize the standard assignability checks for everything else.
-                return receivingType.GetTypeInfo().IsAssignableFrom(exportingType.GetTypeInfo());
+                if (receivingType.GetTypeInfo().IsAssignableFrom(exportingType.GetTypeInfo()))
+                {
+                    return Assignability.Definitely;
+                }
+
+                bool valueTypeKnownExactly =
+                    export.ExportingMemberRef.IsEmpty || // When [Export] appears on the type itself, we instantiate that exact type.
+                    exportingType.IsSealed;
+                if (valueTypeKnownExactly)
+                {
+                    // There is no way that an exported value can implement the required types to make it assignable.
+                    return Assignability.DefinitelyNot;
+                }
+
+                return Assignability.Maybe;
             }
         }
 
