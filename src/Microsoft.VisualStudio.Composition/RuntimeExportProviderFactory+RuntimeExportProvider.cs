@@ -97,6 +97,25 @@
                 public object Value { get; private set; }
             }
 
+            private static void ThrowIfExportedValueIsNotAssignableToImport(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, object exportedValue)
+            {
+                Requires.NotNull(import, "import");
+                Requires.NotNull(export, "export");
+
+                if (exportedValue != null)
+                {
+                    if (!import.ImportingSiteTypeWithoutCollection.IsAssignableFrom(exportedValue.GetType()))
+                    {
+                        throw new CompositionFailedException(
+                            string.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.ExportedValueNotAssignableToImport,
+                                RuntimeComposition.GetDiagnosticLocation(export),
+                                RuntimeComposition.GetDiagnosticLocation(import)));
+                    }
+                }
+            }
+
             private ValueForImportSite GetValueForImportSite(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import)
             {
                 Requires.NotNull(import, "import");
@@ -115,6 +134,7 @@
                             {
                                 intArray.Value[0] = i++;
                                 var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
+                                ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue);
                                 array.SetValue(exportedValue, intArray.Value);
                             }
                         }
@@ -166,6 +186,7 @@
                         foreach (var export in exports)
                         {
                             var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
+                            ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue);
                             collectionAccessor.Add(exportedValue);
                         }
 
@@ -181,6 +202,7 @@
                     }
 
                     var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
+                    ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue);
                     return new ValueForImportSite(exportedValue);
                 }
             }
@@ -480,11 +502,24 @@
                     {
                         foreach (var import in this.partDefinition.ImportingMembers)
                         {
-                            ValueForImportSite value = this.OwningExportProvider.GetValueForImportSite(this, import);
-                            if (value.ValueShouldBeSet)
+                            try
                             {
-                                SetImportingMember(this.Value, import.ImportingMember, value.Value);
+                                ValueForImportSite value = this.OwningExportProvider.GetValueForImportSite(this, import);
+                                if (value.ValueShouldBeSet)
+                                {
+                                    SetImportingMember(this.Value, import.ImportingMember, value.Value);
+                                }
                             }
+                            catch (CompositionFailedException ex)
+                            {
+                                throw new CompositionFailedException(
+                                    string.Format(
+                                        CultureInfo.CurrentCulture,
+                                        Strings.ErrorWhileSettingImport,
+                                        RuntimeComposition.GetDiagnosticLocation(import)),
+                                    ex);
+                            }
+
                         }
                     }
                     catch (TargetInvocationException ex)

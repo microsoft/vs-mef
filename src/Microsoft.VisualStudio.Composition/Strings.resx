@@ -117,8 +117,14 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ErrorWhileSettingImport" xml:space="preserve">
+    <value>Import "{0}" could not be satisfied.</value>
+  </data>
   <data name="ExceptionThrownByPartUnderInitialization" xml:space="preserve">
     <value>An exception was thrown while initializing part "{0}".</value>
+  </data>
+  <data name="ExportedValueNotAssignableToImport" xml:space="preserve">
+    <value>Value exported from "{0}" cannot be assigned to import site "{1}".</value>
   </data>
   <data name="PartIsNotInstantiable" xml:space="preserve">
     <value>This part ({0}) cannot be instantiated.</value>

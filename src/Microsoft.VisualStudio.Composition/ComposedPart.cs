@@ -108,7 +108,7 @@
 
                 foreach (var export in pair.Value)
                 {
-                    if (!ReflectionHelpers.IsAssignableTo(pair.Key, export))
+                    if (ReflectionHelpers.IsAssignableTo(pair.Key, export) == ReflectionHelpers.Assignability.DefinitelyNot)
                     {
                         yield return new ComposedPartDiagnostic(
                             this,
