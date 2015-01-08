@@ -61,6 +61,15 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Instantiated part(s) threw exception(s) from IDisposable.Dispose()..
+        /// </summary>
+        internal static string ContainerDisposalEncounteredExceptions {
+            get {
+                return ResourceManager.GetString("ContainerDisposalEncounteredExceptions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Import &quot;{0}&quot; could not be satisfied..
         /// </summary>
         internal static string ErrorWhileSettingImport {
