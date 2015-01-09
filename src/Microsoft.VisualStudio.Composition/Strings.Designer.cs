@@ -61,11 +61,29 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Import &quot;{0}&quot; could not be satisfied..
+        /// </summary>
+        internal static string ErrorWhileSettingImport {
+            get {
+                return ResourceManager.GetString("ErrorWhileSettingImport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An exception was thrown while initializing part &quot;{0}&quot;..
         /// </summary>
         internal static string ExceptionThrownByPartUnderInitialization {
             get {
                 return ResourceManager.GetString("ExceptionThrownByPartUnderInitialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value exported from &quot;{0}&quot; cannot be assigned to import site &quot;{1}&quot;..
+        /// </summary>
+        internal static string ExportedValueNotAssignableToImport {
+            get {
+                return ResourceManager.GetString("ExportedValueNotAssignableToImport", resourceCulture);
             }
         }
         
@@ -84,6 +102,15 @@ namespace Microsoft.VisualStudio.Composition {
         internal static string ScanningMEFAssemblies {
             get {
                 return ResourceManager.GetString("ScanningMEFAssemblies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected {0} export(s) with contract name &quot;{1}&quot; but found {2} after applying applicable constraints..
+        /// </summary>
+        internal static string UnexpectedNumberOfExportsFound {
+            get {
+                return ResourceManager.GetString("UnexpectedNumberOfExportsFound", resourceCulture);
             }
         }
         

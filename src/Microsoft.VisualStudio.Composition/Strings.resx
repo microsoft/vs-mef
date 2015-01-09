@@ -117,14 +117,23 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ErrorWhileSettingImport" xml:space="preserve">
+    <value>Import "{0}" could not be satisfied.</value>
+  </data>
   <data name="ExceptionThrownByPartUnderInitialization" xml:space="preserve">
     <value>An exception was thrown while initializing part "{0}".</value>
+  </data>
+  <data name="ExportedValueNotAssignableToImport" xml:space="preserve">
+    <value>Value exported from "{0}" cannot be assigned to import site "{1}".</value>
   </data>
   <data name="PartIsNotInstantiable" xml:space="preserve">
     <value>This part ({0}) cannot be instantiated.</value>
   </data>
   <data name="ScanningMEFAssemblies" xml:space="preserve">
     <value>Scanning MEF assemblies...</value>
+  </data>
+  <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
+    <value>Expected {0} export(s) with contract name "{1}" but found {2} after applying applicable constraints.</value>
   </data>
   <data name="UnexpectedSharedPartState" xml:space="preserve">
     <value>This shared part is in state {0} but must be in state {1} for this operation.</value>

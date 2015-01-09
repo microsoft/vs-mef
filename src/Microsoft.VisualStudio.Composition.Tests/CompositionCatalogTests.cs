@@ -45,20 +45,59 @@
         }
 
         [Fact]
-        public async Task GetAssemblyInputs()
+        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningParts()
         {
             var catalog = ComposableCatalog.Create(
                 await new AttributedPartDiscoveryV1().CreatePartsAsync(typeof(NonExportingType), typeof(ExportingType)));
 
-            var expected = new AssemblyName[] { typeof(NonExportingType).Assembly.GetName() };
+            var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default) {
+                typeof(NonExportingType).Assembly.GetName(),
+                typeof(object).Assembly.GetName(),
+            };
             var actual = catalog.GetInputAssemblies();
-            Assert.Equal(expected, actual, AssemblyNameComparer.Default);
+            Assert.True(expected.SetEquals(actual));
+        }
+
+        [Fact]
+        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningBaseTypesOfParts()
+        {
+            var catalog = ComposableCatalog.Create(
+                await new AttributedPartDiscoveryV1().CreatePartsAsync(typeof(ExportingTypeDerivesFromOtherAssembly)));
+
+            var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default) {
+                typeof(ExportingTypeDerivesFromOtherAssembly).Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.NonPart).Assembly.GetName(),
+                typeof(object).Assembly.GetName(),
+            };
+            var actual = catalog.GetInputAssemblies();
+            Assert.True(expected.SetEquals(actual));
+        }
+
+        [Fact]
+        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningInterfacesOfParts()
+        {
+            var catalog = ComposableCatalog.Create(
+                await new AttributedPartDiscoveryV1().CreatePartsAsync(typeof(ExportingTypeImplementsFromOtherAssembly)));
+
+            var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default) {
+                typeof(ExportingTypeImplementsFromOtherAssembly).Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
+                typeof(object).Assembly.GetName(),
+            };
+            var actual = catalog.GetInputAssemblies();
+            Assert.True(expected.SetEquals(actual));
         }
 
         public class NonExportingType { }
 
         [Export, MEFv1.Export]
         public class ExportingType { }
+
+        [Export, MEFv1.Export]
+        public class ExportingTypeDerivesFromOtherAssembly : AssemblyDiscoveryTests.NonPart { }
+
+        [Export, MEFv1.Export]
+        public class ExportingTypeImplementsFromOtherAssembly : AssemblyDiscoveryTests.ISomeInterface { }
 
         private class AssemblyNameComparer : IEqualityComparer<AssemblyName>
         {
