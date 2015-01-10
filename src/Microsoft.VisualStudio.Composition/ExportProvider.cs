@@ -301,9 +301,29 @@
                     }
                 }
 
+                // Take care to give all disposal parts a chance to dispose
+                // even if some parts throw exceptions.
+                List<Exception> exceptions = null;
                 foreach (var item in disposableSnapshot)
                 {
-                    item.Dispose();
+                    try
+                    {
+                        item.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (exceptions == null)
+                        {
+                            exceptions = new List<Exception>();
+                        }
+
+                        exceptions.Add(ex);
+                    }
+                }
+
+                if (exceptions != null)
+                {
+                    throw new AggregateException(Strings.ContainerDisposalEncounteredExceptions, exceptions);
                 }
             }
         }

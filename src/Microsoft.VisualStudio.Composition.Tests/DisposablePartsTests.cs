@@ -203,6 +203,110 @@
 
         #endregion
 
+        #region Part throws in Dispose
+
+        /// <summary>
+        /// This test documents MEFv1/v2 behavior that disposal of a container is aborted
+        /// when a part's Dispose method throws.
+        /// </summary>
+        [MefFact(CompositionEngines.V1 | CompositionEngines.V2, typeof(DisposeOrderTracker), typeof(PartThrowsInDispose), typeof(NoThrow1), NoCompatGoal = true)]
+        public void DisposeContainerAbortsWhenPartDisposeThrowsV1V2(IContainer container)
+        {
+            var throwingPart = container.GetExportedValue<PartThrowsInDispose>();
+            var nonThrowingPart = container.GetExportedValue<NoThrow1>();
+            var tracker = container.GetExportedValue<DisposeOrderTracker>();
+
+            // For the verification to be valid, we need to verify that disposal continues *after*
+            // the part that throws is disposed of. Since order of part disposal is undefined,
+            // this test may be a bit fragile to product changes and may need to be touched up
+            // periodically to try to get the throwing part to be disposed of before some other part.
+            try
+            {
+                container.Dispose();
+            }
+            catch (InvalidOperationException)
+            {
+            }
+
+            Assert.False(tracker.WasPartDisposedAfterThrowingPartDisposed);
+        }
+
+        /// <summary>
+        /// Verifies that MEFv3 disposes all parts even if some of them throw.
+        /// </summary>
+        /// <param name="container"></param>
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(DisposeOrderTracker), typeof(PartThrowsInDispose), typeof(NoThrow1))]
+        public void DisposeContainerDisposesAllPartsEvenIfTheyThrowV3(IContainer container)
+        {
+            var throwingPart = container.GetExportedValue<PartThrowsInDispose>();
+            var nonThrowingPart = container.GetExportedValue<NoThrow1>();
+            var tracker = container.GetExportedValue<DisposeOrderTracker>();
+
+            // For the verification to be valid, we need to verify that disposal continues *after*
+            // the part that throws is disposed of. Since order of part disposal is undefined,
+            // this test may be a bit fragile to product changes and may need to be touched up
+            // periodically to try to get the throwing part to be disposed of before some other part.
+            try
+            {
+                container.Dispose();
+            }
+            catch (AggregateException ex)
+            {
+                // We accept that MEF will allow the exception to propagate to us.
+                // We just want it to have finished the job first.
+                Assert.IsType<InvalidOperationException>(ex.InnerException);
+            }
+
+            Assert.True(tracker.WasPartDisposedAfterThrowingPartDisposed);
+        }
+
+        [Export, Shared, MefV1.Export]
+        public class DisposeOrderTracker
+        {
+            private bool throwingPartDisposed;
+
+            public bool WasPartDisposedAfterThrowingPartDisposed { get; private set; }
+
+            public void ReportThrowingPartDisposed()
+            {
+                this.throwingPartDisposed = true;
+            }
+
+            public void ReportNonThrowingPartDisposed()
+            {
+                // Only set to true if the throwing part was already disposed of
+                // since we're trying to test exactly that case.
+                this.WasPartDisposedAfterThrowingPartDisposed |= this.throwingPartDisposed;
+            }
+        }
+
+        [Export, MefV1.Export]
+        public class PartThrowsInDispose : IDisposable
+        {
+            [Import, MefV1.Import]
+            public DisposeOrderTracker Tracker { get; set; }
+
+            public void Dispose()
+            {
+                this.Tracker.ReportThrowingPartDisposed();
+                throw new InvalidOperationException("oops");
+            }
+        }
+
+        [Export, MefV1.Export]
+        public class NoThrow1 : IDisposable
+        {
+            [Import, MefV1.Import]
+            public DisposeOrderTracker Tracker { get; set; }
+
+            public void Dispose()
+            {
+                this.Tracker.ReportNonThrowingPartDisposed();
+            }
+        }
+
+        #endregion
+
         [MefFact(CompositionEngines.V1Compat, new Type[0])]
         public void ContainerThrowsAfterDisposal(IContainer container)
         {
@@ -230,7 +334,19 @@
         public void DisposeEvaluatesLazyImportThatLoopsBackV1(IContainer container)
         {
             var value = container.GetExportedValue<PartWithDisposeThatEvaluatesLazyImport>();
-            Assert.Throws<ObjectDisposedException>(() => container.Dispose());
+            try
+            {
+                container.Dispose();
+            }
+            catch (ObjectDisposedException)
+            {
+                // MEFv1 and MEFv2 throw this
+            }
+            catch (AggregateException ex)
+            {
+                // MEFv3 throws this.
+                ex.Handle(e => e is ObjectDisposedException);
+            }
         }
 
         [MefFact(CompositionEngines.V2, typeof(PartWithDisposeThatEvaluatesLazyImport), typeof(PartThatImportsDisposeWithLazyImport), NoCompatGoal = true)]
@@ -282,7 +398,19 @@
         {
             var factory = container.GetExportedValue<SharingBoundaryFactory>();
             var export = factory.Factory.CreateExport();
-            Assert.Throws<ObjectDisposedException>(() => export.Dispose());
+            try
+            {
+                export.Dispose();
+            }
+            catch (ObjectDisposedException)
+            {
+                // MEFv1 and MEFv2 throw this
+            }
+            catch (AggregateException ex)
+            {
+                // MEFv3 throws this.
+                ex.Handle(e => e is ObjectDisposedException);
+            }
         }
 
         [Export, Shared]
