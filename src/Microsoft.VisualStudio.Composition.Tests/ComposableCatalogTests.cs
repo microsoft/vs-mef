@@ -1,6 +1,5 @@
 ﻿namespace Microsoft.VisualStudio.Composition.Tests
 {
-    using Microsoft.VisualStudio.Composition.Reflection;
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
@@ -8,6 +7,7 @@
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Xunit;
 
     public class ComposableCatalogTests
