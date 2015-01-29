@@ -21,6 +21,7 @@
     <AsmmetaDependsOnMSBuildInVS Condition="'$(VSMSBUILD)' != '1'">true</AsmmetaDependsOnMSBuildInVS>
     <AssemblyAttributeClsCompliant>false</AssemblyAttributeClsCompliant>
     <CopyToSuiteBin>true</CopyToSuiteBin>
+    <GenerateLCE>true</GenerateLCE>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -114,10 +115,19 @@
     <Compile Include="CompiledComposition.cs" />
     <Compile Include="ExportMetadataViewInterfaceEmitProxy.cs" />
     <Compile Include="MetadataViewGenerator.cs" />
+    <Compile Include="Strings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
     <Compile Include="SerializationContextBase.cs" />
     <Compile Include="SyntaxCodeGeneration.cs" />
     <Compile Include="NetFxAdapters.cs" />
     <Compile Include="Tasks\ExceptionHelpers.cs" />
+    <EmbeddedResource Include="Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="Tasks\ExportProviderFactory.cs" />
     <Compile Include="Tasks\CreateComposition.cs" />
     <Compile Include="Tasks\CreateContainerFactoryBootstrapFile.cs" />
