@@ -23,7 +23,7 @@
         {
             Requires.NotNull(configuration, "configuration");
             Requires.NotNull(cacheStream, "cacheStream");
-            Requires.Argument(cacheStream.CanWrite, "cacheStream", "Writable stream required.");
+            Requires.Argument(cacheStream.CanWrite, "cacheStream", Strings.WritableStreamRequired);
 
             return Task.Run(async delegate
             {
@@ -37,7 +37,7 @@
         {
             Requires.NotNull(composition, "composition");
             Requires.NotNull(cacheStream, "cacheStream");
-            Requires.Argument(cacheStream.CanWrite, "cacheStream", "Writable stream required.");
+            Requires.Argument(cacheStream.CanWrite, "cacheStream", Strings.WritableStreamRequired);
 
             return Task.Run(() =>
             {
@@ -53,7 +53,7 @@
         public Task<RuntimeComposition> LoadRuntimeCompositionAsync(Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(cacheStream, "cacheStream");
-            Requires.Argument(cacheStream.CanRead, "cacheStream", "Readable stream required.");
+            Requires.Argument(cacheStream.CanRead, "cacheStream", Strings.ReadableStreamRequired);
 
             return Task.Run(() =>
             {
