@@ -62,8 +62,6 @@
         /// </remarks>
         private readonly Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>> metadataViewProviders;
 
-        private readonly object syncObject = new object();
-
         /// <summary>
         /// A map of shared boundary names to their shared instances.
         /// The value is a dictionary of types to their lazily-constructed instances and state.
@@ -577,9 +575,9 @@
 
         private bool TryGetSharedInstanceFactory(string partSharingBoundary, TypeRef partTypeRef, out PartLifecycleTracker value)
         {
-            lock (this.syncObject)
+            var sharingBoundary = this.AcquireSharingBoundaryInstances(partSharingBoundary);
+            lock (sharingBoundary)
             {
-                var sharingBoundary = AcquireSharingBoundaryInstances(partSharingBoundary);
                 bool result = sharingBoundary.TryGetValue(partTypeRef, out value);
                 return result;
             }
@@ -590,9 +588,9 @@
             Requires.NotNull(partTypeRef, "partTypeRef");
             Requires.NotNull(value, "value");
 
-            lock (this.syncObject)
+            var sharingBoundary = this.AcquireSharingBoundaryInstances(partSharingBoundary);
+            lock (sharingBoundary)
             {
-                var sharingBoundary = AcquireSharingBoundaryInstances(partSharingBoundary);
                 PartLifecycleTracker priorValue;
                 if (sharingBoundary.TryGetValue(partTypeRef, out priorValue))
                 {
@@ -805,6 +803,12 @@
             return metadataViewProvider;
         }
 
+        /// <summary>
+        /// Gets the shared parts dictionary with a given sharing boundary name.
+        /// </summary>
+        /// <param name="sharingBoundaryName">The name of the sharing boundary.</param>
+        /// <returns>The dictionary containing parts and instances. Never null.</returns>
+        /// <exception cref="CompositionFailedException">Thrown if the dictionary for the given sharing boundary isn't found.</exception>
         private Dictionary<TypeRef, PartLifecycleTracker> AcquireSharingBoundaryInstances(string sharingBoundaryName)
         {
             Requires.NotNull(sharingBoundaryName, "sharingBoundaryName");
