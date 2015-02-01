@@ -547,5 +547,62 @@
         [Export, Shared]
         [MefV1.Export]
         public class RandomExport { }
+
+        #region ParentAndChildExportProviderRaceForSharedPart
+
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(GrandchildExport), typeof(ParentExport), typeof(ChildExport), typeof(ChildSiblingExport))]
+        public void ParentAndChildExportProviderRaceForSharedPart(IContainer container)
+        {
+            var parent = container.GetExportedValue<ParentExport>();
+
+            for (int j = 0; j < 20; j++)
+            {
+                using (var child = parent.ChildFactory.CreateExport())
+                {
+                    var participants = new Task[Environment.ProcessorCount];
+                    using (var barrier = new Barrier(participants.Length))
+                    {
+                        for (int i = 0; i < participants.Length; i++)
+                        {
+                            participants[i] = Task.Run(delegate
+                            {
+                                barrier.SignalAndWait();
+                                var grandchild = child.Value.GrandchildFactory.CreateExport();
+                                object stub = grandchild.Value;
+                                grandchild.Dispose();
+                            });
+                        }
+
+                        Task.WaitAll(participants);
+                    }
+                }
+            }
+        }
+
+        [Export, Shared]
+        public class ParentExport
+        {
+            [Import, SharingBoundary("ChildBoundary")]
+            public ExportFactory<ChildExport> ChildFactory { get; set; }
+        }
+
+        [Export, Shared("ChildBoundary")]
+        public class ChildSiblingExport { }
+
+        [Export, Shared("ChildBoundary")]
+        public class ChildExport
+        {
+            [Import, SharingBoundary("GrandchildBoundary")]
+            public ExportFactory<GrandchildExport> GrandchildFactory { get; set; }
+        }
+
+        [Export, Shared("GrandchildBoundary")]
+        public class GrandchildExport
+        {
+            [Import]
+            public ChildSiblingExport Export { get; set; }
+        }
+
+        #endregion
     }
 }
