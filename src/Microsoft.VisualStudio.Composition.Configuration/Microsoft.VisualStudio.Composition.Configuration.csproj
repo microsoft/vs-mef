@@ -115,18 +115,18 @@
     <Compile Include="CompiledComposition.cs" />
     <Compile Include="ExportMetadataViewInterfaceEmitProxy.cs" />
     <Compile Include="MetadataViewGenerator.cs" />
-    <Compile Include="Strings.Designer.cs">
+    <Compile Include="ConfigurationStrings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>Strings.resx</DependentUpon>
+      <DependentUpon>ConfigurationStrings.resx</DependentUpon>
     </Compile>
     <Compile Include="SerializationContextBase.cs" />
     <Compile Include="SyntaxCodeGeneration.cs" />
     <Compile Include="NetFxAdapters.cs" />
     <Compile Include="Tasks\ExceptionHelpers.cs" />
-    <EmbeddedResource Include="Strings.resx">
+    <EmbeddedResource Include="ConfigurationStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+      <LastGenOutput>ConfigurationStrings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Tasks\ExportProviderFactory.cs" />
     <Compile Include="Tasks\CreateComposition.cs" />
