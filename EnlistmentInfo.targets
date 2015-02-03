@@ -5,4 +5,18 @@
   </PropertyGroup>
 
   <Import Project="$(DepotRoot)\Tools\Derazzle\Common.targets"/>
+
+  <ItemDefinitionGroup>
+    <FilesToSign Condition=" '$(DevDivProjectType)' == 'product' ">
+      <Authenticode>MicrosoftSHA2</Authenticode>
+      <StrongName>StrongName</StrongName>
+    </FilesToSign>
+    <FilesToSign Condition=" '$(DevDivProjectType)' == 'vsix' ">
+      <Authenticode>vsix</Authenticode>
+    </FilesToSign>
+  </ItemDefinitionGroup>
+
+  <ItemGroup Condition=" '$(Nonshipping)' != 'true' ">
+    <FilesToSign Include="$(TargetPath)" />
+  </ItemGroup>
 </Project>
