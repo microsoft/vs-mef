@@ -18,5 +18,6 @@
 
   <ItemGroup Condition=" '$(Nonshipping)' != 'true' ">
     <FilesToSign Include="$(TargetPath)" />
+    <FilesToSign Include="$(OutDir)Localize\*\$(TargetName).resources$(TargetExt)" />
   </ItemGroup>
 </Project>
