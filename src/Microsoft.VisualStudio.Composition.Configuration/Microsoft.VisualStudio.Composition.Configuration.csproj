@@ -133,6 +133,17 @@
     <Compile Include="Tasks\CreateContainerFactoryBootstrapFile.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="$(DepotRoot)\Tools\RunMeElevated.cmd">
+      <Link>UpdateVS\RunMeElevated.cmd</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="$(DepotRoot)\Tools\Elevate.exe">
+      <Link>UpdateVS\Elevate.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="UpdateVS\UpdateVS.cmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
