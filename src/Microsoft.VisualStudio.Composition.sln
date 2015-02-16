@@ -17,7 +17,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Comp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver", "Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver\Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver.csproj", "{843DB118-C15B-48B5-A9DC-B815CC788CEF}"
 EndProject
-Project("{FF286327-C783-4F7A-AB73-9BCBAD0D4460}") = "NuGetPackage", "NuGetPackage\NuGetPackage.nuproj", "{E0F18440-CA64-4FBD-BD55-E912B663BA16}"
+Project("{FF286327-C783-4F7A-AB73-9BCBAD0D4460}") = "Microsoft.VisualStudio.Composition.AppHost.NuGet", "Microsoft.VisualStudio.Composition.AppHost.NuGet\Microsoft.VisualStudio.Composition.AppHost.NuGet.nuproj", "{E0F18440-CA64-4FBD-BD55-E912B663BA16}"
+EndProject
+Project("{FF286327-C783-4F7A-AB73-9BCBAD0D4460}") = "Microsoft.VisualStudio.Composition.NuGet", "Microsoft.VisualStudio.Composition.NuGet\Microsoft.VisualStudio.Composition.NuGet.nuproj", "{2101EA0E-1443-40C1-AF3B-F5C6B5B0A523}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver", "Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver\Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver.csproj", "{3E996534-55E8-428D-8668-2C49E8770F32}"
 EndProject
