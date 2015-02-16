@@ -61,6 +61,9 @@
     <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.Text.UI, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="Microsoft.VisualStudio.Validation, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.VisualStudio.Validation.14.0.0-pre-95a85e9492\lib\net45\Microsoft.VisualStudio.Validation.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <Private>True</Private>
@@ -102,13 +105,6 @@
     <Reference Include="xunit.runner.visualstudio.testadapter">
       <HintPath>$(NuGetPackageRestorePath)xunit.runner.visualstudio.0.99.2\lib\xunit.runner.visualstudio.testadapter.dll</HintPath>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <ModuleReference Include="Microsoft.VisualStudio.Validation" />
-  </ItemGroup>
-  <ItemGroup>
-    <!-- hack to fix the language service in VS. -->
-    <ProjectReference Include="..\..\Microsoft.VisualStudio.Validation\Microsoft.VisualStudio.Validation.csproj" Condition="false" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Microsoft.VisualStudio.Composition\ArrayRental`1.cs">
