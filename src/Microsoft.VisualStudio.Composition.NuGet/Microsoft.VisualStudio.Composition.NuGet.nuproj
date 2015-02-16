@@ -25,8 +25,7 @@
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
     <ReleaseNotes>
     </ReleaseNotes>
-    <ProjectUrl>
-    </ProjectUrl>
+    <ProjectUrl>https://mseng.visualstudio.com/DefaultCollection/VSIDEProj/_git/VSIDEProj.MEF/</ProjectUrl>
     <LicenseUrl>
     </LicenseUrl>
     <Tags>mef</Tags>
