@@ -147,7 +147,7 @@
                 if (invalidParts.IsEmpty)
                 {
                     // If we can't identify the faulty parts but we still have errors, we have to just throw.
-                    throw new CompositionFailedException("Failed to find a stable composition.", ImmutableStack.Create<IReadOnlyCollection<ComposedPartDiagnostic>>(errors));
+                    throw new CompositionFailedException(Strings.FailStableComposition, ImmutableStack.Create<IReadOnlyCollection<ComposedPartDiagnostic>>(errors));
                 }
 
                 var salvagedParts = catalog.Parts.Except(invalidParts);
@@ -244,7 +244,7 @@
                 return this;
             }
 
-            throw new CompositionFailedException("Errors exist in the composition.", this.CompositionErrors);
+            throw new CompositionFailedException(Strings.ErrorsInComposition, this.CompositionErrors);
         }
 
         internal CompositionConfiguration WithErrors(IReadOnlyCollection<ComposedPartDiagnostic> errors)
@@ -393,7 +393,7 @@
                         throw new CompositionFailedException(
                             string.Format(
                                 CultureInfo.CurrentCulture,
-                                "Unable to determine the primary sharing boundary for MEF part \"{0}\".",
+                                Strings.UnableToDeterminePrimarySharingBoundary,
                                 ReflectionHelpers.GetTypeName(partBuilder.PartDefinition.Type, false, true, null, null)));
                     }
                 }

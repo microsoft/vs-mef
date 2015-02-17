@@ -328,7 +328,7 @@
 
         protected static object CannotInstantiatePartWithNoImportingConstructor()
         {
-            throw new CompositionFailedException("No importing constructor");
+            throw new CompositionFailedException(Strings.NoImportingConstructor);
         }
 
         /// <summary>
@@ -791,7 +791,7 @@
 
                 if (metadataViewProvider == null)
                 {
-                    throw new NotSupportedException("Type of metadata view is unsupported.");
+                    throw new NotSupportedException(Strings.TypeOfMetadataViewUnsupported);
                 }
 
                 lock (this.typeAndSelectedMetadataViewProviderCache)
@@ -818,7 +818,7 @@
             {
                 // This means someone is trying to create a part
                 // that belongs to a sharing boundary that has not yet been created.
-                throw new CompositionFailedException("Inappropriate request for export from part that belongs to another sharing boundary.");
+                throw new CompositionFailedException(Strings.PartBelongsToAnotherSharingBoundary);
             }
 
             return sharingBoundary;
@@ -1479,7 +1479,7 @@
 
             protected override void Dispose(bool disposing)
             {
-                throw new InvalidOperationException("This instance is an import and cannot be directly disposed.");
+                throw new InvalidOperationException(Strings.CannotDirectlyDisposeAnImport);
             }
         }
     }

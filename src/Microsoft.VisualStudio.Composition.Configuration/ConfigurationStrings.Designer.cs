@@ -61,11 +61,65 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Compilation errors occurred..
+        /// </summary>
+        internal static string CompilerErrorsOccurred {
+            get {
+                return ResourceManager.GetString("CompilerErrorsOccurred", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Custom import sources are not yet supported..
+        /// </summary>
+        internal static string CustomImportSourceNotSupported {
+            get {
+                return ResourceManager.GetString("CustomImportSourceNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to generate embeddable types..
+        /// </summary>
+        internal static string FailedToGenerateEmbeddableTypes {
+            get {
+                return ResourceManager.GetString("FailedToGenerateEmbeddableTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The import constraint type {0} is not supported..
+        /// </summary>
+        internal static string ImportConstraintTypeNotSupported {
+            get {
+                return ResourceManager.GetString("ImportConstraintTypeNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Readable stream required..
         /// </summary>
         internal static string ReadableStreamRequired {
             get {
                 return ResourceManager.GetString("ReadableStreamRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected constraint type: {0}..
+        /// </summary>
+        internal static string UnexpectedConstraintType {
+            get {
+                return ResourceManager.GetString("UnexpectedConstraintType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unsupported format: {0}..
+        /// </summary>
+        internal static string UnsupportedFormat {
+            get {
+                return ResourceManager.GetString("UnsupportedFormat", resourceCulture);
             }
         }
         

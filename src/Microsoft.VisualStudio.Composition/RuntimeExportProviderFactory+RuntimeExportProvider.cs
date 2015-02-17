@@ -173,7 +173,7 @@
                             }
                             else
                             {
-                                throw new CompositionFailedException("Unable to instantiate custom import collection type.");
+                                throw new CompositionFailedException(Strings.UnableToInstantiateCustomImportCollectionType);
                             }
                         }
 

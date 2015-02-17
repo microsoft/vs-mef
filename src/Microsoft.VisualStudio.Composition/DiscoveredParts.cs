@@ -39,7 +39,7 @@
                 return this;
             }
 
-            throw new CompositionFailedException("Errors occurred during discovery.", new AggregateException(this.DiscoveryErrors));
+            throw new CompositionFailedException(Strings.ErrorsDuringDiscovery, new AggregateException(this.DiscoveryErrors));
         }
 
         internal DiscoveredParts Merge(DiscoveredParts other)

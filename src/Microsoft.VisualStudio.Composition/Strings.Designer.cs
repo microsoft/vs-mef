@@ -61,11 +61,38 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This instance is an import and cannot be directly disposed..
+        /// </summary>
+        internal static string CannotDirectlyDisposeAnImport {
+            get {
+                return ResourceManager.GetString("CannotDirectlyDisposeAnImport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Instantiated part(s) threw exception(s) from IDisposable.Dispose()..
         /// </summary>
         internal static string ContainerDisposalEncounteredExceptions {
             get {
                 return ResourceManager.GetString("ContainerDisposalEncounteredExceptions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Errors occurred during discovery..
+        /// </summary>
+        internal static string ErrorsDuringDiscovery {
+            get {
+                return ResourceManager.GetString("ErrorsDuringDiscovery", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Errors exist in the composition..
+        /// </summary>
+        internal static string ErrorsInComposition {
+            get {
+                return ResourceManager.GetString("ErrorsInComposition", resourceCulture);
             }
         }
         
@@ -97,6 +124,42 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to find a stable composition..
+        /// </summary>
+        internal static string FailStableComposition {
+            get {
+                return ResourceManager.GetString("FailStableComposition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failure while scanning type &quot;{0}&quot;..
+        /// </summary>
+        internal static string FailureWhileScanningType {
+            get {
+                return ResourceManager.GetString("FailureWhileScanningType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No importing constructor.
+        /// </summary>
+        internal static string NoImportingConstructor {
+            get {
+                return ResourceManager.GetString("NoImportingConstructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Inappropriate request for export from part that belongs to another sharing boundary..
+        /// </summary>
+        internal static string PartBelongsToAnotherSharingBoundary {
+            get {
+                return ResourceManager.GetString("PartBelongsToAnotherSharingBoundary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This part ({0}) cannot be instantiated..
         /// </summary>
         internal static string PartIsNotInstantiable {
@@ -106,11 +169,74 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ReflectionTypeLoadException while enumerating types in assembly &quot;{0}&quot;. Results will be incomplete..
+        /// </summary>
+        internal static string ReflectionTypeLoadExceptionWhileEnumeratingTypes {
+            get {
+                return ResourceManager.GetString("ReflectionTypeLoadExceptionWhileEnumeratingTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Scanning MEF assemblies....
         /// </summary>
         internal static string ScanningMEFAssemblies {
             get {
                 return ResourceManager.GetString("ScanningMEFAssemblies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type of metadata view is unsupported..
+        /// </summary>
+        internal static string TypeOfMetadataViewUnsupported {
+            get {
+                return ResourceManager.GetString("TypeOfMetadataViewUnsupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to determine the primary sharing boundary for MEF part &quot;{0}&quot;..
+        /// </summary>
+        internal static string UnableToDeterminePrimarySharingBoundary {
+            get {
+                return ResourceManager.GetString("UnableToDeterminePrimarySharingBoundary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to enumerate types in assembly &quot;{0}&quot;..
+        /// </summary>
+        internal static string UnableToEnumerateTypes {
+            get {
+                return ResourceManager.GetString("UnableToEnumerateTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to instantiate custom import collection type..
+        /// </summary>
+        internal static string UnableToInstantiateCustomImportCollectionType {
+            get {
+                return ResourceManager.GetString("UnableToInstantiateCustomImportCollectionType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to load assembly &quot;{0}&quot; for scanning..
+        /// </summary>
+        internal static string UnableToLoadAssembly {
+            get {
+                return ResourceManager.GetString("UnableToLoadAssembly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected member type.
+        /// </summary>
+        internal static string UnexpectedMemberType {
+            get {
+                return ResourceManager.GetString("UnexpectedMemberType", resourceCulture);
             }
         }
         

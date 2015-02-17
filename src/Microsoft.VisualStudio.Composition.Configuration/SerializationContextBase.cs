@@ -9,6 +9,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -836,7 +837,7 @@ namespace Microsoft.VisualStudio.Composition
                         var formatter = new BinaryFormatter();
                         return formatter.Deserialize(reader.BaseStream);
                     default:
-                        throw new NotSupportedException("Unsupported format: " + objectType);
+                        throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, ConfigurationStrings.UnsupportedFormat, objectType));
                 }
             }
         }

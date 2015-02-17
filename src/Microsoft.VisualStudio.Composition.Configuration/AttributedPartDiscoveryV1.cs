@@ -255,7 +255,7 @@
             {
                 if (importAttribute.Source != ImportSource.Any)
                 {
-                    throw new NotSupportedException("Custom import sources are not yet supported.");
+                    throw new NotSupportedException(ConfigurationStrings.CustomImportSourceNotSupported);
                 }
 
                 var requiredCreationPolicy = importingType.IsExportFactoryTypeV1()
@@ -277,7 +277,7 @@
             {
                 if (importManyAttribute.Source != ImportSource.Any)
                 {
-                    throw new NotSupportedException("Custom import sources are not yet supported.");
+                    throw new NotSupportedException(ConfigurationStrings.CustomImportSourceNotSupported);
                 }
 
                 var requiredCreationPolicy = GetElementTypeFromMany(importingType).IsExportFactoryTypeV1()

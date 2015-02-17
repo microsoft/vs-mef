@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Text;
@@ -288,7 +289,7 @@
                     }
                     else
                     {
-                        throw new NotSupportedException("The import constraint type " + importConstraint.GetType().FullName + " is not supported.");
+                        throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, ConfigurationStrings.ImportConstraintTypeNotSupported, importConstraint.GetType().FullName));
                     }
 
                     writer.Write((byte)type);
@@ -357,7 +358,7 @@
                             }
 
                         default:
-                            throw new NotSupportedException("Unexpected constraint type: " + type);
+                            throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, ConfigurationStrings.UnexpectedConstraintType, type));
                     }
                 }
             }

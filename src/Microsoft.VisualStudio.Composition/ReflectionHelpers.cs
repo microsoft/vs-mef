@@ -222,7 +222,7 @@
                 return field.FieldType;
             }
 
-            throw new ArgumentException("Unexpected member type.");
+            throw new ArgumentException(Strings.UnexpectedMemberType);
         }
 
         internal static bool IsPublicInstance(this MethodInfo methodInfo)

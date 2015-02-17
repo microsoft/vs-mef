@@ -117,8 +117,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CannotDirectlyDisposeAnImport" xml:space="preserve">
+    <value>This instance is an import and cannot be directly disposed.</value>
+  </data>
   <data name="ContainerDisposalEncounteredExceptions" xml:space="preserve">
     <value>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</value>
+  </data>
+  <data name="ErrorsDuringDiscovery" xml:space="preserve">
+    <value>Errors occurred during discovery.</value>
+  </data>
+  <data name="ErrorsInComposition" xml:space="preserve">
+    <value>Errors exist in the composition.</value>
   </data>
   <data name="ErrorWhileSettingImport" xml:space="preserve">
     <value>Import "{0}" could not be satisfied.</value>
@@ -129,11 +138,44 @@
   <data name="ExportedValueNotAssignableToImport" xml:space="preserve">
     <value>Value exported from "{0}" cannot be assigned to import site "{1}".</value>
   </data>
+  <data name="FailStableComposition" xml:space="preserve">
+    <value>Failed to find a stable composition.</value>
+  </data>
+  <data name="FailureWhileScanningType" xml:space="preserve">
+    <value>Failure while scanning type "{0}".</value>
+  </data>
+  <data name="NoImportingConstructor" xml:space="preserve">
+    <value>No importing constructor</value>
+  </data>
+  <data name="PartBelongsToAnotherSharingBoundary" xml:space="preserve">
+    <value>Inappropriate request for export from part that belongs to another sharing boundary.</value>
+  </data>
   <data name="PartIsNotInstantiable" xml:space="preserve">
     <value>This part ({0}) cannot be instantiated.</value>
   </data>
+  <data name="ReflectionTypeLoadExceptionWhileEnumeratingTypes" xml:space="preserve">
+    <value>ReflectionTypeLoadException while enumerating types in assembly "{0}". Results will be incomplete.</value>
+  </data>
   <data name="ScanningMEFAssemblies" xml:space="preserve">
     <value>Scanning MEF assemblies...</value>
+  </data>
+  <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
+    <value>Type of metadata view is unsupported.</value>
+  </data>
+  <data name="UnableToDeterminePrimarySharingBoundary" xml:space="preserve">
+    <value>Unable to determine the primary sharing boundary for MEF part "{0}".</value>
+  </data>
+  <data name="UnableToEnumerateTypes" xml:space="preserve">
+    <value>Unable to enumerate types in assembly "{0}".</value>
+  </data>
+  <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
+    <value>Unable to instantiate custom import collection type.</value>
+  </data>
+  <data name="UnableToLoadAssembly" xml:space="preserve">
+    <value>Unable to load assembly "{0}" for scanning.</value>
+  </data>
+  <data name="UnexpectedMemberType" xml:space="preserve">
+    <value>Unexpected member type</value>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
     <value>Expected {0} export(s) with contract name "{1}" but found {2} after applying applicable constraints.</value>
