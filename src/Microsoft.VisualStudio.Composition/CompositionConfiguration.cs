@@ -147,7 +147,7 @@
                 if (invalidParts.IsEmpty)
                 {
                     // If we can't identify the faulty parts but we still have errors, we have to just throw.
-                    throw new CompositionFailedException("Failed to find a stable composition.", ImmutableStack.Create<IReadOnlyCollection<ComposedPartDiagnostic>>(errors));
+                    throw new CompositionFailedException(Strings.FailStableComposition, ImmutableStack.Create<IReadOnlyCollection<ComposedPartDiagnostic>>(errors));
                 }
 
                 var salvagedParts = catalog.Parts.Except(invalidParts);
@@ -222,7 +222,7 @@
         public string GetEffectiveSharingBoundary(ComposablePartDefinition partDefinition)
         {
             Requires.NotNull(partDefinition, "partDefinition");
-            Requires.Argument(partDefinition.IsShared, "partDefinition", "Part is not shared.");
+            Requires.Argument(partDefinition.IsShared, "partDefinition", Strings.PartIsNotShared);
 
             return this.effectiveSharingBoundaryOverrides.GetValueOrDefault(partDefinition) ?? partDefinition.SharingBoundary;
         }
@@ -244,7 +244,7 @@
                 return this;
             }
 
-            throw new CompositionFailedException("Errors exist in the composition.", this.CompositionErrors);
+            throw new CompositionFailedException(Strings.ErrorsInComposition, this.CompositionErrors);
         }
 
         internal CompositionConfiguration WithErrors(IReadOnlyCollection<ComposedPartDiagnostic> errors)
@@ -333,7 +333,7 @@
                 {
                     path = path.Push(part);
                     nonSharedPartsInLoops.UnionWith(path);
-                    yield return new ComposedPartDiagnostic(path, "Loop between non-shared parts.");
+                    yield return new ComposedPartDiagnostic(path, Strings.LoopBetweenNonSharedParts);
                 }
             }
 
@@ -353,7 +353,7 @@
                         if (!path.IsEmpty)
                         {
                             path = path.Push(satisfyingPart).Push(partByPartType[importDefinitionBinding.ComposablePartTypeRef]);
-                            yield return new ComposedPartDiagnostic(path, "Loop involving ImportingConstructor argument and all non-lazy imports.");
+                            yield return new ComposedPartDiagnostic(path, Strings.LoopInvolvingImportingCtorArgumentAndAllNonLazyImports);
                         }
                     }
                 }
@@ -393,7 +393,7 @@
                         throw new CompositionFailedException(
                             string.Format(
                                 CultureInfo.CurrentCulture,
-                                "Unable to determine the primary sharing boundary for MEF part \"{0}\".",
+                                Strings.UnableToDeterminePrimarySharingBoundary,
                                 ReflectionHelpers.GetTypeName(partBuilder.PartDefinition.Type, false, true, null, null)));
                     }
                 }

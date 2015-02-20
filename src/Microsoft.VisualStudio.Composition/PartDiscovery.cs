@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.CompilerServices;
@@ -125,7 +126,7 @@
                     {
                         lock (exceptions)
                         {
-                            exceptions.Add(new PartDiscoveryException("Unable to load assembly \"" + path + "\" for scanning.", ex) { AssemblyPath = path });
+                            exceptions.Add(new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.UnableToLoadAssembly, path), ex) { AssemblyPath = path });
                         }
 
                         return Enumerable.Empty<Assembly>();
@@ -322,7 +323,7 @@
                 return true;
             }
 
-            Verify.Operation(icollectionOfT.GetTypeInfo().IsAssignableFrom(collectionType.GetTypeInfo()), "Collection type must derive from ICollection<T>");
+            Verify.Operation(icollectionOfT.GetTypeInfo().IsAssignableFrom(collectionType.GetTypeInfo()), Strings.CollectionTypeMustDeriveFromICollectionOfT);
 
             var defaultCtor = collectionType.GetTypeInfo().DeclaredConstructors.FirstOrDefault(ctor => !ctor.IsStatic && ctor.GetParameters().Length == 0);
             if (defaultCtor != null && defaultCtor.IsPublic)
@@ -367,7 +368,7 @@
                     }
                     catch (Exception ex)
                     {
-                        return new PartDiscoveryException("Failure while scanning type \"" + type.FullName + "\".", ex) { AssemblyPath = type.Assembly.Location, ScannedType = type };
+                        return new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.FailureWhileScanningType, type.FullName), ex) { AssemblyPath = type.Assembly.Location, ScannedType = type };
                     }
                 },
                 new ExecutionDataflowBlockOptions
@@ -432,7 +433,7 @@
                     }
                     catch (ReflectionTypeLoadException ex)
                     {
-                        var partDiscoveryException = new PartDiscoveryException("ReflectionTypeLoadException while enumerating types in assembly \"" + a.Location + "\". Results will be incomplete.", ex) { AssemblyPath = a.Location };
+                        var partDiscoveryException = new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.ReflectionTypeLoadExceptionWhileEnumeratingTypes, a.Location), ex) { AssemblyPath = a.Location };
                         lock (exceptions)
                         {
                             exceptions.Add(partDiscoveryException);
@@ -442,7 +443,7 @@
                     }
                     catch (Exception ex)
                     {
-                        var partDiscoveryException = new PartDiscoveryException("Unable to enumerate types in assembly \"" + a.Location + "\".", ex) { AssemblyPath = a.Location };
+                        var partDiscoveryException = new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.UnableToEnumerateTypes, a.Location), ex) { AssemblyPath = a.Location };
                         lock (exceptions)
                         {
                             exceptions.Add(partDiscoveryException);

@@ -35,8 +35,8 @@
         private TypeRef(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex)
         {
             Requires.NotNull(assemblyName, "assemblyName");
-            Requires.Argument(((MetadataTokenType)metadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type, "metadataToken", "Not a type spec.");
-            Requires.Argument(metadataToken != (int)MetadataTokenType.Type, "metadataToken", "Unresolvable metadata token.");
+            Requires.Argument(((MetadataTokenType)metadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type, "metadataToken", Strings.NotATypeSpec);
+            Requires.Argument(metadataToken != (int)MetadataTokenType.Type, "metadataToken", Strings.UnresolvableMetadataToken);
 
             this.AssemblyName = GetNormalizedAssemblyName(assemblyName);
             this.MetadataToken = metadataToken;
@@ -183,8 +183,8 @@
 
         public TypeRef MakeGenericType(ImmutableArray<TypeRef> genericTypeArguments)
         {
-            Requires.Argument(!genericTypeArguments.IsDefault, "genericTypeArguments", "Not initialized.");
-            Verify.Operation(this.IsGenericTypeDefinition, "This is not a generic type definition.");
+            Requires.Argument(!genericTypeArguments.IsDefault, "genericTypeArguments", Strings.NotInitialized);
+            Verify.Operation(this.IsGenericTypeDefinition, Strings.NotGenericTypeDefinition);
             return new Reflection.TypeRef(this.AssemblyName, this.MetadataToken, this.IsArray, this.GenericTypeParameterCount, genericTypeArguments, default(MemberRef), 0);
         }
 

@@ -110,7 +110,7 @@
                 else // property
                 {
                     var property = (PropertyInfo)member;
-                    Verify.Operation(!partType.IsGenericTypeDefinition, "Exports on members not allowed when the declaring type is generic.");
+                    Verify.Operation(!partType.IsGenericTypeDefinition, ConfigurationStrings.ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric);
                     var exportDefinitions = ImmutableList.CreateBuilder<ExportDefinition>();
                     foreach (var exportAttribute in export.Value)
                     {
@@ -127,7 +127,7 @@
             {
                 var importAttribute = member.GetFirstAttribute<ImportAttribute>();
                 var importManyAttribute = member.GetFirstAttribute<ImportManyAttribute>();
-                Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", "Member \"{0}\" contains both ImportAttribute and ImportManyAttribute.", member.Name);
+                Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", ConfigurationStrings.MemberContainsBothImportAndImportMany, member.Name);
 
                 var importConstraints = GetImportConstraints(member);
                 ImportDefinition importDefinition;
@@ -142,21 +142,21 @@
             {
                 if (method.IsAttributeDefined<OnImportsSatisfiedAttribute>())
                 {
-                    Verify.Operation(method.GetParameters().Length == 0, "OnImportsSatisfied method should take no parameters.");
-                    Verify.Operation(onImportsSatisfied == null, "Only one OnImportsSatisfied method is supported.");
+                    Verify.Operation(method.GetParameters().Length == 0, ConfigurationStrings.OnImportsSatisfiedTakeNoParameters);
+                    Verify.Operation(onImportsSatisfied == null, ConfigurationStrings.OnlyOneOnImportsSatisfiedMethodIsSupported);
                     onImportsSatisfied = method;
                 }
             }
 
             var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
             var importingCtor = GetImportingConstructor<ImportingConstructorAttribute>(partType, publicOnly: !this.IsNonPublicSupported);
-            Verify.Operation(importingCtor != null, "No importing constructor found.");
+            Verify.Operation(importingCtor != null, ConfigurationStrings.NoImportingConstructorFound);
             foreach (var parameter in importingCtor.GetParameters())
             {
                 var import = CreateImport(parameter, GetImportConstraints(parameter));
                 if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
                 {
-                    Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(import), "Collection must be public with a public constructor when used with an [ImportingConstructor].");
+                    Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(import), ConfigurationStrings.CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor);
                 }
 
                 importingConstructorParameters.Add(import);
@@ -271,7 +271,7 @@
             var sharingBoundaryAttribute = member.GetFirstAttribute<SharingBoundaryAttribute>();
             if (sharingBoundaryAttribute != null)
             {
-                Verify.Operation(importingType.IsExportFactoryTypeV2(), "{0} is expected only on imports of ExportFactory<T>", typeof(SharingBoundaryAttribute).Name);
+                Verify.Operation(importingType.IsExportFactoryTypeV2(), ConfigurationStrings.IsExpectedOnlyOnImportsOfExportFactoryOfT, typeof(SharingBoundaryAttribute).Name);
                 sharingBoundaries = sharingBoundaries.Union(sharingBoundaryAttribute.SharingBoundaryNames);
             }
 

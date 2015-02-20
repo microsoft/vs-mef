@@ -222,7 +222,7 @@
                 return field.FieldType;
             }
 
-            throw new ArgumentException("Unexpected member type.");
+            throw new ArgumentException(Strings.UnexpectedMemberType);
         }
 
         internal static bool IsPublicInstance(this MethodInfo methodInfo)
@@ -368,7 +368,7 @@
                 }
                 else
                 {
-                    Requires.Argument(typeArguments.Length == typeArgumentsCount, "typeArguments", "Wrong length.");
+                    Requires.Argument(typeArguments.Length == typeArgumentsCount, "typeArguments", Strings.WrongLength);
                     name += string.Join(",", typeArguments);
                 }
 
@@ -489,7 +489,7 @@
                 constructedGenericType = constructedGenericType.BaseType;
             }
 
-            Requires.Argument(constructedGenericType != null, "constructedType", "Not a closed form of the other.");
+            Requires.Argument(constructedGenericType != null, "constructedType", Strings.NotClosedFormOfOther);
 
             var result = ArrayRental<Type>.Get(genericTypeDefinitionInfo.GenericTypeParameters.Length);
             for (int i = 0; i < result.Value.Length; i++)

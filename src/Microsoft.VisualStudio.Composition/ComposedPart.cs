@@ -21,8 +21,8 @@
 
 #if DEBUG   // These checks are expensive. Don't do them in production.
             // Make sure we have entries for every import.
-            Requires.Argument(satisfyingExports.Count == definition.Imports.Count() && definition.Imports.All(d => satisfyingExports.ContainsKey(d)), "satisfyingExports", "There should be exactly one entry for every import.");
-            Requires.Argument(satisfyingExports.All(kv => kv.Value != null), "satisfyingExports", "All values must be non-null.");
+            Requires.Argument(satisfyingExports.Count == definition.Imports.Count() && definition.Imports.All(d => satisfyingExports.ContainsKey(d)), "satisfyingExports", Strings.ExactlyOneEntryForEveryImport);
+            Requires.Argument(satisfyingExports.All(kv => kv.Value != null), "satisfyingExports", Strings.AllValuesMustBeNonNull);
 #endif
 
             this.Definition = definition;
@@ -61,7 +61,7 @@
             if (this.Definition.ExportDefinitions.Any(ed => CompositionConfiguration.ExportDefinitionPracticallyEqual.Default.Equals(ExportProvider.ExportProviderExportDefinition, ed.Value)) &&
                 !this.Definition.Equals(ExportProvider.ExportProviderPartDefinition))
             {
-                yield return new ComposedPartDiagnostic(this, "{0}: Export of ExportProvider is not allowed.", this.Definition.Type.FullName);
+                yield return new ComposedPartDiagnostic(this, Strings.ExportOfExportProviderNotAllowed, this.Definition.Type.FullName);
             }
 
             var importsWithGenericTypeParameters = this.Definition.Imports
@@ -70,7 +70,7 @@
             {
                 yield return new ComposedPartDiagnostic(
                     this,
-                    "{0}: imports that use generic type parameters are not supported.",
+                    Strings.ImportsThatUseGenericTypeParametersNotSupported,
                     GetDiagnosticLocation(import));
             }
 
@@ -84,7 +84,7 @@
                         {
                             yield return new ComposedPartDiagnostic(
                                 this,
-                                "{0}: expected exactly 1 export of {1} but found {2}.{3}",
+                                Strings.ExpectedExactlyOneExportButFound,
                                 GetDiagnosticLocation(pair.Key),
                                 pair.Key.ImportingSiteElementType,
                                 pair.Value.Count,
@@ -97,8 +97,9 @@
                         {
                             yield return new ComposedPartDiagnostic(
                                 this,
-                                "{0}: expected 1 or 0 exports but found {1}.{2}",
+                                Strings.ExpectedOneOrZeroExportsButFound,
                                 GetDiagnosticLocation(pair.Key),
+                                pair.Key.ImportingSiteElementType,
                                 pair.Value.Count,
                                 GetExportsList(pair.Value));
                         }
@@ -112,7 +113,7 @@
                     {
                         yield return new ComposedPartDiagnostic(
                             this,
-                            "{0}: is not assignable from exported MEF value {1}.",
+                            Strings.IsNotAssignableFromExportedMEFValue,
                             GetDiagnosticLocation(pair.Key),
                             GetDiagnosticLocation(export));
                     }
@@ -127,7 +128,7 @@
                         {
                             yield return new ComposedPartDiagnostic(
                                 this,
-                                "{0}: cannot import exported value from {1} because the exporting part cannot be instantiated. Is it missing an importing constructor?",
+                                Strings.CannotImportBecauseExportingPartCannotBeInstantiated,
                                 GetDiagnosticLocation(pair.Key),
                                 GetDiagnosticLocation(export));
                         }
@@ -136,16 +137,14 @@
 
                 if (pair.Key.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && pair.Key.ImportingParameter != null && !IsAllowedImportManyParameterType(pair.Key.ImportingParameter.ParameterType))
                 {
-                    yield return new ComposedPartDiagnostic(
-                        this,
-                        "Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable<T> are supported.");
+                    yield return new ComposedPartDiagnostic(this, Strings.ImportingCtorHasUnsupportedParameterTypeForImportMany);
                 }
 
                 if (pair.Key.MetadataType != null && !metadataViews.ContainsKey(pair.Key.MetadataType))
                 {
                     yield return new ComposedPartDiagnostic(
                         this,
-                        "{0}: metadata type {1} is not supported.",
+                        Strings.MetadataTypeNotSupported,
                         GetDiagnosticLocation(pair.Key),
                         pair.Key.MetadataType.FullName);
                 }

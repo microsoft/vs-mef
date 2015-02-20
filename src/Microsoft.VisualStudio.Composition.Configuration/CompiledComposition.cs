@@ -71,8 +71,8 @@
         {
             Requires.NotNull(configuration, "configuration");
             Requires.NotNull(cacheStream, "cacheStream");
-            Requires.Argument(cacheStream.CanWrite, "cacheStream", "Writable stream required.");
-            Verify.Operation(this.AssemblyName != null, "AssemblyName must be set first.");
+            Requires.Argument(cacheStream.CanWrite, "cacheStream", ConfigurationStrings.WritableStreamRequired);
+            Verify.Operation(this.AssemblyName != null, ConfigurationStrings.AssemblyNameMustBeSetFirst);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -130,14 +130,14 @@
             var result = await this.SaveGetResultAsync(configuration, cacheStream, cancellationToken);
             if (!result.Success)
             {
-                throw new Exception("Compilation errors occurred.");
+                throw new Exception(ConfigurationStrings.CompilerErrorsOccurred);
             }
         }
 
         public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(cacheStream, "cacheStream");
-            Requires.Argument(cacheStream.CanRead, "cacheStream", "Readable stream required.");
+            Requires.Argument(cacheStream.CanRead, "cacheStream", ConfigurationStrings.ReadableStreamRequired);
 
             byte[] assemblyBytes = new byte[cacheStream.Length - cacheStream.Position];
             await cacheStream.ReadAsync(assemblyBytes, 0, assemblyBytes.Length);
@@ -334,7 +334,7 @@
                 var result = compilationUnit.Emit(Stream.Null);
                 if (!result.Success)
                 {
-                    throw new CompositionFailedException("Failed to generate embeddable types.");
+                    throw new CompositionFailedException(ConfigurationStrings.FailedToGenerateEmbeddableTypes);
                 }
             }
 
