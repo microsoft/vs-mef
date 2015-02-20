@@ -1208,7 +1208,7 @@
                         this.deferredInitializationParts = null;
                         break;
                     default:
-                        throw Verify.FailOperation("MEF part already in final state.");
+                        throw Verify.FailOperation(Strings.MEFPartAlreadyInFinalState);
                 }
             }
 

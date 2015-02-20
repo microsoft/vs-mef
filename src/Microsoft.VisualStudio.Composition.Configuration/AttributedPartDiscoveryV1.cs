@@ -119,7 +119,7 @@
                 else
                 {
                     MemberInfo exportingTypeOrPropertyOrField = export.Key;
-                    Verify.Operation(export.Key is Type || !partType.IsGenericTypeDefinition, "Exports on members not allowed when the declaring type is generic.");
+                    Verify.Operation(export.Key is Type || !partType.IsGenericTypeDefinition, ConfigurationStrings.ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric);
                     Type exportSiteType = ReflectionHelpers.GetMemberType(exportingTypeOrPropertyOrField);
                     foreach (var exportAttribute in export.Value)
                     {
@@ -163,7 +163,7 @@
                     var import = CreateImport(parameter);
                     if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
                     {
-                        Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(import), "Collection must be public with a public constructor when used with an [ImportingConstructor].");
+                        Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(import), ConfigurationStrings.CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor);
                     }
 
                     importingConstructorParameters.Add(import);

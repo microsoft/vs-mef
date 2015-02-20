@@ -72,7 +72,7 @@
             Requires.NotNull(configuration, "configuration");
             Requires.NotNull(cacheStream, "cacheStream");
             Requires.Argument(cacheStream.CanWrite, "cacheStream", ConfigurationStrings.WritableStreamRequired);
-            Verify.Operation(this.AssemblyName != null, "AssemblyName must be set first.");
+            Verify.Operation(this.AssemblyName != null, ConfigurationStrings.AssemblyNameMustBeSetFirst);
 
                 cancellationToken.ThrowIfCancellationRequested();
 

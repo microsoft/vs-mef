@@ -715,7 +715,7 @@
 
         private StatementSyntax[] GetImportSatisfyingAssignmentSyntax(KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExport, ExpressionSyntax provisionalSharedObjects, ExpressionSyntax thisExportProvider)
         {
-            Requires.Argument(satisfyingExport.Key.ImportingMember != null, "satisfyingExport", "No member to satisfy.");
+            Requires.Argument(satisfyingExport.Key.ImportingMember != null, "satisfyingExport", ConfigurationStrings.NoMemberToSatisfy);
             Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
             Requires.NotNull(thisExportProvider, "thisExportProvider");
 
@@ -1583,7 +1583,7 @@
         private ExpressionSyntax ExportFactoryCreationSyntax(ImportDefinitionBinding import, ExportDefinitionBinding export, ExpressionSyntax thisExportProvider)
         {
             Requires.NotNull(import, "import");
-            Requires.Argument(import.IsExportFactory, "import", "IsExportFactory is expected to be true.");
+            Requires.Argument(import.IsExportFactory, "import", ConfigurationStrings.IsExportFactoryExpectedTrue);
             Requires.NotNull(export, "export");
             Requires.NotNull(thisExportProvider, "thisExportProvider");
 
@@ -2168,7 +2168,7 @@
             }
             else
             {
-                Requires.Argument(memberInfo.ReflectedType.IsAssignableFrom(reflectedType), "reflectedType", "Type must be the one that defines memberInfo or a derived type.");
+                Requires.Argument(memberInfo.ReflectedType.IsAssignableFrom(reflectedType), "reflectedType", ConfigurationStrings.TypeMustDefineMemberInfoOrDerivedType);
             }
 
             if (!IsPublic(reflectedType, true))

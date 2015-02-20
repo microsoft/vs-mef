@@ -61,7 +61,7 @@
 
         public Attribute Instantiate()
         {
-            Verify.Operation(!this.IsEmpty, "This instance is empty.");
+            Verify.Operation(!this.IsEmpty, Strings.InstanceEmpty);
             Attribute attribute = (Attribute)this.Constructor.Resolve().Invoke(this.PositionalArguments.ToArray());
             foreach (var namedArgument in this.NamedArguments)
             {

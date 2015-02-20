@@ -222,7 +222,7 @@
         public string GetEffectiveSharingBoundary(ComposablePartDefinition partDefinition)
         {
             Requires.NotNull(partDefinition, "partDefinition");
-            Requires.Argument(partDefinition.IsShared, "partDefinition", "Part is not shared.");
+            Requires.Argument(partDefinition.IsShared, "partDefinition", Strings.PartIsNotShared);
 
             return this.effectiveSharingBoundaryOverrides.GetValueOrDefault(partDefinition) ?? partDefinition.SharingBoundary;
         }
@@ -333,7 +333,7 @@
                 {
                     path = path.Push(part);
                     nonSharedPartsInLoops.UnionWith(path);
-                    yield return new ComposedPartDiagnostic(path, "Loop between non-shared parts.");
+                    yield return new ComposedPartDiagnostic(path, Strings.LoopBetweenNonSharedParts);
                 }
             }
 
@@ -353,7 +353,7 @@
                         if (!path.IsEmpty)
                         {
                             path = path.Push(satisfyingPart).Push(partByPartType[importDefinitionBinding.ComposablePartTypeRef]);
-                            yield return new ComposedPartDiagnostic(path, "Loop involving ImportingConstructor argument and all non-lazy imports.");
+                            yield return new ComposedPartDiagnostic(path, Strings.LoopInvolvingImportingCtorArgumentAndAllNonLazyImports);
                         }
                     }
                 }
