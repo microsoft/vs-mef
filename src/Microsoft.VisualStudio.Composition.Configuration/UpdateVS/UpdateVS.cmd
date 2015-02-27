@@ -12,7 +12,6 @@ if NOT "%ProgramFiles(x86)%"=="" (
 set Common7=%SysProgramFiles%\Microsoft Visual Studio 14.0\Common7
 set Common7Tools=%Common7%\Tools
 set CommonIDE=%Common7%\IDE
-set CpsComponentDir=%CommonIDE%\CommonExtensions\Microsoft\Project
 set PrivateAssemblies=%CommonIDE%\PrivateAssemblies
 set PublicAssemblies=%CommonIDE%\PublicAssemblies
 if /I "%ROBOCOPY%"=="" SET ROBOCOPY=robocopy /NJH /NJS /NDL /XX /W:1
