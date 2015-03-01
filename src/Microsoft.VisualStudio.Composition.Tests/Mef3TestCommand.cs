@@ -6,16 +6,16 @@
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
     using Xunit.Sdk;
 
-    public class Mef3TestCommand : FactCommand
+    public class Mef3TestCommand : IXunitTestCase
     {
         private readonly CompositionConfiguration configuration;
         private readonly CompositionEngines compositionVersions;
         private readonly bool runtime;
 
-        public Mef3TestCommand(IMethodInfo method, CompositionConfiguration configuration, CompositionEngines compositionVersions, bool runtime)
-            : base(method)
+        public Mef3TestCommand(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, CompositionConfiguration configuration, CompositionEngines compositionVersions, bool runtime)
         {
             Requires.NotNull(configuration, "configuration");
 
@@ -26,13 +26,13 @@
             this.DisplayName = string.Format("V3 engine ({0})", runtime ? "runtime" : "code gen");
         }
 
-        public override MethodResult Execute(object testClass)
+        public async Task<RunSummary> RunAsync()
         {
             var exportProvider = TestUtilities.CreateContainer(this.configuration, this.runtime);
             var containerWrapper = new TestUtilities.V3ContainerWrapper(exportProvider, this.configuration);
             this.testMethod.Invoke(testClass, containerWrapper);
 
-            return new PassedResult(this.testMethod, this.DisplayName);
+            return new RunSummary { Total = 1 };
         }
     }
 }

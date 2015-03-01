@@ -8,17 +8,18 @@
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
     using Xunit.Sdk;
 
-    public class MefTestCommand : FactCommand
+    [Serializable]
+    public class MefTestCommand : IXunitTestCase
     {
         private readonly CompositionEngines engineVersion;
         private readonly Type[] parts;
         private readonly IReadOnlyList<string> assemblies;
         private readonly bool invalidConfiguration;
 
-        public MefTestCommand(IMethodInfo method, CompositionEngines engineVersion, Type[] parts, IReadOnlyList<string> assemblies, bool invalidConfiguration)
-            : base(method)
+        public MefTestCommand(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, CompositionEngines engineVersion, Type[] parts, IReadOnlyList<string> assemblies, bool invalidConfiguration)
         {
             Requires.Argument(parts != null || assemblies != null, "parts ?? assemblies", "Either parameter must be non-null.");
 

@@ -115,6 +115,10 @@
       <HintPath>..\packages\xunit.extensibility.core.2.0.0-rc3-build2880\lib\portable-net45+aspnetcore50+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.core.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="xunit.execution.desktop, Version=2.0.0.2880, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.extensibility.execution.2.0.0-rc3-build2880\lib\net45\xunit.execution.desktop.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\Microsoft.VisualStudio.Composition\ArrayRental`1.cs">
@@ -170,6 +174,7 @@
     <Compile Include="InvalidGraphTests.cs" />
     <Compile Include="LazyServicesTests.cs" />
     <Compile Include="Mef3TestCommand.cs" />
+    <Compile Include="MefFactDiscoverer.cs" />
     <Compile Include="MefV1ExportProviderAdapterTests.cs" />
     <Compile Include="MefV3DiscoveryTestCommand.cs" />
     <Compile Include="MetadataViewImplementationTests.cs" />
@@ -226,6 +231,7 @@
     <Compile Include="SharingBoundaryWithSharedTests.cs" />
     <Compile Include="SimpleImportExportTests.cs" />
     <Compile Include="SkippableFactAttribute.cs" />
+    <Compile Include="SkippableFactDiscoverer.cs" />
     <Compile Include="StaticMemberExportsTests.cs" />
     <Compile Include="TestUtilities.cs" />
     <Compile Include="ThreadSafetyTests.cs" />
