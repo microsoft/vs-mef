@@ -6,26 +6,28 @@
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using DiffPlex;
     using DiffPlex.DiffBuilder;
     using DiffPlex.DiffBuilder.Model;
     using Xunit;
+    using Xunit.Abstractions;
     using Xunit.Sdk;
 
-    public class MefV3DiscoveryTestCommand : FactCommand
+    public class MefV3DiscoveryTestCommand : XunitTestCase
     {
         private readonly CompositionEngines compositionVersions;
         private readonly bool expectInvalidConfiguration;
         private readonly Type[] parts;
         private readonly IReadOnlyList<string> assemblyNames;
 
-        public MefV3DiscoveryTestCommand(IMethodInfo method, CompositionEngines compositionEngines, Type[] parts, IReadOnlyList<string> assemblyNames, bool expectInvalidConfiguration)
-            : base(method)
+        public MefV3DiscoveryTestCommand(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, CompositionEngines compositionEngines, Type[] parts, IReadOnlyList<string> assemblyNames, bool expectInvalidConfiguration)
+            : base(diagnosticMessageSink, defaultMethodDisplay, testMethod)
         {
-            Requires.NotNull(method, "method");
-            Requires.NotNull(parts, "parts");
-            Requires.NotNull(assemblyNames, "assemblyNames");
+            Requires.NotNull(testMethod, nameof(testMethod));
+            Requires.NotNull(parts, nameof(parts));
+            Requires.NotNull(assemblyNames, nameof(assemblyNames));
 
             this.compositionVersions = compositionEngines;
             this.assemblyNames = assemblyNames;
@@ -35,11 +37,11 @@
             this.DisplayName = "V3 composition";
         }
 
-        public MethodResult Result { get; set; }
-
         public IReadOnlyList<CompositionConfiguration> ResultingConfigurations { get; set; }
 
-        public override MethodResult Execute(object testClass)
+        public bool Passed { get; private set; }
+
+        public override async Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
         {
             try
             {
@@ -50,8 +52,8 @@
                 var assemblies = this.assemblyNames.Select(Assembly.Load).ToList();
                 foreach (var discoveryModule in v3DiscoveryModules)
                 {
-                    var partsFromTypes = discoveryModule.CreatePartsAsync(this.parts).GetAwaiter().GetResult();
-                    var partsFromAssemblies = discoveryModule.CreatePartsAsync(assemblies).GetAwaiter().GetResult();
+                    var partsFromTypes = await discoveryModule.CreatePartsAsync(this.parts);
+                    var partsFromAssemblies = await discoveryModule.CreatePartsAsync(assemblies);
                     var catalog = ComposableCatalog.Create()
                         .WithParts(partsFromTypes)
                         .WithParts(partsFromAssemblies);
@@ -111,11 +113,13 @@
                 }
 
                 this.ResultingConfigurations = configurations;
-                return this.Result = new PassedResult(this.testMethod, this.DisplayName);
+                this.Passed = true;
+                return new RunSummary { Total = 1 };
             }
             catch (Exception ex)
             {
-                return this.Result = new FailedResult(this.testMethod, ex, this.DisplayName);
+                diagnosticMessageSink.OnMessage(new TestFailed(null, 0, null, ex));
+                return new RunSummary { Failed = 1, Total = 1 };
             }
         }
 

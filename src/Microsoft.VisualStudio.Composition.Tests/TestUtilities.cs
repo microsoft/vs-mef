@@ -12,6 +12,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Sdk;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
     using MefV1 = System.ComponentModel.Composition;
 
@@ -284,45 +285,52 @@
             return new V3ContainerWrapper(container, configuration);
         }
 
-        internal static void RunMultiEngineTest(CompositionEngines attributesVersion, Type[] parts, Action<IContainer> test)
+        internal static async Task<RunSummary> RunMultiEngineTest(CompositionEngines attributesVersion, Type[] parts, Func<IContainer, Task<RunSummary>> test)
         {
+            var totalSummary = new RunSummary();
             if (attributesVersion.HasFlag(CompositionEngines.V1))
             {
-                test(CreateContainerV1(parts));
+                totalSummary.Aggregate(await test(CreateContainerV1(parts)));
             }
 
             if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1))
             {
-                test(CreateContainerV3(parts, CompositionEngines.V1));
+                totalSummary.Aggregate(await test(CreateContainerV3(parts, CompositionEngines.V1)));
             }
 
             if (attributesVersion.HasFlag(CompositionEngines.V2))
             {
-                test(CreateContainerV2(parts));
+                totalSummary.Aggregate(await test(CreateContainerV2(parts)));
             }
 
             if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV2))
             {
-                test(CreateContainerV3(parts, CompositionEngines.V2));
+                totalSummary.Aggregate(await test(CreateContainerV3(parts, CompositionEngines.V2)));
             }
 
             if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1AndV2AtOnce))
             {
-                test(CreateContainerV3(parts, CompositionEngines.V1 | CompositionEngines.V2));
+                totalSummary.Aggregate(await test(CreateContainerV3(parts, CompositionEngines.V1 | CompositionEngines.V2)));
             }
+
+            return totalSummary;
         }
 
-        internal static void RunMultiEngineTest(CompositionEngines attributesVersion, IReadOnlyList<Assembly> assemblies, Type[] parts, Action<IContainer> test)
+        internal static async Task<RunSummary> RunMultiEngineTest(CompositionEngines attributesVersion, IReadOnlyList<Assembly> assemblies, Type[] parts, Func<IContainer, Task<RunSummary>> test)
         {
+            var totalSummary = new RunSummary();
+
             if (attributesVersion.HasFlag(CompositionEngines.V1))
             {
-                test(CreateContainerV1(assemblies, parts));
+                totalSummary.Aggregate(await test(CreateContainerV1(assemblies, parts)));
             }
 
             if (attributesVersion.HasFlag(CompositionEngines.V2))
             {
-                test(CreateContainerV2(assemblies, parts));
+                totalSummary.Aggregate(await test(CreateContainerV2(assemblies, parts)));
             }
+
+            return totalSummary;
         }
 
         internal class DebuggableCompositionContainer : MefV1.Hosting.CompositionContainer

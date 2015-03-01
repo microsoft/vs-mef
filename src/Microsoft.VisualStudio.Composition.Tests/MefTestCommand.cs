@@ -6,19 +6,22 @@
     using System.Linq;
     using System.Reflection;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
     using Xunit.Sdk;
 
-    public class MefTestCommand : FactCommand
+    [Serializable]
+    public class MefTestCommand : XunitTestCase
     {
         private readonly CompositionEngines engineVersion;
         private readonly Type[] parts;
         private readonly IReadOnlyList<string> assemblies;
         private readonly bool invalidConfiguration;
 
-        public MefTestCommand(IMethodInfo method, CompositionEngines engineVersion, Type[] parts, IReadOnlyList<string> assemblies, bool invalidConfiguration)
-            : base(method)
+        public MefTestCommand(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, CompositionEngines engineVersion, Type[] parts, IReadOnlyList<string> assemblies, bool invalidConfiguration)
+            : base(diagnosticMessageSink, defaultMethodDisplay, testMethod)
         {
             Requires.Argument(parts != null || assemblies != null, "parts ?? assemblies", "Either parameter must be non-null.");
 
@@ -29,18 +32,24 @@
             this.invalidConfiguration = invalidConfiguration;
         }
 
-        public override MethodResult Execute(object testClass)
+        public override async Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
         {
+            RunSummary runSummary;
+
             if (this.invalidConfiguration)
             {
                 bool compositionExceptionThrown;
                 try
                 {
-                    RunMultiEngineTest(
+                    runSummary = await RunMultiEngineTest(
                         this.engineVersion,
                         this.parts,
                         this.assemblies,
-                        container => this.testMethod.Invoke(testClass, container));
+                        async container =>
+                        {
+                            this.TestMethodArguments = new object[] { container };
+                            return await base.RunAsync(diagnosticMessageSink, messageBus, constructorArguments, aggregator, cancellationTokenSource);
+                        });
 
                     compositionExceptionThrown = false;
                 }
@@ -64,24 +73,29 @@
                 }
 
                 Assert.True(compositionExceptionThrown, "Composition exception expected but not thrown.");
+                runSummary = null; // TODO
             }
             else
             {
-                RunMultiEngineTest(
+                runSummary = await RunMultiEngineTest(
                     this.engineVersion,
                     this.parts,
                     this.assemblies,
-                    container => this.testMethod.Invoke(testClass, container));
+                    async container =>
+                    {
+                        this.TestMethodArguments = new object[] { container };
+                        return await base.RunAsync(diagnosticMessageSink, messageBus, constructorArguments, aggregator, cancellationTokenSource);
+                    });
             }
 
-            return new PassedResult(this.testMethod, this.DisplayName);
+            return runSummary;
         }
 
-        private static void RunMultiEngineTest(CompositionEngines attributesVersion, Type[] parts, IReadOnlyList<string> assemblies, Action<IContainer> test)
+        private static Task<RunSummary> RunMultiEngineTest(CompositionEngines attributesVersion, Type[] parts, IReadOnlyList<string> assemblies, Func<IContainer, Task<RunSummary>> test)
         {
             parts = parts ?? new Type[0];
             var loadedAssemblies = assemblies != null ? assemblies.Select(Assembly.Load).ToImmutableList() : ImmutableList<Assembly>.Empty;
-            TestUtilities.RunMultiEngineTest(attributesVersion, loadedAssemblies, parts, test);
+            return TestUtilities.RunMultiEngineTest(attributesVersion, loadedAssemblies, parts, test);
         }
     }
 }
