@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
@@ -23,7 +24,7 @@
 
         public IEnumerable<IXunitTestCase> Discover(ITestFrameworkDiscoveryOptions discoveryOptions, ITestMethod testMethod, IAttributeInfo factAttribute)
         {
-            yield return new SkippableFactCommand(this.diagnosticMessageSink, TestMethodDisplay.Method, testMethod);
+            yield return new SkippableFactCommand(this.diagnosticMessageSink, discoveryOptions.MethodDisplayOrDefault(), testMethod);
         }
 
         /// <summary>
@@ -36,6 +37,10 @@
 
         internal class SkippableFactCommand : XunitTestCase
         {
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            [Obsolete("Called by the de-serializer", true)]
+            public SkippableFactCommand() { }
+
             public SkippableFactCommand(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, object[] testMethodArguments = null)
                 : base(diagnosticMessageSink, defaultMethodDisplay, testMethod, testMethodArguments)
             {
@@ -47,24 +52,45 @@
                 this.SkipReason = skipReason;
             }
 
+
             public override async Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
             {
-                if (this.SkipReason != null)
+                var messageBusInterceptor = new MessageBusInterceptor(messageBus);
+                var result = await base.RunAsync(diagnosticMessageSink, messageBusInterceptor, constructorArguments, aggregator, cancellationTokenSource);
+                result.Failed -= messageBusInterceptor.SkippedCount;
+                result.Skipped += messageBusInterceptor.SkippedCount;
+                return result;
+            }
+
+            private class MessageBusInterceptor : IMessageBus
+            {
+                private readonly IMessageBus inner;
+
+                internal MessageBusInterceptor(IMessageBus inner)
                 {
-                    diagnosticMessageSink.OnMessage(new TestSkipped(null, this.SkipReason));
-                    return new RunSummary { Skipped = 1, Total = 1 };
+                    this.inner = inner;
                 }
-                else
+
+                internal int SkippedCount { get; private set; }
+
+                public void Dispose()
                 {
-                    var timer = Stopwatch.StartNew();
-                    try
+                    this.inner.Dispose();
+                }
+
+                public bool QueueMessage(IMessageSinkMessage message)
+                {
+                    var failed = message as TestFailed;
+                    if (failed != null)
                     {
-                        return await base.RunAsync(diagnosticMessageSink, messageBus, constructorArguments, aggregator, cancellationTokenSource);
+                        if (failed.ExceptionTypes.Length == 1 && failed.ExceptionTypes[0] == typeof(SkipException).FullName)
+                        {
+                            this.SkippedCount++;
+                            return this.inner.QueueMessage(new TestSkipped(failed.Test, failed.Messages[0]));
+                        }
                     }
-                    catch (SkipException)
-                    {
-                        return new RunSummary { Skipped = 1, Total = 1, Time = (decimal)timer.Elapsed.TotalSeconds };
-                    }
+
+                    return this.inner.QueueMessage(message);
                 }
             }
         }
