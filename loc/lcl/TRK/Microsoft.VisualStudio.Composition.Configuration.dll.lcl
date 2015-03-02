@@ -1,0 +1,670 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LCX SchemaVersion="6.0" Name="F:\987\bin\Microsoft.VisualStudio.Composition.Configuration.dll" PsrId="211" FileType="1" SrcCul="en-US" TgtCul="tr-TR" xmlns="http://schemas.microsoft.com/locstudio/2006/6/lcx">
+  <Props>
+    <Str Name="HobbitID" Val="9f4cf58c-db46-4c41-a06f-57f7ffaaeaff" />
+  </Props>
+  <OwnedComments>
+    <Cmt Name="Dev" />
+    <Cmt Name="LcxAdmin" />
+    <Cmt Name="Loc" />
+    <Cmt Name="RCCX" />
+  </OwnedComments>
+  <Settings Name="@vsLocTools@\current\default.lss" Type="LSS" />
+  <Item ItemId=";HTML" ItemType="0" PsrId="22" Leaf="true">
+    <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
+  </Item>
+  <Item ItemId=";Managed Resources" ItemType="0" PsrId="211" Leaf="true">
+    <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
+  </Item>
+  <Item ItemId=";Microsoft.VisualStudio.Composition.ConfigurationStrings.resources" ItemType="0" PsrId="211" Leaf="false">
+    <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" Path=" \ ;Managed Resources \ 0 \ 0" />
+    <Item ItemId=";Strings" ItemType="0" PsrId="211" Leaf="false">
+      <Disp Icon="Str" Disp="true" LocTbl="false" />
+      <Item ItemId=";AssemblyNameMustBeSetFirst" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[AssemblyName must be set first.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Önce AssemblyName değeri ayarlanmalıdır.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T12:52:28.9265615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";CannotBeEmpty" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Cannot be empty.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Boş olamaz.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T12:52:35.5675615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Collection must be public with a public constructor when used with an [ImportingConstructor]5D;.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Bir [ImportingConstructor]5D; ile birlikte kullanıldığında, koleksiyon genel bir oluşturucu içermeli ve genel olmalıdır.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="selcukt" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T15:40:18.4062942Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";CompilerErrorsOccurred" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Compilation errors occurred.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Derleme hataları oluştu.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:12:22.6395615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";CustomImportSourceNotSupported" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Custom import sources are not yet supported.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Özel içeri aktarma kaynakları henüz desteklenmiyor.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:13:07.8655615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Exports on members not allowed when the declaring type is generic.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Bildirim türü genel olduğunda, üyelere dışarı aktarmaya izin verilmez.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:20:46.2875615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";FailedToGenerateEmbeddableTypes" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to generate embeddable types.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Eklenebilir türler oluşturulamadı.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:21:47.6815615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ImportConstraintTypeNotSupported" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[The import constraint type {0} is not supported.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[İçeri aktarma kısıtlama türü {0} desteklenmiyor.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:22:42.8405615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";IsExpectedOnlyOnImportsOfExportFactoryOfT" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0} is expected only on imports of ExportFactory<T>.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[{0} yalnızca ExportFactory<T> içeri aktarmalarında beklenir.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:24:34.1175615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";IsExportFactoryExpectedTrue" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[IsExportFactory is expected to be true.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[IsExportFactory değerinin true olması bekleniyor.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="selcukt" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T15:46:55.7399234Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";MemberContainsBothImportAndImportMany" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Member "{0}" contains both ImportAttribute and ImportManyAttribute.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA["{0}" üyesi hem ImportAttribute hem de ImportManyAttribute içeriyor.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:26:40.2375615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";NoImportingConstructorFound" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No importing constructor found.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[İçeri aktarma oluşturucusu bulunamadı.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:26:56.1845615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";NoMemberToSatisfy" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No member to satisfy.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Karşılanacak üye yok.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:27:38.4055615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";OnImportsSatisfiedTakeNoParameters" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[OnImportsSatisfied method should take no parameters.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[OnImportsSatisfied yöntemi parametre almamalıdır.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:27:59.3165615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";OnlyOneOnImportsSatisfiedMethodIsSupported" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Only one OnImportsSatisfied method is supported.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Yalnızca bir OnImportsSatisfied yöntemi desteklenir.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:28:21.9465615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";OnlySupportedOnWriteOperations" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Only supported on write operations.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Yalnızca yazma işlemlerinde desteklenir.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:28:35.9485615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ReadableStreamRequired" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Readable stream required.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Okunabilir akış gerekli.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:28:43.7035615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Cmts>
+          <Cmt Name="RCCX"><![CDATA['stream' is in reference to System.IO.Stream]]></Cmt>
+        </Cmts>
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";TypeMustDefineMemberInfoOrDerivedType" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Type must be the one that defines memberInfo or a derived type.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Tür, memberInfo'yu tanımlamalı veya türetilmiş tür olmalıdır.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:31:30.1785615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";UnexpectedConstraintType" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unexpected constraint type: {0}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Beklenmeyen kısıtlama türü: {0}.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:31:50.5465615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";UnsupportedFormat" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unsupported format: {0}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Desteklenmeyen biçim: {0}.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:32:25.9955615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";WritableStreamRequired" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Writable stream required.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Yazılabilir akış gerekli.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:32:33.6295615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Cmts>
+          <Cmt Name="RCCX"><![CDATA['stream' is in reference to System.IO.Stream]]></Cmt>
+        </Cmts>
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";WrongType" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Wrong type.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Yanlış tür.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:32:37.8085615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+    </Item>
+  </Item>
+  <Item ItemId=";Microsoft.VisualStudio.Composition.Tasks.ExportProviderFactory.cs" ItemType="0" PsrId="22" Leaf="false">
+    <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" Path=" \ ;HTML \ 0 \ 0" />
+    <Item ItemId=";HTML Comments" ItemType="0" PsrId="22" Leaf="false">
+      <Disp Icon="Str" Disp="true" LocTbl="false" />
+      <Item ItemId="0;48ee7edce4baee920cad7562ef42ed2b" ItemType="24;Comment" PsrId="22" Leaf="true">
+        <Str Cat="Comment">
+          <Val><![CDATA[ <auto-generated>]]></Val>
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
+            <Val><![CDATA[ <auto-generated>]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" Order="2" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
+        </Props>
+      </Item>
+      <Item ItemId="0;9229dfe582f68a2ae66474943bf887fe" ItemType="24;Comment" PsrId="22" Leaf="true">
+        <Str Cat="Comment">
+          <Val><![CDATA[     Changes to this file may cause incorrect behavior and will be lost if]]></Val>
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
+            <Val><![CDATA[     Bu dosyada yapılan değişiklikler yanlış davranışa yol açabilir ve şu durumda kaybolur]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" Order="6" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
+        </Props>
+      </Item>
+      <Item ItemId="0;93b47212aea013b33dda11d51fbad42f" ItemType="24;Comment" PsrId="22" Leaf="true">
+        <Str Cat="Comment">
+          <Val><![CDATA[  ]]></Val>
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
+            <Val><![CDATA[  ]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" Order="5" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
+        </Props>
+      </Item>
+      <Item ItemId="0;abf5b42476990d21997198856b2ef3d4" ItemType="24;Comment" PsrId="22" Leaf="true">
+        <Str Cat="Comment">
+          <Val><![CDATA[ ------------------------------------------------------------------------------]]></Val>
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[ ------------------------------------------------------------------------------]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:32:44.2345615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" Order="1" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId="0;cb30ee380a65b982c3dce252f893f42f" ItemType="24;Comment" PsrId="22" Leaf="true">
+        <Str Cat="Comment">
+          <Val><![CDATA[     the code is regenerated.]]></Val>
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
+            <Val><![CDATA[     kod yeniden oluşturulduğunda.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" Order="7" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
+        </Props>
+      </Item>
+      <Item ItemId="0;db4a14d42f2ff15ff07483c5b52bbc6a" ItemType="24;Comment" PsrId="22" Leaf="true">
+        <Str Cat="Comment">
+          <Val><![CDATA[ </auto-generated>]]></Val>
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
+            <Val><![CDATA[ </auto-generated>]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" Order="8" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
+        </Props>
+      </Item>
+      <Item ItemId="0;e0a2863e3a8928e88924c7bf1b4ae5da" ItemType="24;Comment" PsrId="22" Leaf="true">
+        <Str Cat="Comment">
+          <Val><![CDATA[     Microsoft.VisualStudio.Composition]]></Val>
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[     Microsoft.VisualStudio.Composition]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:32:45.8585615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" Order="4" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId="0;fb70992a466ce1fedf7ac5517dfb168f" ItemType="24;Comment" PsrId="22" Leaf="true">
+        <Str Cat="Comment">
+          <Val><![CDATA[     This code was generated by a tool.]]></Val>
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
+            <Val><![CDATA[     Bu kod bir araç tarafından oluşturuldu.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" Order="3" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
+        </Props>
+      </Item>
+      <Item ItemId="1;abf5b42476990d21997198856b2ef3d4" ItemType="24;Comment" PsrId="22" Leaf="true">
+        <Str Cat="Comment">
+          <Val><![CDATA[ ------------------------------------------------------------------------------]]></Val>
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[ ------------------------------------------------------------------------------]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="ozlems" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:32:46.8595615Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" Order="9" />
+        <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+    </Item>
+  </Item>
+  <Item ItemId=";Version" ItemType="0" PsrId="211" Leaf="false">
+    <Disp Icon="Ver" Disp="true" LocTbl="false" Path=" \ ;Version \ 8 \ 0" />
+    <Item ItemId=";AssemblyVersion" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text" DevLk="true">
+        <Val><![CDATA[14.0.0.0]]></Val>
+        <Tgt Cat="Text" Appr="PreApproved" Orig="New">
+          <Val><![CDATA[14.0.0.0]]></Val>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+    </Item>
+    <Item ItemId=";FileDescription" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text">
+        <Val><![CDATA[Microsoft.VisualStudio.Composition.Configuration]]></Val>
+        <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+          <Val><![CDATA[Microsoft.VisualStudio.Composition.Configuration]]></Val>
+          <Props>
+            <Str Name="TranslationModifiedBy" Val="ozlems" />
+            <Date Name="TranslationModifiedDate" Val="2015-02-27T13:32:40.3835615Z" />
+          </Props>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+      <Props>
+        <Str Name="TranslationStatus" Val="In Sync" />
+        <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+      </Props>
+    </Item>
+    <Item ItemId=";FileVersion" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text" DevLk="true">
+        <Val><![CDATA[14.0.50223.1]]></Val>
+        <Tgt Cat="Text" Appr="PreApproved" Orig="New">
+          <Val><![CDATA[14.0.50223.1]]></Val>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+    </Item>
+    <Item ItemId=";InternalName" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text" DevLk="true">
+        <Val><![CDATA[Microsoft.VisualStudio.Composition.Configuration.dll]]></Val>
+        <Tgt Cat="Text" Appr="PreApproved" Orig="New">
+          <Val><![CDATA[Microsoft.VisualStudio.Composition.Configuration.dll]]></Val>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+    </Item>
+    <Item ItemId=";LegalCopyright" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text">
+        <Val><![CDATA[© Microsoft Corporation. All rights reserved.]]></Val>
+        <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
+          <Val><![CDATA[© Microsoft Corporation. Tüm hakları saklıdır.]]></Val>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+      <Props>
+        <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
+      </Props>
+    </Item>
+    <Item ItemId=";OriginalFilename" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text" DevLk="true">
+        <Val><![CDATA[Microsoft.VisualStudio.Composition.Configuration.dll]]></Val>
+        <Tgt Cat="Text" Appr="PreApproved" Orig="New">
+          <Val><![CDATA[Microsoft.VisualStudio.Composition.Configuration.dll]]></Val>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+    </Item>
+    <Item ItemId=";ProductName" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text">
+        <Val><![CDATA[Microsoft® Visual Studio®]]></Val>
+        <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+          <Val><![CDATA[Microsoft® Visual Studio®]]></Val>
+          <Props>
+            <Str Name="TranslationModifiedBy" Val="ozlems" />
+            <Date Name="TranslationModifiedDate" Val="2015-02-27T13:32:42.3065615Z" />
+          </Props>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+      <Props>
+        <Str Name="TranslationStatus" Val="In Sync" />
+        <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+      </Props>
+    </Item>
+    <Item ItemId=";ProductVersion" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text" DevLk="true">
+        <Val><![CDATA[14.0.50223.1-pre+commit.355fe69e6e]]></Val>
+        <Tgt Cat="Text" Appr="PreApproved" Orig="New">
+          <Val><![CDATA[14.0.50223.1-pre+commit.355fe69e6e]]></Val>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="selcukt" DateTime="2015-02-27T15:52:21.0006643Z" />
+    </Item>
+  </Item>
+  <Item ItemId=";Version" ItemType="8" PsrId="211" Leaf="true">
+    <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
+  </Item>
+</LCX>
