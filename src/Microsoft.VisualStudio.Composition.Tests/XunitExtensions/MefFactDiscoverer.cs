@@ -132,7 +132,7 @@
             {
                 base.Serialize(data);
                 data.AddValue(nameof(parts), this.parts);
-                data.AddValue(nameof(assemblies), this.assemblies);
+                data.AddValue(nameof(assemblies), this.assemblies?.ToArray());
                 data.AddValue(nameof(compositionVersions), this.compositionVersions);
                 data.AddValue(nameof(noCompatGoal), this.noCompatGoal);
                 data.AddValue(nameof(invalidConfiguration), this.invalidConfiguration);
@@ -142,7 +142,7 @@
             {
                 base.Deserialize(data);
                 this.parts = data.GetValue<Type[]>(nameof(parts));
-                this.assemblies = data.GetValue<IReadOnlyList<string>>(nameof(assemblies));
+                this.assemblies = data.GetValue<string[]>(nameof(assemblies));
                 this.compositionVersions = data.GetValue<CompositionEngines>(nameof(compositionVersions));
                 this.noCompatGoal = data.GetValue<bool>(nameof(noCompatGoal));
                 this.invalidConfiguration = data.GetValue<bool>(nameof(invalidConfiguration));
