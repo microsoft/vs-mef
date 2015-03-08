@@ -103,7 +103,7 @@
                 }
                 else
                 {
-                    var v3DiscoveryTest = new MefV3DiscoveryTestCommand(this, "V3 (configuration)", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, this.compositionVersions, parts ?? new Type[0], this.assemblies ?? ImmutableList<string>.Empty, this.invalidConfiguration);
+                    var v3DiscoveryTest = new MefV3DiscoveryTestCommand(this, "V3 composition", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, this.compositionVersions, parts ?? new Type[0], this.assemblies ?? ImmutableList<string>.Empty, this.invalidConfiguration);
                     runSummary.Aggregate(await v3DiscoveryTest.RunAsync());
 
                     if (v3DiscoveryTest.Passed && (!this.invalidConfiguration || this.compositionVersions.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors)))
@@ -115,11 +115,11 @@
                                 // TODO: Uncomment these lines after getting codegen to work again.
                                 //       Also re-enable some codegen tests by removing 'abstract' from classes that have this comment:
                                 //       // TODO: remove "abstract" from the class definition to re-enable these tests when codegen is fixed.
-                                ////var codeGenRunner = new Mef3TestCommand(this, "V3 (codegen)", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, configuration, this.compositionVersions, runtime: false);
+                                ////var codeGenRunner = new Mef3TestCommand(this, "V3 engine (codegen)", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, configuration, this.compositionVersions, runtime: false);
                                 ////runSummary.Aggregate(await codeGenRunner.RunAsync());
                             }
 
-                            var runner = new Mef3TestCommand(this, "V3 (runtime)", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, configuration, this.compositionVersions, runtime: true);
+                            var runner = new Mef3TestCommand(this, "V3 engine (runtime)", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, configuration, this.compositionVersions, runtime: true);
                             runSummary.Aggregate(await runner.RunAsync());
                         }
                     }
