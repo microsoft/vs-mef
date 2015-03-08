@@ -101,6 +101,7 @@
                 {
                     if (message is TestFailed)
                     {
+                        // TODO: allow for derived types of allowed exceptions
                         var failedMessage = (TestFailed)message;
                         if (failedMessage.ExceptionTypes.Length > 0 &&
                             AllowedFailureExceptionTypes.Any(t => t.FullName == failedMessage.ExceptionTypes[0]))
