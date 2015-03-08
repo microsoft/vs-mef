@@ -316,23 +316,6 @@
             return totalSummary;
         }
 
-        internal static async Task<RunSummary> RunMultiEngineTest(CompositionEngines attributesVersion, IReadOnlyList<Assembly> assemblies, Type[] parts, Func<IContainer, Task<RunSummary>> test)
-        {
-            var totalSummary = new RunSummary();
-
-            if (attributesVersion.HasFlag(CompositionEngines.V1))
-            {
-                totalSummary.Aggregate(await test(CreateContainerV1(assemblies, parts)));
-            }
-
-            if (attributesVersion.HasFlag(CompositionEngines.V2))
-            {
-                totalSummary.Aggregate(await test(CreateContainerV2(assemblies, parts)));
-            }
-
-            return totalSummary;
-        }
-
         internal class DebuggableCompositionContainer : MefV1.Hosting.CompositionContainer
         {
             protected override IEnumerable<MefV1.Primitives.Export> GetExportsCore(MefV1.Primitives.ImportDefinition definition, MefV1.Hosting.AtomicComposition atomicComposition)

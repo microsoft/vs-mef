@@ -15,17 +15,17 @@
     using Xunit.Abstractions;
     using Xunit.Sdk;
 
-    public class MefV3DiscoveryTestCommand : XunitTestCase
+    public class MefV3DiscoveryTestCommand : XunitTestCaseRunner
     {
         private readonly CompositionEngines compositionVersions;
         private readonly bool expectInvalidConfiguration;
         private readonly Type[] parts;
         private readonly IReadOnlyList<string> assemblyNames;
 
-        public MefV3DiscoveryTestCommand(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, CompositionEngines compositionEngines, Type[] parts, IReadOnlyList<string> assemblyNames, bool expectInvalidConfiguration)
-            : base(diagnosticMessageSink, defaultMethodDisplay, testMethod)
+        public MefV3DiscoveryTestCommand(IXunitTestCase testCase, string displayName, string skipReason, object[] constructorArguments, IMessageBus messageBus, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, CompositionEngines compositionEngines, Type[] parts, IReadOnlyList<string> assemblyNames, bool expectInvalidConfiguration)
+            : base(testCase, displayName, skipReason, constructorArguments, null, messageBus, aggregator, cancellationTokenSource)
         {
-            Requires.NotNull(testMethod, nameof(testMethod));
+            Requires.NotNull(testCase, nameof(testCase));
             Requires.NotNull(parts, nameof(parts));
             Requires.NotNull(assemblyNames, nameof(assemblyNames));
 
@@ -33,15 +33,13 @@
             this.assemblyNames = assemblyNames;
             this.parts = parts;
             this.expectInvalidConfiguration = expectInvalidConfiguration;
-
-            this.DisplayName = "V3 composition";
         }
 
         public IReadOnlyList<CompositionConfiguration> ResultingConfigurations { get; set; }
 
         public bool Passed { get; private set; }
 
-        public override async Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
+        protected override async Task<RunSummary> RunTestAsync()
         {
             try
             {
@@ -118,7 +116,9 @@
             }
             catch (Exception ex)
             {
-                diagnosticMessageSink.OnMessage(new TestFailed(null, 0, null, ex));
+                if (!this.MessageBus.QueueMessage(new TestFailed(null, 0, null, ex)))
+                    CancellationTokenSource.Cancel();
+
                 return new RunSummary { Failed = 1, Total = 1 };
             }
         }

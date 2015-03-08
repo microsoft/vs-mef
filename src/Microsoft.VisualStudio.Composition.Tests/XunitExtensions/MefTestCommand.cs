@@ -13,15 +13,15 @@
     using Xunit.Sdk;
 
     [Serializable]
-    public class MefTestCommand : XunitTestCase
+    public class MefTestCommand : XunitTestCaseRunner
     {
         private readonly CompositionEngines engineVersion;
         private readonly Type[] parts;
         private readonly IReadOnlyList<string> assemblies;
         private readonly bool invalidConfiguration;
 
-        public MefTestCommand(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, CompositionEngines engineVersion, Type[] parts, IReadOnlyList<string> assemblies, bool invalidConfiguration)
-            : base(diagnosticMessageSink, defaultMethodDisplay, testMethod)
+        public MefTestCommand(IXunitTestCase testCase, string displayName, string skipReason, object[] constructorArguments, IMessageBus messageBus, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, CompositionEngines engineVersion, Type[] parts, IReadOnlyList<string> assemblies, bool invalidConfiguration)
+            : base(testCase, displayName, skipReason, constructorArguments, null, messageBus, aggregator, cancellationTokenSource)
         {
             Requires.Argument(parts != null || assemblies != null, "parts ?? assemblies", "Either parameter must be non-null.");
 
@@ -32,7 +32,7 @@
             this.invalidConfiguration = invalidConfiguration;
         }
 
-        public override async Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
+        protected override async Task<RunSummary> RunTestAsync()
         {
             RunSummary runSummary;
 
@@ -41,14 +41,14 @@
                 bool compositionExceptionThrown;
                 try
                 {
-                    runSummary = await RunMultiEngineTest(
+                    runSummary = await RunMultiEngineTestAsync(
                         this.engineVersion,
                         this.parts,
                         this.assemblies,
                         async container =>
                         {
                             this.TestMethodArguments = new object[] { container };
-                            return await base.RunAsync(diagnosticMessageSink, messageBus, constructorArguments, aggregator, cancellationTokenSource);
+                            return await base.RunTestAsync();
                         });
 
                     compositionExceptionThrown = false;
@@ -77,25 +77,36 @@
             }
             else
             {
-                runSummary = await RunMultiEngineTest(
+                runSummary = await RunMultiEngineTestAsync(
                     this.engineVersion,
                     this.parts,
                     this.assemblies,
                     async container =>
                     {
                         this.TestMethodArguments = new object[] { container };
-                        return await base.RunAsync(diagnosticMessageSink, messageBus, constructorArguments, aggregator, cancellationTokenSource);
+                        return await base.RunTestAsync();
                     });
             }
 
             return runSummary;
         }
 
-        private static Task<RunSummary> RunMultiEngineTest(CompositionEngines attributesVersion, Type[] parts, IReadOnlyList<string> assemblies, Func<IContainer, Task<RunSummary>> test)
+        private static Task<RunSummary> RunMultiEngineTestAsync(CompositionEngines attributesVersion, Type[] parts, IReadOnlyList<string> assemblies, Func<IContainer, Task<RunSummary>> test)
         {
             parts = parts ?? new Type[0];
             var loadedAssemblies = assemblies != null ? assemblies.Select(Assembly.Load).ToImmutableList() : ImmutableList<Assembly>.Empty;
-            return TestUtilities.RunMultiEngineTest(attributesVersion, loadedAssemblies, parts, test);
+
+            if (attributesVersion.HasFlag(CompositionEngines.V1))
+            {
+                return test(TestUtilities.CreateContainerV1(loadedAssemblies, parts));
+            }
+
+            if (attributesVersion.HasFlag(CompositionEngines.V2))
+            {
+                return test(TestUtilities.CreateContainerV2(loadedAssemblies, parts));
+            }
+
+            throw new InvalidOperationException();
         }
     }
 }

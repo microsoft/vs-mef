@@ -10,14 +10,14 @@
     using Xunit.Abstractions;
     using Xunit.Sdk;
 
-    public class Mef3TestCommand : XunitTestCase
+    public class Mef3TestCommand : XunitTestCaseRunner
     {
         private readonly CompositionConfiguration configuration;
         private readonly CompositionEngines compositionVersions;
         private readonly bool runtime;
 
-        public Mef3TestCommand(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, CompositionConfiguration configuration, CompositionEngines compositionVersions, bool runtime)
-            : base(diagnosticMessageSink, defaultMethodDisplay, testMethod)
+        public Mef3TestCommand(IXunitTestCase testCase, string displayName, string skipReason, object[] constructorArguments, IMessageBus messageBus, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, CompositionConfiguration configuration, CompositionEngines compositionVersions, bool runtime)
+            : base(testCase, displayName, skipReason, constructorArguments, null, messageBus, aggregator, cancellationTokenSource)
         {
             Requires.NotNull(configuration, "configuration");
 
@@ -28,12 +28,12 @@
             this.DisplayName = string.Format("V3 engine ({0})", runtime ? "runtime" : "code gen");
         }
 
-        public override Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
+        protected override Task<RunSummary> RunTestAsync()
         {
             var exportProvider = TestUtilities.CreateContainer(this.configuration, this.runtime);
             var containerWrapper = new TestUtilities.V3ContainerWrapper(exportProvider, this.configuration);
             this.TestMethodArguments = new object[] { containerWrapper };
-            return base.RunAsync(diagnosticMessageSink, messageBus, constructorArguments, aggregator, cancellationTokenSource);
+            return base.RunTestAsync();
         }
     }
 }
