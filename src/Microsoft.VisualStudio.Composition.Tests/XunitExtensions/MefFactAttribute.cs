@@ -62,10 +62,7 @@
 
         internal static MefFactAttribute Instantiate(IAttributeInfo attribute)
         {
-            var result = (MefFactAttribute)Activator.CreateInstance(typeof(MefFactAttribute), attribute.GetConstructorArguments().ToArray());
-            result.InvalidConfiguration = attribute.GetNamedArgument<bool>(nameof(InvalidConfiguration));
-            result.NoCompatGoal = attribute.GetNamedArgument<bool>(nameof(NoCompatGoal));
-            return result;
+            return (MefFactAttribute)((ReflectionAttributeInfo)attribute).Attribute;
         }
     }
 }
