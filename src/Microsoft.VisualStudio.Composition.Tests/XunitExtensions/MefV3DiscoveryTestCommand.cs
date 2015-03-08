@@ -41,6 +41,7 @@
 
         protected override async Task<RunSummary> RunTestAsync()
         {
+            var test = new XunitTest(this.TestCase, this.DisplayName);
             try
             {
                 var v3DiscoveryModules = this.GetV3DiscoveryModules();
@@ -112,12 +113,20 @@
 
                 this.ResultingConfigurations = configurations;
                 this.Passed = true;
+
+                if (!this.MessageBus.QueueMessage(new TestPassed(test, 0, null)))
+                {
+                    CancellationTokenSource.Cancel();
+                }
+
                 return new RunSummary { Total = 1 };
             }
             catch (Exception ex)
             {
-                if (!this.MessageBus.QueueMessage(new TestFailed(null, 0, null, ex)))
+                if (!this.MessageBus.QueueMessage(new TestFailed(test, 0, null, ex)))
+                {
                     CancellationTokenSource.Cancel();
+                }
 
                 return new RunSummary { Failed = 1, Total = 1 };
             }

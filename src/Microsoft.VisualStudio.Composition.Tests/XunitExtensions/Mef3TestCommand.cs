@@ -24,8 +24,6 @@
             this.configuration = configuration;
             this.compositionVersions = compositionVersions;
             this.runtime = runtime;
-
-            this.DisplayName = string.Format("V3 engine ({0})", runtime ? "runtime" : "code gen");
         }
 
         protected override Task<RunSummary> RunTestAsync()
