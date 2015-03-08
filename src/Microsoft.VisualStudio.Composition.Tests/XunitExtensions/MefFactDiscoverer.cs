@@ -103,7 +103,7 @@
                 }
                 else
                 {
-                    var v3DiscoveryTest = new MefV3DiscoveryTestCommand(this, "V3 catalog", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, this.compositionVersions, parts ?? new Type[0], this.assemblies ?? ImmutableList<string>.Empty, this.invalidConfiguration);
+                    var v3DiscoveryTest = new MefV3DiscoveryTestCommand(this, "V3 (configuration)", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, this.compositionVersions, parts ?? new Type[0], this.assemblies ?? ImmutableList<string>.Empty, this.invalidConfiguration);
                     runSummary.Aggregate(await v3DiscoveryTest.RunAsync());
 
                     if (v3DiscoveryTest.Passed && (!this.invalidConfiguration || this.compositionVersions.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors)))
