@@ -157,7 +157,7 @@
             private static Type[] TypeDeserializationHelper(string[] typeNames)
             {
                 // workaround xunit2 bug 344 (https://github.com/xunit/xunit/issues/344)
-                return typeNames.Select(n => Type.GetType(n)).ToArray();
+                return typeNames?.Select(n => Type.GetType(n)).ToArray();
             }
         }
     }
