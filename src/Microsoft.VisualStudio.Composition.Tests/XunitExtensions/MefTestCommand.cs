@@ -21,7 +21,7 @@
         private readonly bool invalidConfiguration;
 
         public MefTestCommand(IXunitTestCase testCase, string displayName, string skipReason, object[] constructorArguments, IMessageBus messageBus, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, CompositionEngines engineVersion, Type[] parts, IReadOnlyList<string> assemblies, bool invalidConfiguration)
-            : base(testCase, displayName, skipReason, constructorArguments, null, messageBus, aggregator, cancellationTokenSource)
+            : base(testCase, displayName, skipReason, constructorArguments, null, new TestResultInverter(messageBus, invalidConfiguration), aggregator, cancellationTokenSource)
         {
             Requires.Argument(parts != null || assemblies != null, "parts ?? assemblies", "Either parameter must be non-null.");
 
@@ -32,63 +32,17 @@
             this.invalidConfiguration = invalidConfiguration;
         }
 
-        protected override async Task<RunSummary> RunTestAsync()
+        protected override Task<RunSummary> RunTestAsync()
         {
-            RunSummary runSummary;
-
-            if (this.invalidConfiguration)
-            {
-                bool compositionExceptionThrown;
-                try
+            return RunMultiEngineTestAsync(
+                this.engineVersion,
+                this.parts,
+                this.assemblies,
+                async container =>
                 {
-                    runSummary = await RunMultiEngineTestAsync(
-                        this.engineVersion,
-                        this.parts,
-                        this.assemblies,
-                        async container =>
-                        {
-                            this.TestMethodArguments = new object[] { container };
-                            return await base.RunTestAsync();
-                        });
-
-                    compositionExceptionThrown = false;
-                }
-                catch (CompositionFailedException)
-                {
-                    compositionExceptionThrown = true;
-                }
-                catch (System.ComponentModel.Composition.CompositionException)
-                {
-                    compositionExceptionThrown = true;
-                }
-                catch (InvalidOperationException)
-                {
-                    // MEFv1 throws this sometimes (CustomMetadataValueV1 test).
-                    compositionExceptionThrown = true;
-                }
-                catch (System.Composition.Hosting.CompositionFailedException)
-                {
-                    // MEFv2 can throw this from ExportFactory`1.CreateExport.
-                    compositionExceptionThrown = true;
-                }
-
-                Assert.True(compositionExceptionThrown, "Composition exception expected but not thrown.");
-                runSummary = null; // TODO
-            }
-            else
-            {
-                runSummary = await RunMultiEngineTestAsync(
-                    this.engineVersion,
-                    this.parts,
-                    this.assemblies,
-                    async container =>
-                    {
-                        this.TestMethodArguments = new object[] { container };
-                        return await base.RunTestAsync();
-                    });
-            }
-
-            return runSummary;
+                    this.TestMethodArguments = new object[] { container };
+                    return await base.RunTestAsync();
+                });
         }
 
         private static Task<RunSummary> RunMultiEngineTestAsync(CompositionEngines attributesVersion, Type[] parts, IReadOnlyList<string> assemblies, Func<IContainer, Task<RunSummary>> test)
@@ -107,6 +61,54 @@
             }
 
             throw new InvalidOperationException();
+        }
+
+        private class TestResultInverter : IMessageBus
+        {
+            private static readonly Type[] AllowedFailureExceptionTypes = new Type[]
+            {
+                typeof(CompositionFailedException),
+                typeof(System.ComponentModel.Composition.CompositionException),
+                typeof(InvalidOperationException), // MEFv1 throws this sometimes (CustomMetadataValueV1 test).
+                typeof(System.Composition.Hosting.CompositionFailedException), // MEFv2 can throw this from ExportFactory`1.CreateExport.
+            };
+
+            private readonly IMessageBus inner;
+            private readonly bool invalidConfigurationExpected;
+
+            internal TestResultInverter(IMessageBus inner, bool invalidConfigurationExpected)
+            {
+                this.inner = inner;
+                this.invalidConfigurationExpected = invalidConfigurationExpected;
+            }
+
+            public bool QueueMessage(IMessageSinkMessage message)
+            {
+                if (this.invalidConfigurationExpected)
+                {
+                    if (message is TestFailed)
+                    {
+                        var failedMessage = (TestFailed)message;
+                        if (failedMessage.ExceptionTypes.Length == 1 &&
+                            AllowedFailureExceptionTypes.Any(t => t.FullName == failedMessage.ExceptionTypes[0]))
+                        {
+                            message = new TestPassed(failedMessage.Test, failedMessage.ExecutionTime, failedMessage.Output);
+                        }
+                    }
+                    else if (message is TestPassed)
+                    {
+                        var passedMessage = (TestPassed)message;
+                        message = new TestFailed(passedMessage.Test, passedMessage.ExecutionTime, passedMessage.Output, new AssertActualExpectedException(false, true, "Expected invalid configuration but no exception thrown."));
+                    }
+                }
+
+                return this.inner.QueueMessage(message);
+            }
+
+            public void Dispose()
+            {
+                this.inner.Dispose();
+            }
         }
     }
 }
