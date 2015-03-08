@@ -34,7 +34,7 @@
 
         protected override Task<RunSummary> RunTestAsync()
         {
-            return RunMultiEngineTestAsync(
+            return this.RunMultiEngineTestAsync(
                 this.engineVersion,
                 this.parts,
                 this.assemblies,
@@ -45,22 +45,35 @@
                 });
         }
 
-        private static Task<RunSummary> RunMultiEngineTestAsync(CompositionEngines attributesVersion, Type[] parts, IReadOnlyList<string> assemblies, Func<IContainer, Task<RunSummary>> test)
+        private async Task<RunSummary> RunMultiEngineTestAsync(CompositionEngines attributesVersion, Type[] parts, IReadOnlyList<string> assemblies, Func<IContainer, Task<RunSummary>> test)
         {
-            parts = parts ?? new Type[0];
-            var loadedAssemblies = assemblies != null ? assemblies.Select(Assembly.Load).ToImmutableList() : ImmutableList<Assembly>.Empty;
-
-            if (attributesVersion.HasFlag(CompositionEngines.V1))
+            try
             {
-                return test(TestUtilities.CreateContainerV1(loadedAssemblies, parts));
-            }
+                parts = parts ?? new Type[0];
+                var loadedAssemblies = assemblies != null ? assemblies.Select(Assembly.Load).ToImmutableList() : ImmutableList<Assembly>.Empty;
 
-            if (attributesVersion.HasFlag(CompositionEngines.V2))
+                if (attributesVersion.HasFlag(CompositionEngines.V1))
+                {
+                    return await test(TestUtilities.CreateContainerV1(loadedAssemblies, parts));
+                }
+
+                if (attributesVersion.HasFlag(CompositionEngines.V2))
+                {
+                    return await test(TestUtilities.CreateContainerV2(loadedAssemblies, parts));
+                }
+
+                throw new InvalidOperationException();
+            }
+            catch (Exception ex)
             {
-                return test(TestUtilities.CreateContainerV2(loadedAssemblies, parts));
-            }
+                var t = new XunitTest(this.TestCase, this.DisplayName);
+                if (!this.MessageBus.QueueMessage(new TestFailed(t, 0, null, ex)))
+                {
+                    CancellationTokenSource.Cancel();
+                }
 
-            throw new InvalidOperationException();
+                return new RunSummary { Total = 1, Failed = 1 };
+            }
         }
 
         private class TestResultInverter : IMessageBus
@@ -89,7 +102,7 @@
                     if (message is TestFailed)
                     {
                         var failedMessage = (TestFailed)message;
-                        if (failedMessage.ExceptionTypes.Length == 1 &&
+                        if (failedMessage.ExceptionTypes.Length > 0 &&
                             AllowedFailureExceptionTypes.Any(t => t.FullName == failedMessage.ExceptionTypes[0]))
                         {
                             message = new TestPassed(failedMessage.Test, failedMessage.ExecutionTime, failedMessage.Output);
