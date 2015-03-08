@@ -131,7 +131,7 @@
             public override void Serialize(IXunitSerializationInfo data)
             {
                 base.Serialize(data);
-                data.AddValue(nameof(parts), this.parts);
+                data.AddValue(nameof(parts), TypeSerializationHelper(this.parts));
                 data.AddValue(nameof(assemblies), this.assemblies?.ToArray());
                 data.AddValue(nameof(compositionVersions), this.compositionVersions);
                 data.AddValue(nameof(noCompatGoal), this.noCompatGoal);
@@ -141,11 +141,23 @@
             public override void Deserialize(IXunitSerializationInfo data)
             {
                 base.Deserialize(data);
-                this.parts = data.GetValue<Type[]>(nameof(parts));
+                this.parts = TypeDeserializationHelper(data.GetValue<string[]>(nameof(parts)));
                 this.assemblies = data.GetValue<string[]>(nameof(assemblies));
                 this.compositionVersions = data.GetValue<CompositionEngines>(nameof(compositionVersions));
                 this.noCompatGoal = data.GetValue<bool>(nameof(noCompatGoal));
                 this.invalidConfiguration = data.GetValue<bool>(nameof(invalidConfiguration));
+            }
+
+            private static string[] TypeSerializationHelper(Type[] types)
+            {
+                // workaround xunit2 bug 344 (https://github.com/xunit/xunit/issues/344)
+                return types?.Select(t => t.AssemblyQualifiedName).ToArray();
+            }
+
+            private static Type[] TypeDeserializationHelper(string[] typeNames)
+            {
+                // workaround xunit2 bug 344 (https://github.com/xunit/xunit/issues/344)
+                return typeNames.Select(n => Type.GetType(n)).ToArray();
             }
         }
     }
