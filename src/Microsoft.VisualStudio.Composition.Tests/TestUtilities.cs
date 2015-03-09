@@ -45,7 +45,7 @@
             }
         }
 
-        internal static ExportProvider CreateContainer(this CompositionConfiguration configuration, bool runtime, ITestOutputHelper output)
+        internal static async Task<ExportProvider> CreateContainerAsync(this CompositionConfiguration configuration, bool runtime, ITestOutputHelper output)
         {
             Requires.NotNull(configuration, "configuration");
             Requires.NotNull(output, nameof(output));
@@ -57,10 +57,10 @@
                 // Round-trip serialization to make sure the result is equivalent.
                 var cacheManager = new CachedComposition();
                 var ms = new MemoryStream();
-                cacheManager.SaveAsync(runtimeComposition, ms).GetAwaiter().GetResult();
+                await cacheManager.SaveAsync(runtimeComposition, ms);
                 output.WriteLine("Cache file size: {0}", ms.Length);
                 ms.Position = 0;
-                var deserializedRuntimeComposition = cacheManager.LoadRuntimeCompositionAsync(ms).GetAwaiter().GetResult();
+                var deserializedRuntimeComposition = await cacheManager.LoadRuntimeCompositionAsync(ms);
                 Assert.Equal(runtimeComposition, deserializedRuntimeComposition);
 
                 return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();
@@ -87,7 +87,7 @@
                             compiledCacheManager.Source = source;
                             using (var assemblyStream = File.Open(assemblyPath, FileMode.CreateNew))
                             {
-                                compiledCacheManager.SaveAsync(configuration, assemblyStream).GetAwaiter().GetResult();
+                                await compiledCacheManager.SaveAsync(configuration, assemblyStream);
                             }
                         }
                     }
@@ -107,7 +107,7 @@
                         var assemblyStream = new MemoryStream();
                         compiledCacheManager.SaveAsync(configuration, assemblyStream).Wait();
                         assemblyStream.Position = 0;
-                        var exportProvider = compiledCacheManager.LoadExportProviderFactoryAsync(assemblyStream).Result.CreateExportProvider();
+                        var exportProvider = (await compiledCacheManager.LoadExportProviderFactoryAsync(assemblyStream)).CreateExportProvider();
                         return exportProvider;
                     }
                     finally
@@ -155,16 +155,17 @@
             }
         }
 
-        internal static ExportProvider CreateContainer(ITestOutputHelper output, params Type[] parts)
+        internal static Task<ExportProvider> CreateContainer(ITestOutputHelper output, params Type[] parts)
         {
-            return CreateContainerAsync(output, parts).GetAwaiter().GetResult();
+            return CreateContainerAsync(output, parts);
         }
 
         internal static async Task<ExportProvider> CreateContainerAsync(ITestOutputHelper output, params Type[] parts)
         {
-            return CompositionConfiguration.Create(
-                await new AttributedPartDiscovery().CreatePartsAsync(parts))
-                .CreateContainer(true, output);
+            var catalog = await new AttributedPartDiscovery().CreatePartsAsync(parts);
+            var configuration = await CompositionConfiguration.Create(catalog)
+                .CreateContainerAsync(true, output);
+            return configuration;
         }
 
         internal static IContainer CreateContainerV1(params Type[] parts)
@@ -242,7 +243,7 @@
                 catalog = ComposableCatalog.Create(catalog.Parts.Concat(typeCatalog.Parts));
             }
 
-            return CreateContainerV3(catalog, attributesDiscovery, output);
+            return await CreateContainerV3Async(catalog, attributesDiscovery, output);
         }
 
         private static PartDiscovery GetDiscoveryService(CompositionEngines attributesDiscovery)
@@ -267,7 +268,7 @@
             return PartDiscovery.Combine(discovery.ToArray());
         }
 
-        private static IContainer CreateContainerV3(ComposableCatalog catalog, CompositionEngines options, ITestOutputHelper output)
+        private static async Task<IContainer> CreateContainerV3Async(ComposableCatalog catalog, CompositionEngines options, ITestOutputHelper output)
         {
             Requires.NotNull(catalog, nameof(catalog));
             Requires.NotNull(output, nameof(output));
@@ -286,7 +287,7 @@
             configuration.CreateDgml().Save(dgmlFile);
             output.WriteLine("DGML saved to: " + dgmlFile);
 #endif
-            var container = configuration.CreateContainer(true, output);
+            var container = await configuration.CreateContainerAsync(true, output);
             return new V3ContainerWrapper(container, configuration);
         }
 

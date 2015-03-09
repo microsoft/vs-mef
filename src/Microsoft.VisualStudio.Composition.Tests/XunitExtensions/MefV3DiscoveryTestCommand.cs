@@ -106,7 +106,7 @@
                             .WithDesktopSupport();
 
                         // Round-trip the catalog through serialization to verify that as well.
-                        RoundtripCatalogSerialization(catalogWithSupport, output);
+                        await RoundtripCatalogSerializationAsync(catalogWithSupport, output);
 
                         var configuration = CompositionConfiguration.Create(catalogWithSupport);
 
@@ -181,7 +181,7 @@
             return false;
         }
 
-        private static void RoundtripCatalogSerialization(ComposableCatalog catalog, ITestOutputHelper output)
+        private static async Task RoundtripCatalogSerializationAsync(ComposableCatalog catalog, ITestOutputHelper output)
         {
             Requires.NotNull(catalog, "catalog");
             Requires.NotNull(output, nameof(output));
@@ -190,7 +190,7 @@
             var ms = new MemoryStream();
             catalogSerialization.SaveAsync(catalog, ms).Wait();
             ms.Position = 0;
-            var deserializedCatalog = catalogSerialization.LoadAsync(ms).Result;
+            var deserializedCatalog = await catalogSerialization.LoadAsync(ms);
 
             var before = new StringWriter();
             catalog.ToString(before);

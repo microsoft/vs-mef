@@ -26,14 +26,14 @@
             this.runtime = runtime;
         }
 
-        protected override Task<RunSummary> RunTestAsync()
+        protected override async Task<RunSummary> RunTestAsync()
         {
             var output = new TestOutputHelper();
             output.Initialize(this.MessageBus, new XunitTest(this.TestCase, this.DisplayName));
-            var exportProvider = TestUtilities.CreateContainer(this.configuration, this.runtime, output);
+            var exportProvider = await TestUtilities.CreateContainerAsync(this.configuration, this.runtime, output);
             var containerWrapper = new TestUtilities.V3ContainerWrapper(exportProvider, this.configuration);
             this.TestMethodArguments = new object[] { containerWrapper };
-            return base.RunTestAsync();
+            return await base.RunTestAsync();
         }
     }
 }

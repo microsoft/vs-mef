@@ -31,7 +31,7 @@
         /// thread safety issues to show themselves.
         /// </summary>
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartThatImportsSharedPartWithBlockableConstructor), typeof(SharedPartWithBlockableConstructor))]
-        public void LazyOfSharedPartConstructsOnlyOneInstanceAcrossThreads(IContainer container)
+        public async Task LazyOfSharedPartConstructsOnlyOneInstanceAcrossThreads(IContainer container)
         {
             var testFailedCancellationSource = new CancellationTokenSource();
             var timeoutCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(testFailedCancellationSource.Token);
@@ -52,7 +52,7 @@
                     SharedPartWithBlockableConstructor getExtension = part.ImportingProperty.Value;
                     return getExtension;
                 });
-                contrivedPartTasks[i].ContinueWith(t => testFailedCancellationSource.Cancel(), CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
+                var nowait = contrivedPartTasks[i].ContinueWith(t => testFailedCancellationSource.Cancel(), CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
             }
 
             // Wait for all threads to have reached SomeOtherPart's constructor.
@@ -87,7 +87,7 @@
             // Verify that all threaded saw just one instance of the shared part satisfying all the imports.
             for (int i = 1; i < threads; i++)
             {
-                Assert.Same(contrivedPartTasks[0].Result, contrivedPartTasks[i].Result);
+                Assert.Same(await contrivedPartTasks[0], await contrivedPartTasks[i]);
             }
         }
 
@@ -344,7 +344,7 @@
         #region SharedPartCircularDependencyCreationAcrossMultipleThreads test
 
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V2Compat, typeof(CircularDependencySharedPart1), typeof(CircularDependencySharedPart2))]
-        public void SharedPartCircularDependencyCreationAcrossMultipleThreads(IContainer container)
+        public async Task SharedPartCircularDependencyCreationAcrossMultipleThreads(IContainer container)
         {
             CircularDependencySharedPart1.UnblockSurroundingImportingProperties.Reset();
             CircularDependencySharedPart1.SurroundingImportingPropertiesHit.Reset();
@@ -384,8 +384,8 @@
             CircularDependencySharedPart2.UnblockSurroundingImportingProperties.Set();
 
             // Get the two parts.
-            var p1 = part1Task.Result;
-            var p2 = part2Task.Result;
+            var p1 = await part1Task;
+            var p2 = await part2Task;
 
             Assert.Same(p1, p2.Part1);
             Assert.Same(p2, p1.Part2);
@@ -483,7 +483,7 @@
         #region ImportingConstructorImportsAreFullyInitialized test
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartThatImportsPartWithOwnImports), typeof(PartThatImportsRandomExport), typeof(RandomExport))]
-        public void ImportingConstructorImportsAreFullyInitialized(IContainer container)
+        public async Task ImportingConstructorImportsAreFullyInitialized(IContainer container)
         {
             PartThatImportsRandomExport.UnblockImportingPropertySetters.Reset();
             PartThatImportsRandomExport.ImportingPropertySettersInvoked.Reset();
@@ -507,9 +507,9 @@
             PartThatImportsRandomExport.UnblockImportingPropertySetters.Set();
             Assert.True(partWithImportingConstructorTask.Wait(TestUtilities.UnexpectedTimeout));
 
-            partDependencyTask.Wait(); // rethrow any failures here
+            var partDependencyTaskResult = await partDependencyTask; // rethrow any failures here
 
-            Assert.Same(partDependencyTask.Result, partWithImportingConstructorTask.Result.ImportingConstructorArgument);
+            Assert.Same(partDependencyTaskResult, partWithImportingConstructorTask.Result.ImportingConstructorArgument);
         }
 
         [Export, Shared]

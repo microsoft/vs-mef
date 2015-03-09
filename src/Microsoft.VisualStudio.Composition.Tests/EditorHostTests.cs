@@ -50,7 +50,7 @@
         /// It just provides a method to run for collecting traces.
         /// </summary>
         [Fact(Skip = "Not really a test")]
-        public void ComposeEditorPerformance()
+        public async Task ComposeEditorPerformance()
         {
             var editorAssemblies = EditorAssemblyNames
                 .Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
@@ -63,7 +63,7 @@
             var v3Discovery = new AttributedPartDiscoveryV1();
             var v3Catalog = ComposableCatalog.Create()
                 .WithDesktopSupport()
-                .WithParts(v3Discovery.CreatePartsAsync(editorAssemblies).Result)
+                .WithParts(await v3Discovery.CreatePartsAsync(editorAssemblies))
                 .WithPart(v3Discovery.CreatePart(typeof(DummyKeyboardTrackingService)));
             var v3Configuration = CompositionConfiguration.Create(v3Catalog);
             var v3ExportProviderFactory = v3Configuration.CreateExportProviderFactory();
