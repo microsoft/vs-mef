@@ -39,97 +39,107 @@
 
         public bool Passed { get; private set; }
 
+        /// <summary>
+        /// Gets the object which measures execution time.
+        /// </summary>
+        protected ExecutionTimer Timer { get; } = new ExecutionTimer();
+
         protected override async Task<RunSummary> RunTestAsync()
         {
-            var test = new XunitTest(this.TestCase, this.DisplayName);
-            try
-            {
-                var v3DiscoveryModules = this.GetV3DiscoveryModules();
-
-                var resultingCatalogs = new List<ComposableCatalog>(v3DiscoveryModules.Count);
-
-                var assemblies = this.assemblyNames.Select(Assembly.Load).ToList();
-                foreach (var discoveryModule in v3DiscoveryModules)
+            await this.Aggregator.RunAsync(() => this.Timer.AggregateAsync(
+                async delegate
                 {
-                    var partsFromTypes = await discoveryModule.CreatePartsAsync(this.parts);
-                    var partsFromAssemblies = await discoveryModule.CreatePartsAsync(assemblies);
-                    var catalog = ComposableCatalog.Create()
-                        .WithParts(partsFromTypes)
-                        .WithParts(partsFromAssemblies);
-                    resultingCatalogs.Add(catalog);
-                }
+                    var v3DiscoveryModules = this.GetV3DiscoveryModules();
 
-                string[] catalogStringRepresentations = resultingCatalogs.Select(catalog =>
+                    var resultingCatalogs = new List<ComposableCatalog>(v3DiscoveryModules.Count);
+
+                    var assemblies = this.assemblyNames.Select(Assembly.Load).ToList();
+                    foreach (var discoveryModule in v3DiscoveryModules)
                     {
-                        var writer = new StringWriter();
-                        catalog.ToString(writer);
-                        return writer.ToString();
-                    }).ToArray();
-
-                bool anyStringRepresentationDifferences = false;
-                for (int i = 1; i < resultingCatalogs.Count; i++)
-                {
-                    anyStringRepresentationDifferences = PrintDiff(
-                        v3DiscoveryModules[0].GetType().Name,
-                        v3DiscoveryModules[i].GetType().Name,
-                        catalogStringRepresentations[0],
-                        catalogStringRepresentations[i]);
-                }
-
-                // Verify that the catalogs are identical.
-                // The string compare above should have taken care of this (in a more descriptive way),
-                // but we do this to double-check.
-                var uniqueCatalogs = resultingCatalogs.Distinct().ToArray();
-
-                // Fail the test if ComposableCatalog.Equals returns a different result from string comparison.
-                Assert.Equal(anyStringRepresentationDifferences, uniqueCatalogs.Length > 1);
-
-                if (uniqueCatalogs.Length == 1)
-                {
-                    ////Console.WriteLine(catalogStringRepresentations[0]);
-                }
-
-                // For each distinct catalog, create one configuration and verify it meets expectations.
-                var configurations = new List<CompositionConfiguration>(uniqueCatalogs.Length);
-                foreach (var uniqueCatalog in uniqueCatalogs)
-                {
-                    var catalogWithSupport = uniqueCatalog
-                        .WithCompositionService()
-                        .WithDesktopSupport();
-
-                    // Round-trip the catalog through serialization to verify that as well.
-                    RoundtripCatalogSerialization(catalogWithSupport);
-
-                    var configuration = CompositionConfiguration.Create(catalogWithSupport);
-
-                    if (!this.compositionVersions.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors))
-                    {
-                        Assert.Equal(this.expectInvalidConfiguration, !configuration.CompositionErrors.IsEmpty || !catalogWithSupport.DiscoveredParts.DiscoveryErrors.IsEmpty);
+                        var partsFromTypes = await discoveryModule.CreatePartsAsync(this.parts);
+                        var partsFromAssemblies = await discoveryModule.CreatePartsAsync(assemblies);
+                        var catalog = ComposableCatalog.Create()
+                            .WithParts(partsFromTypes)
+                            .WithParts(partsFromAssemblies);
+                        resultingCatalogs.Add(catalog);
                     }
 
-                    // Save the configuration in a property so that the engine test that follows can reuse the work we've done.
-                    configurations.Add(configuration);
-                }
+                    string[] catalogStringRepresentations = resultingCatalogs.Select(catalog =>
+                        {
+                            var writer = new StringWriter();
+                            catalog.ToString(writer);
+                            return writer.ToString();
+                        }).ToArray();
 
-                this.ResultingConfigurations = configurations;
-                this.Passed = true;
+                    bool anyStringRepresentationDifferences = false;
+                    for (int i = 1; i < resultingCatalogs.Count; i++)
+                    {
+                        anyStringRepresentationDifferences = PrintDiff(
+                            v3DiscoveryModules[0].GetType().Name,
+                            v3DiscoveryModules[i].GetType().Name,
+                            catalogStringRepresentations[0],
+                            catalogStringRepresentations[i]);
+                    }
 
-                if (!this.MessageBus.QueueMessage(new TestPassed(test, 0, null)))
-                {
-                    CancellationTokenSource.Cancel();
-                }
+                    // Verify that the catalogs are identical.
+                    // The string compare above should have taken care of this (in a more descriptive way),
+                    // but we do this to double-check.
+                    var uniqueCatalogs = resultingCatalogs.Distinct().ToArray();
 
-                return new RunSummary { Total = 1 };
-            }
-            catch (Exception ex)
+                    // Fail the test if ComposableCatalog.Equals returns a different result from string comparison.
+                    Assert.Equal(anyStringRepresentationDifferences, uniqueCatalogs.Length > 1);
+
+                    if (uniqueCatalogs.Length == 1)
+                    {
+                        ////Console.WriteLine(catalogStringRepresentations[0]);
+                    }
+
+                    // For each distinct catalog, create one configuration and verify it meets expectations.
+                    var configurations = new List<CompositionConfiguration>(uniqueCatalogs.Length);
+                    foreach (var uniqueCatalog in uniqueCatalogs)
+                    {
+                        var catalogWithSupport = uniqueCatalog
+                            .WithCompositionService()
+                            .WithDesktopSupport();
+
+                        // Round-trip the catalog through serialization to verify that as well.
+                        RoundtripCatalogSerialization(catalogWithSupport);
+
+                        var configuration = CompositionConfiguration.Create(catalogWithSupport);
+
+                        if (!this.compositionVersions.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors))
+                        {
+                            Assert.Equal(this.expectInvalidConfiguration, !configuration.CompositionErrors.IsEmpty || !catalogWithSupport.DiscoveredParts.DiscoveryErrors.IsEmpty);
+                        }
+
+                        // Save the configuration in a property so that the engine test that follows can reuse the work we've done.
+                        configurations.Add(configuration);
+                    }
+
+                    this.ResultingConfigurations = configurations;
+                }));
+
+            var test = new XunitTest(this.TestCase, this.DisplayName);
+            var runSummary = new RunSummary { Total = 1, Time = this.Timer.Total };
+            IMessageSinkMessage testResultMessage;
+            if (this.Aggregator.HasExceptions)
             {
-                if (!this.MessageBus.QueueMessage(new TestFailed(test, 0, null, ex)))
-                {
-                    CancellationTokenSource.Cancel();
-                }
-
-                return new RunSummary { Failed = 1, Total = 1 };
+                testResultMessage = new TestFailed(test, this.Timer.Total, null, this.Aggregator.ToException());
+                runSummary.Failed++;
             }
+            else
+            {
+                testResultMessage = new TestPassed(test, this.Timer.Total, null);
+                this.Passed = true;
+            }
+
+            if (!this.MessageBus.QueueMessage(testResultMessage))
+            {
+                CancellationTokenSource.Cancel();
+            }
+
+            this.Aggregator.Clear();
+            return runSummary;
         }
 
         private static bool PrintDiff(string beforeDescription, string afterDescription, string before, string after)
