@@ -1,0 +1,920 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LCX SchemaVersion="6.0" Name="F:\987\bin\Microsoft.VisualStudio.Composition.dll" PsrId="211" FileType="1" SrcCul="en-US" TgtCul="pt-BR" xmlns="http://schemas.microsoft.com/locstudio/2006/6/lcx">
+  <Props>
+    <Str Name="HobbitID" Val="3f85c73a-ca7c-4aea-95e7-33685a819fd4" />
+  </Props>
+  <OwnedComments>
+    <Cmt Name="Dev" />
+    <Cmt Name="LcxAdmin" />
+    <Cmt Name="Loc" />
+    <Cmt Name="RCCX" />
+  </OwnedComments>
+  <Settings Name="@vsLocTools@\current\default.lss" Type="LSS" />
+  <Item ItemId=";Managed Resources" ItemType="0" PsrId="211" Leaf="true">
+    <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
+  </Item>
+  <Item ItemId=";Microsoft.VisualStudio.Composition.Strings.resources" ItemType="0" PsrId="211" Leaf="false">
+    <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" Path=" \ ;Managed Resources \ 0 \ 0" />
+    <Item ItemId=";Strings" ItemType="0" PsrId="211" Leaf="false">
+      <Disp Icon="Str" Disp="true" LocTbl="false" />
+      <Item ItemId=";AllValuesMustBeNonNull" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[All values must be non-null.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Todos os valores devem ser não nulos.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T19:45:56.8964092Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";CannotDirectlyDisposeAnImport" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This instance is an import and cannot be directly disposed.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Esta instância é uma importação e não pode ser descartada diretamente.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T19:54:35.4530689Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";CannotImportBecauseExportingPartCannotBeInstantiated" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}: cannot import exported value from {1} because the exporting part cannot be instantiated. Is it missing an importing constructor?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[{0}: não é possível importar o valor exportado de {1} porque não é possível criar uma instância da parte de exportação. Um construtor de importação está ausente?]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T22:37:43.5009133Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";CollectionTypeMustDeriveFromICollectionOfT" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Collection type must derive from ICollection<T>.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[O tipo de coleção deve derivar de ICollection<T>.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T19:59:06.0085438Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ContainerDisposalEncounteredExceptions" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Instantiated part(s) threw exception(s) from IDisposable.Dispose().]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[As partes instanciadas geraram exceções por meio de IDisposable.Dispose().]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="Melina.Mello" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T12:59:51.5876426Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ErrorWhileSettingImport" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Import "{0}" could not be satisfied.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Não foi possível satisfazer à importação de "{0}".]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T21:42:44.3842146Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ErrorsDuringDiscovery" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Errors occurred during discovery.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Ocorreram erros durante a descoberta.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T21:40:49.9456691Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ErrorsInComposition" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Errors exist in the composition.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Existem erros na composição.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T21:43:39.2233512Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ExactlyOneEntryForEveryImport" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[There should be exactly one entry for every import.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Deve haver exatamente uma entrada para cada importação.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T21:43:53.3421587Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ExceptionThrownByPartUnderInitialization" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[An exception was thrown while initializing part "{0}".]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Uma exceção foi gerada ao inicializar a parte "{0}".]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T20:06:35.6762634Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ExpectedExactlyOneExportButFound" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}: expected exactly 1 export of {1} but found {2}.{3}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[{0}: esperava-se exatamente 1 exportação de {1}, mas foram encontradas {2}.{3}]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T11:15:13.3777864Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ExpectedOneOrZeroExportsButFound" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}: expected 1 or 0 exports of {1} but found {2}.{3}]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[{0}: esperava-se 1 ou 0 exportação de {1}, mas foram encontradas {2}.{3}]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T11:14:59.7770084Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ExportOfExportProviderNotAllowed" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}: Export of ExportProvider is not allowed.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[{0}: Não é permitida exportação do ProvedorDeExportação.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T21:49:01.6787946Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ExportedValueNotAssignableToImport" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Value exported from "{0}" cannot be assigned to import site "{1}".]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[O valor exportado de "{0}" não pode ser atribuído para importar o site "{1}".]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T22:39:21.0034901Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";FailStableComposition" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failed to find a stable composition.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Falha ao localizar uma composição estável.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T21:50:24.3805249Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";FailureWhileScanningType" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Failure while scanning type "{0}".]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Falha ao verificar o tipo "{0}".]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T21:50:38.6853431Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ImportingCtorHasUnsupportedParameterTypeForImportMany" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Importing constructor has an unsupported parameter type for an [ImportMany]5D;. Only T[]5D; and IEnumerable<T> are supported.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[O construtor de importação possui um tipo de parâmetro sem suporte para um [ImportarMuitos]5D;. Somente T[]5D; e IEnumerable<T> têm suporte.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="isabela.hirayama" />
+              <Date Name="TranslationModifiedDate" Val="2015-03-02T12:51:10.4673593Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ImportsThatUseGenericTypeParametersNotSupported" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}: imports that use generic type parameters are not supported.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[{0}: importações que usam parâmetros de tipo genérico não têm suporte.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="isabela.hirayama" />
+              <Date Name="TranslationModifiedDate" Val="2015-03-02T12:51:33.1696293Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";InstanceEmpty" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This instance is empty.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Esta instância está vazia.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T19:14:21.0769745Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";IsNotAssignableFromExportedMEFValue" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}: is not assignable from exported MEF value {1}.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[{0}: não pode ser atribuído por meio do valor de MEF exportado {1}.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="Melina.Mello" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T13:00:07.2252062Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";LoopBetweenNonSharedParts" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loop between non-shared parts.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Loop entre as partes não compartilhadas.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T19:14:09.6603215Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";LoopInvolvingImportingCtorArgumentAndAllNonLazyImports" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Loop involving ImportingConstructor argument and all non-lazy imports.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Loop envolvendo o argumento ImportingConstructor e todas as importações não lentas.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T19:10:42.5834774Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";MEFPartAlreadyInFinalState" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[MEF part already in final state.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Parte de MEF já em estado final.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T19:13:47.6130605Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";MetadataTypeNotSupported" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}: metadata type {1} is not supported.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[{0}: o tipo de metadados {1} não tem suporte.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="isabela.hirayama" />
+              <Date Name="TranslationModifiedDate" Val="2015-03-02T12:51:16.9820107Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";NoImportingConstructor" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[No importing constructor.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Nenhum construtor de importação.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T20:24:32.7038658Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";NotATypeSpec" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Not a type spec.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Não é uma especificação de tipo.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T20:25:43.4569127Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";NotClosedFormOfOther" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Not a closed form of the other.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Não é uma forma fechada do outro.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T20:21:26.9932438Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";NotGenericTypeDefinition" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This is not a generic type definition.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Esta não é uma definição de tipo genérico.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T20:07:59.5510607Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";NotInitialized" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Not initialized.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Não inicializado.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T15:39:57.4052146Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";PartBelongsToAnotherSharingBoundary" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Inappropriate request for export from part that belongs to another sharing boundary.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Solicitação inadequada de exportação da parte que pertence a outro limite de compartilhamento.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T20:07:17.7266685Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";PartIsNotInstantiable" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This part ({0}) cannot be instantiated.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Não é possível criar uma instância desta parte ({0}).]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T22:10:13.1115164Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";PartIsNotShared" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Part is not shared.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[A parte não é compartilhada.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T20:11:41.1677365Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ReflectionTypeLoadExceptionWhileEnumeratingTypes" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[ReflectionTypeLoadException while enumerating types in assembly "{0}". Results will be incomplete.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[ExceçãoDeCargaTipoReflexão ao enumerar tipos em assembly "{0}". Os resultados serão incompletos.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T20:11:31.176165Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";ScanningMEFAssemblies" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Scanning MEF assemblies...]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Verificando assemblies de MEF...]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T20:13:39.033478Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";TypeOfMetadataViewUnsupported" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Type of metadata view is unsupported.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Não há suporte para o tipo de exibição de metadados.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T20:27:44.4978358Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";UnableToDeterminePrimarySharingBoundary" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to determine the primary sharing boundary for MEF part "{0}".]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Não é possível determinar o limite de compartilhamento principal da parte de MEF "{0}".]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T20:31:34.8850132Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";UnableToEnumerateTypes" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to enumerate types in assembly "{0}".]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Não é possível enumerar os tipos no assembly "{0}".]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T22:42:11.2832295Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";UnableToInstantiateCustomImportCollectionType" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to instantiate custom import collection type.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Não é possível criar uma instância do tipo de coleção de importação personalizada.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T20:35:05.0770355Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";UnableToLoadAssembly" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to load assembly "{0}" for scanning.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Não é possível carregar o assembly "{0}" para verificação.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T20:35:23.9341141Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";UnexpectedMemberType" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unexpected member type.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Tipo de membro inesperado.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T20:35:31.329537Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";UnexpectedNumberOfExportsFound" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Expected {0} export(s) with contract name "{1}" but found {2} after applying applicable constraints.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[{0} exportação(ões) esperada(s) com nome de contrato "{1}", mas foram encontradas {2} após aplicação das restrições aplicáveis.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-27T11:13:13.959956Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";UnexpectedSharedPartState" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This shared part is in state {0} but must be in state {1} for this operation.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Esta parte compartilhada está em estado {0}, mas deve estar em estado {1} para esta operação.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T22:44:03.9826756Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";UnresolvableMetadataToken" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unresolvable metadata token.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Token de metadados não resolvido.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T20:59:02.1892336Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+      <Item ItemId=";WrongLength" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Wrong length.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+            <Val><![CDATA[Comprimento incorreto.]]></Val>
+            <Props>
+              <Str Name="TranslationModifiedBy" Val="CHF" />
+              <Date Name="TranslationModifiedDate" Val="2015-02-26T21:00:22.0828033Z" />
+            </Props>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+        <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+        <Props>
+          <Str Name="TranslationStatus" Val="In Sync" />
+          <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+        </Props>
+      </Item>
+    </Item>
+  </Item>
+  <Item ItemId=";Version" ItemType="0" PsrId="211" Leaf="false">
+    <Disp Icon="Ver" Disp="true" LocTbl="false" Path=" \ ;Version \ 8 \ 0" />
+    <Item ItemId=";AssemblyVersion" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text" DevLk="true">
+        <Val><![CDATA[14.0.0.0]]></Val>
+        <Tgt Cat="Text" Appr="PreApproved" Orig="New">
+          <Val><![CDATA[14.0.0.0]]></Val>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+    </Item>
+    <Item ItemId=";FileDescription" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text">
+        <Val><![CDATA[Microsoft.VisualStudio.Composition]]></Val>
+        <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+          <Val><![CDATA[Microsoft.VisualStudio.Composition]]></Val>
+          <Props>
+            <Str Name="TranslationModifiedBy" Val="CHF" />
+            <Date Name="TranslationModifiedDate" Val="2015-02-26T22:32:16.8432295Z" />
+          </Props>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+      <Props>
+        <Str Name="TranslationStatus" Val="In Sync" />
+        <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+      </Props>
+    </Item>
+    <Item ItemId=";FileVersion" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text" DevLk="true">
+        <Val><![CDATA[14.0.50223.1]]></Val>
+        <Tgt Cat="Text" Appr="PreApproved" Orig="New">
+          <Val><![CDATA[14.0.50223.1]]></Val>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+    </Item>
+    <Item ItemId=";InternalName" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text" DevLk="true">
+        <Val><![CDATA[Microsoft.VisualStudio.Composition.dll]]></Val>
+        <Tgt Cat="Text" Appr="PreApproved" Orig="New">
+          <Val><![CDATA[Microsoft.VisualStudio.Composition.dll]]></Val>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+    </Item>
+    <Item ItemId=";LegalCopyright" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text">
+        <Val><![CDATA[© Microsoft Corporation. All rights reserved.]]></Val>
+        <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
+          <Val><![CDATA[© Microsoft Corporation. Todos os direitos reservados.]]></Val>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+      <Props>
+        <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
+      </Props>
+    </Item>
+    <Item ItemId=";OriginalFilename" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text" DevLk="true">
+        <Val><![CDATA[Microsoft.VisualStudio.Composition.dll]]></Val>
+        <Tgt Cat="Text" Appr="PreApproved" Orig="New">
+          <Val><![CDATA[Microsoft.VisualStudio.Composition.dll]]></Val>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+    </Item>
+    <Item ItemId=";ProductName" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text">
+        <Val><![CDATA[Microsoft® Visual Studio®]]></Val>
+        <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
+          <Val><![CDATA[Microsoft® Visual Studio®]]></Val>
+          <Props>
+            <Str Name="TranslationModifiedBy" Val="CHF" />
+            <Date Name="TranslationModifiedDate" Val="2015-02-26T22:32:20.3474299Z" />
+          </Props>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+      <Props>
+        <Str Name="TranslationStatus" Val="In Sync" />
+        <Str Name="TranslationStatusPosition" Val="3 - ReadyForReview" />
+      </Props>
+    </Item>
+    <Item ItemId=";ProductVersion" ItemType="0" PsrId="211" Leaf="true">
+      <Str Cat="Text" DevLk="true">
+        <Val><![CDATA[14.0.50223.1-pre+commit.355fe69e6e]]></Val>
+        <Tgt Cat="Text" Appr="PreApproved" Orig="New">
+          <Val><![CDATA[14.0.50223.1-pre+commit.355fe69e6e]]></Val>
+        </Tgt>
+      </Str>
+      <Disp Icon="Str" />
+      <Modified By="isabela.hirayama" DateTime="2015-03-02T12:51:59.0002344Z" />
+    </Item>
+  </Item>
+  <Item ItemId=";Version" ItemType="8" PsrId="211" Leaf="true">
+    <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
+  </Item>
+</LCX>
