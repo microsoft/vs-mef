@@ -15,14 +15,14 @@
     using Xunit.Abstractions;
     using Xunit.Sdk;
 
-    public class MefV3DiscoveryTestCommand : XunitTestCaseRunner
+    public class Mef3DiscoveryTestCaseRunner : XunitTestCaseRunner
     {
         private readonly CompositionEngines compositionVersions;
         private readonly bool expectInvalidConfiguration;
         private readonly Type[] parts;
         private readonly IReadOnlyList<string> assemblyNames;
 
-        public MefV3DiscoveryTestCommand(IXunitTestCase testCase, string displayName, string skipReason, object[] constructorArguments, IMessageBus messageBus, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, CompositionEngines compositionEngines, Type[] parts, IReadOnlyList<string> assemblyNames, bool expectInvalidConfiguration)
+        public Mef3DiscoveryTestCaseRunner(IXunitTestCase testCase, string displayName, string skipReason, object[] constructorArguments, IMessageBus messageBus, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, CompositionEngines compositionEngines, Type[] parts, IReadOnlyList<string> assemblyNames, bool expectInvalidConfiguration)
             : base(testCase, displayName, skipReason, constructorArguments, null, messageBus, aggregator, cancellationTokenSource)
         {
             Requires.NotNull(testCase, nameof(testCase));

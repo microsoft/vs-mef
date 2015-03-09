@@ -10,13 +10,13 @@
     using Xunit.Abstractions;
     using Xunit.Sdk;
 
-    public class Mef3TestCommand : XunitTestCaseRunner
+    public class Mef3TestCaseRunner : XunitTestCaseRunner
     {
         private readonly CompositionConfiguration configuration;
         private readonly CompositionEngines compositionVersions;
         private readonly bool runtime;
 
-        public Mef3TestCommand(IXunitTestCase testCase, string displayName, string skipReason, object[] constructorArguments, IMessageBus messageBus, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, CompositionConfiguration configuration, CompositionEngines compositionVersions, bool runtime)
+        public Mef3TestCaseRunner(IXunitTestCase testCase, string displayName, string skipReason, object[] constructorArguments, IMessageBus messageBus, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, CompositionConfiguration configuration, CompositionEngines compositionVersions, bool runtime)
             : base(testCase, displayName, skipReason, constructorArguments, null, messageBus, aggregator, cancellationTokenSource)
         {
             Requires.NotNull(configuration, "configuration");

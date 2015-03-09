@@ -93,13 +93,13 @@
 
                 if (this.compositionVersions.HasFlag(CompositionEngines.V1))
                 {
-                    var runner = new MefTestCommand(this, "V1", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, CompositionEngines.V1, parts, this.assemblies, this.invalidConfiguration);
+                    var runner = new LegacyMefTestCaseRunner(this, "V1", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, CompositionEngines.V1, parts, this.assemblies, this.invalidConfiguration);
                     runSummary.Aggregate(await runner.RunAsync());
                 }
 
                 if (this.compositionVersions.HasFlag(CompositionEngines.V2))
                 {
-                    var runner = new MefTestCommand(this, "V2", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, CompositionEngines.V2, parts, this.assemblies, this.invalidConfiguration);
+                    var runner = new LegacyMefTestCaseRunner(this, "V2", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, CompositionEngines.V2, parts, this.assemblies, this.invalidConfiguration);
                     runSummary.Aggregate(await runner.RunAsync());
                 }
 
@@ -116,7 +116,7 @@
                 }
                 else
                 {
-                    var v3DiscoveryTest = new MefV3DiscoveryTestCommand(this, "V3 composition", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, this.compositionVersions, parts ?? new Type[0], this.assemblies ?? ImmutableList<string>.Empty, this.invalidConfiguration);
+                    var v3DiscoveryTest = new Mef3DiscoveryTestCaseRunner(this, "V3 composition", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, this.compositionVersions, parts ?? new Type[0], this.assemblies ?? ImmutableList<string>.Empty, this.invalidConfiguration);
                     runSummary.Aggregate(await v3DiscoveryTest.RunAsync());
 
                     if (v3DiscoveryTest.Passed && (!this.invalidConfiguration || this.compositionVersions.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors)))
@@ -132,7 +132,7 @@
                                 ////runSummary.Aggregate(await codeGenRunner.RunAsync());
                             }
 
-                            var runner = new Mef3TestCommand(this, "V3 engine (runtime)", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, configuration, this.compositionVersions, runtime: true);
+                            var runner = new Mef3TestCaseRunner(this, "V3 engine (runtime)", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, configuration, this.compositionVersions, runtime: true);
                             runSummary.Aggregate(await runner.RunAsync());
                         }
                     }

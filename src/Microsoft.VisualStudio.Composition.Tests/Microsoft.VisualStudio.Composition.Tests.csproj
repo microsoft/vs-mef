@@ -173,10 +173,10 @@
     <Compile Include="InheritedImportTests.cs" />
     <Compile Include="InvalidGraphTests.cs" />
     <Compile Include="LazyServicesTests.cs" />
-    <Compile Include="XunitExtensions\Mef3TestCommand.cs" />
+    <Compile Include="XunitExtensions\Mef3TestCaseRunner.cs" />
     <Compile Include="XunitExtensions\MefFactDiscoverer.cs" />
     <Compile Include="MefV1ExportProviderAdapterTests.cs" />
-    <Compile Include="XunitExtensions\MefV3DiscoveryTestCommand.cs" />
+    <Compile Include="XunitExtensions\Mef3DiscoveryTestCaseRunner.cs" />
     <Compile Include="MetadataViewImplementationTests.cs" />
     <Compile Include="MixedGenericExportsTests.cs" />
     <Compile Include="NestedTypeTests.cs" />
@@ -201,7 +201,7 @@
     <Compile Include="NameAndAgeAttribute.cs" />
     <Compile Include="ImportMetadataConstraintTests.cs" />
     <Compile Include="ExportMetadataTests.cs" />
-    <Compile Include="XunitExtensions\MefTestCommand.cs" />
+    <Compile Include="XunitExtensions\LegacyMefTestCaseRunner.cs" />
     <Compile Include="XunitExtensions\MefFactAttribute.cs" />
     <Compile Include="ContainerIsolationTests.cs" />
     <Compile Include="DgmlProductionTests.cs" />
