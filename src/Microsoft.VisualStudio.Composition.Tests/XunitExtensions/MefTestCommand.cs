@@ -32,9 +32,9 @@
             this.invalidConfiguration = invalidConfiguration;
         }
 
-        protected override Task<RunSummary> RunTestAsync()
+        protected override async Task<RunSummary> RunTestAsync()
         {
-            return this.RunMultiEngineTestAsync(
+            var runSummary = await this.RunMultiEngineTestAsync(
                 this.engineVersion,
                 this.parts,
                 this.assemblies,
@@ -43,6 +43,12 @@
                     this.TestMethodArguments = new object[] { container };
                     return await base.RunTestAsync();
                 });
+
+            var inverter = (TestResultInverter)this.MessageBus;
+            runSummary.Failed -= inverter.InvertedFailures;
+            runSummary.Failed += inverter.InvertedSuccesses;
+
+            return runSummary;
         }
 
         private async Task<RunSummary> RunMultiEngineTestAsync(CompositionEngines attributesVersion, Type[] parts, IReadOnlyList<string> assemblies, Func<IContainer, Task<RunSummary>> test)
@@ -95,6 +101,10 @@
                 this.invalidConfigurationExpected = invalidConfigurationExpected;
             }
 
+            public int InvertedFailures { get; private set; }
+
+            public int InvertedSuccesses { get; private set; }
+
             public bool QueueMessage(IMessageSinkMessage message)
             {
                 if (this.invalidConfigurationExpected)
@@ -107,12 +117,14 @@
                             AllowedFailureExceptionTypes.Any(t => t.FullName == failedMessage.ExceptionTypes[0]))
                         {
                             message = new TestPassed(failedMessage.Test, failedMessage.ExecutionTime, failedMessage.Output);
+                            this.InvertedFailures++;
                         }
                     }
                     else if (message is TestPassed)
                     {
                         var passedMessage = (TestPassed)message;
                         message = new TestFailed(passedMessage.Test, passedMessage.ExecutionTime, passedMessage.Output, new AssertActualExpectedException(false, true, "Expected invalid configuration but no exception thrown."));
+                        this.InvertedSuccesses++;
                     }
                 }
 
