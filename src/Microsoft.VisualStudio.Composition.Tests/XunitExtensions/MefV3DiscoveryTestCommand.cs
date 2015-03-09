@@ -46,6 +46,8 @@
 
         protected override async Task<RunSummary> RunTestAsync()
         {
+            var output = new TestOutputHelper();
+            output.Initialize(this.MessageBus, new XunitTest(this.TestCase, this.DisplayName));
             await this.Aggregator.RunAsync(() => this.Timer.AggregateAsync(
                 async delegate
                 {
@@ -78,7 +80,8 @@
                             v3DiscoveryModules[0].GetType().Name,
                             v3DiscoveryModules[i].GetType().Name,
                             catalogStringRepresentations[0],
-                            catalogStringRepresentations[i]);
+                            catalogStringRepresentations[i],
+                            output);
                     }
 
                     // Verify that the catalogs are identical.
@@ -91,7 +94,7 @@
 
                     if (uniqueCatalogs.Length == 1)
                     {
-                        ////Console.WriteLine(catalogStringRepresentations[0]);
+                        ////output.WriteLine(catalogStringRepresentations[0]);
                     }
 
                     // For each distinct catalog, create one configuration and verify it meets expectations.
@@ -103,7 +106,7 @@
                             .WithDesktopSupport();
 
                         // Round-trip the catalog through serialization to verify that as well.
-                        RoundtripCatalogSerialization(catalogWithSupport);
+                        RoundtripCatalogSerialization(catalogWithSupport, output);
 
                         var configuration = CompositionConfiguration.Create(catalogWithSupport);
 
@@ -124,12 +127,12 @@
             IMessageSinkMessage testResultMessage;
             if (this.Aggregator.HasExceptions)
             {
-                testResultMessage = new TestFailed(test, this.Timer.Total, null, this.Aggregator.ToException());
+                testResultMessage = new TestFailed(test, this.Timer.Total, output.Output, this.Aggregator.ToException());
                 runSummary.Failed++;
             }
             else
             {
-                testResultMessage = new TestPassed(test, this.Timer.Total, null);
+                testResultMessage = new TestPassed(test, this.Timer.Total, output.Output);
                 this.Passed = true;
             }
 
@@ -142,14 +145,16 @@
             return runSummary;
         }
 
-        private static bool PrintDiff(string beforeDescription, string afterDescription, string before, string after)
+        private static bool PrintDiff(string beforeDescription, string afterDescription, string before, string after, ITestOutputHelper output)
         {
+            Requires.NotNull(output, nameof(output));
+
             var d = new Differ();
             var inlineBuilder = new InlineDiffBuilder(d);
             var result = inlineBuilder.BuildDiffModel(before, after);
             if (result.Lines.Any(l => l.Type != ChangeType.Unchanged))
             {
-                Console.WriteLine("Catalog {0} vs. {1}", beforeDescription, afterDescription);
+                output.WriteLine("Catalog {0} vs. {1}", beforeDescription, afterDescription);
                 foreach (var line in result.Lines)
                 {
                     if (line.Type == ChangeType.Inserted)
@@ -165,7 +170,7 @@
                         Console.Write("  ");
                     }
 
-                    Console.WriteLine(line.Text);
+                    output.WriteLine(line.Text);
                 }
 
                 return true;
@@ -175,9 +180,10 @@
             return false;
         }
 
-        private static void RoundtripCatalogSerialization(ComposableCatalog catalog)
+        private static void RoundtripCatalogSerialization(ComposableCatalog catalog, ITestOutputHelper output)
         {
             Requires.NotNull(catalog, "catalog");
+            Requires.NotNull(output, nameof(output));
 
             var catalogSerialization = new CachedCatalog();
             var ms = new MemoryStream();
@@ -190,7 +196,7 @@
             var after = new StringWriter();
             deserializedCatalog.ToString(after);
 
-            PrintDiff("BeforeSerialization", "AfterSerialization", before.ToString(), after.ToString());
+            PrintDiff("BeforeSerialization", "AfterSerialization", before.ToString(), after.ToString(), output);
 
             Assert.True(catalog.Equals(deserializedCatalog));
         }
