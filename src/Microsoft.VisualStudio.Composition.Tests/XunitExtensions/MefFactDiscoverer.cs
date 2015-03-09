@@ -62,6 +62,7 @@
                 : base(diagnosticMessageSink, defaultMethodDisplay, testMethod)
             {
                 var factAttribute = MefFactAttribute.Instantiate(factAttributeInfo);
+                this.SkipReason = factAttribute.Skip;
                 this.parts = factAttribute.Parts;
                 this.assemblies = factAttribute.Assemblies;
                 this.compositionVersions = factAttribute.CompositionVersions;
@@ -72,6 +73,18 @@
             public override async Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
             {
                 var runSummary = new RunSummary();
+
+                if (this.SkipReason != null)
+                {
+                    runSummary.Skipped++;
+                    runSummary.Total++;
+                    if (!messageBus.QueueMessage(new TestSkipped(new XunitTest(this, this.DisplayName), this.SkipReason)))
+                    {
+                        cancellationTokenSource.Cancel();
+                    }
+
+                    return runSummary;
+                }
 
                 if (parts == null && assemblies == null)
                 {
