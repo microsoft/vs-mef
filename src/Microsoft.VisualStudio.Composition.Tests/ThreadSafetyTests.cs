@@ -8,11 +8,21 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
     using MefV1 = System.ComponentModel.Composition;
 
     [Trait("Multithreaded", "")]
     public class ThreadSafetyTests
     {
+        private static ITestOutputHelper outputForNestedParts;
+        private readonly ITestOutputHelper output;
+
+        public ThreadSafetyTests(ITestOutputHelper output)
+        {
+            this.output = output;
+            outputForNestedParts = output;
+        }
+
         #region Lazy import of shared part
 
         /// <summary>
@@ -211,7 +221,7 @@
                     t2 = Task.Run(delegate
                     {
                         var leafPart = container.GetExportedValue<PartThatImportsPartWithBlockingImportPropertySetter>();
-                        Console.WriteLine("GetExportedValue<PartThatImportsPartWithBlockingImportPropertySetter> has returned.");
+                        this.output.WriteLine("GetExportedValue<PartThatImportsPartWithBlockingImportPropertySetter> has returned.");
                         var leafPartViaCycle = leafPart.PartWithBlockingImport.OtherPartThatImportsThis;
                         Assert.Same(leafPart, leafPartViaCycle); // if this fails, then MEF exposed a part that imports parts that are not yet initialized.
                     });
@@ -221,20 +231,20 @@
                     // But that can't happen unless we give up waiting and we don't want to
                     // deadlock when the right thing happens.
                     Assert.False(t2.Wait(TestUtilities.ExpectedTimeout));
-                    Console.WriteLine("t2.Wait(int) timed out.");
+                    this.output.WriteLine("t2.Wait(int) timed out.");
                 }
                 catch (AggregateException)
                 {
-                    Console.WriteLine("t2.Wait(int) threw an exception instead of timing out.");
+                    this.output.WriteLine("t2.Wait(int) threw an exception instead of timing out.");
                     throw;
                 }
                 finally
                 {
-                    Console.WriteLine("Unblocking completion of PartWithBlockingImportPropertySetter.set_OtherPartThatImportsThis.");
+                    this.output.WriteLine("Unblocking completion of PartWithBlockingImportPropertySetter.set_OtherPartThatImportsThis.");
                     PartWithBlockingImportPropertySetter.UnblockSetter.Set();
                 }
 
-                Console.WriteLine("Getting t2 result.");
+                this.output.WriteLine("Getting t2 result.");
                 t2.GetAwaiter().GetResult(); // this not only propagates exceptions, but waits for completion in case of a timeout earlier.
             });
 
@@ -343,7 +353,7 @@
 
             var part1Task = Task.Run(delegate
             {
-                Console.WriteLine("Part1 being requested on thread {0}", Thread.CurrentThread.ManagedThreadId);
+                this.output.WriteLine("Part1 being requested on thread {0}", Thread.CurrentThread.ManagedThreadId);
                 var part1 = container.GetExportedValue<CircularDependencySharedPart1>();
                 Assert.NotNull(part1.OnImportsSatisfiedInvokedThread);
                 return part1;
@@ -351,7 +361,7 @@
 
             var part2Task = Task.Run(delegate
             {
-                Console.WriteLine("Part2 being requested on thread {0}", Thread.CurrentThread.ManagedThreadId);
+                this.output.WriteLine("Part2 being requested on thread {0}", Thread.CurrentThread.ManagedThreadId);
                 var part2 = container.GetExportedValue<CircularDependencySharedPart2>();
                 Assert.NotNull(part2.OnImportsSatisfiedInvokedThread);
                 return part2;
@@ -360,12 +370,12 @@
             // Wait for each thread to construct the first part to the point of initializing imports.
             if (!CircularDependencySharedPart1.SurroundingImportingPropertiesHit.Wait(500))
             {
-                Console.WriteLine("Timed out waiting for Part1 to hit the importing property setter.");
+                this.output.WriteLine("Timed out waiting for Part1 to hit the importing property setter.");
             }
 
             if (!CircularDependencySharedPart2.SurroundingImportingPropertiesHit.Wait(500))
             {
-                Console.WriteLine("Timed out waiting for Part2 to hit the importing property setter.");
+                this.output.WriteLine("Timed out waiting for Part2 to hit the importing property setter.");
             }
 
             // Unleash the satisfying of imports now, which allows the MEF container to discover the need for
@@ -381,7 +391,7 @@
             Assert.Same(p2, p1.Part2);
 
             // Verify (for the validity of the test itself) that the parts were initialized from different threads.
-            Console.WriteLine(
+            this.output.WriteLine(
                 "Each part initialized from unique threads: {0}",
                 CircularDependencySharedPart1.ThreadSatisfiedFrom != CircularDependencySharedPart2.ThreadSatisfiedFrom);
         }
@@ -423,7 +433,7 @@
 
                 // This isn't a requirement, but log whether the OnImportsSatisfied method
                 // was invoked on this thread because it's interesting.
-                Console.WriteLine("Part1 OnImportsSatisfied invoked on thread {0}", this.OnImportsSatisfiedInvokedThread.ManagedThreadId);
+                outputForNestedParts.WriteLine("Part1 OnImportsSatisfied invoked on thread {0}", this.OnImportsSatisfiedInvokedThread.ManagedThreadId);
             }
         }
 
@@ -464,7 +474,7 @@
 
                 // This isn't a requirement, but log whether the OnImportsSatisfied method
                 // was invoked on this thread because it's interesting.
-                Console.WriteLine("Part2 OnImportsSatisfied invoked on thread {0}", this.OnImportsSatisfiedInvokedThread.ManagedThreadId);
+                outputForNestedParts.WriteLine("Part2 OnImportsSatisfied invoked on thread {0}", this.OnImportsSatisfiedInvokedThread.ManagedThreadId);
             }
         }
 

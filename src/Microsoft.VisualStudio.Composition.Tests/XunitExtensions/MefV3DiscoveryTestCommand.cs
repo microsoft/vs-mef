@@ -157,20 +157,21 @@
                 output.WriteLine("Catalog {0} vs. {1}", beforeDescription, afterDescription);
                 foreach (var line in result.Lines)
                 {
+                    string prefix;
                     if (line.Type == ChangeType.Inserted)
                     {
-                        Console.Write("+ ");
+                        prefix = "+ ";
                     }
                     else if (line.Type == ChangeType.Deleted)
                     {
-                        Console.Write("- ");
+                        prefix = "- ";
                     }
                     else
                     {
-                        Console.Write("  ");
+                        prefix = "  ";
                     }
 
-                    output.WriteLine(line.Text);
+                    output.WriteLine(prefix + line.Text);
                 }
 
                 return true;

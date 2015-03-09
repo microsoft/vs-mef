@@ -9,9 +9,17 @@
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class PartDiscoveryTests
     {
+        private readonly ITestOutputHelper output;
+
+        public PartDiscoveryTests(ITestOutputHelper output)
+        {
+            this.output = output;
+        }
+
         [Fact]
         public async Task CreatePartsAsync_TypeArray_ResilientAgainstReflectionErrors()
         {
@@ -43,7 +51,7 @@
         public async Task Combined_CreatePartsAsync_AssemblyPathEnumerable()
         {
             var discovery = PartDiscovery.Combine(new AttributedPartDiscovery(), new AttributedPartDiscoveryV1());
-            var assemblies = new[] { 
+            var assemblies = new[] {
                 typeof(AssemblyDiscoveryTests.DiscoverablePart1).Assembly,
                 this.GetType().Assembly,
             };
@@ -55,7 +63,7 @@
         public async Task Combined_IncrementalProgressUpdates()
         {
             var discovery = PartDiscovery.Combine(new AttributedPartDiscovery(), new AttributedPartDiscoveryV1());
-            var assemblies = new[] { 
+            var assemblies = new[] {
                 typeof(AssemblyDiscoveryTests.DiscoverablePart1).Assembly,
                 this.GetType().Assembly,
             };
@@ -68,7 +76,7 @@
                 ////Assert.True(update.Completion >= lastReceivedUpdate.Completion); // work can be discovered that regresses this legitimately
                 Assert.True(update.Completion <= 1);
                 Assert.True(update.Status != lastReceivedUpdate.Status || update.Completion != lastReceivedUpdate.Completion);
-                Console.WriteLine(
+                this.output.WriteLine(
                     "Completion reported: {0} ({1}/{2}): {3}",
                     update.Completion,
                     update.CompletedSteps,

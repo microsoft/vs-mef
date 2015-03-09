@@ -13,6 +13,7 @@
     using Microsoft.VisualStudio.Language.Intellisense;
     using Microsoft.VisualStudio.Text.Editor;
     using Xunit;
+    using Xunit.Abstractions;
     using MefV1 = System.ComponentModel.Composition;
 
     public class EditorHostTests
@@ -25,6 +26,13 @@
             Microsoft.VisualStudio.Language.StandardClassification, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
             StandaloneUndo, Version=1.0.0.0, Culture=neutral, PublicKeyToken=9578fa20308cb27d
         ";
+
+        private readonly ITestOutputHelper output;
+
+        public EditorHostTests(ITestOutputHelper output)
+        {
+            this.output = output;
+        }
 
         [MefFact(CompositionEngines.V1Compat, EditorAssemblyNames, typeof(DummyKeyboardTrackingService))]
         public void ComposeEditor(IContainer container)
@@ -77,8 +85,8 @@
                 v3Timer.Stop();
             }
 
-            Console.WriteLine("V1 time per iteration: {0}", v1Timer.ElapsedMilliseconds / iterations);
-            Console.WriteLine("V3 time per iteration: {0}", v3Timer.ElapsedMilliseconds / iterations);
+            this.output.WriteLine("V1 time per iteration: {0}", v1Timer.ElapsedMilliseconds / iterations);
+            this.output.WriteLine("V3 time per iteration: {0}", v3Timer.ElapsedMilliseconds / iterations);
         }
 
         [MefV1.Export(typeof(IWpfKeyboardTrackingService))]

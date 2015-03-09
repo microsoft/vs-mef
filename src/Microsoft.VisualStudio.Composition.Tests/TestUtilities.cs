@@ -12,6 +12,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
     using Xunit.Sdk;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
     using MefV1 = System.ComponentModel.Composition;
@@ -44,9 +45,10 @@
             }
         }
 
-        internal static ExportProvider CreateContainer(this CompositionConfiguration configuration, bool runtime)
+        internal static ExportProvider CreateContainer(this CompositionConfiguration configuration, bool runtime, ITestOutputHelper output)
         {
             Requires.NotNull(configuration, "configuration");
+            Requires.NotNull(output, nameof(output));
 
             if (runtime)
             {
@@ -56,7 +58,7 @@
                 var cacheManager = new CachedComposition();
                 var ms = new MemoryStream();
                 cacheManager.SaveAsync(runtimeComposition, ms).GetAwaiter().GetResult();
-                Console.WriteLine("Cache file size: {0}", ms.Length);
+                output.WriteLine("Cache file size: {0}", ms.Length);
                 ms.Position = 0;
                 var deserializedRuntimeComposition = cacheManager.LoadRuntimeCompositionAsync(ms).GetAwaiter().GetResult();
                 Assert.Equal(runtimeComposition, deserializedRuntimeComposition);
@@ -124,7 +126,7 @@
                                 // Write to a file instead and then emit its path to the output window.
                                 string sourceFileName = Path.GetTempFileName() + ".cs";
                                 sourceFileWriter = new StreamWriter(File.OpenWrite(sourceFileName));
-                                Console.WriteLine("Source file written to: {0}", sourceFileName);
+                                output.WriteLine("Source file written to: {0}", sourceFileName);
                                 includeLineNumbers = false;
                             }
 
@@ -153,16 +155,16 @@
             }
         }
 
-        internal static ExportProvider CreateContainer(params Type[] parts)
+        internal static ExportProvider CreateContainer(ITestOutputHelper output, params Type[] parts)
         {
-            return CreateContainerAsync(parts).GetAwaiter().GetResult();
+            return CreateContainerAsync(output, parts).GetAwaiter().GetResult();
         }
 
-        internal static async Task<ExportProvider> CreateContainerAsync(params Type[] parts)
+        internal static async Task<ExportProvider> CreateContainerAsync(ITestOutputHelper output, params Type[] parts)
         {
             return CompositionConfiguration.Create(
                 await new AttributedPartDiscovery().CreatePartsAsync(parts))
-                .CreateContainer(true);
+                .CreateContainer(true, output);
         }
 
         internal static IContainer CreateContainerV1(params Type[] parts)
@@ -214,33 +216,33 @@
             }
         }
 
-        internal static IContainer CreateContainerV3(params Type[] parts)
+        internal static Task<IContainer> CreateContainerV3Async(ITestOutputHelper output, params Type[] parts)
         {
-            return CreateContainerV3(parts, CompositionEngines.Unspecified);
+            return CreateContainerV3Async(parts, CompositionEngines.Unspecified, output);
         }
 
-        internal static IContainer CreateContainerV3(IReadOnlyList<Assembly> assemblies)
+        internal static Task<IContainer> CreateContainerV3Async(IReadOnlyList<Assembly> assemblies, ITestOutputHelper output)
         {
-            return CreateContainerV3(assemblies, CompositionEngines.Unspecified);
+            return CreateContainerV3Async(assemblies, CompositionEngines.Unspecified, output);
         }
 
-        internal static IContainer CreateContainerV3(Type[] parts, CompositionEngines attributesDiscovery)
+        internal static Task<IContainer> CreateContainerV3Async(Type[] parts, CompositionEngines attributesDiscovery, ITestOutputHelper output)
         {
-            return CreateContainerV3(default(IReadOnlyList<Assembly>), attributesDiscovery, parts);
+            return CreateContainerV3Async(default(IReadOnlyList<Assembly>), attributesDiscovery, output, parts);
         }
 
-        internal static IContainer CreateContainerV3(IReadOnlyList<Assembly> assemblies, CompositionEngines attributesDiscovery, Type[] parts = null)
+        internal static async Task<IContainer> CreateContainerV3Async(IReadOnlyList<Assembly> assemblies, CompositionEngines attributesDiscovery, ITestOutputHelper output, Type[] parts = null)
         {
             PartDiscovery discovery = GetDiscoveryService(attributesDiscovery);
-            var assemblyParts = discovery.CreatePartsAsync(assemblies).GetAwaiter().GetResult();
+            var assemblyParts = await discovery.CreatePartsAsync(assemblies);
             var catalog = ComposableCatalog.Create(assemblyParts);
             if (parts != null && parts.Length != 0)
             {
-                var typeCatalog = ComposableCatalog.Create(discovery.CreatePartsAsync(parts).GetAwaiter().GetResult());
+                var typeCatalog = ComposableCatalog.Create(await discovery.CreatePartsAsync(parts));
                 catalog = ComposableCatalog.Create(catalog.Parts.Concat(typeCatalog.Parts));
             }
 
-            return CreateContainerV3(catalog, attributesDiscovery);
+            return CreateContainerV3(catalog, attributesDiscovery, output);
         }
 
         private static PartDiscovery GetDiscoveryService(CompositionEngines attributesDiscovery)
@@ -265,8 +267,11 @@
             return PartDiscovery.Combine(discovery.ToArray());
         }
 
-        private static IContainer CreateContainerV3(ComposableCatalog catalog, CompositionEngines options)
+        private static IContainer CreateContainerV3(ComposableCatalog catalog, CompositionEngines options, ITestOutputHelper output)
         {
+            Requires.NotNull(catalog, nameof(catalog));
+            Requires.NotNull(output, nameof(output));
+
             var catalogWithCompositionService = catalog
                 .WithCompositionService()
                 .WithDesktopSupport();
@@ -279,14 +284,16 @@
 #if DGML
             string dgmlFile = System.IO.Path.GetTempFileName() + ".dgml";
             configuration.CreateDgml().Save(dgmlFile);
-            Console.WriteLine("DGML saved to: " + dgmlFile);
+            output.WriteLine("DGML saved to: " + dgmlFile);
 #endif
-            var container = configuration.CreateContainer(true);
+            var container = configuration.CreateContainer(true, output);
             return new V3ContainerWrapper(container, configuration);
         }
 
-        internal static async Task<RunSummary> RunMultiEngineTest(CompositionEngines attributesVersion, Type[] parts, Func<IContainer, Task<RunSummary>> test)
+        internal static async Task<RunSummary> RunMultiEngineTest(CompositionEngines attributesVersion, Type[] parts, Func<IContainer, Task<RunSummary>> test, ITestOutputHelper output)
         {
+            Requires.NotNull(output, nameof(output));
+
             var totalSummary = new RunSummary();
             if (attributesVersion.HasFlag(CompositionEngines.V1))
             {
@@ -295,7 +302,7 @@
 
             if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1))
             {
-                totalSummary.Aggregate(await test(CreateContainerV3(parts, CompositionEngines.V1)));
+                totalSummary.Aggregate(await test(await CreateContainerV3Async(parts, CompositionEngines.V1, output)));
             }
 
             if (attributesVersion.HasFlag(CompositionEngines.V2))
@@ -305,12 +312,12 @@
 
             if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV2))
             {
-                totalSummary.Aggregate(await test(CreateContainerV3(parts, CompositionEngines.V2)));
+                totalSummary.Aggregate(await test(await CreateContainerV3Async(parts, CompositionEngines.V2, output)));
             }
 
             if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1AndV2AtOnce))
             {
-                totalSummary.Aggregate(await test(CreateContainerV3(parts, CompositionEngines.V1 | CompositionEngines.V2)));
+                totalSummary.Aggregate(await test(await CreateContainerV3Async(parts, CompositionEngines.V1 | CompositionEngines.V2, output)));
             }
 
             return totalSummary;
