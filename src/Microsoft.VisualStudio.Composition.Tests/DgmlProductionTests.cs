@@ -9,17 +9,25 @@
     using System.Threading.Tasks;
     using System.Xml.Linq;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class DgmlProduction
     {
         internal const string Namespace = "http://schemas.microsoft.com/vs/2009/dgml";
+
+        private readonly ITestOutputHelper output;
+
+        public DgmlProduction(ITestOutputHelper output)
+        {
+            this.output = output;
+        }
 
         #region Basic DGML
 
         [Fact]
         public async Task CreateDgmlFromConfiguration()
         {
-            XDocument dgml = await ProduceDgmlHelperAsync(
+            XDocument dgml = await this.ProduceDgmlHelperAsync(
                 typeof(Exporter),
                 typeof(Importer));
 
@@ -55,7 +63,7 @@
         [Fact]
         public async Task CreateDgmlFromConfigurationWithScopes()
         {
-            XDocument dgml = await ProduceDgmlHelperAsync(
+            XDocument dgml = await this.ProduceDgmlHelperAsync(
                 typeof(Root),
                 typeof(PartInScope1));
 
@@ -81,7 +89,7 @@
 
         #endregion
 
-        private static async Task<XDocument> ProduceDgmlHelperAsync(params Type[] parts)
+        private async Task<XDocument> ProduceDgmlHelperAsync(params Type[] parts)
         {
             var configuration = CompositionConfiguration.Create(
                 await new AttributedPartDiscovery().CreatePartsAsync(parts));
@@ -90,8 +98,8 @@
 
             string dgmlPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".dgml");
             File.WriteAllText(dgmlPath, dgml.ToString());
-            Console.WriteLine("DGML written to: \"{0}\"", dgmlPath);
-            Console.WriteLine(dgml);
+            this.output.WriteLine("DGML written to: \"{0}\"", dgmlPath);
+            this.output.WriteLine(dgml.ToString());
             return dgml;
         }
     }

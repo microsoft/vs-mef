@@ -2,18 +2,26 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Composition;
+    using System.Composition.Hosting;
+    using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using System.Composition;
     using Xunit;
-    using System.Composition.Hosting;
+    using Xunit.Abstractions;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
-    using System.IO;
 
     [Trait("SharingBoundary", "")]
     public class ProjectSystemMockTests
     {
+        private readonly ITestOutputHelper output;
+
+        public ProjectSystemMockTests(ITestOutputHelper output)
+        {
+            this.output = output;
+        }
+
         [MefFact(CompositionEngines.V2Compat)]
         public void GetProjectService(IContainer container)
         {
@@ -107,8 +115,8 @@
 
             string dgmlPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".dgml");
             File.WriteAllText(dgmlPath, dgml.ToString());
-            Console.WriteLine("DGML written to: \"{0}\"", dgmlPath);
-            Console.WriteLine(dgml);
+            this.output.WriteLine("DGML written to: \"{0}\"", dgmlPath);
+            this.output.WriteLine(dgml.ToString());
         }
 
         #region MEF parts

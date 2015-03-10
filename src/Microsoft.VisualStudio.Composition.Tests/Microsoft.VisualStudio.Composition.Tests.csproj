@@ -1,7 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\xunit.core.2.0.0-rc4-build2924\build\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.core.props" Condition="Exists('..\packages\xunit.core.2.0.0-rc4-build2924\build\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.core.props')" />
+  <Import Project="..\packages\xunit.runner.visualstudio.2.0.0-rc3-build1046\build\net20\xunit.runner.visualstudio.props" Condition="Exists('..\packages\xunit.runner.visualstudio.2.0.0-rc3-build1046\build\net20\xunit.runner.visualstudio.props')" />
   <PropertyGroup Label="Globals">
     <DevDivProjectType>UnitTest</DevDivProjectType>
+    <NuGetPackageImportStamp>f99252ae</NuGetPackageImportStamp>
   </PropertyGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), EnlistmentInfo.props))\EnlistmentInfo.props" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), EnlistmentInfo.props))' != '' " />
   <PropertyGroup>
@@ -100,11 +103,21 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="xunit">
-      <HintPath>$(NuGetPackageRestorePath)xunit.1.9.2\lib\net20\xunit.dll</HintPath>
+    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.abstractions.2.0.0-rc4-build2924\lib\net35\xunit.abstractions.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="xunit.runner.visualstudio.testadapter">
-      <HintPath>$(NuGetPackageRestorePath)xunit.runner.visualstudio.0.99.2\lib\xunit.runner.visualstudio.testadapter.dll</HintPath>
+    <Reference Include="xunit.assert, Version=2.0.0.2924, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.assert.2.0.0-rc4-build2924\lib\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.assert.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="xunit.core, Version=2.0.0.2924, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.extensibility.core.2.0.0-rc4-build2924\lib\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="xunit.execution.desktop, Version=2.0.0.2924, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <HintPath>..\packages\xunit.extensibility.execution.2.0.0-rc4-build2924\lib\net45\xunit.execution.desktop.dll</HintPath>
+      <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -160,9 +173,10 @@
     <Compile Include="InheritedImportTests.cs" />
     <Compile Include="InvalidGraphTests.cs" />
     <Compile Include="LazyServicesTests.cs" />
-    <Compile Include="Mef3TestCommand.cs" />
+    <Compile Include="XunitExtensions\Mef3TestCaseRunner.cs" />
+    <Compile Include="XunitExtensions\MefFactDiscoverer.cs" />
     <Compile Include="MefV1ExportProviderAdapterTests.cs" />
-    <Compile Include="MefV3DiscoveryTestCommand.cs" />
+    <Compile Include="XunitExtensions\Mef3DiscoveryTestCaseRunner.cs" />
     <Compile Include="MetadataViewImplementationTests.cs" />
     <Compile Include="MixedGenericExportsTests.cs" />
     <Compile Include="NestedTypeTests.cs" />
@@ -187,8 +201,8 @@
     <Compile Include="NameAndAgeAttribute.cs" />
     <Compile Include="ImportMetadataConstraintTests.cs" />
     <Compile Include="ExportMetadataTests.cs" />
-    <Compile Include="MefTestCommand.cs" />
-    <Compile Include="MefFactAttribute.cs" />
+    <Compile Include="XunitExtensions\LegacyMefTestCaseRunner.cs" />
+    <Compile Include="XunitExtensions\MefFactAttribute.cs" />
     <Compile Include="ContainerIsolationTests.cs" />
     <Compile Include="DgmlProductionTests.cs" />
     <Compile Include="DisposablePartsTests.cs" />
@@ -217,6 +231,7 @@
     <Compile Include="SharingBoundaryWithSharedTests.cs" />
     <Compile Include="SimpleImportExportTests.cs" />
     <Compile Include="SkippableFactAttribute.cs" />
+    <Compile Include="SkippableFactDiscoverer.cs" />
     <Compile Include="StaticMemberExportsTests.cs" />
     <Compile Include="TestUtilities.cs" />
     <Compile Include="ThreadSafetyTests.cs" />
@@ -278,4 +293,16 @@
     <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), EnlistmentInfo.targets))\EnlistmentInfo.targets" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), EnlistmentInfo.targets))' != '' " />
+  <PropertyGroup>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(MSBuildProjectDirectory)\..\packages\xunit.runner.console.2.0.0-rc4-build2924\tools\xunit.console.x86.exe</StartProgram>
+    <StartArguments>"$(TargetPath)" -html "$(TargetDir)TestResults.html"</StartArguments>
+  </PropertyGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\xunit.runner.visualstudio.2.0.0-rc3-build1046\build\net20\xunit.runner.visualstudio.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\xunit.runner.visualstudio.2.0.0-rc3-build1046\build\net20\xunit.runner.visualstudio.props'))" />
+    <Error Condition="!Exists('..\packages\xunit.core.2.0.0-rc4-build2924\build\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.core.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\xunit.core.2.0.0-rc4-build2924\build\portable-net45+win+wpa81+wp80+monotouch+monoandroid+Xamarin.iOS\xunit.core.props'))" />
+  </Target>
 </Project>

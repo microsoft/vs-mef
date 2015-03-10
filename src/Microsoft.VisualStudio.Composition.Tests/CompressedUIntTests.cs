@@ -7,9 +7,17 @@
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class CompressedUIntTests
     {
+        private readonly ITestOutputHelper output;
+
+        public CompressedUIntTests(ITestOutputHelper output)
+        {
+            this.output = output;
+        }
+
         [Fact]
         public void CompressedUIntReadWrite()
         {
@@ -20,7 +28,7 @@
             {
                 for (uint i = 0; i < uint.MaxValue; i = checked(i * 5 + 1))
                 {
-                    //Console.WriteLine("0x{0:x8} {0,7}", i);
+                    //this.output.WriteLine("0x{0:x8} {0,7}", i);
                     Test(i, writer, reader);
                 }
             }
