@@ -77,6 +77,7 @@
         public void GetExportedValueOfExportFactoryOfT(IContainer container)
         {
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<ExportFactory<SomeOtherPart>>());
+            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<MefV1.ExportFactory<SomeOtherPart>>());
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Apple))]
