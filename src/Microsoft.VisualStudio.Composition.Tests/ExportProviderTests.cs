@@ -79,6 +79,25 @@
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<ExportFactory<SomeOtherPart>>());
         }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Apple))]
+        public void GetExportedValueOfFuncOfExportedType_Throws(IContainer container)
+        {
+            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<Func<Apple>>());
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(Apple))]
+        public void GetExportOfFuncOfExportedType_Throws(IContainer container)
+        {
+            Assert.Throws<CompositionFailedException>(() => container.GetExport<Func<Apple>>());
+        }
+
+        [MefFact(CompositionEngines.V2, typeof(Apple), NoCompatGoal = true)]
+        public void GetExportOfFuncOfExportedType_ThrowsV2(IContainer container)
+        {
+            var foo = container.GetExport<Func<Apple>>();
+            Assert.Throws<CompositionFailedException>(() => foo.Value());
+        }
+
         [Export, Shared]
         [MefV1.Export]
         public class PartThatImportsExportProvider
