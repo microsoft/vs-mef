@@ -130,11 +130,11 @@
     <Compile Include="Tasks\CreateContainerFactoryBootstrapFile.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="$(DepotRoot)\Tools\RunMeElevated.cmd">
+    <None Include="$(NuGetPackageRestorePath)VS.ToolsFiles.*\RunMeElevated.cmd">
       <Link>UpdateVS\RunMeElevated.cmd</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="$(DepotRoot)\Tools\Elevate.exe">
+    <None Include="$(NuGetPackageRestorePath)VS.ToolsFiles.*\Elevate.exe">
       <Link>UpdateVS\Elevate.exe</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
