@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="$(ProjectDepotRoot)src\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />
     <ProjectReference Include="$(ProjectDepotRoot)src\Microsoft.VisualStudio.Composition.Configuration\Microsoft.VisualStudio.Composition.Configuration.csproj" />
   </ItemGroup>
 
