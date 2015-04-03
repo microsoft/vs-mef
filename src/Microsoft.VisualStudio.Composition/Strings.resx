@@ -222,9 +222,6 @@
   <data name="LoopInvolvingImportingCtorArgumentAndAllNonLazyImports" xml:space="preserve">
     <value>Loop involving ImportingConstructor argument and all non-lazy imports.</value>
   </data>
-  <data name="MEFPartAlreadyInFinalState" xml:space="preserve">
-    <value>MEF part already in final state.</value>
-  </data>
   <data name="MetadataTypeNotSupported" xml:space="preserve">
     <value>{0}: metadata type {1} is not supported.</value>
   </data>

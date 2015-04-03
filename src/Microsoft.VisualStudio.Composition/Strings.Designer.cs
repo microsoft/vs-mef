@@ -259,15 +259,6 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to MEF part already in final state..
-        /// </summary>
-        internal static string MEFPartAlreadyInFinalState {
-            get {
-                return ResourceManager.GetString("MEFPartAlreadyInFinalState", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to {0}: metadata type {1} is not supported..
         /// </summary>
         internal static string MetadataTypeNotSupported {

@@ -614,5 +614,81 @@
         }
 
         #endregion
+
+        #region PartAlreadyFinalizedTest
+
+        /// <summary>
+        /// Verifies that concurrent threads initializing a shared part does not fail.
+        /// </summary>
+        /// <remarks>
+        /// Regression test for bug 1121268.
+        /// </remarks>
+        [MefFact(CompositionEngines.V2Compat, typeof(RootPartWithScopeFactory), typeof(NonSharedPartThatLazilyImportsSharedPart), typeof(SharedSubscopePart), typeof(SubscopeSharedPartWithFactory))]
+        public void ConcurrentInitializationOfSharedPart(IContainer container)
+        {
+            // The condition we're testing for is hard to hit. So we must arrange
+            // to retry many times to increase the likelihood of hitting it.
+            // The MEF parts and their relationships are structured such that
+            // we can repeatedly recreate an environment where any number of non-shared
+            // parts lazily import a shared part that has not yet been created. Then they
+            // all concurrently try to initialize that shared part.
+            var factory = container.GetExportedValue<RootPartWithScopeFactory>();
+            for (int j = 0; j < 1000; j++)
+            {
+                using (var subscopePartWithFactory = factory.ScopeFactory.CreateExport())
+                {
+                    Task[] threads = new Task[Math.Max(2, Environment.ProcessorCount)];
+                    var barrier = new Barrier(threads.Length);
+                    for (int i = 0; i < threads.Length; i++)
+                    {
+                        threads[i] = Task.Run(delegate
+                        {
+                            using (var nonSharedPart = subscopePartWithFactory.Value.LazyImportingPartFactory.CreateExport())
+                            {
+                                // Wait till all threads are ready to evaluate the import.
+                                barrier.SignalAndWait();
+
+                                // When the original bug repro'd, this line would
+                                // occasionally throw an InvalidOperationException
+                                // due to a race condition in shared part initialization.
+                                var v = nonSharedPart.Value.SharedPart.Value;
+                                Assert.NotNull(v);
+                            }
+                        });
+                    }
+
+                    // Wait for all threads to complete and rethrow any exceptions they observed.
+                    Task.WaitAll(threads);
+                }
+            }
+        }
+
+        [Export]
+        public class RootPartWithScopeFactory
+        {
+            [Import, SharingBoundary("Subscope")]
+            public ExportFactory<SubscopeSharedPartWithFactory> ScopeFactory { get; set; }
+        }
+
+        [Export, Shared("Subscope")]
+        public class SubscopeSharedPartWithFactory
+        {
+            [Import]
+            public ExportFactory<NonSharedPartThatLazilyImportsSharedPart> LazyImportingPartFactory { get; set; }
+        }
+
+        [Export]
+        public class NonSharedPartThatLazilyImportsSharedPart
+        {
+            [Import]
+            public Lazy<SharedSubscopePart> SharedPart { get; set; }
+        }
+
+        [Export, Shared("Subscope")]
+        public class SharedSubscopePart
+        {
+        }
+
+        #endregion
     }
 }

@@ -1173,9 +1173,11 @@
             /// <summary>
             /// Executes the next step in this part's initialization.
             /// </summary>
-            private void MoveNext()
+            /// <param name="nextState">The state to transition to. It must be no more than one state beyond the current one.</param>
+            private void MoveNext(PartLifecycleState nextState)
             {
-                switch (this.State + 1)
+                Assumes.True(nextState <= this.State + 1, "MoveNext should not be asked to skip a state.");
+                switch (nextState)
                 {
                     case PartLifecycleState.Creating:
                         this.Create();
@@ -1208,7 +1210,7 @@
                         this.deferredInitializationParts = null;
                         break;
                     default:
-                        throw Verify.FailOperation(Strings.MEFPartAlreadyInFinalState);
+                        throw Assumes.NotReachable();
                 }
             }
 
@@ -1254,9 +1256,10 @@
             {
                 this.ThrowIfFaulted();
 
-                while (this.State < requiredState)
+                PartLifecycleState state;
+                while ((state = this.State) < requiredState)
                 {
-                    this.MoveNext();
+                    this.MoveNext(state + 1);
                     this.ThrowIfFaulted();
                 }
             }
