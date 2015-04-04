@@ -5,7 +5,7 @@
     <ProjectDepotRoot>$(MSBuildThisFileDirectory)</ProjectDepotRoot>
     <NuGetPackageRestorePath>$(ProjectDepotRoot)\src\Packages\</NuGetPackageRestorePath>
 
-    <VSToolsDeRazzlePath>$(NuGetPackageRestorePath)VS.Tools.Derazzle.1.0.150330.1\</VSToolsDeRazzlePath>
+    <VSToolsDeRazzlePath>$(NuGetPackageRestorePath)VS.Tools.Derazzle.1.0.150404.1\</VSToolsDeRazzlePath>
     <VSToolsModuleTargetsPath>$(NuGetPackageRestorePath)VS.Tools.ModuleTargets.1.0.150313.1\</VSToolsModuleTargetsPath>
     <VSToolsDevDivFilesPath>$(NuGetPackageRestorePath)VS.Tools.DevDivFiles.1.0.150305.3\</VSToolsDevDivFilesPath>
     <VSToolsX86Managed45>$(NuGetPackageRestorePath)VS.Tools.X86.Managed.V4_5.1.0.150317.3\</VSToolsX86Managed45>
