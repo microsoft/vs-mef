@@ -29,10 +29,8 @@
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <ProjectUrl>http://aka.ms/VsExtensibility</ProjectUrl>
     <IconUrl>http://aka.ms/VsExtensibilityIcon</IconUrl>
-<!--
     <LicenseUrl>http://go.microsoft.com/fwlink/?LinkID=517238</LicenseUrl>
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
--->
 
     <NoPackageAnalysis>true</NoPackageAnalysis>
   </PropertyGroup>
