@@ -421,9 +421,13 @@
             while (type != null)
             {
                 if (type == baseClass)
+                {
                     return true;
+                }
+
                 type = type.GetTypeInfo().BaseType;
             }
+
             return false;
         }
 

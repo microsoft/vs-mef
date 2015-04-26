@@ -99,6 +99,7 @@
 
                 WriteTypeWithNamespace(methodNameStringBuilder, parameters[i].ParameterType, formatGenericName);
             }
+
             methodNameStringBuilder.Append(")");
 
             return methodNameStringBuilder.ToString();
@@ -112,6 +113,7 @@
                 typeName.Append(type.Namespace);
                 typeName.Append(NamespaceSeparator);
             }
+
             WriteType(typeName, type, formatGenericName);
         }
 
@@ -144,6 +146,7 @@
                 WriteType(typeName, type.DeclaringType, formatGenericName);
                 typeName.Append(NestedClassSeparator);
             }
+
             if (type.IsArray)
             {
                 WriteArrayType(typeName, type, formatGenericName);
@@ -209,6 +212,7 @@
             {
                 typeName.Append(ArraySeparator);
             }
+
             typeName.Append(ArrayClosingBracket);
         }
 
@@ -229,8 +233,10 @@
                 {
                     WriteNonGenericType(typeName, type.DeclaringType, formatGenericName);
                 }
+
                 typeName.Append(NestedClassSeparator);
             }
+
             WriteGenericTypeName(typeName, type, isDefinition, genericTypeArguments, formatGenericName);
         }
 
@@ -255,6 +261,7 @@
             {
                 return;
             }
+
             typeName.Append(ContractNameGenericOpeningBracket);
             for (int i = 0; i < argumentsCount; i++)
             {
@@ -262,6 +269,7 @@
                 Type genericTypeArgument = genericTypeArguments.Dequeue();
                 WriteTypeArgument(typeName, isDefinition, genericTypeArgument, formatGenericName);
             }
+
             typeName.Remove(typeName.Length - 1, 1);
             typeName.Append(ContractNameGenericClosingBracket);
         }
@@ -279,6 +287,7 @@
                 typeName.Append(genericTypeArgument.GenericParameterPosition);
                 typeName.Append(GenericFormatClosingBracket);
             }
+
             typeName.Append(ContractNameGenericArgumentSeparator);
         }
 
@@ -317,6 +326,7 @@
             {
                 genericName = genericName.Substring(0, indexOfBackQuote);
             }
+
             return genericName;
         }
 

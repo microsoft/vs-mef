@@ -70,5 +70,11 @@
   </Rules>
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
     <Rule Id="SA1600" Action="Hidden" />
+    <Rule Id="SA1615" Action="Hidden" />
+    <Rule Id="SA1609" Action="None" />
+    <Rule Id="SA1611" Action="Hidden" />
+    <Rule Id="SA1602" Action="Hidden" />
+    <Rule Id="SA1500" Action="Hidden" />
+    <Rule Id="SA1401" Action="Hidden" />
   </Rules>
 </RuleSet>

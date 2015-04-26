@@ -1805,6 +1805,7 @@
                         default:
                             throw new ArgumentOutOfRangeException("target");
                     }
+
                 case ValueFactoryType.LazyOfT:
                     switch (target)
                     {
@@ -1819,6 +1820,7 @@
                         default:
                             throw new ArgumentOutOfRangeException("target");
                     }
+
                 case ValueFactoryType.FuncOfObject:
                     switch (target)
                     {
@@ -1832,6 +1834,7 @@
                         default:
                             throw new ArgumentOutOfRangeException("target");
                     }
+
                 default:
                     throw new ArgumentOutOfRangeException("current");
             }

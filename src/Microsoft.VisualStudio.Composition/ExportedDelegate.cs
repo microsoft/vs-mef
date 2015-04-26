@@ -25,6 +25,7 @@
             {
                 delegateType = ReflectionHelpers.GetContractTypeForDelegate(this.method);
             }
+
             try
             {
                 return this.method.CreateDelegate(delegateType, this.target);

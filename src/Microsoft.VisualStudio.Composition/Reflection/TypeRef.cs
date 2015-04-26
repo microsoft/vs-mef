@@ -176,7 +176,7 @@
                 }
             }
 
-            Debug.Assert(type.IsEquivalentTo(result.Resolve()));
+            Debug.Assert(type.IsEquivalentTo(result.Resolve()), "Type reference failed to resolve to the original type.");
 
             return result;
         }

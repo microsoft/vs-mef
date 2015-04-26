@@ -19,7 +19,7 @@
         private readonly ExportProvider inner;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DelegatingExportProvider"/>.
+        /// Initializes a new instance of the <see cref="DelegatingExportProvider"/> class.
         /// </summary>
         /// <param name="inner">The instance to forward queries to.</param>
         protected DelegatingExportProvider(ExportProvider inner)

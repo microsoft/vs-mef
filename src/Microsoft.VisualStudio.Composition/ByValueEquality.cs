@@ -81,7 +81,6 @@
             }
         }
 
-
         private class CollectionIgnoreOrder<T> : IEqualityComparer<IReadOnlyCollection<T>>
         {
             internal static readonly CollectionIgnoreOrder<T> Default = new CollectionIgnoreOrder<T>();
