@@ -291,19 +291,6 @@
             typeName.Append(ContractNameGenericArgumentSeparator);
         }
 
-        //internal for testability
-        internal static void WriteCustomModifiers(StringBuilder typeName, string customKeyword, Type[] types, bool formatGenericName)
-        {
-            //
-            // Writes custom modifiers in the format: customKeyword(<contract_name>,<contract_name>,...)
-            //
-            typeName.Append(CustomModifiersSeparator);
-            typeName.Append(customKeyword);
-            Queue<Type> typeArguments = new Queue<Type>(types);
-            WriteTypeArgumentsString(typeName, types.Length, false, typeArguments, formatGenericName);
-            Assumes.True(typeArguments.Count == 0, "Expecting genericTypeArguments queue to be empty.");
-        }
-
         private static Type FindArrayElementType(Type type)
         {
             //
