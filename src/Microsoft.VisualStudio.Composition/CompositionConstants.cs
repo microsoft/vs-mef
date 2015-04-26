@@ -17,7 +17,6 @@
 
         internal const string IsOpenGenericExport = MefV3CompositionNamespace + ".IsOpenGenericExport";
 
-
         // ExportFactory<T> support (V3-specific)
         internal const string ExportFactoryProductImportDefinition = MefV3CompositionNamespace + ".ProductImportDefinition";
         internal const string ExportFactoryTypeMetadataName = MefV3CompositionNamespace + ".ExportFactoryType";
