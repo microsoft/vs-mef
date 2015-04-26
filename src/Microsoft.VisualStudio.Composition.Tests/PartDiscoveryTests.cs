@@ -51,7 +51,8 @@
         public async Task Combined_CreatePartsAsync_AssemblyPathEnumerable()
         {
             var discovery = PartDiscovery.Combine(new AttributedPartDiscovery(), new AttributedPartDiscoveryV1());
-            var assemblies = new[] {
+            var assemblies = new[]
+            {
                 typeof(AssemblyDiscoveryTests.DiscoverablePart1).Assembly,
                 this.GetType().Assembly,
             };
@@ -63,7 +64,8 @@
         public async Task Combined_IncrementalProgressUpdates()
         {
             var discovery = PartDiscovery.Combine(new AttributedPartDiscovery(), new AttributedPartDiscoveryV1());
-            var assemblies = new[] {
+            var assemblies = new[]
+            {
                 typeof(AssemblyDiscoveryTests.DiscoverablePart1).Assembly,
                 this.GetType().Assembly,
             };

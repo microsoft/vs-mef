@@ -25,12 +25,12 @@
     /// <remarks>
     /// When it's time to add support for this feature,
     /// it may be done by generating code such as this:
-    /// <code>
+    /// <code><![CDATA[
     /// var foo = typeof(ClassLibrary1.Class1).GetMethod("Foo");
     /// Type otherEmbedded = foo.GetParameters()[0].ParameterType.GetGenericArguments()[0];
     /// Type otherEmbedded = Type.GetType(otherEmbedded.AssemblyQualifiedName); // this *also* works
     /// var arg = typeof(Lazy<>).MakeGenericType(type).GetConstructor(new Type[0]).Invoke(new object[0]);
-    /// </code>
+    /// ]]></code>
     /// The secret sauce here being that the instance of System.Type used to construct
     /// the Lazy`1 or LazyPart`1 instance is exactly taken from the assembly to which
     /// the value will be passed. That way, we'll get the instance of the Type that is
@@ -142,13 +142,16 @@
         public class VsReferenceBase : IVsReference
         {
             public bool AlreadyReferenced { get; set; }
+
             public string FullPath { get; set; }
+
             public string Name { get; set; }
         }
 
         public class VsProjectReference : VsReferenceBase, IVsProjectReference
         {
             public string Identity { get; set; }
+
             public string ReferenceSpecification { get; set; }
         }
 

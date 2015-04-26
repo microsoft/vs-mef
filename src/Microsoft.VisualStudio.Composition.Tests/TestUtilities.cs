@@ -350,7 +350,7 @@
 
             internal MefV1.Hosting.CompositionContainer Container
             {
-                get { return container; }
+                get { return this.container; }
             }
 
             internal V1ContainerWrapper(MefV1.Hosting.CompositionContainer container)

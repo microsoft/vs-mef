@@ -85,7 +85,7 @@
         /// <summary>
         /// Verifies that assemblies are loaded into the Load context rather than the LoadFrom context.
         /// </summary>
-        /// <see cref="http://blogs.msdn.com/b/suzcook/archive/2003/05/29/57143.aspx">Choosing a Binding Context</see>
+        /// See also Choosing a Binding Context (http://blogs.msdn.com/b/suzcook/archive/2003/05/29/57143.aspx)
         [Fact]
         public async Task AssemblyLoadContext()
         {
@@ -139,9 +139,11 @@
             catch (FileNotFoundException) { }
 
             var result = await this.DiscoveryService.CreatePartsAsync(
-                new List<Assembly>{
+                new List<Assembly>
+                {
                     typeof(TypeWithMissingAttribute).Assembly,
-                    typeof(GoodType).Assembly });
+                    typeof(GoodType).Assembly,
+                });
 
             // Verify that the ReflectionTypeLoadException is logged.
             Assert.True(result.DiscoveryErrors.Any(ex => ex.InnerException is ReflectionTypeLoadException));

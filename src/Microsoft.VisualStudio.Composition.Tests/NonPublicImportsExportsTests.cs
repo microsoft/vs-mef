@@ -603,11 +603,11 @@
         public class PartWithPrivateExportingField
         {
             [MefV1.Export]
-            private string ExportingField = "Success";
+            private string exportingField = "Success";
 
             public string FieldAccessor
             {
-                get { return this.ExportingField; }
+                get { return this.exportingField; }
             }
         }
 
@@ -647,11 +647,11 @@
         public class PartWithPrivateImportManyFieldArray
         {
             [MefV1.ImportMany]
-            private PublicExport[] ImportManyField = null;
+            private PublicExport[] importManyField = null;
 
             internal PublicExport[] ImportManyFieldAccessor
             {
-                get { return this.ImportManyField; }
+                get { return this.importManyField; }
             }
         }
 
@@ -659,11 +659,11 @@
         public class PartWithPrivateImportManyFieldSpecialCollection
         {
             [MefV1.ImportMany]
-            private List<PublicExport> ImportManyField = null;
+            private List<PublicExport> importManyField = null;
 
             internal List<PublicExport> ImportManyFieldAccessor
             {
-                get { return this.ImportManyField; }
+                get { return this.importManyField; }
             }
         }
 
@@ -683,11 +683,11 @@
         public class PartWithPrivateImportManyFieldPrivateCollection
         {
             [MefV1.ImportMany]
-            private CustomCollection<PublicExport> ImportManyField = null;
+            private CustomCollection<PublicExport> importManyField = null;
 
             internal CustomCollection<PublicExport> ImportManyFieldAccessor
             {
-                get { return this.ImportManyField; }
+                get { return this.importManyField; }
             }
         }
 

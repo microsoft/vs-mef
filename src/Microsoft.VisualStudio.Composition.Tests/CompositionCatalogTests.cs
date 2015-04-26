@@ -50,7 +50,8 @@
             var catalog = ComposableCatalog.Create(
                 await new AttributedPartDiscoveryV1().CreatePartsAsync(typeof(NonExportingType), typeof(ExportingType)));
 
-            var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default) {
+            var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
+            {
                 typeof(NonExportingType).Assembly.GetName(),
                 typeof(object).Assembly.GetName(),
             };
@@ -64,7 +65,8 @@
             var catalog = ComposableCatalog.Create(
                 await new AttributedPartDiscoveryV1().CreatePartsAsync(typeof(ExportingTypeDerivesFromOtherAssembly)));
 
-            var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default) {
+            var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
+            {
                 typeof(ExportingTypeDerivesFromOtherAssembly).Assembly.GetName(),
                 typeof(AssemblyDiscoveryTests.NonPart).Assembly.GetName(),
                 typeof(object).Assembly.GetName(),
@@ -79,7 +81,8 @@
             var catalog = ComposableCatalog.Create(
                 await new AttributedPartDiscoveryV1().CreatePartsAsync(typeof(ExportingTypeImplementsFromOtherAssembly)));
 
-            var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default) {
+            var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
+            {
                 typeof(ExportingTypeImplementsFromOtherAssembly).Assembly.GetName(),
                 typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
                 typeof(object).Assembly.GetName(),

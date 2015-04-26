@@ -26,7 +26,7 @@
             var reader = new BinaryReader(ms);
             try
             {
-                for (uint i = 0; i < uint.MaxValue; i = checked(i * 5 + 1))
+                for (uint i = 0; i < uint.MaxValue; i = checked((i * 5) + 1))
                 {
                     //this.output.WriteLine("0x{0:x8} {0,7}", i);
                     Test(i, writer, reader);

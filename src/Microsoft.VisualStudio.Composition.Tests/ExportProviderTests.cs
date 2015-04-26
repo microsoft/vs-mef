@@ -47,7 +47,7 @@
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
         public void GetExportWithMetadataView(IContainer container)
         {
-            var export = container.GetExport<SomeOtherPart, SomeOtherPartMetadataView>();
+            var export = container.GetExport<SomeOtherPart, ISomeOtherPartMetadataView>();
             Assert.Equal(1, export.Metadata.A);
             Assert.NotNull(export.Value);
         }
@@ -55,7 +55,7 @@
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
         public void GetExportWithFilteringMetadataView(IContainer container)
         {
-            var exports = container.GetExports<SomeOtherPart, MetadataViewWithBMember>();
+            var exports = container.GetExports<SomeOtherPart, IMetadataViewWithBMember>();
             Assert.Equal(0, exports.Count());
         }
 
@@ -111,12 +111,12 @@
         [MefV1.Export, MefV1.ExportMetadata("A", 1)]
         public class SomeOtherPart { }
 
-        public interface SomeOtherPartMetadataView
+        public interface ISomeOtherPartMetadataView
         {
             int A { get; }
         }
 
-        public interface MetadataViewWithBMember
+        public interface IMetadataViewWithBMember
         {
             int B { get; }
         }

@@ -629,7 +629,7 @@
             private List<T> inner = new List<T>();
 
             /// <summary>
-            /// An internal constructor, to suppress the public one.
+            /// Initializes a new instance of the <see cref="CustomCollectionWithPublicCtor{T}"/> class.
             /// </summary>
             public CustomCollectionWithPublicCtor()
             {
@@ -705,7 +705,7 @@
             private List<Lazy<T, TMetadata>> inner = new List<Lazy<T, TMetadata>>();
 
             /// <summary>
-            /// An internal constructor, to suppress the public one.
+            /// Initializes a new instance of the <see cref="CustomCollectionWithLazyMetadata{T, TMetadata}"/> class.
             /// </summary>
             public CustomCollectionWithLazyMetadata()
             {

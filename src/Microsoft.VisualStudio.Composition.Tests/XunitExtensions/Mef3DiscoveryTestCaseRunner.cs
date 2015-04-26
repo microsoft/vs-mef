@@ -138,7 +138,7 @@
 
             if (!this.MessageBus.QueueMessage(testResultMessage))
             {
-                CancellationTokenSource.Cancel();
+                this.CancellationTokenSource.Cancel();
             }
 
             this.Aggregator.Clear();
@@ -215,7 +215,7 @@
 
             if (this.compositionVersions.HasFlag(CompositionEngines.V3EmulatingV2))
             {
-                discovery.Add(new AttributedPartDiscovery { IsNonPublicSupported = compositionVersions.HasFlag(CompositionEngines.V3EmulatingV2WithNonPublic) });
+                discovery.Add(new AttributedPartDiscovery { IsNonPublicSupported = this.compositionVersions.HasFlag(CompositionEngines.V3EmulatingV2WithNonPublic) });
                 titleAppends.Add("V2");
             }
 
@@ -223,7 +223,7 @@
             {
                 discovery.Add(PartDiscovery.Combine(
                     new AttributedPartDiscoveryV1(),
-                    new AttributedPartDiscovery { IsNonPublicSupported = compositionVersions.HasFlag(CompositionEngines.V3EmulatingV2WithNonPublic) }));
+                    new AttributedPartDiscovery { IsNonPublicSupported = this.compositionVersions.HasFlag(CompositionEngines.V3EmulatingV2WithNonPublic) }));
                 titleAppends.Add("V1+V2");
             }
 

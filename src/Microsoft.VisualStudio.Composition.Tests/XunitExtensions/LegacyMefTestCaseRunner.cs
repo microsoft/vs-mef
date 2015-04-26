@@ -75,7 +75,7 @@
                 var t = new XunitTest(this.TestCase, this.DisplayName);
                 if (!this.MessageBus.QueueMessage(new TestFailed(t, 0, null, ex)))
                 {
-                    CancellationTokenSource.Cancel();
+                    this.CancellationTokenSource.Cancel();
                 }
 
                 return new RunSummary { Total = 1, Failed = 1 };

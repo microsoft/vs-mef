@@ -39,7 +39,7 @@
         }
 
         [AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
-        sealed class MyCustomAttribute : Attribute
+        private sealed class MyCustomAttribute : Attribute
         {
             public MyCustomAttribute(string positionalString)
             {

@@ -234,7 +234,6 @@
         /// <summary>
         /// Verifies that MEFv3 disposes all parts even if some of them throw.
         /// </summary>
-        /// <param name="container"></param>
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(DisposeOrderTracker), typeof(PartThrowsInDispose), typeof(NoThrow1))]
         public void DisposeContainerDisposesAllPartsEvenIfTheyThrowV3(IContainer container)
         {
@@ -440,9 +439,12 @@
         public class PartThatImportsSharingBoundaryDisposeWithLazyImport
         {
             /// <summary>
+            /// Initializes a new instance of the <see cref="PartThatImportsSharingBoundaryDisposeWithLazyImport"/> class.
+            /// </summary>
+            /// <devremarks>
             /// This is deliberately an importing constructor rather than an importing property
             /// so as to exercise the code path that was misbehaving when we wrote the test.
-            /// </summary>
+            /// </devremarks>
             [ImportingConstructor]
             public PartThatImportsSharingBoundaryDisposeWithLazyImport(SharingBoundaryPartWithDisposeThatEvaluatesLazyImport importingArg)
             {

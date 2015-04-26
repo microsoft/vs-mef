@@ -86,20 +86,20 @@
                     return runSummary;
                 }
 
-                if (parts == null && assemblies == null)
+                if (this.parts == null && this.assemblies == null)
                 {
-                    parts = GetNestedTypesRecursively(this.TestMethod.TestClass.Class.ToRuntimeType()).Where(t => (!t.IsAbstract || t.IsSealed) && !t.IsInterface).ToArray();
+                    this.parts = GetNestedTypesRecursively(this.TestMethod.TestClass.Class.ToRuntimeType()).Where(t => (!t.IsAbstract || t.IsSealed) && !t.IsInterface).ToArray();
                 }
 
                 if (this.compositionVersions.HasFlag(CompositionEngines.V1))
                 {
-                    var runner = new LegacyMefTestCaseRunner(this, "V1", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, CompositionEngines.V1, parts, this.assemblies, this.invalidConfiguration);
+                    var runner = new LegacyMefTestCaseRunner(this, "V1", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, CompositionEngines.V1, this.parts, this.assemblies, this.invalidConfiguration);
                     runSummary.Aggregate(await runner.RunAsync());
                 }
 
                 if (this.compositionVersions.HasFlag(CompositionEngines.V2))
                 {
-                    var runner = new LegacyMefTestCaseRunner(this, "V2", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, CompositionEngines.V2, parts, this.assemblies, this.invalidConfiguration);
+                    var runner = new LegacyMefTestCaseRunner(this, "V2", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, CompositionEngines.V2, this.parts, this.assemblies, this.invalidConfiguration);
                     runSummary.Aggregate(await runner.RunAsync());
                 }
 
@@ -116,7 +116,7 @@
                 }
                 else
                 {
-                    var v3DiscoveryTest = new Mef3DiscoveryTestCaseRunner(this, "V3 composition", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, this.compositionVersions, parts ?? new Type[0], this.assemblies ?? ImmutableList<string>.Empty, this.invalidConfiguration);
+                    var v3DiscoveryTest = new Mef3DiscoveryTestCaseRunner(this, "V3 composition", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, this.compositionVersions, this.parts ?? new Type[0], this.assemblies ?? ImmutableList<string>.Empty, this.invalidConfiguration);
                     runSummary.Aggregate(await v3DiscoveryTest.RunAsync());
 
                     if (v3DiscoveryTest.Passed && (!this.invalidConfiguration || this.compositionVersions.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors)))
@@ -144,21 +144,21 @@
             public override void Serialize(IXunitSerializationInfo data)
             {
                 base.Serialize(data);
-                data.AddValue(nameof(parts), this.parts);
-                data.AddValue(nameof(assemblies), this.assemblies?.ToArray());
-                data.AddValue(nameof(compositionVersions), this.compositionVersions);
-                data.AddValue(nameof(noCompatGoal), this.noCompatGoal);
-                data.AddValue(nameof(invalidConfiguration), this.invalidConfiguration);
+                data.AddValue(nameof(this.parts), this.parts);
+                data.AddValue(nameof(this.assemblies), this.assemblies?.ToArray());
+                data.AddValue(nameof(this.compositionVersions), this.compositionVersions);
+                data.AddValue(nameof(this.noCompatGoal), this.noCompatGoal);
+                data.AddValue(nameof(this.invalidConfiguration), this.invalidConfiguration);
             }
 
             public override void Deserialize(IXunitSerializationInfo data)
             {
                 base.Deserialize(data);
-                this.parts = data.GetValue<Type[]>(nameof(parts));
-                this.assemblies = data.GetValue<string[]>(nameof(assemblies));
-                this.compositionVersions = data.GetValue<CompositionEngines>(nameof(compositionVersions));
-                this.noCompatGoal = data.GetValue<bool>(nameof(noCompatGoal));
-                this.invalidConfiguration = data.GetValue<bool>(nameof(invalidConfiguration));
+                this.parts = data.GetValue<Type[]>(nameof(this.parts));
+                this.assemblies = data.GetValue<string[]>(nameof(this.assemblies));
+                this.compositionVersions = data.GetValue<CompositionEngines>(nameof(this.compositionVersions));
+                this.noCompatGoal = data.GetValue<bool>(nameof(this.noCompatGoal));
+                this.invalidConfiguration = data.GetValue<bool>(nameof(this.invalidConfiguration));
             }
         }
     }
