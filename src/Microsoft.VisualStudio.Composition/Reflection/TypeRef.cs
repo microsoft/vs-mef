@@ -20,7 +20,7 @@
         /// This is for efficiency to avoid duplicates where convenient to do so.
         /// It is not intended as a guarantee of reference equality across equivalent TypeRef instances.
         /// </remarks>
-        private static readonly Dictionary<Type, WeakReference<TypeRef>> instanceCache = new Dictionary<Type, WeakReference<TypeRef>>();
+        private static readonly Dictionary<Type, WeakReference<TypeRef>> InstanceCache = new Dictionary<Type, WeakReference<TypeRef>>();
 
         /// <summary>
         /// Backing field for the lazily initialized <see cref="ResolvedType"/> property.
@@ -158,13 +158,13 @@
             }
 
             TypeRef result;
-            lock (instanceCache)
+            lock (InstanceCache)
             {
                 WeakReference<TypeRef> weakResult;
-                if (!instanceCache.TryGetValue(type, out weakResult))
+                if (!InstanceCache.TryGetValue(type, out weakResult))
                 {
                     result = new TypeRef(type);
-                    instanceCache.Add(type, new WeakReference<TypeRef>(result));
+                    InstanceCache.Add(type, new WeakReference<TypeRef>(result));
                 }
                 else
                 {

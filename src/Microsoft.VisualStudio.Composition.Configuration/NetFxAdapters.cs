@@ -12,16 +12,16 @@
 
     public static class NetFxAdapters
     {
-        private static readonly ComposablePartDefinition compositionServicePart;
-        private static readonly ComposablePartDefinition metadataViewImplProxyPart;
-        private static readonly ComposablePartDefinition assemblyNameCodeBasePathPath;
+        private static readonly ComposablePartDefinition CompositionServicePart;
+        private static readonly ComposablePartDefinition MetadataViewImplProxyPart;
+        private static readonly ComposablePartDefinition AssemblyNameCodeBasePathPath;
 
         static NetFxAdapters()
         {
             var discovery = new AttributedPartDiscoveryV1();
-            compositionServicePart = discovery.CreatePart(typeof(CompositionService));
-            metadataViewImplProxyPart = discovery.CreatePart(typeof(MetadataViewImplProxy));
-            assemblyNameCodeBasePathPath = discovery.CreatePart(typeof(AssemblyLoadCodeBasePathLoader));
+            CompositionServicePart = discovery.CreatePart(typeof(CompositionService));
+            MetadataViewImplProxyPart = discovery.CreatePart(typeof(MetadataViewImplProxy));
+            AssemblyNameCodeBasePathPath = discovery.CreatePart(typeof(AssemblyLoadCodeBasePathLoader));
         }
 
         /// <summary>
@@ -46,7 +46,7 @@
         {
             Requires.NotNull(catalog, "catalog");
 
-            var modifiedCatalog = catalog.WithPart(compositionServicePart);
+            var modifiedCatalog = catalog.WithPart(CompositionServicePart);
             return modifiedCatalog;
         }
 
@@ -60,8 +60,8 @@
             Requires.NotNull(catalog, "catalog");
 
             return catalog
-                .WithPart(metadataViewImplProxyPart)
-                .WithPart(assemblyNameCodeBasePathPath)
+                .WithPart(MetadataViewImplProxyPart)
+                .WithPart(AssemblyNameCodeBasePathPath)
                 .WithMetadataViewEmitProxySupport();
         }
 

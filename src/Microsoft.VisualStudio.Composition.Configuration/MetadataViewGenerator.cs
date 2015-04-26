@@ -72,13 +72,13 @@ namespace Microsoft.VisualStudio.Composition
 
         private const string MetadataViewFactoryName = "Create";
 
-        private static readonly Dictionary<Type, MetadataViewFactory> metadataViewFactories = new Dictionary<Type, MetadataViewFactory>();
+        private static readonly Dictionary<Type, MetadataViewFactory> MetadataViewFactories = new Dictionary<Type, MetadataViewFactory>();
         private static readonly AssemblyName ProxyAssemblyName = new AssemblyName(string.Format(CultureInfo.InvariantCulture, "MetadataViewProxies_{0}", Guid.NewGuid()));
         private static ModuleBuilder transparentProxyModuleBuilder;
 
         private static readonly Type[] CtorArgumentTypes = new Type[] { typeof(IReadOnlyDictionary<string, object>), typeof(IReadOnlyDictionary<string, object>) };
-        private static readonly MethodInfo mdvDictionaryTryGet = CtorArgumentTypes[0].GetMethod("TryGetValue");
-        private static readonly MethodInfo mdvDictionaryIndexer = CtorArgumentTypes[0].GetMethod("get_Item");
+        private static readonly MethodInfo MdvDictionaryTryGet = CtorArgumentTypes[0].GetMethod("TryGetValue");
+        private static readonly MethodInfo MdvDictionaryIndexer = CtorArgumentTypes[0].GetMethod("get_Item");
         private static readonly MethodInfo ObjectGetType = typeof(object).GetMethod("GetType", Type.EmptyTypes);
         private static readonly ConstructorInfo ObjectCtor = typeof(object).GetConstructor(Type.EmptyTypes);
 
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.Composition
 
         private static ModuleBuilder GetProxyModuleBuilder()
         {
-            Assumes.True(Monitor.IsEntered(metadataViewFactories));
+            Assumes.True(Monitor.IsEntered(MetadataViewFactories));
             if (transparentProxyModuleBuilder == null)
             {
                 // make a new assemblybuilder and modulebuilder
@@ -107,16 +107,16 @@ namespace Microsoft.VisualStudio.Composition
 
             MetadataViewFactory metadataViewFactory;
 
-            lock (metadataViewFactories)
+            lock (MetadataViewFactories)
             {
-                if (!metadataViewFactories.TryGetValue(viewType, out metadataViewFactory))
+                if (!MetadataViewFactories.TryGetValue(viewType, out metadataViewFactory))
                 {
                     // We actually create the proxy type within the lock because we're 
                     // tampering with the ModuleBuilder which isn't thread-safe.
                     Type generatedProxyType = GenerateInterfaceViewProxyType(viewType);
                     metadataViewFactory = (MetadataViewFactory)Delegate.CreateDelegate(
                         typeof(MetadataViewFactory), generatedProxyType.GetMethod(MetadataViewGenerator.MetadataViewFactoryName, BindingFlags.Public | BindingFlags.Static));
-                    metadataViewFactories.Add(viewType, metadataViewFactory);
+                    MetadataViewFactories.Add(viewType, metadataViewFactory);
                 }
             }
 
@@ -211,7 +211,7 @@ namespace Microsoft.VisualStudio.Composition
                 getMethodIL.Emit(OpCodes.Ldfld, metadataFieldBuilder);
                 getMethodIL.Emit(OpCodes.Ldstr, propertyName);
                 getMethodIL.Emit(OpCodes.Ldloca_S, valueLocal);
-                getMethodIL.Emit(OpCodes.Callvirt, mdvDictionaryTryGet);
+                getMethodIL.Emit(OpCodes.Callvirt, MdvDictionaryTryGet);
 
                 // If that succeeded, prepare to return.
                 Label returnLabel = getMethodIL.DefineLabel();
@@ -221,7 +221,7 @@ namespace Microsoft.VisualStudio.Composition
                 getMethodIL.Emit(OpCodes.Ldarg_0);
                 getMethodIL.Emit(OpCodes.Ldfld, metadataDefaultFieldBuilder);
                 getMethodIL.Emit(OpCodes.Ldstr, propertyName);
-                getMethodIL.Emit(OpCodes.Callvirt, mdvDictionaryIndexer);
+                getMethodIL.Emit(OpCodes.Callvirt, MdvDictionaryIndexer);
                 getMethodIL.Emit(OpCodes.Stloc_0);
 
                 getMethodIL.MarkLabel(returnLabel);

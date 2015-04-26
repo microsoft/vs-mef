@@ -14,7 +14,7 @@
 
     public class AttributedPartDiscoveryV1 : PartDiscovery
     {
-        private static readonly MethodInfo onImportsSatisfiedMethodInfo = typeof(IPartImportsSatisfiedNotification).GetMethod("OnImportsSatisfied", BindingFlags.Public | BindingFlags.Instance);
+        private static readonly MethodInfo OnImportsSatisfiedMethodInfo = typeof(IPartImportsSatisfiedNotification).GetMethod("OnImportsSatisfied", BindingFlags.Public | BindingFlags.Instance);
 
         protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
         {
@@ -151,7 +151,7 @@
             MethodInfo onImportsSatisfied = null;
             if (typeof(IPartImportsSatisfiedNotification).IsAssignableFrom(partType))
             {
-                onImportsSatisfied = onImportsSatisfiedMethodInfo;
+                onImportsSatisfied = OnImportsSatisfiedMethodInfo;
             }
 
             var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinitionBinding>();

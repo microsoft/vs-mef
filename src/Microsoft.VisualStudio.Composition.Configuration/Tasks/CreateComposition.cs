@@ -26,7 +26,7 @@
 
         public override bool Execute()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+            AppDomain.CurrentDomain.AssemblyResolve += this.CurrentDomain_AssemblyResolve;
             try
             {
                 var discovery = PartDiscovery.Combine(new AttributedPartDiscoveryV1(), new AttributedPartDiscovery());
@@ -71,7 +71,7 @@
                     var runtime = RuntimeComposition.CreateRuntimeComposition(configuration);
                     this.cancellationSource.Token.ThrowIfCancellationRequested();
                     var runtimeCache = new CachedComposition();
-                    runtimeCache.SaveAsync(runtime, cacheStream, cancellationSource.Token).GetAwaiter().GetResult();
+                    runtimeCache.SaveAsync(runtime, cacheStream, this.cancellationSource.Token).GetAwaiter().GetResult();
                 }
             }
             catch (AggregateException ex)
@@ -87,7 +87,7 @@
             }
             finally
             {
-                AppDomain.CurrentDomain.AssemblyResolve -= CurrentDomain_AssemblyResolve;
+                AppDomain.CurrentDomain.AssemblyResolve -= this.CurrentDomain_AssemblyResolve;
             }
 
             return !this.Log.HasLoggedErrors;

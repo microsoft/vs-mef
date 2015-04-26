@@ -60,7 +60,7 @@
 
             internal void Write(ComposableCatalog catalog)
             {
-                using (Trace("Catalog"))
+                using (this.Trace("Catalog"))
                 {
                     this.Write(catalog.Parts, this.Write);
                 }
@@ -68,7 +68,7 @@
 
             internal ComposableCatalog ReadComposableCatalog()
             {
-                using (Trace("Catalog"))
+                using (this.Trace("Catalog"))
                 {
                     var parts = this.ReadList(this.ReadComposablePartDefinition);
                     return ComposableCatalog.Create(parts);
@@ -77,7 +77,7 @@
 
             private void Write(ComposablePartDefinition partDefinition)
             {
-                using (Trace("ComposablePartDefinition"))
+                using (this.Trace("ComposablePartDefinition"))
                 {
                     this.Write(partDefinition.TypeRef);
                     this.Write(partDefinition.Metadata);
@@ -95,23 +95,23 @@
                     this.Write(partDefinition.OnImportsSatisfiedRef);
                     if (partDefinition.ImportingConstructorRef.IsEmpty)
                     {
-                        writer.Write(false);
+                        this.writer.Write(false);
                     }
                     else
                     {
-                        writer.Write(true);
+                        this.writer.Write(true);
                         this.Write(partDefinition.ImportingConstructorRef);
                         this.Write(partDefinition.ImportingConstructorImports, this.Write);
                     }
 
                     this.Write(partDefinition.CreationPolicy);
-                    writer.Write(partDefinition.IsSharingBoundaryInferred);
+                    this.writer.Write(partDefinition.IsSharingBoundaryInferred);
                 }
             }
 
             private ComposablePartDefinition ReadComposablePartDefinition()
             {
-                using (Trace("ComposablePartDefinition"))
+                using (this.Trace("ComposablePartDefinition"))
                 {
                     var partType = this.ReadTypeRef();
                     var partMetadata = this.ReadMetadata();
@@ -131,14 +131,14 @@
 
                     ConstructorRef importingConstructor = default(ConstructorRef);
                     IReadOnlyList<ImportDefinitionBinding> importingConstructorImports = null;
-                    if (reader.ReadBoolean())
+                    if (this.reader.ReadBoolean())
                     {
                         importingConstructor = this.ReadConstructorRef();
                         importingConstructorImports = this.ReadList(this.ReadImportDefinitionBinding);
                     }
 
                     var creationPolicy = this.ReadCreationPolicy();
-                    var isSharingBoundaryInferred = reader.ReadBoolean();
+                    var isSharingBoundaryInferred = this.reader.ReadBoolean();
 
                     var part = new ComposablePartDefinition(
                         partType,
@@ -158,23 +158,23 @@
 
             private void Write(CreationPolicy creationPolicy)
             {
-                using (Trace("CreationPolicy"))
+                using (this.Trace("CreationPolicy"))
                 {
-                    writer.Write((byte)creationPolicy);
+                    this.writer.Write((byte)creationPolicy);
                 }
             }
 
             private CreationPolicy ReadCreationPolicy()
             {
-                using (Trace("CreationPolicy"))
+                using (this.Trace("CreationPolicy"))
                 {
-                    return (CreationPolicy)reader.ReadByte();
+                    return (CreationPolicy)this.reader.ReadByte();
                 }
             }
 
             private void Write(ExportDefinition exportDefinition)
             {
-                using (Trace("ExportDefinition"))
+                using (this.Trace("ExportDefinition"))
                 {
                     this.Write(exportDefinition.ContractName);
                     this.Write(exportDefinition.Metadata);
@@ -183,7 +183,7 @@
 
             private ExportDefinition ReadExportDefinition()
             {
-                using (Trace("ExportDefinition"))
+                using (this.Trace("ExportDefinition"))
                 {
                     var contractName = this.ReadString();
                     var metadata = this.ReadMetadata();
@@ -193,7 +193,7 @@
 
             private void Write(ImportDefinition importDefinition)
             {
-                using (Trace("ImportDefinition"))
+                using (this.Trace("ImportDefinition"))
                 {
                     this.Write(importDefinition.ContractName);
                     this.Write(importDefinition.Cardinality);
@@ -205,7 +205,7 @@
 
             private ImportDefinition ReadImportDefinition()
             {
-                using (Trace("ImportDefinition"))
+                using (this.Trace("ImportDefinition"))
                 {
                     var contractName = this.ReadString();
                     var cardinality = this.ReadImportCardinality();
@@ -218,18 +218,18 @@
 
             private void Write(ImportDefinitionBinding importDefinitionBinding)
             {
-                using (Trace("ImportDefinitionBinding"))
+                using (this.Trace("ImportDefinitionBinding"))
                 {
                     this.Write(importDefinitionBinding.ImportDefinition);
                     this.Write(importDefinitionBinding.ComposablePartTypeRef);
                     if (importDefinitionBinding.ImportingMemberRef.IsEmpty)
                     {
-                        writer.Write(false);
+                        this.writer.Write(false);
                         this.Write(importDefinitionBinding.ImportingParameterRef);
                     }
                     else
                     {
-                        writer.Write(true);
+                        this.writer.Write(true);
                         this.Write(importDefinitionBinding.ImportingMemberRef);
                     }
                 }
@@ -237,14 +237,14 @@
 
             private ImportDefinitionBinding ReadImportDefinitionBinding()
             {
-                using (Trace("ImportDefinitionBinding"))
+                using (this.Trace("ImportDefinitionBinding"))
                 {
                     var importDefinition = this.ReadImportDefinition();
                     var part = this.ReadTypeRef();
 
                     MemberRef member;
                     ParameterRef parameter;
-                    bool isMember = reader.ReadBoolean();
+                    bool isMember = this.reader.ReadBoolean();
                     if (isMember)
                     {
                         member = this.ReadMemberRef();
@@ -268,7 +268,7 @@
 
             private void Write(IImportSatisfiabilityConstraint importConstraint)
             {
-                using (Trace("IImportSatisfiabilityConstraint"))
+                using (this.Trace("IImportSatisfiabilityConstraint"))
                 {
                     ConstraintTypes type;
                     if (importConstraint is ImportMetadataViewConstraint)
@@ -292,7 +292,7 @@
                         throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, ConfigurationStrings.ImportConstraintTypeNotSupported, importConstraint.GetType().FullName));
                     }
 
-                    writer.Write((byte)type);
+                    this.writer.Write((byte)type);
                     switch (type)
                     {
                         case ConstraintTypes.ImportMetadataViewConstraint:
@@ -302,7 +302,7 @@
                             {
                                 this.Write(item.Key);
                                 this.Write(item.Value.MetadatumValueType);
-                                writer.Write(item.Value.IsMetadataumValueRequired);
+                                this.writer.Write(item.Value.IsMetadataumValueRequired);
                             }
 
                             break;
@@ -327,9 +327,9 @@
 
             private IImportSatisfiabilityConstraint ReadIImportSatisfiabilityConstraint()
             {
-                using (Trace("IImportSatisfiabilityConstraint"))
+                using (this.Trace("IImportSatisfiabilityConstraint"))
                 {
-                    var type = (ConstraintTypes)reader.ReadByte();
+                    var type = (ConstraintTypes)this.reader.ReadByte();
                     switch (type)
                     {
                         case ConstraintTypes.ImportMetadataViewConstraint:
@@ -339,7 +339,7 @@
                             {
                                 var name = this.ReadString();
                                 var valueTypeRef = this.ReadTypeRef();
-                                var isRequired = reader.ReadBoolean();
+                                var isRequired = this.reader.ReadBoolean();
                                 requirements.Add(name, new ImportMetadataViewConstraint.MetadatumRequirement(valueTypeRef, isRequired));
                             }
 

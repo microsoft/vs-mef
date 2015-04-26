@@ -13,8 +13,8 @@
     /// </summary>
     internal static class LazyServices
     {
-        private static readonly MethodInfo createStronglyTypedLazyOfTM = typeof(LazyServices).GetMethod("CreateStronglyTypedLazyOfTM", BindingFlags.NonPublic | BindingFlags.Static);
-        private static readonly MethodInfo createStronglyTypedLazyOfT = typeof(LazyServices).GetMethod("CreateStronglyTypedLazyOfT", BindingFlags.NonPublic | BindingFlags.Static);
+        private static readonly MethodInfo CreateStronglyTypedLazyOfTMValue = typeof(LazyServices).GetMethod("CreateStronglyTypedLazyOfTM", BindingFlags.NonPublic | BindingFlags.Static);
+        private static readonly MethodInfo CreateStronglyTypedLazyOfTValue = typeof(LazyServices).GetMethod("CreateStronglyTypedLazyOfT", BindingFlags.NonPublic | BindingFlags.Static);
 
         internal static readonly Type DefaultMetadataViewType = typeof(IDictionary<string, object>);
         internal static readonly Type DefaultExportedValueType = typeof(object);
@@ -56,11 +56,11 @@
             MethodInfo genericMethod;
             if (metadataViewType != null)
             {
-                genericMethod = createStronglyTypedLazyOfTM.MakeGenericMethod(exportType ?? DefaultExportedValueType, metadataViewType);
+                genericMethod = CreateStronglyTypedLazyOfTMValue.MakeGenericMethod(exportType ?? DefaultExportedValueType, metadataViewType);
             }
             else
             {
-                genericMethod = createStronglyTypedLazyOfT.MakeGenericMethod(exportType ?? DefaultExportedValueType);
+                genericMethod = CreateStronglyTypedLazyOfTValue.MakeGenericMethod(exportType ?? DefaultExportedValueType);
             }
 
             return (Func<Func<object>, object, object>)Delegate.CreateDelegate(typeof(Func<Func<object>, object, object>), genericMethod);

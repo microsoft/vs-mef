@@ -10,7 +10,7 @@
 
     internal static class ExportMetadataViewInterfaceEmitProxy
     {
-        private static readonly ComposablePartDefinition proxySupportPartDefinition = new AttributedPartDiscovery().CreatePart(typeof(MetadataViewProxyProvider));
+        private static readonly ComposablePartDefinition ProxySupportPartDefinition = new AttributedPartDiscovery().CreatePart(typeof(MetadataViewProxyProvider));
 
         /// <summary>
         /// Adds support for queries to <see cref="ExportProvider.GetExports{T, TMetadata}()"/> where
@@ -22,7 +22,7 @@
         {
             Requires.NotNull(catalog, "catalog");
 
-            return catalog.WithPart(proxySupportPartDefinition);
+            return catalog.WithPart(ProxySupportPartDefinition);
         }
 
         [PartNotDiscoverable]

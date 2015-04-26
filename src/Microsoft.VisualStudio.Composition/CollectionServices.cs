@@ -9,8 +9,8 @@ namespace Microsoft.VisualStudio.Composition
 
     internal static partial class CollectionServices
     {
-        private static readonly ConstructorInfo collectionOfObjectCtor = typeof(CollectionOfObject<>).GetConstructors()[0];
-        private static readonly Dictionary<Type, Func<object, ICollection<object>>> cachedCollectionWrapperFactories = new Dictionary<Type, Func<object, ICollection<object>>>();
+        private static readonly ConstructorInfo CollectionOfObjectCtor = typeof(CollectionOfObject<>).GetConstructors()[0];
+        private static readonly Dictionary<Type, Func<object, ICollection<object>>> CachedCollectionWrapperFactories = new Dictionary<Type, Func<object, ICollection<object>>>();
 
         internal static ICollection<object> GetCollectionWrapper(Type itemType, object collectionObject)
         {
@@ -33,15 +33,15 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             Func<object, ICollection<object>> factory;
-            lock (cachedCollectionWrapperFactories)
+            lock (CachedCollectionWrapperFactories)
             {
-                cachedCollectionWrapperFactories.TryGetValue(underlyingItemType, out factory);
+                CachedCollectionWrapperFactories.TryGetValue(underlyingItemType, out factory);
             }
 
             if (factory == null)
             {
                 Type collectionType = typeof(CollectionOfObject<>).MakeGenericType(underlyingItemType);
-                var ctor = (ConstructorInfo)MethodBase.GetMethodFromHandle(collectionOfObjectCtor.MethodHandle, collectionType.TypeHandle);
+                var ctor = (ConstructorInfo)MethodBase.GetMethodFromHandle(CollectionOfObjectCtor.MethodHandle, collectionType.TypeHandle);
 
                 factory = collection =>
                 {
@@ -52,9 +52,9 @@ namespace Microsoft.VisualStudio.Composition
                     }
                 };
 
-                lock (cachedCollectionWrapperFactories)
+                lock (CachedCollectionWrapperFactories)
                 {
-                    cachedCollectionWrapperFactories[underlyingItemType] = factory;
+                    CachedCollectionWrapperFactories[underlyingItemType] = factory;
                 }
             }
 
@@ -63,21 +63,21 @@ namespace Microsoft.VisualStudio.Composition
 
         private class CollectionOfObjectList : ICollection<object>
         {
-            private readonly IList _list;
+            private readonly IList list;
 
             public CollectionOfObjectList(IList list)
             {
-                this._list = list;
+                this.list = list;
             }
 
             public void Add(object item)
             {
-                this._list.Add(item);
+                this.list.Add(item);
             }
 
             public void Clear()
             {
-                this._list.Clear();
+                this.list.Clear();
             }
 
             public bool Contains(object item)
@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.Composition
 
             public bool IsReadOnly
             {
-                get { return this._list.IsReadOnly; }
+                get { return this.list.IsReadOnly; }
             }
 
             public bool Remove(object item)
@@ -118,21 +118,21 @@ namespace Microsoft.VisualStudio.Composition
 
         private class CollectionOfObject<T> : ICollection<object>
         {
-            private readonly ICollection<T> _collectionOfT;
+            private readonly ICollection<T> collectionOfT;
 
             public CollectionOfObject(object collectionOfT)
             {
-                this._collectionOfT = (ICollection<T>)collectionOfT;
+                this.collectionOfT = (ICollection<T>)collectionOfT;
             }
 
             public void Add(object item)
             {
-                this._collectionOfT.Add((T)item);
+                this.collectionOfT.Add((T)item);
             }
 
             public void Clear()
             {
-                this._collectionOfT.Clear();
+                this.collectionOfT.Clear();
             }
 
             public bool Contains(object item)
@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.Composition
 
             public bool IsReadOnly
             {
-                get { return this._collectionOfT.IsReadOnly; }
+                get { return this.collectionOfT.IsReadOnly; }
             }
 
             public bool Remove(object item)

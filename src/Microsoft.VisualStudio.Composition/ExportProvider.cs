@@ -256,7 +256,7 @@
             if (importDefinition.Cardinality == ImportCardinality.ExactlyOne && exportsSnapshot.Length != 1)
             {
                 throw new CompositionFailedException(
-                    String.Format(
+                    string.Format(
                         CultureInfo.CurrentCulture,
                         Strings.UnexpectedNumberOfExportsFound,
                         1,
@@ -725,7 +725,7 @@
         {
             Verify.NotDisposed(this);
             contractName = string.IsNullOrEmpty(contractName) ? ContractNameServices.GetTypeIdentity(typeof(T)) : contractName;
-            IMetadataViewProvider metadataViewProvider = GetMetadataViewProvider(typeof(TMetadataView));
+            IMetadataViewProvider metadataViewProvider = this.GetMetadataViewProvider(typeof(TMetadataView));
 
             var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty
                 .Union(PartDiscovery.GetExportTypeIdentityConstraints(typeof(T)));

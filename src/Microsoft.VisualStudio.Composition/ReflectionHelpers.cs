@@ -13,7 +13,7 @@
 
     public static class ReflectionHelpers
     {
-        private static readonly Assembly mscorlib = typeof(int).GetTypeInfo().Assembly;
+        private static readonly Assembly Mscorlib = typeof(int).GetTypeInfo().Assembly;
 
         /// <summary>
         /// Describes how compatible an export and import site pair are.
@@ -302,7 +302,7 @@
             }
 
             observedTypes = observedTypes.Push(type);
-            if (type.GetTypeInfo().Assembly != mscorlib)
+            if (type.GetTypeInfo().Assembly != Mscorlib)
             {
                 if (type.IsEmbeddedType())
                 {
@@ -576,7 +576,7 @@
                 name = name.Substring(0, name.IndexOf('`'));
                 name += "<";
                 int genericPositions = Math.Max(type.GenericTypeArguments.Length, type.GetTypeInfo().GenericTypeParameters.Length);
-                name += new String(',', genericPositions - 1);
+                name += new string(',', genericPositions - 1);
                 name += ">";
             }
 

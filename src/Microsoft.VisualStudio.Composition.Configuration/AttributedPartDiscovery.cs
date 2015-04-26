@@ -96,7 +96,7 @@
             foreach (var export in exportsByMember)
             {
                 var member = export.Key;
-                var memberExportMetadata = allExportsMetadata.AddRange(GetExportMetadata(member));
+                var memberExportMetadata = allExportsMetadata.AddRange(this.GetExportMetadata(member));
 
                 if (member is Type)
                 {

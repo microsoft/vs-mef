@@ -12,7 +12,7 @@
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    partial class RuntimeExportProviderFactory : IExportProviderFactory
+    internal partial class RuntimeExportProviderFactory : IExportProviderFactory
     {
         private class RuntimeExportProvider : ExportProvider
         {
@@ -59,7 +59,7 @@
                 return new RuntimePartLifecycleTracker(this, this.composition.GetPart(partType), importMetadata);
             }
 
-            private static readonly RuntimeComposition.RuntimeImport metadataViewProviderImport = new RuntimeComposition.RuntimeImport(
+            private static readonly RuntimeComposition.RuntimeImport MetadataViewProviderImport = new RuntimeComposition.RuntimeImport(
                 default(MemberRef),
                 TypeRef.Get(typeof(IMetadataViewProvider)),
                 ImportCardinality.ExactlyOne,
@@ -74,7 +74,7 @@
                 RuntimeComposition.RuntimeExport metadataViewProviderExport;
                 if (this.composition.MetadataViewsAndProviders.TryGetValue(TypeRef.Get(metadataView), out metadataViewProviderExport))
                 {
-                    var export = GetExportedValue(metadataViewProviderImport, metadataViewProviderExport, importingPartTracker: null);
+                    var export = this.GetExportedValue(MetadataViewProviderImport, metadataViewProviderExport, importingPartTracker: null);
                     return (IMetadataViewProvider)export.ValueConstructor();
                 }
                 else
@@ -280,7 +280,7 @@
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
-                return GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.Type, constructedType, importingPartTracker);
+                return this.GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.Type, constructedType, importingPartTracker);
             }
 
             /// <remarks>
@@ -547,7 +547,7 @@
                 {
                     // Discard the TargetInvocationException and throw a MEF related one, with the same inner exception.
                     return new CompositionFailedException(
-                        String.Format(CultureInfo.CurrentCulture, Strings.ExceptionThrownByPartUnderInitialization, this.PartType.FullName),
+                        string.Format(CultureInfo.CurrentCulture, Strings.ExceptionThrownByPartUnderInitialization, this.PartType.FullName),
                         ex.InnerException);
                 }
             }

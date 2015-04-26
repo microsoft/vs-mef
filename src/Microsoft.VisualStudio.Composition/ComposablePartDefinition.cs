@@ -71,7 +71,7 @@
         /// a way to convey a sharing boundary.
         /// This is <c>false</c> when the part is discovered by MEFv2 attributes, which have a SharedAttribute(string) that they can use
         /// to specify the value.
-        /// When this is <c>true</c>, the <see cref="SharingBoundary"/> property is set to <see cref="String.Empty"/>.
+        /// When this is <c>true</c>, the <see cref="SharingBoundary"/> property is set to <see cref="string.Empty"/>.
         /// </remarks>
         public bool IsSharingBoundaryInferred { get; private set; }
 

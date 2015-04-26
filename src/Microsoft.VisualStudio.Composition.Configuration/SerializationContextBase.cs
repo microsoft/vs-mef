@@ -76,8 +76,8 @@ namespace Microsoft.VisualStudio.Composition
             if (this.objectTableCapacityStreamPosition >= 0)
             {
                 // Always flush the writer before repositioning the stream to avoid corrupting data.
-                writer.Flush();
-                Stream writerStream = writer.BaseStream;
+                this.writer.Flush();
+                Stream writerStream = this.writer.BaseStream;
 
                 // Reposition the stream to the point at which we wrote out our estimated required capacity.
                 long tailPosition = writerStream.Position;
@@ -108,15 +108,15 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(MethodRef methodRef)
         {
-            using (Trace("MethodRef"))
+            using (this.Trace("MethodRef"))
             {
                 if (methodRef.IsEmpty)
                 {
-                    writer.Write((byte)0);
+                    this.writer.Write((byte)0);
                 }
                 else
                 {
-                    writer.Write((byte)1);
+                    this.writer.Write((byte)1);
                     this.Write(methodRef.DeclaringType);
                     this.WriteCompressedMetadataToken(methodRef.MetadataToken, MetadataTokenType.Method);
                     this.Write(methodRef.GenericMethodArguments, this.Write);
@@ -126,14 +126,14 @@ namespace Microsoft.VisualStudio.Composition
 
         protected MethodRef ReadMethodRef()
         {
-            using (Trace("MethodRef"))
+            using (this.Trace("MethodRef"))
             {
-                byte nullCheck = reader.ReadByte();
+                byte nullCheck = this.reader.ReadByte();
                 if (nullCheck == 1)
                 {
                     var declaringType = this.ReadTypeRef();
                     var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
-                    var genericMethodArguments = this.ReadList(reader, this.ReadTypeRef);
+                    var genericMethodArguments = this.ReadList(this.reader, this.ReadTypeRef);
                     return new MethodRef(declaringType, metadataToken, genericMethodArguments.ToImmutableArray());
                 }
                 else
@@ -145,40 +145,40 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(MemberRef memberRef)
         {
-            using (Trace("MemberRef"))
+            using (this.Trace("MemberRef"))
             {
                 if (memberRef.IsConstructor)
                 {
-                    writer.Write((byte)1);
+                    this.writer.Write((byte)1);
                     this.Write(memberRef.Constructor);
                 }
                 else if (memberRef.IsField)
                 {
-                    writer.Write((byte)2);
+                    this.writer.Write((byte)2);
                     this.Write(memberRef.Field);
                 }
                 else if (memberRef.IsProperty)
                 {
-                    writer.Write((byte)3);
+                    this.writer.Write((byte)3);
                     this.Write(memberRef.Property);
                 }
                 else if (memberRef.IsMethod)
                 {
-                    writer.Write((byte)4);
+                    this.writer.Write((byte)4);
                     this.Write(memberRef.Method);
                 }
                 else
                 {
-                    writer.Write((byte)0);
+                    this.writer.Write((byte)0);
                 }
             }
         }
 
         protected MemberRef ReadMemberRef()
         {
-            using (Trace("MemberRef"))
+            using (this.Trace("MemberRef"))
             {
-                int kind = reader.ReadByte();
+                int kind = this.reader.ReadByte();
                 switch (kind)
                 {
                     case 0:
@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(PropertyRef propertyRef)
         {
-            using (Trace("PropertyRef"))
+            using (this.Trace("PropertyRef"))
             {
                 this.Write(propertyRef.DeclaringType);
                 this.WriteCompressedMetadataToken(propertyRef.MetadataToken, MetadataTokenType.Property);
@@ -207,7 +207,7 @@ namespace Microsoft.VisualStudio.Composition
                 byte flags = 0;
                 flags |= propertyRef.GetMethodMetadataToken.HasValue ? (byte)0x1 : (byte)0x0;
                 flags |= propertyRef.SetMethodMetadataToken.HasValue ? (byte)0x2 : (byte)0x0;
-                writer.Write(flags);
+                this.writer.Write(flags);
 
                 if (propertyRef.GetMethodMetadataToken.HasValue)
                 {
@@ -223,12 +223,12 @@ namespace Microsoft.VisualStudio.Composition
 
         protected PropertyRef ReadPropertyRef()
         {
-            using (Trace("PropertyRef"))
+            using (this.Trace("PropertyRef"))
             {
                 var declaringType = this.ReadTypeRef();
                 var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Property);
 
-                byte flags = reader.ReadByte();
+                byte flags = this.reader.ReadByte();
                 int? getter = null, setter = null;
                 if ((flags & 0x1) != 0)
                 {
@@ -250,9 +250,9 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(FieldRef fieldRef)
         {
-            using (Trace("FieldRef"))
+            using (this.Trace("FieldRef"))
             {
-                writer.Write(!fieldRef.IsEmpty);
+                this.writer.Write(!fieldRef.IsEmpty);
                 if (!fieldRef.IsEmpty)
                 {
                     this.Write(fieldRef.DeclaringType);
@@ -263,9 +263,9 @@ namespace Microsoft.VisualStudio.Composition
 
         protected FieldRef ReadFieldRef()
         {
-            using (Trace("FieldRef"))
+            using (this.Trace("FieldRef"))
             {
-                if (reader.ReadBoolean())
+                if (this.reader.ReadBoolean())
                 {
                     var declaringType = this.ReadTypeRef();
                     int metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Field);
@@ -280,27 +280,27 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(ParameterRef parameterRef)
         {
-            using (Trace("ParameterRef"))
+            using (this.Trace("ParameterRef"))
             {
-                writer.Write(!parameterRef.IsEmpty);
+                this.writer.Write(!parameterRef.IsEmpty);
                 if (!parameterRef.IsEmpty)
                 {
                     this.Write(parameterRef.DeclaringType);
                     this.WriteCompressedMetadataToken(parameterRef.MethodMetadataToken, MetadataTokenType.Method);
-                    writer.Write((byte)parameterRef.ParameterIndex);
+                    this.writer.Write((byte)parameterRef.ParameterIndex);
                 }
             }
         }
 
         protected ParameterRef ReadParameterRef()
         {
-            using (Trace("ParameterRef"))
+            using (this.Trace("ParameterRef"))
             {
-                if (reader.ReadBoolean())
+                if (this.reader.ReadBoolean())
                 {
                     var declaringType = this.ReadTypeRef();
                     int methodMetadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
-                    var parameterIndex = reader.ReadByte();
+                    var parameterIndex = this.reader.ReadByte();
                     return new ParameterRef(declaringType, methodMetadataToken, parameterIndex);
                 }
                 else
@@ -326,7 +326,7 @@ namespace Microsoft.VisualStudio.Composition
         protected void Write(ConstructorRef constructorRef)
         {
             Requires.Argument(!constructorRef.IsEmpty, "constructorRef", ConfigurationStrings.CannotBeEmpty);
-            using (Trace("ConstructorRef"))
+            using (this.Trace("ConstructorRef"))
             {
                 this.Write(constructorRef.DeclaringType);
                 this.WriteCompressedMetadataToken(constructorRef.MetadataToken, MetadataTokenType.Method);
@@ -335,7 +335,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected ConstructorRef ReadConstructorRef()
         {
-            using (Trace("ConstructorRef"))
+            using (this.Trace("ConstructorRef"))
             {
                 var declaringType = this.ReadTypeRef();
                 var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
@@ -357,7 +357,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(TypeRef typeRef)
         {
-            using (Trace("TypeRef"))
+            using (this.Trace("TypeRef"))
             {
                 if (this.TryPrepareSerializeReusableObject(typeRef))
                 {
@@ -368,7 +368,7 @@ namespace Microsoft.VisualStudio.Composition
                     flags |= typeRef.IsArray ? TypeRefFlags.IsArray : TypeRefFlags.None;
                     flags |= !typeRef.GenericParameterDeclaringMember.IsEmpty ? TypeRefFlags.HasGenericParameterDeclaringMember : TypeRefFlags.None;
                     flags |= typeRef.GenericParameterDeclaringMemberIndex >= 0 ? TypeRefFlags.HasGenericParameterDeclaringMemberIndex : TypeRefFlags.None;
-                    writer.Write((byte)flags);
+                    this.writer.Write((byte)flags);
 
                     this.WriteCompressedUInt((uint)typeRef.GenericTypeParameterCount);
                     this.Write(typeRef.GenericTypeArguments, this.Write);
@@ -388,7 +388,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected TypeRef ReadTypeRef()
         {
-            using (Trace("TypeRef"))
+            using (this.Trace("TypeRef"))
             {
                 uint id;
                 TypeRef value;
@@ -396,9 +396,9 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     var assemblyName = this.ReadAssemblyName();
                     var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Type);
-                    var flags = (TypeRefFlags)reader.ReadByte();
+                    var flags = (TypeRefFlags)this.reader.ReadByte();
                     int genericTypeParameterCount = (int)this.ReadCompressedUInt();
-                    var genericTypeArguments = this.ReadList(reader, this.ReadTypeRef).ToImmutableArray();
+                    var genericTypeArguments = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
                     var genericParameterDeclaringMember = flags.HasFlag(TypeRefFlags.HasGenericParameterDeclaringMember) ? this.ReadMemberRef() : default(MemberRef);
                     var genericParameterDeclaringMemberIndex = flags.HasFlag(TypeRefFlags.HasGenericParameterDeclaringMemberIndex) ? (int)this.ReadCompressedUInt() : -1;
                     if (genericParameterDeclaringMember.IsEmpty)
@@ -419,7 +419,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(AssemblyName assemblyName)
         {
-            using (Trace("AssemblyName"))
+            using (this.Trace("AssemblyName"))
             {
                 if (this.TryPrepareSerializeReusableObject(assemblyName))
                 {
@@ -431,7 +431,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected AssemblyName ReadAssemblyName()
         {
-            using (Trace("AssemblyName"))
+            using (this.Trace("AssemblyName"))
             {
                 uint id;
                 AssemblyName value;
@@ -449,24 +449,24 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(string value)
         {
-            using (Trace("String"))
+            using (this.Trace("String"))
             {
                 if (this.TryPrepareSerializeReusableObject(value))
                 {
-                    writer.Write(value);
+                    this.writer.Write(value);
                 }
             }
         }
 
         protected string ReadString()
         {
-            using (Trace("String"))
+            using (this.Trace("String"))
             {
                 uint id;
                 string value;
                 if (this.TryPrepareDeserializeReusableObject(out id, out value))
                 {
-                    value = reader.ReadString();
+                    value = this.reader.ReadString();
                     this.OnDeserializedReusableObject(id, value);
                 }
 
@@ -476,18 +476,18 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void WriteCompressedUInt(uint value)
         {
-            CompressedUInt.WriteCompressedUInt(writer, value);
+            CompressedUInt.WriteCompressedUInt(this.writer, value);
         }
 
         protected uint ReadCompressedUInt()
         {
-            return CompressedUInt.ReadCompressedUInt(reader);
+            return CompressedUInt.ReadCompressedUInt(this.reader);
         }
 
         protected void Write<T>(IReadOnlyCollection<T> list, Action<T> itemWriter)
         {
             Requires.NotNull(list, "list");
-            using (Trace("List<" + typeof(T).Name + ">"))
+            using (this.Trace("List<" + typeof(T).Name + ">"))
             {
                 this.WriteCompressedUInt((uint)list.Count);
                 foreach (var item in list)
@@ -500,7 +500,7 @@ namespace Microsoft.VisualStudio.Composition
         protected void Write(Array list, Action<object> itemWriter)
         {
             Requires.NotNull(list, "list");
-            using (Trace((list != null ? list.GetType().GetElementType().Name : "null") + "[]"))
+            using (this.Trace((list != null ? list.GetType().GetElementType().Name : "null") + "[]"))
             {
                 this.WriteCompressedUInt((uint)list.Length);
                 foreach (var item in list)
@@ -517,7 +517,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected IReadOnlyList<T> ReadList<T>(BinaryReader reader, Func<T> itemReader)
         {
-            using (Trace(typeof(T).Name, isArray: true))
+            using (this.Trace(typeof(T).Name, isArray: true))
             {
                 uint count = this.ReadCompressedUInt();
                 if (count > 0xffff)
@@ -539,7 +539,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected Array ReadArray(BinaryReader reader, Func<object> itemReader, Type elementType)
         {
-            using (Trace(elementType.Name, isArray: true))
+            using (this.Trace(elementType.Name, isArray: true))
             {
                 uint count = this.ReadCompressedUInt();
                 if (count > 0xffff)
@@ -562,7 +562,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(IReadOnlyDictionary<string, object> metadata)
         {
-            using (Trace("Metadata"))
+            using (this.Trace("Metadata"))
             {
                 this.WriteCompressedUInt((uint)metadata.Count);
 
@@ -579,7 +579,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected IReadOnlyDictionary<string, object> ReadMetadata()
         {
-            using (Trace("Metadata"))
+            using (this.Trace("Metadata"))
             {
                 // PERF TIP: if ReadMetadata shows up on startup perf traces,
                 // we could simply read the blob containing the metadata into a byte[]
@@ -612,17 +612,17 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(ImportCardinality cardinality)
         {
-            using (Trace("ImportCardinality"))
+            using (this.Trace("ImportCardinality"))
             {
-                writer.Write((byte)cardinality);
+                this.writer.Write((byte)cardinality);
             }
         }
 
         protected ImportCardinality ReadImportCardinality()
         {
-            using (Trace("ImportCardinality"))
+            using (this.Trace("ImportCardinality"))
             {
-                return (ImportCardinality)reader.ReadByte();
+                return (ImportCardinality)this.reader.ReadByte();
             }
         }
 
@@ -705,7 +705,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             if (value == null)
             {
-                using (Trace("Object (null)"))
+                using (this.Trace("Object (null)"))
                 {
                     this.Write(ObjectType.Null);
                 }
@@ -713,7 +713,7 @@ namespace Microsoft.VisualStudio.Composition
             else
             {
                 Type valueType = value.GetType();
-                using (Trace("Object (" + valueType.Name + ")"))
+                using (this.Trace("Object (" + valueType.Name + ")"))
                 {
                     if (valueType.IsArray)
                     {
@@ -735,22 +735,22 @@ namespace Microsoft.VisualStudio.Composition
                     else if (valueType == typeof(int))
                     {
                         this.Write(ObjectType.Int32);
-                        writer.Write((int)value);
+                        this.writer.Write((int)value);
                     }
                     else if (valueType == typeof(char))
                     {
                         this.Write(ObjectType.Char);
-                        writer.Write((char)value);
+                        this.writer.Write((char)value);
                     }
                     else if (valueType == typeof(Guid))
                     {
                         this.Write(ObjectType.Guid);
-                        writer.Write(((Guid)value).ToByteArray());
+                        this.writer.Write(((Guid)value).ToByteArray());
                     }
                     else if (valueType == typeof(CreationPolicy)) // TODO: how do we handle arbitrary value types?
                     {
                         this.Write(ObjectType.CreationPolicy);
-                        writer.Write((byte)(CreationPolicy)value);
+                        this.writer.Write((byte)(CreationPolicy)value);
                     }
                     else if (typeof(Type).IsAssignableFrom(valueType))
                     {
@@ -767,7 +767,7 @@ namespace Microsoft.VisualStudio.Composition
                         var substValue = (LazyMetadataWrapper.Enum32Substitution)value;
                         this.Write(ObjectType.Enum32Substitution);
                         this.Write(substValue.EnumType);
-                        writer.Write(substValue.RawValue);
+                        this.writer.Write(substValue.RawValue);
                     }
                     else if (typeof(LazyMetadataWrapper.TypeSubstitution) == valueType)
                     {
@@ -786,8 +786,8 @@ namespace Microsoft.VisualStudio.Composition
                         Debug.WriteLine("Falling back to binary formatter for value of type: {0}", valueType);
                         this.Write(ObjectType.BinaryFormattedObject);
                         var formatter = new BinaryFormatter();
-                        writer.Flush();
-                        formatter.Serialize(writer.BaseStream, value);
+                        this.writer.Flush();
+                        formatter.Serialize(this.writer.BaseStream, value);
                     }
                 }
             }
@@ -795,7 +795,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected object ReadObject()
         {
-            using (Trace("Object"))
+            using (this.Trace("Object"))
             {
                 ObjectType objectType = this.ReadObjectType();
                 switch (objectType)
@@ -804,38 +804,38 @@ namespace Microsoft.VisualStudio.Composition
                         return null;
                     case ObjectType.Array:
                         Type elementType = this.ReadTypeRef().Resolve();
-                        return this.ReadArray(reader, this.ReadObject, elementType);
+                        return this.ReadArray(this.reader, this.ReadObject, elementType);
                     case ObjectType.BoolTrue:
                         return true;
                     case ObjectType.BoolFalse:
                         return false;
                     case ObjectType.Int32:
-                        return reader.ReadInt32();
+                        return this.reader.ReadInt32();
                     case ObjectType.String:
                         return this.ReadString();
                     case ObjectType.Char:
-                        return reader.ReadChar();
+                        return this.reader.ReadChar();
                     case ObjectType.Guid:
-                        return new Guid(reader.ReadBytes(16));
+                        return new Guid(this.reader.ReadBytes(16));
                     case ObjectType.CreationPolicy:
-                        return (CreationPolicy)reader.ReadByte();
+                        return (CreationPolicy)this.reader.ReadByte();
                     case ObjectType.Type:
                         return this.ReadTypeRef().Resolve();
                     case ObjectType.TypeRef:
                         return this.ReadTypeRef();
                     case ObjectType.Enum32Substitution:
                         TypeRef enumType = this.ReadTypeRef();
-                        int rawValue = reader.ReadInt32();
+                        int rawValue = this.reader.ReadInt32();
                         return new LazyMetadataWrapper.Enum32Substitution(enumType, rawValue);
                     case ObjectType.TypeSubstitution:
                         TypeRef typeRef = this.ReadTypeRef();
                         return new LazyMetadataWrapper.TypeSubstitution(typeRef);
                     case ObjectType.TypeArraySubstitution:
-                        IReadOnlyList<TypeRef> typeRefArray = this.ReadList(reader, this.ReadTypeRef);
+                        IReadOnlyList<TypeRef> typeRefArray = this.ReadList(this.reader, this.ReadTypeRef);
                         return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray);
                     case ObjectType.BinaryFormattedObject:
                         var formatter = new BinaryFormatter();
-                        return formatter.Deserialize(reader.BaseStream);
+                        return formatter.Deserialize(this.reader.BaseStream);
                     default:
                         throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, ConfigurationStrings.UnsupportedFormat, objectType));
                 }
@@ -844,12 +844,12 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(ObjectType type)
         {
-            writer.Write((byte)type);
+            this.writer.Write((byte)type);
         }
 
         protected ObjectType ReadObjectType()
         {
-            var objectType = (ObjectType)reader.ReadByte();
+            var objectType = (ObjectType)this.reader.ReadByte();
             return objectType;
         }
 
@@ -902,7 +902,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     if (this.context.sizeStats != null)
                     {
-                        int length = (int)this.stream.Position - startStreamPosition;
+                        int length = (int)this.stream.Position - this.startStreamPosition;
                         string elementNameWitharray = this.isArray ? (this.elementName + "[]") : this.elementName;
                         this.context.sizeStats[elementNameWitharray] = this.context.sizeStats.GetValueOrDefault(elementNameWitharray) + length;
                     }

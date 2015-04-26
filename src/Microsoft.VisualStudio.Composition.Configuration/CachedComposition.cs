@@ -86,10 +86,10 @@
 
             internal void Write(RuntimeComposition compositionRuntime)
             {
-                Requires.NotNull(writer, "writer");
+                Requires.NotNull(this.writer, "writer");
                 Requires.NotNull(compositionRuntime, "compositionRuntime");
 
-                using (Trace("RuntimeComposition"))
+                using (this.Trace("RuntimeComposition"))
                 {
                     this.Write(compositionRuntime.Parts, this.Write);
                     this.Write(compositionRuntime.MetadataViewsAndProviders);
@@ -100,12 +100,12 @@
 
             internal RuntimeComposition ReadRuntimeComposition()
             {
-                Requires.NotNull(reader, "reader");
+                Requires.NotNull(this.reader, "reader");
 
                 RuntimeComposition result;
-                using (Trace("RuntimeComposition"))
+                using (this.Trace("RuntimeComposition"))
                 {
-                    var parts = this.ReadList(reader, this.ReadRuntimePart);
+                    var parts = this.ReadList(this.reader, this.ReadRuntimePart);
                     var metadataViewsAndProviders = this.ReadMetadataViewsAndProviders();
 
                     result = RuntimeComposition.CreateRuntimeComposition(parts, metadataViewsAndProviders);
@@ -117,7 +117,7 @@
 
             private void Write(RuntimeComposition.RuntimeExport export)
             {
-                using (Trace("RuntimeExport"))
+                using (this.Trace("RuntimeExport"))
                 {
                     if (this.TryPrepareSerializeReusableObject(export))
                     {
@@ -132,7 +132,7 @@
 
             private RuntimeComposition.RuntimeExport ReadRuntimeExport()
             {
-                using (Trace("RuntimeExport"))
+                using (this.Trace("RuntimeExport"))
                 {
                     uint id;
                     RuntimeComposition.RuntimeExport value;
@@ -159,17 +159,17 @@
 
             private void Write(RuntimeComposition.RuntimePart part)
             {
-                using (Trace("RuntimePart"))
+                using (this.Trace("RuntimePart"))
                 {
                     this.Write(part.Type);
                     this.Write(part.Exports, this.Write);
                     if (part.ImportingConstructorRef.IsEmpty)
                     {
-                        writer.Write(false);
+                        this.writer.Write(false);
                     }
                     else
                     {
-                        writer.Write(true);
+                        this.writer.Write(true);
                         this.Write(part.ImportingConstructorRef);
                         this.Write(part.ImportingConstructorArguments, this.Write);
                     }
@@ -182,21 +182,21 @@
 
             private RuntimeComposition.RuntimePart ReadRuntimePart()
             {
-                using (Trace("RuntimePart"))
+                using (this.Trace("RuntimePart"))
                 {
                     ConstructorRef importingCtor = default(ConstructorRef);
                     IReadOnlyList<RuntimeComposition.RuntimeImport> importingCtorArguments = ImmutableList<RuntimeComposition.RuntimeImport>.Empty;
 
                     var type = this.ReadTypeRef();
-                    var exports = this.ReadList(reader, this.ReadRuntimeExport);
-                    bool hasCtor = reader.ReadBoolean();
+                    var exports = this.ReadList(this.reader, this.ReadRuntimeExport);
+                    bool hasCtor = this.reader.ReadBoolean();
                     if (hasCtor)
                     {
                         importingCtor = this.ReadConstructorRef();
-                        importingCtorArguments = this.ReadList(reader, this.ReadRuntimeImport);
+                        importingCtorArguments = this.ReadList(this.reader, this.ReadRuntimeImport);
                     }
 
-                    var importingMembers = this.ReadList(reader, this.ReadRuntimeImport);
+                    var importingMembers = this.ReadList(this.reader, this.ReadRuntimeImport);
                     var onImportsSatisfied = this.ReadMethodRef();
                     var sharingBoundary = this.ReadString();
 
@@ -223,7 +223,7 @@
 
             private void Write(RuntimeComposition.RuntimeImport import)
             {
-                using (Trace("RuntimeImport"))
+                using (this.Trace("RuntimeImport"))
                 {
                     RuntimeImportFlags flags = RuntimeImportFlags.None;
                     flags |= import.ImportingMemberRef.IsEmpty ? RuntimeImportFlags.IsParameter : 0;
@@ -232,7 +232,7 @@
                     flags |=
                         import.Cardinality == ImportCardinality.ExactlyOne ? RuntimeImportFlags.CardinalityExactlyOne :
                         import.Cardinality == ImportCardinality.OneOrZero ? RuntimeImportFlags.CardinalityOneOrZero : 0;
-                    writer.Write((byte)flags);
+                    this.writer.Write((byte)flags);
 
                     if (import.ImportingMemberRef.IsEmpty)
                     {
@@ -255,9 +255,9 @@
 
             private RuntimeComposition.RuntimeImport ReadRuntimeImport()
             {
-                using (Trace("RuntimeImport"))
+                using (this.Trace("RuntimeImport"))
                 {
-                    var flags = (RuntimeImportFlags)reader.ReadByte();
+                    var flags = (RuntimeImportFlags)this.reader.ReadByte();
                     var cardinality =
                         flags.HasFlag(RuntimeImportFlags.CardinalityOneOrZero) ? ImportCardinality.OneOrZero :
                         flags.HasFlag(RuntimeImportFlags.CardinalityExactlyOne) ? ImportCardinality.ExactlyOne :
@@ -276,10 +276,10 @@
                     }
 
                     var importingSiteTypeRef = this.ReadTypeRef();
-                    var satisfyingExports = this.ReadList(reader, this.ReadRuntimeExport);
+                    var satisfyingExports = this.ReadList(this.reader, this.ReadRuntimeExport);
                     var metadata = this.ReadMetadata();
                     IReadOnlyList<string> exportFactorySharingBoundaries = isExportFactory
-                        ? this.ReadList(reader, this.ReadString)
+                        ? this.ReadList(this.reader, this.ReadString)
                         : ImmutableList<string>.Empty;
 
                     return importingMember.IsEmpty
@@ -306,7 +306,7 @@
 
             private void Write(IReadOnlyDictionary<TypeRef, RuntimeComposition.RuntimeExport> metadataTypesAndProviders)
             {
-                using (Trace("MetadataTypesAndProviders"))
+                using (this.Trace("MetadataTypesAndProviders"))
                 {
                     this.WriteCompressedUInt((uint)metadataTypesAndProviders.Count);
                     foreach (var item in metadataTypesAndProviders)
@@ -319,7 +319,7 @@
 
             private IReadOnlyDictionary<TypeRef, RuntimeComposition.RuntimeExport> ReadMetadataViewsAndProviders()
             {
-                using (Trace("MetadataTypesAndProviders"))
+                using (this.Trace("MetadataTypesAndProviders"))
                 {
 
                     uint count = this.ReadCompressedUInt();
