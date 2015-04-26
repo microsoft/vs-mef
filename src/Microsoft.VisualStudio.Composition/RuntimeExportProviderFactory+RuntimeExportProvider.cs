@@ -283,6 +283,10 @@
                 return this.GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.Type, constructedType, importingPartTracker);
             }
 
+            /// <summary>
+            /// Called from <see cref="GetExportedValue(RuntimeComposition.RuntimeImport, RuntimeComposition.RuntimeExport, RuntimePartLifecycleTracker)"/>
+            /// only, as an assisting method. See remarks.
+            /// </summary>
             /// <remarks>
             /// This method is separate from its one caller to avoid a csc.exe compiler bug
             /// where it captures "this" in the closure for exportedValue, resulting in a memory leak

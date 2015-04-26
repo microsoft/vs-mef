@@ -68,8 +68,10 @@
         private class MefV1ExportProvider : MefV1.Hosting.ExportProvider
         {
             private static readonly Type ExportFactoryV1Type = typeof(MefV1.ExportFactory<object, IDictionary<string, object>>);
+#pragma warning disable SA1310 // Field names must not contain underscore
             private static readonly Type IPartCreatorImportDefinition_MightFail = typeof(MefV1.Primitives.ImportDefinition).Assembly.GetType("System.ComponentModel.Composition.Primitives.IPartCreatorImportDefinition", throwOnError: false);
             private static readonly PropertyInfo ProductImportDefinition_MightFail = IPartCreatorImportDefinition_MightFail != null ? IPartCreatorImportDefinition_MightFail.GetProperty("ProductImportDefinition", BindingFlags.Instance | BindingFlags.Public) : null;
+#pragma warning restore SA1310 // Field names must not contain underscore
             private static readonly string ExportFactoryV1TypeIdentity = PartDiscovery.GetContractName(ExportFactoryV1Type);
 
             private readonly ExportProvider exportProvider;

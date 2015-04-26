@@ -297,8 +297,8 @@
             var parentIdentifier = SyntaxFactory.IdentifierName("parent");
             var freshSharingBoundaries = SyntaxFactory.IdentifierName("freshSharingBoundaries");
 
-            // public CompiledExportProvider(CodeGenExportProviderBase parent, string[] freshSharingBoundaries) 
-            //    : base(parent, freshSharingBoundaries)
+            //// public CompiledExportProvider(CodeGenExportProviderBase parent, string[] freshSharingBoundaries) 
+            ////    : base(parent, freshSharingBoundaries)
             return SyntaxFactory.ConstructorDeclaration(CompiledExportProviderTypeName)
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                 .AddParameterListParameters(
@@ -1738,7 +1738,7 @@
             }
 
             // We must cast the result of the value factory.
-            //   () => (T)(valueFactory())
+            // () => (T)(valueFactory())
             var adaptedValueFactory = SyntaxFactory.ParenthesizedLambdaExpression(
                 SyntaxFactory.CastExpression(returnTypeSyntax, valueFactoryInput));
 

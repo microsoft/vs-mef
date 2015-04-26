@@ -20,52 +20,62 @@ namespace Microsoft.VisualStudio.Composition
     using System.Threading;
     using Microsoft.Internal;
 
-    // // Assume TMetadataView is
-    // //interface Foo
-    // //{
-    // //    public string RefTypeProperty { get; }
-    // //    public bool ValueTypeProperty { get; }
-    // //}
-    // // The class to be generated will look approximately like:
-    // public class __Foo__MedataViewProxy : TMetadataView
-    // 
-    //     private readonly IReadOnlyDictionary<string, object> metadata;
-    //     private readonly IReadOnlyDictionary<string, object> defaultMetadata;
-    //
-    //     private __Foo__MedataViewProxy (IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata) 
-    //     {
-    //         this.metadata = metadata;
-    //         this.defaultMetadata = defaultMetadata;
-    //     }
-    //
-    //     // Interface
-    //     public string RefTypeProperty
-    //     {
-    //         get
-    //         {
-    //             object value;
-    //             if (!this.metadata.TryGetValue("RefTypeProperty", out value))
-    //                 value = this.defaultMetadata["RefTypeProperty"];
-    //             return value as string;
-    //         }
-    //     }
-    //
-    //     public bool ValueTypeProperty
-    //     {
-    //         get
-    //         {
-    //             object value;
-    //             if (!this.metadata.TryGetValue("RefTypeProperty", out value))
-    //                 value = this.defaultMetadata["RefTypeProperty"];
-    //             return (bool)value;
-    //         }
-    //     }
-    //
-    //     public static object Create(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata) 
-    //     {
-    //        return new __Foo__MedataViewProxy(metadata, defaultMetadata);
-    //     }
-    // }
+    /// <summary>
+    /// Constructs concrete types for metadata view interfaces.
+    /// </summary>
+    /// <remarks>
+    /// Assume TMetadataView is:
+    /// <code><![CDATA[
+    /// interface Foo
+    /// {
+    ///     public string RefTypeProperty { get; }
+    ///     public bool ValueTypeProperty { get; }
+    /// }
+    /// ]]></code>
+    /// 
+    /// The class to be generated will look approximately like:
+    /// <code><![CDATA[
+    /// public class __Foo__MedataViewProxy : TMetadataView
+    /// 
+    ///     private readonly IReadOnlyDictionary<string, object> metadata;
+    ///     private readonly IReadOnlyDictionary<string, object> defaultMetadata;
+    ///
+    ///     private __Foo__MedataViewProxy (IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata) 
+    ///     {
+    ///         this.metadata = metadata;
+    ///         this.defaultMetadata = defaultMetadata;
+    ///     }
+    ///
+    ///     // Interface
+    ///     public string RefTypeProperty
+    ///     {
+    ///         get
+    ///         {
+    ///             object value;
+    ///             if (!this.metadata.TryGetValue("RefTypeProperty", out value))
+    ///                 value = this.defaultMetadata["RefTypeProperty"];
+    ///             return value as string;
+    ///         }
+    ///     }
+    ///
+    ///     public bool ValueTypeProperty
+    ///     {
+    ///         get
+    ///         {
+    ///             object value;
+    ///             if (!this.metadata.TryGetValue("RefTypeProperty", out value))
+    ///                 value = this.defaultMetadata["RefTypeProperty"];
+    ///             return (bool)value;
+    ///         }
+    ///     }
+    ///
+    ///     public static object Create(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata) 
+    ///     {
+    ///        return new __Foo__MedataViewProxy(metadata, defaultMetadata);
+    ///     }
+    /// }
+    /// ]]></code>
+    /// </remarks>
     internal static class MetadataViewGenerator
     {
         public delegate object MetadataViewFactory(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata);
@@ -233,10 +243,10 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             // Implement the static factory
-            // public static object Create(IReadOnlyDictionary<string, object>, IReadOnlyDictionary<string, object>)
-            // {
-            //    return new <ProxyClass>(dictionary);
-            // }
+            //// public static object Create(IReadOnlyDictionary<string, object>, IReadOnlyDictionary<string, object>)
+            //// {
+            ////    return new <ProxyClass>(dictionary);
+            //// }
             MethodBuilder factoryMethodBuilder = proxyTypeBuilder.DefineMethod(MetadataViewGenerator.MetadataViewFactoryName, MethodAttributes.Public | MethodAttributes.Static, typeof(object), CtorArgumentTypes);
             ILGenerator factoryIL = factoryMethodBuilder.GetILGenerator();
             factoryIL.Emit(OpCodes.Ldarg_0);

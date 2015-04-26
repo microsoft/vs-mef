@@ -251,7 +251,7 @@
                                                 SyntaxFactory.AttributeArgument(
                                                     SyntaxFactory.LiteralExpression(
                                                         SyntaxKind.StringLiteralExpression,
-                                                        SyntaxFactory.Literal(""))))))))
+                                                        SyntaxFactory.Literal(string.Empty))))))))
                             .WithTarget(
                                 SyntaxFactory.AttributeTargetSpecifier(
                                     SyntaxFactory.Token(

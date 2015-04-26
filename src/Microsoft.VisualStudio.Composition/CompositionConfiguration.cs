@@ -375,8 +375,8 @@
                 if (partBuilder.PartDefinition.IsSharingBoundaryInferred)
                 {
                     // ALGORITHM selects: the ONE sharing boundary that 
-                    //  * FILTER 1: does not create ANY of the others
-                    //  * FILTER 2: can reach ALL the others by following UP the sharing boundary export factory chains.
+                    // * FILTER 1: does not create ANY of the others
+                    // * FILTER 2: can reach ALL the others by following UP the sharing boundary export factory chains.
                     var filter = from boundary in partBuilder.RequiredSharingBoundaries
                                  let others = partBuilder.RequiredSharingBoundaries.ToImmutableHashSet().Remove(boundary)
                                  where !others.Any(other => sharingBoundariesAndMetadata[other].ParentBoundariesUnion.Contains(boundary)) // filter 1
