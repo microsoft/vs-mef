@@ -46,6 +46,8 @@
         /// </summary>
         protected static readonly ImmutableDictionary<string, object> EmptyMetadata = ImmutableDictionary.Create<string, object>();
 
+        private static readonly Dictionary<Type, IReadOnlyDictionary<string, object>> GetMetadataViewDefaultsCache = new Dictionary<Type, IReadOnlyDictionary<string, object>>();
+
         /// <summary>
         /// A cache for the <see cref="GetMetadataViewProvider"/> method which has shown up on perf traces.
         /// </summary>
@@ -130,6 +132,59 @@
                 : new Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>>(
                     this.GetMetadataViewProviderExtensions);
         }
+
+        /// <summary>
+        /// The several stages of initialization that each MEF part goes through.
+        /// </summary>
+        protected internal enum PartLifecycleState
+        {
+            /// <summary>
+            /// The MEF part has not yet been instantiated.
+            /// </summary>
+            NotCreated,
+
+            /// <summary>
+            /// The MEF part's importing constructor is being invoked.
+            /// </summary>
+            Creating,
+
+            /// <summary>
+            /// The MEF part has been instantiated.
+            /// </summary>
+            Created,
+
+            /// <summary>
+            /// The MEF part's importing members have been satisfied.
+            /// </summary>
+            ImmediateImportsSatisfied,
+
+            /// <summary>
+            /// All MEF parts reachable from this one (through non-lazy import paths) have been satisfied.
+            /// </summary>
+            ImmediateImportsSatisfiedTransitively,
+
+            /// <summary>
+            /// The MEF part's OnImportsSatisfied method is being invoked.
+            /// </summary>
+            OnImportsSatisfiedInProgress,
+
+            /// <summary>
+            /// The MEF part's OnImportsSatisfied method has been invoked (or would have if one was defined).
+            /// </summary>
+            OnImportsSatisfiedInvoked,
+
+            /// <summary>
+            /// The OnImportsSatisfied methods on this and all MEF parts reachable from this one (through non-lazy import paths) have been invoked.
+            /// </summary>
+            OnImportsSatisfiedInvokedTransitively,
+
+            /// <summary>
+            /// This part is ready for exposure to the user.
+            /// </summary>
+            Final,
+        }
+
+        protected internal interface IMetadataDictionary : IDictionary<string, object>, IReadOnlyDictionary<string, object> { }
 
         bool IDisposableObservable.IsDisposed
         {
@@ -637,10 +692,6 @@
                 .Single(m => m.GetGenericArguments().Length == arity);
         }
 
-        protected internal interface IMetadataDictionary : IDictionary<string, object>, IReadOnlyDictionary<string, object> { }
-
-        private static readonly Dictionary<Type, IReadOnlyDictionary<string, object>> GetMetadataViewDefaultsCache = new Dictionary<Type, IReadOnlyDictionary<string, object>>();
-
         /// <summary>
         /// Gets a dictionary of metadata that describes all the default values supplied by a metadata view.
         /// </summary>
@@ -964,6 +1015,11 @@
             protected ExportProvider OwningExportProvider { get; private set; }
 
             /// <summary>
+            /// Gets the type behind the part.
+            /// </summary>
+            protected abstract Type PartType { get; }
+
+            /// <summary>
             /// Gets the instance of the part after fully initializing it.
             /// </summary>
             /// <remarks>
@@ -1032,11 +1088,6 @@
             /// If not applicable for this MEF part, this method should simply no-op.
             /// </remarks>
             protected abstract void InvokeOnImportsSatisfied();
-
-            /// <summary>
-            /// Gets the type behind the part.
-            /// </summary>
-            protected abstract Type PartType { get; }
 
             /// <summary>
             /// Indicates that a MEF import was satisfied with a value that was not completely initialized
@@ -1420,57 +1471,6 @@
                     this.UpdateState(PartLifecycleState.Final);
                 }
             }
-        }
-
-        /// <summary>
-        /// The several stages of initialization that each MEF part goes through.
-        /// </summary>
-        protected internal enum PartLifecycleState
-        {
-            /// <summary>
-            /// The MEF part has not yet been instantiated.
-            /// </summary>
-            NotCreated,
-
-            /// <summary>
-            /// The MEF part's importing constructor is being invoked.
-            /// </summary>
-            Creating,
-
-            /// <summary>
-            /// The MEF part has been instantiated.
-            /// </summary>
-            Created,
-
-            /// <summary>
-            /// The MEF part's importing members have been satisfied.
-            /// </summary>
-            ImmediateImportsSatisfied,
-
-            /// <summary>
-            /// All MEF parts reachable from this one (through non-lazy import paths) have been satisfied.
-            /// </summary>
-            ImmediateImportsSatisfiedTransitively,
-
-            /// <summary>
-            /// The MEF part's OnImportsSatisfied method is being invoked.
-            /// </summary>
-            OnImportsSatisfiedInProgress,
-
-            /// <summary>
-            /// The MEF part's OnImportsSatisfied method has been invoked (or would have if one was defined).
-            /// </summary>
-            OnImportsSatisfiedInvoked,
-
-            /// <summary>
-            /// The OnImportsSatisfied methods on this and all MEF parts reachable from this one (through non-lazy import paths) have been invoked.
-            /// </summary>
-            OnImportsSatisfiedInvokedTransitively,
-
-            /// <summary>
-            /// This part is ready for exposure to the user.
-            /// </summary>
-            Final,
         }
 
         private class ExportProviderAsExport : DelegatingExportProvider

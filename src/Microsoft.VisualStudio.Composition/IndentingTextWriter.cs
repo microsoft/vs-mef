@@ -20,15 +20,15 @@
             this.inner = inner;
         }
 
+        public override Encoding Encoding
+        {
+            get { return this.inner.Encoding; }
+        }
+
         internal static IndentingTextWriter Get(TextWriter writer)
         {
             Requires.NotNull(writer, "writer");
             return writer as IndentingTextWriter ?? new IndentingTextWriter(writer);
-        }
-
-        public override Encoding Encoding
-        {
-            get { return this.inner.Encoding; }
         }
 
         public override void WriteLine(string value)

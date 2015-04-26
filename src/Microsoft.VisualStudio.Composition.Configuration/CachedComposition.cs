@@ -84,6 +84,16 @@
             {
             }
 
+            private enum RuntimeImportFlags : byte
+            {
+                None = 0x00,
+                IsNonSharedInstanceRequired = 0x01,
+                IsExportFactory = 0x02,
+                CardinalityExactlyOne = 0x04,
+                CardinalityOneOrZero = 0x08,
+                IsParameter = 0x10,
+            }
+
             internal void Write(RuntimeComposition compositionRuntime)
             {
                 Requires.NotNull(this.writer, "writer");
@@ -209,16 +219,6 @@
                         onImportsSatisfied,
                         sharingBoundary);
                 }
-            }
-
-            private enum RuntimeImportFlags : byte
-            {
-                None = 0x00,
-                IsNonSharedInstanceRequired = 0x01,
-                IsExportFactory = 0x02,
-                CardinalityExactlyOne = 0x04,
-                CardinalityOneOrZero = 0x08,
-                IsParameter = 0x10,
             }
 
             private void Write(RuntimeComposition.RuntimeImport import)

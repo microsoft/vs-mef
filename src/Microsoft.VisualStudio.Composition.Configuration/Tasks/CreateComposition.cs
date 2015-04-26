@@ -15,6 +15,13 @@
 
     public class CreateComposition : AppDomainIsolatedTask, ICancelableTask
     {
+        private static readonly string[] AssembliesToResolve = new string[]
+        {
+            "System.Composition.AttributedModel",
+            "Validation",
+            "System.Collections.Immutable",
+        };
+
         private readonly CancellationTokenSource cancellationSource = new CancellationTokenSource();
 
         public ITaskItem[] CatalogAssemblies { get; set; }
@@ -92,13 +99,6 @@
 
             return !this.Log.HasLoggedErrors;
         }
-
-        private static readonly string[] AssembliesToResolve = new string[]
-        {
-            "System.Composition.AttributedModel",
-            "Validation",
-            "System.Collections.Immutable",
-        };
 
         [SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", MessageId = "System.Reflection.Assembly.LoadFile",
             Justification = "Resolves not finding an assembly in the current domain by looking elsewhere, so LoadFile is needed")]

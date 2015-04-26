@@ -14,11 +14,6 @@
     /// </summary>
     public class PartCreationPolicyConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
-        private PartCreationPolicyConstraint(CreationPolicy creationPolicy)
-        {
-            this.RequiredCreationPolicy = creationPolicy;
-        }
-
         /// <summary>
         /// The constraint to include in the <see cref="ImportDefinition"/> when a shared part is required.
         /// </summary>
@@ -28,6 +23,11 @@
         /// The constraint to include in the <see cref="ImportDefinition"/> when a non-shared part is required.
         /// </summary>
         public static readonly PartCreationPolicyConstraint NonSharedPartRequired = new PartCreationPolicyConstraint(CreationPolicy.NonShared);
+
+        private PartCreationPolicyConstraint(CreationPolicy creationPolicy)
+        {
+            this.RequiredCreationPolicy = creationPolicy;
+        }
 
         public CreationPolicy RequiredCreationPolicy { get; private set; }
 

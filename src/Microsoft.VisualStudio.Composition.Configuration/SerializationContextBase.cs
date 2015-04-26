@@ -65,6 +65,34 @@ namespace Microsoft.VisualStudio.Composition
             this.writer.Write(estimatedObjectCount);
         }
 
+        [Flags]
+        private enum TypeRefFlags : byte
+        {
+            None = 0x0,
+            IsArray = 0x1,
+            HasGenericParameterDeclaringMember = 0x8,
+            HasGenericParameterDeclaringMemberIndex = 0x10,
+        }
+
+        protected enum ObjectType : byte
+        {
+            Null,
+            String,
+            CreationPolicy,
+            Type,
+            Array,
+            BinaryFormattedObject,
+            TypeRef,
+            BoolTrue,
+            BoolFalse,
+            Int32,
+            Char,
+            Guid,
+            Enum32Substitution,
+            TypeSubstitution,
+            TypeArraySubstitution,
+        }
+
         protected internal void FinalizeObjectTableCapacity()
         {
             Verify.Operation(this.writer != null, ConfigurationStrings.OnlySupportedOnWriteOperations);
@@ -344,15 +372,6 @@ namespace Microsoft.VisualStudio.Composition
                     declaringType,
                     metadataToken);
             }
-        }
-
-        [Flags]
-        private enum TypeRefFlags : byte
-        {
-            None = 0x0,
-            IsArray = 0x1,
-            HasGenericParameterDeclaringMember = 0x8,
-            HasGenericParameterDeclaringMemberIndex = 0x10,
         }
 
         protected void Write(TypeRef typeRef)
@@ -680,25 +699,6 @@ namespace Microsoft.VisualStudio.Composition
         protected void OnDeserializedReusableObject(uint id, object value)
         {
             this.deserializingObjectTable.Add(id, value);
-        }
-
-        protected enum ObjectType : byte
-        {
-            Null,
-            String,
-            CreationPolicy,
-            Type,
-            Array,
-            BinaryFormattedObject,
-            TypeRef,
-            BoolTrue,
-            BoolFalse,
-            Int32,
-            Char,
-            Guid,
-            Enum32Substitution,
-            TypeSubstitution,
-            TypeArraySubstitution,
         }
 
         protected void WriteObject(object value)

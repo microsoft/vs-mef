@@ -78,8 +78,6 @@ namespace Microsoft.VisualStudio.Composition
     /// </remarks>
     internal static class MetadataViewGenerator
     {
-        public delegate object MetadataViewFactory(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata);
-
         private const string MetadataViewFactoryName = "Create";
 
         private static readonly Dictionary<Type, MetadataViewFactory> MetadataViewFactories = new Dictionary<Type, MetadataViewFactory>();
@@ -91,6 +89,8 @@ namespace Microsoft.VisualStudio.Composition
         private static readonly MethodInfo MdvDictionaryIndexer = CtorArgumentTypes[0].GetMethod("get_Item");
         private static readonly MethodInfo ObjectGetType = typeof(object).GetMethod("GetType", Type.EmptyTypes);
         private static readonly ConstructorInfo ObjectCtor = typeof(object).GetConstructor(Type.EmptyTypes);
+
+        public delegate object MetadataViewFactory(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata);
 
         private static AssemblyBuilder CreateProxyAssemblyBuilder(ConstructorInfo constructorInfo)
         {

@@ -58,6 +58,14 @@
             {
             }
 
+            private enum ConstraintTypes
+            {
+                ImportMetadataViewConstraint,
+                ExportTypeIdentityConstraint,
+                PartCreationPolicyConstraint,
+                ExportMetadataValueImportConstraint,
+            }
+
             internal void Write(ComposableCatalog catalog)
             {
                 using (this.Trace("Catalog"))
@@ -256,14 +264,6 @@
                         return new ImportDefinitionBinding(importDefinition, part, parameter);
                     }
                 }
-            }
-
-            private enum ConstraintTypes
-            {
-                ImportMetadataViewConstraint,
-                ExportTypeIdentityConstraint,
-                PartCreationPolicyConstraint,
-                ExportMetadataValueImportConstraint,
             }
 
             private void Write(IImportSatisfiabilityConstraint importConstraint)

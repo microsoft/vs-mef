@@ -9,9 +9,9 @@
 
     internal class UniquePropertyNameComparer : IEqualityComparer<PropertyInfo>
     {
-        private UniquePropertyNameComparer() { }
-
         internal readonly static IEqualityComparer<PropertyInfo> Default = new UniquePropertyNameComparer();
+
+        private UniquePropertyNameComparer() { }
 
         public bool Equals(PropertyInfo x, PropertyInfo y)
         {

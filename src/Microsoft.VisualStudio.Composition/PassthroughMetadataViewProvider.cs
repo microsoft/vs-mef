@@ -17,9 +17,9 @@
         internal static readonly ComposablePartDefinition PartDefinition =
             Utilities.GetMetadataViewProviderPartDefinition(typeof(PassthroughMetadataViewProvider), 1001000);
 
-        private PassthroughMetadataViewProvider() { }
-
         internal static readonly IMetadataViewProvider Default = new PassthroughMetadataViewProvider();
+
+        private PassthroughMetadataViewProvider() { }
 
         public bool IsMetadataViewSupported(Type metadataType)
         {

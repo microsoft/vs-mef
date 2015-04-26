@@ -21,6 +21,16 @@
             /// </summary>
             private const BindingFlags DeclaredOnlyLookup = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
+            private static readonly RuntimeComposition.RuntimeImport MetadataViewProviderImport = new RuntimeComposition.RuntimeImport(
+                default(MemberRef),
+                TypeRef.Get(typeof(IMetadataViewProvider)),
+                ImportCardinality.ExactlyOne,
+                ImmutableList<RuntimeComposition.RuntimeExport>.Empty,
+                isNonSharedInstanceRequired: false,
+                isExportFactory: false,
+                metadata: ImmutableDictionary<string, object>.Empty,
+                exportFactorySharingBoundaries: ImmutableHashSet<string>.Empty);
+
             private readonly RuntimeComposition composition;
 
             internal RuntimeExportProvider(RuntimeComposition composition)
@@ -59,16 +69,6 @@
                 return new RuntimePartLifecycleTracker(this, this.composition.GetPart(partType), importMetadata);
             }
 
-            private static readonly RuntimeComposition.RuntimeImport MetadataViewProviderImport = new RuntimeComposition.RuntimeImport(
-                default(MemberRef),
-                TypeRef.Get(typeof(IMetadataViewProvider)),
-                ImportCardinality.ExactlyOne,
-                ImmutableList<RuntimeComposition.RuntimeExport>.Empty,
-                isNonSharedInstanceRequired: false,
-                isExportFactory: false,
-                metadata: ImmutableDictionary<string, object>.Empty,
-                exportFactorySharingBoundaries: ImmutableHashSet<string>.Empty);
-
             internal override IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
             {
                 RuntimeComposition.RuntimeExport metadataViewProviderExport;
@@ -81,20 +81,6 @@
                 {
                     return base.GetMetadataViewProvider(metadataView);
                 }
-            }
-
-            private struct ValueForImportSite
-            {
-                internal ValueForImportSite(object value)
-                    : this()
-                {
-                    this.Value = value;
-                    this.ValueShouldBeSet = true;
-                }
-
-                public bool ValueShouldBeSet { get; private set; }
-
-                public object Value { get; private set; }
             }
 
             private static void ThrowIfExportedValueIsNotAssignableToImport(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, object exportedValue)
@@ -335,22 +321,6 @@
                 return new ExportedValueConstructor(partLifecycle, exportedValue);
             }
 
-            private struct ExportedValueConstructor
-            {
-                public ExportedValueConstructor(PartLifecycleTracker exportingPart, Func<object> valueConstructor)
-                    : this()
-                {
-                    Requires.NotNull(valueConstructor, "valueConstructor");
-
-                    this.ExportingPart = exportingPart;
-                    this.ValueConstructor = valueConstructor;
-                }
-
-                public Func<object> ValueConstructor { get; private set; }
-
-                public PartLifecycleTracker ExportingPart { get; private set; }
-            }
-
             /// <summary>
             /// Gets the constructed type (non generic type definition) for a part.
             /// </summary>
@@ -425,6 +395,36 @@
                 throw new NotSupportedException();
             }
 
+            private struct ValueForImportSite
+            {
+                internal ValueForImportSite(object value)
+                    : this()
+                {
+                    this.Value = value;
+                    this.ValueShouldBeSet = true;
+                }
+
+                public bool ValueShouldBeSet { get; private set; }
+
+                public object Value { get; private set; }
+            }
+
+            private struct ExportedValueConstructor
+            {
+                public ExportedValueConstructor(PartLifecycleTracker exportingPart, Func<object> valueConstructor)
+                    : this()
+                {
+                    Requires.NotNull(valueConstructor, "valueConstructor");
+
+                    this.ExportingPart = exportingPart;
+                    this.ValueConstructor = valueConstructor;
+                }
+
+                public Func<object> ValueConstructor { get; private set; }
+
+                public PartLifecycleTracker ExportingPart { get; private set; }
+            }
+
             [DebuggerDisplay("{partDefinition.Type.ResolvedType.FullName,nq} ({State})")]
             private class RuntimePartLifecycleTracker : PartLifecycleTracker
             {
@@ -441,11 +441,6 @@
                     this.importMetadata = importMetadata;
                 }
 
-                internal new void ReportPartiallyInitializedImport(PartLifecycleTracker part)
-                {
-                    base.ReportPartiallyInitializedImport(part);
-                }
-
                 protected new RuntimeExportProvider OwningExportProvider
                 {
                     get { return (RuntimeExportProvider)base.OwningExportProvider; }
@@ -457,6 +452,11 @@
                 protected override Type PartType
                 {
                     get { return this.partDefinition.Type.Resolve(); }
+                }
+
+                internal new void ReportPartiallyInitializedImport(PartLifecycleTracker part)
+                {
+                    base.ReportPartiallyInitializedImport(part);
                 }
 
                 protected override object CreateValue()

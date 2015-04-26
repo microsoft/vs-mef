@@ -630,9 +630,9 @@
 
         internal class ExportDefinitionPracticallyEqual : IEqualityComparer<ExportDefinition>
         {
-            private ExportDefinitionPracticallyEqual() { }
-
             internal static ExportDefinitionPracticallyEqual Default = new ExportDefinitionPracticallyEqual();
+
+            private ExportDefinitionPracticallyEqual() { }
 
             public bool Equals(ExportDefinition x, ExportDefinition y)
             {

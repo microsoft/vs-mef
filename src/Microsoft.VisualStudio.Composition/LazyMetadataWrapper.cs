@@ -48,14 +48,62 @@
             ToOriginalValue,
         }
 
-        public bool ContainsKey(string key)
+        internal interface ISubstitutedValue
         {
-            return this.underlyingMetadata.ContainsKey(key);
+            object ActualValue { get; }
         }
 
         public IEnumerable<string> Keys
         {
             get { return this.underlyingMetadata.Keys; }
+        }
+
+        ICollection<string> IDictionary<string, object>.Keys
+        {
+            get
+            {
+                IDictionary<string, object> metadata = this.underlyingMetadata;
+                return metadata.Keys;
+            }
+        }
+
+        public IEnumerable<object> Values
+        {
+            get
+            {
+                return from pair in this
+                       let value = this.SubstituteValueIfRequired(pair.Key, pair.Value)
+                       select value;
+            }
+        }
+
+        ICollection<object> IDictionary<string, object>.Values
+        {
+            get
+            {
+                return this.Values.ToImmutableArray();
+            }
+        }
+
+        public int Count
+        {
+            get { return this.underlyingMetadata.Count; }
+        }
+
+        public bool IsReadOnly
+        {
+            get { return true; }
+        }
+
+        public object this[string key]
+        {
+            get { return this.SubstituteValueIfRequired(key, this.underlyingMetadata[key]); }
+            set { throw new NotSupportedException(); }
+        }
+
+        public bool ContainsKey(string key)
+        {
+            return this.underlyingMetadata.ContainsKey(key);
         }
 
         public bool TryGetValue(string key, out object value)
@@ -71,32 +119,6 @@
                 value = null;
                 return false;
             }
-        }
-
-        public IEnumerable<object> Values
-        {
-            get
-            {
-                return from pair in this
-                       let value = this.SubstituteValueIfRequired(pair.Key, pair.Value)
-                       select value;
-            }
-        }
-
-        public object this[string key]
-        {
-            get { return this.SubstituteValueIfRequired(key, this.underlyingMetadata[key]); }
-            set { throw new NotSupportedException(); }
-        }
-
-        public int Count
-        {
-            get { return this.underlyingMetadata.Count; }
-        }
-
-        public bool IsReadOnly
-        {
-            get { return true; }
         }
 
         public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
@@ -116,26 +138,9 @@
             throw new NotSupportedException();
         }
 
-        ICollection<string> IDictionary<string, object>.Keys
-        {
-            get
-            {
-                IDictionary<string, object> metadata = this.underlyingMetadata;
-                return metadata.Keys;
-            }
-        }
-
         public bool Remove(string key)
         {
             throw new NotSupportedException();
-        }
-
-        ICollection<object> IDictionary<string, object>.Values
-        {
-            get
-            {
-                return this.Values.ToImmutableArray();
-            }
         }
 
         public void Add(KeyValuePair<string, object> item)
@@ -255,11 +260,6 @@
             return !AlwaysLoadedAssemblies.Contains(typeOfValue.Assembly);
         }
 
-        internal interface ISubstitutedValue
-        {
-            object ActualValue { get; }
-        }
-
         internal class Enum32Substitution : ISubstitutedValue, IEquatable<Enum32Substitution>
         {
             internal Enum32Substitution(TypeRef enumType, int rawValue)
@@ -267,6 +267,15 @@
                 this.EnumType = enumType;
                 this.RawValue = rawValue;
             }
+
+            public object ActualValue
+            {
+                get { return Enum.ToObject(this.EnumType.Resolve(), this.RawValue); }
+            }
+
+            internal TypeRef EnumType { get; private set; }
+
+            internal int RawValue { get; private set; }
 
             internal static bool TrySubstituteValue(object value, out ISubstitutedValue substitutedValue)
             {
@@ -283,15 +292,6 @@
                 substitutedValue = null;
                 return false;
             }
-
-            public object ActualValue
-            {
-                get { return Enum.ToObject(this.EnumType.Resolve(), this.RawValue); }
-            }
-
-            internal TypeRef EnumType { get; private set; }
-
-            internal int RawValue { get; private set; }
 
             public override bool Equals(object obj)
             {

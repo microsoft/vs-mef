@@ -31,6 +31,8 @@
 
         private const string InstantiatedPartLocalVarName = "result";
 
+        private const string CompiledExportProviderTypeName = "CompiledExportProvider";
+
         private static readonly IdentifierNameSyntax TypeRefsArrayFieldName = SyntaxFactory.IdentifierName("typeRefs");
 
         private static readonly IdentifierNameSyntax ExportProviderIdentifierName = SyntaxFactory.IdentifierName("ExportProvider");
@@ -51,6 +53,11 @@
         private static readonly LiteralExpressionSyntax NullSyntax = SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
 
         private static readonly TypeSyntax FuncOfObjectTypeSyntax = SyntaxFactory.GenericName("Func").AddTypeArgumentListArguments(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)));
+
+        private static readonly TypeSyntax ReadonlyDictionaryOfStringObjectSyntax =
+            SyntaxFactory.GenericName("IReadOnlyDictionary").AddTypeArgumentListArguments(
+                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
+                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)));
 
         private readonly HashSet<Assembly> relevantAssemblies = new HashSet<Assembly>();
 
@@ -89,6 +96,13 @@
         /// </summary>
         private readonly Dictionary<object, string> reservedSymbols = new Dictionary<object, string>();
 
+        private enum ValueFactoryType
+        {
+            ActualValue,
+            LazyOfT,
+            FuncOfObject,
+        }
+
         public CompositionConfiguration Configuration { get; set; }
 
         /// <summary>
@@ -105,6 +119,20 @@
         public ISet<Type> RelevantEmbeddedTypes
         {
             get { return this.relevantEmbeddedTypes; }
+        }
+
+        private IEnumerable<IGrouping<string, ExportDefinitionBinding>> ExportsByContract
+        {
+            get
+            {
+                return
+                    from part in this.Configuration.Parts
+                    from exportingMemberAndDefinition in part.Definition.ExportDefinitions
+                    let export = new ExportDefinitionBinding(exportingMemberAndDefinition.Value, part.Definition, exportingMemberAndDefinition.Key)
+                    where part.Definition.IsInstantiable
+                    group export by export.ExportDefinition.ContractName into exportsByContract
+                    select exportsByContract;
+            }
         }
 
         private string GetGetExportsCoreHelperMethodName(string contractName)
@@ -274,8 +302,6 @@
             return method;
         }
 
-        private const string CompiledExportProviderTypeName = "CompiledExportProvider";
-
         private ConstructorDeclarationSyntax CreateDefaultConstructor()
         {
             // public CompiledExportProvider() : this(null, null) { }
@@ -421,11 +447,6 @@
 
             return unit;
         }
-
-        private static readonly TypeSyntax ReadonlyDictionaryOfStringObjectSyntax =
-            SyntaxFactory.GenericName("IReadOnlyDictionary").AddTypeArgumentListArguments(
-                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)),
-                SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword)));
 
         private ClassDeclarationSyntax CreateMetadataViewClass(Type interfaceType)
         {
@@ -1776,13 +1797,6 @@
             return funcOfTExpression;
         }
 
-        private enum ValueFactoryType
-        {
-            ActualValue,
-            LazyOfT,
-            FuncOfObject,
-        }
-
         private ExpressionSyntax ConvertValue(ExpressionSyntax value, TypeSyntax valueType, ValueFactoryType current, ValueFactoryType target)
         {
             switch (current)
@@ -1990,20 +2004,6 @@
                     import.MetadataType.GetConstructor(new Type[] { typeof(IDictionary<string, object>) }),
                     new ExpressionSyntax[] { metadataDictionary },
                     thisExportProvider);
-            }
-        }
-
-        private IEnumerable<IGrouping<string, ExportDefinitionBinding>> ExportsByContract
-        {
-            get
-            {
-                return
-                    from part in this.Configuration.Parts
-                    from exportingMemberAndDefinition in part.Definition.ExportDefinitions
-                    let export = new ExportDefinitionBinding(exportingMemberAndDefinition.Value, part.Definition, exportingMemberAndDefinition.Key)
-                    where part.Definition.IsInstantiable
-                    group export by export.ExportDefinition.ContractName into exportsByContract
-                    select exportsByContract;
             }
         }
 

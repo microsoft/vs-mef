@@ -21,6 +21,11 @@
             get { return BufferComparer.Default; }
         }
 
+        internal static IEqualityComparer<AssemblyName> AssemblyName
+        {
+            get { return AssemblyNameComparer.Default; }
+        }
+
         internal static IEqualityComparer<IReadOnlyDictionary<TKey, TValue>> Dictionary<TKey, TValue>(IEqualityComparer<TValue> valueComparer = null)
         {
             return DictionaryEqualityComparer<TKey, TValue>.Get(valueComparer);
@@ -34,11 +39,6 @@
         internal static IEqualityComparer<IReadOnlyCollection<T>> EquivalentIgnoreOrder<T>()
         {
             return CollectionIgnoreOrder<T>.Default;
-        }
-
-        internal static IEqualityComparer<AssemblyName> AssemblyName
-        {
-            get { return AssemblyNameComparer.Default; }
         }
 
         private class BufferComparer : IEqualityComparer<byte[]>

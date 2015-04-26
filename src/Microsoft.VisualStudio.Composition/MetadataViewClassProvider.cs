@@ -18,9 +18,9 @@
         internal static readonly ComposablePartDefinition PartDefinition =
             Utilities.GetMetadataViewProviderPartDefinition(typeof(MetadataViewClassProvider), 1000000);
 
-        private MetadataViewClassProvider() { }
-
         internal static readonly IMetadataViewProvider Default = new MetadataViewClassProvider();
+
+        private MetadataViewClassProvider() { }
 
         public bool IsMetadataViewSupported(Type metadataType)
         {

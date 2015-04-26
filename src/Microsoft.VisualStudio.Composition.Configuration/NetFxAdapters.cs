@@ -266,6 +266,11 @@
                     get { throw new NotImplementedException(); }
                 }
 
+                public override IEnumerable<MefV1.Primitives.ImportDefinition> ImportDefinitions
+                {
+                    get { throw new NotImplementedException(); }
+                }
+
                 public override object GetExportedValue(MefV1.Primitives.ExportDefinition definition)
                 {
                     if (definition == ExportFactoryDefinitionSentinel)
@@ -274,11 +279,6 @@
                     }
 
                     throw new NotImplementedException();
-                }
-
-                public override IEnumerable<MefV1.Primitives.ImportDefinition> ImportDefinitions
-                {
-                    get { throw new NotImplementedException(); }
                 }
 
                 public override void SetImport(MefV1.Primitives.ImportDefinition definition, IEnumerable<MefV1.Primitives.Export> exports)
@@ -303,12 +303,6 @@
                     this.exportFactory = exportFactory;
                 }
 
-                public override MefV1.Primitives.ComposablePart CreatePart()
-                {
-                    MefV1.ExportLifetimeContext<object> value = this.exportFactory.CreateExport();
-                    return new ComposablePartForExportFactory(value);
-                }
-
                 public override IEnumerable<MefV1.Primitives.ExportDefinition> ExportDefinitions
                 {
                     get { return SentinelExportDefinitionArray; }
@@ -317,6 +311,12 @@
                 public override IEnumerable<MefV1.Primitives.ImportDefinition> ImportDefinitions
                 {
                     get { return Enumerable.Empty<MefV1.Primitives.ImportDefinition>(); }
+                }
+
+                public override MefV1.Primitives.ComposablePart CreatePart()
+                {
+                    MefV1.ExportLifetimeContext<object> value = this.exportFactory.CreateExport();
+                    return new ComposablePartForExportFactory(value);
                 }
             }
         }

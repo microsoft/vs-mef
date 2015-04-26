@@ -31,49 +31,6 @@
             this.DiscoveredParts = discoveredParts;
         }
 
-        public IReadOnlyList<ExportDefinitionBinding> GetExports(ImportDefinition importDefinition)
-        {
-            Requires.NotNull(importDefinition, "importDefinition");
-
-            // We always want to consider exports with a matching contract name.
-            var exports = this.exportsByContract.GetValueOrDefault(importDefinition.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
-
-            // For those imports of generic types, we also want to consider exports that are based on open generic exports,
-            string genericTypeDefinitionContractName;
-            Type[] genericTypeArguments;
-            if (TryGetOpenGenericExport(importDefinition, out genericTypeDefinitionContractName, out genericTypeArguments))
-            {
-                var openGenericExports = this.exportsByContract.GetValueOrDefault(genericTypeDefinitionContractName, ImmutableList.Create<ExportDefinitionBinding>());
-
-                // We have to synthesize exports to match the required generic type arguments.
-                exports = exports.AddRange(
-                    from export in openGenericExports
-                    select export.CloseGenericExport(genericTypeArguments));
-            }
-
-            var filteredExports = from export in exports
-                                  where importDefinition.ExportConstraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
-                                  select export;
-
-            return ImmutableList.CreateRange(filteredExports);
-        }
-
-        internal static bool TryGetOpenGenericExport(ImportDefinition importDefinition, out string contractName, out Type[] typeArguments)
-        {
-            Requires.NotNull(importDefinition, "importDefinition");
-
-            // TODO: if the importer isn't using a customized contract name.
-            if (importDefinition.Metadata.TryGetValue(CompositionConstants.GenericContractMetadataName, out contractName) &&
-                importDefinition.Metadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out typeArguments))
-            {
-                return true;
-            }
-
-            contractName = null;
-            typeArguments = null;
-            return false;
-        }
-
         /// <summary>
         /// Gets the assemblies within which parts are defined.
         /// </summary>
@@ -239,6 +196,49 @@
                     }
                 }
             }
+        }
+
+        public IReadOnlyList<ExportDefinitionBinding> GetExports(ImportDefinition importDefinition)
+        {
+            Requires.NotNull(importDefinition, "importDefinition");
+
+            // We always want to consider exports with a matching contract name.
+            var exports = this.exportsByContract.GetValueOrDefault(importDefinition.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
+
+            // For those imports of generic types, we also want to consider exports that are based on open generic exports,
+            string genericTypeDefinitionContractName;
+            Type[] genericTypeArguments;
+            if (TryGetOpenGenericExport(importDefinition, out genericTypeDefinitionContractName, out genericTypeArguments))
+            {
+                var openGenericExports = this.exportsByContract.GetValueOrDefault(genericTypeDefinitionContractName, ImmutableList.Create<ExportDefinitionBinding>());
+
+                // We have to synthesize exports to match the required generic type arguments.
+                exports = exports.AddRange(
+                    from export in openGenericExports
+                    select export.CloseGenericExport(genericTypeArguments));
+            }
+
+            var filteredExports = from export in exports
+                                  where importDefinition.ExportConstraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
+                                  select export;
+
+            return ImmutableList.CreateRange(filteredExports);
+        }
+
+        internal static bool TryGetOpenGenericExport(ImportDefinition importDefinition, out string contractName, out Type[] typeArguments)
+        {
+            Requires.NotNull(importDefinition, "importDefinition");
+
+            // TODO: if the importer isn't using a customized contract name.
+            if (importDefinition.Metadata.TryGetValue(CompositionConstants.GenericContractMetadataName, out contractName) &&
+                importDefinition.Metadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out typeArguments))
+            {
+                return true;
+            }
+
+            contractName = null;
+            typeArguments = null;
+            return false;
         }
     }
 }

@@ -70,6 +70,16 @@ namespace Microsoft.VisualStudio.Composition
                 this.list = list;
             }
 
+            public int Count
+            {
+                get { throw Assumes.NotReachable(); }
+            }
+
+            public bool IsReadOnly
+            {
+                get { return this.list.IsReadOnly; }
+            }
+
             public void Add(object item)
             {
                 this.list.Add(item);
@@ -88,16 +98,6 @@ namespace Microsoft.VisualStudio.Composition
             public void CopyTo(object[] array, int arrayIndex)
             {
                 throw Assumes.NotReachable();
-            }
-
-            public int Count
-            {
-                get { throw Assumes.NotReachable(); }
-            }
-
-            public bool IsReadOnly
-            {
-                get { return this.list.IsReadOnly; }
             }
 
             public bool Remove(object item)
@@ -125,6 +125,16 @@ namespace Microsoft.VisualStudio.Composition
                 this.collectionOfT = (ICollection<T>)collectionOfT;
             }
 
+            public int Count
+            {
+                get { throw Assumes.NotReachable(); }
+            }
+
+            public bool IsReadOnly
+            {
+                get { return this.collectionOfT.IsReadOnly; }
+            }
+
             public void Add(object item)
             {
                 this.collectionOfT.Add((T)item);
@@ -143,16 +153,6 @@ namespace Microsoft.VisualStudio.Composition
             public void CopyTo(object[] array, int arrayIndex)
             {
                 throw Assumes.NotReachable();
-            }
-
-            public int Count
-            {
-                get { throw Assumes.NotReachable(); }
-            }
-
-            public bool IsReadOnly
-            {
-                get { return this.collectionOfT.IsReadOnly; }
             }
 
             public bool Remove(object item)

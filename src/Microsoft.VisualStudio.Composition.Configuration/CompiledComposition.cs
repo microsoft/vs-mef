@@ -343,9 +343,9 @@
 
         private class EquivalentTypesComparer : IEqualityComparer<Type>
         {
-            private EquivalentTypesComparer() { }
-
             internal static readonly EquivalentTypesComparer Instance = new EquivalentTypesComparer();
+
+            private EquivalentTypesComparer() { }
 
             public bool Equals(Type x, Type y)
             {
