@@ -52,7 +52,6 @@
                 this.SkipReason = skipReason;
             }
 
-
             public override async Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
             {
                 var messageBusInterceptor = new MessageBusInterceptor(messageBus);

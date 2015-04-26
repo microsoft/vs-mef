@@ -39,6 +39,7 @@
         public class ExportingPart { }
     }
 
+#pragma warning disable SA1403 // File may only contain a single namespace
     namespace SubNS1
     {
         public interface IMetadata { }
@@ -48,4 +49,5 @@
     {
         public interface IMetadata { }
     }
+#pragma warning restore SA1403 // File may only contain a single namespace
 }

@@ -612,7 +612,9 @@
 
         public interface IMetadataBase
         {
+#pragma warning disable SA1300 // Element must begin with upper-case letter
             string a { get; }
+#pragma warning restore SA1300 // Element must begin with upper-case letter
         }
 
         public interface IMetadata : IMetadataBase
@@ -645,7 +647,9 @@
                 }
             }
 
+#pragma warning disable SA1300 // Element must begin with upper-case letter
             public string a { get; set; }
+#pragma warning restore SA1300 // Element must begin with upper-case letter
         }
 
         internal class NonPublicMetadataClass : MetadataClass

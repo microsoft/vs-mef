@@ -248,7 +248,6 @@
             internal class NonPublicNestedType { }
         }
 
-
         [Export(typeof(Useful<>))]
         [MefV1.Export(typeof(Useful<>)), MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         internal class InternalUseful<T> : Useful<T> { }
