@@ -24,8 +24,8 @@
             var discovery = new AttributedPartDiscovery();
             var part = discovery.CreatePart(typeof(SharedExport));
             var configuration = CompositionConfiguration.Create(new[] { part });
-            var container1 = await configuration.CreateContainerAsync(true, this.output);
-            var container2 = await configuration.CreateContainerAsync(true, this.output);
+            var container1 = await configuration.CreateContainerAsync(this.output);
+            var container2 = await configuration.CreateContainerAsync(this.output);
 
             var export1 = container1.GetExportedValue<SharedExport>();
             var export2 = container2.GetExportedValue<SharedExport>();

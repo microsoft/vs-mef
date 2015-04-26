@@ -23,7 +23,7 @@
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Value);
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat | CompositionEngines.V3SkipCodeGenScenario, typeof(ImportingPartWithMetadataDictionary), typeof(PartWithExportMetadata))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ImportingPartWithMetadataDictionary), typeof(PartWithExportMetadata))]
         [Trait("Efficiency", "InstanceReuse")]
         public void MetadataDictionaryInstanceSharedAcrossImports(IContainer container)
         {

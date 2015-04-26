@@ -45,18 +45,6 @@
     <Reference Include="Microsoft.Build.Framework, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Build.Tasks.Core, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.Build.Utilities.Core, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
-    <Reference Include="Microsoft.CodeAnalysis, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.CodeAnalysis.Common.1.0.0-rc1\lib\net45\Microsoft.CodeAnalysis.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.CSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.1.0.0-rc1\lib\net45\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.CSharp.Desktop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.1.0.0-rc1\lib\net45\Microsoft.CodeAnalysis.CSharp.Desktop.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.CodeAnalysis.Desktop, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.CodeAnalysis.Common.1.0.0-rc1\lib\net45\Microsoft.CodeAnalysis.Desktop.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.VisualStudio.Validation, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <Private>True</Private>
       <HintPath>..\packages\Microsoft.VisualStudio.Validation.14.0.0-pre-95a85e9492\lib\net45\Microsoft.VisualStudio.Validation.dll</HintPath>
@@ -107,9 +95,6 @@
     <Compile Include="AttributedPartDiscoveryV1.cs" />
     <Compile Include="CachedCatalog.cs" />
     <Compile Include="CachedComposition.cs" />
-    <Compile Include="CodeGen.cs" />
-    <Compile Include="CodeGenExportProviderBase.cs" />
-    <Compile Include="CompiledComposition.cs" />
     <Compile Include="ExportMetadataViewInterfaceEmitProxy.cs" />
     <Compile Include="MetadataViewGenerator.cs" />
     <Compile Include="ConfigurationStrings.Designer.cs">
@@ -118,7 +103,6 @@
       <DependentUpon>ConfigurationStrings.resx</DependentUpon>
     </Compile>
     <Compile Include="SerializationContextBase.cs" />
-    <Compile Include="SyntaxCodeGeneration.cs" />
     <Compile Include="NetFxAdapters.cs" />
     <Compile Include="Tasks\ExceptionHelpers.cs" />
     <EmbeddedResource Include="ConfigurationStrings.resx">
