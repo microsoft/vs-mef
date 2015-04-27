@@ -20,6 +20,7 @@
 
         #region V1 tests
 
+        [Trait("Disposal", "")]
         [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(NonSharedPart))]
         public void ExportFactoryForNonSharedPartCreationDisposalV1(IContainer container)
         {
@@ -44,6 +45,7 @@
             Assert.Equal(1, NonSharedPart.DisposalCounter);
         }
 
+        [Trait("Disposal", "")]
         [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(PartWithPropertyExportingNonSharedPart))]
         public void ExportFactoryForNonSharedPartCreationDisposalFromPropertyV1(IContainer container)
         {
@@ -230,6 +232,7 @@
 
         #region V2 tests
 
+        [Trait("Disposal", "")]
         [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryV2), typeof(NonSharedPart))]
         public void ExportFactoryForNonSharedPartCreationDisposalV2(IContainer container)
         {
@@ -253,6 +256,7 @@
             Assert.Equal(1, NonSharedPart.DisposalCounter);
         }
 
+        [Trait("Disposal", "")]
         [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryV2), typeof(PartWithPropertyExportingNonSharedPart))]
         public void ExportFactoryForNonSharedPartCreationDisposalFromPropertyV2(IContainer container)
         {

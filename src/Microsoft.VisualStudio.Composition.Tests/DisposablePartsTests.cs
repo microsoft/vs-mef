@@ -9,6 +9,7 @@
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
+    [Trait("Disposal", "")]
     public class DisposablePartsTests
     {
         #region Disposable part happy path test
