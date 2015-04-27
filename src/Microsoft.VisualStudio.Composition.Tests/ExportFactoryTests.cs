@@ -317,7 +317,7 @@
 
         #region ExportFactory with CreationPolicy == Any
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3SkipCodeGenScenario, typeof(ExportWithAnyCreationPolicy), typeof(ExportFactoryOfAnyCreationPolicyPartV1Part))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportWithAnyCreationPolicy), typeof(ExportFactoryOfAnyCreationPolicyPartV1Part))]
         public void ExportFactoryOfAnyCreationPolicyPartV1(IContainer container)
         {
             var factory = container.GetExportedValue<ExportFactoryOfAnyCreationPolicyPartV1Part>();
@@ -326,7 +326,7 @@
             Assert.NotSame(value1, value2);
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3SkipCodeGenScenario, typeof(ExportWithAnyCreationPolicy), typeof(ExportFactoryAndImportOfAnyCreationPolicyPartV1), typeof(ImportOfAnyCreationPolicyPartV1))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportWithAnyCreationPolicy), typeof(ExportFactoryAndImportOfAnyCreationPolicyPartV1), typeof(ImportOfAnyCreationPolicyPartV1))]
         public void AnyCreationPolicyPartCreatedViaExportFactroyAndAsRegularImport(IContainer container)
         {
             var factory = container.GetExportedValue<ExportFactoryAndImportOfAnyCreationPolicyPartV1>();

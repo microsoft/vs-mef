@@ -107,7 +107,7 @@
             Assert.NotNull(project.Value.ActiveConfiguredProjectSubscriptionService.ImportHelper);
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV2 | CompositionEngines.V3SkipCodeGenScenario)]
+        [MefFact(CompositionEngines.V3EmulatingV2)]
         public void ProjectSystemDgml(IContainer container)
         {
             var v3container = (TestUtilities.V3ContainerWrapper)container;

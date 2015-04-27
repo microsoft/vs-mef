@@ -123,16 +123,7 @@
                     {
                         foreach (var configuration in v3DiscoveryTest.ResultingConfigurations)
                         {
-                            if (!this.compositionVersions.HasFlag(CompositionEngines.V3SkipCodeGenScenario))
-                            {
-                                // TODO: Uncomment these lines after getting codegen to work again.
-                                //       Also re-enable some codegen tests by removing 'abstract' from classes that have this comment:
-                                //       // TODO: remove "abstract" from the class definition to re-enable these tests when codegen is fixed.
-                                ////var codeGenRunner = new Mef3TestCommand(this, "V3 engine (codegen)", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, configuration, this.compositionVersions, runtime: false);
-                                ////runSummary.Aggregate(await codeGenRunner.RunAsync());
-                            }
-
-                            var runner = new Mef3TestCaseRunner(this, "V3 engine (runtime)", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, configuration, this.compositionVersions, runtime: true);
+                            var runner = new Mef3TestCaseRunner(this, "V3 engine", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, configuration, this.compositionVersions);
                             runSummary.Aggregate(await runner.RunAsync());
                         }
                     }

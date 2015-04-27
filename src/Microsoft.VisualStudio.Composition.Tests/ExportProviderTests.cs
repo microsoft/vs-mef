@@ -258,7 +258,7 @@
 
         #region Static exports tests
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3SkipCodeGenScenario, typeof(StaticPart))]
+        [MefFact(CompositionEngines.V1Compat, typeof(StaticPart))]
         public void GetExports_StaticExports(IContainer container)
         {
             List<string> exports = container.GetExportedValues<string>().ToList();
