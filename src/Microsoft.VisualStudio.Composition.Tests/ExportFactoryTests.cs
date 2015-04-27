@@ -44,6 +44,30 @@
             Assert.Equal(1, NonSharedPart.DisposalCounter);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(PartWithPropertyExportingNonSharedPart))]
+        public void ExportFactoryForNonSharedPartCreationDisposalFromPropertyV1(IContainer container)
+        {
+            var partFactory = container.GetExportedValue<PartFactoryV1>();
+            Assert.NotNull(partFactory.Factory);
+            Assert.NotNull(partFactory.FactoryWithMetadata);
+            Assert.Equal("V", partFactory.FactoryWithMetadata.Metadata["N"]);
+            Assert.Equal("V", partFactory.FactoryWithTMetadata.Metadata.N);
+            using (var exportContext = partFactory.Factory.CreateExport())
+            {
+                Assert.NotNull(exportContext);
+                Assert.Equal(1, NonSharedPart.InstantiationCounter);
+
+                var value = exportContext.Value;
+                Assert.NotNull(value);
+                Assert.Equal(0, NonSharedPart.DisposalCounter);
+            }
+
+            Assert.Equal(0, NonSharedPart.DisposalCounter);
+
+            container.Dispose();
+            Assert.Equal(0, NonSharedPart.DisposalCounter);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(NonSharedPart))]
         public void ExportFactoryForNonSharedPartInstantiatesMultiplePartsV1(IContainer container)
         {
@@ -229,6 +253,29 @@
             Assert.Equal(1, NonSharedPart.DisposalCounter);
         }
 
+        [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryV2), typeof(PartWithPropertyExportingNonSharedPart))]
+        public void ExportFactoryForNonSharedPartCreationDisposalFromPropertyV2(IContainer container)
+        {
+            var partFactory = container.GetExportedValue<PartFactoryV2>();
+            Assert.NotNull(partFactory.Factory);
+            Assert.NotNull(partFactory.FactoryWithMetadata);
+            Assert.Equal("V", partFactory.FactoryWithMetadata.Metadata["N"]);
+            using (var exportContext = partFactory.Factory.CreateExport())
+            {
+                Assert.NotNull(exportContext);
+                Assert.Equal(1, NonSharedPart.InstantiationCounter);
+
+                var value = exportContext.Value;
+                Assert.NotNull(value);
+                Assert.Equal(0, NonSharedPart.DisposalCounter);
+            }
+
+            Assert.Equal(0, NonSharedPart.DisposalCounter);
+
+            container.Dispose();
+            Assert.Equal(0, NonSharedPart.DisposalCounter);
+        }
+
         [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryV2), typeof(NonSharedPart))]
         public void ExportFactoryForNonSharedPartInstantiatesMultiplePartsV2(IContainer container)
         {
@@ -397,6 +444,14 @@
         [ExportMetadata("N", "V2")]
         public class NonSharedPart2 : NonSharedPart
         {
+        }
+
+        public class PartWithPropertyExportingNonSharedPart
+        {
+            [MefV1.Export, Export]
+            [MefV1.ExportMetadata("N", "V")]
+            [ExportMetadata("N", "V")]
+            public NonSharedPart ExportingProperty => new NonSharedPart();
         }
 
         public interface IMetadata
