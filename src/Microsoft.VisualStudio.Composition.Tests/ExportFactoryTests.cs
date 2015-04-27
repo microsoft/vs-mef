@@ -39,6 +39,9 @@
             }
 
             Assert.Equal(1, NonSharedPart.DisposalCounter);
+
+            container.Dispose();
+            Assert.Equal(1, NonSharedPart.DisposalCounter);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(NonSharedPart))]
@@ -220,6 +223,9 @@
                 Assert.Equal(0, NonSharedPart.DisposalCounter);
             }
 
+            Assert.Equal(1, NonSharedPart.DisposalCounter);
+
+            container.Dispose();
             Assert.Equal(1, NonSharedPart.DisposalCounter);
         }
 
