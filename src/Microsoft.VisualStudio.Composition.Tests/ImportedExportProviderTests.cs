@@ -42,6 +42,7 @@
         /// <summary>
         /// Verifies that parts cannot dispose of their owners.
         /// </summary>
+        [Trait("Disposal", "")]
         [MefFact(CompositionEngines.V3EmulatingV2, typeof(PartThatImportsExportProvider))]
         public void ImportedExportProviderCannotBeDisposed(IContainer container)
         {

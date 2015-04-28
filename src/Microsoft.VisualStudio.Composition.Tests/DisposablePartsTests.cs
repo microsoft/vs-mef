@@ -9,6 +9,7 @@
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
+    [Trait("Disposal", "")]
     public class DisposablePartsTests
     {
         #region Disposable part happy path test
@@ -72,6 +73,18 @@
             Assert.True(part.ImportOfDisposableNonSharedPart.IsDisposed);
         }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithExportingPropertyForDisposableNonSharedPart), typeof(NonSharedPartThatImportsDisposableNonSharedPart))]
+        public void DisposableNonSharedPartExportedViaPropertyIsNotDisposedWithContainer(IContainer container)
+        {
+            var part = container.GetExportedValue<NonSharedPartThatImportsDisposableNonSharedPart>();
+            var exportDirect = container.GetExportedValue<DisposableNonSharedPart>();
+            Assert.False(part.ImportOfDisposableNonSharedPart.IsDisposed);
+            Assert.False(exportDirect.IsDisposed);
+            container.Dispose();
+            Assert.False(part.ImportOfDisposableNonSharedPart.IsDisposed);
+            Assert.False(exportDirect.IsDisposed);
+        }
+
         [Export]
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class NonSharedPartThatImportsDisposableNonSharedPart
@@ -116,6 +129,12 @@
             public void Dispose()
             {
             }
+        }
+
+        public class PartWithExportingPropertyForDisposableNonSharedPart
+        {
+            [Export, MefV1.Export]
+            public DisposableNonSharedPart ExportingProperty => new DisposableNonSharedPart();
         }
 
         #endregion

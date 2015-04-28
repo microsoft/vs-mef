@@ -79,6 +79,7 @@
             Assert.IsType<ProjectPartB>(project2.Value.GetApplicableExtensions().Single().Value);
         }
 
+        [Trait("Disposal", "")]
         [MefFact(CompositionEngines.V2Compat)]
         public void DisposeExportDisposesImmediateContainerOnly(IContainer container)
         {
