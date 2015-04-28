@@ -79,6 +79,7 @@
             Assert.IsType<ProjectPartB>(project2.Value.GetApplicableExtensions().Single().Value);
         }
 
+        [Trait("Disposal", "")]
         [MefFact(CompositionEngines.V2Compat)]
         public void DisposeExportDisposesImmediateContainerOnly(IContainer container)
         {
@@ -107,7 +108,7 @@
             Assert.NotNull(project.Value.ActiveConfiguredProjectSubscriptionService.ImportHelper);
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV2 | CompositionEngines.V3SkipCodeGenScenario)]
+        [MefFact(CompositionEngines.V3EmulatingV2)]
         public void ProjectSystemDgml(IContainer container)
         {
             var v3container = (TestUtilities.V3ContainerWrapper)container;

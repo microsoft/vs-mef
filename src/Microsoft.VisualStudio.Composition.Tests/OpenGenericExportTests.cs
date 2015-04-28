@@ -162,7 +162,7 @@
 
         #region Sharing instance distinction tests
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat | CompositionEngines.V3SkipCodeGenScenario, typeof(SharedUserOfSharedUseful), typeof(SharedUseful<>))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(SharedUserOfSharedUseful), typeof(SharedUseful<>))]
         public void OpenGenericExportSharedByTypeArg(IContainer container)
         {
             var part = container.GetExportedValue<SharedUserOfSharedUseful>();
@@ -175,7 +175,7 @@
             Assert.Same(c, part.Container);
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2WithNonPublic | CompositionEngines.V3SkipCodeGenScenario, typeof(SharedUserOfInternalSharedUseful), typeof(InternalSharedUseful<>))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2WithNonPublic, typeof(SharedUserOfInternalSharedUseful), typeof(InternalSharedUseful<>))]
         public void OpenGenericExportSharedByTypeArgNonPublic(IContainer container)
         {
             var part = container.GetExportedValue<SharedUserOfInternalSharedUseful>();

@@ -26,6 +26,7 @@
         }
 
         [MefFact(CompositionEngines.V3EmulatingV2)]
+        [Trait("Disposal", "")]
         public void DelegatingExportProviderDisposalDoesNotDisposeInner(IContainer container)
         {
             var innerExportProvider = container.GetExportedValue<ExportProvider>();

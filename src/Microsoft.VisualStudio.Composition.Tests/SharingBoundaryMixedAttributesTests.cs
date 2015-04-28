@@ -14,6 +14,7 @@
     public class SharingBoundaryMixedAttributesTests
     {
         [MefFact(CompositionEngines.V3EmulatingV1AndV2AtOnce)]
+        [Trait("Disposal", "")]
         [Trait("SharingBoundary", "Isolation")]
         public void DisposeExportReleasesContainer(IContainer container)
         {

@@ -242,7 +242,7 @@
                     var exportedValueConstructor = ((RuntimeExportProvider)scope).GetExportedValue(import, export, importingPartTracker);
                     exportedValueConstructor.ExportingPart.GetValueReadyToExpose();
                     object constructedValue = exportedValueConstructor.ValueConstructor();
-                    var disposableValue = newSharingScope ? scope : constructedValue as IDisposable;
+                    var disposableValue = newSharingScope ? scope : exportedValueConstructor.ExportingPart as IDisposable;
                     return new KeyValuePair<object, IDisposable>(constructedValue, disposableValue);
                 };
                 Type exportFactoryType = import.ImportingSiteTypeWithoutCollection;

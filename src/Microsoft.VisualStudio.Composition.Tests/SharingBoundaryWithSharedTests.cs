@@ -102,6 +102,7 @@
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<PartWithImportManyOfScopedExports>());
         }
 
+        [Trait("Disposal", "")]
         [MefFact(CompositionEngines.V2Compat)]
         public void DisposeExportDisposesContainer(IContainer container)
         {
