@@ -44,15 +44,10 @@
   <PropertyGroup>
     <BinariesSourceLocation>..\..\bin\$(Configuration)\</BinariesSourceLocation>
     <BinariesSourceLocation Condition=" !Exists('$(BinariesSourceLocation)') ">$(OutDir)\</BinariesSourceLocation>
-    
     <!-- Accomodate TF Build that coerces everything to a single output directory. -->
     <BinariesSourceLocation Condition=" '$(TF_BUILD_DROPLOCATION)' != '' ">$(OutDir)</BinariesSourceLocation>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="$(BinariesSourceLocation)System.Reflection.Metadata.dll">
-      <Link>build\System.Reflection.Metadata.dll</Link>
-      <AlwaysInclude>true</AlwaysInclude>
-    </Content>
     <Content Include="$(BinariesSourceLocation)Microsoft.VisualStudio.Composition.Configuration.dll">
       <Link>build\Microsoft.VisualStudio.Composition.Configuration.dll</Link>
     </Content>
