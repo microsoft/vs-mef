@@ -20,15 +20,18 @@
   <PropertyGroup Label="Configuration">
     <Id>Microsoft.VisualStudio.Composition</Id>
     <Title>Visual Studio MEF</Title>
-    <Authors>Andrew Arnott</Authors>
     <Summary>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Summary>
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
-    <ReleaseNotes>
-    </ReleaseNotes>
-    <ProjectUrl>https://mseng.visualstudio.com/DefaultCollection/VSIDEProj/_git/VSIDEProj.MEF/</ProjectUrl>
-    <LicenseUrl>
-    </LicenseUrl>
-    <Tags>mef</Tags>
+    <Tags>Mef Composition Extensibility</Tags>
+
+    <Authors>Microsoft</Authors>
+    <Owners>Microsoft, VisualStudioExtensibility</Owners>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <ProjectUrl>http://aka.ms/VsExtensibility</ProjectUrl>
+    <IconUrl>http://aka.ms/VsExtensibilityIcon</IconUrl>
+    <LicenseUrl>http://go.microsoft.com/fwlink/?LinkID=517238</LicenseUrl>
+    <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
+
     <NoPackageAnalysis>true</NoPackageAnalysis>
   </PropertyGroup>
   <ItemGroup>
