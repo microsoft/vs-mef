@@ -45,7 +45,9 @@
         {
             internal static readonly BufferComparer Default = new BufferComparer();
 
-            private BufferComparer() { }
+            private BufferComparer()
+            {
+            }
 
             public bool Equals(byte[] x, byte[] y)
             {
@@ -85,7 +87,9 @@
         {
             internal static readonly CollectionIgnoreOrder<T> Default = new CollectionIgnoreOrder<T>();
 
-            private CollectionIgnoreOrder() { }
+            private CollectionIgnoreOrder()
+            {
+            }
 
             protected virtual IEqualityComparer<T> ValueComparer
             {
@@ -221,7 +225,9 @@
             new internal static readonly MetadataDictionaryEqualityComparer Default = new MetadataDictionaryEqualityComparer();
 
             protected MetadataDictionaryEqualityComparer()
-                : base(MetadataValueComparer.Default) { }
+                : base(MetadataValueComparer.Default)
+            {
+            }
 
             public override int GetHashCode(IReadOnlyDictionary<string, object> obj)
             {
@@ -252,7 +258,9 @@
             {
                 internal static readonly MetadataValueComparer Default = new MetadataValueComparer();
 
-                private MetadataValueComparer() { }
+                private MetadataValueComparer()
+                {
+                }
 
                 public new bool Equals(object x, object y)
                 {
@@ -326,13 +334,17 @@
             new internal static readonly DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue> Default = new DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue>();
 
             protected DictionaryOfImmutableHashSetEqualityComparer()
-                : base(SetEqualityComparer.Default) { }
+                : base(SetEqualityComparer.Default)
+            {
+            }
 
             private class SetEqualityComparer : IEqualityComparer<ImmutableHashSet<TValue>>
             {
                 internal static readonly SetEqualityComparer Default = new SetEqualityComparer();
 
-                private SetEqualityComparer() { }
+                private SetEqualityComparer()
+                {
+                }
 
                 public bool Equals(ImmutableHashSet<TValue> x, ImmutableHashSet<TValue> y)
                 {
@@ -360,7 +372,9 @@
         {
             internal static readonly AssemblyNameComparer Default = new AssemblyNameComparer();
 
-            internal AssemblyNameComparer() { }
+            internal AssemblyNameComparer()
+            {
+            }
 
             public bool Equals(AssemblyName x, AssemblyName y)
             {

@@ -919,7 +919,9 @@ namespace Microsoft.VisualStudio.Composition
 
             private static readonly IEqualityComparer<object> Fallback = EqualityComparer<object>.Default;
 
-            private SmartInterningEqualityComparer() { }
+            private SmartInterningEqualityComparer()
+            {
+            }
 
             new public bool Equals(object x, object y)
             {

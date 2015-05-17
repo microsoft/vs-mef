@@ -19,7 +19,9 @@
 
         internal static readonly IMetadataViewProvider Default = new PassthroughMetadataViewProvider();
 
-        private PassthroughMetadataViewProvider() { }
+        private PassthroughMetadataViewProvider()
+        {
+        }
 
         public bool IsMetadataViewSupported(Type metadataType)
         {

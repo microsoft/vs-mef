@@ -37,7 +37,9 @@
         }
 
         public ParameterRef(ParameterInfo parameter)
-            : this(TypeRef.Get(parameter.Member.DeclaringType), parameter.Member.MetadataToken, parameter.Position) { }
+            : this(TypeRef.Get(parameter.Member.DeclaringType), parameter.Member.MetadataToken, parameter.Position)
+        {
+        }
 
         public TypeRef DeclaringType { get; private set; }
 
