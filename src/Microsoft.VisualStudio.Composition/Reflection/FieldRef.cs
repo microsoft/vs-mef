@@ -21,7 +21,9 @@
         }
 
         public FieldRef(FieldInfo field)
-            : this(TypeRef.Get(field.DeclaringType), field.MetadataToken) { }
+            : this(TypeRef.Get(field.DeclaringType), field.MetadataToken)
+        {
+        }
 
         public TypeRef DeclaringType { get; private set; }
 

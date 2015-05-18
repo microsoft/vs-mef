@@ -184,7 +184,9 @@
             Final,
         }
 
-        protected internal interface IMetadataDictionary : IDictionary<string, object>, IReadOnlyDictionary<string, object> { }
+        protected internal interface IMetadataDictionary : IDictionary<string, object>, IReadOnlyDictionary<string, object>
+        {
+        }
 
         bool IDisposableObservable.IsDisposed
         {
@@ -619,7 +621,7 @@
         {
             // Be careful to pass the export provider that owns the sharing boundary for this part into the value factory.
             // If we accidentally capture "this", then if this is a sub-scope ExportProvider and we're constructing
-            // a parent scope shared part, then we tie the lifetime of this child scope to the lifetime of the 
+            // a parent scope shared part, then we tie the lifetime of this child scope to the lifetime of the
             // parent scoped part's value factory. If it never evaluates, we never get released even after our own disposal.
             ExportProvider owningExportProvider = partSharingBoundary != null ? this.sharingBoundaryExportProviderOwners[partSharingBoundary] : this;
             var partLifecycle = owningExportProvider.CreatePartLifecycleTracker(originalPartTypeRef, importMetadata);
