@@ -19,7 +19,9 @@
         }
 
         public ConstructorRef(ConstructorInfo constructor)
-            : this(TypeRef.Get(constructor.DeclaringType), constructor.MetadataToken) { }
+            : this(TypeRef.Get(constructor.DeclaringType), constructor.MetadataToken)
+        {
+        }
 
         public TypeRef DeclaringType { get; private set; }
 

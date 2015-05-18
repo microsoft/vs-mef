@@ -21,7 +21,9 @@
         }
 
         public MethodRef(MethodInfo method)
-            : this(TypeRef.Get(method.DeclaringType), method.MetadataToken, method.GetGenericArguments().Select(TypeRef.Get).ToImmutableArray()) { }
+            : this(TypeRef.Get(method.DeclaringType), method.MetadataToken, method.GetGenericArguments().Select(TypeRef.Get).ToImmutableArray())
+        {
+        }
 
         public TypeRef DeclaringType { get; private set; }
 

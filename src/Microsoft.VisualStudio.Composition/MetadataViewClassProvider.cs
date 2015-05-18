@@ -20,7 +20,9 @@
 
         internal static readonly IMetadataViewProvider Default = new MetadataViewClassProvider();
 
-        private MetadataViewClassProvider() { }
+        private MetadataViewClassProvider()
+        {
+        }
 
         public bool IsMetadataViewSupported(Type metadataType)
         {

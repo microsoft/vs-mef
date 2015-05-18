@@ -374,7 +374,7 @@
             {
                 if (partBuilder.PartDefinition.IsSharingBoundaryInferred)
                 {
-                    // ALGORITHM selects: the ONE sharing boundary that 
+                    // ALGORITHM selects: the ONE sharing boundary that
                     // * FILTER 1: does not create ANY of the others
                     // * FILTER 2: can reach ALL the others by following UP the sharing boundary export factory chains.
                     var filter = from boundary in partBuilder.RequiredSharingBoundaries
@@ -527,7 +527,7 @@
             /// Gets the sharing boundaries required to instantiate this part.
             /// </summary>
             /// <remarks>
-            /// This is the union of the part's own explicitly declared sharing boundary 
+            /// This is the union of the part's own explicitly declared sharing boundary
             /// and the boundaries of all parts it imports (transitively).
             /// </remarks>
             public ISet<string> RequiredSharingBoundaries { get; private set; }
@@ -632,7 +632,9 @@
         {
             internal static ExportDefinitionPracticallyEqual Default = new ExportDefinitionPracticallyEqual();
 
-            private ExportDefinitionPracticallyEqual() { }
+            private ExportDefinitionPracticallyEqual()
+            {
+            }
 
             public bool Equals(ExportDefinition x, ExportDefinition y)
             {

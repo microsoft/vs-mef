@@ -9,11 +9,17 @@
 
     public class CompositionFailedException : Exception
     {
-        public CompositionFailedException() { }
+        public CompositionFailedException()
+        {
+        }
 
-        public CompositionFailedException(string message) : base(message) { }
+        public CompositionFailedException(string message) : base(message)
+        {
+        }
 
-        public CompositionFailedException(string message, Exception innerException) : base(message, innerException) { }
+        public CompositionFailedException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
 
         public CompositionFailedException(string message, IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> errors)
             : this(message)
