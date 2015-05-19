@@ -14,14 +14,12 @@
     {
         private static readonly ComposablePartDefinition CompositionServicePart;
         private static readonly ComposablePartDefinition MetadataViewImplProxyPart;
-        private static readonly ComposablePartDefinition AssemblyNameCodeBasePathPath;
 
         static NetFxAdapters()
         {
             var discovery = new AttributedPartDiscoveryV1();
             CompositionServicePart = discovery.CreatePart(typeof(CompositionService));
             MetadataViewImplProxyPart = discovery.CreatePart(typeof(MetadataViewImplProxy));
-            AssemblyNameCodeBasePathPath = discovery.CreatePart(typeof(AssemblyLoadCodeBasePathLoader));
         }
 
         /// <summary>
@@ -61,7 +59,6 @@
 
             return catalog
                 .WithPart(MetadataViewImplProxyPart)
-                .WithPart(AssemblyNameCodeBasePathPath)
                 .WithMetadataViewEmitProxySupport();
         }
 
@@ -411,28 +408,6 @@
                 }
 
                 return null;
-            }
-        }
-
-        /// <summary>
-        /// An assembly loader that includes the code base path so we can load assemblies by path when necessary.
-        /// </summary>
-        [MefV1.Export(typeof(IAssemblyLoader))]
-        [MefV1.ExportMetadata("OrderPrecedence", 100)] // should take precedence over one without codebase path handling
-        [MefV1.PartMetadata(CompositionConstants.DgmlCategoryPartMetadataName, new string[] { "VsMEFBuiltIn" })]
-        private class AssemblyLoadCodeBasePathLoader : IAssemblyLoader
-        {
-            public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
-            {
-                Requires.NotNullOrEmpty(assemblyFullName, nameof(assemblyFullName));
-
-                var assemblyName = new AssemblyName(assemblyFullName);
-                if (!string.IsNullOrEmpty(codeBasePath))
-                {
-                    assemblyName.CodeBase = codeBasePath;
-                }
-
-                return Assembly.Load(assemblyName);
             }
         }
     }
