@@ -19,7 +19,7 @@
         public ParameterRef(TypeRef declaringType, int methodMetadataToken, int parameterIndex)
             : this()
         {
-            Requires.NotNull(declaringType, "declaringType");
+            Requires.NotNull(declaringType, nameof(declaringType));
 
             this.DeclaringType = declaringType;
             this.MethodMetadataToken = methodMetadataToken;

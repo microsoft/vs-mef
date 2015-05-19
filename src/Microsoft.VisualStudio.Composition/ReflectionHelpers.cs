@@ -59,8 +59,8 @@
 
         internal static bool IsEquivalentTo(this Type type1, Type type2)
         {
-            Requires.NotNull(type1, "type1");
-            Requires.NotNull(type2, "type2");
+            Requires.NotNull(type1, nameof(type1));
+            Requires.NotNull(type2, nameof(type2));
 
             if (type1 == type2)
             {
@@ -75,8 +75,8 @@
 
         internal static Assignability IsAssignableTo(ImportDefinitionBinding import, ExportDefinitionBinding export)
         {
-            Requires.NotNull(import, "import");
-            Requires.NotNull(export, "export");
+            Requires.NotNull(import, nameof(import));
+            Requires.NotNull(export, nameof(export));
 
             var receivingType = import.ImportingSiteElementType;
             var exportingType = export.ExportedValueType;
@@ -130,7 +130,7 @@
 
         internal static IEnumerable<PropertyInfo> EnumProperties(this Type type)
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
 
             // We look at each type in the hierarchy for their individual properties.
             // This allows us to find private property setters defined on base classes,
@@ -160,7 +160,7 @@
         /// </summary>
         internal static IEnumerable<Type> EnumTypeAndBaseTypes(this Type type)
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
 
             while (type != null)
             {
@@ -232,7 +232,7 @@
 
         internal static string GetTypeName(Type type, bool genericTypeDefinition, bool evenNonPublic, HashSet<Assembly> relevantAssemblies, HashSet<Type> relevantEmbeddedTypes)
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
 
             if (type.IsArray)
             {
@@ -291,8 +291,8 @@
 
         private static void AddEmbeddedInterfaces(Type type, HashSet<Type> relevantEmbeddedTypes, ImmutableStack<Type> observedTypes = null)
         {
-            Requires.NotNull(type, "type");
-            Requires.NotNull(relevantEmbeddedTypes, "relevantEmbeddedTypes");
+            Requires.NotNull(type, nameof(type));
+            Requires.NotNull(relevantEmbeddedTypes, nameof(relevantEmbeddedTypes));
 
             observedTypes = observedTypes ?? ImmutableStack<Type>.Empty;
             if (observedTypes.Contains(type))
@@ -331,7 +331,7 @@
 
         internal static string ReplaceBackTickWithTypeArgs(string originalName, params string[] typeArguments)
         {
-            Requires.NotNullOrEmpty(originalName, "originalName");
+            Requires.NotNullOrEmpty(originalName, nameof(originalName));
 
             string name = originalName;
             int backTickIndex = originalName.IndexOf('`');
@@ -380,7 +380,7 @@
 
         internal static bool IsPublic(Type type, bool checkGenericTypeArgs = false)
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
 
             var typeInfo = type.GetTypeInfo();
             if (typeInfo.IsNotPublic)
@@ -433,7 +433,7 @@
 
         internal static bool IsEmbeddedType(this Type type)
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
             var typeInfo = type.GetTypeInfo();
 
             if (typeInfo.IsInterface)
@@ -451,7 +451,7 @@
 
         internal static bool IsEmbeddableAssembly(this Assembly assembly)
         {
-            Requires.NotNull(assembly, "assembly");
+            Requires.NotNull(assembly, nameof(assembly));
 
             return assembly.GetCustomAttributes()
                 .Any(a => a.GetType().FullName == "System.Runtime.InteropServices.PrimaryInteropAssemblyAttribute"
@@ -481,8 +481,8 @@
         /// <returns>The type argument necessary to construct the closed type.</returns>
         internal static Rental<Type[]> ExtractGenericTypeArguments(Type genericTypeDefinition, Type constructedType)
         {
-            Requires.NotNull(genericTypeDefinition, "genericTypeDefinition");
-            Requires.NotNull(constructedType, "constructedType");
+            Requires.NotNull(genericTypeDefinition, nameof(genericTypeDefinition));
+            Requires.NotNull(constructedType, nameof(constructedType));
 
             var genericTypeDefinitionInfo = genericTypeDefinition.GetTypeInfo();
 
@@ -527,7 +527,7 @@
 
         internal static Type GetContractTypeForDelegate(MethodInfo method)
         {
-            Requires.NotNull(method, "method");
+            Requires.NotNull(method, nameof(method));
 
             ParameterInfo[] parameters = method.GetParameters();
 
@@ -544,7 +544,7 @@
 
         internal static Attribute Instantiate(this CustomAttributeData attributeData)
         {
-            Requires.NotNull(attributeData, "attributeData");
+            Requires.NotNull(attributeData, nameof(attributeData));
 
             Attribute attribute = (Attribute)attributeData.Constructor.Invoke(attributeData.ConstructorArguments.Select(ca => ca.Value).ToArray());
             foreach (var namedArgument in attributeData.NamedArguments)
@@ -564,15 +564,15 @@
 
         internal static void GetInputAssembliesFromMetadata(ISet<AssemblyName> assemblies, IReadOnlyDictionary<string, object> metadata)
         {
-            Requires.NotNull(assemblies, "assemblies");
-            Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(assemblies, nameof(assemblies));
+            Requires.NotNull(metadata, nameof(metadata));
 
             // TODO: code here
         }
 
         private static string FilterTypeNameForGenericTypeDefinition(Type type, bool fullName)
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
 
             string name = fullName ? type.FullName : type.Name;
             if (type.GetTypeInfo().IsGenericType && name.IndexOf('`') >= 0) // simple name may not include ` if parent type is the generic one
@@ -589,7 +589,7 @@
 
         private static IEnumerable<Type> GetAllBaseTypesAndInterfaces(Type type)
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
 
             for (Type baseType = type.GetTypeInfo().BaseType; baseType != null; baseType = baseType.GetTypeInfo().BaseType)
             {

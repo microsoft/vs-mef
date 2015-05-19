@@ -14,8 +14,8 @@
     {
         public ExportDefinitionBinding(ExportDefinition exportDefinition, ComposablePartDefinition partDefinition, MemberRef exportingMemberRef)
         {
-            Requires.NotNull(exportDefinition, "exportDefinition");
-            Requires.NotNull(partDefinition, "partDefinition");
+            Requires.NotNull(exportDefinition, nameof(exportDefinition));
+            Requires.NotNull(partDefinition, nameof(partDefinition));
 
             this.ExportDefinition = exportDefinition;
             this.PartDefinition = partDefinition;
@@ -59,7 +59,7 @@
 
         internal ExportDefinitionBinding CloseGenericExport(Type[] genericTypeArguments)
         {
-            Requires.NotNull(genericTypeArguments, "genericTypeArguments");
+            Requires.NotNull(genericTypeArguments, nameof(genericTypeArguments));
 
             string exportTypeIdentity = string.Format(
                 CultureInfo.InvariantCulture,

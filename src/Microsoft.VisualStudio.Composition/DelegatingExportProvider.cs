@@ -25,7 +25,7 @@
         protected DelegatingExportProvider(ExportProvider inner)
             : base(null, null)
         {
-            Requires.NotNull(inner, "inner");
+            Requires.NotNull(inner, nameof(inner));
             this.inner = inner;
         }
 

@@ -15,7 +15,7 @@
 
         internal IndentingTextWriter(TextWriter inner)
         {
-            Requires.NotNull(inner, "inner");
+            Requires.NotNull(inner, nameof(inner));
 
             this.inner = inner;
         }
@@ -27,7 +27,7 @@
 
         internal static IndentingTextWriter Get(TextWriter writer)
         {
-            Requires.NotNull(writer, "writer");
+            Requires.NotNull(writer, nameof(writer));
             return writer as IndentingTextWriter ?? new IndentingTextWriter(writer);
         }
 
@@ -63,7 +63,7 @@
 
             internal CancelIndent(IndentingTextWriter writer)
             {
-                Requires.NotNull(writer, "writer");
+                Requires.NotNull(writer, nameof(writer));
                 this.writer = writer;
             }
 

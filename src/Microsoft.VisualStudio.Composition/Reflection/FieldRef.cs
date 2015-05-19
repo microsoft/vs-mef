@@ -14,7 +14,7 @@
         public FieldRef(TypeRef declaringType, int metadataToken)
             : this()
         {
-            Requires.NotNull(declaringType, "declaringType");
+            Requires.NotNull(declaringType, nameof(declaringType));
 
             this.DeclaringType = declaringType;
             this.MetadataToken = metadataToken;

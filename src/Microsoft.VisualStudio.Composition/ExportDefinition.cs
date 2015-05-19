@@ -15,8 +15,8 @@
     {
         public ExportDefinition(string contractName, IReadOnlyDictionary<string, object> metadata)
         {
-            Requires.NotNullOrEmpty(contractName, "contractName");
-            Requires.NotNull(metadata, "metadata");
+            Requires.NotNullOrEmpty(contractName, nameof(contractName));
+            Requires.NotNull(metadata, nameof(metadata));
 
             this.ContractName = contractName;
 
@@ -68,7 +68,7 @@
 
         internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata);
         }

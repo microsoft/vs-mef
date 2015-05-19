@@ -33,7 +33,7 @@
 
         private static IEnumerable<Type> GetNestedTypesRecursively(Type parentType)
         {
-            Requires.NotNull(parentType, "parentType");
+            Requires.NotNull(parentType, nameof(parentType));
 
             foreach (var nested in parentType.GetNestedTypes())
             {

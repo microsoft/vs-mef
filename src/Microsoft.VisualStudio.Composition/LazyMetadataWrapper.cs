@@ -29,7 +29,7 @@
 
         internal LazyMetadataWrapper(ImmutableDictionary<string, object> metadata, Direction direction)
         {
-            Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(metadata, nameof(metadata));
 
             this.direction = direction;
             this.underlyingMetadata = metadata;
@@ -207,7 +207,7 @@
 
         protected object SubstituteValueIfRequired(string key, object value)
         {
-            Requires.NotNull(key, "key");
+            Requires.NotNull(key, nameof(key));
 
             if (value == null)
             {
@@ -225,7 +225,7 @@
 
         protected virtual object SubstituteValueIfRequired(object value)
         {
-            Requires.NotNull(value, "value");
+            Requires.NotNull(value, nameof(value));
 
             ISubstitutedValue substitutedValue;
             switch (this.direction)
@@ -255,7 +255,7 @@
 
         private static bool IsTypeWorthDeferring(Type typeOfValue)
         {
-            Requires.NotNull(typeOfValue, "typeOfValue");
+            Requires.NotNull(typeOfValue, nameof(typeOfValue));
 
             return !AlwaysLoadedAssemblies.Contains(typeOfValue.Assembly);
         }
@@ -335,7 +335,7 @@
         {
             internal TypeSubstitution(TypeRef typeRef)
             {
-                Requires.NotNull(typeRef, "typeRef");
+                Requires.NotNull(typeRef, nameof(typeRef));
 
                 this.TypeRef = typeRef;
             }
@@ -400,7 +400,7 @@
         {
             internal TypeArraySubstitution(IReadOnlyList<TypeRef> typeRefArray)
             {
-                Requires.NotNull(typeRefArray, "typeRefArray");
+                Requires.NotNull(typeRefArray, nameof(typeRefArray));
                 this.TypeRefArray = typeRefArray;
             }
 

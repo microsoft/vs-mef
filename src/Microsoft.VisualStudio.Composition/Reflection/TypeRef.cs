@@ -34,7 +34,7 @@
 
         private TypeRef(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex)
         {
-            Requires.NotNull(assemblyName, "assemblyName");
+            Requires.NotNull(assemblyName, nameof(assemblyName));
             Requires.Argument(((MetadataTokenType)metadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type, "metadataToken", Strings.NotATypeSpec);
             Requires.Argument(metadataToken != (int)MetadataTokenType.Type, "metadataToken", Strings.UnresolvableMetadataToken);
 
@@ -49,7 +49,7 @@
 
         private TypeRef(Type type)
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
 
             this.AssemblyName = GetNormalizedAssemblyName(type.Assembly.GetName());
             this.IsArray = type.IsArray;
@@ -254,7 +254,7 @@
 
         private static AssemblyName GetNormalizedAssemblyName(AssemblyName assemblyName)
         {
-            Requires.NotNull(assemblyName, "assemblyName");
+            Requires.NotNull(assemblyName, nameof(assemblyName));
 
             AssemblyName normalizedAssemblyName = assemblyName;
             if (assemblyName.CodeBase.IndexOf('~') >= 0)

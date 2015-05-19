@@ -30,11 +30,11 @@
         /// <param name="isSharingBoundaryInferred">A value indicating whether the part does not have an explicit sharing boundary, and therefore can obtain its sharing boundary based on its imports.</param>
         public ComposablePartDefinition(TypeRef partType, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers, IEnumerable<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodRef onImportsSatisfied, ConstructorRef importingConstructorRef, IReadOnlyList<ImportDefinitionBinding> importingConstructorImports, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
         {
-            Requires.NotNull(partType, "partType");
-            Requires.NotNull(metadata, "metadata");
-            Requires.NotNull(exportedTypes, "exportedTypes");
-            Requires.NotNull(exportingMembers, "exportingMembers");
-            Requires.NotNull(importingMembers, "importingMembers");
+            Requires.NotNull(partType, nameof(partType));
+            Requires.NotNull(metadata, nameof(metadata));
+            Requires.NotNull(exportedTypes, nameof(exportedTypes));
+            Requires.NotNull(exportingMembers, nameof(exportingMembers));
+            Requires.NotNull(importingMembers, nameof(importingMembers));
 
             this.TypeRef = partType;
             this.Metadata = metadata;
@@ -279,7 +279,7 @@
 
         internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             this.TypeRef.GetInputAssemblies(assemblies);
             ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata);

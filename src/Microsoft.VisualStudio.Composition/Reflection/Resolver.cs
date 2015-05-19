@@ -189,7 +189,7 @@
 
         internal static void GetInputAssemblies(this TypeRef typeRef, ISet<AssemblyName> assemblies)
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             if (typeRef != null)
             {
@@ -217,7 +217,7 @@
 
         internal static void GetInputAssemblies(this MemberRef memberRef, ISet<AssemblyName> assemblies)
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             if (memberRef.IsConstructor)
             {
@@ -239,7 +239,7 @@
 
         internal static void GetInputAssemblies(this MethodRef methodRef, ISet<AssemblyName> assemblies)
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             if (!methodRef.IsEmpty)
             {
@@ -253,7 +253,7 @@
 
         internal static void GetInputAssemblies(this PropertyRef propertyRef, ISet<AssemblyName> assemblies)
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             if (!propertyRef.IsEmpty)
             {
@@ -263,7 +263,7 @@
 
         internal static void GetInputAssemblies(this FieldRef fieldRef, ISet<AssemblyName> assemblies)
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             if (!fieldRef.IsEmpty)
             {
@@ -273,7 +273,7 @@
 
         internal static void GetInputAssemblies(this ConstructorRef constructorRef, ISet<AssemblyName> assemblies)
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             if (!constructorRef.IsEmpty)
             {
@@ -283,7 +283,7 @@
 
         internal static void GetInputAssemblies(this ParameterRef parameterRef, ISet<AssemblyName> assemblies)
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             if (!parameterRef.IsEmpty)
             {

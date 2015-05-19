@@ -80,7 +80,7 @@
 
         internal static string GetTypeIdentityFromMethod(MethodInfo method, bool formatGenericName)
         {
-            Requires.NotNull(method, "method");
+            Requires.NotNull(method, nameof(method));
 
             StringBuilder methodNameStringBuilder = new StringBuilder();
 
