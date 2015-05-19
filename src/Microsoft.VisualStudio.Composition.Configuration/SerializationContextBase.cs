@@ -396,16 +396,16 @@ namespace Microsoft.VisualStudio.Composition
 
                     var flags = TypeRefFlags.None;
                     flags |= typeRef.IsArray ? TypeRefFlags.IsArray : TypeRefFlags.None;
-                    flags |= !typeRef.GenericParameterDeclaringMember.IsEmpty ? TypeRefFlags.HasGenericParameterDeclaringMember : TypeRefFlags.None;
+                    flags |= !typeRef.GenericParameterDeclaringMemberRef.IsEmpty ? TypeRefFlags.HasGenericParameterDeclaringMember : TypeRefFlags.None;
                     flags |= typeRef.GenericParameterDeclaringMemberIndex >= 0 ? TypeRefFlags.HasGenericParameterDeclaringMemberIndex : TypeRefFlags.None;
                     this.writer.Write((byte)flags);
 
                     this.WriteCompressedUInt((uint)typeRef.GenericTypeParameterCount);
                     this.Write(typeRef.GenericTypeArguments, this.Write);
 
-                    if (!typeRef.GenericParameterDeclaringMember.IsEmpty)
+                    if (!typeRef.GenericParameterDeclaringMemberRef.IsEmpty)
                     {
-                        this.Write(typeRef.GenericParameterDeclaringMember);
+                        this.Write(typeRef.GenericParameterDeclaringMemberRef);
                     }
 
                     if (typeRef.GenericParameterDeclaringMemberIndex >= 0)

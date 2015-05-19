@@ -38,7 +38,7 @@
             this.IsArray = isArray;
             this.GenericTypeParameterCount = genericTypeParameterCount;
             this.GenericTypeArguments = genericTypeArguments;
-            this.GenericParameterDeclaringMember = declaringMember;
+            this.GenericParameterDeclaringMemberRef = declaringMember;
             this.GenericParameterDeclaringMemberIndex = declaringMethodParameterIndex;
         }
 
@@ -62,7 +62,7 @@
             {
                 // Generic type parameters may come in without be type specs. So the only way to reconstruct them is by way of who references them.
                 var declaringMember = (MemberInfo)elementType.DeclaringMethod ?? elementType.DeclaringType;
-                this.GenericParameterDeclaringMember = MemberRef.Get(declaringMember, resolver);
+                this.GenericParameterDeclaringMemberRef = MemberRef.Get(declaringMember, resolver);
                 this.GenericParameterDeclaringMemberIndex = Array.IndexOf(GetGenericTypeArguments(declaringMember), elementType);
             }
         }
@@ -77,7 +77,7 @@
 
         public ImmutableArray<TypeRef> GenericTypeArguments { get; private set; }
 
-        public MemberRef GenericParameterDeclaringMember { get; private set; }
+        public MemberRef GenericParameterDeclaringMemberRef { get; private set; }
 
         public int GenericParameterDeclaringMemberIndex { get; private set; }
 
@@ -116,7 +116,7 @@
                     }
                     else
                     {
-                        MemberInfo declaringMember = this.GenericParameterDeclaringMember.Resolve();
+                        MemberInfo declaringMember = this.GenericParameterDeclaringMemberRef.Resolve();
                         Type[] genericTypeArgs = GetGenericTypeArguments(declaringMember);
                         type = genericTypeArgs[this.GenericParameterDeclaringMemberIndex];
                     }
@@ -215,7 +215,7 @@
                 && this.IsArray == other.IsArray
                 && this.GenericTypeParameterCount == other.GenericTypeParameterCount
                 && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments)
-                && this.GenericParameterDeclaringMember.Equals(other.GenericParameterDeclaringMember)
+                && this.GenericParameterDeclaringMemberRef.Equals(other.GenericParameterDeclaringMemberRef)
                 && this.GenericParameterDeclaringMemberIndex == other.GenericParameterDeclaringMemberIndex;
             return result;
         }
