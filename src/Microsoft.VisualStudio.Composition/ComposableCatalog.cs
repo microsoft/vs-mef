@@ -20,23 +20,17 @@
 
         private ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract;
 
-        private ComposableCatalog(ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, DiscoveredParts discoveredParts)
+        private ComposableCatalog(ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, DiscoveredParts discoveredParts, MyResolver resolver)
         {
             Requires.NotNull(parts, nameof(parts));
             Requires.NotNull(exportsByContract, nameof(exportsByContract));
             Requires.NotNull(discoveredParts, nameof(discoveredParts));
+            Requires.NotNull(resolver, nameof(resolver));
 
             this.parts = parts;
             this.exportsByContract = exportsByContract;
             this.DiscoveredParts = discoveredParts;
-        }
-
-        /// <summary>
-        /// Gets the assemblies within which parts are defined.
-        /// </summary>
-        public IEnumerable<Assembly> Assemblies
-        {
-            get { return this.Parts.Select(p => p.Type.GetTypeInfo().Assembly).Distinct(); }
+            this.Resolver = resolver;
         }
 
         /// <summary>
@@ -52,24 +46,15 @@
         /// </summary>
         public DiscoveredParts DiscoveredParts { get; private set; }
 
-        public static ComposableCatalog Create()
+        internal MyResolver Resolver { get; }
+
+        public static ComposableCatalog Create(IAssemblyLoader assemblyLoader)
         {
             return new ComposableCatalog(
                 ImmutableHashSet.Create<ComposablePartDefinition>(),
                 ImmutableDictionary.Create<string, ImmutableList<ExportDefinitionBinding>>(),
-                DiscoveredParts.Empty);
-        }
-
-        public static ComposableCatalog Create(IEnumerable<ComposablePartDefinition> parts)
-        {
-            Requires.NotNull(parts, nameof(parts));
-            return Create().WithParts(parts);
-        }
-
-        public static ComposableCatalog Create(DiscoveredParts parts)
-        {
-            Requires.NotNull(parts, nameof(parts));
-            return Create().WithParts(parts);
+                DiscoveredParts.Empty,
+                MyResolver.Get(assemblyLoader));
         }
 
         public ComposableCatalog WithPart(ComposablePartDefinition partDefinition)
@@ -101,7 +86,7 @@
                 }
             }
 
-            return new ComposableCatalog(parts, exportsByContract, this.DiscoveredParts);
+            return new ComposableCatalog(parts, exportsByContract, this.DiscoveredParts, this.Resolver);
         }
 
         public ComposableCatalog WithParts(IEnumerable<ComposablePartDefinition> parts)
@@ -119,7 +104,7 @@
             Requires.NotNull(parts, nameof(parts));
 
             var catalog = this.WithParts(parts.Parts);
-            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts));
+            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts), catalog.Resolver);
         }
 
         /// <summary>
@@ -132,7 +117,7 @@
             Requires.NotNull(catalogToMerge, nameof(catalogToMerge));
 
             var catalog = this.WithParts(catalogToMerge.Parts);
-            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(catalogToMerge.DiscoveredParts));
+            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(catalogToMerge.DiscoveredParts), catalog.Resolver);
         }
 
         /// <summary>

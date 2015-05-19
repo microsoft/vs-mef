@@ -71,6 +71,8 @@
         /// </remarks>
         public IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> CompositionErrors { get; private set; }
 
+        internal MyResolver Resolver => this.Catalog.Resolver;
+
         public static CompositionConfiguration Create(ComposableCatalog catalog)
         {
             Requires.NotNull(catalog, nameof(catalog));
@@ -151,7 +153,7 @@
                 }
 
                 var salvagedParts = catalog.Parts.Except(invalidParts);
-                var salvagedCatalog = ComposableCatalog.Create(salvagedParts);
+                var salvagedCatalog = ComposableCatalog.Create(catalog.Resolver).WithParts(salvagedParts);
                 var configuration = Create(salvagedCatalog);
                 return configuration.WithErrors(errors);
             }
@@ -201,16 +203,6 @@
             }
 
             return metadataViewsAndProviders.ToImmutable();
-        }
-
-        public static CompositionConfiguration Create(IEnumerable<ComposablePartDefinition> parts)
-        {
-            return Create(ComposableCatalog.Create(parts));
-        }
-
-        public static CompositionConfiguration Create(DiscoveredParts parts)
-        {
-            return Create(ComposableCatalog.Create(parts));
         }
 
         public IExportProviderFactory CreateExportProviderFactory()
@@ -367,6 +359,8 @@
         /// <returns>A map of those parts with inferred boundaries where the key is the part and the value is its designated sharing boundary.</returns>
         private static ImmutableDictionary<ComposablePartDefinition, string> ComputeInferredSharingBoundaries(IEnumerable<PartBuilder> partBuilders)
         {
+            Requires.NotNull(partBuilders, nameof(partBuilders));
+
             var sharingBoundariesAndMetadata = ComputeSharingBoundaryMetadata(partBuilders);
 
             var sharingBoundaryOverrides = ImmutableDictionary.CreateBuilder<ComposablePartDefinition, string>();
@@ -487,7 +481,7 @@
                 {
                     foreach (ExportDefinitionBinding export in part.SatisfyingExports[import])
                     {
-                        string linkLabel = !export.ExportedValueType.Equals(export.PartDefinition.Type)
+                        string linkLabel = !export.ExportedValueTypeRef.Equals(export.PartDefinition.TypeRef)
                             ? export.ExportedValueType.ToString()
                             : null;
                         var link = Dgml.Link(export.PartDefinition.Id, part.Definition.Id, linkLabel);

@@ -60,7 +60,7 @@
                     {
                         var partsFromTypes = await discoveryModule.CreatePartsAsync(this.parts);
                         var partsFromAssemblies = await discoveryModule.CreatePartsAsync(assemblies);
-                        var catalog = ComposableCatalog.Create()
+                        var catalog = TestUtilities.EmptyCatalog
                             .WithParts(partsFromTypes)
                             .WithParts(partsFromAssemblies);
                         resultingCatalogs.Add(catalog);
@@ -190,7 +190,7 @@
             var ms = new MemoryStream();
             catalogSerialization.SaveAsync(catalog, ms).Wait();
             ms.Position = 0;
-            var deserializedCatalog = await catalogSerialization.LoadAsync(ms);
+            var deserializedCatalog = await catalogSerialization.LoadAsync(ms, TestUtilities.Resolver);
 
             var before = new StringWriter();
             catalog.ToString(before);
@@ -209,21 +209,22 @@
             var discovery = new List<PartDiscovery>();
             if (this.compositionVersions.HasFlag(CompositionEngines.V3EmulatingV1))
             {
-                discovery.Add(new AttributedPartDiscoveryV1());
+                discovery.Add(TestUtilities.V1Discovery);
                 titleAppends.Add("V1");
             }
 
+            var v2Discovery = this.compositionVersions.HasFlag(CompositionEngines.V3EmulatingV2WithNonPublic)
+                ? TestUtilities.V2DiscoveryWithNonPublics
+                : TestUtilities.V2Discovery;
             if (this.compositionVersions.HasFlag(CompositionEngines.V3EmulatingV2))
             {
-                discovery.Add(new AttributedPartDiscovery { IsNonPublicSupported = this.compositionVersions.HasFlag(CompositionEngines.V3EmulatingV2WithNonPublic) });
+                discovery.Add(v2Discovery);
                 titleAppends.Add("V2");
             }
 
             if (this.compositionVersions.HasFlag(CompositionEngines.V3EmulatingV1AndV2AtOnce))
             {
-                discovery.Add(PartDiscovery.Combine(
-                    new AttributedPartDiscoveryV1(),
-                    new AttributedPartDiscovery { IsNonPublicSupported = this.compositionVersions.HasFlag(CompositionEngines.V3EmulatingV2WithNonPublic) }));
+                discovery.Add(PartDiscovery.Combine(TestUtilities.V1Discovery, v2Discovery));
                 titleAppends.Add("V1+V2");
             }
 

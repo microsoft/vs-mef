@@ -43,44 +43,45 @@
             {
                 using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
                 {
-                    var context = new SerializationContext(writer, composition.Parts.Count * 5);
+                    var context = new SerializationContext(writer, composition.Parts.Count * 5, composition.Resolver);
                     context.Write(composition);
                     context.FinalizeObjectTableCapacity();
                 }
             });
         }
 
-        public Task<RuntimeComposition> LoadRuntimeCompositionAsync(Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<RuntimeComposition> LoadRuntimeCompositionAsync(Stream cacheStream, MyResolver resolver, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.Argument(cacheStream.CanRead, "cacheStream", ConfigurationStrings.ReadableStreamRequired);
+            Requires.NotNull(resolver, nameof(resolver));
 
             return Task.Run(() =>
             {
                 using (var reader = new BinaryReader(cacheStream, TextEncoding, leaveOpen: true))
                 {
-                    var context = new SerializationContext(reader);
+                    var context = new SerializationContext(reader, resolver);
                     var runtimeComposition = context.ReadRuntimeComposition();
                     return runtimeComposition;
                 }
             });
         }
 
-        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, MyResolver resolver, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, cancellationToken);
+            var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, resolver, cancellationToken);
             return runtimeComposition.CreateExportProviderFactory();
         }
 
         private class SerializationContext : SerializationContextBase
         {
-            internal SerializationContext(BinaryReader reader)
-                : base(reader)
+            internal SerializationContext(BinaryReader reader, MyResolver resolver)
+                : base(reader, resolver)
             {
             }
 
-            internal SerializationContext(BinaryWriter writer, int estimatedObjectCount)
-                : base(writer, estimatedObjectCount)
+            internal SerializationContext(BinaryWriter writer, int estimatedObjectCount, MyResolver resolver)
+                : base(writer, estimatedObjectCount, resolver)
             {
             }
 
@@ -118,7 +119,7 @@
                     var parts = this.ReadList(this.reader, this.ReadRuntimePart);
                     var metadataViewsAndProviders = this.ReadMetadataViewsAndProviders();
 
-                    result = RuntimeComposition.CreateRuntimeComposition(parts, metadataViewsAndProviders);
+                    result = RuntimeComposition.CreateRuntimeComposition(parts, metadataViewsAndProviders, this.Resolver);
                 }
 
                 this.TraceStats();

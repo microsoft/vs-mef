@@ -139,7 +139,6 @@
     <Compile Include="ComposableCatalogTests.cs" />
     <Compile Include="CompositionFailedExceptionTests.cs" />
     <Compile Include="CompressedUIntTests.cs" />
-    <Compile Include="CustomAttributeDataRefTests.cs" />
     <Compile Include="DataFileCacheAndReloadTests.cs" />
     <Compile Include="DelegateServicesTests.cs" />
     <Compile Include="DelegatingExportProviderTests.cs" />

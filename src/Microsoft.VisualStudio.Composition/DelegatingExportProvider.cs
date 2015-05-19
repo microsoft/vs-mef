@@ -23,7 +23,7 @@
         /// </summary>
         /// <param name="inner">The instance to forward queries to.</param>
         protected DelegatingExportProvider(ExportProvider inner)
-            : base(null, null)
+            : base(inner.Resolver)
         {
             Requires.NotNull(inner, nameof(inner));
             this.inner = inner;

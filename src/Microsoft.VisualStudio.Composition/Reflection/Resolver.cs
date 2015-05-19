@@ -2,18 +2,18 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
 
     public static class Resolver
     {
-        private static readonly Dictionary<AssemblyName, Module> AssemblyManifests = new Dictionary<AssemblyName, Module>(ByValueEquality.AssemblyName);
-
         public static Type Resolve(this TypeRef typeRef)
         {
-            return typeRef == null ? null : typeRef.ResolvedType;
+            return typeRef?.ResolvedType;
         }
 
         public static ConstructorInfo Resolve(this ConstructorRef constructorRef)
@@ -23,7 +23,7 @@
                 return null;
             }
 
-            var manifest = GetManifest(constructorRef.DeclaringType.AssemblyName);
+            var manifest = constructorRef.Resolver.GetManifest(constructorRef.DeclaringType.AssemblyName);
             return (ConstructorInfo)manifest.ResolveMethod(constructorRef.MetadataToken);
         }
 
@@ -34,7 +34,7 @@
                 return null;
             }
 
-            var manifest = GetManifest(methodRef.DeclaringType.AssemblyName);
+            var manifest = methodRef.Resolver.GetManifest(methodRef.DeclaringType.AssemblyName);
             var method = (MethodInfo)manifest.ResolveMethod(methodRef.MetadataToken);
             if (methodRef.GenericMethodArguments.Length > 0)
             {
@@ -52,7 +52,7 @@
                 return null;
             }
 
-            Type type = Resolve(propertyRef.DeclaringType);
+            Type type = propertyRef.DeclaringType.Resolve();
             return type.GetRuntimeProperties().First(p => p.MetadataToken == propertyRef.MetadataToken);
         }
 
@@ -60,7 +60,7 @@
         {
             if (propertyRef.GetMethodMetadataToken.HasValue)
             {
-                Module manifest = GetManifest(propertyRef.DeclaringType.AssemblyName);
+                Module manifest = propertyRef.Resolver.GetManifest(propertyRef.DeclaringType.AssemblyName);
                 return (MethodInfo)manifest.ResolveMethod(propertyRef.GetMethodMetadataToken.Value);
             }
 
@@ -71,7 +71,7 @@
         {
             if (propertyRef.SetMethodMetadataToken.HasValue)
             {
-                Module manifest = GetManifest(propertyRef.DeclaringType.AssemblyName);
+                Module manifest = propertyRef.Resolver.GetManifest(propertyRef.DeclaringType.AssemblyName);
                 return (MethodInfo)manifest.ResolveMethod(propertyRef.SetMethodMetadataToken.Value);
             }
 
@@ -85,7 +85,7 @@
                 return null;
             }
 
-            var manifest = GetManifest(fieldRef.AssemblyName);
+            var manifest = fieldRef.Resolver.GetManifest(fieldRef.AssemblyName);
             return manifest.ResolveField(fieldRef.MetadataToken);
         }
 
@@ -96,7 +96,7 @@
                 return null;
             }
 
-            Module manifest = GetManifest(parameterRef.AssemblyName);
+            Module manifest = parameterRef.Resolver.GetManifest(parameterRef.AssemblyName);
             MethodBase method = manifest.ResolveMethod(parameterRef.MethodMetadataToken);
             return method.GetParameters()[parameterRef.ParameterIndex];
         }
@@ -165,28 +165,6 @@
             throw new NotSupportedException();
         }
 
-        internal static Module GetManifest(AssemblyName assemblyName)
-        {
-            Module module;
-            lock (AssemblyManifests)
-            {
-                AssemblyManifests.TryGetValue(assemblyName, out module);
-            }
-
-            if (module == null)
-            {
-                var assembly = Assembly.Load(assemblyName);
-                module = assembly.ManifestModule;
-
-                lock (AssemblyManifests)
-                {
-                    AssemblyManifests[assemblyName] = module;
-                }
-            }
-
-            return module;
-        }
-
         internal static void GetInputAssemblies(this TypeRef typeRef, ISet<AssemblyName> assemblies)
         {
             Requires.NotNull(assemblies, nameof(assemblies));
@@ -202,13 +180,14 @@
                 // Base types may define [InheritedExport] attributes or otherwise influence MEF
                 // so we should include them as input assemblies.
                 // Resolving a TypeRef is a necessary cost in order to identify the transitive closure of base types.
-                foreach (var baseType in typeRef.Resolve().EnumTypeAndBaseTypes())
+                var type = typeRef.Resolve();
+                foreach (var baseType in type.EnumTypeAndBaseTypes())
                 {
                     assemblies.Add(baseType.Assembly.GetName());
                 }
 
                 // Interfaces may also define [InheritedExport] attributes, metadata view filters, etc.
-                foreach (var iface in typeRef.Resolve().GetInterfaces())
+                foreach (var iface in type.GetInterfaces())
                 {
                     assemblies.Add(iface.Assembly.GetName());
                 }
@@ -289,6 +268,57 @@
             {
                 assemblies.Add(parameterRef.AssemblyName);
             }
+        }
+    }
+
+    public class MyResolver : IAssemblyLoader
+    {
+        /// <summary>
+        /// A <see cref="MyResolver"/> instance that should only be used in code paths
+        /// that serve for *debugging* purposes.
+        /// </summary>
+        public static readonly MyResolver DefaultInstance = new MyResolver(new StandardAssemblyLoader());
+
+        /// <summary>
+        /// A cache of TypeRef instances that correspond to Type instances.
+        /// </summary>
+        /// <remarks>
+        /// This is for efficiency to avoid duplicates where convenient to do so.
+        /// It is not intended as a guarantee of reference equality across equivalent TypeRef instances.
+        /// </remarks>
+        internal readonly Dictionary<Type, WeakReference<TypeRef>> InstanceCache = new Dictionary<Type, WeakReference<TypeRef>>();
+
+        private readonly IAssemblyLoader assemblyLoader;
+
+        private MyResolver(IAssemblyLoader assemblyLoader)
+        {
+            Requires.NotNull(assemblyLoader, nameof(assemblyLoader));
+            this.assemblyLoader = assemblyLoader;
+        }
+
+        public static MyResolver Get(IAssemblyLoader assemblyLoader)
+        {
+            Requires.NotNull(assemblyLoader, nameof(assemblyLoader));
+
+            return (assemblyLoader as MyResolver) ?? new MyResolver(assemblyLoader);
+        }
+
+        Assembly IAssemblyLoader.LoadAssembly(string assemblyFullName, string codeBasePath)
+        {
+            return this.assemblyLoader.LoadAssembly(assemblyFullName, codeBasePath);
+        }
+
+        Assembly IAssemblyLoader.LoadAssembly(AssemblyName assemblyName)
+        {
+            return this.assemblyLoader.LoadAssembly(assemblyName);
+        }
+
+        internal Module GetManifest(AssemblyName assemblyName)
+        {
+            Requires.NotNull(assemblyName, nameof(assemblyName));
+
+            var assembly = this.assemblyLoader.LoadAssembly(assemblyName);
+            return assembly.ManifestModule;
         }
     }
 }

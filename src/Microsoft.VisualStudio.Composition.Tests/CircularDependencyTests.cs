@@ -274,11 +274,12 @@
         [Fact]
         public async Task ValidMultiplePaths()
         {
-            CompositionConfiguration.Create(await new AttributedPartDiscovery().CreatePartsAsync(
+            var catalog = TestUtilities.EmptyCatalog.WithParts(await TestUtilities.V2Discovery.CreatePartsAsync(
                 typeof(ValidMultiplePathRoot),
                 typeof(ValidMultiplePathTrail1),
                 typeof(ValidMultiplePathTrail2),
                 typeof(ValidMultiplePathCommonImport)));
+            CompositionConfiguration.Create(catalog);
         }
 
         [Export]

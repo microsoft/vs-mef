@@ -11,9 +11,10 @@
 
     internal static class Utilities
     {
-        internal static ComposablePartDefinition GetMetadataViewProviderPartDefinition(Type providerType, int orderPrecedence)
+        internal static ComposablePartDefinition GetMetadataViewProviderPartDefinition(Type providerType, int orderPrecedence, MyResolver resolver)
         {
             Requires.NotNull(providerType, nameof(providerType));
+            Requires.NotNull(resolver, nameof(resolver));
 
             var exportDefinition = new ExportDefinition(
                 ContractNameServices.GetTypeIdentity(typeof(IMetadataViewProvider)),
@@ -22,14 +23,14 @@
                     .SetItem("OrderPrecedence", orderPrecedence));
 
             var partDefinition = new ComposablePartDefinition(
-                TypeRef.Get(providerType),
+                TypeRef.Get(providerType, resolver),
                 ImmutableDictionary<string, object>.Empty.Add(CompositionConstants.DgmlCategoryPartMetadataName, new[] { "VsMEFBuiltIn" }),
                 new[] { exportDefinition },
                 ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
                 ImmutableList<ImportDefinitionBinding>.Empty,
                 string.Empty,
                 default(MethodRef),
-                ConstructorRef.Get(providerType.GetConstructor(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance, null, new Type[0], null)),
+                ConstructorRef.Get(providerType.GetConstructor(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance, null, new Type[0], null), resolver),
                 ImmutableList<ImportDefinitionBinding>.Empty,
                 CreationPolicy.Shared,
                 false);

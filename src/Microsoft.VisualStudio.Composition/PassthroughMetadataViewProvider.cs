@@ -7,6 +7,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Reflection;
 
     /// <summary>
     /// Supports metadata views that are any type that <see cref="ImmutableDictionary{TKey, TValue}"/>
@@ -15,7 +16,7 @@
     internal class PassthroughMetadataViewProvider : IMetadataViewProvider
     {
         internal static readonly ComposablePartDefinition PartDefinition =
-            Utilities.GetMetadataViewProviderPartDefinition(typeof(PassthroughMetadataViewProvider), 1001000);
+            Utilities.GetMetadataViewProviderPartDefinition(typeof(PassthroughMetadataViewProvider), 1001000, MyResolver.DefaultInstance);
 
         internal static readonly IMetadataViewProvider Default = new PassthroughMetadataViewProvider();
 

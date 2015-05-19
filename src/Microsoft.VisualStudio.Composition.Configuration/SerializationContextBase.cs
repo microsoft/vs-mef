@@ -36,10 +36,13 @@ namespace Microsoft.VisualStudio.Composition
 
         private long objectTableCapacityStreamPosition = -1; // -1 indicates the stream isn't capable of seeking.
 
-        internal SerializationContextBase(BinaryReader reader)
+        internal SerializationContextBase(BinaryReader reader, MyResolver resolver)
         {
             Requires.NotNull(reader, nameof(reader));
+            Requires.NotNull(resolver, nameof(resolver));
+
             this.reader = reader;
+            this.Resolver = resolver;
 
             // At the head of the stream, read in the estimated or actual size of the object table we will require.
             // This reduces GC pressure and time spent resizing the object table during deserialization.
@@ -48,11 +51,14 @@ namespace Microsoft.VisualStudio.Composition
             this.deserializingObjectTable = new Dictionary<uint, object>(objectTableSafeCapacity);
         }
 
-        internal SerializationContextBase(BinaryWriter writer, int estimatedObjectCount)
+        internal SerializationContextBase(BinaryWriter writer, int estimatedObjectCount, MyResolver resolver)
         {
             Requires.NotNull(writer, nameof(writer));
+            Requires.NotNull(resolver, nameof(resolver));
+
             this.writer = writer;
             this.serializingObjectTable = new Dictionary<object, uint>(estimatedObjectCount, SmartInterningEqualityComparer.Default);
+            this.Resolver = resolver;
 #if TRACESTATS
             this.sizeStats = new Dictionary<string, int>();
 #endif
@@ -92,6 +98,11 @@ namespace Microsoft.VisualStudio.Composition
             TypeSubstitution,
             TypeArraySubstitution,
         }
+
+        /// <summary>
+        /// The resolver to use when deserializing.
+        /// </summary>
+        protected MyResolver Resolver { get; }
 
         protected internal void FinalizeObjectTableCapacity()
         {
@@ -422,11 +433,11 @@ namespace Microsoft.VisualStudio.Composition
                     var genericParameterDeclaringMemberIndex = flags.HasFlag(TypeRefFlags.HasGenericParameterDeclaringMemberIndex) ? (int)this.ReadCompressedUInt() : -1;
                     if (genericParameterDeclaringMember.IsEmpty)
                     {
-                        value = TypeRef.Get(assemblyName, metadataToken, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments);
+                        value = TypeRef.Get(this.Resolver, assemblyName, metadataToken, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments);
                     }
                     else
                     {
-                        value = TypeRef.Get(assemblyName, metadataToken, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments, genericParameterDeclaringMember, genericParameterDeclaringMemberIndex);
+                        value = TypeRef.Get(this.Resolver, assemblyName, metadataToken, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments, genericParameterDeclaringMember, genericParameterDeclaringMemberIndex);
                     }
 
                     this.OnDeserializedReusableObject(id, value);
@@ -587,7 +598,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 // Special case certain values to avoid defeating lazy load later.
                 // Check out the ReadMetadata below, how it wraps the return value.
-                var serializedMetadata = new LazyMetadataWrapper(metadata.ToImmutableDictionary(), LazyMetadataWrapper.Direction.ToSubstitutedValue);
+                var serializedMetadata = new LazyMetadataWrapper(metadata.ToImmutableDictionary(), LazyMetadataWrapper.Direction.ToSubstitutedValue, this.Resolver);
                 foreach (var entry in serializedMetadata)
                 {
                     this.Write(entry.Key);
@@ -625,7 +636,7 @@ namespace Microsoft.VisualStudio.Composition
                     builder.Clear(); // clean up for the next user.
                 }
 
-                return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue);
+                return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue, this.Resolver);
             }
         }
 
@@ -719,7 +730,7 @@ namespace Microsoft.VisualStudio.Composition
                     {
                         Array array = (Array)value;
                         this.Write(ObjectType.Array);
-                        TypeRef elementTypeRef = TypeRef.Get(valueType.GetElementType());
+                        TypeRef elementTypeRef = TypeRef.Get(valueType.GetElementType(), this.Resolver);
                         this.Write(elementTypeRef);
                         this.Write(array, this.WriteObject);
                     }
@@ -755,7 +766,7 @@ namespace Microsoft.VisualStudio.Composition
                     else if (typeof(Type).IsAssignableFrom(valueType))
                     {
                         this.Write(ObjectType.Type);
-                        this.Write(TypeRef.Get((Type)value));
+                        this.Write(TypeRef.Get((Type)value, this.Resolver));
                     }
                     else if (typeof(TypeRef) == valueType)
                     {
@@ -832,7 +843,7 @@ namespace Microsoft.VisualStudio.Composition
                         return new LazyMetadataWrapper.TypeSubstitution(typeRef);
                     case ObjectType.TypeArraySubstitution:
                         IReadOnlyList<TypeRef> typeRefArray = this.ReadList(this.reader, this.ReadTypeRef);
-                        return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray);
+                        return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray, this.Resolver);
                     case ObjectType.BinaryFormattedObject:
                         var formatter = new BinaryFormatter();
                         return formatter.Deserialize(this.reader.BaseStream);

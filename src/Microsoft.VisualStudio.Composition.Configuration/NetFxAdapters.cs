@@ -8,6 +8,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Reflection;
     using MefV1 = System.ComponentModel.Composition;
 
     public static class NetFxAdapters
@@ -17,7 +18,7 @@
 
         static NetFxAdapters()
         {
-            var discovery = new AttributedPartDiscoveryV1();
+            var discovery = new AttributedPartDiscoveryV1(MyResolver.DefaultInstance);
             CompositionServicePart = discovery.CreatePart(typeof(CompositionService));
             MetadataViewImplProxyPart = discovery.CreatePart(typeof(MetadataViewImplProxy));
         }

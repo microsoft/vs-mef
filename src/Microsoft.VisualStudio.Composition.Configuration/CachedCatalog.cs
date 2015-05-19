@@ -24,22 +24,24 @@
             {
                 using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
                 {
-                    var context = new SerializationContext(writer, catalog.Parts.Count * 4);
+                    var context = new SerializationContext(writer, catalog.Parts.Count * 4, catalog.Resolver);
                     context.Write(catalog);
                     context.FinalizeObjectTableCapacity();
                 }
             });
         }
 
-        public Task<ComposableCatalog> LoadAsync(Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<ComposableCatalog> LoadAsync(Stream cacheStream, MyResolver resolver, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(cacheStream, nameof(cacheStream));
+            Requires.NotNull(resolver, nameof(resolver));
+
 
             return Task.Run(() =>
             {
                 using (var reader = new BinaryReader(cacheStream, TextEncoding, leaveOpen: true))
                 {
-                    var context = new SerializationContext(reader);
+                    var context = new SerializationContext(reader, resolver);
                     var catalog = context.ReadComposableCatalog();
                     return catalog;
                 }
@@ -48,13 +50,13 @@
 
         private class SerializationContext : SerializationContextBase
         {
-            internal SerializationContext(BinaryReader reader)
-                : base(reader)
+            internal SerializationContext(BinaryReader reader, MyResolver resolver)
+                : base(reader, resolver)
             {
             }
 
-            internal SerializationContext(BinaryWriter writer, int estimatedObjectCount)
-                : base(writer, estimatedObjectCount)
+            internal SerializationContext(BinaryWriter writer, int estimatedObjectCount, MyResolver resolver)
+                : base(writer, estimatedObjectCount, resolver)
             {
             }
 
@@ -79,7 +81,7 @@
                 using (this.Trace("Catalog"))
                 {
                     var parts = this.ReadList(this.ReadComposablePartDefinition);
-                    return ComposableCatalog.Create(parts);
+                    return ComposableCatalog.Create(this.Resolver).WithParts(parts);
                 }
             }
 
@@ -301,7 +303,7 @@
                             foreach (var item in importMetadataViewConstraint.Requirements)
                             {
                                 this.Write(item.Key);
-                                this.Write(item.Value.MetadatumValueType);
+                                this.Write(item.Value.MetadatumValueTypeRef);
                                 this.writer.Write(item.Value.IsMetadataumValueRequired);
                             }
 

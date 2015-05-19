@@ -52,6 +52,11 @@
             get { return this.ExportingMember.IsStatic(); }
         }
 
+        public TypeRef ExportedValueTypeRef
+        {
+            get { return TypeRef.Get(this.ExportedValueType, this.PartDefinition.TypeRef.Resolver); }
+        }
+
         public Type ExportedValueType
         {
             get { return ReflectionHelpers.GetExportedValueType(this.PartDefinition.Type, this.ExportingMember); }
@@ -80,7 +85,7 @@
 
         public override int GetHashCode()
         {
-            int hashCode = this.PartDefinition.Type.GetHashCode();
+            int hashCode = this.PartDefinition.TypeRef.GetHashCode();
             if (!this.ExportingMemberRef.IsEmpty)
             {
                 hashCode += this.ExportingMemberRef.GetHashCode();
@@ -91,7 +96,7 @@
 
         public bool Equals(ExportDefinitionBinding other)
         {
-            bool result = this.PartDefinition.Type == other.PartDefinition.Type
+            bool result = this.PartDefinition.TypeRef.Equals(other.PartDefinition.TypeRef)
                 && this.ExportDefinition.Equals(other.ExportDefinition)
                 && this.ExportingMemberRef.Equals(other.ExportingMemberRef);
             return result;

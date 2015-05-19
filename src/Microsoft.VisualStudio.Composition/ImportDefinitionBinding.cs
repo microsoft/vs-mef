@@ -48,19 +48,6 @@
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
-        /// to represent an imperative query into the container (no importing part).
-        /// </summary>
-        public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef contractType)
-        {
-            Requires.NotNull(importDefinition, nameof(importDefinition));
-            Requires.NotNull(contractType, nameof(contractType));
-
-            this.ImportDefinition = importDefinition;
-            this.importingSiteTypeRef = TypeRef.Get(typeof(IEnumerable<>).MakeGenericType(typeof(Lazy<>).MakeGenericType(contractType.Resolve())));
-        }
-
-        /// <summary>
         /// Gets the definition for this import.
         /// </summary>
         public ImportDefinition ImportDefinition { get; private set; }
@@ -115,11 +102,11 @@
                 {
                     if (!this.ImportingMemberRef.IsEmpty)
                     {
-                        this.importingSiteTypeRef = TypeRef.Get(ReflectionHelpers.GetMemberType(this.ImportingMemberRef.Resolve()));
+                        this.importingSiteTypeRef = TypeRef.Get(ReflectionHelpers.GetMemberType(this.ImportingMemberRef.Resolve()), this.ImportingMemberRef.Resolver);
                     }
                     else if (!this.ImportingParameterRef.IsEmpty)
                     {
-                        this.importingSiteTypeRef = TypeRef.Get(this.ImportingParameterRef.Resolve().ParameterType);
+                        this.importingSiteTypeRef = TypeRef.Get(this.ImportingParameterRef.Resolve().ParameterType, this.ImportingParameterRef.Resolver);
                     }
                     else
                     {

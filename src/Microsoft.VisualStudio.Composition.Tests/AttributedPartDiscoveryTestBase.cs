@@ -10,6 +10,7 @@
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests;
     using Microsoft.VisualStudio.Composition.BrokenAssemblyTests;
+    using Composition.Reflection;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
@@ -97,7 +98,7 @@
             File.Copy(typeof(DiscoverablePart1).Assembly.Location, alternateReadLocation, true);
 
             var parts = await this.DiscoveryService.CreatePartsAsync(new[] { alternateReadLocation });
-            var catalog = ComposableCatalog.Create(parts);
+            var catalog = TestUtilities.EmptyCatalog.WithParts(parts);
             var configuration = CompositionConfiguration.Create(catalog);
             var exportProviderFactory = configuration.CreateExportProviderFactory();
             var exportProvider = exportProviderFactory.CreateExportProvider();
@@ -274,6 +275,10 @@
         /// </summary>
         private class PartDiscoveryAllTypesMock : PartDiscovery
         {
+            public PartDiscoveryAllTypesMock() : base(TestUtilities.Resolver)
+            {
+            }
+
             protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
             {
                 return null;

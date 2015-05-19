@@ -13,14 +13,7 @@
     [DebuggerDisplay("{ResolvedType.FullName,nq}")]
     public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
     {
-        /// <summary>
-        /// A cache of TypeRef instances that correspond to Type instances.
-        /// </summary>
-        /// <remarks>
-        /// This is for efficiency to avoid duplicates where convenient to do so.
-        /// It is not intended as a guarantee of reference equality across equivalent TypeRef instances.
-        /// </remarks>
-        private static readonly Dictionary<Type, WeakReference<TypeRef>> InstanceCache = new Dictionary<Type, WeakReference<TypeRef>>();
+        private readonly MyResolver resolver;
 
         /// <summary>
         /// Backing field for the lazily initialized <see cref="ResolvedType"/> property.
@@ -32,12 +25,14 @@
         /// </summary>
         private int? hashCode;
 
-        private TypeRef(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex)
+        private TypeRef(MyResolver resolver, AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex)
         {
+            Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(assemblyName, nameof(assemblyName));
             Requires.Argument(((MetadataTokenType)metadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type, "metadataToken", Strings.NotATypeSpec);
             Requires.Argument(metadataToken != (int)MetadataTokenType.Type, "metadataToken", Strings.UnresolvableMetadataToken);
 
+            this.resolver = resolver;
             this.AssemblyName = GetNormalizedAssemblyName(assemblyName);
             this.MetadataToken = metadataToken;
             this.IsArray = isArray;
@@ -47,10 +42,12 @@
             this.GenericParameterDeclaringMemberIndex = declaringMethodParameterIndex;
         }
 
-        private TypeRef(Type type)
+        private TypeRef(MyResolver resolver, Type type)
         {
+            Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(type, nameof(type));
 
+            this.resolver = resolver;
             this.AssemblyName = GetNormalizedAssemblyName(type.Assembly.GetName());
             this.IsArray = type.IsArray;
 
@@ -58,14 +55,14 @@
             this.MetadataToken = elementType.MetadataToken;
             this.GenericTypeParameterCount = elementType.GetTypeInfo().GenericTypeParameters.Length;
             this.GenericTypeArguments = elementType.GenericTypeArguments != null && elementType.GenericTypeArguments.Length > 0
-                ? elementType.GenericTypeArguments.Select(t => new TypeRef(t)).ToImmutableArray()
+                ? elementType.GenericTypeArguments.Select(t => new TypeRef(resolver, t)).ToImmutableArray()
                 : ImmutableArray<TypeRef>.Empty;
 
             if (elementType.IsGenericParameter)
             {
                 // Generic type parameters may come in without be type specs. So the only way to reconstruct them is by way of who references them.
                 var declaringMember = (MemberInfo)elementType.DeclaringMethod ?? elementType.DeclaringType;
-                this.GenericParameterDeclaringMember = MemberRef.Get(declaringMember);
+                this.GenericParameterDeclaringMember = MemberRef.Get(declaringMember, resolver);
                 this.GenericParameterDeclaringMemberIndex = Array.IndexOf(GetGenericTypeArguments(declaringMember), elementType);
             }
         }
@@ -89,6 +86,8 @@
             get { return this.GenericTypeParameterCount > 0 && this.GenericTypeArguments.Length == 0; }
         }
 
+        internal MyResolver Resolver => this.resolver;
+
         /// <summary>
         /// Gets the resolved type.
         /// </summary>
@@ -101,7 +100,7 @@
                     Type type;
                     if (((MetadataTokenType)this.MetadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type)
                     {
-                        var manifest = Resolver.GetManifest(this.AssemblyName);
+                        var manifest = this.Resolver.GetManifest(this.AssemblyName);
                         var resolvedType = manifest.ResolveType(this.MetadataToken);
                         if (this.GenericTypeArguments.Length > 0)
                         {
@@ -135,42 +134,45 @@
             }
         }
 
-        public static TypeRef Get(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
+        public static TypeRef Get(MyResolver resolver, AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
-            return new TypeRef(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments, default(MemberRef), 0);
+            return new TypeRef(resolver, assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments, default(MemberRef), 0);
         }
 
-        public static TypeRef Get(AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = 0)
+        public static TypeRef Get(MyResolver resolver, AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = 0)
         {
-            return new TypeRef(assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments, declaringMember, declaringMethodParameterIndex);
+            return new TypeRef(resolver, assemblyName, metadataToken, isArray, genericTypeParameterCount, genericTypeArguments, declaringMember, declaringMethodParameterIndex);
         }
 
         /// <summary>
         /// Gets a TypeRef that represents a given Type instance.
         /// </summary>
         /// <param name="type">The Type to represent. May be <c>null</c> to get a <c>null</c> result.</param>
+        /// <param name="resolver">The resolver to use to reconstitute <paramref name="type"/> or derivatives later.</param>
         /// <returns>An instance of TypeRef if <paramref name="type"/> is not <c>null</c>; otherwise <c>null</c>.</returns>
-        public static TypeRef Get(Type type)
+        public static TypeRef Get(Type type, MyResolver resolver)
         {
+            Requires.NotNull(resolver, nameof(resolver));
+
             if (type == null)
             {
                 return null;
             }
 
             TypeRef result;
-            lock (InstanceCache)
+            lock (resolver.InstanceCache)
             {
                 WeakReference<TypeRef> weakResult;
-                if (!InstanceCache.TryGetValue(type, out weakResult))
+                if (!resolver.InstanceCache.TryGetValue(type, out weakResult))
                 {
-                    result = new TypeRef(type);
-                    InstanceCache.Add(type, new WeakReference<TypeRef>(result));
+                    result = new TypeRef(resolver, type);
+                    resolver.InstanceCache.Add(type, new WeakReference<TypeRef>(result));
                 }
                 else
                 {
                     if (!weakResult.TryGetTarget(out result))
                     {
-                        result = new TypeRef(type);
+                        result = new TypeRef(resolver, type);
                         weakResult.SetTarget(result);
                     }
                 }
@@ -181,11 +183,14 @@
             return result;
         }
 
-        public TypeRef MakeGenericType(ImmutableArray<TypeRef> genericTypeArguments)
+        public TypeRef MakeGenericTypeRef(ImmutableArray<TypeRef> genericTypeArguments)
         {
             Requires.Argument(!genericTypeArguments.IsDefault, "genericTypeArguments", Strings.NotInitialized);
             Verify.Operation(this.IsGenericTypeDefinition, Strings.NotGenericTypeDefinition);
-            return new Reflection.TypeRef(this.AssemblyName, this.MetadataToken, this.IsArray, this.GenericTypeParameterCount, genericTypeArguments, default(MemberRef), 0);
+
+            // We use the resolver parameter instead of the field here because this TypeRef instance
+            // might have been constructed by TypeRef.Get(Type) and thus not have a resolver.
+            return new TypeRef(this.Resolver, this.AssemblyName, this.MetadataToken, this.IsArray, this.GenericTypeParameterCount, genericTypeArguments, default(MemberRef), 0);
         }
 
         public override int GetHashCode()
@@ -217,7 +222,7 @@
 
         public bool Equals(Type other)
         {
-            return this.Equals(TypeRef.Get(other));
+            return this.Equals(TypeRef.Get(other, this.Resolver));
         }
 
         private static Rental<Type[]> GetResolvedTypeArray(ImmutableArray<TypeRef> typeRefs)

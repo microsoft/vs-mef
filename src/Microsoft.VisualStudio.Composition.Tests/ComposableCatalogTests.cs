@@ -15,9 +15,10 @@
         [Fact]
         public async Task WithCatalog_MergesErrors()
         {
-            var discovery = new AttributedPartDiscovery();
-            var result1 = ComposableCatalog.Create(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist.dll" }));
-            var result2 = ComposableCatalog.Create(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist2.dll" }));
+            var discovery = TestUtilities.V2Discovery;
+            var emptyCatalog = ComposableCatalog.Create(discovery.Resolver);
+            var result1 = emptyCatalog.WithParts(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist.dll" }));
+            var result2 = emptyCatalog.WithParts(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist2.dll" }));
 
             var mergedCatalog = result1.WithCatalog(result2);
 
@@ -28,10 +29,11 @@
         [Fact]
         public async Task WithCatalogs_MergesErrors()
         {
-            var discovery = new AttributedPartDiscovery();
-            var result1 = ComposableCatalog.Create(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist.dll" }));
-            var result2 = ComposableCatalog.Create(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist2.dll" }));
-            var result3 = ComposableCatalog.Create(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist3.dll" }));
+            var discovery = TestUtilities.V2Discovery;
+            var emptyCatalog = ComposableCatalog.Create(discovery.Resolver);
+            var result1 = emptyCatalog.WithParts(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist.dll" }));
+            var result2 = emptyCatalog.WithParts(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist2.dll" }));
+            var result3 = emptyCatalog.WithParts(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist3.dll" }));
 
             var mergedCatalog = result1.WithCatalogs(new[] { result2, result3 });
 
@@ -44,9 +46,10 @@
         [Fact]
         public async Task MetadataAddedAfterDiscoveryIsAvailableAtRuntime()
         {
-            var discovery = new AttributedPartDiscovery();
+            var discovery = TestUtilities.V2Discovery;
             var parts = await discovery.CreatePartsAsync(typeof(Export1), typeof(Export2));
-            var catalog = ComposableCatalog.Create(parts);
+            var emptyCatalog = ComposableCatalog.Create(discovery.Resolver);
+            var catalog = emptyCatalog.WithParts(parts);
 
             var modifiedParts = new DiscoveredParts(
                 catalog.Parts.Select(p => new ComposablePartDefinition(
@@ -64,7 +67,7 @@
                     p.CreationPolicy,
                     p.IsSharingBoundaryInferred)),
                 catalog.DiscoveredParts.DiscoveryErrors);
-            var modifiedCatalog = ComposableCatalog.Create(modifiedParts);
+            var modifiedCatalog = emptyCatalog.WithParts(modifiedParts);
 
             var exportProvider = CompositionConfiguration.Create(modifiedCatalog)
                 .CreateExportProviderFactory()

@@ -16,8 +16,8 @@
         [Fact(Skip = "Not yet implemented.")]
         public void ExceptionIsSerializable()
         {
-            var discovery = new AttributedPartDiscovery();
-            var catalog = ComposableCatalog.Create(new[] { discovery.CreatePart(typeof(Tree)) });
+            var discovery = TestUtilities.V2Discovery;
+            var catalog = TestUtilities.EmptyCatalog.WithParts(new[] { discovery.CreatePart(typeof(Tree)) });
             var configuration = CompositionConfiguration.Create(catalog);
 
             CompositionFailedException exception = null;

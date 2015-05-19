@@ -19,13 +19,15 @@
         private readonly IReadOnlyDictionary<string, IReadOnlyCollection<RuntimeExport>> exportsByContractName;
         private readonly IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders;
 
-        private RuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders)
+        private RuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders, MyResolver resolver)
         {
             Requires.NotNull(parts, nameof(parts));
             Requires.NotNull(metadataViewsAndProviders, nameof(metadataViewsAndProviders));
+            Requires.NotNull(resolver, nameof(resolver));
 
             this.parts = ImmutableHashSet.CreateRange(parts);
             this.metadataViewsAndProviders = metadataViewsAndProviders;
+            this.Resolver = resolver;
 
             this.partsByType = this.parts.ToDictionary(p => p.Type, this.parts.Count);
 
@@ -49,6 +51,8 @@
             get { return this.metadataViewsAndProviders; }
         }
 
+        internal MyResolver Resolver { get; }
+
         public static RuntimeComposition CreateRuntimeComposition(CompositionConfiguration configuration)
         {
             Requires.NotNull(configuration, nameof(configuration));
@@ -57,15 +61,15 @@
             var parts = configuration.Parts.Select(part => CreateRuntimePart(part, configuration));
             var metadataViewsAndProviders = ImmutableDictionary.CreateRange(
                 from viewAndProvider in configuration.MetadataViewsAndProviders
-                let viewTypeRef = TypeRef.Get(viewAndProvider.Key)
-                let runtimeExport = CreateRuntimeExport(viewAndProvider.Value)
+                let viewTypeRef = TypeRef.Get(viewAndProvider.Key, configuration.Resolver)
+                let runtimeExport = CreateRuntimeExport(viewAndProvider.Value, configuration.Resolver)
                 select new KeyValuePair<TypeRef, RuntimeExport>(viewTypeRef, runtimeExport));
-            return new RuntimeComposition(parts, metadataViewsAndProviders);
+            return new RuntimeComposition(parts, metadataViewsAndProviders, configuration.Resolver);
         }
 
-        public static RuntimeComposition CreateRuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders)
+        public static RuntimeComposition CreateRuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders, IAssemblyLoader assemblyLoader)
         {
-            return new RuntimeComposition(parts, metadataViewsAndProviders);
+            return new RuntimeComposition(parts, metadataViewsAndProviders, MyResolver.Get(assemblyLoader));
         }
 
         public IExportProviderFactory CreateExportProviderFactory()
@@ -158,27 +162,30 @@
         {
             Requires.NotNull(part, nameof(part));
 
+            var partDefinitionType = part.Definition.Type;
+            var importingConstructor = part.Definition.ImportingConstructorInfo;
+            var onImportsSatisfied = part.Definition.OnImportsSatisfied;
             var runtimePart = new RuntimePart(
-                TypeRef.Get(part.Definition.Type),
-                part.Definition.ImportingConstructorInfo != null ? new ConstructorRef(part.Definition.ImportingConstructorInfo) : default(ConstructorRef),
-                part.GetImportingConstructorImports().Select(kvp => CreateRuntimeImport(kvp.Key, kvp.Value)).ToImmutableArray(),
-                part.Definition.ImportingMembers.Select(idb => CreateRuntimeImport(idb, part.SatisfyingExports[idb])).ToImmutableArray(),
-                part.Definition.ExportDefinitions.Select(ed => CreateRuntimeExport(ed.Value, part.Definition.Type, ed.Key)).ToImmutableArray(),
-                part.Definition.OnImportsSatisfied != null ? new MethodRef(part.Definition.OnImportsSatisfied) : new MethodRef(),
+                TypeRef.Get(partDefinitionType, part.Resolver),
+                importingConstructor != null ? new ConstructorRef(importingConstructor, part.Resolver) : default(ConstructorRef),
+                part.GetImportingConstructorImports().Select(kvp => CreateRuntimeImport(kvp.Key, kvp.Value, part.Resolver)).ToImmutableArray(),
+                part.Definition.ImportingMembers.Select(idb => CreateRuntimeImport(idb, part.SatisfyingExports[idb], part.Resolver)).ToImmutableArray(),
+                part.Definition.ExportDefinitions.Select(ed => CreateRuntimeExport(ed.Value, partDefinitionType, ed.Key, part.Resolver)).ToImmutableArray(),
+                onImportsSatisfied != null ? new MethodRef(onImportsSatisfied, part.Resolver) : new MethodRef(),
                 part.Definition.IsShared ? configuration.GetEffectiveSharingBoundary(part.Definition) : null);
             return runtimePart;
         }
 
-        private static RuntimeImport CreateRuntimeImport(ImportDefinitionBinding importDefinitionBinding, IReadOnlyList<ExportDefinitionBinding> satisfyingExports)
+        private static RuntimeImport CreateRuntimeImport(ImportDefinitionBinding importDefinitionBinding, IReadOnlyList<ExportDefinitionBinding> satisfyingExports, MyResolver resolver)
         {
             Requires.NotNull(importDefinitionBinding, nameof(importDefinitionBinding));
             Requires.NotNull(satisfyingExports, nameof(satisfyingExports));
 
-            var runtimeExports = satisfyingExports.Select(export => CreateRuntimeExport(export)).ToImmutableArray();
-            if (importDefinitionBinding.ImportingMember != null)
+            var runtimeExports = satisfyingExports.Select(export => CreateRuntimeExport(export, resolver)).ToImmutableArray();
+            if (!importDefinitionBinding.ImportingMemberRef.IsEmpty)
             {
                 return new RuntimeImport(
-                    new MemberRef(importDefinitionBinding.ImportingMember),
+                    importDefinitionBinding.ImportingMemberRef,
                     importDefinitionBinding.ImportingSiteTypeRef,
                     importDefinitionBinding.ImportDefinition.Cardinality,
                     runtimeExports,
@@ -190,7 +197,7 @@
             else
             {
                 return new RuntimeImport(
-                    new ParameterRef(importDefinitionBinding.ImportingParameter),
+                    importDefinitionBinding.ImportingParameterRef,
                     importDefinitionBinding.ImportingSiteTypeRef,
                     importDefinitionBinding.ImportDefinition.Cardinality,
                     runtimeExports,
@@ -201,25 +208,30 @@
             }
         }
 
-        private static RuntimeExport CreateRuntimeExport(ExportDefinition exportDefinition, Type partType, MemberRef exportingMember)
+        private static RuntimeExport CreateRuntimeExport(ExportDefinition exportDefinition, Type partType, MemberRef exportingMemberRef, MyResolver resolver)
         {
             Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
+            var exportingMember = exportingMemberRef.Resolve();
             return new RuntimeExport(
                 exportDefinition.ContractName,
-                TypeRef.Get(partType),
-                exportingMember,
-                TypeRef.Get(ReflectionHelpers.GetExportedValueType(partType, exportingMember.Resolve())),
+                TypeRef.Get(partType, resolver),
+                exportingMemberRef,
+                TypeRef.Get(ReflectionHelpers.GetExportedValueType(partType, exportingMember), resolver),
                 exportDefinition.Metadata);
         }
 
-        private static RuntimeExport CreateRuntimeExport(ExportDefinitionBinding exportDefinitionBinding)
+        private static RuntimeExport CreateRuntimeExport(ExportDefinitionBinding exportDefinitionBinding, MyResolver resolver)
         {
             Requires.NotNull(exportDefinitionBinding, nameof(exportDefinitionBinding));
+            Requires.NotNull(resolver, nameof(resolver));
+
+            var partDefinitionType = exportDefinitionBinding.PartDefinition.TypeRef.Resolve();
             return CreateRuntimeExport(
                 exportDefinitionBinding.ExportDefinition,
-                exportDefinitionBinding.PartDefinition.Type,
-                exportDefinitionBinding.ExportingMemberRef);
+                partDefinitionType,
+                exportDefinitionBinding.ExportingMemberRef,
+                resolver);
         }
 
         [DebuggerDisplay("{Type.ResolvedType.FullName,nq}")]

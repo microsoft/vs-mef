@@ -5,12 +5,11 @@
     using System.Composition;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
+    using Reflection;
 
     internal static class ExportMetadataViewInterfaceEmitProxy
     {
-        private static readonly ComposablePartDefinition ProxySupportPartDefinition = new AttributedPartDiscovery().CreatePart(typeof(MetadataViewProxyProvider));
+        private static readonly ComposablePartDefinition ProxySupportPartDefinition = new AttributedPartDiscovery(MyResolver.DefaultInstance).CreatePart(typeof(MetadataViewProxyProvider));
 
         /// <summary>
         /// Adds support for queries to <see cref="ExportProvider.GetExports{T, TMetadata}()"/> where

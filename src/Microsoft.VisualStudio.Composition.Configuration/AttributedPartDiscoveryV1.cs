@@ -16,6 +16,11 @@
     {
         private static readonly MethodInfo OnImportsSatisfiedMethodInfo = typeof(IPartImportsSatisfiedNotification).GetMethod("OnImportsSatisfied", BindingFlags.Public | BindingFlags.Instance);
 
+        public AttributedPartDiscoveryV1(MyResolver resolver)
+            : base(resolver)
+        {
+        }
+
         protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
         {
             Requires.NotNull(partType, nameof(partType));
@@ -72,7 +77,7 @@
                 return null;
             }
 
-            TypeRef partTypeRef = TypeRef.Get(partType);
+            TypeRef partTypeRef = TypeRef.Get(partType, this.Resolver);
             Type partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
 
             // Collect information for all imports.
@@ -180,23 +185,23 @@
             var exportsOnMembers = (from kv in exportDefinitions
                                     where !(kv.Key is Type)
                                     group kv.Value by kv.Key into byMember
-                                    select byMember).ToDictionary(g => MemberRef.Get(g.Key), g => (IReadOnlyCollection<ExportDefinition>)g.ToArray());
+                                    select byMember).ToDictionary(g => MemberRef.Get(g.Key, this.Resolver), g => (IReadOnlyCollection<ExportDefinition>)g.ToArray());
 
             return new ComposablePartDefinition(
-                TypeRef.Get(partType),
+                TypeRef.Get(partType, this.Resolver),
                 partMetadata.ToImmutable(),
                 exportsOnType,
                 exportsOnMembers,
                 imports.ToImmutable(),
                 partCreationPolicy != CreationPolicy.NonShared ? string.Empty : null,
-                MethodRef.Get(onImportsSatisfied),
-                ConstructorRef.Get(importingCtor),
+                MethodRef.Get(onImportsSatisfied, this.Resolver),
+                ConstructorRef.Get(importingCtor, this.Resolver),
                 importingCtor != null ? importingConstructorParameters.ToImmutable() : null, // some MEF parts are only for metadata
                 partCreationPolicy,
                 partCreationPolicy != CreationPolicy.NonShared);
         }
 
-        private static void AddImportsFromMembers(PropertyInfo[] declaredProperties, FieldInfo[] declaredFields, TypeRef partTypeRef, IList<ImportDefinitionBinding> imports)
+        private void AddImportsFromMembers(PropertyInfo[] declaredProperties, FieldInfo[] declaredFields, TypeRef partTypeRef, IList<ImportDefinitionBinding> imports)
         {
             Requires.NotNull(declaredProperties, nameof(declaredProperties));
             Requires.NotNull(declaredFields, nameof(declaredFields));
@@ -210,7 +215,7 @@
                     ImportDefinition importDefinition;
                     if (TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, out importDefinition))
                     {
-                        imports.Add(new ImportDefinitionBinding(importDefinition, partTypeRef, MemberRef.Get(member)));
+                        imports.Add(new ImportDefinitionBinding(importDefinition, partTypeRef, MemberRef.Get(member, this.Resolver)));
                     }
                 }
             }
@@ -237,7 +242,7 @@
             return assembly.GetTypes();
         }
 
-        private static bool TryCreateImportDefinition(Type importingType, ICustomAttributeProvider member, out ImportDefinition importDefinition)
+        private bool TryCreateImportDefinition(Type importingType, ICustomAttributeProvider member, out ImportDefinition importDefinition)
         {
             Requires.NotNull(importingType, nameof(importingType));
             Requires.NotNull(member, nameof(member));
@@ -302,11 +307,11 @@
             }
         }
 
-        private static ImportDefinitionBinding CreateImport(ParameterInfo parameter)
+        private ImportDefinitionBinding CreateImport(ParameterInfo parameter)
         {
             ImportDefinition definition;
             Assumes.True(TryCreateImportDefinition(parameter.ParameterType, parameter, out definition));
-            return new ImportDefinitionBinding(definition, TypeRef.Get(parameter.Member.DeclaringType), ParameterRef.Get(parameter));
+            return new ImportDefinitionBinding(definition, TypeRef.Get(parameter.Member.DeclaringType, this.Resolver), ParameterRef.Get(parameter, this.Resolver));
         }
 
         private static IReadOnlyDictionary<string, object> GetExportMetadata(ICustomAttributeProvider member)

@@ -12,13 +12,19 @@
 
     public class AttributedPartDiscovery : PartDiscovery
     {
+        public AttributedPartDiscovery(MyResolver resolver, bool isNonPublicSupported = false)
+            : base(resolver)
+        {
+            this.IsNonPublicSupported = isNonPublicSupported;
+        }
+
         /// <summary>
-        /// Gets or sets a value indicating whether non-public types and members will be explored.
+        /// Gets a value indicating whether non-public types and members will be explored.
         /// </summary>
         /// <remarks>
         /// The Microsoft.Composition NuGet package ignores non-publics.
         /// </remarks>
-        public bool IsNonPublicSupported { get; set; }
+        public bool IsNonPublicSupported { get; }
 
         /// <summary>
         /// Gets the flags that select just public members or public and non-public as appropriate.
@@ -76,7 +82,7 @@
                 return null;
             }
 
-            TypeRef partTypeRef = TypeRef.Get(partType);
+            TypeRef partTypeRef = TypeRef.Get(partType, this.Resolver);
             Type partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
 
             string sharingBoundary = null;
@@ -119,7 +125,7 @@
                         exportDefinitions.Add(exportDefinition);
                     }
 
-                    exportsOnMembers.Add(MemberRef.Get(member), exportDefinitions.ToImmutable());
+                    exportsOnMembers.Add(MemberRef.Get(member, this.Resolver), exportDefinitions.ToImmutable());
                 }
             }
 
@@ -133,7 +139,7 @@
                 ImportDefinition importDefinition;
                 if (TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, importConstraints, out importDefinition))
                 {
-                    imports.Add(new ImportDefinitionBinding(importDefinition, TypeRef.Get(partType), MemberRef.Get(member)));
+                    imports.Add(new ImportDefinitionBinding(importDefinition, TypeRef.Get(partType, this.Resolver), MemberRef.Get(member, this.Resolver)));
                 }
             }
 
@@ -169,14 +175,14 @@
             }
 
             return new ComposablePartDefinition(
-                TypeRef.Get(partType),
+                TypeRef.Get(partType, this.Resolver),
                 partMetadata.ToImmutable(),
                 exportsOnType.ToImmutable(),
                 exportsOnMembers.ToImmutable(),
                 imports.ToImmutable(),
                 sharingBoundary,
-                MethodRef.Get(onImportsSatisfied),
-                ConstructorRef.Get(importingCtor),
+                MethodRef.Get(onImportsSatisfied, this.Resolver),
+                ConstructorRef.Get(importingCtor, this.Resolver),
                 importingConstructorParameters.ToImmutable(),
                 partCreationPolicy);
         }
@@ -253,7 +259,7 @@
             }
         }
 
-        private static bool TryCreateImportDefinition(Type importingType, ICustomAttributeProvider member, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints, out ImportDefinition importDefinition)
+        private bool TryCreateImportDefinition(Type importingType, ICustomAttributeProvider member, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints, out ImportDefinition importDefinition)
         {
             Requires.NotNull(importingType, nameof(importingType));
             Requires.NotNull(member, nameof(member));
@@ -315,11 +321,11 @@
             }
         }
 
-        private static ImportDefinitionBinding CreateImport(ParameterInfo parameter, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints)
+        private ImportDefinitionBinding CreateImport(ParameterInfo parameter, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints)
         {
             ImportDefinition result;
             Assumes.True(TryCreateImportDefinition(parameter.ParameterType, parameter, importConstraints, out result));
-            return new ImportDefinitionBinding(result, TypeRef.Get(parameter.Member.DeclaringType), ParameterRef.Get(parameter));
+            return new ImportDefinitionBinding(result, TypeRef.Get(parameter.Member.DeclaringType, this.Resolver), ParameterRef.Get(parameter, this.Resolver));
         }
 
         /// <summary>

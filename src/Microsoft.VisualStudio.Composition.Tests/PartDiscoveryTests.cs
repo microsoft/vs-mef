@@ -50,7 +50,7 @@
         [Fact]
         public async Task Combined_CreatePartsAsync_AssemblyPathEnumerable()
         {
-            var discovery = PartDiscovery.Combine(new AttributedPartDiscovery(), new AttributedPartDiscoveryV1());
+            var discovery = PartDiscovery.Combine(TestUtilities.V2Discovery, TestUtilities.V1Discovery);
             var assemblies = new[]
             {
                 typeof(AssemblyDiscoveryTests.DiscoverablePart1).Assembly,
@@ -63,7 +63,7 @@
         [Fact]
         public async Task Combined_IncrementalProgressUpdates()
         {
-            var discovery = PartDiscovery.Combine(new AttributedPartDiscovery(), new AttributedPartDiscoveryV1());
+            var discovery = PartDiscovery.Combine(TestUtilities.V2Discovery, TestUtilities.V1Discovery);
             var assemblies = new[]
             {
                 typeof(AssemblyDiscoveryTests.DiscoverablePart1).Assembly,
@@ -95,7 +95,7 @@
         [Fact]
         public async Task CatalogAssemblyLoadFailure()
         {
-            var discovery = new AttributedPartDiscovery();
+            var discovery = TestUtilities.V2Discovery;
             var result = await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist.dll" });
             Assert.Equal(1, result.DiscoveryErrors.Count);
             Assert.Equal("Foo\\DoesNotExist.dll", result.DiscoveryErrors[0].AssemblyPath);
@@ -135,6 +135,10 @@
 
         private class SketchyPartDiscovery : PartDiscovery
         {
+            internal SketchyPartDiscovery() : base(TestUtilities.Resolver)
+            {
+            }
+
             protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
             {
                 if (partType == typeof(string))
@@ -143,7 +147,7 @@
                 }
 
                 return new ComposablePartDefinition(
-                    TypeRef.Get(typeof(int)),
+                    TypeRef.Get(typeof(int), TestUtilities.Resolver),
                     ImmutableDictionary<string, object>.Empty,
                     ImmutableList.Create<ExportDefinition>(),
                     ImmutableDictionary.Create<MemberRef, IReadOnlyCollection<ExportDefinition>>(),
@@ -169,6 +173,10 @@
 
         private class NoOpDiscovery : PartDiscovery
         {
+            internal NoOpDiscovery() : base(TestUtilities.Resolver)
+            {
+            }
+
             protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
             {
                 return null;

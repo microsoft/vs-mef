@@ -11,6 +11,7 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Composition.Reflection;
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Sdk;
@@ -45,6 +46,16 @@
             }
         }
 
+        internal static MyResolver Resolver = MyResolver.DefaultInstance;
+
+        internal static ComposableCatalog EmptyCatalog = ComposableCatalog.Create(Resolver);
+
+        internal static PartDiscovery V1Discovery = new AttributedPartDiscoveryV1(Resolver);
+
+        internal static AttributedPartDiscovery V2Discovery = new AttributedPartDiscovery(Resolver);
+
+        internal static AttributedPartDiscovery V2DiscoveryWithNonPublics = new AttributedPartDiscovery(Resolver, isNonPublicSupported: true);
+
         internal static async Task<ExportProvider> CreateContainerAsync(this CompositionConfiguration configuration, ITestOutputHelper output)
         {
             Requires.NotNull(configuration, nameof(configuration));
@@ -58,7 +69,7 @@
             await cacheManager.SaveAsync(runtimeComposition, ms);
             output.WriteLine("Cache file size: {0}", ms.Length);
             ms.Position = 0;
-            var deserializedRuntimeComposition = await cacheManager.LoadRuntimeCompositionAsync(ms);
+            var deserializedRuntimeComposition = await cacheManager.LoadRuntimeCompositionAsync(ms, Resolver);
             Assert.Equal(runtimeComposition, deserializedRuntimeComposition);
 
             return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();
@@ -71,7 +82,7 @@
 
         internal static async Task<ExportProvider> CreateContainerAsync(ITestOutputHelper output, params Type[] parts)
         {
-            var catalog = await new AttributedPartDiscovery().CreatePartsAsync(parts);
+            var catalog = EmptyCatalog.WithParts(await V2Discovery.CreatePartsAsync(parts));
             var configuration = await CompositionConfiguration.Create(catalog)
                 .CreateContainerAsync(output);
             return configuration;
@@ -145,11 +156,11 @@
         {
             PartDiscovery discovery = GetDiscoveryService(attributesDiscovery);
             var assemblyParts = await discovery.CreatePartsAsync(assemblies);
-            var catalog = ComposableCatalog.Create(assemblyParts);
+            var catalog = EmptyCatalog.WithParts(assemblyParts);
             if (parts != null && parts.Length != 0)
             {
-                var typeCatalog = ComposableCatalog.Create(await discovery.CreatePartsAsync(parts));
-                catalog = ComposableCatalog.Create(catalog.Parts.Concat(typeCatalog.Parts));
+                var typeCatalog = EmptyCatalog.WithParts(await discovery.CreatePartsAsync(parts));
+                catalog = EmptyCatalog.WithParts(catalog.Parts.Concat(typeCatalog.Parts));
             }
 
             return await CreateContainerV3Async(catalog, attributesDiscovery, output);
@@ -160,17 +171,14 @@
             var discovery = new List<PartDiscovery>(2);
             if (attributesDiscovery.HasFlag(CompositionEngines.V1))
             {
-                discovery.Add(new AttributedPartDiscoveryV1());
+                discovery.Add(V1Discovery);
             }
 
             if (attributesDiscovery.HasFlag(CompositionEngines.V2))
             {
-                var v2Discovery = new AttributedPartDiscovery();
-                if (attributesDiscovery.HasFlag(CompositionEngines.V3NonPublicSupport))
-                {
-                    v2Discovery.IsNonPublicSupported = true;
-                }
-
+                var v2Discovery = attributesDiscovery.HasFlag(CompositionEngines.V3NonPublicSupport)
+                    ? V2DiscoveryWithNonPublics
+                    : V2Discovery;
                 discovery.Add(v2Discovery);
             }
 

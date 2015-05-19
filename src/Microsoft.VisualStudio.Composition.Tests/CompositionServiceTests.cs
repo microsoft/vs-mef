@@ -58,7 +58,7 @@
         [Fact]
         public void AddCompositionServiceToCatalogTwice()
         {
-            var catalog = ComposableCatalog.Create();
+            var catalog = TestUtilities.EmptyCatalog;
             var catalog1 = catalog.WithCompositionService();
             var catalog2 = catalog1.WithCompositionService();
 
