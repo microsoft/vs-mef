@@ -13,10 +13,10 @@
     {
         private readonly IMessageSink diagnosticMessageSink;
 
-        /// <summary> 
-        /// Initializes a new instance of the <see cref="SkippableFactDiscoverer"/> class. 
-        /// </summary> 
-        /// <param name="diagnosticMessageSink">The message sink used to send diagnostic messages</param> 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SkippableFactDiscoverer"/> class.
+        /// </summary>
+        /// <param name="diagnosticMessageSink">The message sink used to send diagnostic messages</param>
         public SkippableFactDiscoverer(IMessageSink diagnosticMessageSink)
         {
             this.diagnosticMessageSink = diagnosticMessageSink;

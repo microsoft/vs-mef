@@ -15,10 +15,10 @@
     {
         private readonly IMessageSink diagnosticMessageSink;
 
-        /// <summary> 
-        /// Initializes a new instance of the <see cref="MefFactDiscoverer"/> class. 
-        /// </summary> 
-        /// <param name="diagnosticMessageSink">The message sink used to send diagnostic messages</param> 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MefFactDiscoverer"/> class.
+        /// </summary>
+        /// <param name="diagnosticMessageSink">The message sink used to send diagnostic messages</param>
         public MefFactDiscoverer(IMessageSink diagnosticMessageSink)
         {
             this.diagnosticMessageSink = diagnosticMessageSink;

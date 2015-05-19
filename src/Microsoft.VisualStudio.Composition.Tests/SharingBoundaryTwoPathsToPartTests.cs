@@ -15,7 +15,7 @@
         public void SharingBoundaryTwoPathsToPart(IContainer container)
         {
             var root = container.GetExportedValue<Root>();
-            
+
             var a = root.FactoryA.CreateExport().Value;
             var ab1 = a.FactoryB.CreateExport().Value;
             var ab2 = a.FactoryB.CreateExport().Value;

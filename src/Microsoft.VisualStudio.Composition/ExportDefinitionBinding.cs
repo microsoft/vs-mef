@@ -39,7 +39,7 @@
         }
 
         /// <summary>
-        /// Gets the member with the ExportAttribute applied. The return value's <see cref="MemberRef.IsEmpty"/> 
+        /// Gets the member with the ExportAttribute applied. The return value's <see cref="MemberRef.IsEmpty"/>
         /// is <c>true</c> when the export is on the type itself.
         /// </summary>
         public MemberRef ExportingMemberRef { get; private set; }

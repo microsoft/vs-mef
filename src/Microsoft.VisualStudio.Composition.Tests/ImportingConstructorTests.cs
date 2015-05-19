@@ -560,9 +560,9 @@
         /// <remarks>
         /// V1 throws an exception because it doesn't like B evaluating its Lazy.
         /// V2 throws an InternalErrorException for this test.
-        /// 
+        ///
         /// Although V1 and V2 fail this one, it's because neither can handle querying for the importing constructor
-        /// part. But they *can* handle querying for the importing property part first. 
+        /// part. But they *can* handle querying for the importing property part first.
         /// V3 doesn't share this asymmetric failure, so we want to verify that it does it correctly.
         /// </remarks>
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]

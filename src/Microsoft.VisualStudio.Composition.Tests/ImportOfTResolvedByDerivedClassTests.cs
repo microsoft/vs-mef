@@ -26,7 +26,7 @@
         {
             [Import, MefV1.Import]
             public T ImportingProperty { get; set; }
-            
+
             [ImportMany, MefV1.ImportMany]
             public Lazy<T, IDictionary<string, object>>[] ImportingCollections { get; set; }
         }
