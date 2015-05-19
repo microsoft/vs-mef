@@ -25,7 +25,7 @@
         [Fact]
         public async Task CacheAndReload()
         {
-            var catalog = TestUtilities.EmptyCatalog.WithParts(new[] { TestUtilities.V2Discovery.CreatePart(typeof(SomeExport)) });
+            var catalog = TestUtilities.EmptyCatalog.AddParts(new[] { TestUtilities.V2Discovery.CreatePart(typeof(SomeExport)) });
             var configuration = CompositionConfiguration.Create(catalog);
             var ms = new MemoryStream();
             await this.cacheManager.SaveAsync(configuration, ms);

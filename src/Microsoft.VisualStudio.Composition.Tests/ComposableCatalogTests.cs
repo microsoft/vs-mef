@@ -13,29 +13,29 @@
     public class ComposableCatalogTests
     {
         [Fact]
-        public async Task WithCatalog_MergesErrors()
+        public async Task AddCatalog_MergesErrors()
         {
             var discovery = TestUtilities.V2Discovery;
             var emptyCatalog = ComposableCatalog.Create(discovery.Resolver);
-            var result1 = emptyCatalog.WithParts(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist.dll" }));
-            var result2 = emptyCatalog.WithParts(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist2.dll" }));
+            var result1 = emptyCatalog.AddParts(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist.dll" }));
+            var result2 = emptyCatalog.AddParts(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist2.dll" }));
 
-            var mergedCatalog = result1.WithCatalog(result2);
+            var mergedCatalog = result1.AddCatalog(result2);
 
             Assert.Equal(result1.DiscoveredParts.DiscoveryErrors.Count + result2.DiscoveredParts.DiscoveryErrors.Count, mergedCatalog.DiscoveredParts.DiscoveryErrors.Count);
             Assert.NotEqual(0, mergedCatalog.DiscoveredParts.DiscoveryErrors.Count); // the test is ineffective otherwise.
         }
 
         [Fact]
-        public async Task WithCatalogs_MergesErrors()
+        public async Task AddCatalogs_MergesErrors()
         {
             var discovery = TestUtilities.V2Discovery;
             var emptyCatalog = ComposableCatalog.Create(discovery.Resolver);
-            var result1 = emptyCatalog.WithParts(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist.dll" }));
-            var result2 = emptyCatalog.WithParts(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist2.dll" }));
-            var result3 = emptyCatalog.WithParts(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist3.dll" }));
+            var result1 = emptyCatalog.AddParts(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist.dll" }));
+            var result2 = emptyCatalog.AddParts(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist2.dll" }));
+            var result3 = emptyCatalog.AddParts(await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist3.dll" }));
 
-            var mergedCatalog = result1.WithCatalogs(new[] { result2, result3 });
+            var mergedCatalog = result1.AddCatalogs(new[] { result2, result3 });
 
             Assert.Equal(
                 result1.DiscoveredParts.DiscoveryErrors.Count + result2.DiscoveredParts.DiscoveryErrors.Count + result3.DiscoveredParts.DiscoveryErrors.Count,
@@ -49,7 +49,7 @@
             var discovery = TestUtilities.V2Discovery;
             var parts = await discovery.CreatePartsAsync(typeof(Export1), typeof(Export2));
             var emptyCatalog = ComposableCatalog.Create(discovery.Resolver);
-            var catalog = emptyCatalog.WithParts(parts);
+            var catalog = emptyCatalog.AddParts(parts);
 
             var modifiedParts = new DiscoveredParts(
                 catalog.Parts.Select(p => new ComposablePartDefinition(
@@ -67,7 +67,7 @@
                     p.CreationPolicy,
                     p.IsSharingBoundaryInferred)),
                 catalog.DiscoveredParts.DiscoveryErrors);
-            var modifiedCatalog = emptyCatalog.WithParts(modifiedParts);
+            var modifiedCatalog = emptyCatalog.AddParts(modifiedParts);
 
             var exportProvider = CompositionConfiguration.Create(modifiedCatalog)
                 .CreateExportProviderFactory()

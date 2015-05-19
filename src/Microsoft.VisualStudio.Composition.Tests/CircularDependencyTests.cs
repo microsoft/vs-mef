@@ -274,7 +274,7 @@
         [Fact]
         public async Task ValidMultiplePaths()
         {
-            var catalog = TestUtilities.EmptyCatalog.WithParts(await TestUtilities.V2Discovery.CreatePartsAsync(
+            var catalog = TestUtilities.EmptyCatalog.AddParts(await TestUtilities.V2Discovery.CreatePartsAsync(
                 typeof(ValidMultiplePathRoot),
                 typeof(ValidMultiplePathTrail1),
                 typeof(ValidMultiplePathTrail2),

@@ -57,7 +57,7 @@
                 resolver);
         }
 
-        public ComposableCatalog WithPart(ComposablePartDefinition partDefinition)
+        public ComposableCatalog AddPart(ComposablePartDefinition partDefinition)
         {
             Requires.NotNull(partDefinition, nameof(partDefinition));
 
@@ -89,21 +89,21 @@
             return new ComposableCatalog(parts, exportsByContract, this.DiscoveredParts, this.Resolver);
         }
 
-        public ComposableCatalog WithParts(IEnumerable<ComposablePartDefinition> parts)
+        public ComposableCatalog AddParts(IEnumerable<ComposablePartDefinition> parts)
         {
             Requires.NotNull(parts, nameof(parts));
 
             // PERF: This has shown up on ETL traces as inefficient and expensive
             //       WithPart should call WithParts instead, and WithParts should
             //       execute a more efficient batch operation.
-            return parts.Aggregate(this, (catalog, part) => catalog.WithPart(part));
+            return parts.Aggregate(this, (catalog, part) => catalog.AddPart(part));
         }
 
-        public ComposableCatalog WithParts(DiscoveredParts parts)
+        public ComposableCatalog AddParts(DiscoveredParts parts)
         {
             Requires.NotNull(parts, nameof(parts));
 
-            var catalog = this.WithParts(parts.Parts);
+            var catalog = this.AddParts(parts.Parts);
             return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts), catalog.Resolver);
         }
 
@@ -112,11 +112,11 @@
         /// </summary>
         /// <param name="catalogToMerge">The catalog to be merged with this one.</param>
         /// <returns>The merged version of the catalog.</returns>
-        public ComposableCatalog WithCatalog(ComposableCatalog catalogToMerge)
+        public ComposableCatalog AddCatalog(ComposableCatalog catalogToMerge)
         {
             Requires.NotNull(catalogToMerge, nameof(catalogToMerge));
 
-            var catalog = this.WithParts(catalogToMerge.Parts);
+            var catalog = this.AddParts(catalogToMerge.Parts);
             return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(catalogToMerge.DiscoveredParts), catalog.Resolver);
         }
 
@@ -125,11 +125,11 @@
         /// </summary>
         /// <param name="catalogsToMerge">The catalogs to be merged with this one.</param>
         /// <returns>The merged version of the catalog.</returns>
-        public ComposableCatalog WithCatalogs(IEnumerable<ComposableCatalog> catalogsToMerge)
+        public ComposableCatalog AddCatalogs(IEnumerable<ComposableCatalog> catalogsToMerge)
         {
             Requires.NotNull(catalogsToMerge, nameof(catalogsToMerge));
 
-            return catalogsToMerge.Aggregate(this, (aggregate, mergeCatalog) => aggregate.WithCatalog(mergeCatalog));
+            return catalogsToMerge.Aggregate(this, (aggregate, mergeCatalog) => aggregate.AddCatalog(mergeCatalog));
         }
 
         public IReadOnlyCollection<AssemblyName> GetInputAssemblies()

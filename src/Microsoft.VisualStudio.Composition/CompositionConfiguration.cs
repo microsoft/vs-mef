@@ -79,7 +79,7 @@
 
             // We consider all the parts in the catalog, plus the specially synthesized ones
             // that should always be applied.
-            var customizedCatalog = catalog.WithParts(AlwaysBundledParts);
+            var customizedCatalog = catalog.AddParts(AlwaysBundledParts);
 
             // Construct our part builders, initialized with all their imports satisfied.
             // We explicitly use reference equality because ComposablePartDefinition.Equals is too slow, and unnecessary for this.
@@ -153,7 +153,7 @@
                 }
 
                 var salvagedParts = catalog.Parts.Except(invalidParts);
-                var salvagedCatalog = ComposableCatalog.Create(catalog.Resolver).WithParts(salvagedParts);
+                var salvagedCatalog = ComposableCatalog.Create(catalog.Resolver).AddParts(salvagedParts);
                 var configuration = Create(salvagedCatalog);
                 return configuration.WithErrors(errors);
             }

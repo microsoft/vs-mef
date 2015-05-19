@@ -61,8 +61,8 @@
                         var partsFromTypes = await discoveryModule.CreatePartsAsync(this.parts);
                         var partsFromAssemblies = await discoveryModule.CreatePartsAsync(assemblies);
                         var catalog = TestUtilities.EmptyCatalog
-                            .WithParts(partsFromTypes)
-                            .WithParts(partsFromAssemblies);
+                            .AddParts(partsFromTypes)
+                            .AddParts(partsFromAssemblies);
                         resultingCatalogs.Add(catalog);
                     }
 

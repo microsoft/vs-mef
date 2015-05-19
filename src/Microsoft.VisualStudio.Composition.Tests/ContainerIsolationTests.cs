@@ -23,7 +23,7 @@
         {
             var discovery = TestUtilities.V2Discovery;
             var part = discovery.CreatePart(typeof(SharedExport));
-            var catalog = TestUtilities.EmptyCatalog.WithPart(part);
+            var catalog = TestUtilities.EmptyCatalog.AddPart(part);
             var configuration = CompositionConfiguration.Create(catalog);
             var container1 = await configuration.CreateContainerAsync(this.output);
             var container2 = await configuration.CreateContainerAsync(this.output);

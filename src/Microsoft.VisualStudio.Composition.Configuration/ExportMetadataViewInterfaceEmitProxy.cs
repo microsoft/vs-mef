@@ -21,7 +21,7 @@
         {
             Requires.NotNull(catalog, nameof(catalog));
 
-            return catalog.WithPart(ProxySupportPartDefinition);
+            return catalog.AddPart(ProxySupportPartDefinition);
         }
 
         [PartNotDiscoverable]
