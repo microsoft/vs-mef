@@ -126,6 +126,7 @@
     <Compile Include="Reflection\PropertyDesc.cs" />
     <Compile Include="Reflection\PropertyRef.cs" />
     <Compile Include="Reflection\Resolver.cs" />
+    <Compile Include="Reflection\ResolverExtensions.cs" />
     <Compile Include="Reflection\TypeDesc.cs" />
     <Compile Include="Reflection\TypeRef.cs" />
     <Compile Include="Rental`1.cs" />

@@ -421,7 +421,7 @@
 
             public object ActualValue
             {
-                get { return this.TypeRefArray.Select(Resolver.Resolve).ToArray(); }
+                get { return this.TypeRefArray.Select(ResolverExtensions.Resolve).ToArray(); }
             }
 
             internal static bool TrySubstituteValue(object value, MyResolver resolver, out ISubstitutedValue substitutedValue)
