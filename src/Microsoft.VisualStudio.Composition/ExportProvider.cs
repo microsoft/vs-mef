@@ -23,7 +23,7 @@
             PartCreationPolicyConstraint.GetExportMetadata(CreationPolicy.Shared).AddRange(ExportTypeIdentityConstraint.GetExportMetadata(typeof(ExportProvider))));
 
         internal static readonly ComposablePartDefinition ExportProviderPartDefinition = new ComposablePartDefinition(
-            TypeRef.Get(typeof(ExportProviderAsExport), MyResolver.DefaultInstance),
+            TypeRef.Get(typeof(ExportProviderAsExport), Resolver.DefaultInstance),
             ImmutableDictionary<string, object>.Empty.Add(CompositionConstants.DgmlCategoryPartMetadataName, new[] { "VsMEFBuiltIn" }),
             new[] { ExportProviderExportDefinition },
             ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
@@ -100,7 +100,7 @@
         private bool isDisposed;
 
         private ExportProvider(
-            MyResolver resolver,
+            Resolver resolver,
             ImmutableDictionary<string, Dictionary<TypeRef, PartLifecycleTracker>> sharedInstantiatedParts,
             ImmutableDictionary<string, HashSet<IDisposable>> disposableInstantiatedSharedParts,
             ImmutableHashSet<string> freshSharingBoundaries,
@@ -137,7 +137,7 @@
                     this.GetMetadataViewProviderExtensions);
         }
 
-        protected ExportProvider(MyResolver resolver)
+        protected ExportProvider(Resolver resolver)
             : this(
                 resolver,
                 SharedInstantiatedPartsTemplate,
@@ -227,7 +227,7 @@
 
         protected ImmutableList<Export> NonDisposableWrapperExportAsListOfOne { get; private set; }
 
-        protected internal MyResolver Resolver { get; }
+        protected internal Resolver Resolver { get; }
 
         public Lazy<T> GetExport<T>()
         {

@@ -43,7 +43,7 @@
         /// </summary>
         public IImmutableSet<string> RequiredSharingBoundaries { get; private set; }
 
-        internal MyResolver Resolver => this.Definition.TypeRef.Resolver;
+        internal Resolver Resolver => this.Definition.TypeRef.Resolver;
 
         public IEnumerable<KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>> GetImportingConstructorImports()
         {

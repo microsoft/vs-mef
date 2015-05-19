@@ -18,7 +18,7 @@
 
         static NetFxAdapters()
         {
-            var discovery = new AttributedPartDiscoveryV1(MyResolver.DefaultInstance);
+            var discovery = new AttributedPartDiscoveryV1(Resolver.DefaultInstance);
             CompositionServicePart = discovery.CreatePart(typeof(CompositionService));
             MetadataViewImplProxyPart = discovery.CreatePart(typeof(MetadataViewImplProxy));
         }

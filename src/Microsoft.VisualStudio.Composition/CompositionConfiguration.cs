@@ -71,7 +71,7 @@
         /// </remarks>
         public IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> CompositionErrors { get; private set; }
 
-        internal MyResolver Resolver => this.Catalog.Resolver;
+        internal Resolver Resolver => this.Catalog.Resolver;
 
         public static CompositionConfiguration Create(ComposableCatalog catalog)
         {

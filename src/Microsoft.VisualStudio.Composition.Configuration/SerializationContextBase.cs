@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Composition
 
         private long objectTableCapacityStreamPosition = -1; // -1 indicates the stream isn't capable of seeking.
 
-        internal SerializationContextBase(BinaryReader reader, MyResolver resolver)
+        internal SerializationContextBase(BinaryReader reader, Resolver resolver)
         {
             Requires.NotNull(reader, nameof(reader));
             Requires.NotNull(resolver, nameof(resolver));
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.Composition
             this.deserializingObjectTable = new Dictionary<uint, object>(objectTableSafeCapacity);
         }
 
-        internal SerializationContextBase(BinaryWriter writer, int estimatedObjectCount, MyResolver resolver)
+        internal SerializationContextBase(BinaryWriter writer, int estimatedObjectCount, Resolver resolver)
         {
             Requires.NotNull(writer, nameof(writer));
             Requires.NotNull(resolver, nameof(resolver));
@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// The resolver to use when deserializing.
         /// </summary>
-        protected MyResolver Resolver { get; }
+        protected Resolver Resolver { get; }
 
         protected internal void FinalizeObjectTableCapacity()
         {

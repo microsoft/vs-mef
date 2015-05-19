@@ -50,7 +50,7 @@
             });
         }
 
-        public Task<RuntimeComposition> LoadRuntimeCompositionAsync(Stream cacheStream, MyResolver resolver, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<RuntimeComposition> LoadRuntimeCompositionAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.Argument(cacheStream.CanRead, "cacheStream", ConfigurationStrings.ReadableStreamRequired);
@@ -67,7 +67,7 @@
             });
         }
 
-        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, MyResolver resolver, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
         {
             var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, resolver, cancellationToken);
             return runtimeComposition.CreateExportProviderFactory();
@@ -75,12 +75,12 @@
 
         private class SerializationContext : SerializationContextBase
         {
-            internal SerializationContext(BinaryReader reader, MyResolver resolver)
+            internal SerializationContext(BinaryReader reader, Resolver resolver)
                 : base(reader, resolver)
             {
             }
 
-            internal SerializationContext(BinaryWriter writer, int estimatedObjectCount, MyResolver resolver)
+            internal SerializationContext(BinaryWriter writer, int estimatedObjectCount, Resolver resolver)
                 : base(writer, estimatedObjectCount, resolver)
             {
             }

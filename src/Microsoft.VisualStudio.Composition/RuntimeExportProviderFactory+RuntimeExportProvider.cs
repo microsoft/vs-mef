@@ -23,7 +23,7 @@
 
             private static readonly RuntimeComposition.RuntimeImport MetadataViewProviderImport = new RuntimeComposition.RuntimeImport(
                 default(MemberRef),
-                TypeRef.Get(typeof(IMetadataViewProvider), MyResolver.DefaultInstance),
+                TypeRef.Get(typeof(IMetadataViewProvider), Resolver.DefaultInstance),
                 ImportCardinality.ExactlyOne,
                 ImmutableList<RuntimeComposition.RuntimeExport>.Empty,
                 isNonSharedInstanceRequired: false,
@@ -47,7 +47,7 @@
                 this.composition = composition;
             }
 
-            private MyResolver Resolver => this.composition.Resolver;
+            private Resolver Resolver => this.composition.Resolver;
 
             protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
             {
@@ -449,7 +449,7 @@
                     get { return (RuntimeExportProvider)base.OwningExportProvider; }
                 }
 
-                protected MyResolver Resolver => this.OwningExportProvider.Resolver;
+                protected Resolver Resolver => this.OwningExportProvider.Resolver;
 
                 /// <summary>
                 /// Gets the type that backs this part.

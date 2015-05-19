@@ -20,7 +20,7 @@
             this.GenericMethodArguments = genericMethodArguments;
         }
 
-        public MethodRef(MethodInfo method, MyResolver resolver)
+        public MethodRef(MethodInfo method, Resolver resolver)
             : this(TypeRef.Get(method.DeclaringType, resolver), method.MetadataToken, method.GetGenericArguments().Select(t => TypeRef.Get(t, resolver)).ToImmutableArray())
         {
         }
@@ -36,9 +36,9 @@
             get { return this.DeclaringType == null; }
         }
 
-        internal MyResolver Resolver => this.DeclaringType?.Resolver;
+        internal Resolver Resolver => this.DeclaringType?.Resolver;
 
-        public static MethodRef Get(MethodInfo method, MyResolver resolver)
+        public static MethodRef Get(MethodInfo method, Resolver resolver)
         {
             return method != null ? new MethodRef(method, resolver) : default(MethodRef);
         }

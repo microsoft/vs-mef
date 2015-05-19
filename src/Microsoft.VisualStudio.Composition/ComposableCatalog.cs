@@ -20,7 +20,7 @@
 
         private ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract;
 
-        private ComposableCatalog(ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, DiscoveredParts discoveredParts, MyResolver resolver)
+        private ComposableCatalog(ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, DiscoveredParts discoveredParts, Resolver resolver)
         {
             Requires.NotNull(parts, nameof(parts));
             Requires.NotNull(exportsByContract, nameof(exportsByContract));
@@ -46,9 +46,9 @@
         /// </summary>
         public DiscoveredParts DiscoveredParts { get; private set; }
 
-        internal MyResolver Resolver { get; }
+        internal Resolver Resolver { get; }
 
-        public static ComposableCatalog Create(MyResolver resolver)
+        public static ComposableCatalog Create(Resolver resolver)
         {
             return new ComposableCatalog(
                 ImmutableHashSet.Create<ComposablePartDefinition>(),

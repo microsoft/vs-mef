@@ -16,7 +16,7 @@
     internal class MetadataViewClassProvider : IMetadataViewProvider
     {
         internal static readonly ComposablePartDefinition PartDefinition =
-            Utilities.GetMetadataViewProviderPartDefinition(typeof(MetadataViewClassProvider), 1000000, MyResolver.DefaultInstance);
+            Utilities.GetMetadataViewProviderPartDefinition(typeof(MetadataViewClassProvider), 1000000, Resolver.DefaultInstance);
 
         internal static readonly IMetadataViewProvider Default = new MetadataViewClassProvider();
 

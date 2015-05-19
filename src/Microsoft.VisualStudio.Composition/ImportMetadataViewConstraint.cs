@@ -30,7 +30,7 @@
         /// <param name="metadataTypeRef">The metadata type.</param>
         /// <param name="resolver">The assembly loader.</param>
         /// <returns>A constraint to match the metadata type.</returns>
-        public static ImportMetadataViewConstraint GetConstraint(TypeRef metadataTypeRef, MyResolver resolver)
+        public static ImportMetadataViewConstraint GetConstraint(TypeRef metadataTypeRef, Resolver resolver)
         {
             if (metadataTypeRef == null)
             {
@@ -146,7 +146,7 @@
             return ByValueEquality.Dictionary<string, MetadatumRequirement>().Equals(this.Requirements, other.Requirements);
         }
 
-        private static ImmutableDictionary<string, MetadatumRequirement> GetRequiredMetadata(TypeRef metadataViewRef, MyResolver resolver)
+        private static ImmutableDictionary<string, MetadatumRequirement> GetRequiredMetadata(TypeRef metadataViewRef, Resolver resolver)
         {
             Requires.NotNull(metadataViewRef, nameof(metadataViewRef));
             Requires.NotNull(resolver, nameof(resolver));

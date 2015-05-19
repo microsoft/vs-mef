@@ -31,7 +31,7 @@
             });
         }
 
-        public Task<ComposableCatalog> LoadAsync(Stream cacheStream, MyResolver resolver, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<ComposableCatalog> LoadAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.NotNull(resolver, nameof(resolver));
@@ -50,12 +50,12 @@
 
         private class SerializationContext : SerializationContextBase
         {
-            internal SerializationContext(BinaryReader reader, MyResolver resolver)
+            internal SerializationContext(BinaryReader reader, Resolver resolver)
                 : base(reader, resolver)
             {
             }
 
-            internal SerializationContext(BinaryWriter writer, int estimatedObjectCount, MyResolver resolver)
+            internal SerializationContext(BinaryWriter writer, int estimatedObjectCount, Resolver resolver)
                 : base(writer, estimatedObjectCount, resolver)
             {
             }

@@ -19,7 +19,7 @@
         private readonly IReadOnlyDictionary<string, IReadOnlyCollection<RuntimeExport>> exportsByContractName;
         private readonly IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders;
 
-        private RuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders, MyResolver resolver)
+        private RuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders, Resolver resolver)
         {
             Requires.NotNull(parts, nameof(parts));
             Requires.NotNull(metadataViewsAndProviders, nameof(metadataViewsAndProviders));
@@ -51,7 +51,7 @@
             get { return this.metadataViewsAndProviders; }
         }
 
-        internal MyResolver Resolver { get; }
+        internal Resolver Resolver { get; }
 
         public static RuntimeComposition CreateRuntimeComposition(CompositionConfiguration configuration)
         {
@@ -67,7 +67,7 @@
             return new RuntimeComposition(parts, metadataViewsAndProviders, configuration.Resolver);
         }
 
-        public static RuntimeComposition CreateRuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders, MyResolver resolver)
+        public static RuntimeComposition CreateRuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders, Resolver resolver)
         {
             return new RuntimeComposition(parts, metadataViewsAndProviders, resolver);
         }
@@ -176,7 +176,7 @@
             return runtimePart;
         }
 
-        private static RuntimeImport CreateRuntimeImport(ImportDefinitionBinding importDefinitionBinding, IReadOnlyList<ExportDefinitionBinding> satisfyingExports, MyResolver resolver)
+        private static RuntimeImport CreateRuntimeImport(ImportDefinitionBinding importDefinitionBinding, IReadOnlyList<ExportDefinitionBinding> satisfyingExports, Resolver resolver)
         {
             Requires.NotNull(importDefinitionBinding, nameof(importDefinitionBinding));
             Requires.NotNull(satisfyingExports, nameof(satisfyingExports));
@@ -208,7 +208,7 @@
             }
         }
 
-        private static RuntimeExport CreateRuntimeExport(ExportDefinition exportDefinition, Type partType, MemberRef exportingMemberRef, MyResolver resolver)
+        private static RuntimeExport CreateRuntimeExport(ExportDefinition exportDefinition, Type partType, MemberRef exportingMemberRef, Resolver resolver)
         {
             Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
@@ -221,7 +221,7 @@
                 exportDefinition.Metadata);
         }
 
-        private static RuntimeExport CreateRuntimeExport(ExportDefinitionBinding exportDefinitionBinding, MyResolver resolver)
+        private static RuntimeExport CreateRuntimeExport(ExportDefinitionBinding exportDefinitionBinding, Resolver resolver)
         {
             Requires.NotNull(exportDefinitionBinding, nameof(exportDefinitionBinding));
             Requires.NotNull(resolver, nameof(resolver));

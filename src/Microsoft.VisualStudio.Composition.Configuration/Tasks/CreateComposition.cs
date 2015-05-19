@@ -37,7 +37,7 @@
             AppDomain.CurrentDomain.AssemblyResolve += this.CurrentDomain_AssemblyResolve;
             try
             {
-                var resolver = MyResolver.DefaultInstance;
+                var resolver = Resolver.DefaultInstance;
                 var discovery = PartDiscovery.Combine(new AttributedPartDiscoveryV1(resolver), new AttributedPartDiscovery(resolver));
 
                 this.cancellationSource.Token.ThrowIfCancellationRequested();

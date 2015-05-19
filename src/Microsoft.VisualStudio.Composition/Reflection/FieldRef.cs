@@ -20,7 +20,7 @@
             this.MetadataToken = metadataToken;
         }
 
-        public FieldRef(FieldInfo field, MyResolver resolver)
+        public FieldRef(FieldInfo field, Resolver resolver)
             : this(TypeRef.Get(field.DeclaringType, resolver), field.MetadataToken)
         {
         }
@@ -39,7 +39,7 @@
             get { return this.DeclaringType == null; }
         }
 
-        internal MyResolver Resolver => this.DeclaringType?.Resolver;
+        internal Resolver Resolver => this.DeclaringType?.Resolver;
 
         public bool Equals(FieldRef other)
         {

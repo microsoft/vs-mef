@@ -16,14 +16,14 @@
 
     public abstract class PartDiscovery
     {
-        protected PartDiscovery(MyResolver resolver)
+        protected PartDiscovery(Resolver resolver)
         {
             Requires.NotNull(resolver, nameof(resolver));
 
             this.Resolver = resolver;
         }
 
-        public MyResolver Resolver { get; }
+        public Resolver Resolver { get; }
 
         /// <summary>
         /// Creates an aggregate <see cref="PartDiscovery"/> instance that delegates to a series of other part discovery extensions.
@@ -537,7 +537,7 @@
             private readonly IReadOnlyList<PartDiscovery> discoveryMechanisms;
 
             internal CombinedPartDiscovery(IReadOnlyList<PartDiscovery> discoveryMechanisms)
-                : base(MyResolver.DefaultInstance)
+                : base(Resolver.DefaultInstance)
             {
                 Requires.NotNull(discoveryMechanisms, nameof(discoveryMechanisms));
                 this.discoveryMechanisms = discoveryMechanisms;

@@ -18,7 +18,7 @@
             this.MetadataToken = metadataToken;
         }
 
-        public ConstructorRef(ConstructorInfo constructor, MyResolver resolver)
+        public ConstructorRef(ConstructorInfo constructor, Resolver resolver)
             : this(TypeRef.Get(constructor.DeclaringType, resolver), constructor.MetadataToken)
         {
         }
@@ -32,9 +32,9 @@
             get { return this.DeclaringType == null; }
         }
 
-        internal MyResolver Resolver => this.DeclaringType?.Resolver;
+        internal Resolver Resolver => this.DeclaringType?.Resolver;
 
-        public static ConstructorRef Get(ConstructorInfo constructor, MyResolver resolver)
+        public static ConstructorRef Get(ConstructorInfo constructor, Resolver resolver)
         {
             return constructor != null
                 ? new ConstructorRef(constructor, resolver)

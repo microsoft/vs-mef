@@ -36,7 +36,7 @@
         {
         }
 
-        public ParameterRef(ParameterInfo parameter, MyResolver resolver)
+        public ParameterRef(ParameterInfo parameter, Resolver resolver)
             : this(TypeRef.Get(parameter.Member.DeclaringType, resolver), parameter.Member.MetadataToken, parameter.Position)
         {
         }
@@ -60,9 +60,9 @@
             get { return this.DeclaringType == null; }
         }
 
-        internal MyResolver Resolver => this.DeclaringType?.Resolver;
+        internal Resolver Resolver => this.DeclaringType?.Resolver;
 
-        public static ParameterRef Get(ParameterInfo parameter, MyResolver resolver)
+        public static ParameterRef Get(ParameterInfo parameter, Resolver resolver)
         {
             return parameter != null ? new ParameterRef(parameter, resolver) : default(ParameterRef);
         }

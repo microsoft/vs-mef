@@ -9,7 +9,7 @@
 
     internal static class ExportMetadataViewInterfaceEmitProxy
     {
-        private static readonly ComposablePartDefinition ProxySupportPartDefinition = new AttributedPartDiscovery(MyResolver.DefaultInstance).CreatePart(typeof(MetadataViewProxyProvider));
+        private static readonly ComposablePartDefinition ProxySupportPartDefinition = new AttributedPartDiscovery(Resolver.DefaultInstance).CreatePart(typeof(MetadataViewProxyProvider));
 
         /// <summary>
         /// Adds support for queries to <see cref="ExportProvider.GetExports{T, TMetadata}()"/> where

@@ -20,7 +20,7 @@
             this.SetMethodMetadataToken = setMethodMetadataToken;
         }
 
-        public PropertyRef(PropertyInfo propertyInfo, MyResolver resolver)
+        public PropertyRef(PropertyInfo propertyInfo, Resolver resolver)
             : this()
         {
             this.DeclaringType = TypeRef.Get(propertyInfo.DeclaringType, resolver);
@@ -42,7 +42,7 @@
             get { return this.DeclaringType == null; }
         }
 
-        internal MyResolver Resolver => this.DeclaringType?.Resolver;
+        internal Resolver Resolver => this.DeclaringType?.Resolver;
 
         public bool Equals(PropertyRef other)
         {

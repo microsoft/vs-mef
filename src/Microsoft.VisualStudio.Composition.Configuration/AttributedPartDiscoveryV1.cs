@@ -16,7 +16,7 @@
     {
         private static readonly MethodInfo OnImportsSatisfiedMethodInfo = typeof(IPartImportsSatisfiedNotification).GetMethod("OnImportsSatisfied", BindingFlags.Public | BindingFlags.Instance);
 
-        public AttributedPartDiscoveryV1(MyResolver resolver)
+        public AttributedPartDiscoveryV1(Resolver resolver)
             : base(resolver)
         {
         }

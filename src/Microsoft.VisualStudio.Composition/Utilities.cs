@@ -11,7 +11,7 @@
 
     internal static class Utilities
     {
-        internal static ComposablePartDefinition GetMetadataViewProviderPartDefinition(Type providerType, int orderPrecedence, MyResolver resolver)
+        internal static ComposablePartDefinition GetMetadataViewProviderPartDefinition(Type providerType, int orderPrecedence, Resolver resolver)
         {
             Requires.NotNull(providerType, nameof(providerType));
             Requires.NotNull(resolver, nameof(resolver));

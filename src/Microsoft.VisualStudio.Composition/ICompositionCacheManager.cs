@@ -13,6 +13,6 @@
     {
         Task SaveAsync(CompositionConfiguration configuration, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken));
 
-        Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, MyResolver resolver, CancellationToken cancellationToken = default(CancellationToken));
+        Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

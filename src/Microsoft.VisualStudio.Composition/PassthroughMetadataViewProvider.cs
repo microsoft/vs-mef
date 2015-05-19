@@ -16,7 +16,7 @@
     internal class PassthroughMetadataViewProvider : IMetadataViewProvider
     {
         internal static readonly ComposablePartDefinition PartDefinition =
-            Utilities.GetMetadataViewProviderPartDefinition(typeof(PassthroughMetadataViewProvider), 1001000, MyResolver.DefaultInstance);
+            Utilities.GetMetadataViewProviderPartDefinition(typeof(PassthroughMetadataViewProvider), 1001000, Resolver.DefaultInstance);
 
         internal static readonly IMetadataViewProvider Default = new PassthroughMetadataViewProvider();
 

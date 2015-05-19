@@ -269,5 +269,10 @@
                 assemblies.Add(parameterRef.AssemblyName);
             }
         }
+
+        internal static Module GetManifest(this Resolver resolver, AssemblyName assemblyName)
+        {
+            return resolver.AssemblyLoader.LoadAssembly(assemblyName).ManifestModule;
+        }
     }
 }

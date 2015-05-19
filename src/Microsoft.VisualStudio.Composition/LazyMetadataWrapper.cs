@@ -21,7 +21,7 @@
         /// </summary>
         private readonly Direction direction;
 
-        private readonly MyResolver resolver;
+        private readonly Resolver resolver;
 
         /// <summary>
         /// The underlying metadata, which may be partially translated since value translation may choose
@@ -29,7 +29,7 @@
         /// </summary>
         protected ImmutableDictionary<string, object> underlyingMetadata;
 
-        internal LazyMetadataWrapper(ImmutableDictionary<string, object> metadata, Direction direction, MyResolver resolver)
+        internal LazyMetadataWrapper(ImmutableDictionary<string, object> metadata, Direction direction, Resolver resolver)
         {
             Requires.NotNull(metadata, nameof(metadata));
             Requires.NotNull(resolver, nameof(resolver));
@@ -283,7 +283,7 @@
 
             internal int RawValue { get; private set; }
 
-            internal static bool TrySubstituteValue(object value, MyResolver resolver, out ISubstitutedValue substitutedValue)
+            internal static bool TrySubstituteValue(object value, Resolver resolver, out ISubstitutedValue substitutedValue)
             {
                 Requires.NotNull(resolver, nameof(resolver));
 
@@ -355,7 +355,7 @@
                 get { return this.TypeRef.Resolve(); }
             }
 
-            internal static bool TrySubstituteValue(object value, MyResolver resolver, out ISubstitutedValue substitutedValue)
+            internal static bool TrySubstituteValue(object value, Resolver resolver, out ISubstitutedValue substitutedValue)
             {
                 if (value is Type)
                 {
@@ -406,9 +406,9 @@
 
         internal class TypeArraySubstitution : ISubstitutedValue, IEquatable<TypeArraySubstitution>
         {
-            private readonly MyResolver resolver;
+            private readonly Resolver resolver;
 
-            internal TypeArraySubstitution(IReadOnlyList<TypeRef> typeRefArray, MyResolver resolver)
+            internal TypeArraySubstitution(IReadOnlyList<TypeRef> typeRefArray, Resolver resolver)
             {
                 Requires.NotNull(typeRefArray, nameof(typeRefArray));
                 Requires.NotNull(resolver, nameof(resolver));
@@ -424,7 +424,7 @@
                 get { return this.TypeRefArray.Select(ResolverExtensions.Resolve).ToArray(); }
             }
 
-            internal static bool TrySubstituteValue(object value, MyResolver resolver, out ISubstitutedValue substitutedValue)
+            internal static bool TrySubstituteValue(object value, Resolver resolver, out ISubstitutedValue substitutedValue)
             {
                 if (value is Type[])
                 {

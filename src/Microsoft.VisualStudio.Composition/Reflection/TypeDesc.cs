@@ -18,7 +18,7 @@
 
         public string FullName { get; private set; }
 
-        public static TypeDesc Get(Type type, MyResolver resolver)
+        public static TypeDesc Get(Type type, Resolver resolver)
         {
             Requires.NotNull(type, nameof(type));
             Requires.NotNull(resolver, nameof(resolver));

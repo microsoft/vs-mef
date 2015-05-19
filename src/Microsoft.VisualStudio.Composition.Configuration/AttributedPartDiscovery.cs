@@ -12,7 +12,7 @@
 
     public class AttributedPartDiscovery : PartDiscovery
     {
-        public AttributedPartDiscovery(MyResolver resolver, bool isNonPublicSupported = false)
+        public AttributedPartDiscovery(Resolver resolver, bool isNonPublicSupported = false)
             : base(resolver)
         {
             this.IsNonPublicSupported = isNonPublicSupported;

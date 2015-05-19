@@ -46,7 +46,7 @@
             }
         }
 
-        internal static MyResolver Resolver = MyResolver.DefaultInstance;
+        internal static Resolver Resolver = Resolver.DefaultInstance;
 
         internal static ComposableCatalog EmptyCatalog = ComposableCatalog.Create(Resolver);
 

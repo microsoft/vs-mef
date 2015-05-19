@@ -13,6 +13,6 @@
     {
         Task SaveAsync(RuntimeComposition composition, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken));
 
-        Task<RuntimeComposition> LoadRuntimeCompositionAsync(Stream cacheStream, MyResolver resolver, CancellationToken cancellationToken = default(CancellationToken));
+        Task<RuntimeComposition> LoadRuntimeCompositionAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

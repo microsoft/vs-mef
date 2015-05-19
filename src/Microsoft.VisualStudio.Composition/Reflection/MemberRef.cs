@@ -41,7 +41,7 @@
             this.Type = type;
         }
 
-        public MemberRef(MemberInfo member, MyResolver resolver)
+        public MemberRef(MemberInfo member, Resolver resolver)
             : this()
         {
             Requires.NotNull(member, nameof(member));
@@ -145,9 +145,9 @@
             get { return this.Type != null; }
         }
 
-        internal MyResolver Resolver => this.DeclaringType?.Resolver;
+        internal Resolver Resolver => this.DeclaringType?.Resolver;
 
-        public static MemberRef Get(MemberInfo member, MyResolver resolver)
+        public static MemberRef Get(MemberInfo member, Resolver resolver)
         {
             return member != null ? new MemberRef(member, resolver) : default(MemberRef);
         }
