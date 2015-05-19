@@ -48,13 +48,13 @@
 
         internal MyResolver Resolver { get; }
 
-        public static ComposableCatalog Create(IAssemblyLoader assemblyLoader)
+        public static ComposableCatalog Create(MyResolver resolver)
         {
             return new ComposableCatalog(
                 ImmutableHashSet.Create<ComposablePartDefinition>(),
                 ImmutableDictionary.Create<string, ImmutableList<ExportDefinitionBinding>>(),
                 DiscoveredParts.Empty,
-                MyResolver.Get(assemblyLoader));
+                resolver);
         }
 
         public ComposableCatalog WithPart(ComposablePartDefinition partDefinition)

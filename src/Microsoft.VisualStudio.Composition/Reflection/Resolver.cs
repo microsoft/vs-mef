@@ -271,7 +271,7 @@
         }
     }
 
-    public class MyResolver : IAssemblyLoader
+    public class MyResolver
     {
         /// <summary>
         /// A <see cref="MyResolver"/> instance that should only be used in code paths
@@ -301,16 +301,6 @@
             Requires.NotNull(assemblyLoader, nameof(assemblyLoader));
 
             return (assemblyLoader as MyResolver) ?? new MyResolver(assemblyLoader);
-        }
-
-        Assembly IAssemblyLoader.LoadAssembly(string assemblyFullName, string codeBasePath)
-        {
-            return this.assemblyLoader.LoadAssembly(assemblyFullName, codeBasePath);
-        }
-
-        Assembly IAssemblyLoader.LoadAssembly(AssemblyName assemblyName)
-        {
-            return this.assemblyLoader.LoadAssembly(assemblyName);
         }
 
         internal Module GetManifest(AssemblyName assemblyName)

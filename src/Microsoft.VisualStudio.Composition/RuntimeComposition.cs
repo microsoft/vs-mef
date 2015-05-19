@@ -67,9 +67,9 @@
             return new RuntimeComposition(parts, metadataViewsAndProviders, configuration.Resolver);
         }
 
-        public static RuntimeComposition CreateRuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders, IAssemblyLoader assemblyLoader)
+        public static RuntimeComposition CreateRuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders, MyResolver resolver)
         {
-            return new RuntimeComposition(parts, metadataViewsAndProviders, MyResolver.Get(assemblyLoader));
+            return new RuntimeComposition(parts, metadataViewsAndProviders, resolver);
         }
 
         public IExportProviderFactory CreateExportProviderFactory()
