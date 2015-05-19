@@ -216,7 +216,7 @@
         public IExportProviderFactory CreateExportProviderFactory()
         {
             var composition = RuntimeComposition.CreateRuntimeComposition(this);
-            return new RuntimeExportProviderFactory(composition);
+            return composition.CreateExportProviderFactory();
         }
 
         public string GetEffectiveSharingBoundary(ComposablePartDefinition partDefinition)
