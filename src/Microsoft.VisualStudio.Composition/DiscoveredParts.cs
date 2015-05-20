@@ -13,8 +13,8 @@
 
         public DiscoveredParts(IEnumerable<ComposablePartDefinition> parts, IEnumerable<PartDiscoveryException> discoveryErrors)
         {
-            Requires.NotNull(parts, "parts");
-            Requires.NotNull(discoveryErrors, "discoveryErrors");
+            Requires.NotNull(parts, nameof(parts));
+            Requires.NotNull(discoveryErrors, nameof(discoveryErrors));
 
             this.Parts = ImmutableHashSet.CreateRange(parts);
             this.DiscoveryErrors = ImmutableList.CreateRange(discoveryErrors);
@@ -44,7 +44,7 @@
 
         internal DiscoveredParts Merge(DiscoveredParts other)
         {
-            Requires.NotNull(other, "other");
+            Requires.NotNull(other, nameof(other));
 
             if (other.Parts.Count == 0 && other.DiscoveryErrors.Count == 0)
             {

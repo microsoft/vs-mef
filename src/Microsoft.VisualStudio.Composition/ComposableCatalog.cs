@@ -22,9 +22,9 @@
 
         private ComposableCatalog(ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, DiscoveredParts discoveredParts)
         {
-            Requires.NotNull(parts, "parts");
-            Requires.NotNull(exportsByContract, "exportsByContract");
-            Requires.NotNull(discoveredParts, "discoveredParts");
+            Requires.NotNull(parts, nameof(parts));
+            Requires.NotNull(exportsByContract, nameof(exportsByContract));
+            Requires.NotNull(discoveredParts, nameof(discoveredParts));
 
             this.parts = parts;
             this.exportsByContract = exportsByContract;
@@ -62,19 +62,19 @@
 
         public static ComposableCatalog Create(IEnumerable<ComposablePartDefinition> parts)
         {
-            Requires.NotNull(parts, "parts");
+            Requires.NotNull(parts, nameof(parts));
             return Create().WithParts(parts);
         }
 
         public static ComposableCatalog Create(DiscoveredParts parts)
         {
-            Requires.NotNull(parts, "parts");
+            Requires.NotNull(parts, nameof(parts));
             return Create().WithParts(parts);
         }
 
         public ComposableCatalog WithPart(ComposablePartDefinition partDefinition)
         {
-            Requires.NotNull(partDefinition, "partDefinition");
+            Requires.NotNull(partDefinition, nameof(partDefinition));
 
             var parts = this.parts.Add(partDefinition);
             if (parts == this.parts)
@@ -106,7 +106,7 @@
 
         public ComposableCatalog WithParts(IEnumerable<ComposablePartDefinition> parts)
         {
-            Requires.NotNull(parts, "parts");
+            Requires.NotNull(parts, nameof(parts));
 
             // PERF: This has shown up on ETL traces as inefficient and expensive
             //       WithPart should call WithParts instead, and WithParts should
@@ -116,7 +116,7 @@
 
         public ComposableCatalog WithParts(DiscoveredParts parts)
         {
-            Requires.NotNull(parts, "parts");
+            Requires.NotNull(parts, nameof(parts));
 
             var catalog = this.WithParts(parts.Parts);
             return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts));
@@ -129,7 +129,7 @@
         /// <returns>The merged version of the catalog.</returns>
         public ComposableCatalog WithCatalog(ComposableCatalog catalogToMerge)
         {
-            Requires.NotNull(catalogToMerge, "catalogToMerge");
+            Requires.NotNull(catalogToMerge, nameof(catalogToMerge));
 
             var catalog = this.WithParts(catalogToMerge.Parts);
             return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(catalogToMerge.DiscoveredParts));
@@ -142,7 +142,7 @@
         /// <returns>The merged version of the catalog.</returns>
         public ComposableCatalog WithCatalogs(IEnumerable<ComposableCatalog> catalogsToMerge)
         {
-            Requires.NotNull(catalogsToMerge, "catalogsToMerge");
+            Requires.NotNull(catalogsToMerge, nameof(catalogsToMerge));
 
             return catalogsToMerge.Aggregate(this, (aggregate, mergeCatalog) => aggregate.WithCatalog(mergeCatalog));
         }
@@ -200,7 +200,7 @@
 
         public IReadOnlyList<ExportDefinitionBinding> GetExports(ImportDefinition importDefinition)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(importDefinition, nameof(importDefinition));
 
             // We always want to consider exports with a matching contract name.
             var exports = this.exportsByContract.GetValueOrDefault(importDefinition.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
@@ -227,7 +227,7 @@
 
         internal static bool TryGetOpenGenericExport(ImportDefinition importDefinition, out string contractName, out Type[] typeArguments)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(importDefinition, nameof(importDefinition));
 
             // TODO: if the importer isn't using a customized contract name.
             if (importDefinition.Metadata.TryGetValue(CompositionConstants.GenericContractMetadataName, out contractName) &&

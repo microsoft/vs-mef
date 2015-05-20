@@ -14,8 +14,8 @@ namespace Microsoft.VisualStudio.Composition
 
         internal static ICollection<object> GetCollectionWrapper(Type itemType, object collectionObject)
         {
-            Requires.NotNull(itemType, "itemType");
-            Requires.NotNull(collectionObject, "collectionObject");
+            Requires.NotNull(itemType, nameof(itemType));
+            Requires.NotNull(collectionObject, nameof(collectionObject));
 
             var underlyingItemType = itemType.UnderlyingSystemType;
 

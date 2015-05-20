@@ -17,7 +17,7 @@
 
         public ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> metadataNamesAndTypes)
         {
-            Requires.NotNull(metadataNamesAndTypes, "metadataNamesAndTypes");
+            Requires.NotNull(metadataNamesAndTypes, nameof(metadataNamesAndTypes));
 
             this.Requirements = ImmutableDictionary.CreateRange(metadataNamesAndTypes);
         }
@@ -47,7 +47,7 @@
 
         public bool IsSatisfiedBy(ExportDefinition exportDefinition)
         {
-            Requires.NotNull(exportDefinition, "exportDefinition");
+            Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
             // Fast path since immutable dictionaries are slow to enumerate.
             if (this.Requirements.IsEmpty)
@@ -147,7 +147,7 @@
 
         private static ImmutableDictionary<string, MetadatumRequirement> GetRequiredMetadata(TypeRef metadataViewRef)
         {
-            Requires.NotNull(metadataViewRef, "metadataViewRef");
+            Requires.NotNull(metadataViewRef, nameof(metadataViewRef));
 
             var metadataView = metadataViewRef.Resolve();
             if (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>)) && !metadataView.Equals(typeof(IReadOnlyDictionary<string, object>)))

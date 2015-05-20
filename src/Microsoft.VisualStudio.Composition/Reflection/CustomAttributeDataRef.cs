@@ -13,7 +13,7 @@
         public CustomAttributeDataRef(CustomAttributeData data)
             : this()
         {
-            Requires.NotNull(data, "data");
+            Requires.NotNull(data, nameof(data));
 
             this.Constructor = new ConstructorRef(data.Constructor);
             this.PositionalArguments = data.ConstructorArguments.Select(a => a.Value).ToImmutableArray();

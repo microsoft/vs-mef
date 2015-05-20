@@ -20,7 +20,7 @@
 
         public static TypeDesc Get(Type type)
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
             return new TypeDesc(TypeRef.Get(type), type.FullName);
         }
     }

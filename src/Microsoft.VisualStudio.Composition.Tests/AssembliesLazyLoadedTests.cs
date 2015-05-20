@@ -22,7 +22,7 @@
 
         protected AssembliesLazyLoadedTests(ICompositionCacheManager cacheManager)
         {
-            Requires.NotNull(cacheManager, "cacheManager");
+            Requires.NotNull(cacheManager, nameof(cacheManager));
 
             this.cacheManager = cacheManager;
             this.tfc = new TempFileCollection();
@@ -194,7 +194,7 @@
 
         private async Task<Stream> SaveConfigurationAsync(CompositionConfiguration configuration)
         {
-            Requires.NotNull(configuration, "configuration");
+            Requires.NotNull(configuration, nameof(configuration));
 
             var ms = new MemoryStream();
             await this.cacheManager.SaveAsync(configuration, ms);
@@ -204,7 +204,7 @@
 
         private async Task<Stream> SaveCatalogAsync(ComposableCatalog catalog)
         {
-            Requires.NotNull(catalog, "catalog");
+            Requires.NotNull(catalog, nameof(catalog));
 
             var ms = new MemoryStream();
             await new CachedCatalog().SaveAsync(catalog, ms);
@@ -218,9 +218,9 @@
 
             internal void Initialize(Type cacheManagerType, Stream cachedComposition, Stream cachedCatalog)
             {
-                Requires.NotNull(cacheManagerType, "cacheManagerType");
-                Requires.NotNull(cachedComposition, "cachedComposition");
-                Requires.NotNull(cachedCatalog, "cachedCatalog");
+                Requires.NotNull(cacheManagerType, nameof(cacheManagerType));
+                Requires.NotNull(cachedComposition, nameof(cachedComposition));
+                Requires.NotNull(cachedCatalog, nameof(cachedCatalog));
 
                 // Copy the streams to ones inside our app domain.
                 Stream cachedCompositionLocal = CopyStream(cachedComposition);

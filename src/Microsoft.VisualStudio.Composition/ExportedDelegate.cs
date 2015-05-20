@@ -11,7 +11,7 @@
 
         public ExportedDelegate(object target, MethodInfo method)
         {
-            Requires.NotNull(method, "method");
+            Requires.NotNull(method, nameof(method));
 
             this.target = target;
             this.method = method;
@@ -19,7 +19,7 @@
 
         public Delegate CreateDelegate(Type delegateType)
         {
-            Requires.NotNull(delegateType, "delegateType");
+            Requires.NotNull(delegateType, nameof(delegateType));
 
             if (delegateType == typeof(Delegate) || delegateType == typeof(MulticastDelegate))
             {

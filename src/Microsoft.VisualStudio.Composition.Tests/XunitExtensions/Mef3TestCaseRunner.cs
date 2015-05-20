@@ -18,7 +18,7 @@
         public Mef3TestCaseRunner(IXunitTestCase testCase, string displayName, string skipReason, object[] constructorArguments, IMessageBus messageBus, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, CompositionConfiguration configuration, CompositionEngines compositionVersions)
             : base(testCase, displayName, skipReason, constructorArguments, null, messageBus, aggregator, cancellationTokenSource)
         {
-            Requires.NotNull(configuration, "configuration");
+            Requires.NotNull(configuration, nameof(configuration));
 
             this.configuration = configuration;
             this.compositionVersions = compositionVersions;

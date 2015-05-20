@@ -28,6 +28,6 @@
         }
 
         [Export, MefV1.Export]
-        public class SomeExport { }  
+        public class SomeExport { }
     }
 }

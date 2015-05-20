@@ -18,7 +18,7 @@
 
         protected CacheAndReloadTests(ICompositionCacheManager cacheManager)
         {
-            Requires.NotNull(cacheManager, "cacheManager");
+            Requires.NotNull(cacheManager, nameof(cacheManager));
             this.cacheManager = cacheManager;
         }
 

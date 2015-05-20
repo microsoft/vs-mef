@@ -68,7 +68,7 @@
 
         internal static Func<T> AsFunc<T>(this Lazy<T> lazy)
         {
-            Requires.NotNull(lazy, "lazy");
+            Requires.NotNull(lazy, nameof(lazy));
 
             // Theoretically, this is the most efficient approach. It only allocates a delegate (no closure).
             // But it unfortunately results in a slow path within the CLR (clr!COMDelegate::DelegateConstruct)
@@ -86,15 +86,15 @@
 
         private static Lazy<T> CreateStronglyTypedLazyOfT<T>(Func<object> funcOfObject, object metadata)
         {
-            Requires.NotNull(funcOfObject, "funcOfObject");
+            Requires.NotNull(funcOfObject, nameof(funcOfObject));
 
             return new Lazy<T>(funcOfObject.As<T>());
         }
 
         private static Lazy<T, TMetadata> CreateStronglyTypedLazyOfTM<T, TMetadata>(Func<object> funcOfObject, object metadata)
         {
-            Requires.NotNull(funcOfObject, "funcOfObject");
-            Requires.NotNullAllowStructs(metadata, "metadata");
+            Requires.NotNull(funcOfObject, nameof(funcOfObject));
+            Requires.NotNullAllowStructs(metadata, nameof(metadata));
 
             return new Lazy<T, TMetadata>(funcOfObject.As<T>(), (TMetadata)metadata);
         }

@@ -20,7 +20,7 @@
     /// constructed for different parameterized values while only incurring the cost of the Func{T} delegate itself
     /// and no closure.
     /// In most cases this is an insignificant difference. But if you're counting allocations for GC pressure,
-    /// this might be just what you need. 
+    /// this might be just what you need.
     /// </remarks>
     internal static class DelegateServices
     {

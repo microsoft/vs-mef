@@ -120,7 +120,7 @@
         }
 
         /// <summary>
-        /// Verifies that V1 lets folks get away with importing parts that lack importing constructors 
+        /// Verifies that V1 lets folks get away with importing parts that lack importing constructors
         /// as long as they import it lazily, all the way to the point of evaluating the lazy.
         /// </summary>
         [MefFact(CompositionEngines.V1Compat, typeof(UncreatablePart), typeof(PartThatLazyImportsUncreatablePart))]
@@ -172,7 +172,7 @@
         #region Uncreatable part with import
 
         /// <summary>
-        /// Verifies that V1 lets folks get away with importing parts that lack importing constructors 
+        /// Verifies that V1 lets folks get away with importing parts that lack importing constructors
         /// as long as they import it lazily, all the way to the point of evaluating the lazy.
         /// </summary>
         [MefFact(CompositionEngines.V1Compat, typeof(SomePart), typeof(UncreatablePartWithImportingProperty), typeof(PartThatLazilyImportsUncreatablePartWithImportingProperty))]

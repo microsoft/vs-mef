@@ -14,7 +14,7 @@
     public class NameAndAgeAttribute : Attribute
     {
         public string Name { get; set; }
-  
+
         // TODO: make this an integer and verify tests still pass.
         public string Age { get; set; }
     }

@@ -44,7 +44,7 @@
         public MemberRef(MemberInfo member)
             : this()
         {
-            Requires.NotNull(member, "member");
+            Requires.NotNull(member, nameof(member));
 
             switch (member.MemberType)
             {

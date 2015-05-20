@@ -32,7 +32,7 @@
         /// <returns>A MEF "v1" shim.</returns>
         public static MefV1.Hosting.ExportProvider AsExportProvider(this ExportProvider exportProvider)
         {
-            Requires.NotNull(exportProvider, "exportProvider");
+            Requires.NotNull(exportProvider, nameof(exportProvider));
 
             return new MefV1ExportProvider(exportProvider);
         }
@@ -44,7 +44,7 @@
         /// <returns>A catalog that includes <see cref="MefV1.ICompositionService"/>.</returns>
         public static ComposableCatalog WithCompositionService(this ComposableCatalog catalog)
         {
-            Requires.NotNull(catalog, "catalog");
+            Requires.NotNull(catalog, nameof(catalog));
 
             var modifiedCatalog = catalog.WithPart(CompositionServicePart);
             return modifiedCatalog;
@@ -57,7 +57,7 @@
         /// <returns>The catalog that includes desktop support.</returns>
         public static ComposableCatalog WithDesktopSupport(this ComposableCatalog catalog)
         {
-            Requires.NotNull(catalog, "catalog");
+            Requires.NotNull(catalog, nameof(catalog));
 
             return catalog
                 .WithPart(MetadataViewImplProxyPart)
@@ -78,7 +78,7 @@
 
             internal MefV1ExportProvider(ExportProvider exportProvider)
             {
-                Requires.NotNull(exportProvider, "exportProvider");
+                Requires.NotNull(exportProvider, nameof(exportProvider));
 
                 this.exportProvider = exportProvider;
             }
@@ -93,7 +93,7 @@
 
             private static ImportDefinition WrapImportDefinition(MefV1.Primitives.ImportDefinition definition)
             {
-                Requires.NotNull(definition, "definition");
+                Requires.NotNull(definition, nameof(definition));
 
                 var contractImportDefinition = definition as MefV1.Primitives.ContractBasedImportDefinition;
 
@@ -163,7 +163,7 @@
 
             private static IDictionary<string, object> GetMefV1ExportDefinitionMetadataFromV3(IReadOnlyDictionary<string, object> exportDefinitionMetadata)
             {
-                Requires.NotNull(exportDefinitionMetadata, "exportDefinitionMetadata");
+                Requires.NotNull(exportDefinitionMetadata, nameof(exportDefinitionMetadata));
                 var metadata = exportDefinitionMetadata.ToImmutableDictionary();
 
                 CreationPolicy creationPolicy;
@@ -299,7 +299,7 @@
 
                 internal ComposablePartDefinitionForExportFactory(MefV1.ExportFactory<object, IDictionary<string, object>> exportFactory)
                 {
-                    Requires.NotNull(exportFactory, "exportFactory");
+                    Requires.NotNull(exportFactory, nameof(exportFactory));
                     this.exportFactory = exportFactory;
                 }
 
@@ -327,7 +327,7 @@
 
             internal ImportConstraint(MefV1.Primitives.ImportDefinition definition)
             {
-                Requires.NotNull(definition, "definition");
+                Requires.NotNull(definition, nameof(definition));
                 this.definition = definition;
             }
 
@@ -361,7 +361,7 @@
             [MefV1.ImportingConstructor]
             private CompositionService([MefV1.Import] ExportProvider exportProvider)
             {
-                Requires.NotNull(exportProvider, "exportProvider");
+                Requires.NotNull(exportProvider, nameof(exportProvider));
                 this.container = new MefV1.Hosting.CompositionContainer(MefV1.Hosting.CompositionOptions.IsThreadSafe, exportProvider.AsExportProvider());
             }
 
@@ -394,7 +394,7 @@
 
             private static ConstructorInfo FindImplClassConstructor(Type metadataType)
             {
-                Requires.NotNull(metadataType, "metadataType");
+                Requires.NotNull(metadataType, nameof(metadataType));
                 var attr = metadataType.GetFirstAttribute<MefV1.MetadataViewImplementationAttribute>();
                 if (attr != null)
                 {
@@ -424,7 +424,7 @@
         {
             public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
             {
-                Requires.NotNullOrEmpty(assemblyFullName, "assemblyFullName");
+                Requires.NotNullOrEmpty(assemblyFullName, nameof(assemblyFullName));
 
                 var assemblyName = new AssemblyName(assemblyFullName);
                 if (!string.IsNullOrEmpty(codeBasePath))

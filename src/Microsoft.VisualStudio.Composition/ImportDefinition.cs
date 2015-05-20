@@ -21,10 +21,10 @@
         /// </summary>
         public ImportDefinition(string contractName, ImportCardinality cardinality, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, IReadOnlyCollection<string> exportFactorySharingBoundaries)
         {
-            Requires.NotNullOrEmpty(contractName, "contractName");
-            Requires.NotNull(metadata, "metadata");
-            Requires.NotNull(additionalConstraints, "additionalConstraints");
-            Requires.NotNull(exportFactorySharingBoundaries, "exportFactorySharingBoundaries");
+            Requires.NotNullOrEmpty(contractName, nameof(contractName));
+            Requires.NotNull(metadata, nameof(metadata));
+            Requires.NotNull(additionalConstraints, nameof(additionalConstraints));
+            Requires.NotNull(exportFactorySharingBoundaries, nameof(exportFactorySharingBoundaries));
 
             this.ContractName = contractName;
             this.Cardinality = cardinality;
@@ -70,7 +70,7 @@
 
         public ImportDefinition AddExportConstraint(IImportSatisfiabilityConstraint constraint)
         {
-            Requires.NotNull(constraint, "constraint");
+            Requires.NotNull(constraint, nameof(constraint));
             return this.WithExportConstraints(this.exportConstraints.Add(constraint));
         }
 
@@ -129,7 +129,7 @@
 
         internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             // TODO: consider the assembly dependencies brought in by constraints.
             ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata);

@@ -16,7 +16,7 @@
 
         internal RuntimeExportProviderFactory(RuntimeComposition composition)
         {
-            Requires.NotNull(composition, "composition");
+            Requires.NotNull(composition, nameof(composition));
             this.composition = composition;
         }
 
