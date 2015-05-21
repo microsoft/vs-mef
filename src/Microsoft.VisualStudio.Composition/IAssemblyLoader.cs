@@ -12,6 +12,10 @@ namespace Microsoft.VisualStudio.Composition
     /// <summary>
     /// Supplies the functionality for loading assemblies.
     /// </summary>
+    /// <remarks>
+    /// Implementations MUST be thread-safe and should be very fast for assemblies
+    /// that have already been loaded.
+    /// </remarks>
     public interface IAssemblyLoader
     {
         /// <summary>
