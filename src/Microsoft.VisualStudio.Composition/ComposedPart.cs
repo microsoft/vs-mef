@@ -15,9 +15,9 @@
     {
         public ComposedPart(ComposablePartDefinition definition, IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExports, IImmutableSet<string> requiredSharingBoundaries)
         {
-            Requires.NotNull(definition, "definition");
-            Requires.NotNull(satisfyingExports, "satisfyingExports");
-            Requires.NotNull(requiredSharingBoundaries, "requiredSharingBoundaries");
+            Requires.NotNull(definition, nameof(definition));
+            Requires.NotNull(satisfyingExports, nameof(satisfyingExports));
+            Requires.NotNull(requiredSharingBoundaries, nameof(requiredSharingBoundaries));
 
 #if DEBUG   // These checks are expensive. Don't do them in production.
             // Make sure we have entries for every import.
@@ -56,7 +56,7 @@
 
         public IEnumerable<ComposedPartDiagnostic> Validate(IReadOnlyDictionary<Type, ExportDefinitionBinding> metadataViews)
         {
-            Requires.NotNull(metadataViews, "metadataViews");
+            Requires.NotNull(metadataViews, nameof(metadataViews));
 
             if (this.Definition.ExportDefinitions.Any(ed => CompositionConfiguration.ExportDefinitionPracticallyEqual.Default.Equals(ExportProvider.ExportProviderExportDefinition, ed.Value)) &&
                 !this.Definition.Equals(ExportProvider.ExportProviderPartDefinition))
@@ -153,7 +153,7 @@
 
         private static string GetDiagnosticLocation(ImportDefinitionBinding import)
         {
-            Requires.NotNull(import, "import");
+            Requires.NotNull(import, nameof(import));
 
             return string.Format(
                 CultureInfo.CurrentCulture,
@@ -164,7 +164,7 @@
 
         private static string GetDiagnosticLocation(ExportDefinitionBinding export)
         {
-            Requires.NotNull(export, "export");
+            Requires.NotNull(export, nameof(export));
 
             if (export.ExportingMember != null)
             {
@@ -182,7 +182,7 @@
 
         private static string GetExportsList(IEnumerable<ExportDefinitionBinding> exports)
         {
-            Requires.NotNull(exports, "exports");
+            Requires.NotNull(exports, nameof(exports));
 
             return exports.Any()
                 ? Environment.NewLine + string.Join(Environment.NewLine, exports.Select(export => "    " + GetDiagnosticLocation(export)))
@@ -191,7 +191,7 @@
 
         private static bool IsAllowedImportManyParameterType(Type importSiteType)
         {
-            Requires.NotNull(importSiteType, "importSiteType");
+            Requires.NotNull(importSiteType, nameof(importSiteType));
             if (importSiteType.IsArray)
             {
                 return true;

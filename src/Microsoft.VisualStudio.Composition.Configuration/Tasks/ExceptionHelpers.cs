@@ -10,7 +10,7 @@
     {
         internal static string GetUserMessage(this Exception exception)
         {
-            Requires.NotNull(exception, "exception");
+            Requires.NotNull(exception, nameof(exception));
 
             var builder = new StringBuilder();
             while (exception != null)

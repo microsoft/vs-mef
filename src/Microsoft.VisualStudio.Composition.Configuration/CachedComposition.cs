@@ -21,8 +21,8 @@
 
         public Task SaveAsync(CompositionConfiguration configuration, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Requires.NotNull(configuration, "configuration");
-            Requires.NotNull(cacheStream, "cacheStream");
+            Requires.NotNull(configuration, nameof(configuration));
+            Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.Argument(cacheStream.CanWrite, "cacheStream", ConfigurationStrings.WritableStreamRequired);
 
             return Task.Run(async delegate
@@ -35,8 +35,8 @@
 
         public Task SaveAsync(RuntimeComposition composition, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Requires.NotNull(composition, "composition");
-            Requires.NotNull(cacheStream, "cacheStream");
+            Requires.NotNull(composition, nameof(composition));
+            Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.Argument(cacheStream.CanWrite, "cacheStream", ConfigurationStrings.WritableStreamRequired);
 
             return Task.Run(() =>
@@ -52,7 +52,7 @@
 
         public Task<RuntimeComposition> LoadRuntimeCompositionAsync(Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Requires.NotNull(cacheStream, "cacheStream");
+            Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.Argument(cacheStream.CanRead, "cacheStream", ConfigurationStrings.ReadableStreamRequired);
 
             return Task.Run(() =>
@@ -97,7 +97,7 @@
             internal void Write(RuntimeComposition compositionRuntime)
             {
                 Requires.NotNull(this.writer, "writer");
-                Requires.NotNull(compositionRuntime, "compositionRuntime");
+                Requires.NotNull(compositionRuntime, nameof(compositionRuntime));
 
                 using (this.Trace("RuntimeComposition"))
                 {

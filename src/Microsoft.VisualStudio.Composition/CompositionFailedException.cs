@@ -24,7 +24,7 @@
         public CompositionFailedException(string message, IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> errors)
             : this(message)
         {
-            Requires.NotNull(errors, "errors");
+            Requires.NotNull(errors, nameof(errors));
             this.Errors = errors;
         }
 

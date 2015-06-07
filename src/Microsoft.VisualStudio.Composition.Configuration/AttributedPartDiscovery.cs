@@ -39,7 +39,7 @@
 
         protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
         {
-            Requires.NotNull(partType, "partType");
+            Requires.NotNull(partType, nameof(partType));
 
             if (!typeExplicitlyRequested)
             {
@@ -197,14 +197,14 @@
 
         protected override IEnumerable<Type> GetTypes(Assembly assembly)
         {
-            Requires.NotNull(assembly, "assembly");
+            Requires.NotNull(assembly, nameof(assembly));
 
             return this.IsNonPublicSupported ? assembly.GetTypes() : assembly.GetExportedTypes();
         }
 
         private ImmutableDictionary<string, object> GetExportMetadata(ICustomAttributeProvider member)
         {
-            Requires.NotNull(member, "member");
+            Requires.NotNull(member, nameof(member));
 
             var result = ImmutableDictionary.CreateBuilder<string, object>();
             var namesOfMetadataWithMultipleValues = new HashSet<string>(StringComparer.Ordinal);
@@ -255,8 +255,8 @@
 
         private static bool TryCreateImportDefinition(Type importingType, ICustomAttributeProvider member, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints, out ImportDefinition importDefinition)
         {
-            Requires.NotNull(importingType, "importingType");
-            Requires.NotNull(member, "member");
+            Requires.NotNull(importingType, nameof(importingType));
+            Requires.NotNull(member, nameof(member));
 
             var importAttribute = member.GetFirstAttribute<ImportAttribute>();
             var importManyAttribute = member.GetFirstAttribute<ImportManyAttribute>();
@@ -329,7 +329,7 @@
         /// <returns>A set of import constraints.</returns>
         private static ImmutableHashSet<IImportSatisfiabilityConstraint> GetImportConstraints(ICustomAttributeProvider importSite)
         {
-            Requires.NotNull(importSite, "importSite");
+            Requires.NotNull(importSite, nameof(importSite));
 
             var constraints = ImmutableHashSet.CreateRange<IImportSatisfiabilityConstraint>(
                 from importConstraint in importSite.GetAttributes<ImportMetadataConstraintAttribute>()

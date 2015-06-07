@@ -20,7 +20,7 @@
         /// <returns>The catalog with the additional support.</returns>
         public static ComposableCatalog WithMetadataViewEmitProxySupport(this ComposableCatalog catalog)
         {
-            Requires.NotNull(catalog, "catalog");
+            Requires.NotNull(catalog, nameof(catalog));
 
             return catalog.WithPart(ProxySupportPartDefinition);
         }

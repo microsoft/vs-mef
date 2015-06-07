@@ -32,15 +32,15 @@ namespace Microsoft.VisualStudio.Composition
     ///     public bool ValueTypeProperty { get; }
     /// }
     /// ]]></code>
-    /// 
+    ///
     /// The class to be generated will look approximately like:
     /// <code><![CDATA[
     /// public class __Foo__MedataViewProxy : TMetadataView
-    /// 
+    ///
     ///     private readonly IReadOnlyDictionary<string, object> metadata;
     ///     private readonly IReadOnlyDictionary<string, object> defaultMetadata;
     ///
-    ///     private __Foo__MedataViewProxy (IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata) 
+    ///     private __Foo__MedataViewProxy (IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata)
     ///     {
     ///         this.metadata = metadata;
     ///         this.defaultMetadata = defaultMetadata;
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.Composition
     ///         }
     ///     }
     ///
-    ///     public static object Create(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata) 
+    ///     public static object Create(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata)
     ///     {
     ///        return new __Foo__MedataViewProxy(metadata, defaultMetadata);
     ///     }
@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (!MetadataViewFactories.TryGetValue(viewType, out metadataViewFactory))
                 {
-                    // We actually create the proxy type within the lock because we're 
+                    // We actually create the proxy type within the lock because we're
                     // tampering with the ModuleBuilder which isn't thread-safe.
                     Type generatedProxyType = GenerateInterfaceViewProxyType(viewType);
                     metadataViewFactory = (MetadataViewFactory)Delegate.CreateDelegate(

@@ -25,8 +25,8 @@
         /// </summary>
         public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef composablePartType, MemberRef importingMember)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
-            Requires.NotNull(composablePartType, "composablePartType");
+            Requires.NotNull(importDefinition, nameof(importDefinition));
+            Requires.NotNull(composablePartType, nameof(composablePartType));
 
             this.ImportDefinition = importDefinition;
             this.ComposablePartTypeRef = composablePartType;
@@ -39,8 +39,8 @@
         /// </summary>
         public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef composablePartType, ParameterRef importingConstructorParameter)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
-            Requires.NotNull(composablePartType, "composablePartType");
+            Requires.NotNull(importDefinition, nameof(importDefinition));
+            Requires.NotNull(composablePartType, nameof(composablePartType));
 
             this.ImportDefinition = importDefinition;
             this.ComposablePartTypeRef = composablePartType;
@@ -53,8 +53,8 @@
         /// </summary>
         public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef contractType)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
-            Requires.NotNull(contractType, "contractType");
+            Requires.NotNull(importDefinition, nameof(importDefinition));
+            Requires.NotNull(contractType, nameof(contractType));
 
             this.ImportDefinition = importDefinition;
             this.importingSiteTypeRef = TypeRef.Get(typeof(IEnumerable<>).MakeGenericType(typeof(Lazy<>).MakeGenericType(contractType.Resolve())));
@@ -245,7 +245,7 @@
 
         internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             this.ImportDefinition.GetInputAssemblies(assemblies);
             this.ComposablePartTypeRef.GetInputAssemblies(assemblies);

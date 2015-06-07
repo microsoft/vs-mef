@@ -13,7 +13,7 @@
     {
         internal static ComposablePartDefinition GetMetadataViewProviderPartDefinition(Type providerType, int orderPrecedence)
         {
-            Requires.NotNull(providerType, "providerType");
+            Requires.NotNull(providerType, nameof(providerType));
 
             var exportDefinition = new ExportDefinition(
                 ContractNameServices.GetTypeIdentity(typeof(IMetadataViewProvider)),
@@ -50,8 +50,8 @@
 
         internal static bool EqualsByValue<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> expected, IReadOnlyDictionary<TKey, TValue> actual, IEqualityComparer<TValue> valueComparer = null)
         {
-            Requires.NotNull(expected, "expected");
-            Requires.NotNull(actual, "actual");
+            Requires.NotNull(expected, nameof(expected));
+            Requires.NotNull(actual, nameof(actual));
             valueComparer = valueComparer ?? EqualityComparer<TValue>.Default;
 
             if (expected.Count != actual.Count)
@@ -106,7 +106,7 @@
 
         internal static bool Contains<T>(this ImmutableStack<T> stack, T value)
         {
-            Requires.NotNull(stack, "stack");
+            Requires.NotNull(stack, nameof(stack));
 
             while (!stack.IsEmpty)
             {
@@ -142,8 +142,8 @@
 
         internal static void ToString(this IReadOnlyDictionary<string, object> metadata, IndentingTextWriter writer)
         {
-            Requires.NotNull(metadata, "metadata");
-            Requires.NotNull(writer, "writer");
+            Requires.NotNull(metadata, nameof(metadata));
+            Requires.NotNull(writer, nameof(writer));
 
             foreach (var item in metadata)
             {
@@ -153,8 +153,8 @@
 
         internal static void ToString(this object value, TextWriter writer)
         {
-            Requires.NotNull(value, "value");
-            Requires.NotNull(writer, "writer");
+            Requires.NotNull(value, nameof(value));
+            Requires.NotNull(writer, nameof(writer));
 
             var descriptiveValue = value as IDescriptiveToString;
             if (descriptiveValue != null)

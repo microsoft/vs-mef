@@ -183,7 +183,7 @@
 
         private static async Task RoundtripCatalogSerializationAsync(ComposableCatalog catalog, ITestOutputHelper output)
         {
-            Requires.NotNull(catalog, "catalog");
+            Requires.NotNull(catalog, nameof(catalog));
             Requires.NotNull(output, nameof(output));
 
             var catalogSerialization = new CachedCatalog();

@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.Composition
 
         internal SerializationContextBase(BinaryReader reader)
         {
-            Requires.NotNull(reader, "reader");
+            Requires.NotNull(reader, nameof(reader));
             this.reader = reader;
 
             // At the head of the stream, read in the estimated or actual size of the object table we will require.
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Composition
 
         internal SerializationContextBase(BinaryWriter writer, int estimatedObjectCount)
         {
-            Requires.NotNull(writer, "writer");
+            Requires.NotNull(writer, nameof(writer));
             this.writer = writer;
             this.serializingObjectTable = new Dictionary<object, uint>(estimatedObjectCount, SmartInterningEqualityComparer.Default);
 #if TRACESTATS
@@ -505,7 +505,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write<T>(IReadOnlyCollection<T> list, Action<T> itemWriter)
         {
-            Requires.NotNull(list, "list");
+            Requires.NotNull(list, nameof(list));
             using (this.Trace("List<" + typeof(T).Name + ">"))
             {
                 this.WriteCompressedUInt((uint)list.Count);
@@ -518,7 +518,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(Array list, Action<object> itemWriter)
         {
-            Requires.NotNull(list, "list");
+            Requires.NotNull(list, nameof(list));
             using (this.Trace((list != null ? list.GetType().GetElementType().Name : "null") + "[]"))
             {
                 this.WriteCompressedUInt((uint)list.Length);

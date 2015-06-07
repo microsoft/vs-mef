@@ -25,7 +25,7 @@
 
         public bool IsMetadataViewSupported(Type metadataType)
         {
-            Requires.NotNull(metadataType, "metadataType");
+            Requires.NotNull(metadataType, nameof(metadataType));
 
             return metadataType.GetTypeInfo().IsAssignableFrom(typeof(IReadOnlyDictionary<string, object>).GetTypeInfo())
                 || metadataType.GetTypeInfo().IsAssignableFrom(typeof(IDictionary<string, object>).GetTypeInfo());
@@ -33,7 +33,7 @@
 
         public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
         {
-            Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(metadata, nameof(metadata));
 
             // This cast should work because our IsMetadataViewSupported method filters to those that do.
             return metadata;

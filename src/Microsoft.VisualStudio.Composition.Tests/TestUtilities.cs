@@ -47,7 +47,7 @@
 
         internal static async Task<ExportProvider> CreateContainerAsync(this CompositionConfiguration configuration, ITestOutputHelper output)
         {
-            Requires.NotNull(configuration, "configuration");
+            Requires.NotNull(configuration, nameof(configuration));
             Requires.NotNull(output, nameof(output));
 
             var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
@@ -79,14 +79,14 @@
 
         internal static IContainer CreateContainerV1(params Type[] parts)
         {
-            Requires.NotNull(parts, "parts");
+            Requires.NotNull(parts, nameof(parts));
             var catalog = new MefV1.Hosting.TypeCatalog(parts);
             return CreateContainerV1(catalog);
         }
 
         internal static IContainer CreateContainerV1(IReadOnlyList<Assembly> assemblies, Type[] parts)
         {
-            Requires.NotNull(parts, "parts");
+            Requires.NotNull(parts, nameof(parts));
             var catalogs = assemblies.Select(a => new MefV1.Hosting.AssemblyCatalog(a))
                 .Concat<MefV1.Primitives.ComposablePartCatalog>(new[] { new MefV1.Hosting.TypeCatalog(parts) });
             var catalog = new MefV1.Hosting.AggregateCatalog(catalogs);
@@ -96,7 +96,7 @@
 
         private static IContainer CreateContainerV1(MefV1.Primitives.ComposablePartCatalog catalog)
         {
-            Requires.NotNull(catalog, "catalog");
+            Requires.NotNull(catalog, nameof(catalog));
             var container = new DebuggableCompositionContainer(catalog, MefV1.Hosting.CompositionOptions.ExportCompositionService | MefV1.Hosting.CompositionOptions.IsThreadSafe);
             return new V1ContainerWrapper(container);
         }
@@ -264,7 +264,7 @@
 
             internal V1ContainerWrapper(MefV1.Hosting.CompositionContainer container)
             {
-                Requires.NotNull(container, "container");
+                Requires.NotNull(container, nameof(container));
                 this.container = container;
             }
 
@@ -472,7 +472,7 @@
 
             internal V2ContainerWrapper(CompositionHost container)
             {
-                Requires.NotNull(container, "container");
+                Requires.NotNull(container, nameof(container));
                 this.container = container;
             }
 
@@ -612,8 +612,8 @@
 
             internal V3ContainerWrapper(ExportProvider container, CompositionConfiguration configuration)
             {
-                Requires.NotNull(container, "container");
-                Requires.NotNull(configuration, "configuration");
+                Requires.NotNull(container, nameof(container));
+                Requires.NotNull(configuration, nameof(configuration));
 
                 this.container = container;
                 this.Configuration = configuration;

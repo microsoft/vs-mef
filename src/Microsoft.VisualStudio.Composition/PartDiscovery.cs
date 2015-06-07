@@ -23,7 +23,7 @@
         /// <returns>The aggregate PartDiscovery instance.</returns>
         public static PartDiscovery Combine(params PartDiscovery[] discoveryMechanisms)
         {
-            Requires.NotNull(discoveryMechanisms, "discoveryMechanisms");
+            Requires.NotNull(discoveryMechanisms, nameof(discoveryMechanisms));
 
             if (discoveryMechanisms.Length == 1)
             {
@@ -51,7 +51,7 @@
 
         public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<Type> partTypes, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Requires.NotNull(partTypes, "partTypes");
+            Requires.NotNull(partTypes, nameof(partTypes));
 
             var tuple = this.CreateDiscoveryBlockChain(true, null, cancellationToken);
             foreach (Type type in partTypes)
@@ -72,7 +72,7 @@
         /// <returns>A set of generated parts.</returns>
         public Task<DiscoveredParts> CreatePartsAsync(Assembly assembly, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Requires.NotNull(assembly, "assembly");
+            Requires.NotNull(assembly, nameof(assembly));
 
             return this.CreatePartsAsync(new[] { assembly }, null, cancellationToken);
         }
@@ -88,7 +88,7 @@
         /// <returns>A set of generated parts.</returns>
         public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<Assembly> assemblies, IProgress<DiscoveryProgress> progress = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             var tuple = this.CreateAssemblyDiscoveryBlockChain(progress, cancellationToken);
             foreach (var assembly in assemblies)
@@ -110,7 +110,7 @@
         /// <returns>A set of generated parts.</returns>
         public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<string> assemblyPaths, IProgress<DiscoveryProgress> progress = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Requires.NotNull(assemblyPaths, "assemblyPaths");
+            Requires.NotNull(assemblyPaths, nameof(assemblyPaths));
 
             var exceptions = new List<PartDiscoveryException>();
             var tuple = this.CreateAssemblyDiscoveryBlockChain(progress, cancellationToken);
@@ -155,7 +155,7 @@
 
         protected internal static Type GetTypeIdentityFromImportingType(Type type, bool importMany)
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
 
             if (importMany)
             {
@@ -172,7 +172,7 @@
 
         protected internal static Type GetElementTypeFromMany(Type type)
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
 
             if (type.IsArray)
             {
@@ -196,7 +196,7 @@
         protected static ConstructorInfo GetImportingConstructor<TImportingConstructorAttribute>(Type type, bool publicOnly)
             where TImportingConstructorAttribute : Attribute
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
 
             var ctors = type.GetTypeInfo().DeclaredConstructors.Where(ctor => !ctor.IsStatic && (ctor.IsPublic || !publicOnly));
             var taggedCtor = ctors.SingleOrDefault(ctor => ctor.IsAttributeDefined<TImportingConstructorAttribute>());
@@ -207,7 +207,7 @@
 
         protected static ImmutableHashSet<IImportSatisfiabilityConstraint> GetMetadataViewConstraints(Type receivingType, bool importMany)
         {
-            Requires.NotNull(receivingType, "receivingType");
+            Requires.NotNull(receivingType, nameof(receivingType));
 
             var result = ImmutableHashSet.Create<IImportSatisfiabilityConstraint>();
 
@@ -223,7 +223,7 @@
 
         protected internal static ImmutableHashSet<IImportSatisfiabilityConstraint> GetExportTypeIdentityConstraints(Type contractType)
         {
-            Requires.NotNull(contractType, "contractType");
+            Requires.NotNull(contractType, nameof(contractType));
 
             var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty;
 
@@ -237,7 +237,7 @@
 
         protected internal static ImmutableDictionary<string, object> GetImportMetadataForGenericTypeImport(Type contractType)
         {
-            Requires.NotNull(contractType, "contractType");
+            Requires.NotNull(contractType, nameof(contractType));
             if (contractType.IsConstructedGenericType)
             {
                 return ImmutableDictionary.Create<string, object>()
@@ -299,7 +299,7 @@
         /// </summary>
         internal static bool IsImportManyCollectionTypeCreateable(ImportDefinitionBinding import)
         {
-            Requires.NotNull(import, "import");
+            Requires.NotNull(import, nameof(import));
             return IsImportManyCollectionTypeCreateable(import.ImportingSiteType, import.ImportingSiteTypeWithoutCollection);
         }
 
@@ -311,8 +311,8 @@
         /// <returns><c>true</c> if the collection is creatable; <c>false</c> otherwise.</returns>
         internal static bool IsImportManyCollectionTypeCreateable(Type collectionType, Type elementType)
         {
-            Requires.NotNull(collectionType, "collectionType");
-            Requires.NotNull(elementType, "elementType");
+            Requires.NotNull(collectionType, nameof(collectionType));
+            Requires.NotNull(elementType, nameof(elementType));
 
             var icollectionOfT = typeof(ICollection<>).MakeGenericType(elementType);
             var ienumerableOfT = typeof(IEnumerable<>).MakeGenericType(elementType);
@@ -341,7 +341,7 @@
         /// <returns>The metadata view, <see cref="IDictionary{String, Object}"/>, or <c>null</c> if there is none.</returns>
         private static Type GetMetadataType(Type receivingType)
         {
-            Requires.NotNull(receivingType, "receivingType");
+            Requires.NotNull(receivingType, nameof(receivingType));
 
             if (receivingType.IsAnyLazyType() || receivingType.IsExportFactoryType())
             {
@@ -529,13 +529,13 @@
 
             internal CombinedPartDiscovery(IReadOnlyList<PartDiscovery> discoveryMechanisms)
             {
-                Requires.NotNull(discoveryMechanisms, "discoveryMechanisms");
+                Requires.NotNull(discoveryMechanisms, nameof(discoveryMechanisms));
                 this.discoveryMechanisms = discoveryMechanisms;
             }
 
             protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
             {
-                Requires.NotNull(partType, "partType");
+                Requires.NotNull(partType, nameof(partType));
 
                 foreach (var discovery in this.discoveryMechanisms)
                 {
@@ -551,7 +551,7 @@
 
             public override bool IsExportFactoryType(Type type)
             {
-                Requires.NotNull(type, "type");
+                Requires.NotNull(type, nameof(type));
 
                 return this.discoveryMechanisms.Any(discovery => discovery.IsExportFactoryType(type));
             }

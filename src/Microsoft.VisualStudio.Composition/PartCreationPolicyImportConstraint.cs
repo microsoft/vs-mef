@@ -81,14 +81,14 @@
 
         public static bool IsNonSharedInstanceRequired(ImportDefinition importDefinition)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(importDefinition, nameof(importDefinition));
 
             return importDefinition.ExportConstraints.Contains(NonSharedPartRequired);
         }
 
         public bool IsSatisfiedBy(ExportDefinition exportDefinition)
         {
-            Requires.NotNull(exportDefinition, "exportDefinition");
+            Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
             object value;
             if (exportDefinition.Metadata.TryGetValue(CompositionConstants.PartCreationPolicyMetadataName, out value))

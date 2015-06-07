@@ -108,7 +108,7 @@
 
             internal SynchronousProgress(Action<T> callback)
             {
-                Requires.NotNull(callback, "callback");
+                Requires.NotNull(callback, nameof(callback));
                 this.callback = callback;
             }
 

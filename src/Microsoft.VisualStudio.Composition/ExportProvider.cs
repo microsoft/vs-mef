@@ -262,7 +262,7 @@
 
         public virtual IEnumerable<Export> GetExports(ImportDefinition importDefinition)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(importDefinition, nameof(importDefinition));
 
             if (importDefinition.ContractName == ExportProviderExportDefinition.ContractName)
             {
@@ -430,10 +430,10 @@
 
         protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> exportMetadata, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(importDefinition, nameof(importDefinition));
             Requires.NotNull(exportMetadata, "metadata");
-            Requires.NotNull(originalPartTypeRef, "originalPartTypeRef");
-            Requires.NotNull(constructedPartTypeRef, "constructedPartTypeRef");
+            Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
+            Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
 
             Func<object> memberValueFactory;
             if (exportingMember == null)
@@ -458,11 +458,11 @@
 
         protected object CreateExportFactory(Type importingSiteElementType, IReadOnlyCollection<string> sharingBoundaries, Func<KeyValuePair<object, IDisposable>> valueFactory, Type exportFactoryType, IReadOnlyDictionary<string, object> exportMetadata)
         {
-            Requires.NotNull(importingSiteElementType, "importingSiteElementType");
-            Requires.NotNull(sharingBoundaries, "sharingBoundaries");
-            Requires.NotNull(valueFactory, "valueFactory");
-            Requires.NotNull(exportFactoryType, "exportFactoryType");
-            Requires.NotNull(exportMetadata, "exportMetadata");
+            Requires.NotNull(importingSiteElementType, nameof(importingSiteElementType));
+            Requires.NotNull(sharingBoundaries, nameof(sharingBoundaries));
+            Requires.NotNull(valueFactory, nameof(valueFactory));
+            Requires.NotNull(exportFactoryType, nameof(exportFactoryType));
+            Requires.NotNull(exportMetadata, nameof(exportMetadata));
 
             // ExportFactory.ctor(Func<Tuple<T, Action>>[, TMetadata])
             Type tupleType;
@@ -500,7 +500,7 @@
 
         private Export CreateExportFactoryExport(ExportInfo exportInfo, Type exportFactoryType)
         {
-            Requires.NotNull(exportFactoryType, "exportFactoryType");
+            Requires.NotNull(exportFactoryType, nameof(exportFactoryType));
 
             var exportFactoryCreator = (Func<object>)(() => this.CreateExportFactory(
                 typeof(object),
@@ -525,8 +525,8 @@
 
         protected object GetStrongTypedMetadata(IReadOnlyDictionary<string, object> metadata, Type metadataType)
         {
-            Requires.NotNull(metadata, "metadata");
-            Requires.NotNull(metadataType, "metadataType");
+            Requires.NotNull(metadata, nameof(metadata));
+            Requires.NotNull(metadataType, nameof(metadataType));
 
             var metadataViewProvider = this.GetMetadataViewProvider(metadataType);
             return metadataViewProvider.CreateProxy(
@@ -545,7 +545,7 @@
         /// <returns>The value of the member.</returns>
         protected static object GetValueFromMember(object exportingPart, MemberInfo exportingMember, Type importingSiteElementType = null, Type exportedValueType = null)
         {
-            Requires.NotNull(exportingMember, "exportingMember");
+            Requires.NotNull(exportingMember, nameof(exportingMember));
 
             if (exportingMember == null)
             {
@@ -599,8 +599,8 @@
 
         protected PartLifecycleTracker GetOrCreateShareableValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata)
         {
-            Requires.NotNull(originalPartTypeRef, "originalPartTypeRef");
-            Requires.NotNull(constructedPartTypeRef, "constructedPartTypeRef");
+            Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
+            Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
 
             PartLifecycleTracker existingLifecycle;
             if (this.TryGetSharedInstanceFactory(partSharingBoundary, constructedPartTypeRef, out existingLifecycle))
@@ -642,8 +642,8 @@
 
         private PartLifecycleTracker GetOrAddSharedInstanceFactory(string partSharingBoundary, TypeRef partTypeRef, PartLifecycleTracker value)
         {
-            Requires.NotNull(partTypeRef, "partTypeRef");
-            Requires.NotNull(value, "value");
+            Requires.NotNull(partTypeRef, nameof(partTypeRef));
+            Requires.NotNull(value, nameof(value));
 
             var sharingBoundary = this.AcquireSharingBoundaryInstances(partSharingBoundary);
             lock (sharingBoundary)
@@ -669,7 +669,7 @@
         /// </param>
         protected void TrackDisposableValue(IDisposable instantiatedPart, string sharingBoundary)
         {
-            Requires.NotNull(instantiatedPart, "instantiatedPart");
+            Requires.NotNull(instantiatedPart, nameof(instantiatedPart));
 
             if (sharingBoundary == null)
             {
@@ -701,7 +701,7 @@
         /// <returns>A dictionary of default metadata values.</returns>
         protected static IReadOnlyDictionary<string, object> GetMetadataViewDefaults(Type metadataView)
         {
-            Requires.NotNull(metadataView, "metadataView");
+            Requires.NotNull(metadataView, nameof(metadataView));
 
             IReadOnlyDictionary<string, object> result;
             lock (GetMetadataViewDefaultsCache)
@@ -744,7 +744,7 @@
 
         protected internal static int GetOrderMetadata(IReadOnlyDictionary<string, object> metadata)
         {
-            Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(metadata, nameof(metadata));
 
             object value = metadata.GetValueOrDefault("OrderPrecedence");
             return value is int ? (int)value : 0;
@@ -765,8 +765,8 @@
 
         private bool TryGetProvisionalSharedExport(IReadOnlyDictionary<TypeRef, object> provisionalSharedObjects, TypeRef partTypeRef, out object value)
         {
-            Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
-            Requires.NotNull(partTypeRef, "partTypeRef");
+            Requires.NotNull(provisionalSharedObjects, nameof(provisionalSharedObjects));
+            Requires.NotNull(partTypeRef, nameof(partTypeRef));
 
             lock (provisionalSharedObjects)
             {
@@ -823,7 +823,7 @@
         /// <exception cref="NotSupportedException">Thrown if no metadata view provider available is compatible with the type.</exception>
         internal virtual IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
         {
-            Requires.NotNull(metadataView, "metadataView");
+            Requires.NotNull(metadataView, nameof(metadataView));
 
             IMetadataViewProvider metadataViewProvider;
             lock (this.typeAndSelectedMetadataViewProviderCache)
@@ -864,7 +864,7 @@
         /// <exception cref="CompositionFailedException">Thrown if the dictionary for the given sharing boundary isn't found.</exception>
         private Dictionary<TypeRef, PartLifecycleTracker> AcquireSharingBoundaryInstances(string sharingBoundaryName)
         {
-            Requires.NotNull(sharingBoundaryName, "sharingBoundaryName");
+            Requires.NotNull(sharingBoundaryName, nameof(sharingBoundaryName));
 
             var sharingBoundary = this.sharedInstantiatedParts.GetValueOrDefault(sharingBoundaryName);
             if (sharingBoundary == null)
@@ -887,8 +887,8 @@
             public ExportInfo(ExportDefinition exportDefinition, Func<object> exportedValueGetter)
                 : this()
             {
-                Requires.NotNull(exportDefinition, "exportDefinition");
-                Requires.NotNull(exportedValueGetter, "exportedValueGetter");
+                Requires.NotNull(exportDefinition, nameof(exportDefinition));
+                Requires.NotNull(exportedValueGetter, nameof(exportedValueGetter));
 
                 this.Definition = exportDefinition;
                 this.ExportedValueGetter = exportedValueGetter;
@@ -900,7 +900,7 @@
 
             internal ExportInfo CloseGenericExport(Type[] genericTypeArguments)
             {
-                Requires.NotNull(genericTypeArguments, "genericTypeArguments");
+                Requires.NotNull(genericTypeArguments, nameof(genericTypeArguments));
 
                 string openGenericExportTypeIdentity = (string)this.Definition.Metadata[CompositionConstants.ExportTypeIdentityMetadataName];
                 string genericTypeDefinitionIdentityPattern = openGenericExportTypeIdentity;
@@ -981,7 +981,7 @@
             /// <param name="sharingBoundary">The sharing boundary the part belongs to.</param>
             public PartLifecycleTracker(ExportProvider owningExportProvider, string sharingBoundary)
             {
-                Requires.NotNull(owningExportProvider, "owningExportProvider");
+                Requires.NotNull(owningExportProvider, nameof(owningExportProvider));
 
                 this.OwningExportProvider = owningExportProvider;
                 this.sharingBoundary = sharingBoundary;

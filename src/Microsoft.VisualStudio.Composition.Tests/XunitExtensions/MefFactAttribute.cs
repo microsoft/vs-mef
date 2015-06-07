@@ -22,7 +22,7 @@
         public MefFactAttribute(CompositionEngines compositionVersions, params Type[] parts)
             : this(compositionVersions)
         {
-            Requires.NotNull(parts, "parts");
+            Requires.NotNull(parts, nameof(parts));
 
             this.Parts = parts;
             this.Assemblies = ImmutableList<string>.Empty;
@@ -31,7 +31,7 @@
         public MefFactAttribute(CompositionEngines compositionVersions, string newLineSeparatedAssemblyNames, params Type[] parts)
             : this(compositionVersions, parts)
         {
-            Requires.NotNullOrEmpty(newLineSeparatedAssemblyNames, "newLineSeparatedAssemblyNames");
+            Requires.NotNullOrEmpty(newLineSeparatedAssemblyNames, nameof(newLineSeparatedAssemblyNames));
             this.Assemblies = newLineSeparatedAssemblyNames
                 .Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(l => l.Trim())
@@ -42,7 +42,7 @@
         public MefFactAttribute(CompositionEngines compositionVersions, params string[] assemblies)
             : this(compositionVersions)
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             this.Assemblies = assemblies.ToImmutableList();
         }

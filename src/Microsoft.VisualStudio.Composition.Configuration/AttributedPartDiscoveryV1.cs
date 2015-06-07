@@ -18,7 +18,7 @@
 
         protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
         {
-            Requires.NotNull(partType, "partType");
+            Requires.NotNull(partType, nameof(partType));
 
             // We want to ignore abstract classes, but we want to consider static classes.
             // Static classes claim to be both abstract and sealed. So to ignore just abstract
@@ -198,10 +198,10 @@
 
         private static void AddImportsFromMembers(PropertyInfo[] declaredProperties, FieldInfo[] declaredFields, TypeRef partTypeRef, IList<ImportDefinitionBinding> imports)
         {
-            Requires.NotNull(declaredProperties, "declaredProperties");
-            Requires.NotNull(declaredFields, "declaredFields");
-            Requires.NotNull(partTypeRef, "partTypeRef");
-            Requires.NotNull(imports, "imports");
+            Requires.NotNull(declaredProperties, nameof(declaredProperties));
+            Requires.NotNull(declaredFields, nameof(declaredFields));
+            Requires.NotNull(partTypeRef, nameof(partTypeRef));
+            Requires.NotNull(imports, nameof(imports));
 
             foreach (var member in declaredFields.Concat<MemberInfo>(declaredProperties))
             {
@@ -232,15 +232,15 @@
 
         protected override IEnumerable<Type> GetTypes(Assembly assembly)
         {
-            Requires.NotNull(assembly, "assembly");
+            Requires.NotNull(assembly, nameof(assembly));
 
             return assembly.GetTypes();
         }
 
         private static bool TryCreateImportDefinition(Type importingType, ICustomAttributeProvider member, out ImportDefinition importDefinition)
         {
-            Requires.NotNull(importingType, "importingType");
-            Requires.NotNull(member, "member");
+            Requires.NotNull(importingType, nameof(importingType));
+            Requires.NotNull(member, nameof(member));
 
             ImportAttribute importAttribute = member.GetFirstAttribute<ImportAttribute>();
             ImportManyAttribute importManyAttribute = member.GetFirstAttribute<ImportManyAttribute>();
@@ -311,7 +311,7 @@
 
         private static IReadOnlyDictionary<string, object> GetExportMetadata(ICustomAttributeProvider member)
         {
-            Requires.NotNull(member, "member");
+            Requires.NotNull(member, nameof(member));
 
             var result = ImmutableDictionary.CreateBuilder<string, object>();
             foreach (var attribute in member.GetAttributes<Attribute>())

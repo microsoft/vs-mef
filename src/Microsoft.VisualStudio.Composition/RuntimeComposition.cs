@@ -21,8 +21,8 @@
 
         private RuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders)
         {
-            Requires.NotNull(parts, "parts");
-            Requires.NotNull(metadataViewsAndProviders, "metadataViewsAndProviders");
+            Requires.NotNull(parts, nameof(parts));
+            Requires.NotNull(metadataViewsAndProviders, nameof(metadataViewsAndProviders));
 
             this.parts = ImmutableHashSet.CreateRange(parts);
             this.metadataViewsAndProviders = metadataViewsAndProviders;
@@ -51,7 +51,7 @@
 
         public static RuntimeComposition CreateRuntimeComposition(CompositionConfiguration configuration)
         {
-            Requires.NotNull(configuration, "configuration");
+            Requires.NotNull(configuration, nameof(configuration));
 
             // PERF/memory tip: We could create all RuntimeExports first, and then reuse them at each import site.
             var parts = configuration.Parts.Select(part => CreateRuntimePart(part, configuration));
@@ -86,14 +86,14 @@
 
         public RuntimePart GetPart(RuntimeExport export)
         {
-            Requires.NotNull(export, "export");
+            Requires.NotNull(export, nameof(export));
 
             return this.partsByType[export.DeclaringType];
         }
 
         public RuntimePart GetPart(TypeRef partType)
         {
-            Requires.NotNull(partType, "partType");
+            Requires.NotNull(partType, nameof(partType));
 
             return this.partsByType[partType];
         }
@@ -127,7 +127,7 @@
 
         internal static string GetDiagnosticLocation(RuntimeImport import)
         {
-            Requires.NotNull(import, "import");
+            Requires.NotNull(import, nameof(import));
 
             return string.Format(
                 CultureInfo.CurrentCulture,
@@ -138,7 +138,7 @@
 
         internal static string GetDiagnosticLocation(RuntimeExport export)
         {
-            Requires.NotNull(export, "export");
+            Requires.NotNull(export, nameof(export));
 
             if (export.Member != null)
             {
@@ -156,7 +156,7 @@
 
         private static RuntimePart CreateRuntimePart(ComposedPart part, CompositionConfiguration configuration)
         {
-            Requires.NotNull(part, "part");
+            Requires.NotNull(part, nameof(part));
 
             var runtimePart = new RuntimePart(
                 TypeRef.Get(part.Definition.Type),
@@ -171,8 +171,8 @@
 
         private static RuntimeImport CreateRuntimeImport(ImportDefinitionBinding importDefinitionBinding, IReadOnlyList<ExportDefinitionBinding> satisfyingExports)
         {
-            Requires.NotNull(importDefinitionBinding, "importDefinitionBinding");
-            Requires.NotNull(satisfyingExports, "satisfyingExports");
+            Requires.NotNull(importDefinitionBinding, nameof(importDefinitionBinding));
+            Requires.NotNull(satisfyingExports, nameof(satisfyingExports));
 
             var runtimeExports = satisfyingExports.Select(export => CreateRuntimeExport(export)).ToImmutableArray();
             if (importDefinitionBinding.ImportingMember != null)
@@ -203,7 +203,7 @@
 
         private static RuntimeExport CreateRuntimeExport(ExportDefinition exportDefinition, Type partType, MemberRef exportingMember)
         {
-            Requires.NotNull(exportDefinition, "exportDefinition");
+            Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
             return new RuntimeExport(
                 exportDefinition.ContractName,
@@ -215,7 +215,7 @@
 
         private static RuntimeExport CreateRuntimeExport(ExportDefinitionBinding exportDefinitionBinding)
         {
-            Requires.NotNull(exportDefinitionBinding, "exportDefinitionBinding");
+            Requires.NotNull(exportDefinitionBinding, nameof(exportDefinitionBinding));
             return CreateRuntimeExport(
                 exportDefinitionBinding.ExportDefinition,
                 exportDefinitionBinding.PartDefinition.Type,
@@ -338,8 +338,8 @@
 
             private RuntimeImport(TypeRef importingSiteTypeRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
             {
-                Requires.NotNull(importingSiteTypeRef, "importingSiteTypeRef");
-                Requires.NotNull(satisfyingExports, "satisfyingExports");
+                Requires.NotNull(importingSiteTypeRef, nameof(importingSiteTypeRef));
+                Requires.NotNull(satisfyingExports, nameof(satisfyingExports));
 
                 this.Cardinality = cardinality;
                 this.SatisfyingExports = satisfyingExports;
@@ -557,8 +557,8 @@
 
             public RuntimeExport(string contractName, TypeRef declaringType, MemberRef memberRef, TypeRef exportedValueType, IReadOnlyDictionary<string, object> metadata)
             {
-                Requires.NotNull(metadata, "metadata");
-                Requires.NotNullOrEmpty(contractName, "contractName");
+                Requires.NotNull(metadata, nameof(metadata));
+                Requires.NotNullOrEmpty(contractName, nameof(contractName));
 
                 this.ContractName = contractName;
                 this.DeclaringType = declaringType;

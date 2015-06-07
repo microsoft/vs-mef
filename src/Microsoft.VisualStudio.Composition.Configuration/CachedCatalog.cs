@@ -17,8 +17,8 @@
 
         public Task SaveAsync(ComposableCatalog catalog, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Requires.NotNull(catalog, "catalog");
-            Requires.NotNull(cacheStream, "cacheStream");
+            Requires.NotNull(catalog, nameof(catalog));
+            Requires.NotNull(cacheStream, nameof(cacheStream));
 
             return Task.Run(() =>
             {
@@ -33,7 +33,7 @@
 
         public Task<ComposableCatalog> LoadAsync(Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Requires.NotNull(cacheStream, "cacheStream");
+            Requires.NotNull(cacheStream, nameof(cacheStream));
 
             return Task.Run(() =>
             {

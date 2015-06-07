@@ -41,7 +41,7 @@
             internal RuntimeExportProvider(RuntimeComposition composition, ExportProvider parent, IReadOnlyCollection<string> freshSharingBoundaries)
                 : base(parent, freshSharingBoundaries)
             {
-                Requires.NotNull(composition, "composition");
+                Requires.NotNull(composition, nameof(composition));
 
                 this.composition = composition;
             }
@@ -85,8 +85,8 @@
 
             private static void ThrowIfExportedValueIsNotAssignableToImport(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, object exportedValue)
             {
-                Requires.NotNull(import, "import");
-                Requires.NotNull(export, "export");
+                Requires.NotNull(import, nameof(import));
+                Requires.NotNull(export, nameof(export));
 
                 if (exportedValue != null)
                 {
@@ -104,7 +104,7 @@
 
             private ValueForImportSite GetValueForImportSite(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import)
             {
-                Requires.NotNull(import, "import");
+                Requires.NotNull(import, nameof(import));
 
                 Func<Func<object>, object, object> lazyFactory = import.LazyFactory;
                 var exports = import.SatisfyingExports;
@@ -203,7 +203,7 @@
                 {
                     if (import.IsLazy)
                     {
-                        Requires.NotNull(lazyFactory, "lazyFactory");
+                        Requires.NotNull(lazyFactory, nameof(lazyFactory));
                     }
 
                     if (this.composition.GetPart(export).Type.Equals(import.DeclaringType))
@@ -227,9 +227,9 @@
 
             private object CreateExportFactory(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export)
             {
-                Requires.NotNull(importingPartTracker, "importingPartTracker");
-                Requires.NotNull(import, "import");
-                Requires.NotNull(export, "export");
+                Requires.NotNull(importingPartTracker, nameof(importingPartTracker));
+                Requires.NotNull(import, nameof(import));
+                Requires.NotNull(export, nameof(export));
 
                 Type importingSiteElementType = import.ImportingSiteElementType;
                 IReadOnlyCollection<string> sharingBoundaries = import.ExportFactorySharingBoundaries;
@@ -253,8 +253,8 @@
 
             private ExportedValueConstructor GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker importingPartTracker)
             {
-                Requires.NotNull(import, "import");
-                Requires.NotNull(export, "export");
+                Requires.NotNull(import, nameof(import));
+                Requires.NotNull(export, nameof(export));
 
                 var exportingRuntimePart = this.composition.GetPart(export);
 
@@ -280,11 +280,11 @@
             /// </remarks>
             private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker importingPartTracker)
             {
-                Requires.NotNull(import, "import");
-                Requires.NotNull(export, "export");
-                Requires.NotNull(exportingRuntimePart, "exportingRuntimePart");
-                Requires.NotNull(originalPartTypeRef, "originalPartTypeRef");
-                Requires.NotNull(constructedPartTypeRef, "constructedPartTypeRef");
+                Requires.NotNull(import, nameof(import));
+                Requires.NotNull(export, nameof(export));
+                Requires.NotNull(exportingRuntimePart, nameof(exportingRuntimePart));
+                Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
+                Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
 
                 PartLifecycleTracker partLifecycle = this.GetOrCreateValue(
                     originalPartTypeRef,
@@ -326,8 +326,8 @@
             /// </summary>
             private static Reflection.TypeRef GetPartConstructedTypeRef(RuntimeComposition.RuntimePart part, IReadOnlyDictionary<string, object> importMetadata)
             {
-                Requires.NotNull(part, "part");
-                Requires.NotNull(importMetadata, "importMetadata");
+                Requires.NotNull(part, nameof(part));
+                Requires.NotNull(importMetadata, nameof(importMetadata));
 
                 if (part.Type.IsGenericTypeDefinition)
                 {
@@ -348,8 +348,8 @@
 
             private static void SetImportingMember(object part, MemberInfo member, object value)
             {
-                Requires.NotNull(part, "part");
-                Requires.NotNull(member, "member");
+                Requires.NotNull(part, nameof(part));
+                Requires.NotNull(member, nameof(member));
 
                 bool containsGenericParameters = member.DeclaringType.GetTypeInfo().ContainsGenericParameters;
                 if (containsGenericParameters)
@@ -377,8 +377,8 @@
 
             private static object GetImportingMember(object part, MemberInfo member)
             {
-                Requires.NotNull(part, "part");
-                Requires.NotNull(member, "member");
+                Requires.NotNull(part, nameof(part));
+                Requires.NotNull(member, nameof(member));
 
                 var property = member as PropertyInfo;
                 if (property != null)
@@ -414,7 +414,7 @@
                 public ExportedValueConstructor(PartLifecycleTracker exportingPart, Func<object> valueConstructor)
                     : this()
                 {
-                    Requires.NotNull(valueConstructor, "valueConstructor");
+                    Requires.NotNull(valueConstructor, nameof(valueConstructor));
 
                     this.ExportingPart = exportingPart;
                     this.ValueConstructor = valueConstructor;
@@ -434,8 +434,8 @@
                 public RuntimePartLifecycleTracker(RuntimeExportProvider owningExportProvider, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata)
                     : base(owningExportProvider, partDefinition.SharingBoundary)
                 {
-                    Requires.NotNull(partDefinition, "partDefinition");
-                    Requires.NotNull(importMetadata, "importMetadata");
+                    Requires.NotNull(partDefinition, nameof(partDefinition));
+                    Requires.NotNull(importMetadata, nameof(importMetadata));
 
                     this.partDefinition = partDefinition;
                     this.importMetadata = importMetadata;

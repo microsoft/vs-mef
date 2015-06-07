@@ -26,7 +26,7 @@
 
         public bool IsMetadataViewSupported(Type metadataType)
         {
-            Requires.NotNull(metadataType, "metadataType");
+            Requires.NotNull(metadataType, nameof(metadataType));
             var typeInfo = metadataType.GetTypeInfo();
 
             return typeInfo.IsClass && !typeInfo.IsAbstract && FindConstructor(typeInfo) != null;
@@ -40,7 +40,7 @@
 
         private static ConstructorInfo FindConstructor(TypeInfo metadataType)
         {
-            Requires.NotNull(metadataType, "metadataType");
+            Requires.NotNull(metadataType, nameof(metadataType));
 
             var publicCtorsWithOneParameter = from ctor in metadataType.DeclaredConstructors
                                               where ctor.IsPublic

@@ -26,7 +26,7 @@
         {
         }
 
-        public class BaseClass<T> 
+        public class BaseClass<T>
         {
             /// <summary>
             /// An importing field.
