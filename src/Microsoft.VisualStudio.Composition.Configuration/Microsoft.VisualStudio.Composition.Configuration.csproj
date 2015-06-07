@@ -113,6 +113,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ConfigurationStrings.resx</DependentUpon>
     </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SerializationContextBase.cs" />
     <Compile Include="NetFxAdapters.cs" />
     <Compile Include="Tasks\ExceptionHelpers.cs" />
@@ -150,9 +151,7 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Analyzer Include="..\..\packages\StyleCop.Analyzers.1.0.0-alpha-g4e621dfd0d\tools\analyzers\StyleCop.Analyzers.dll" />
   </ItemGroup>
