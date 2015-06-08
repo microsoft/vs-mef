@@ -50,7 +50,7 @@
 
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
                 var catalog = ComposableCatalog.Create(resolver)
-                    .WithParts(parts.Parts)
+                    .AddParts(parts.Parts)
                     .WithDesktopSupport();
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
                 var configuration = CompositionConfiguration.Create(catalog);

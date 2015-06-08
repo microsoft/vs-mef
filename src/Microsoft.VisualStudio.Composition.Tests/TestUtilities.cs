@@ -82,7 +82,7 @@
 
         internal static async Task<ExportProvider> CreateContainerAsync(ITestOutputHelper output, params Type[] parts)
         {
-            var catalog = EmptyCatalog.WithParts(await V2Discovery.CreatePartsAsync(parts));
+            var catalog = EmptyCatalog.AddParts(await V2Discovery.CreatePartsAsync(parts));
             var configuration = await CompositionConfiguration.Create(catalog)
                 .CreateContainerAsync(output);
             return configuration;
@@ -156,11 +156,11 @@
         {
             PartDiscovery discovery = GetDiscoveryService(attributesDiscovery);
             var assemblyParts = await discovery.CreatePartsAsync(assemblies);
-            var catalog = EmptyCatalog.WithParts(assemblyParts);
+            var catalog = EmptyCatalog.AddParts(assemblyParts);
             if (parts != null && parts.Length != 0)
             {
-                var typeCatalog = EmptyCatalog.WithParts(await discovery.CreatePartsAsync(parts));
-                catalog = EmptyCatalog.WithParts(catalog.Parts.Concat(typeCatalog.Parts));
+                var typeCatalog = EmptyCatalog.AddParts(await discovery.CreatePartsAsync(parts));
+                catalog = EmptyCatalog.AddParts(catalog.Parts.Concat(typeCatalog.Parts));
             }
 
             return await CreateContainerV3Async(catalog, attributesDiscovery, output);

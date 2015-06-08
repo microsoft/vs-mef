@@ -63,8 +63,8 @@
             var discovery = TestUtilities.V1Discovery;
             var v3Catalog = TestUtilities.EmptyCatalog
                 .WithDesktopSupport()
-                .WithParts(await discovery.CreatePartsAsync(editorAssemblies))
-                .WithPart(discovery.CreatePart(typeof(DummyKeyboardTrackingService)));
+                .AddParts(await discovery.CreatePartsAsync(editorAssemblies))
+                .AddPart(discovery.CreatePart(typeof(DummyKeyboardTrackingService)));
             var v3Configuration = CompositionConfiguration.Create(v3Catalog);
             var v3ExportProviderFactory = v3Configuration.CreateExportProviderFactory();
 

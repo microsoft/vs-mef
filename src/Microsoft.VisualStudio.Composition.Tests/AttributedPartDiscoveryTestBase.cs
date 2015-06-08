@@ -98,7 +98,7 @@
             File.Copy(typeof(DiscoverablePart1).Assembly.Location, alternateReadLocation, true);
 
             var parts = await this.DiscoveryService.CreatePartsAsync(new[] { alternateReadLocation });
-            var catalog = TestUtilities.EmptyCatalog.WithParts(parts);
+            var catalog = TestUtilities.EmptyCatalog.AddParts(parts);
             var configuration = CompositionConfiguration.Create(catalog);
             var exportProviderFactory = configuration.CreateExportProviderFactory();
             var exportProvider = exportProviderFactory.CreateExportProvider();

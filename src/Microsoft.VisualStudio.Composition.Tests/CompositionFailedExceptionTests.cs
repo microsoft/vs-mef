@@ -17,7 +17,7 @@
         public void ExceptionIsSerializable()
         {
             var discovery = TestUtilities.V2Discovery;
-            var catalog = TestUtilities.EmptyCatalog.WithParts(new[] { discovery.CreatePart(typeof(Tree)) });
+            var catalog = TestUtilities.EmptyCatalog.AddParts(new[] { discovery.CreatePart(typeof(Tree)) });
             var configuration = CompositionConfiguration.Create(catalog);
 
             CompositionFailedException exception = null;

@@ -81,7 +81,7 @@
                 using (this.Trace("Catalog"))
                 {
                     var parts = this.ReadList(this.ReadComposablePartDefinition);
-                    return ComposableCatalog.Create(this.Resolver).WithParts(parts);
+                    return ComposableCatalog.Create(this.Resolver).AddParts(parts);
                 }
             }
 

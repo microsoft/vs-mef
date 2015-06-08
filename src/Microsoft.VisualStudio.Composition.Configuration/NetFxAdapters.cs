@@ -45,7 +45,7 @@
         {
             Requires.NotNull(catalog, nameof(catalog));
 
-            var modifiedCatalog = catalog.WithPart(CompositionServicePart);
+            var modifiedCatalog = catalog.AddPart(CompositionServicePart);
             return modifiedCatalog;
         }
 
@@ -59,7 +59,7 @@
             Requires.NotNull(catalog, nameof(catalog));
 
             return catalog
-                .WithPart(MetadataViewImplProxyPart)
+                .AddPart(MetadataViewImplProxyPart)
                 .WithMetadataViewEmitProxySupport();
         }
 

@@ -133,9 +133,9 @@
                     if (this.TryPrepareSerializeReusableObject(export))
                     {
                         this.Write(export.ContractName);
-                        this.Write(export.DeclaringType);
+                        this.Write(export.DeclaringTypeRef);
                         this.Write(export.MemberRef);
-                        this.Write(export.ExportedValueType);
+                        this.Write(export.ExportedValueTypeRef);
                         this.Write(export.Metadata);
                     }
                 }
@@ -172,7 +172,7 @@
             {
                 using (this.Trace("RuntimePart"))
                 {
-                    this.Write(part.Type);
+                    this.Write(part.TypeRef);
                     this.Write(part.Exports, this.Write);
                     if (part.ImportingConstructorRef.IsEmpty)
                     {

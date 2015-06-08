@@ -60,7 +60,7 @@
                     select this.CreateExport(
                         importDefinition,
                         export.Metadata,
-                        part.Type,
+                        part.TypeRef,
                         GetPartConstructedTypeRef(part, importDefinition.Metadata),
                         part.SharingBoundary,
                         !part.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
@@ -209,7 +209,7 @@
                         Requires.NotNull(lazyFactory, nameof(lazyFactory));
                     }
 
-                    if (this.composition.GetPart(export).Type.Equals(import.DeclaringType))
+                    if (this.composition.GetPart(export).TypeRef.Equals(import.DeclaringTypeRef))
                     {
                         // This is importing itself.
                         object part = importingPartTracker.Value;
@@ -262,14 +262,14 @@
                 var exportingRuntimePart = this.composition.GetPart(export);
 
                 // Special case importing of ExportProvider
-                if (exportingRuntimePart.Type.Equals(ExportProvider.ExportProviderPartDefinition.TypeRef))
+                if (exportingRuntimePart.TypeRef.Equals(ExportProvider.ExportProviderPartDefinition.TypeRef))
                 {
                     return new ExportedValueConstructor(null, () => this.NonDisposableWrapper.Value);
                 }
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
-                return this.GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.Type, constructedType, importingPartTracker);
+                return this.GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker);
             }
 
             /// <summary>
@@ -311,7 +311,7 @@
                             : (fullyInitializedValueIsRequired
                                 ? partLifecycle.GetValueReadyToExpose()
                                 : partLifecycle.GetValueReadyToRetrieveExportingMembers());
-                        return GetValueFromMember(part, export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve());
+                        return GetValueFromMember(part, export.Member, import.ImportingSiteElementType, export.ExportedValueTypeRef.Resolve());
                     }
                     else
                     {
@@ -332,7 +332,7 @@
                 Requires.NotNull(part, nameof(part));
                 Requires.NotNull(importMetadata, nameof(importMetadata));
 
-                if (part.Type.IsGenericTypeDefinition)
+                if (part.TypeRef.IsGenericTypeDefinition)
                 {
                     var bareMetadata = LazyMetadataWrapper.TryUnwrap(importMetadata);
                     object typeArgsObject;
@@ -340,13 +340,13 @@
                     {
                         IEnumerable<TypeRef> typeArgs = typeArgsObject is LazyMetadataWrapper.TypeArraySubstitution
                             ? ((LazyMetadataWrapper.TypeArraySubstitution)typeArgsObject).TypeRefArray
-                            : ((Type[])typeArgsObject).Select(t => TypeRef.Get(t, part.Type.Resolver));
+                            : ((Type[])typeArgsObject).Select(t => TypeRef.Get(t, part.TypeRef.Resolver));
 
-                        return part.Type.MakeGenericTypeRef(typeArgs.ToImmutableArray());
+                        return part.TypeRef.MakeGenericTypeRef(typeArgs.ToImmutableArray());
                     }
                 }
 
-                return part.Type;
+                return part.TypeRef;
             }
 
             private static void SetImportingMember(object part, MemberInfo member, object value)
@@ -456,7 +456,7 @@
                 /// </summary>
                 protected override Type PartType
                 {
-                    get { return this.partDefinition.Type.Resolve(); }
+                    get { return this.partDefinition.TypeRef.Resolve(); }
                 }
 
                 internal new void ReportPartiallyInitializedImport(PartLifecycleTracker part)
@@ -466,7 +466,7 @@
 
                 protected override object CreateValue()
                 {
-                    if (this.partDefinition.Type.Equals(ExportProviderPartDefinition.TypeRef))
+                    if (this.partDefinition.TypeRef.Equals(ExportProviderPartDefinition.TypeRef))
                     {
                         // Special case for our synthesized part that acts as a placeholder for *this* export provider.
                         return this.OwningExportProvider.NonDisposableWrapper.Value;
