@@ -9,6 +9,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Reflection;
 
     [DebuggerDisplay("{Definition.Type.Name}")]
     public class ComposedPart
@@ -42,9 +43,11 @@
         /// </summary>
         public IImmutableSet<string> RequiredSharingBoundaries { get; private set; }
 
+        internal Resolver Resolver => this.Definition.TypeRef.Resolver;
+
         public IEnumerable<KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>> GetImportingConstructorImports()
         {
-            if (this.Definition.ImportingConstructorInfo != null)
+            if (!this.Definition.ImportingConstructorRef.IsEmpty)
             {
                 foreach (var import in this.Definition.ImportingConstructorImports)
                 {
@@ -135,18 +138,19 @@
                     }
                 }
 
-                if (pair.Key.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && pair.Key.ImportingParameter != null && !IsAllowedImportManyParameterType(pair.Key.ImportingParameter.ParameterType))
+                if (pair.Key.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && !pair.Key.ImportingParameterRef.IsEmpty && !IsAllowedImportManyParameterType(pair.Key.ImportingParameterRef.Resolve().ParameterType))
                 {
                     yield return new ComposedPartDiagnostic(this, Strings.ImportingCtorHasUnsupportedParameterTypeForImportMany);
                 }
 
-                if (pair.Key.MetadataType != null && !metadataViews.ContainsKey(pair.Key.MetadataType))
+                var metadataType = pair.Key.MetadataType;
+                if (metadataType != null && !metadataViews.ContainsKey(metadataType))
                 {
                     yield return new ComposedPartDiagnostic(
                         this,
                         Strings.MetadataTypeNotSupported,
                         GetDiagnosticLocation(pair.Key),
-                        pair.Key.MetadataType.FullName);
+                        metadataType.FullName);
                 }
             }
         }
@@ -159,14 +163,14 @@
                 CultureInfo.CurrentCulture,
                 "{0}.{1}",
                 import.ComposablePartType.FullName,
-                import.ImportingMember == null ? ("ctor(" + import.ImportingParameter.Name + ")") : import.ImportingMember.Name);
+                import.ImportingMemberRef.IsEmpty ? ("ctor(" + import.ImportingParameter.Name + ")") : import.ImportingMember.Name);
         }
 
         private static string GetDiagnosticLocation(ExportDefinitionBinding export)
         {
             Requires.NotNull(export, nameof(export));
 
-            if (export.ExportingMember != null)
+            if (!export.ExportingMemberRef.IsEmpty)
             {
                 return string.Format(
                     CultureInfo.CurrentCulture,

@@ -10,11 +10,9 @@
 
     public class AttributedPartDiscoveryV1Tests : AttributedPartDiscoveryTestBase
     {
-        private AttributedPartDiscoveryV1 discovery = new AttributedPartDiscoveryV1();
-
         protected override PartDiscovery DiscoveryService
         {
-            get { return this.discovery; }
+            get { return TestUtilities.V1Discovery; }
         }
 
         [Fact]

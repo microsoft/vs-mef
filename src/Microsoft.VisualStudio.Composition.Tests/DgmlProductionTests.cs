@@ -91,8 +91,8 @@
 
         private async Task<XDocument> ProduceDgmlHelperAsync(params Type[] parts)
         {
-            var configuration = CompositionConfiguration.Create(
-                await new AttributedPartDiscovery().CreatePartsAsync(parts));
+            var catalog = TestUtilities.EmptyCatalog.AddParts(await TestUtilities.V2Discovery.CreatePartsAsync(parts));
+            var configuration = CompositionConfiguration.Create(catalog);
             XDocument dgml = configuration.CreateDgml();
             Assert.NotNull(dgml);
 

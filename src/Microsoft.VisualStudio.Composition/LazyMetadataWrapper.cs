@@ -21,18 +21,22 @@
         /// </summary>
         private readonly Direction direction;
 
+        private readonly Resolver resolver;
+
         /// <summary>
         /// The underlying metadata, which may be partially translated since value translation may choose
         /// to persist the translated result.
         /// </summary>
         protected ImmutableDictionary<string, object> underlyingMetadata;
 
-        internal LazyMetadataWrapper(ImmutableDictionary<string, object> metadata, Direction direction)
+        internal LazyMetadataWrapper(ImmutableDictionary<string, object> metadata, Direction direction, Resolver resolver)
         {
             Requires.NotNull(metadata, nameof(metadata));
+            Requires.NotNull(resolver, nameof(resolver));
 
             this.direction = direction;
             this.underlyingMetadata = metadata;
+            this.resolver = resolver;
         }
 
         internal enum Direction
@@ -202,7 +206,7 @@
 
         protected virtual LazyMetadataWrapper Clone(LazyMetadataWrapper oldVersion, IReadOnlyDictionary<string, object> newMetadata)
         {
-            return new LazyMetadataWrapper(newMetadata.ToImmutableDictionary(), oldVersion.direction);
+            return new LazyMetadataWrapper(newMetadata.ToImmutableDictionary(), oldVersion.direction, this.resolver);
         }
 
         protected object SubstituteValueIfRequired(string key, object value)
@@ -231,9 +235,9 @@
             switch (this.direction)
             {
                 case Direction.ToSubstitutedValue:
-                    if (Enum32Substitution.TrySubstituteValue(value, out substitutedValue) ||
-                        TypeSubstitution.TrySubstituteValue(value, out substitutedValue) ||
-                        TypeArraySubstitution.TrySubstituteValue(value, out substitutedValue))
+                    if (Enum32Substitution.TrySubstituteValue(value, this.resolver, out substitutedValue) ||
+                        TypeSubstitution.TrySubstituteValue(value, this.resolver, out substitutedValue) ||
+                        TypeArraySubstitution.TrySubstituteValue(value, this.resolver, out substitutedValue))
                     {
                         value = substitutedValue;
                     }
@@ -264,6 +268,8 @@
         {
             internal Enum32Substitution(TypeRef enumType, int rawValue)
             {
+                Requires.NotNull(enumType, nameof(enumType));
+
                 this.EnumType = enumType;
                 this.RawValue = rawValue;
             }
@@ -277,14 +283,16 @@
 
             internal int RawValue { get; private set; }
 
-            internal static bool TrySubstituteValue(object value, out ISubstitutedValue substitutedValue)
+            internal static bool TrySubstituteValue(object value, Resolver resolver, out ISubstitutedValue substitutedValue)
             {
+                Requires.NotNull(resolver, nameof(resolver));
+
                 if (value != null)
                 {
                     Type valueType = value.GetType();
                     if (valueType.IsEnum && Enum.GetUnderlyingType(valueType) == typeof(int) && IsTypeWorthDeferring(valueType))
                     {
-                        substitutedValue = new Enum32Substitution(TypeRef.Get(valueType), (int)value);
+                        substitutedValue = new Enum32Substitution(TypeRef.Get(valueType, resolver), (int)value);
                         return true;
                     }
                 }
@@ -306,7 +314,7 @@
                 }
 
                 ISubstitutedValue other;
-                if (TrySubstituteValue(obj, out other))
+                if (TrySubstituteValue(obj, this.EnumType.Resolver, out other))
                 {
                     return this.Equals((Enum32Substitution)other);
                 }
@@ -347,11 +355,11 @@
                 get { return this.TypeRef.Resolve(); }
             }
 
-            internal static bool TrySubstituteValue(object value, out ISubstitutedValue substitutedValue)
+            internal static bool TrySubstituteValue(object value, Resolver resolver, out ISubstitutedValue substitutedValue)
             {
                 if (value is Type)
                 {
-                    substitutedValue = new TypeSubstitution(TypeRef.Get((Type)value));
+                    substitutedValue = new TypeSubstitution(TypeRef.Get((Type)value, resolver));
                     return true;
                 }
 
@@ -377,7 +385,7 @@
                 }
 
                 ISubstitutedValue other;
-                if (TrySubstituteValue(obj, out other))
+                if (TrySubstituteValue(obj, this.TypeRef.Resolver, out other))
                 {
                     return this.Equals((TypeSubstitution)other);
                 }
@@ -398,24 +406,29 @@
 
         internal class TypeArraySubstitution : ISubstitutedValue, IEquatable<TypeArraySubstitution>
         {
-            internal TypeArraySubstitution(IReadOnlyList<TypeRef> typeRefArray)
+            private readonly Resolver resolver;
+
+            internal TypeArraySubstitution(IReadOnlyList<TypeRef> typeRefArray, Resolver resolver)
             {
                 Requires.NotNull(typeRefArray, nameof(typeRefArray));
+                Requires.NotNull(resolver, nameof(resolver));
+
                 this.TypeRefArray = typeRefArray;
+                this.resolver = resolver;
             }
 
             internal IReadOnlyList<TypeRef> TypeRefArray { get; private set; }
 
             public object ActualValue
             {
-                get { return this.TypeRefArray.Select(Resolver.Resolve).ToArray(); }
+                get { return this.TypeRefArray.Select(ResolverExtensions.Resolve).ToArray(); }
             }
 
-            internal static bool TrySubstituteValue(object value, out ISubstitutedValue substitutedValue)
+            internal static bool TrySubstituteValue(object value, Resolver resolver, out ISubstitutedValue substitutedValue)
             {
                 if (value is Type[])
                 {
-                    substitutedValue = new TypeArraySubstitution(((Type[])value).Select(TypeRef.Get).ToImmutableArray());
+                    substitutedValue = new TypeArraySubstitution(((Type[])value).Select(t => TypeRef.Get(t, resolver)).ToImmutableArray(), resolver);
                     return true;
                 }
 
@@ -441,7 +454,7 @@
                 }
 
                 ISubstitutedValue other;
-                if (TrySubstituteValue(obj, out other))
+                if (TrySubstituteValue(obj, this.resolver, out other))
                 {
                     return this.Equals((TypeArraySubstitution)other);
                 }

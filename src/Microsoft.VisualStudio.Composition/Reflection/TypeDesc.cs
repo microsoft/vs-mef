@@ -18,10 +18,12 @@
 
         public string FullName { get; private set; }
 
-        public static TypeDesc Get(Type type)
+        public static TypeDesc Get(Type type, Resolver resolver)
         {
             Requires.NotNull(type, nameof(type));
-            return new TypeDesc(TypeRef.Get(type), type.FullName);
+            Requires.NotNull(resolver, nameof(resolver));
+
+            return new TypeDesc(TypeRef.Get(type, resolver), type.FullName);
         }
     }
 }

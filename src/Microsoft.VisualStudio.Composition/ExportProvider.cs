@@ -23,7 +23,7 @@
             PartCreationPolicyConstraint.GetExportMetadata(CreationPolicy.Shared).AddRange(ExportTypeIdentityConstraint.GetExportMetadata(typeof(ExportProvider))));
 
         internal static readonly ComposablePartDefinition ExportProviderPartDefinition = new ComposablePartDefinition(
-            TypeRef.Get(typeof(ExportProviderAsExport)),
+            TypeRef.Get(typeof(ExportProviderAsExport), Resolver.DefaultInstance),
             ImmutableDictionary<string, object>.Empty.Add(CompositionConstants.DgmlCategoryPartMetadataName, new[] { "VsMEFBuiltIn" }),
             new[] { ExportProviderExportDefinition },
             ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
@@ -48,6 +48,10 @@
 
         private static readonly Dictionary<Type, IReadOnlyDictionary<string, object>> GetMetadataViewDefaultsCache = new Dictionary<Type, IReadOnlyDictionary<string, object>>();
 
+        private static readonly ImmutableDictionary<string, Dictionary<TypeRef, PartLifecycleTracker>> SharedInstantiatedPartsTemplate = ImmutableDictionary.Create<string, Dictionary<TypeRef, PartLifecycleTracker>>().Add(string.Empty, new Dictionary<TypeRef, PartLifecycleTracker>());
+
+        private static readonly ImmutableDictionary<string, HashSet<IDisposable>> DisposableInstantiatedSharedPartsTemplate = ImmutableDictionary.Create<string, HashSet<IDisposable>>().Add(string.Empty, new HashSet<IDisposable>());
+
         /// <summary>
         /// A cache for the <see cref="GetMetadataViewProvider"/> method which has shown up on perf traces.
         /// </summary>
@@ -68,17 +72,17 @@
         /// A map of shared boundary names to their shared instances.
         /// The value is a dictionary of types to their lazily-constructed instances and state.
         /// </summary>
-        private readonly ImmutableDictionary<string, Dictionary<TypeRef, PartLifecycleTracker>> sharedInstantiatedParts = ImmutableDictionary.Create<string, Dictionary<TypeRef, PartLifecycleTracker>>();
+        private readonly ImmutableDictionary<string, Dictionary<TypeRef, PartLifecycleTracker>> sharedInstantiatedParts;
 
         /// <summary>
         /// A map of sharing boundary names to the ExportProvider that owns them.
         /// </summary>
-        private readonly ImmutableDictionary<string, ExportProvider> sharingBoundaryExportProviderOwners = ImmutableDictionary.Create<string, ExportProvider>();
+        private readonly ImmutableDictionary<string, ExportProvider> sharingBoundaryExportProviderOwners;
 
         /// <summary>
         /// The disposable objects whose lifetimes are shared and tied to a specific sharing boundary.
         /// </summary>
-        private readonly ImmutableDictionary<string, HashSet<IDisposable>> disposableInstantiatedSharedParts = ImmutableDictionary.Create<string, HashSet<IDisposable>>();
+        private readonly ImmutableDictionary<string, HashSet<IDisposable>> disposableInstantiatedSharedParts;
 
         /// <summary>
         /// The dispoable objects whose lifetimes are controlled by this instance.
@@ -95,29 +99,30 @@
 
         private bool isDisposed;
 
-        protected ExportProvider(ExportProvider parent, IReadOnlyCollection<string> freshSharingBoundaries)
+        private ExportProvider(
+            Resolver resolver,
+            ImmutableDictionary<string, Dictionary<TypeRef, PartLifecycleTracker>> sharedInstantiatedParts,
+            ImmutableDictionary<string, HashSet<IDisposable>> disposableInstantiatedSharedParts,
+            ImmutableHashSet<string> freshSharingBoundaries,
+            ImmutableDictionary<string, ExportProvider> sharingBoundaryExportProviderOwners,
+            Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>> inheritedMetadataViewProviders)
         {
-            if (parent == null)
-            {
-                this.sharedInstantiatedParts = this.sharedInstantiatedParts.Add(string.Empty, new Dictionary<TypeRef, PartLifecycleTracker>());
-                this.disposableInstantiatedSharedParts = this.disposableInstantiatedSharedParts.Add(string.Empty, new HashSet<IDisposable>());
-                this.freshSharingBoundaries = this.freshSharingBoundaries.Add(string.Empty);
-            }
-            else
-            {
-                this.sharingBoundaryExportProviderOwners = parent.sharingBoundaryExportProviderOwners;
-                this.sharedInstantiatedParts = parent.sharedInstantiatedParts;
-                this.disposableInstantiatedSharedParts = parent.disposableInstantiatedSharedParts;
-            }
+            Requires.NotNull(resolver, nameof(resolver));
+            Requires.NotNull(sharedInstantiatedParts, nameof(sharedInstantiatedParts));
+            Requires.NotNull(disposableInstantiatedSharedParts, nameof(disposableInstantiatedSharedParts));
+            Requires.NotNull(freshSharingBoundaries, nameof(freshSharingBoundaries));
+            Requires.NotNull(sharingBoundaryExportProviderOwners, nameof(sharingBoundaryExportProviderOwners));
 
-            if (freshSharingBoundaries != null)
+            this.Resolver = resolver;
+            this.sharedInstantiatedParts = sharedInstantiatedParts;
+            this.disposableInstantiatedSharedParts = disposableInstantiatedSharedParts;
+            this.freshSharingBoundaries = freshSharingBoundaries;
+            this.sharingBoundaryExportProviderOwners = sharingBoundaryExportProviderOwners;
+
+            foreach (string freshSharingBoundary in freshSharingBoundaries)
             {
-                this.freshSharingBoundaries = this.freshSharingBoundaries.Union(freshSharingBoundaries);
-                foreach (string freshSharingBoundary in freshSharingBoundaries)
-                {
-                    this.sharedInstantiatedParts = this.sharedInstantiatedParts.SetItem(freshSharingBoundary, new Dictionary<TypeRef, PartLifecycleTracker>());
-                    this.disposableInstantiatedSharedParts = this.disposableInstantiatedSharedParts.SetItem(freshSharingBoundary, new HashSet<IDisposable>());
-                }
+                this.sharedInstantiatedParts = this.sharedInstantiatedParts.SetItem(freshSharingBoundary, new Dictionary<TypeRef, PartLifecycleTracker>());
+                this.disposableInstantiatedSharedParts = this.disposableInstantiatedSharedParts.SetItem(freshSharingBoundary, new HashSet<IDisposable>());
             }
 
             this.sharingBoundaryExportProviderOwners = this.sharingBoundaryExportProviderOwners.SetItems(
@@ -127,10 +132,32 @@
             this.NonDisposableWrapper = LazyServices.FromValue<object>(nonDisposableWrapper);
             this.NonDisposableWrapperExportAsListOfOne = ImmutableList.Create(
                 new Export(ExportProviderExportDefinition, this.NonDisposableWrapper));
-            this.metadataViewProviders = parent != null
-                ? parent.metadataViewProviders
-                : new Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>>(
+            this.metadataViewProviders = inheritedMetadataViewProviders
+                ?? new Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>>(
                     this.GetMetadataViewProviderExtensions);
+        }
+
+        protected ExportProvider(Resolver resolver)
+            : this(
+                resolver,
+                SharedInstantiatedPartsTemplate,
+                DisposableInstantiatedSharedPartsTemplate,
+                ImmutableHashSet.Create<string>().Add(string.Empty),
+                ImmutableDictionary.Create<string, ExportProvider>(),
+                null)
+        {
+        }
+
+        protected ExportProvider(ExportProvider parent, ImmutableHashSet<string> freshSharingBoundaries)
+            : this(
+                  Requires.NotNull(parent, nameof(parent)).Resolver,
+                  parent.sharedInstantiatedParts,
+                  parent.disposableInstantiatedSharedParts,
+                  freshSharingBoundaries,
+                  parent.sharingBoundaryExportProviderOwners,
+                  parent.metadataViewProviders)
+        {
+            this.Resolver = parent.Resolver;
         }
 
         /// <summary>
@@ -199,6 +226,8 @@
         protected Lazy<object> NonDisposableWrapper { get; private set; }
 
         protected ImmutableList<Export> NonDisposableWrapperExportAsListOfOne { get; private set; }
+
+        protected internal Resolver Resolver { get; }
 
         public Lazy<T> GetExport<T>()
         {
@@ -785,7 +814,7 @@
 
             if (typeof(TMetadataView) != typeof(DefaultMetadataType))
             {
-                constraints = constraints.Add(ImportMetadataViewConstraint.GetConstraint(TypeRef.Get(typeof(TMetadataView))));
+                constraints = constraints.Add(ImportMetadataViewConstraint.GetConstraint(TypeRef.Get(typeof(TMetadataView), this.Resolver), this.Resolver));
             }
 
             var importMetadata = PartDiscovery.GetImportMetadataForGenericTypeImport(typeof(T));

@@ -16,6 +16,15 @@
 
     public abstract class PartDiscovery
     {
+        protected PartDiscovery(Resolver resolver)
+        {
+            Requires.NotNull(resolver, nameof(resolver));
+
+            this.Resolver = resolver;
+        }
+
+        public Resolver Resolver { get; }
+
         /// <summary>
         /// Creates an aggregate <see cref="PartDiscovery"/> instance that delegates to a series of other part discovery extensions.
         /// </summary>
@@ -205,7 +214,7 @@
             return importingCtor;
         }
 
-        protected static ImmutableHashSet<IImportSatisfiabilityConstraint> GetMetadataViewConstraints(Type receivingType, bool importMany)
+        protected ImmutableHashSet<IImportSatisfiabilityConstraint> GetMetadataViewConstraints(Type receivingType, bool importMany)
         {
             Requires.NotNull(receivingType, nameof(receivingType));
 
@@ -215,7 +224,7 @@
             Type metadataType = GetMetadataType(elementType);
             if (metadataType != null)
             {
-                result = result.Add(ImportMetadataViewConstraint.GetConstraint(TypeRef.Get(metadataType)));
+                result = result.Add(ImportMetadataViewConstraint.GetConstraint(TypeRef.Get(metadataType, this.Resolver), this.Resolver));
             }
 
             return result;
@@ -528,6 +537,7 @@
             private readonly IReadOnlyList<PartDiscovery> discoveryMechanisms;
 
             internal CombinedPartDiscovery(IReadOnlyList<PartDiscovery> discoveryMechanisms)
+                : base(Resolver.DefaultInstance)
             {
                 Requires.NotNull(discoveryMechanisms, nameof(discoveryMechanisms));
                 this.discoveryMechanisms = discoveryMechanisms;

@@ -12,6 +12,7 @@
     using Microsoft.Build.Framework;
     using Microsoft.Build.Utilities;
     using System.Diagnostics.CodeAnalysis;
+    using Reflection;
 
     public class CreateComposition : AppDomainIsolatedTask, ICancelableTask
     {
@@ -36,7 +37,8 @@
             AppDomain.CurrentDomain.AssemblyResolve += this.CurrentDomain_AssemblyResolve;
             try
             {
-                var discovery = PartDiscovery.Combine(new AttributedPartDiscoveryV1(), new AttributedPartDiscovery());
+                var resolver = Resolver.DefaultInstance;
+                var discovery = PartDiscovery.Combine(new AttributedPartDiscoveryV1(resolver), new AttributedPartDiscovery(resolver));
 
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
 
@@ -47,7 +49,8 @@
                 }
 
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
-                var catalog = ComposableCatalog.Create(parts.Parts)
+                var catalog = ComposableCatalog.Create(resolver)
+                    .AddParts(parts.Parts)
                     .WithDesktopSupport();
                 this.cancellationSource.Token.ThrowIfCancellationRequested();
                 var configuration = CompositionConfiguration.Create(catalog);

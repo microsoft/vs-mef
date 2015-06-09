@@ -14,7 +14,8 @@
         [Fact]
         public void MissingRequiredImport()
         {
-            var configuration = CompositionConfiguration.Create(new[] { new AttributedPartDiscovery().CreatePart(typeof(RequiredImportMissing)) });
+            var catalog = TestUtilities.EmptyCatalog.AddParts(new[] { TestUtilities.V2Discovery.CreatePart(typeof(RequiredImportMissing)) });
+            var configuration = CompositionConfiguration.Create(catalog);
             Assert.Throws<CompositionFailedException>(() => configuration.ThrowOnErrors());
         }
 

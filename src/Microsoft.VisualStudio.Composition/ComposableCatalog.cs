@@ -20,23 +20,17 @@
 
         private ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract;
 
-        private ComposableCatalog(ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, DiscoveredParts discoveredParts)
+        private ComposableCatalog(ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, DiscoveredParts discoveredParts, Resolver resolver)
         {
             Requires.NotNull(parts, nameof(parts));
             Requires.NotNull(exportsByContract, nameof(exportsByContract));
             Requires.NotNull(discoveredParts, nameof(discoveredParts));
+            Requires.NotNull(resolver, nameof(resolver));
 
             this.parts = parts;
             this.exportsByContract = exportsByContract;
             this.DiscoveredParts = discoveredParts;
-        }
-
-        /// <summary>
-        /// Gets the assemblies within which parts are defined.
-        /// </summary>
-        public IEnumerable<Assembly> Assemblies
-        {
-            get { return this.Parts.Select(p => p.Type.GetTypeInfo().Assembly).Distinct(); }
+            this.Resolver = resolver;
         }
 
         /// <summary>
@@ -52,27 +46,18 @@
         /// </summary>
         public DiscoveredParts DiscoveredParts { get; private set; }
 
-        public static ComposableCatalog Create()
+        internal Resolver Resolver { get; }
+
+        public static ComposableCatalog Create(Resolver resolver)
         {
             return new ComposableCatalog(
                 ImmutableHashSet.Create<ComposablePartDefinition>(),
                 ImmutableDictionary.Create<string, ImmutableList<ExportDefinitionBinding>>(),
-                DiscoveredParts.Empty);
+                DiscoveredParts.Empty,
+                resolver);
         }
 
-        public static ComposableCatalog Create(IEnumerable<ComposablePartDefinition> parts)
-        {
-            Requires.NotNull(parts, nameof(parts));
-            return Create().WithParts(parts);
-        }
-
-        public static ComposableCatalog Create(DiscoveredParts parts)
-        {
-            Requires.NotNull(parts, nameof(parts));
-            return Create().WithParts(parts);
-        }
-
-        public ComposableCatalog WithPart(ComposablePartDefinition partDefinition)
+        public ComposableCatalog AddPart(ComposablePartDefinition partDefinition)
         {
             Requires.NotNull(partDefinition, nameof(partDefinition));
 
@@ -101,25 +86,25 @@
                 }
             }
 
-            return new ComposableCatalog(parts, exportsByContract, this.DiscoveredParts);
+            return new ComposableCatalog(parts, exportsByContract, this.DiscoveredParts, this.Resolver);
         }
 
-        public ComposableCatalog WithParts(IEnumerable<ComposablePartDefinition> parts)
+        public ComposableCatalog AddParts(IEnumerable<ComposablePartDefinition> parts)
         {
             Requires.NotNull(parts, nameof(parts));
 
             // PERF: This has shown up on ETL traces as inefficient and expensive
             //       WithPart should call WithParts instead, and WithParts should
             //       execute a more efficient batch operation.
-            return parts.Aggregate(this, (catalog, part) => catalog.WithPart(part));
+            return parts.Aggregate(this, (catalog, part) => catalog.AddPart(part));
         }
 
-        public ComposableCatalog WithParts(DiscoveredParts parts)
+        public ComposableCatalog AddParts(DiscoveredParts parts)
         {
             Requires.NotNull(parts, nameof(parts));
 
-            var catalog = this.WithParts(parts.Parts);
-            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts));
+            var catalog = this.AddParts(parts.Parts);
+            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts), catalog.Resolver);
         }
 
         /// <summary>
@@ -127,12 +112,12 @@
         /// </summary>
         /// <param name="catalogToMerge">The catalog to be merged with this one.</param>
         /// <returns>The merged version of the catalog.</returns>
-        public ComposableCatalog WithCatalog(ComposableCatalog catalogToMerge)
+        public ComposableCatalog AddCatalog(ComposableCatalog catalogToMerge)
         {
             Requires.NotNull(catalogToMerge, nameof(catalogToMerge));
 
-            var catalog = this.WithParts(catalogToMerge.Parts);
-            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(catalogToMerge.DiscoveredParts));
+            var catalog = this.AddParts(catalogToMerge.Parts);
+            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(catalogToMerge.DiscoveredParts), catalog.Resolver);
         }
 
         /// <summary>
@@ -140,11 +125,11 @@
         /// </summary>
         /// <param name="catalogsToMerge">The catalogs to be merged with this one.</param>
         /// <returns>The merged version of the catalog.</returns>
-        public ComposableCatalog WithCatalogs(IEnumerable<ComposableCatalog> catalogsToMerge)
+        public ComposableCatalog AddCatalogs(IEnumerable<ComposableCatalog> catalogsToMerge)
         {
             Requires.NotNull(catalogsToMerge, nameof(catalogsToMerge));
 
-            return catalogsToMerge.Aggregate(this, (aggregate, mergeCatalog) => aggregate.WithCatalog(mergeCatalog));
+            return catalogsToMerge.Aggregate(this, (aggregate, mergeCatalog) => aggregate.AddCatalog(mergeCatalog));
         }
 
         public IReadOnlyCollection<AssemblyName> GetInputAssemblies()

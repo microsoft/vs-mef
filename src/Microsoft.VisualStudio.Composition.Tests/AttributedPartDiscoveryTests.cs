@@ -12,11 +12,9 @@
 
     public class AttributedPartDiscoveryTests : AttributedPartDiscoveryTestBase
     {
-        private AttributedPartDiscovery discovery = new AttributedPartDiscovery() { IsNonPublicSupported = true };
-
         protected override PartDiscovery DiscoveryService
         {
-            get { return this.discovery; }
+            get { return TestUtilities.V2DiscoveryWithNonPublics; }
         }
 
         [Fact]

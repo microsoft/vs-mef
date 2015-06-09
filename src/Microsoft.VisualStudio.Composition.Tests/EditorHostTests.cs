@@ -60,11 +60,11 @@
             var v1AssemblyCatalogs = editorAssemblies.Select(p => (MefV1.Primitives.ComposablePartCatalog)new MefV1.Hosting.AssemblyCatalog(p));
             var v1Catalog = new MefV1.Hosting.AggregateCatalog(v1AssemblyCatalogs.Concat(new[] { new TypeCatalog(typeof(DummyKeyboardTrackingService)) }));
 
-            var v3Discovery = new AttributedPartDiscoveryV1();
-            var v3Catalog = ComposableCatalog.Create()
+            var discovery = TestUtilities.V1Discovery;
+            var v3Catalog = TestUtilities.EmptyCatalog
                 .WithDesktopSupport()
-                .WithParts(await v3Discovery.CreatePartsAsync(editorAssemblies))
-                .WithPart(v3Discovery.CreatePart(typeof(DummyKeyboardTrackingService)));
+                .AddParts(await discovery.CreatePartsAsync(editorAssemblies))
+                .AddPart(discovery.CreatePart(typeof(DummyKeyboardTrackingService)));
             var v3Configuration = CompositionConfiguration.Create(v3Catalog);
             var v3ExportProviderFactory = v3Configuration.CreateExportProviderFactory();
 

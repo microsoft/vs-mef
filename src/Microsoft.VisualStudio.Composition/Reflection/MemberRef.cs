@@ -41,7 +41,7 @@
             this.Type = type;
         }
 
-        public MemberRef(MemberInfo member)
+        public MemberRef(MemberInfo member, Resolver resolver)
             : this()
         {
             Requires.NotNull(member, nameof(member));
@@ -49,21 +49,21 @@
             switch (member.MemberType)
             {
                 case MemberTypes.Constructor:
-                    this.Constructor = new ConstructorRef((ConstructorInfo)member);
+                    this.Constructor = new ConstructorRef((ConstructorInfo)member, resolver);
                     break;
                 case MemberTypes.Field:
-                    this.Field = new FieldRef((FieldInfo)member);
+                    this.Field = new FieldRef((FieldInfo)member, resolver);
                     break;
                 case MemberTypes.Method:
-                    this.Method = new MethodRef((MethodInfo)member);
+                    this.Method = new MethodRef((MethodInfo)member, resolver);
                     break;
                 case MemberTypes.Property:
-                    this.Property = new PropertyRef((PropertyInfo)member);
+                    this.Property = new PropertyRef((PropertyInfo)member, resolver);
                     break;
                 default:
                     if (member is Type)
                     {
-                        this.Type = TypeRef.Get((Type)member);
+                        this.Type = TypeRef.Get((Type)member, resolver);
                     }
                     else
                     {
@@ -145,9 +145,11 @@
             get { return this.Type != null; }
         }
 
-        public static MemberRef Get(MemberInfo member)
+        internal Resolver Resolver => this.DeclaringType?.Resolver;
+
+        public static MemberRef Get(MemberInfo member, Resolver resolver)
         {
-            return member != null ? new MemberRef(member) : default(MemberRef);
+            return member != null ? new MemberRef(member, resolver) : default(MemberRef);
         }
 
         public bool Equals(MemberRef other)

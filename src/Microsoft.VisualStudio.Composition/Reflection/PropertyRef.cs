@@ -20,10 +20,10 @@
             this.SetMethodMetadataToken = setMethodMetadataToken;
         }
 
-        public PropertyRef(PropertyInfo propertyInfo)
+        public PropertyRef(PropertyInfo propertyInfo, Resolver resolver)
             : this()
         {
-            this.DeclaringType = TypeRef.Get(propertyInfo.DeclaringType);
+            this.DeclaringType = TypeRef.Get(propertyInfo.DeclaringType, resolver);
             this.MetadataToken = propertyInfo.MetadataToken;
             this.GetMethodMetadataToken = propertyInfo.GetMethod != null ? (int?)propertyInfo.GetMethod.MetadataToken : null;
             this.SetMethodMetadataToken = propertyInfo.SetMethod != null ? (int?)propertyInfo.SetMethod.MetadataToken : null;
@@ -41,6 +41,8 @@
         {
             get { return this.DeclaringType == null; }
         }
+
+        internal Resolver Resolver => this.DeclaringType?.Resolver;
 
         public bool Equals(PropertyRef other)
         {

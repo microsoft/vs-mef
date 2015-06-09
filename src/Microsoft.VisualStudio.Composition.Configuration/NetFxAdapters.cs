@@ -8,20 +8,19 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Reflection;
     using MefV1 = System.ComponentModel.Composition;
 
     public static class NetFxAdapters
     {
         private static readonly ComposablePartDefinition CompositionServicePart;
         private static readonly ComposablePartDefinition MetadataViewImplProxyPart;
-        private static readonly ComposablePartDefinition AssemblyNameCodeBasePathPath;
 
         static NetFxAdapters()
         {
-            var discovery = new AttributedPartDiscoveryV1();
+            var discovery = new AttributedPartDiscoveryV1(Resolver.DefaultInstance);
             CompositionServicePart = discovery.CreatePart(typeof(CompositionService));
             MetadataViewImplProxyPart = discovery.CreatePart(typeof(MetadataViewImplProxy));
-            AssemblyNameCodeBasePathPath = discovery.CreatePart(typeof(AssemblyLoadCodeBasePathLoader));
         }
 
         /// <summary>
@@ -46,7 +45,7 @@
         {
             Requires.NotNull(catalog, nameof(catalog));
 
-            var modifiedCatalog = catalog.WithPart(CompositionServicePart);
+            var modifiedCatalog = catalog.AddPart(CompositionServicePart);
             return modifiedCatalog;
         }
 
@@ -60,8 +59,7 @@
             Requires.NotNull(catalog, nameof(catalog));
 
             return catalog
-                .WithPart(MetadataViewImplProxyPart)
-                .WithPart(AssemblyNameCodeBasePathPath)
+                .AddPart(MetadataViewImplProxyPart)
                 .WithMetadataViewEmitProxySupport();
         }
 
@@ -411,28 +409,6 @@
                 }
 
                 return null;
-            }
-        }
-
-        /// <summary>
-        /// An assembly loader that includes the code base path so we can load assemblies by path when necessary.
-        /// </summary>
-        [MefV1.Export(typeof(IAssemblyLoader))]
-        [MefV1.ExportMetadata("OrderPrecedence", 100)] // should take precedence over one without codebase path handling
-        [MefV1.PartMetadata(CompositionConstants.DgmlCategoryPartMetadataName, new string[] { "VsMEFBuiltIn" })]
-        private class AssemblyLoadCodeBasePathLoader : IAssemblyLoader
-        {
-            public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
-            {
-                Requires.NotNullOrEmpty(assemblyFullName, nameof(assemblyFullName));
-
-                var assemblyName = new AssemblyName(assemblyFullName);
-                if (!string.IsNullOrEmpty(codeBasePath))
-                {
-                    assemblyName.CodeBase = codeBasePath;
-                }
-
-                return Assembly.Load(assemblyName);
             }
         }
     }

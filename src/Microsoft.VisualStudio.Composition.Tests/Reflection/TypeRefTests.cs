@@ -13,7 +13,7 @@
         [Fact]
         public void EqualsDistinguishesArrays()
         {
-            Assert.NotEqual(TypeRef.Get(typeof(object)), TypeRef.Get(typeof(object[])));
+            Assert.NotEqual(TypeRef.Get(typeof(object), TestUtilities.Resolver), TypeRef.Get(typeof(object[]), TestUtilities.Resolver));
         }
     }
 }

@@ -71,13 +71,15 @@
         /// </remarks>
         public IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> CompositionErrors { get; private set; }
 
+        internal Resolver Resolver => this.Catalog.Resolver;
+
         public static CompositionConfiguration Create(ComposableCatalog catalog)
         {
             Requires.NotNull(catalog, nameof(catalog));
 
             // We consider all the parts in the catalog, plus the specially synthesized ones
             // that should always be applied.
-            var customizedCatalog = catalog.WithParts(AlwaysBundledParts);
+            var customizedCatalog = catalog.AddParts(AlwaysBundledParts);
 
             // Construct our part builders, initialized with all their imports satisfied.
             // We explicitly use reference equality because ComposablePartDefinition.Equals is too slow, and unnecessary for this.
@@ -151,7 +153,7 @@
                 }
 
                 var salvagedParts = catalog.Parts.Except(invalidParts);
-                var salvagedCatalog = ComposableCatalog.Create(salvagedParts);
+                var salvagedCatalog = ComposableCatalog.Create(catalog.Resolver).AddParts(salvagedParts);
                 var configuration = Create(salvagedCatalog);
                 return configuration.WithErrors(errors);
             }
@@ -203,20 +205,10 @@
             return metadataViewsAndProviders.ToImmutable();
         }
 
-        public static CompositionConfiguration Create(IEnumerable<ComposablePartDefinition> parts)
-        {
-            return Create(ComposableCatalog.Create(parts));
-        }
-
-        public static CompositionConfiguration Create(DiscoveredParts parts)
-        {
-            return Create(ComposableCatalog.Create(parts));
-        }
-
         public IExportProviderFactory CreateExportProviderFactory()
         {
             var composition = RuntimeComposition.CreateRuntimeComposition(this);
-            return new RuntimeExportProviderFactory(composition);
+            return composition.CreateExportProviderFactory();
         }
 
         public string GetEffectiveSharingBoundary(ComposablePartDefinition partDefinition)
@@ -367,6 +359,8 @@
         /// <returns>A map of those parts with inferred boundaries where the key is the part and the value is its designated sharing boundary.</returns>
         private static ImmutableDictionary<ComposablePartDefinition, string> ComputeInferredSharingBoundaries(IEnumerable<PartBuilder> partBuilders)
         {
+            Requires.NotNull(partBuilders, nameof(partBuilders));
+
             var sharingBoundariesAndMetadata = ComputeSharingBoundaryMetadata(partBuilders);
 
             var sharingBoundaryOverrides = ImmutableDictionary.CreateBuilder<ComposablePartDefinition, string>();
@@ -487,7 +481,7 @@
                 {
                     foreach (ExportDefinitionBinding export in part.SatisfyingExports[import])
                     {
-                        string linkLabel = !export.ExportedValueType.Equals(export.PartDefinition.Type)
+                        string linkLabel = !export.ExportedValueTypeRef.Equals(export.PartDefinition.TypeRef)
                             ? export.ExportedValueType.ToString()
                             : null;
                         var link = Dgml.Link(export.PartDefinition.Id, part.Definition.Id, linkLabel);

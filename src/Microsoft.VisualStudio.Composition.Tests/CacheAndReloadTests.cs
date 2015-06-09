@@ -25,14 +25,14 @@
         [Fact]
         public async Task CacheAndReload()
         {
-            var configuration = CompositionConfiguration.Create(
-                new[] { new AttributedPartDiscovery().CreatePart(typeof(SomeExport)) });
+            var catalog = TestUtilities.EmptyCatalog.AddParts(new[] { TestUtilities.V2Discovery.CreatePart(typeof(SomeExport)) });
+            var configuration = CompositionConfiguration.Create(catalog);
             var ms = new MemoryStream();
             await this.cacheManager.SaveAsync(configuration, ms);
             configuration = null;
 
             ms.Position = 0;
-            var exportProviderFactory = await this.cacheManager.LoadExportProviderFactoryAsync(ms);
+            var exportProviderFactory = await this.cacheManager.LoadExportProviderFactoryAsync(ms, TestUtilities.Resolver);
             var container = exportProviderFactory.CreateExportProvider();
             SomeExport export = container.GetExportedValue<SomeExport>();
             Assert.NotNull(export);

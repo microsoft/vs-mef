@@ -7,6 +7,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Composition.Reflection;
     using Xunit;
     using MEFv1 = System.ComponentModel.Composition;
 
@@ -15,8 +16,9 @@
         [Fact]
         public async Task CreateFromTypesOmitsNonPartsV1()
         {
-            var catalog = ComposableCatalog.Create(
-                await new AttributedPartDiscoveryV1().CreatePartsAsync(typeof(NonExportingType), typeof(ExportingType)));
+            var discovery = TestUtilities.V1Discovery;
+            var catalog = ComposableCatalog.Create(discovery.Resolver).AddParts(
+                await discovery.CreatePartsAsync(typeof(NonExportingType), typeof(ExportingType)));
             Assert.Equal(1, catalog.Parts.Count);
             Assert.Equal(typeof(ExportingType), catalog.Parts.Single().Type);
         }
@@ -24,31 +26,30 @@
         [Fact]
         public async Task CreateFromTypesOmitsNonPartsV2()
         {
-            var catalog = ComposableCatalog.Create(
-                await new AttributedPartDiscovery().CreatePartsAsync(typeof(NonExportingType), typeof(ExportingType)));
+            var discovery = TestUtilities.V2Discovery;
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await discovery.CreatePartsAsync(typeof(NonExportingType), typeof(ExportingType)));
             Assert.Equal(1, catalog.Parts.Count);
             Assert.Equal(typeof(ExportingType), catalog.Parts.Single().Type);
         }
 
         [Fact]
-        public void WithPartNullThrows()
+        public void AddPartNullThrows()
         {
-            var catalog = ComposableCatalog.Create();
-            Assert.Throws<ArgumentNullException>(() => catalog.WithPart(null));
+            Assert.Throws<ArgumentNullException>(() => TestUtilities.EmptyCatalog.AddPart(null));
         }
 
         [Fact]
         public void GetAssemblyInputs_Empty()
         {
-            var catalog = ComposableCatalog.Create();
-            Assert.Equal(0, catalog.GetInputAssemblies().Count);
+            Assert.Equal(0, TestUtilities.EmptyCatalog.GetInputAssemblies().Count);
         }
 
         [Fact]
         public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningParts()
         {
-            var catalog = ComposableCatalog.Create(
-                await new AttributedPartDiscoveryV1().CreatePartsAsync(typeof(NonExportingType), typeof(ExportingType)));
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(NonExportingType), typeof(ExportingType)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
@@ -62,8 +63,8 @@
         [Fact]
         public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningBaseTypesOfParts()
         {
-            var catalog = ComposableCatalog.Create(
-                await new AttributedPartDiscoveryV1().CreatePartsAsync(typeof(ExportingTypeDerivesFromOtherAssembly)));
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingTypeDerivesFromOtherAssembly)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
@@ -78,8 +79,8 @@
         [Fact]
         public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningInterfacesOfParts()
         {
-            var catalog = ComposableCatalog.Create(
-                await new AttributedPartDiscoveryV1().CreatePartsAsync(typeof(ExportingTypeImplementsFromOtherAssembly)));
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingTypeImplementsFromOtherAssembly)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {

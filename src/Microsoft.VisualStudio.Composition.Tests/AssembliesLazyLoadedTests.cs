@@ -11,6 +11,7 @@
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.AppDomainTests;
     using Microsoft.VisualStudio.Composition.AppDomainTests2;
+    using Composition.Reflection;
     using Xunit;
 
     [Trait("Efficiency", "LazyLoad")]
@@ -39,7 +40,8 @@
         [Fact]
         public async Task ComposableAssembliesLazyLoadedWhenQueried()
         {
-            var catalog = ComposableCatalog.Create(await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExternalExport), typeof(YetAnotherExport)));
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExternalExport), typeof(YetAnotherExport)));
             var catalogCache = await this.SaveCatalogAsync(catalog);
             var configuration = CompositionConfiguration.Create(catalog);
             var compositionCache = await this.SaveConfigurationAsync(configuration);
@@ -65,7 +67,8 @@
         [Fact]
         public async Task ComposableAssembliesLazyLoadedByLazyImport()
         {
-            var catalog = ComposableCatalog.Create(await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExternalExportWithLazy), typeof(YetAnotherExport)));
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExternalExportWithLazy), typeof(YetAnotherExport)));
             var catalogCache = await this.SaveCatalogAsync(catalog);
             var configuration = CompositionConfiguration.Create(catalog);
             var compositionCache = await this.SaveConfigurationAsync(configuration);
@@ -91,7 +94,8 @@
         [Fact]
         public async Task ComposableAssembliesLazyLoadedByLazyMetadataDictionary()
         {
-            var catalog = ComposableCatalog.Create(await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaDictionary), typeof(AnExportWithMetadataTypeValue)));
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaDictionary), typeof(AnExportWithMetadataTypeValue)));
             var catalogCache = await this.SaveCatalogAsync(catalog);
             var configuration = CompositionConfiguration.Create(catalog);
             var compositionCache = await this.SaveConfigurationAsync(configuration);
@@ -117,8 +121,8 @@
         [Fact]
         public async Task ComposableAssembliesLazyLoadedByLazyTMetadata()
         {
-            var catalog = ComposableCatalog.Create(
-                await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaTMetadata), typeof(AnExportWithMetadataTypeValue)))
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaTMetadata), typeof(AnExportWithMetadataTypeValue)))
                 .WithDesktopSupport();
             var catalogCache = await this.SaveCatalogAsync(catalog);
             var configuration = CompositionConfiguration.Create(catalog);
@@ -145,8 +149,8 @@
         [Fact]
         public async Task ComposableAssembliesLazyLoadedWithGenericTypeArg()
         {
-            var catalog = ComposableCatalog.Create(
-                await new AttributedPartDiscovery().CreatePartsAsync(typeof(PartImportingOpenGenericExport), typeof(OpenGenericExport<>)))
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartImportingOpenGenericExport), typeof(OpenGenericExport<>)))
                 .WithDesktopSupport();
             var catalogCache = await this.SaveCatalogAsync(catalog);
             var configuration = CompositionConfiguration.Create(catalog);
@@ -173,7 +177,8 @@
         [Fact]
         public async Task ComposableAssembliesLazyLoadedWhenCustomMetadataIsRequired()
         {
-            var catalog = ComposableCatalog.Create(await new AttributedPartDiscovery().CreatePartsAsync(typeof(ExportWithCustomMetadata), typeof(PartThatLazyImportsExportWithMetadataOfCustomType)));
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportWithCustomMetadata), typeof(PartThatLazyImportsExportWithMetadataOfCustomType)));
             var catalogCache = await this.SaveCatalogAsync(catalog);
             var configuration = CompositionConfiguration.Create(catalog);
             var compositionCache = await this.SaveConfigurationAsync(configuration);
@@ -228,11 +233,11 @@
 
                 // Deserialize the catalog to verify that it doesn't load any assemblies.
                 var catalogManager = new CachedCatalog();
-                catalogManager.LoadAsync(cachedCatalogLocal).Wait();
+                catalogManager.LoadAsync(cachedCatalogLocal, TestUtilities.Resolver).Wait();
 
                 // Deserialize the composition to prepare for the rest of the test.
                 var cacheManager = (ICompositionCacheManager)Activator.CreateInstance(cacheManagerType);
-                var containerFactory = cacheManager.LoadExportProviderFactoryAsync(cachedCompositionLocal).GetAwaiter().GetResult();
+                var containerFactory = cacheManager.LoadExportProviderFactoryAsync(cachedCompositionLocal, TestUtilities.Resolver).GetAwaiter().GetResult();
                 this.container = containerFactory.CreateExportProvider();
             }
 

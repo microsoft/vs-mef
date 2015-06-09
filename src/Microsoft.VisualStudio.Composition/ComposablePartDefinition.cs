@@ -193,7 +193,7 @@
                 && this.SharingBoundary == other.SharingBoundary
                 && this.IsSharingBoundaryInferred == other.IsSharingBoundaryInferred
                 && this.CreationPolicy == other.CreationPolicy
-                && this.OnImportsSatisfied == other.OnImportsSatisfied
+                && this.OnImportsSatisfiedRef.Equals(other.OnImportsSatisfiedRef)
                 && ByValueEquality.EquivalentIgnoreOrder<ExportDefinition>().Equals(this.ExportedTypes, other.ExportedTypes)
                 && ByValueEquality.Dictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>(ByValueEquality.EquivalentIgnoreOrder<ExportDefinition>()).Equals(this.ExportingMembers, other.ExportingMembers)
                 && this.ImportingMembers.SetEquals(other.ImportingMembers)

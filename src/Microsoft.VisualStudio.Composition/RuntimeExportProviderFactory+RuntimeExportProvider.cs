@@ -23,7 +23,7 @@
 
             private static readonly RuntimeComposition.RuntimeImport MetadataViewProviderImport = new RuntimeComposition.RuntimeImport(
                 default(MemberRef),
-                TypeRef.Get(typeof(IMetadataViewProvider)),
+                TypeRef.Get(typeof(IMetadataViewProvider), Resolver.DefaultInstance),
                 ImportCardinality.ExactlyOne,
                 ImmutableList<RuntimeComposition.RuntimeExport>.Empty,
                 isNonSharedInstanceRequired: false,
@@ -34,17 +34,20 @@
             private readonly RuntimeComposition composition;
 
             internal RuntimeExportProvider(RuntimeComposition composition)
-                : this(composition, null, null)
+                : base(Requires.NotNull(composition, nameof(composition)).Resolver)
             {
+                this.composition = composition;
             }
 
-            internal RuntimeExportProvider(RuntimeComposition composition, ExportProvider parent, IReadOnlyCollection<string> freshSharingBoundaries)
+            internal RuntimeExportProvider(RuntimeComposition composition, ExportProvider parent, ImmutableHashSet<string> freshSharingBoundaries)
                 : base(parent, freshSharingBoundaries)
             {
                 Requires.NotNull(composition, nameof(composition));
 
                 this.composition = composition;
             }
+
+            private Resolver Resolver => this.composition.Resolver;
 
             protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
             {
@@ -57,7 +60,7 @@
                     select this.CreateExport(
                         importDefinition,
                         export.Metadata,
-                        part.Type,
+                        part.TypeRef,
                         GetPartConstructedTypeRef(part, importDefinition.Metadata),
                         part.SharingBoundary,
                         !part.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
@@ -72,7 +75,7 @@
             internal override IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
             {
                 RuntimeComposition.RuntimeExport metadataViewProviderExport;
-                if (this.composition.MetadataViewsAndProviders.TryGetValue(TypeRef.Get(metadataView), out metadataViewProviderExport))
+                if (this.composition.MetadataViewsAndProviders.TryGetValue(TypeRef.Get(metadataView, this.Resolver), out metadataViewProviderExport))
                 {
                     var export = this.GetExportedValue(MetadataViewProviderImport, metadataViewProviderExport, importingPartTracker: null);
                     return (IMetadataViewProvider)export.ValueConstructor();
@@ -83,7 +86,7 @@
                 }
             }
 
-            private static void ThrowIfExportedValueIsNotAssignableToImport(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, object exportedValue)
+            private void ThrowIfExportedValueIsNotAssignableToImport(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, object exportedValue)
             {
                 Requires.NotNull(import, nameof(import));
                 Requires.NotNull(export, nameof(export));
@@ -206,7 +209,7 @@
                         Requires.NotNull(lazyFactory, nameof(lazyFactory));
                     }
 
-                    if (this.composition.GetPart(export).Type.Equals(import.DeclaringType))
+                    if (this.composition.GetPart(export).TypeRef.Equals(import.DeclaringTypeRef))
                     {
                         // This is importing itself.
                         object part = importingPartTracker.Value;
@@ -232,7 +235,7 @@
                 Requires.NotNull(export, nameof(export));
 
                 Type importingSiteElementType = import.ImportingSiteElementType;
-                IReadOnlyCollection<string> sharingBoundaries = import.ExportFactorySharingBoundaries;
+                ImmutableHashSet<string> sharingBoundaries = import.ExportFactorySharingBoundaries.ToImmutableHashSet();
                 bool newSharingScope = sharingBoundaries.Count > 0;
                 Func<KeyValuePair<object, IDisposable>> valueFactory = () =>
                 {
@@ -259,14 +262,14 @@
                 var exportingRuntimePart = this.composition.GetPart(export);
 
                 // Special case importing of ExportProvider
-                if (exportingRuntimePart.Type.Equals(ExportProvider.ExportProviderPartDefinition.TypeRef))
+                if (exportingRuntimePart.TypeRef.Equals(ExportProvider.ExportProviderPartDefinition.TypeRef))
                 {
                     return new ExportedValueConstructor(null, () => this.NonDisposableWrapper.Value);
                 }
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
-                return this.GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.Type, constructedType, importingPartTracker);
+                return this.GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker);
             }
 
             /// <summary>
@@ -308,7 +311,7 @@
                             : (fullyInitializedValueIsRequired
                                 ? partLifecycle.GetValueReadyToExpose()
                                 : partLifecycle.GetValueReadyToRetrieveExportingMembers());
-                        return GetValueFromMember(part, export.Member, import.ImportingSiteElementType, export.ExportedValueType.Resolve());
+                        return GetValueFromMember(part, export.Member, import.ImportingSiteElementType, export.ExportedValueTypeRef.Resolve());
                     }
                     else
                     {
@@ -329,7 +332,7 @@
                 Requires.NotNull(part, nameof(part));
                 Requires.NotNull(importMetadata, nameof(importMetadata));
 
-                if (part.Type.IsGenericTypeDefinition)
+                if (part.TypeRef.IsGenericTypeDefinition)
                 {
                     var bareMetadata = LazyMetadataWrapper.TryUnwrap(importMetadata);
                     object typeArgsObject;
@@ -337,13 +340,13 @@
                     {
                         IEnumerable<TypeRef> typeArgs = typeArgsObject is LazyMetadataWrapper.TypeArraySubstitution
                             ? ((LazyMetadataWrapper.TypeArraySubstitution)typeArgsObject).TypeRefArray
-                            : ((Type[])typeArgsObject).Select(t => TypeRef.Get(t));
+                            : ((Type[])typeArgsObject).Select(t => TypeRef.Get(t, part.TypeRef.Resolver));
 
-                        return part.Type.MakeGenericType(typeArgs.ToImmutableArray());
+                        return part.TypeRef.MakeGenericTypeRef(typeArgs.ToImmutableArray());
                     }
                 }
 
-                return part.Type;
+                return part.TypeRef;
             }
 
             private static void SetImportingMember(object part, MemberInfo member, object value)
@@ -446,12 +449,14 @@
                     get { return (RuntimeExportProvider)base.OwningExportProvider; }
                 }
 
+                protected Resolver Resolver => this.OwningExportProvider.Resolver;
+
                 /// <summary>
                 /// Gets the type that backs this part.
                 /// </summary>
                 protected override Type PartType
                 {
-                    get { return this.partDefinition.Type.Resolve(); }
+                    get { return this.partDefinition.TypeRef.Resolve(); }
                 }
 
                 internal new void ReportPartiallyInitializedImport(PartLifecycleTracker part)
@@ -461,7 +466,7 @@
 
                 protected override object CreateValue()
                 {
-                    if (this.partDefinition.Type.Equals(Reflection.TypeRef.Get(ExportProvider.ExportProviderPartDefinition.Type)))
+                    if (this.partDefinition.TypeRef.Equals(ExportProviderPartDefinition.TypeRef))
                     {
                         // Special case for our synthesized part that acts as a placeholder for *this* export provider.
                         return this.OwningExportProvider.NonDisposableWrapper.Value;
