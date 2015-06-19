@@ -23,9 +23,9 @@
     </ItemGroup>
 
     <CreateContainerFactoryBootstrapFile
-			BootstrapFile="$(ContainerFactoryBootstrapFile)"
-			RootNamespace="$(RootNamespace)"
-			CompositionCacheFile="$(CompositionConfigurationCacheName)"/>
+      BootstrapFile="$(ContainerFactoryBootstrapFile)"
+      RootNamespace="$(RootNamespace)"
+      CompositionCacheFile="$(CompositionConfigurationCacheName)"/>
   </Target>
 
   <Target Name="GenerateCompositionConfigurationAssembly" AfterTargets="Build" DependsOnTargets="ResolveReferences">
@@ -35,8 +35,8 @@
     </ItemGroup>
 
     <CreateComposition
-			CatalogAssemblies="@(CompositionConfigurationAssembly)"
-			DgmlOutputPath="$(OutputPath)$(CompositionConfigurationBaseName).dgml"
-			CompositionCacheFile="$(OutputPath)$(CompositionConfigurationCacheName)" />
+      CatalogAssemblies="@(CompositionConfigurationAssembly)"
+      DgmlOutputPath="$(OutputPath)$(CompositionConfigurationBaseName).dgml"
+      CompositionCacheFile="$(OutputPath)$(CompositionConfigurationCacheName)" />
   </Target>
 </Project>
