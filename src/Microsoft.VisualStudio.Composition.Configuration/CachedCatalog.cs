@@ -36,7 +36,6 @@
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.NotNull(resolver, nameof(resolver));
 
-
             return Task.Run(() =>
             {
                 using (var reader = new BinaryReader(cacheStream, TextEncoding, leaveOpen: true))

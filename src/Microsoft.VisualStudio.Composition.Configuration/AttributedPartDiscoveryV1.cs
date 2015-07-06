@@ -82,11 +82,11 @@
 
             // Collect information for all imports.
             var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
-            AddImportsFromMembers(declaredProperties, declaredFields, partTypeRef, imports);
+            this.AddImportsFromMembers(declaredProperties, declaredFields, partTypeRef, imports);
             Type baseType = partType.BaseType;
             while (baseType != null && baseType != typeof(object))
             {
-                AddImportsFromMembers(baseType.GetProperties(instanceLocal), baseType.GetFields(instanceLocal), partTypeRef, imports);
+                this.AddImportsFromMembers(baseType.GetProperties(instanceLocal), baseType.GetFields(instanceLocal), partTypeRef, imports);
                 baseType = baseType.BaseType;
             }
 
@@ -165,7 +165,7 @@
             {
                 foreach (var parameter in importingCtor.GetParameters())
                 {
-                    var import = CreateImport(parameter);
+                    var import = this.CreateImport(parameter);
                     if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
                     {
                         Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(import), ConfigurationStrings.CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor);
@@ -213,7 +213,7 @@
                 if (!member.IsStatic())
                 {
                     ImportDefinition importDefinition;
-                    if (TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, out importDefinition))
+                    if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, out importDefinition))
                     {
                         imports.Add(new ImportDefinitionBinding(importDefinition, partTypeRef, MemberRef.Get(member, this.Resolver)));
                     }
@@ -269,7 +269,7 @@
 
                 Type contractType = importAttribute.ContractType ?? GetTypeIdentityFromImportingType(importingType, importMany: false);
                 var constraints = PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraints(requiredCreationPolicy)
-                    .Union(GetMetadataViewConstraints(importingType, importMany: false))
+                    .Union(this.GetMetadataViewConstraints(importingType, importMany: false))
                     .Union(GetExportTypeIdentityConstraints(contractType));
                 importDefinition = new ImportDefinition(
                     string.IsNullOrEmpty(importAttribute.ContractName) ? GetContractName(contractType) : importAttribute.ContractName,
@@ -291,7 +291,7 @@
 
                 Type contractType = importManyAttribute.ContractType ?? GetTypeIdentityFromImportingType(importingType, importMany: true);
                 var constraints = PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraints(requiredCreationPolicy)
-                    .Union(GetMetadataViewConstraints(importingType, importMany: true))
+                    .Union(this.GetMetadataViewConstraints(importingType, importMany: true))
                     .Union(GetExportTypeIdentityConstraints(contractType));
                 importDefinition = new ImportDefinition(
                     string.IsNullOrEmpty(importManyAttribute.ContractName) ? GetContractName(contractType) : importManyAttribute.ContractName,
@@ -310,7 +310,7 @@
         private ImportDefinitionBinding CreateImport(ParameterInfo parameter)
         {
             ImportDefinition definition;
-            Assumes.True(TryCreateImportDefinition(parameter.ParameterType, parameter, out definition));
+            Assumes.True(this.TryCreateImportDefinition(parameter.ParameterType, parameter, out definition));
             return new ImportDefinitionBinding(definition, TypeRef.Get(parameter.Member.DeclaringType, this.Resolver), ParameterRef.Get(parameter, this.Resolver));
         }
 
