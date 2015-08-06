@@ -1,5 +1,6 @@
 ﻿namespace Microsoft.VisualStudio.Composition
 {
+    using Reflection;
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
@@ -567,9 +568,43 @@
             Requires.NotNull(assemblies, nameof(assemblies));
             Requires.NotNull(metadata, nameof(metadata));
 
-            foreach (var value in metadata.Values)
+            foreach (var value in metadata.Values.Where(v => v != null))
             {
-                if (value != null)
+                // Check to see if the value is a type. We should get the assembly from
+                // the value if that's the case.
+                var valueAsType = value as Type;
+                if (valueAsType != null)
+                {
+                    assemblies.Add(valueAsType.Assembly.GetName());
+                }
+                else if (value.GetType().IsArray)
+                {
+                    // If the value is an array, we should determine the assemblies of each item.
+                    var array = value as object[];
+                    if (array != null)
+                    {
+                        foreach (var obj in array.Where(o => o != null))
+                        {
+                            // Check to see if the value is a type. We should get the assembly from
+                            // the value if that's the case.
+                            var objType = obj as Type;
+                            if (objType != null)
+                            {
+                                assemblies.Add(objType.Assembly.GetName());
+                            }
+                            else
+                            {
+                                assemblies.Add(obj.GetType().Assembly.GetName());
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Array is full of primitives. We can just use value's assembly data
+                        assemblies.Add(value.GetType().Assembly.GetName());
+                    }
+                }
+                else
                 {
                     assemblies.Add(value.GetType().Assembly.GetName());
                 }
