@@ -567,7 +567,13 @@
             Requires.NotNull(assemblies, nameof(assemblies));
             Requires.NotNull(metadata, nameof(metadata));
 
-            // TODO: code here
+            foreach (var value in metadata.Values)
+            {
+                if (value != null)
+                {
+                    assemblies.Add(value.GetType().Assembly.GetName());
+                }
+            }
         }
 
         private static string FilterTypeNameForGenericTypeDefinition(Type type, bool fullName)

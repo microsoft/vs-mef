@@ -92,6 +92,23 @@
             Assert.True(expected.SetEquals(actual));
         }
 
+        [Fact]
+        public async Task GetAssemblyInputs_IdentifiesAssembliesWithOnlyExportMetadata()
+        {
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingOnlyMetadataType)));
+
+            var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
+            {
+                typeof(Microsoft.VisualStudio.Text.Editor.AdornmentPositioningBehavior).Assembly.GetName(),
+                typeof(ExportingOnlyMetadataType).Assembly.GetName(),
+                typeof(object).Assembly.GetName()
+            };
+
+            var actual = catalog.GetInputAssemblies();
+            Assert.True(expected.SetEquals(actual));
+        }
+
         public class NonExportingType { }
 
         [Export, MEFv1.Export]
@@ -102,6 +119,11 @@
 
         [Export, MEFv1.Export]
         public class ExportingTypeImplementsFromOtherAssembly : AssemblyDiscoveryTests.ISomeInterface { }
+
+        [Export, MEFv1.Export]
+        [PartMetadata("ExternalAssemblyValue", Microsoft.VisualStudio.Text.Editor.AdornmentPositioningBehavior.TextRelative )]
+        [MEFv1.PartMetadata("ExternalAssemblyValue", Microsoft.VisualStudio.Text.Editor.AdornmentPositioningBehavior.TextRelative)]
+        public class ExportingOnlyMetadataType { }
 
         private class AssemblyNameComparer : IEqualityComparer<AssemblyName>
         {
