@@ -1,6 +1,5 @@
 ﻿namespace Microsoft.VisualStudio.Composition
 {
-    using Reflection;
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
