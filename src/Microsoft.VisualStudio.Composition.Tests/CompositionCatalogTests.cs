@@ -111,15 +111,15 @@
         }
 
         [Fact]
-        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningLazyTypeSingleMetadata()
+        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningTypeSingleMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithLazyTypeSingleMetadata)));
+                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithTypeSingleMetadata)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
                 typeof(IAdornmentLayer).Assembly.GetName(),
-                typeof(ExportingWithLazyTypeSingleMetadata).Assembly.GetName(),
+                typeof(ExportingWithTypeSingleMetadata).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
 
@@ -128,15 +128,15 @@
         }
 
         [Fact]
-        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningLazyTypeMetadata()
+        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningTypeMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithLazyTypeMetadata)));
+                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithTypeMetadata)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
                 typeof(IAdornmentLayer).Assembly.GetName(),
-                typeof(ExportingWithLazyTypeMetadata).Assembly.GetName(),
+                typeof(ExportingWithTypeMetadata).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
 
@@ -145,16 +145,16 @@
         }
 
         [Fact]
-        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningMultipleLazyTypeMetadata()
+        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningMultipleTypeMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithMultipleLazyTypeMetadata)));
+                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithMultipleTypeMetadata)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
                 typeof(AllColorableItemInfo).Assembly.GetName(),
                 typeof(IAdornmentLayer).Assembly.GetName(),
-                typeof(ExportingWithMultipleLazyTypeMetadata).Assembly.GetName(),
+                typeof(ExportingWithMultipleTypeMetadata).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
 
@@ -163,15 +163,15 @@
         }
 
         [Fact]
-        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningLazyEnumMetadata()
+        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningEnumMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithLazyEnumMetadata)));
+                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithEnumMetadata)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
                 typeof(AdornmentPositioningBehavior).Assembly.GetName(),
-                typeof(ExportingWithLazyEnumMetadata).Assembly.GetName(),
+                typeof(ExportingWithEnumMetadata).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
 
@@ -180,15 +180,15 @@
         }
 
         [Fact]
-        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningMultipleLazyEnumMetadata()
+        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningMultipleEnumMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithMultipleLazyEnumMetadata)));
+                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithMultipleEnumMetadata)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
                 typeof(AdornmentPositioningBehavior).Assembly.GetName(),
-                typeof(ExportingWithMultipleLazyEnumMetadata).Assembly.GetName(),
+                typeof(ExportingWithMultipleEnumMetadata).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
 
@@ -197,16 +197,16 @@
         }
 
         [Fact]
-        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningMultipleDifferentLazyEnumMetadata()
+        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningMultipleDifferentEnumMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithMultipleDifferentLazyEnumMetadata)));
+                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithMultipleDifferentEnumMetadata)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
                 typeof(AdornmentPositioningBehavior).Assembly.GetName(),
                 typeof(SmartTagState).Assembly.GetName(),
-                typeof(ExportingWithMultipleDifferentLazyEnumMetadata).Assembly.GetName(),
+                typeof(ExportingWithMultipleDifferentEnumMetadata).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
 
@@ -251,10 +251,34 @@
             Assert.True(expected.SetEquals(actual));
         }
 
+        [Fact]
+        public async Task GetAssemblyInputs_FunctionsCorrectlyWithNullMetadata()
+        {
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingTypeWithNullExportMetadata)));
+
+            var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
+            {
+                typeof(IAdornmentLayer).Assembly.GetName(),
+                typeof(ExportingTypeWithNullExportMetadata).Assembly.GetName(),
+                typeof(object).Assembly.GetName()
+            };
+
+            var actual = catalog.GetInputAssemblies();
+            Assert.True(expected.SetEquals(actual));
+        }
+
         public class NonExportingType { }
 
         [Export, MEFv1.Export]
         public class ExportingType { }
+
+        [Export, MEFv1.Export]
+        [ExportMetadata("Null", null)]
+        [MEFv1.ExportMetadata("Null", null)]
+        [Type(typeof(IAdornmentLayer))]
+        [Type(null)]
+        public class ExportingTypeWithNullExportMetadata { }
 
         [Export, MEFv1.Export]
         public class ExportingTypeDerivesFromOtherAssembly : AssemblyDiscoveryTests.NonPart { }
@@ -270,32 +294,32 @@
         [Export, MEFv1.Export]
         [ExportMetadata("Type", typeof(IAdornmentLayer))]
         [MEFv1.ExportMetadata("Type", typeof(IAdornmentLayer))]
-        public class ExportingWithLazyTypeMetadata { }
+        public class ExportingWithTypeMetadata { }
 
         [Export, MEFv1.Export]
         [ExportMetadata("Type", typeof(IAdornmentLayer))]
         [MEFv1.ExportMetadata("Type", typeof(IAdornmentLayer))]
         [Type(typeof(AllColorableItemInfo))]
-        public class ExportingWithMultipleLazyTypeMetadata { }
+        public class ExportingWithMultipleTypeMetadata { }
 
         [Export, MEFv1.Export]
         [TypeSingle(typeof(IAdornmentLayer))]
-        public class ExportingWithLazyTypeSingleMetadata { }
+        public class ExportingWithTypeSingleMetadata { }
 
         [Export, MEFv1.Export]
         [Enum(AdornmentPositioningBehavior.TextRelative)]
-        public class ExportingWithLazyEnumMetadata { }
+        public class ExportingWithEnumMetadata { }
 
         [Export, MEFv1.Export]
         [ExportMetadata("Position", AdornmentPositioningBehavior.OwnerControlled)]
         [MEFv1.ExportMetadata("Position", AdornmentPositioningBehavior.OwnerControlled)]
         [Enum(AdornmentPositioningBehavior.ViewportRelative)]
-        public class ExportingWithMultipleLazyEnumMetadata { }
+        public class ExportingWithMultipleEnumMetadata { }
 
         [Export, MEFv1.Export]
         [Enum(AdornmentPositioningBehavior.TextRelative)]
         [Enum2(SmartTagState.Expanded)]
-        public class ExportingWithMultipleDifferentLazyEnumMetadata { }
+        public class ExportingWithMultipleDifferentEnumMetadata { }
 
         [Export, MEFv1.Export]
         [Enum(AdornmentPositioningBehavior.TextRelative)]
@@ -359,7 +383,6 @@
         {
             public TypeAttribute(Type type)
             {
-                Requires.NotNull(type, nameof(type));
                 this.MyType = type;
             }
 
@@ -395,7 +418,6 @@
         {
             public TypeSingleAttribute(Type type)
             {
-                Requires.NotNull(type, nameof(type));
                 this.MyType = type;
             }
 

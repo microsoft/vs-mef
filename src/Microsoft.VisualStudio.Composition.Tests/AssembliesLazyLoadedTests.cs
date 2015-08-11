@@ -61,6 +61,30 @@
             }
         }
 
+        [Fact]
+        public async Task CatalogGetInputAssembliesDoesNotLoadLazyExports()
+        {
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExternalExportWithExternalMetadataType), typeof(ExternalExportWithExternalMetadataTypeArray), typeof(ExternalExportWithExternalMetadataEnum32)));
+            var catalogCache = await this.SaveCatalogAsync(catalog);
+            var configuration = CompositionConfiguration.Create(catalog);
+            var compositionCache = await this.SaveConfigurationAsync(configuration);
+
+            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
+            try
+            {
+                var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
+                driver.Initialize(this.cacheManager.GetType(), compositionCache, catalogCache);
+
+                // GetInputAssemblies should not load the YetAnotherExport assembly or the CustomEnum assembly (both in AppDomainTests2)
+                driver.TestGetInputAssembliesDoesNotLoadLazyExport(typeof(YetAnotherExport).Assembly.Location);
+            }
+            finally
+            {
+                AppDomain.Unload(appDomain);
+            }
+        }
+
         /// <summary>
         /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
         /// </summary>
@@ -220,6 +244,7 @@
         private class AppDomainTestDriver : MarshalByRefObject
         {
             private ExportProvider container;
+            private ComposableCatalog catalog;
 
             internal void Initialize(Type cacheManagerType, Stream cachedComposition, Stream cachedCatalog)
             {
@@ -233,12 +258,21 @@
 
                 // Deserialize the catalog to verify that it doesn't load any assemblies.
                 var catalogManager = new CachedCatalog();
-                catalogManager.LoadAsync(cachedCatalogLocal, TestUtilities.Resolver).Wait();
+                var catalogTask = catalogManager.LoadAsync(cachedCatalogLocal, TestUtilities.Resolver);
+                catalogTask.Wait();
+                this.catalog = catalogTask.Result;
 
                 // Deserialize the composition to prepare for the rest of the test.
                 var cacheManager = (ICompositionCacheManager)Activator.CreateInstance(cacheManagerType);
                 var containerFactory = cacheManager.LoadExportProviderFactoryAsync(cachedCompositionLocal, TestUtilities.Resolver).GetAwaiter().GetResult();
                 this.container = containerFactory.CreateExportProvider();
+            }
+
+            internal void TestGetInputAssembliesDoesNotLoadLazyExport(string lazyLoadedAssemblyPath)
+            {
+                Assert.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                this.catalog.GetInputAssemblies();
+                Assert.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
             internal void TestExternalExport(string lazyLoadedAssemblyPath)

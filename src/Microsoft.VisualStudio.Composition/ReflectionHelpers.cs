@@ -567,46 +567,90 @@
             Requires.NotNull(assemblies, nameof(assemblies));
             Requires.NotNull(metadata, nameof(metadata));
 
-            foreach (var value in metadata.Values.Where(v => v != null))
+            if (metadata is LazyMetadataWrapper)
             {
-                // Check to see if the value is a type. We should get the assembly from
-                // the value if that's the case.
-                var valueAsType = value as Type;
-                if (valueAsType != null)
+                // Get the underlying metadata (should not load the assembly)
+                metadata = LazyMetadataWrapper.TryUnwrap(metadata);
+
+                foreach (var value in metadata.Values.Where(v => v != null))
                 {
-                    assemblies.Add(valueAsType.Assembly.GetName());
-                }
-                else if (value.GetType().IsArray)
-                {
-                    // If the value is an array, we should determine the assemblies of each item.
-                    var array = value as object[];
-                    if (array != null)
+                    var valueType = value.GetType();
+                    if (typeof(LazyMetadataWrapper.Enum32Substitution) == valueType)
                     {
-                        foreach (var obj in array.Where(o => o != null))
+                        assemblies.Add(((LazyMetadataWrapper.Enum32Substitution)value).EnumType.AssemblyName);
+                    }
+                    else if (typeof(LazyMetadataWrapper.TypeSubstitution) == valueType)
+                    {
+                        assemblies.Add(((LazyMetadataWrapper.TypeSubstitution)value).TypeRef.AssemblyName);
+                    }
+                    else if (typeof(LazyMetadataWrapper.TypeArraySubstitution) == valueType)
+                    {
+                        foreach (var typeRef in ((LazyMetadataWrapper.TypeArraySubstitution)value).TypeRefArray)
                         {
-                            // Check to see if the value is a type. We should get the assembly from
-                            // the value if that's the case.
-                            var objType = obj as Type;
-                            if (objType != null)
-                            {
-                                assemblies.Add(objType.Assembly.GetName());
-                            }
-                            else
-                            {
-                                assemblies.Add(obj.GetType().Assembly.GetName());
-                            }
+                            assemblies.Add(typeRef.AssemblyName);
                         }
                     }
                     else
                     {
-                        // Array is full of primitives. We can just use value's assembly data
-                        assemblies.Add(value.GetType().Assembly.GetName());
+                        LoadNonLazyInputAssemblyFromMetadata(assemblies, value);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var value in metadata.Values)
+                {
+                    LoadNonLazyInputAssemblyFromMetadata(assemblies, value);
+                }
+            }
+        }
+
+        private static void LoadNonLazyInputAssemblyFromMetadata(ISet<AssemblyName> assemblies, object value)
+        {
+            Requires.NotNull(assemblies, nameof(assemblies));
+
+            if (value == null)
+            {
+                return;
+            }
+
+            // Check to see if the value is a type. We should get the assembly from
+            // the value if that's the case.
+            var valueAsType = value as Type;
+            if (valueAsType != null)
+            {
+                assemblies.Add(valueAsType.Assembly.GetName());
+            }
+            else if (value.GetType().IsArray)
+            {
+                // If the value is an array, we should determine the assemblies of each item.
+                var array = value as object[];
+                if (array != null)
+                {
+                    foreach (var obj in array.Where(o => o != null))
+                    {
+                        // Check to see if the value is a type. We should get the assembly from
+                        // the value if that's the case.
+                        var objType = obj as Type;
+                        if (objType != null)
+                        {
+                            assemblies.Add(objType.Assembly.GetName());
+                        }
+                        else
+                        {
+                            assemblies.Add(obj.GetType().Assembly.GetName());
+                        }
                     }
                 }
                 else
                 {
+                    // Array is full of primitives. We can just use value's assembly data
                     assemblies.Add(value.GetType().Assembly.GetName());
                 }
+            }
+            else
+            {
+                assemblies.Add(value.GetType().Assembly.GetName());
             }
         }
 
