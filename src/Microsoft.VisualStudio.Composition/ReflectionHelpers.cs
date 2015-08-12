@@ -1,5 +1,6 @@
 ﻿namespace Microsoft.VisualStudio.Composition
 {
+    using Reflection;
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
@@ -567,90 +568,64 @@
             Requires.NotNull(assemblies, nameof(assemblies));
             Requires.NotNull(metadata, nameof(metadata));
 
-            if (metadata is LazyMetadataWrapper)
+            // Get the underlying metadata (should not load the assembly)
+            metadata = LazyMetadataWrapper.TryUnwrap(metadata);
+            foreach (var value in metadata.Values.Where(v => v != null))
             {
-                // Get the underlying metadata (should not load the assembly)
-                metadata = LazyMetadataWrapper.TryUnwrap(metadata);
+                var valueAsType = value as Type;
+                var valueType = value.GetType();
 
-                foreach (var value in metadata.Values.Where(v => v != null))
+                // Check lazy metadata first, then try to get the type data from the value (if not lazy)
+                if (typeof(LazyMetadataWrapper.Enum32Substitution) == valueType)
                 {
-                    var valueType = value.GetType();
-                    if (typeof(LazyMetadataWrapper.Enum32Substitution) == valueType)
+                    ((LazyMetadataWrapper.Enum32Substitution)value).EnumType.GetInputAssemblies(assemblies);
+                }
+                else if (typeof(LazyMetadataWrapper.TypeSubstitution) == valueType)
+                {
+                    ((LazyMetadataWrapper.TypeSubstitution)value).TypeRef.GetInputAssemblies(assemblies);
+                }
+                else if (typeof(LazyMetadataWrapper.TypeArraySubstitution) == valueType)
+                {
+                    foreach (var typeRef in ((LazyMetadataWrapper.TypeArraySubstitution)value).TypeRefArray)
                     {
-                        assemblies.Add(((LazyMetadataWrapper.Enum32Substitution)value).EnumType.AssemblyName);
+                        typeRef.GetInputAssemblies(assemblies);
                     }
-                    else if (typeof(LazyMetadataWrapper.TypeSubstitution) == valueType)
+                }
+                else if (valueAsType != null)
+                {
+                    GetTypeAndBaseTypeAssemblies(assemblies, valueAsType);
+                }
+                else if (value.GetType().IsArray)
+                {
+                    // If the value is an array, we should determine the assemblies of each item.
+                    var array = value as object[];
+                    if (array != null)
                     {
-                        assemblies.Add(((LazyMetadataWrapper.TypeSubstitution)value).TypeRef.AssemblyName);
-                    }
-                    else if (typeof(LazyMetadataWrapper.TypeArraySubstitution) == valueType)
-                    {
-                        foreach (var typeRef in ((LazyMetadataWrapper.TypeArraySubstitution)value).TypeRefArray)
+                        foreach (var obj in array.Where(o => o != null))
                         {
-                            assemblies.Add(typeRef.AssemblyName);
+                            // Check to see if the value is a type. We should get the assembly from
+                            // the value if that's the case.
+                            var objType = obj as Type;
+                            if (objType != null)
+                            {
+                                GetTypeAndBaseTypeAssemblies(assemblies, objType);
+                            }
+                            else
+                            {
+                                GetTypeAndBaseTypeAssemblies(assemblies, obj.GetType());
+                            }
                         }
                     }
                     else
                     {
-                        LoadNonLazyInputAssemblyFromMetadata(assemblies, value);
-                    }
-                }
-            }
-            else
-            {
-                foreach (var value in metadata.Values)
-                {
-                    LoadNonLazyInputAssemblyFromMetadata(assemblies, value);
-                }
-            }
-        }
-
-        private static void LoadNonLazyInputAssemblyFromMetadata(ISet<AssemblyName> assemblies, object value)
-        {
-            Requires.NotNull(assemblies, nameof(assemblies));
-
-            if (value == null)
-            {
-                return;
-            }
-
-            // Check to see if the value is a type. We should get the assembly from
-            // the value if that's the case.
-            var valueAsType = value as Type;
-            if (valueAsType != null)
-            {
-                assemblies.Add(valueAsType.Assembly.GetName());
-            }
-            else if (value.GetType().IsArray)
-            {
-                // If the value is an array, we should determine the assemblies of each item.
-                var array = value as object[];
-                if (array != null)
-                {
-                    foreach (var obj in array.Where(o => o != null))
-                    {
-                        // Check to see if the value is a type. We should get the assembly from
-                        // the value if that's the case.
-                        var objType = obj as Type;
-                        if (objType != null)
-                        {
-                            assemblies.Add(objType.Assembly.GetName());
-                        }
-                        else
-                        {
-                            assemblies.Add(obj.GetType().Assembly.GetName());
-                        }
+                        // Array is full of primitives. We can just use value's assembly data
+                        GetTypeAndBaseTypeAssemblies(assemblies, value.GetType());
                     }
                 }
                 else
                 {
-                    // Array is full of primitives. We can just use value's assembly data
-                    assemblies.Add(value.GetType().Assembly.GetName());
+                    GetTypeAndBaseTypeAssemblies(assemblies, value.GetType());
                 }
-            }
-            else
-            {
-                assemblies.Add(value.GetType().Assembly.GetName());
             }
         }
 
@@ -669,6 +644,22 @@
             }
 
             return name;
+        }
+
+        private static void GetTypeAndBaseTypeAssemblies(ISet<AssemblyName> assemblies, Type type)
+        {
+            Requires.NotNull(assemblies, nameof(assemblies));
+            Requires.NotNull(type, nameof(type));
+
+            foreach (var baseType in type.EnumTypeAndBaseTypes())
+            {
+                assemblies.Add(baseType.Assembly.GetName());
+            }
+
+            foreach (var iface in type.GetInterfaces())
+            {
+                assemblies.Add(iface.Assembly.GetName());
+            }
         }
 
         private static IEnumerable<Type> GetAllBaseTypesAndInterfaces(Type type)
