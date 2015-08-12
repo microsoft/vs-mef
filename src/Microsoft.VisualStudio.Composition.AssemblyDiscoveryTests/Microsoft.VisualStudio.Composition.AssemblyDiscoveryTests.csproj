@@ -61,6 +61,10 @@
     <Compile Include="TypeWithMissingAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2.csproj">
+      <Project>{a424cbe4-248e-477c-88bd-575fa240eacb}</Project>
+      <Name>Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.MissingAssemblyTests\Microsoft.VisualStudio.Composition.MissingAssemblyTests.csproj">
       <Project>{635a4876-52ba-47c7-874c-8dfb125c020a}</Project>
       <Name>Microsoft.VisualStudio.Composition.MissingAssemblyTests</Name>

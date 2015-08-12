@@ -286,6 +286,24 @@
             Assert.True(expected.SetEquals(actual));
         }
 
+        [Fact]
+        public async Task GetAssemblyInputs_RecursesThroughInterfaceTreeInMetadata()
+        {
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingTypeWithExportMetadataWithExternalDependenciesAndInterfaceTree)));
+
+            var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
+            {
+                typeof(AssemblyDiscoveryTests.ISomeInterfaceWithBaseInterface).Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests2.IBlankInterface).Assembly.GetName(),
+                typeof(ExportingTypeWithExportMetadataWithExternalDependenciesAndInterfaceTree).Assembly.GetName(),
+                typeof(object).Assembly.GetName()
+            };
+
+            var actual = catalog.GetInputAssemblies();
+            Assert.True(expected.SetEquals(actual));
+        }
+
         public class NonExportingType { }
 
         [Export, MEFv1.Export]
@@ -299,7 +317,17 @@
 
         }
 
+        [Export, MEFv1.Export]
+        [ExportMetadata("External", typeof(ClassWithExternalDependenciesAndInterfaceTree))]
+        [MEFv1.ExportMetadata("External", typeof(ClassWithExternalDependenciesAndInterfaceTree))]
+        public class ExportingTypeWithExportMetadataWithExternalDependenciesAndInterfaceTree
+        {
+
+        }
+
         public class ClassWithExternalDependencies : CompletionPresenterStyle, AssemblyDiscoveryTests.ISomeInterface { }
+
+        public class ClassWithExternalDependenciesAndInterfaceTree : AssemblyDiscoveryTests.ISomeInterfaceWithBaseInterface { }
 
         [Export, MEFv1.Export]
         [ExportMetadata("Null", null)]
