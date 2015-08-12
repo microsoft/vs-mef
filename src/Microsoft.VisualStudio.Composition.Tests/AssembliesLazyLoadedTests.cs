@@ -61,7 +61,7 @@
             }
         }
 
-        [Fact(Skip = "We have to resolve the TypeRefs to traverse the heirarchy of types currently")]
+        [Fact(Skip = "We have to resolve the TypeRefs to traverse the hierarchy of types currently")]
         public async Task CatalogGetInputAssembliesDoesNotLoadLazyExports()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
@@ -258,9 +258,7 @@
 
                 // Deserialize the catalog to verify that it doesn't load any assemblies.
                 var catalogManager = new CachedCatalog();
-                var catalogTask = catalogManager.LoadAsync(cachedCatalogLocal, TestUtilities.Resolver);
-                catalogTask.Wait();
-                this.catalog = catalogTask.Result;
+                var catalog = catalogManager.LoadAsync(cachedCatalogLocal, TestUtilities.Resolver).Result;
 
                 // Deserialize the composition to prepare for the rest of the test.
                 var cacheManager = (ICompositionCacheManager)Activator.CreateInstance(cacheManagerType);
