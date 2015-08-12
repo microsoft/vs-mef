@@ -180,23 +180,6 @@
         }
 
         [Fact]
-        public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningMultipleEnumMetadata()
-        {
-            var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithMultipleEnumMetadata)));
-
-            var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
-            {
-                typeof(AdornmentPositioningBehavior).Assembly.GetName(),
-                typeof(ExportingWithMultipleEnumMetadata).Assembly.GetName(),
-                typeof(object).Assembly.GetName()
-            };
-
-            var actual = catalog.GetInputAssemblies();
-            Assert.True(expected.SetEquals(actual));
-        }
-
-        [Fact]
         public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningMultipleDifferentEnumMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
@@ -330,10 +313,9 @@
         public class ClassWithExternalDependenciesAndInterfaceTree : AssemblyDiscoveryTests.ISomeInterfaceWithBaseInterface { }
 
         [Export, MEFv1.Export]
-        [ExportMetadata("Null", null)]
         [MEFv1.ExportMetadata("Null", null)]
-        [Type(typeof(IAdornmentLayer))]
-        [Type(null)]
+        [MultipleTypeMetadata(typeof(IAdornmentLayer))]
+        [MultipleTypeMetadata(null)]
         public class ExportingTypeWithNullExportMetadata { }
 
         [Export, MEFv1.Export]
@@ -348,43 +330,33 @@
         public class PartWithEnumValueMetadata { }
 
         [Export, MEFv1.Export]
-        [ExportMetadata("Type", typeof(IAdornmentLayer))]
         [MEFv1.ExportMetadata("Type", typeof(IAdornmentLayer))]
         public class ExportingWithTypeMetadata { }
 
         [Export, MEFv1.Export]
-        [ExportMetadata("Type", typeof(IAdornmentLayer))]
-        [MEFv1.ExportMetadata("Type", typeof(IAdornmentLayer))]
-        [Type(typeof(AllColorableItemInfo))]
+        [MultipleTypeMetadata(typeof(IAdornmentLayer))]
+        [MultipleTypeMetadata(typeof(AllColorableItemInfo))]
         public class ExportingWithMultipleTypeMetadata { }
 
         [Export, MEFv1.Export]
-        [TypeSingle(typeof(IAdornmentLayer))]
+        [MEFv1.ExportMetadata("AdornmentLayerType", typeof(IAdornmentLayer), IsMultiple = false)]
         public class ExportingWithTypeSingleMetadata { }
 
         [Export, MEFv1.Export]
-        [Enum(AdornmentPositioningBehavior.TextRelative)]
+        [MEFv1.ExportMetadata("Position", AdornmentPositioningBehavior.TextRelative)]
         public class ExportingWithEnumMetadata { }
 
         [Export, MEFv1.Export]
-        [ExportMetadata("Position", AdornmentPositioningBehavior.OwnerControlled)]
-        [MEFv1.ExportMetadata("Position", AdornmentPositioningBehavior.OwnerControlled)]
-        [Enum(AdornmentPositioningBehavior.ViewportRelative)]
-        public class ExportingWithMultipleEnumMetadata { }
-
-        [Export, MEFv1.Export]
-        [Enum(AdornmentPositioningBehavior.TextRelative)]
-        [Enum2(SmartTagState.Expanded)]
+        [MEFv1.ExportMetadata("AdornmentPositioningBehavior", AdornmentPositioningBehavior.TextRelative)]
+        [MEFv1.ExportMetadata("SmartTagState", SmartTagState.Expanded)]
         public class ExportingWithMultipleDifferentEnumMetadata { }
 
         [Export, MEFv1.Export]
-        [Enum(AdornmentPositioningBehavior.TextRelative)]
-        [Enum(AdornmentPositioningBehavior.TextRelative)]
-        [Enum2(SmartTagState.Expanded)]
-        [Enum2(SmartTagState.Collapsed)]
-        [TypeSingle(typeof(IAdornmentLayer))]
-        [Type(typeof(IAdornmentLayer))]
-        [Type(typeof(AllColorableItemInfo))]
+        [MEFv1.ExportMetadata("AdornmentPositioningBehavior", AdornmentPositioningBehavior.TextRelative)]
+        [MEFv1.ExportMetadata("SmartTagState", SmartTagState.Expanded)]
+        [MEFv1.ExportMetadata("AdornmentLayerType", typeof(IAdornmentLayer)) ]
+        [MultipleTypeMetadata(typeof(IAdornmentLayer))]
+        [MultipleTypeMetadata(typeof(AllColorableItemInfo))]
         [PartMetadata("ExternalAssemblyValue", AdornmentPositioningBehavior.TextRelative)]
         [MEFv1.PartMetadata("ExternalAssemblyValue", AdornmentPositioningBehavior.TextRelative)]
         public class ExportingWithLotsOfMetadata { }
@@ -392,8 +364,20 @@
         public class ExportingWithExportingMembers
         {
             [MEFv1.Export]
-            [Type(typeof(IAdornmentLayer))]
-            public object Export;
+            [MEFv1.ExportMetadata("AdornmentLayer", typeof(IAdornmentLayer))]
+            public object Export { get; set; }
+        }
+
+        [MetadataAttribute, MEFv1.MetadataAttribute]
+        [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
+        internal sealed class MultipleTypeMetadataAttribute : Attribute
+        {
+            public MultipleTypeMetadataAttribute(Type type)
+            {
+                this.Type = type;
+            }
+
+            public Type Type { get; private set; }
         }
 
         private class AssemblyNameComparer : IEqualityComparer<AssemblyName>
@@ -431,53 +415,6 @@
             {
                 return obj.Name.GetHashCode();
             }
-        }
-
-        [MetadataAttribute, MEFv1.MetadataAttribute]
-        [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
-        private sealed class TypeAttribute : Attribute
-        {
-            public TypeAttribute(Type type)
-            {
-                this.MyType = type;
-            }
-
-            public Type MyType { get; private set; }
-        }
-
-        [MetadataAttribute, MEFv1.MetadataAttribute]
-        [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
-        private sealed class EnumAttribute : Attribute
-        {
-            public EnumAttribute(AdornmentPositioningBehavior behavior)
-            {
-                this.Behavior = behavior;
-            }
-
-            public AdornmentPositioningBehavior Behavior { get; private set; }
-        }
-
-        [MetadataAttribute, MEFv1.MetadataAttribute]
-        [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
-        private sealed class Enum2Attribute : Attribute
-        {
-            public Enum2Attribute(SmartTagState state)
-            {
-                this.State = state;
-            }
-
-            public SmartTagState State { get; private set; }
-        }
-
-        [MetadataAttribute, MEFv1.MetadataAttribute]
-        private sealed class TypeSingleAttribute : Attribute
-        {
-            public TypeSingleAttribute(Type type)
-            {
-                this.MyType = type;
-            }
-
-            public Type MyType { get; private set; }
         }
     }
 }

@@ -85,7 +85,6 @@
             }
         }
 
-
         /// <summary>
         /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
         /// </summary>
