@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExternalExportWithExternalMetadata.cs" />
     <Compile Include="PartThatLazyImportsExportWithMetadataOfCustomType.cs" />
     <Compile Include="ExternalExport.cs" />
     <Compile Include="ExternalExportWithLazy.cs" />

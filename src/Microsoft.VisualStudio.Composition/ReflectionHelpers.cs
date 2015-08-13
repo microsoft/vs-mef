@@ -1,5 +1,6 @@
 ﻿namespace Microsoft.VisualStudio.Composition
 {
+    using Reflection;
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
@@ -567,7 +568,65 @@
             Requires.NotNull(assemblies, nameof(assemblies));
             Requires.NotNull(metadata, nameof(metadata));
 
-            // TODO: code here
+            // Get the underlying metadata (should not load the assembly)
+            metadata = LazyMetadataWrapper.TryUnwrap(metadata);
+            foreach (var value in metadata.Values.Where(v => v != null))
+            {
+                var valueAsType = value as Type;
+                var valueType = value.GetType();
+
+                // Check lazy metadata first, then try to get the type data from the value (if not lazy)
+                if (typeof(LazyMetadataWrapper.Enum32Substitution) == valueType)
+                {
+                    ((LazyMetadataWrapper.Enum32Substitution)value).EnumType.GetInputAssemblies(assemblies);
+                }
+                else if (typeof(LazyMetadataWrapper.TypeSubstitution) == valueType)
+                {
+                    ((LazyMetadataWrapper.TypeSubstitution)value).TypeRef.GetInputAssemblies(assemblies);
+                }
+                else if (typeof(LazyMetadataWrapper.TypeArraySubstitution) == valueType)
+                {
+                    foreach (var typeRef in ((LazyMetadataWrapper.TypeArraySubstitution)value).TypeRefArray)
+                    {
+                        typeRef.GetInputAssemblies(assemblies);
+                    }
+                }
+                else if (valueAsType != null)
+                {
+                    GetTypeAndBaseTypeAssemblies(assemblies, valueAsType);
+                }
+                else if (value.GetType().IsArray)
+                {
+                    // If the value is an array, we should determine the assemblies of each item.
+                    var array = value as object[];
+                    if (array != null)
+                    {
+                        foreach (var obj in array.Where(o => o != null))
+                        {
+                            // Check to see if the value is a type. We should get the assembly from
+                            // the value if that's the case.
+                            var objType = obj as Type;
+                            if (objType != null)
+                            {
+                                GetTypeAndBaseTypeAssemblies(assemblies, objType);
+                            }
+                            else
+                            {
+                                GetTypeAndBaseTypeAssemblies(assemblies, obj.GetType());
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Array is full of primitives. We can just use value's assembly data
+                        GetTypeAndBaseTypeAssemblies(assemblies, value.GetType());
+                    }
+                }
+                else
+                {
+                    GetTypeAndBaseTypeAssemblies(assemblies, value.GetType());
+                }
+            }
         }
 
         private static string FilterTypeNameForGenericTypeDefinition(Type type, bool fullName)
@@ -585,6 +644,22 @@
             }
 
             return name;
+        }
+
+        private static void GetTypeAndBaseTypeAssemblies(ISet<AssemblyName> assemblies, Type type)
+        {
+            Requires.NotNull(assemblies, nameof(assemblies));
+            Requires.NotNull(type, nameof(type));
+
+            foreach (var baseType in type.EnumTypeAndBaseTypes())
+            {
+                assemblies.Add(baseType.Assembly.GetName());
+            }
+
+            foreach (var iface in type.GetInterfaces())
+            {
+                assemblies.Add(iface.Assembly.GetName());
+            }
         }
 
         private static IEnumerable<Type> GetAllBaseTypesAndInterfaces(Type type)
