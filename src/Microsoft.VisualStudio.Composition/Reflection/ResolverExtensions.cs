@@ -236,7 +236,7 @@
 
             if (!propertyRef.IsEmpty)
             {
-                assemblies.Add(propertyRef.DeclaringType.AssemblyName);
+                propertyRef.DeclaringType.GetInputAssemblies(assemblies);
             }
         }
 
@@ -246,7 +246,7 @@
 
             if (!fieldRef.IsEmpty)
             {
-                assemblies.Add(fieldRef.DeclaringType.AssemblyName);
+                fieldRef.DeclaringType.GetInputAssemblies(assemblies);
             }
         }
 
@@ -256,7 +256,7 @@
 
             if (!constructorRef.IsEmpty)
             {
-                assemblies.Add(constructorRef.DeclaringType.AssemblyName);
+                constructorRef.DeclaringType.GetInputAssemblies(assemblies);
             }
         }
 
@@ -266,7 +266,7 @@
 
             if (!parameterRef.IsEmpty)
             {
-                assemblies.Add(parameterRef.AssemblyName);
+                parameterRef.DeclaringType.GetInputAssemblies(assemblies);
             }
         }
 
