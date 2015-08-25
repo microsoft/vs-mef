@@ -215,6 +215,10 @@
       <Project>{15fc5b0e-ae82-4437-8916-b59e646c41e7}</Project>
       <Name>Microsoft.VisualStudio.Composition.AppDomainTests</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2.csproj">
+      <Project>{A424CBE4-248E-477C-88BD-575FA240EACB}</Project>
+      <Name>Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests.csproj">
       <Project>{37e36aec-3319-4219-974f-d258fbe8d143}</Project>
       <Name>Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests</Name>
