@@ -58,6 +58,7 @@
     <Compile Include="NonDiscoverablePartV1.cs" />
     <Compile Include="NonDiscoverablePart.cs" />
     <Compile Include="NonPart.cs" />
+    <Compile Include="SomeEnum.cs" />
     <Compile Include="TypeWithMissingAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
