@@ -137,7 +137,7 @@
 
                 var importConstraints = GetImportConstraints(member);
                 ImportDefinition importDefinition;
-                if (TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, importConstraints, out importDefinition))
+                if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, importConstraints, out importDefinition))
                 {
                     imports.Add(new ImportDefinitionBinding(importDefinition, TypeRef.Get(partType, this.Resolver), MemberRef.Get(member, this.Resolver)));
                 }
@@ -159,7 +159,7 @@
             Verify.Operation(importingCtor != null, ConfigurationStrings.NoImportingConstructorFound);
             foreach (var parameter in importingCtor.GetParameters())
             {
-                var import = CreateImport(parameter, GetImportConstraints(parameter));
+                var import = this.CreateImport(parameter, GetImportConstraints(parameter));
                 if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
                 {
                     Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(import), ConfigurationStrings.CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor);
@@ -290,7 +290,7 @@
                 }
 
                 importConstraints = importConstraints
-                    .Union(GetMetadataViewConstraints(importingType, importMany: false))
+                    .Union(this.GetMetadataViewConstraints(importingType, importMany: false))
                     .Union(GetExportTypeIdentityConstraints(contractType));
                 importDefinition = new ImportDefinition(
                     string.IsNullOrEmpty(importAttribute.ContractName) ? GetContractName(contractType) : importAttribute.ContractName,
@@ -304,7 +304,7 @@
             {
                 Type contractType = GetTypeIdentityFromImportingType(importingType, importMany: true);
                 importConstraints = importConstraints
-                    .Union(GetMetadataViewConstraints(importingType, importMany: true))
+                    .Union(this.GetMetadataViewConstraints(importingType, importMany: true))
                     .Union(GetExportTypeIdentityConstraints(contractType));
                 importDefinition = new ImportDefinition(
                     string.IsNullOrEmpty(importManyAttribute.ContractName) ? GetContractName(contractType) : importManyAttribute.ContractName,
@@ -324,7 +324,7 @@
         private ImportDefinitionBinding CreateImport(ParameterInfo parameter, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints)
         {
             ImportDefinition result;
-            Assumes.True(TryCreateImportDefinition(parameter.ParameterType, parameter, importConstraints, out result));
+            Assumes.True(this.TryCreateImportDefinition(parameter.ParameterType, parameter, importConstraints, out result));
             return new ImportDefinitionBinding(result, TypeRef.Get(parameter.Member.DeclaringType, this.Resolver), ParameterRef.Get(parameter, this.Resolver));
         }
 
