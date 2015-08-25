@@ -1,43 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-	<UsingTask TaskName="CreateComposition" AssemblyFile="Microsoft.VisualStudio.Composition.Configuration.dll" />
-	<UsingTask TaskName="CreateContainerFactoryBootstrapFile" AssemblyFile="Microsoft.VisualStudio.Composition.Configuration.dll" />
+  <UsingTask TaskName="CreateComposition" AssemblyFile="Microsoft.VisualStudio.Composition.Configuration.dll" />
+  <UsingTask TaskName="CreateContainerFactoryBootstrapFile" AssemblyFile="Microsoft.VisualStudio.Composition.Configuration.dll" />
 
-	<PropertyGroup>
-		<CompositionConfigurationBaseName>$(TargetName).Composition</CompositionConfigurationBaseName>
-		<CompositionConfigurationCacheName>$(CompositionConfigurationBaseName).cache</CompositionConfigurationCacheName>
-		<MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
-		<PrepareResourceNamesDependsOn>
-			GenerateCompositionBootstrapSourceFile;
-			$(PrepareResourceNamesDependsOn)
-		</PrepareResourceNamesDependsOn>
-	</PropertyGroup>
+  <PropertyGroup>
+    <CompositionConfigurationBaseName>$(TargetName).Composition</CompositionConfigurationBaseName>
+    <CompositionConfigurationCacheName>$(CompositionConfigurationBaseName).cache</CompositionConfigurationCacheName>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <PrepareResourceNamesDependsOn>
+      GenerateCompositionBootstrapSourceFile;
+      $(PrepareResourceNamesDependsOn)
+    </PrepareResourceNamesDependsOn>
+  </PropertyGroup>
 
-	<Target Name="GenerateCompositionBootstrapSourceFile">
-		<PropertyGroup>
-			<ContainerFactoryBootstrapFile>$(IntermediateOutputPath)ContainerFactory.cs</ContainerFactoryBootstrapFile>
-		</PropertyGroup>
-		<ItemGroup>
-			<Compile Include="$(ContainerFactoryBootstrapFile)" />
-		</ItemGroup>
+  <Target Name="GenerateCompositionBootstrapSourceFile"
+          BeforeTargets="BeforeCompile">
+    <PropertyGroup>
+      <ContainerFactoryBootstrapFile>$(IntermediateOutputPath)ContainerFactory.cs</ContainerFactoryBootstrapFile>
+    </PropertyGroup>
+    <ItemGroup>
+      <Compile Include="$(ContainerFactoryBootstrapFile)" />
+    </ItemGroup>
 
-		<CreateContainerFactoryBootstrapFile
-			BootstrapFile="$(ContainerFactoryBootstrapFile)"
-			RootNamespace="$(RootNamespace)"
-			CompositionCacheFile="$(CompositionConfigurationCacheName)"/>
-	</Target>
+    <CreateContainerFactoryBootstrapFile
+      BootstrapFile="$(ContainerFactoryBootstrapFile)"
+      RootNamespace="$(RootNamespace)"
+      CompositionCacheFile="$(CompositionConfigurationCacheName)"/>
+  </Target>
 
-	<Target Name="GenerateCompositionConfigurationAssembly" AfterTargets="Build" DependsOnTargets="ResolveReferences">
-		<ItemGroup>
-			<CompositionConfigurationAssembly Include="$(TargetPath)" />
-			<CompositionConfigurationAssembly Include="@(ReferencePath)" Condition=" '%(ReferencePath.MEFAssembly)'=='true' " />
-		</ItemGroup>
+  <Target Name="GenerateCompositionConfigurationAssembly" AfterTargets="Build" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <CompositionConfigurationAssembly Include="$(TargetPath)" />
+      <CompositionConfigurationAssembly Include="@(ReferencePath)" Condition=" '%(ReferencePath.MEFAssembly)'=='true' " />
+    </ItemGroup>
 
-		<CreateComposition
-			CatalogAssemblies="@(CompositionConfigurationAssembly)"
-			DgmlOutputPath="$(OutputPath)$(CompositionConfigurationBaseName).dgml"
-			CompositionCacheFile="$(OutputPath)$(CompositionConfigurationCacheName)" />
-	</Target>
-
-	<Target Name="BeforeCompile" DependsOnTargets="GenerateCompositionBootstrapSourceFile"/>
+    <CreateComposition
+      CatalogAssemblies="@(CompositionConfigurationAssembly)"
+      DgmlOutputPath="$(OutputPath)$(CompositionConfigurationBaseName).dgml"
+      CompositionCacheFile="$(OutputPath)$(CompositionConfigurationCacheName)" />
+  </Target>
 </Project>
