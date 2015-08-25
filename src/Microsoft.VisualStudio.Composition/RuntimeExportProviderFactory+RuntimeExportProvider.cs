@@ -47,8 +47,6 @@
                 this.composition = composition;
             }
 
-            private Resolver Resolver => this.composition.Resolver;
-
             protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
             {
                 var exports = this.composition.GetExports(importDefinition.ContractName);

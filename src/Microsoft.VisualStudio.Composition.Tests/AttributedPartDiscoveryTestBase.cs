@@ -115,7 +115,7 @@
             try
             {
                 typeof(TypeWithMissingAttribute).GetCustomAttributes(false);
-                throw new SkippableFactDiscoverer.SkipException("The missing assembly is present. Test cannot verify proper operation.");
+                Skip.If(true, "The missing assembly is present. Test cannot verify proper operation.");
             }
             catch (FileNotFoundException) { }
 
@@ -135,7 +135,7 @@
             try
             {
                 typeof(TypeWithMissingAttribute).GetCustomAttributes(false);
-                throw new SkippableFactDiscoverer.SkipException("The missing assembly is present. Test cannot verify proper operation.");
+                Skip.If(true, "The missing assembly is present. Test cannot verify proper operation.");
             }
             catch (FileNotFoundException) { }
 
