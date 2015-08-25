@@ -6,9 +6,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
-    using Language.Intellisense;
     using Shell.Interop;
-    using Text.Editor;
     using Xunit;
     using MEFv1 = System.ComponentModel.Composition;
 
@@ -101,7 +99,7 @@
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(AdornmentPositioningBehavior).Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
                 typeof(PartWithEnumValueMetadata).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
@@ -118,7 +116,7 @@
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(IAdornmentLayer).Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
                 typeof(ExportingWithTypeSingleMetadata).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
@@ -135,7 +133,7 @@
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(IAdornmentLayer).Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
                 typeof(ExportingWithTypeMetadata).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
@@ -153,7 +151,7 @@
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
                 typeof(AllColorableItemInfo).Assembly.GetName(),
-                typeof(IAdornmentLayer).Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
                 typeof(ExportingWithMultipleTypeMetadata).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
@@ -170,7 +168,7 @@
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(AdornmentPositioningBehavior).Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.SomeEnum).Assembly.GetName(),
                 typeof(ExportingWithEnumMetadata).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
@@ -187,8 +185,8 @@
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(AdornmentPositioningBehavior).Assembly.GetName(),
-                typeof(SmartTagState).Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.SomeEnum).Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests2.SomeOtherEnum).Assembly.GetName(),
                 typeof(ExportingWithMultipleDifferentEnumMetadata).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
@@ -205,10 +203,9 @@
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(IAdornmentLayer).Assembly.GetName(),
-                typeof(AllColorableItemInfo).Assembly.GetName(),
-                typeof(AdornmentPositioningBehavior).Assembly.GetName(),
-                typeof(SmartTagState).Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.SomeEnum).Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests2.SomeOtherEnum).Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
                 typeof(ExportingWithLotsOfMetadata).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
@@ -225,7 +222,7 @@
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(IAdornmentLayer).Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
                 typeof(ExportingWithExportingMembers).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
@@ -242,7 +239,7 @@
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(IAdornmentLayer).Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
                 typeof(ExportingTypeWithNullExportMetadata).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
@@ -260,7 +257,7 @@
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
                 typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
-                typeof(CompletionPresenterStyle).Assembly.GetName(),
+                typeof(System.Exception).Assembly.GetName(),
                 typeof(ExportingTypeWithExportMetadataWithExternalDependencies).Assembly.GetName(),
                 typeof(object).Assembly.GetName()
             };
@@ -308,13 +305,13 @@
 
         }
 
-        public class ClassWithExternalDependencies : CompletionPresenterStyle, AssemblyDiscoveryTests.ISomeInterface { }
+        public class ClassWithExternalDependencies : System.Exception, AssemblyDiscoveryTests.ISomeInterface { }
 
         public class ClassWithExternalDependenciesAndInterfaceTree : AssemblyDiscoveryTests.ISomeInterfaceWithBaseInterface { }
 
         [Export, MEFv1.Export]
         [MEFv1.ExportMetadata("Null", null)]
-        [MultipleTypeMetadata(typeof(IAdornmentLayer))]
+        [MultipleTypeMetadata(typeof(AssemblyDiscoveryTests.ISomeInterface))]
         [MultipleTypeMetadata(null)]
         public class ExportingTypeWithNullExportMetadata { }
 
@@ -325,46 +322,46 @@
         public class ExportingTypeImplementsFromOtherAssembly : AssemblyDiscoveryTests.ISomeInterface { }
 
         [Export, MEFv1.Export]
-        [PartMetadata("ExternalAssemblyValue", AdornmentPositioningBehavior.TextRelative)]
-        [MEFv1.PartMetadata("ExternalAssemblyValue", AdornmentPositioningBehavior.TextRelative)]
+        [PartMetadata("ExternalAssemblyValue", typeof(AssemblyDiscoveryTests.ISomeInterface))]
+        [MEFv1.PartMetadata("ExternalAssemblyValue", typeof(AssemblyDiscoveryTests.ISomeInterface))]
         public class PartWithEnumValueMetadata { }
 
         [Export, MEFv1.Export]
-        [MEFv1.ExportMetadata("Type", typeof(IAdornmentLayer))]
+        [MEFv1.ExportMetadata("Type", typeof(AssemblyDiscoveryTests.ISomeInterface))]
         public class ExportingWithTypeMetadata { }
 
         [Export, MEFv1.Export]
-        [MultipleTypeMetadata(typeof(IAdornmentLayer))]
+        [MultipleTypeMetadata(typeof(AssemblyDiscoveryTests.ISomeInterface))]
         [MultipleTypeMetadata(typeof(AllColorableItemInfo))]
         public class ExportingWithMultipleTypeMetadata { }
 
         [Export, MEFv1.Export]
-        [MEFv1.ExportMetadata("AdornmentLayerType", typeof(IAdornmentLayer), IsMultiple = false)]
+        [MEFv1.ExportMetadata("AdornmentLayerType", typeof(AssemblyDiscoveryTests.ISomeInterface), IsMultiple = false)]
         public class ExportingWithTypeSingleMetadata { }
 
         [Export, MEFv1.Export]
-        [MEFv1.ExportMetadata("Position", AdornmentPositioningBehavior.TextRelative)]
+        [MEFv1.ExportMetadata("Position", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
         public class ExportingWithEnumMetadata { }
 
         [Export, MEFv1.Export]
-        [MEFv1.ExportMetadata("AdornmentPositioningBehavior", AdornmentPositioningBehavior.TextRelative)]
-        [MEFv1.ExportMetadata("SmartTagState", SmartTagState.Expanded)]
+        [MEFv1.ExportMetadata("SomeEnum", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
+        [MEFv1.ExportMetadata("SomeOtherEnum", AssemblyDiscoveryTests2.SomeOtherEnum.EnumValue)]
         public class ExportingWithMultipleDifferentEnumMetadata { }
 
         [Export, MEFv1.Export]
-        [MEFv1.ExportMetadata("AdornmentPositioningBehavior", AdornmentPositioningBehavior.TextRelative)]
-        [MEFv1.ExportMetadata("SmartTagState", SmartTagState.Expanded)]
-        [MEFv1.ExportMetadata("AdornmentLayerType", typeof(IAdornmentLayer)) ]
-        [MultipleTypeMetadata(typeof(IAdornmentLayer))]
-        [MultipleTypeMetadata(typeof(AllColorableItemInfo))]
-        [PartMetadata("ExternalAssemblyValue", AdornmentPositioningBehavior.TextRelative)]
-        [MEFv1.PartMetadata("ExternalAssemblyValue", AdornmentPositioningBehavior.TextRelative)]
+        [MEFv1.ExportMetadata("SomeEnum", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
+        [MEFv1.ExportMetadata("SomeOtherEnum", AssemblyDiscoveryTests2.SomeOtherEnum.EnumValue)]
+        [MEFv1.ExportMetadata("SomeInterface", typeof(AssemblyDiscoveryTests.ISomeInterface)) ]
+        [MultipleTypeMetadata(typeof(AssemblyDiscoveryTests.SomeEnum))]
+        [MultipleTypeMetadata(typeof(AssemblyDiscoveryTests2.SomeOtherEnum))]
+        [PartMetadata("ExternalAssemblyValue", typeof(AssemblyDiscoveryTests.SomeEnum))]
+        [MEFv1.PartMetadata("ExternalAssemblyValue", typeof(AssemblyDiscoveryTests.SomeEnum))]
         public class ExportingWithLotsOfMetadata { }
 
         public class ExportingWithExportingMembers
         {
             [MEFv1.Export]
-            [MEFv1.ExportMetadata("AdornmentLayer", typeof(IAdornmentLayer))]
+            [MEFv1.ExportMetadata("SomeInterface", typeof(AssemblyDiscoveryTests.ISomeInterface))]
             public object Export { get; set; }
         }
 
