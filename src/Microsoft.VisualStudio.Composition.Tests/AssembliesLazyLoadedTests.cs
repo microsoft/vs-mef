@@ -9,9 +9,9 @@
     using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
+    using Composition.Reflection;
     using Microsoft.VisualStudio.Composition.AppDomainTests;
     using Microsoft.VisualStudio.Composition.AppDomainTests2;
-    using Composition.Reflection;
     using Xunit;
 
     [Trait("Efficiency", "LazyLoad")]

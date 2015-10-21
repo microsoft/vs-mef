@@ -135,7 +135,8 @@
 
         private class SketchyPartDiscovery : PartDiscovery
         {
-            internal SketchyPartDiscovery() : base(TestUtilities.Resolver)
+            internal SketchyPartDiscovery()
+                : base(TestUtilities.Resolver)
             {
             }
 
@@ -173,7 +174,8 @@
 
         private class NoOpDiscovery : PartDiscovery
         {
-            internal NoOpDiscovery() : base(TestUtilities.Resolver)
+            internal NoOpDiscovery()
+                : base(TestUtilities.Resolver)
             {
             }
 

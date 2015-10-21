@@ -229,7 +229,7 @@
         {
             if (typeRefs.IsDefault)
             {
-                return new Rental<Type[]>();
+                return default(Rental<Type[]>);
             }
 
             var result = ArrayRental<Type>.Get(typeRefs.Length);

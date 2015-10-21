@@ -171,7 +171,7 @@
                 part.GetImportingConstructorImports().Select(kvp => CreateRuntimeImport(kvp.Key, kvp.Value, part.Resolver)).ToImmutableArray(),
                 part.Definition.ImportingMembers.Select(idb => CreateRuntimeImport(idb, part.SatisfyingExports[idb], part.Resolver)).ToImmutableArray(),
                 part.Definition.ExportDefinitions.Select(ed => CreateRuntimeExport(ed.Value, partDefinitionType, ed.Key, part.Resolver)).ToImmutableArray(),
-                onImportsSatisfied != null ? new MethodRef(onImportsSatisfied, part.Resolver) : new MethodRef(),
+                onImportsSatisfied != null ? new MethodRef(onImportsSatisfied, part.Resolver) : default(MethodRef),
                 part.Definition.IsShared ? configuration.GetEffectiveSharingBoundary(part.Definition) : null);
             return runtimePart;
         }

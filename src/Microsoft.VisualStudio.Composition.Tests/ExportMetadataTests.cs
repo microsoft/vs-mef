@@ -799,7 +799,7 @@
         /// the C# language specification 17.1.3.
         /// </remarks>
         [Export, MefV1.Export]
-        // allowed types
+        //// allowed types
         [ExportMetadata("bool", true), MefV1.ExportMetadata("bool", true)]
         [ExportMetadata("byte", byte.MaxValue), MefV1.ExportMetadata("byte", byte.MaxValue)]
         [ExportMetadata("char", 'a'), MefV1.ExportMetadata("char", 'a')]
@@ -819,7 +819,7 @@
         [ExportMetadata("ushort", ushort.MaxValue), MefV1.ExportMetadata("ushort", ushort.MaxValue)]
         [ExportMetadata("type", typeof(string)), MefV1.ExportMetadata("type", typeof(string))]
         [ExportMetadata("enum", CreationPolicy.NonShared), MefV1.ExportMetadata("enum", CreationPolicy.NonShared)]
-        // arrays of allowed types
+        //// arrays of allowed types
         [ExportMetadata("array_bool", new[] { true }), MefV1.ExportMetadata("array_bool", new[] { true })]
         [ExportMetadata("array_byte", new[] { byte.MaxValue }), MefV1.ExportMetadata("array_byte", new[] { byte.MaxValue })]
         [ExportMetadata("array_char", new[] { 'a' }), MefV1.ExportMetadata("array_char", new[] { 'a' })]

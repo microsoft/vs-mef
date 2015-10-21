@@ -9,7 +9,7 @@
 
     internal class UniquePropertyNameComparer : IEqualityComparer<PropertyInfo>
     {
-        internal readonly static IEqualityComparer<PropertyInfo> Default = new UniquePropertyNameComparer();
+        internal static readonly IEqualityComparer<PropertyInfo> Default = new UniquePropertyNameComparer();
 
         private UniquePropertyNameComparer()
         {

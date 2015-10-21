@@ -177,7 +177,7 @@
                             collectionAccessor.Add(exportedValue);
                         }
 
-                        return new ValueForImportSite(); // signal caller should not set value again.
+                        return default(ValueForImportSite); // signal caller should not set value again.
                     }
                 }
                 else
@@ -526,7 +526,6 @@
                                         RuntimeComposition.GetDiagnosticLocation(import)),
                                     ex);
                             }
-
                         }
                     }
                     catch (TargetInvocationException ex)

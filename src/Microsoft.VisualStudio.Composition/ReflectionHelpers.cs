@@ -1,6 +1,5 @@
 ﻿namespace Microsoft.VisualStudio.Composition
 {
-    using Reflection;
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
@@ -11,6 +10,7 @@
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
+    using Reflection;
 
     public static class ReflectionHelpers
     {

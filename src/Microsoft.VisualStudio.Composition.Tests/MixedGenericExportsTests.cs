@@ -33,8 +33,8 @@
             var appleTrees = container.GetExports<Tree<Apple>, IDictionary<string, object>>().ToList();
             Assert.Equal(2, appleTrees.Count);
 
-            var forestTree = appleTrees.Single(t => "Forest" == (string)t.Metadata["Origin"]);
-            var loneTree = appleTrees.Single(t => "Lone" == (string)t.Metadata["Origin"]);
+            var forestTree = appleTrees.Single(t => (string)t.Metadata["Origin"] == "Forest");
+            var loneTree = appleTrees.Single(t => (string)t.Metadata["Origin"] == "Lone");
 
             Assert.IsType(typeof(Forest.MyAppleTree), forestTree.Value);
             Assert.IsType(typeof(Tree<Apple>), loneTree.Value);
@@ -50,8 +50,8 @@
             var part = container.GetExportedValue<ImportingPart>();
             Assert.Equal(2, part.AppleTrees.Length);
 
-            var forestTree = part.AppleTrees.Single(t => "Forest" == (string)t.Metadata["Origin"]);
-            var loneTree = part.AppleTrees.Single(t => "Lone" == (string)t.Metadata["Origin"]);
+            var forestTree = part.AppleTrees.Single(t => (string)t.Metadata["Origin"] == "Forest");
+            var loneTree = part.AppleTrees.Single(t => (string)t.Metadata["Origin"] == "Lone");
 
             Assert.IsType(typeof(Forest.MyAppleTree), forestTree.Value);
             Assert.IsType(typeof(Tree<Apple>), loneTree.Value);

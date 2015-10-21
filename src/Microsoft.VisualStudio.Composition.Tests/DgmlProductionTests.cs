@@ -11,13 +11,13 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class DgmlProduction
+    public class DgmlProductionTests
     {
         internal const string Namespace = "http://schemas.microsoft.com/vs/2009/dgml";
 
         private readonly ITestOutputHelper output;
 
-        public DgmlProduction(ITestOutputHelper output)
+        public DgmlProductionTests(ITestOutputHelper output)
         {
             this.output = output;
         }
