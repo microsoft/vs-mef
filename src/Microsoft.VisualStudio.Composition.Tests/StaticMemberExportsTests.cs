@@ -6,8 +6,8 @@
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
-    using MefV1 = System.ComponentModel.Composition;
     using CompositionFailedException = Microsoft.VisualStudio.Composition.CompositionFailedException;
+    using MefV1 = System.ComponentModel.Composition;
 
     [Trait("Static", "")]
     public class StaticMemberExportsTests

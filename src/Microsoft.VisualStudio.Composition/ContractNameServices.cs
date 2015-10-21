@@ -7,6 +7,8 @@
     using System.Text;
     using System.Threading.Tasks;
 
+#pragma warning disable SA1120 // Comments must contain text
+
     internal static class ContractNameServices
     {
         private const char NamespaceSeparator = '.';
@@ -329,7 +331,6 @@
 
             // The generic arity is equal to the difference in the number of generic arguments
             // from the type and the declaring type.
-
             int delclaringTypeGenericArguments = type.DeclaringType.GetGenericArguments().Length;
             int typeGenericArguments = type.GetGenericArguments().Length;
 

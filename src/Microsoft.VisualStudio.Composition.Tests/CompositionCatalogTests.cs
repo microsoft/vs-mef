@@ -294,7 +294,6 @@
         [MEFv1.ExportMetadata("External", typeof(ClassWithExternalDependencies))]
         public class ExportingTypeWithExportMetadataWithExternalDependencies
         {
-
         }
 
         [Export, MEFv1.Export]
@@ -302,7 +301,6 @@
         [MEFv1.ExportMetadata("External", typeof(ClassWithExternalDependenciesAndInterfaceTree))]
         public class ExportingTypeWithExportMetadataWithExternalDependenciesAndInterfaceTree
         {
-
         }
 
         public class ClassWithExternalDependencies : System.Exception, AssemblyDiscoveryTests.ISomeInterface { }

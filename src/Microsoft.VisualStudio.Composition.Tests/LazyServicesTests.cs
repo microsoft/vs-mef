@@ -23,7 +23,13 @@
         {
             Func<Func<object>, object, object> factory = LazyServices.CreateStronglyTypedLazyFactory(typeof(string), null);
             bool executed = false;
-            var lazy = (Lazy<string>)factory(() => { executed = true; return "hi"; }, 5);
+            var lazy = (Lazy<string>)factory(
+                () =>
+                {
+                    executed = true;
+                    return "hi";
+                },
+                5);
             Assert.IsType(typeof(Lazy<string>), lazy);
             Assert.False(executed);
             Assert.Equal("hi", lazy.Value);
@@ -35,7 +41,13 @@
         {
             Func<Func<object>, object, object> factory = LazyServices.CreateStronglyTypedLazyFactory(typeof(string), typeof(int));
             bool executed = false;
-            var lazy = (Lazy<string, int>)factory(() => { executed = true; return "hi"; }, 5);
+            var lazy = (Lazy<string, int>)factory(
+                () =>
+                {
+                    executed = true;
+                    return "hi";
+                },
+                5);
             Assert.False(executed);
             Assert.Equal(5, lazy.Metadata);
             Assert.False(executed);

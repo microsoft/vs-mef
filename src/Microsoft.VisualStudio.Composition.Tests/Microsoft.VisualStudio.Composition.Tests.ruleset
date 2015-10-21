@@ -76,7 +76,7 @@
     <Rule Id="SA1609" Action="None" />
     <Rule Id="SA1611" Action="None" />
     <Rule Id="SA1401" Action="None" />
-    <Rule Id="SA1201" Action="None" />
+    <Rule Id="SA1201" Action="Hidden" />
     <Rule Id="SA1005" Action="Hidden" />
     <Rule Id="SA1300" Action="Warning" />
     <Rule Id="SA1502" Action="None" />
@@ -85,5 +85,22 @@
     <Rule Id="SX1309" Action="None" />
     <Rule Id="SX1309S" Action="None" />
     <Rule Id="SA1501" Action="Hidden" />
+    <Rule Id="SA1130" Action="None" />
+    <Rule Id="SA1202" Action="Hidden" />
+    <Rule Id="SA1203" Action="Hidden" />
+    <Rule Id="SA1204" Action="Hidden" />
+    <Rule Id="SA1207" Action="Hidden" />
+    <Rule Id="SA1633" Action="Hidden" />
+    <Rule Id="SA1634" Action="Hidden" />
+    <Rule Id="SA1635" Action="Hidden" />
+    <Rule Id="SA1636" Action="Hidden" />
+    <Rule Id="SA1637" Action="Hidden" />
+    <Rule Id="SA1638" Action="Hidden" />
+    <Rule Id="SA1639" Action="Hidden" />
+    <Rule Id="SA1640" Action="Hidden" />
+    <Rule Id="SA1641" Action="Hidden" />
+    <Rule Id="SA1652" Action="None" />
+    <Rule Id="SA1117" Action="Hidden" />
+    <Rule Id="SA1116" Action="Hidden" />
   </Rules>
 </RuleSet>

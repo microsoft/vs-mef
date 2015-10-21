@@ -216,7 +216,6 @@
         //           are impossibly exported, but because they are never Imported directly (only through very carefully
         //           written calls to the ExportProvider to type the exports as "object") it doesn't fail at runtime.
         //           We may need to keep that working (at least until we can talk Sharepoint out of doing it).
-
         [MefFact(CompositionEngines.V1Compat, typeof(PartWithObjectPropertyExportedAsIComparable), typeof(PartThatImportsIComparableDirectly), typeof(PartThatImportsIComparableInArray), typeof(PartThatImportsIComparableInList))]
         public void ExportingProperty_FailsAtRuntime(IContainer container)
         {

@@ -4,7 +4,7 @@
 *                                                        *
 *********************************************************/
 
-// This file is originally derived from the version found in System.ComponentModel.Composition
+//// This file is originally derived from the version found in System.ComponentModel.Composition
 
 namespace Microsoft.VisualStudio.Composition
 {
@@ -82,13 +82,14 @@ namespace Microsoft.VisualStudio.Composition
 
         private static readonly Dictionary<Type, MetadataViewFactory> MetadataViewFactories = new Dictionary<Type, MetadataViewFactory>();
         private static readonly AssemblyName ProxyAssemblyName = new AssemblyName(string.Format(CultureInfo.InvariantCulture, "MetadataViewProxies_{0}", Guid.NewGuid()));
-        private static ModuleBuilder transparentProxyModuleBuilder;
 
         private static readonly Type[] CtorArgumentTypes = new Type[] { typeof(IReadOnlyDictionary<string, object>), typeof(IReadOnlyDictionary<string, object>) };
         private static readonly MethodInfo MdvDictionaryTryGet = CtorArgumentTypes[0].GetMethod("TryGetValue");
         private static readonly MethodInfo MdvDictionaryIndexer = CtorArgumentTypes[0].GetMethod("get_Item");
         private static readonly MethodInfo ObjectGetType = typeof(object).GetMethod("GetType", Type.EmptyTypes);
         private static readonly ConstructorInfo ObjectCtor = typeof(object).GetConstructor(Type.EmptyTypes);
+
+        private static ModuleBuilder transparentProxyModuleBuilder;
 
         public delegate object MetadataViewFactory(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata);
 

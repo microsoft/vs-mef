@@ -8,9 +8,9 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Composition.Reflection;
     using Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests;
     using Microsoft.VisualStudio.Composition.BrokenAssemblyTests;
-    using Composition.Reflection;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
@@ -275,7 +275,8 @@
         /// </summary>
         private class PartDiscoveryAllTypesMock : PartDiscovery
         {
-            public PartDiscoveryAllTypesMock() : base(TestUtilities.Resolver)
+            public PartDiscoveryAllTypesMock()
+                : base(TestUtilities.Resolver)
             {
             }
 

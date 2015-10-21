@@ -222,7 +222,7 @@
 
         private class MetadataDictionaryEqualityComparer : DictionaryEqualityComparer<string, object>
         {
-            new internal static readonly MetadataDictionaryEqualityComparer Default = new MetadataDictionaryEqualityComparer();
+            internal static new readonly MetadataDictionaryEqualityComparer Default = new MetadataDictionaryEqualityComparer();
 
             protected MetadataDictionaryEqualityComparer()
                 : base(MetadataValueComparer.Default)
@@ -331,7 +331,7 @@
 
         private class DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue> : DictionaryEqualityComparer<TKey, ImmutableHashSet<TValue>>
         {
-            new internal static readonly DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue> Default = new DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue>();
+            internal static new readonly DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue> Default = new DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue>();
 
             protected DictionaryOfImmutableHashSetEqualityComparer()
                 : base(SetEqualityComparer.Default)
