@@ -13,11 +13,13 @@
         {
         }
 
-        public PartDiscoveryException(string message) : base(message)
+        public PartDiscoveryException(string message)
+            : base(message)
         {
         }
 
-        public PartDiscoveryException(string message, Exception inner) : base(message, inner)
+        public PartDiscoveryException(string message, Exception inner)
+            : base(message, inner)
         {
         }
 

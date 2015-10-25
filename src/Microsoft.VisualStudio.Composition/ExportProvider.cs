@@ -53,14 +53,6 @@
         private static readonly ImmutableDictionary<string, HashSet<IDisposable>> DisposableInstantiatedSharedPartsTemplate = ImmutableDictionary.Create<string, HashSet<IDisposable>>().Add(string.Empty, new HashSet<IDisposable>());
 
         /// <summary>
-        /// A cache for the <see cref="GetMetadataViewProvider"/> method which has shown up on perf traces.
-        /// </summary>
-        /// <remarks>
-        /// All access to this dictionary is guarded by a lock on this field.
-        /// </remarks>
-        private Dictionary<Type, IMetadataViewProvider> typeAndSelectedMetadataViewProviderCache = new Dictionary<Type, IMetadataViewProvider>();
-
-        /// <summary>
         /// The metadata view providers available to this ExportProvider.
         /// </summary>
         /// <remarks>
@@ -96,6 +88,14 @@
         /// The sharing boundaries that this ExportProvider creates new sharing boundaries for.
         /// </summary>
         private readonly ImmutableHashSet<string> freshSharingBoundaries = ImmutableHashSet.Create<string>();
+
+        /// <summary>
+        /// A cache for the <see cref="GetMetadataViewProvider"/> method which has shown up on perf traces.
+        /// </summary>
+        /// <remarks>
+        /// All access to this dictionary is guarded by a lock on this field.
+        /// </remarks>
+        private Dictionary<Type, IMetadataViewProvider> typeAndSelectedMetadataViewProviderCache = new Dictionary<Type, IMetadataViewProvider>();
 
         private bool isDisposed;
 

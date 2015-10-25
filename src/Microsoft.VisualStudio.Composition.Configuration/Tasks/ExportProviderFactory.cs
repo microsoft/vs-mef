@@ -24,7 +24,7 @@ namespace $rootnamespace$
                 "$ConfigurationAssemblyName$");
             using (var cacheStream = File.OpenRead(cachePath))
             {
-                return cacheManager.LoadExportProviderFactoryAsync(cacheStream).GetAwaiter().GetResult();
+                return cacheManager.LoadExportProviderFactoryAsync(cacheStream, Resolver.DefaultInstance).GetAwaiter().GetResult();
             }
         }
    }

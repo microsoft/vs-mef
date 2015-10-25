@@ -9,9 +9,9 @@
     using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
+    using Composition.Reflection;
     using Microsoft.VisualStudio.Composition.AppDomainTests;
     using Microsoft.VisualStudio.Composition.AppDomainTests2;
-    using Composition.Reflection;
     using Xunit;
 
     [Trait("Efficiency", "LazyLoad")]
@@ -258,7 +258,7 @@
 
                 // Deserialize the catalog to verify that it doesn't load any assemblies.
                 var catalogManager = new CachedCatalog();
-                var catalog = catalogManager.LoadAsync(cachedCatalogLocal, TestUtilities.Resolver).Result;
+                this.catalog = catalogManager.LoadAsync(cachedCatalogLocal, TestUtilities.Resolver).Result;
 
                 // Deserialize the composition to prepare for the rest of the test.
                 var cacheManager = (ICompositionCacheManager)Activator.CreateInstance(cacheManagerType);

@@ -13,11 +13,13 @@
         {
         }
 
-        public CompositionFailedException(string message) : base(message)
+        public CompositionFailedException(string message)
+            : base(message)
         {
         }
 
-        public CompositionFailedException(string message, Exception innerException) : base(message, innerException)
+        public CompositionFailedException(string message, Exception innerException)
+            : base(message, innerException)
         {
         }
 

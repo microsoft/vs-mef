@@ -121,7 +121,7 @@
         public void ImportingConstructorWithAllowDefaultNonPublicStructAndNoExport(IContainer container)
         {
             var part = container.GetExportedValue<PartWithAllowDefaultNonPublicStructImportingConstructor>();
-            Assert.Equal(new NonPublicStruct(), part.ConstructorArg);
+            Assert.Equal(default(NonPublicStruct), part.ConstructorArg);
         }
 
         [Trait("AllowDefault", "true")]

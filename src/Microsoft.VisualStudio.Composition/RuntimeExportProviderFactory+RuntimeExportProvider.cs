@@ -121,7 +121,7 @@
                             {
                                 intArray.Value[0] = i++;
                                 var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
-                                ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue);
+                                this.ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue);
                                 array.SetValue(exportedValue, intArray.Value);
                             }
                         }
@@ -173,11 +173,11 @@
                         foreach (var export in exports)
                         {
                             var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
-                            ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue);
+                            this.ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue);
                             collectionAccessor.Add(exportedValue);
                         }
 
-                        return new ValueForImportSite(); // signal caller should not set value again.
+                        return default(ValueForImportSite); // signal caller should not set value again.
                     }
                 }
                 else
@@ -189,7 +189,7 @@
                     }
 
                     var exportedValue = this.GetValueForImportElement(importingPartTracker, import, export, lazyFactory);
-                    ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue);
+                    this.ThrowIfExportedValueIsNotAssignableToImport(import, export, exportedValue);
                     return new ValueForImportSite(exportedValue);
                 }
             }
@@ -526,7 +526,6 @@
                                         RuntimeComposition.GetDiagnosticLocation(import)),
                                     ex);
                             }
-
                         }
                     }
                     catch (TargetInvocationException ex)

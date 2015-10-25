@@ -193,8 +193,8 @@
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class NonSharedPart
         {
-            internal static int CtorInvocationCounter;
             internal static readonly ManualResetEventSlim UnblockCtor = new ManualResetEventSlim();
+            internal static int CtorInvocationCounter;
 
             public NonSharedPart()
             {
