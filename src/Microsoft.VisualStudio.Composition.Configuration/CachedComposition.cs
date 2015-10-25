@@ -322,7 +322,6 @@
             {
                 using (this.Trace("MetadataTypesAndProviders"))
                 {
-
                     uint count = this.ReadCompressedUInt();
                     var builder = ImmutableDictionary.CreateBuilder<TypeRef, RuntimeComposition.RuntimeExport>();
                     for (uint i = 0; i < count; i++)

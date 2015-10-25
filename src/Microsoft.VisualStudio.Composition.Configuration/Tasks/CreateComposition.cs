@@ -103,8 +103,7 @@
             return !this.Log.HasLoggedErrors;
         }
 
-        [SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", MessageId = "System.Reflection.Assembly.LoadFile",
-            Justification = "Resolves not finding an assembly in the current domain by looking elsewhere, so LoadFile is needed")]
+        [SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods", MessageId = "System.Reflection.Assembly.LoadFile", Justification = "Resolves not finding an assembly in the current domain by looking elsewhere, so LoadFile is needed")]
         private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             var name = new AssemblyName(args.Name);

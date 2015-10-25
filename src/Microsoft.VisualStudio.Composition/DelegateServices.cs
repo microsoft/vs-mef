@@ -30,6 +30,7 @@
         /// Creates a Func{T} from a delegate that takes one parameter
         /// (for the cost of a delegate, but without incurring the cost of a closure).
         /// </summary>
+        /// <typeparam name="T">The type of value to return from the function.</typeparam>
         /// <param name="value">The value to return from the lazy.</param>
         /// <returns>The lazy instance.</returns>
         internal static Func<T> FromValue<T>(T value)
