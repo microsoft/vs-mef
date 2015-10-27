@@ -3,7 +3,8 @@
   "settings": {
     "documentationRules": {
       "companyName": "Microsoft",
-      "xmlHeader": false
+      "xmlHeader": false,
+      "fileNamingConvention": "metadata"
     }
   }
 }

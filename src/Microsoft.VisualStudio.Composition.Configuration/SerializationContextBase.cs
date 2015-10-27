@@ -688,6 +688,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets an object that has already been deserialized, if available.
         /// </summary>
+        /// <typeparam name="T">The type of deserialized object to retrieve.</typeparam>
         /// <param name="id">Receives the ID of the object.</param>
         /// <param name="value">Receives the value of the object, if available.</param>
         /// <returns><c>true</c> if the caller should deserialize the object; <c>false</c> if the object is in <paramref name="value"/>.</returns>

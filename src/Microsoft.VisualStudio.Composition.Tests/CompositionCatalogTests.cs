@@ -349,7 +349,7 @@
         [Export, MEFv1.Export]
         [MEFv1.ExportMetadata("SomeEnum", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
         [MEFv1.ExportMetadata("SomeOtherEnum", AssemblyDiscoveryTests2.SomeOtherEnum.EnumValue)]
-        [MEFv1.ExportMetadata("SomeInterface", typeof(AssemblyDiscoveryTests.ISomeInterface)) ]
+        [MEFv1.ExportMetadata("SomeInterface", typeof(AssemblyDiscoveryTests.ISomeInterface))]
         [MultipleTypeMetadata(typeof(AssemblyDiscoveryTests.SomeEnum))]
         [MultipleTypeMetadata(typeof(AssemblyDiscoveryTests2.SomeOtherEnum))]
         [PartMetadata("ExternalAssemblyValue", typeof(AssemblyDiscoveryTests.SomeEnum))]
