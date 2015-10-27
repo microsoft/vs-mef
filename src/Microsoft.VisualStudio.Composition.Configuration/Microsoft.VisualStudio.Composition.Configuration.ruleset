@@ -94,5 +94,6 @@
     <Rule Id="SA1639" Action="Hidden" />
     <Rule Id="SA1640" Action="Hidden" />
     <Rule Id="SA1641" Action="Hidden" />
+    <Rule Id="SA1130" Action="Hidden" />
   </Rules>
 </RuleSet>

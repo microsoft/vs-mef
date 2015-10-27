@@ -40,8 +40,6 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Xml" />
-    <Reference Include="System.Collections" />
-    <Reference Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArrayRental`1.cs" />
@@ -68,12 +66,12 @@
     <Compile Include="Export.cs" />
     <Compile Include="ExportTypeIdentityConstraint.cs" />
     <Compile Include="IAssemblyLoader.cs" />
+    <Compile Include="IExportProviderFactory.cs" />
     <Compile Include="IRuntimeCompositionCacheManager.cs" />
     <Compile Include="ICompositionCacheManager.cs" />
     <Compile Include="IDescriptiveToString.cs" />
     <Compile Include="IMetadataViewProvider.cs" />
     <Compile Include="ImportMetadataViewConstraint.cs" />
-    <Compile Include="ICompositionContainerFactory.cs" />
     <Compile Include="IImportSatisfiabilityConstraint.cs" />
     <Compile Include="ImportDefinitionBinding.cs" />
     <Compile Include="ImportCardinality.cs" />
@@ -83,7 +81,7 @@
     <Compile Include="LazyServices.cs" />
     <Compile Include="MetadataTokenType.cs" />
     <Compile Include="MetadataViewClassProvider.cs" />
-    <Compile Include="PartCreationPolicyImportConstraint.cs" />
+    <Compile Include="PartCreationPolicyConstraint.cs" />
     <Compile Include="PartDiscovery.cs" />
     <Compile Include="ComposablePartDefinition.cs" />
     <Compile Include="CompositionConfiguration.cs" />

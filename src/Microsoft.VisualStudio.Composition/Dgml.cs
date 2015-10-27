@@ -25,7 +25,8 @@
         {
             var dgml = new XDocument();
             dgml.Add(
-                new XElement(XName.Get("DirectedGraph", Namespace),
+                new XElement(
+                    XName.Get("DirectedGraph", Namespace),
                     new XAttribute("Layout", layout)));
             if (direction != null)
             {

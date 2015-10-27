@@ -770,25 +770,25 @@
             Assert.Equal(CreationPolicy.NonShared, (CreationPolicy)export.Metadata["enum"]);
 
             // arrays of allowed types
-            Assert.Equal(new [] { true }, (bool[])export.Metadata["array_bool"]);
-            Assert.Equal(new [] { byte.MaxValue }, (byte[])export.Metadata["array_byte"]);
-            Assert.Equal(new [] { 'a' }, (char[])export.Metadata["array_char"]);
-            Assert.Equal(new [] { (double)5 }, (double[])export.Metadata["array_double"]);
-            Assert.Equal(new [] { double.MaxValue }, (double[])export.Metadata["array_doubleMax"]);
-            Assert.Equal(new [] { double.MinValue }, (double[])export.Metadata["array_doubleMin"]);
-            Assert.Equal(new [] { (float)5 }, (float[])export.Metadata["array_float"]);
-            Assert.Equal(new [] { float.MaxValue }, (float[])export.Metadata["array_floatMax"]);
-            Assert.Equal(new [] { float.MinValue }, (float[])export.Metadata["array_floatMin"]);
-            Assert.Equal(new [] { int.MaxValue }, (int[])export.Metadata["array_int"]);
-            Assert.Equal(new [] { long.MaxValue }, (long[])export.Metadata["array_long"]);
-            Assert.Equal(new [] { sbyte.MaxValue }, (sbyte[])export.Metadata["array_sbyte"]);
-            Assert.Equal(new [] { short.MaxValue }, (short[])export.Metadata["array_short"]);
-            Assert.Equal(new [] { "value" }, (string[])export.Metadata["array_string"]);
-            Assert.Equal(new [] { uint.MaxValue }, (uint[])export.Metadata["array_uint"]);
-            Assert.Equal(new [] { ulong.MaxValue }, (ulong[])export.Metadata["array_ulong"]);
-            Assert.Equal(new [] { ushort.MaxValue }, (ushort[])export.Metadata["array_ushort"]);
-            Assert.Equal(new [] { typeof(string) }, (Type[])export.Metadata["array_type"]);
-            Assert.Equal(new [] { CreationPolicy.NonShared }, (CreationPolicy[])export.Metadata["array_enum"]);
+            Assert.Equal(new[] { true }, (bool[])export.Metadata["array_bool"]);
+            Assert.Equal(new[] { byte.MaxValue }, (byte[])export.Metadata["array_byte"]);
+            Assert.Equal(new[] { 'a' }, (char[])export.Metadata["array_char"]);
+            Assert.Equal(new[] { (double)5 }, (double[])export.Metadata["array_double"]);
+            Assert.Equal(new[] { double.MaxValue }, (double[])export.Metadata["array_doubleMax"]);
+            Assert.Equal(new[] { double.MinValue }, (double[])export.Metadata["array_doubleMin"]);
+            Assert.Equal(new[] { (float)5 }, (float[])export.Metadata["array_float"]);
+            Assert.Equal(new[] { float.MaxValue }, (float[])export.Metadata["array_floatMax"]);
+            Assert.Equal(new[] { float.MinValue }, (float[])export.Metadata["array_floatMin"]);
+            Assert.Equal(new[] { int.MaxValue }, (int[])export.Metadata["array_int"]);
+            Assert.Equal(new[] { long.MaxValue }, (long[])export.Metadata["array_long"]);
+            Assert.Equal(new[] { sbyte.MaxValue }, (sbyte[])export.Metadata["array_sbyte"]);
+            Assert.Equal(new[] { short.MaxValue }, (short[])export.Metadata["array_short"]);
+            Assert.Equal(new[] { "value" }, (string[])export.Metadata["array_string"]);
+            Assert.Equal(new[] { uint.MaxValue }, (uint[])export.Metadata["array_uint"]);
+            Assert.Equal(new[] { ulong.MaxValue }, (ulong[])export.Metadata["array_ulong"]);
+            Assert.Equal(new[] { ushort.MaxValue }, (ushort[])export.Metadata["array_ushort"]);
+            Assert.Equal(new[] { typeof(string) }, (Type[])export.Metadata["array_type"]);
+            Assert.Equal(new[] { CreationPolicy.NonShared }, (CreationPolicy[])export.Metadata["array_enum"]);
         }
 
         /// <summary>

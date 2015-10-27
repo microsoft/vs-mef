@@ -209,7 +209,9 @@ namespace Microsoft.VisualStudio.Composition
                     propertyInfo.PropertyType,
                     requiredModifiers,
                     optionalModifiers,
-                    Type.EmptyTypes, null, null);
+                    Type.EmptyTypes,
+                    null,
+                    null);
 
                 proxyTypeBuilder.DefineMethodOverride(getMethodBuilder, propertyInfo.GetGetMethod());
                 ILGenerator getMethodIL = getMethodBuilder.GetILGenerator();
