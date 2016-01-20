@@ -24,5 +24,11 @@
         {
             return new RuntimeExportProvider(this.composition);
         }
+
+        public ExportProvider CreateExportProvider(IExceptionRecorder exceptionRecorder)
+        {
+            Requires.NotNull(exceptionRecorder, nameof(exceptionRecorder));
+            return new RuntimeExportProvider(this.composition, exceptionRecorder);
+        }
     }
 }

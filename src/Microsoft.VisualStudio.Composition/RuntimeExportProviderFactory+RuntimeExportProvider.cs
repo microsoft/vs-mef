@@ -32,6 +32,15 @@
                 exportFactorySharingBoundaries: ImmutableHashSet<string>.Empty);
 
             private readonly RuntimeComposition composition;
+            private readonly IExceptionRecorder exceptionRecorder;
+
+            internal RuntimeExportProvider(RuntimeComposition composition, IExceptionRecorder exceptionCallback)
+                : base (Requires.NotNull(composition, nameof(composition)).Resolver)
+            {
+                Requires.NotNull(exceptionCallback, nameof(exceptionCallback));
+                this.composition = composition;
+                this.exceptionRecorder = exceptionCallback;
+            }
 
             internal RuntimeExportProvider(RuntimeComposition composition)
                 : base(Requires.NotNull(composition, nameof(composition)).Resolver)
@@ -296,26 +305,39 @@
 
                 Func<object> exportedValue = () =>
                 {
-                    bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(importingPartTracker, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
-                    if (!fullyInitializedValueIsRequired && importingPartTracker != null && !import.IsExportFactory)
+                    try
                     {
-                        importingPartTracker.ReportPartiallyInitializedImport(partLifecycle);
-                    }
+                        bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(importingPartTracker, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
+                        if (!fullyInitializedValueIsRequired && importingPartTracker != null && !import.IsExportFactory)
+                        {
+                            importingPartTracker.ReportPartiallyInitializedImport(partLifecycle);
+                        }
 
-                    if (!export.MemberRef.IsEmpty)
-                    {
-                        object part = export.Member.IsStatic()
-                            ? null
-                            : (fullyInitializedValueIsRequired
+                        if (!export.MemberRef.IsEmpty)
+                        {
+                            object part = export.Member.IsStatic()
+                                ? null
+                                : (fullyInitializedValueIsRequired
+                                    ? partLifecycle.GetValueReadyToExpose()
+                                    : partLifecycle.GetValueReadyToRetrieveExportingMembers());
+                            return GetValueFromMember(part, export.Member, import.ImportingSiteElementType, export.ExportedValueTypeRef.Resolve());
+                        }
+                        else
+                        {
+                            return fullyInitializedValueIsRequired
                                 ? partLifecycle.GetValueReadyToExpose()
-                                : partLifecycle.GetValueReadyToRetrieveExportingMembers());
-                        return GetValueFromMember(part, export.Member, import.ImportingSiteElementType, export.ExportedValueTypeRef.Resolve());
+                                : partLifecycle.GetValueReadyToRetrieveExportingMembers();
+                        }
                     }
-                    else
+                    catch (Exception e)
                     {
-                        return fullyInitializedValueIsRequired
-                            ? partLifecycle.GetValueReadyToExpose()
-                            : partLifecycle.GetValueReadyToRetrieveExportingMembers();
+                        // Let the MEF host know that an exception has been thrown while resolving an exported value
+                        if (this.exceptionRecorder != null)
+                        {
+                            this.exceptionRecorder.RecordException(e, import, export);
+                        }
+
+                        throw e;
                     }
                 };
 

@@ -42,6 +42,10 @@
       <HintPath>..\..\packages\Microsoft.VisualStudio.Validation.14.0.0-pre-g1f25339307\lib\net45\Microsoft.VisualStudio.Validation.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Moq, Version=4.2.1510.2205, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Moq.4.2.1510.2205\lib\net40\Moq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Collections.Immutable, Version=1.1.36.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Collections.Immutable.1.1.36\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
@@ -149,6 +153,7 @@
     <Compile Include="InheritedImportTests.cs" />
     <Compile Include="InvalidGraphTests.cs" />
     <Compile Include="LazyServicesTests.cs" />
+    <Compile Include="ExceptionRecorderTests.cs" />
     <Compile Include="XunitExtensions\Mef3TestCaseRunner.cs" />
     <Compile Include="XunitExtensions\MefFactDiscoverer.cs" />
     <Compile Include="MefV1ExportProviderAdapterTests.cs" />
