@@ -74,7 +74,7 @@
             Assert.ThrowsAny<Exception>(() => exportWithLazyImport.FailingConstructor.Value);
         }
 
-        [Theory, MemberData("ReportFaultTestCases")]
+        [Theory, MemberData(nameof(ReportFaultTestCases))]
         public void ReportFault_IsCalledCorrectly(ReportFaultTestCase testCase)
         {
             Assert.NotNull(testCase.ExportProviderFactory);

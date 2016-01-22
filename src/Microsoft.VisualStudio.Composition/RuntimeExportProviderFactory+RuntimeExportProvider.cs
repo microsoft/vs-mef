@@ -273,9 +273,8 @@
                 }
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
-                var faultCallbackDelegate = this.faultCallback;
 
-                return this.GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker, faultCallbackDelegate);
+                return this.GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker);
             }
 
             /// <summary>
@@ -287,7 +286,7 @@
             /// where it captures "this" in the closure for exportedValue, resulting in a memory leak
             /// which caused one of our GC unit tests to fail.
             /// </remarks>
-            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker importingPartTracker, ReportFaultCallback faultCallback)
+            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker importingPartTracker)
             {
                 Requires.NotNull(import, nameof(import));
                 Requires.NotNull(export, nameof(export));
@@ -301,6 +300,7 @@
                     exportingRuntimePart.SharingBoundary,
                     import.Metadata,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
+                var faultCallback = this.faultCallback;
 
                 Func<object> exportedValue = () =>
                 {
@@ -331,11 +331,7 @@
                     catch (Exception e)
                     {
                         // Let the MEF host know that an exception has been thrown while resolving an exported value
-                        if (faultCallback != null)
-                        {
-                            faultCallback(e, import, export);
-                        }
-
+                        faultCallback?.Invoke(e, import, export);
                         throw;
                     }
                 };
