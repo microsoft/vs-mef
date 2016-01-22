@@ -67,8 +67,8 @@
     <Compile Include="Export.cs" />
     <Compile Include="ExportTypeIdentityConstraint.cs" />
     <Compile Include="IAssemblyLoader.cs" />
-    <Compile Include="IExceptionRecorder.cs" />
     <Compile Include="IExportProviderFactory.cs" />
+    <Compile Include="IFaultReportingExportProviderFactory.cs" />
     <Compile Include="IRuntimeCompositionCacheManager.cs" />
     <Compile Include="ICompositionCacheManager.cs" />
     <Compile Include="IDescriptiveToString.cs" />

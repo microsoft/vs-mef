@@ -12,7 +12,7 @@
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal partial class RuntimeExportProviderFactory : IExportProviderFactory
+    internal partial class RuntimeExportProviderFactory : IFaultReportingExportProviderFactory
     {
         private class RuntimeExportProvider : ExportProvider
         {
@@ -32,14 +32,12 @@
                 exportFactorySharingBoundaries: ImmutableHashSet<string>.Empty);
 
             private readonly RuntimeComposition composition;
-            private readonly IExceptionRecorder exceptionRecorder;
+            private readonly ReportFaultCallback faultCallback;
 
-            internal RuntimeExportProvider(RuntimeComposition composition, IExceptionRecorder exceptionCallback)
-                : base (Requires.NotNull(composition, nameof(composition)).Resolver)
+            internal RuntimeExportProvider(RuntimeComposition composition, ReportFaultCallback faultCallback)
+                : this(composition)
             {
-                Requires.NotNull(exceptionCallback, nameof(exceptionCallback));
-                this.composition = composition;
-                this.exceptionRecorder = exceptionCallback;
+                this.faultCallback = faultCallback;
             }
 
             internal RuntimeExportProvider(RuntimeComposition composition)
@@ -275,8 +273,9 @@
                 }
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
+                var faultCallbackDelegate = this.faultCallback;
 
-                return this.GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker);
+                return this.GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker, faultCallbackDelegate);
             }
 
             /// <summary>
@@ -288,7 +287,7 @@
             /// where it captures "this" in the closure for exportedValue, resulting in a memory leak
             /// which caused one of our GC unit tests to fail.
             /// </remarks>
-            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker importingPartTracker)
+            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker importingPartTracker, ReportFaultCallback faultCallback)
             {
                 Requires.NotNull(import, nameof(import));
                 Requires.NotNull(export, nameof(export));
@@ -332,12 +331,12 @@
                     catch (Exception e)
                     {
                         // Let the MEF host know that an exception has been thrown while resolving an exported value
-                        if (this.exceptionRecorder != null)
+                        if (faultCallback != null)
                         {
-                            this.exceptionRecorder.RecordException(e, import, export);
+                            faultCallback(e, import, export);
                         }
 
-                        throw e;
+                        throw;
                     }
                 };
 

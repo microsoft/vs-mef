@@ -10,7 +10,7 @@
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal partial class RuntimeExportProviderFactory : IExportProviderFactory
+    internal partial class RuntimeExportProviderFactory : IFaultReportingExportProviderFactory
     {
         private readonly RuntimeComposition composition;
 
@@ -25,10 +25,10 @@
             return new RuntimeExportProvider(this.composition);
         }
 
-        public ExportProvider CreateExportProvider(IExceptionRecorder exceptionRecorder)
+        public ExportProvider CreateExportProvider(ReportFaultCallback faultCallback)
         {
-            Requires.NotNull(exceptionRecorder, nameof(exceptionRecorder));
-            return new RuntimeExportProvider(this.composition, exceptionRecorder);
+            Requires.NotNull(faultCallback, nameof(faultCallback));
+            return new RuntimeExportProvider(this.composition, faultCallback);
         }
     }
 }

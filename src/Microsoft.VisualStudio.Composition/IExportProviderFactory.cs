@@ -9,7 +9,5 @@
     public interface IExportProviderFactory
     {
         ExportProvider CreateExportProvider();
-
-        ExportProvider CreateExportProvider(IExceptionRecorder exceptionCallback);
     }
 }
