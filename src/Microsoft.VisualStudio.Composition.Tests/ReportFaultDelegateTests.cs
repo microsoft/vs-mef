@@ -37,7 +37,6 @@
 
             public int ExpectedCallbackCount { get; set; }
 
-            public string ExpectedStackFrameInExceptionCallstack { get; set; }
 
             public Func<ExportProvider, BaseImportingClass> GetBaseImportingClassFromExportProvider { get; set; }
 
@@ -100,7 +99,6 @@
             var exportWithLazyImport = testCase.GetBaseImportingClassFromExportProvider(exportProvider);
             Assert.NotNull(exportWithLazyImport);
 
-            // Evaluating this import should cause the ReportFault delegate to be called exactly once
             foreach (var action in testCase.ActionsToRunAgainstBaseImportingClass)
             {
                 try
@@ -110,7 +108,6 @@
                 catch (Exception e) when (!(e is XunitException))
                 {
                     Assert.IsType(testCase.ExpectedBaseExceptionType, e);
-                    Assert.Contains(testCase.ExpectedStackFrameInExceptionCallstack, e.StackTrace, StringComparison.OrdinalIgnoreCase);
                     Assert.Equal(exceptionPassedToCallback, e);
                 }
             }
@@ -149,7 +146,6 @@
                     ExpectedBaseExceptionType = typeof(CompositionFailedException),
                     ExpectedInnerException = ExportWithFailingConstructor.ThrownException,
                     ExpectedCallbackCount = 1,
-                    ExpectedStackFrameInExceptionCallstack = "Microsoft.VisualStudio.Composition.RuntimeExportProviderFactory.RuntimeExportProvider.RuntimePartLifecycleTracker.CreateValue",
                     GetBaseImportingClassFromExportProvider = new Func<ExportProvider, BaseImportingClass>((exportProvider) =>
                     {
                         return exportProvider.GetExportedValue<ExportWithLazyImportOfBadConstructorExport>();
@@ -186,7 +182,6 @@
                     ExpectedBaseExceptionType = typeof(TargetInvocationException),
                     ExpectedInnerException = ClassWithExportingMemberThatFails.ThrownException,
                     ExpectedCallbackCount = 1,
-                    ExpectedStackFrameInExceptionCallstack = "System.Reflection.PropertyInfo.GetValue",
                     GetBaseImportingClassFromExportProvider = new Func<ExportProvider, BaseImportingClass>((exportProvider) =>
                     {
                         return exportProvider.GetExportedValue<ExportWithLazyImportOfBadExportingMember>();
@@ -227,7 +222,6 @@
                     ExpectedBaseExceptionType = typeof(CompositionFailedException),
                     ExpectedInnerException = FailingExport.ThrownException,
                     ExpectedCallbackCount = 2,
-                    ExpectedStackFrameInExceptionCallstack = "RuntimePartLifecycleTracker.CreateValue",
                     GetBaseImportingClassFromExportProvider = new Func<ExportProvider, BaseImportingClass>((exportProvider) =>
                     {
                         return exportProvider.GetExportedValue<ExportWithLazyImportOfTwoBadExports>();
