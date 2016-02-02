@@ -46,6 +46,35 @@
         }
 
         [Trait("Disposal", "")]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(NonSharedPart))]
+        public void ExportFactoryForNonSharedPartCreationGarbageCollectionV1(IContainer container)
+        {
+            var partFactory = container.GetExportedValue<PartFactoryV1>();
+            Assert.NotNull(partFactory.Factory);
+            Assert.NotNull(partFactory.FactoryWithMetadata);
+            Assert.Equal("V", partFactory.FactoryWithMetadata.Metadata["N"]);
+            Assert.Equal("V", partFactory.FactoryWithTMetadata.Metadata.N);
+            using (var exportContext = partFactory.Factory.CreateExport())
+            {
+                Assert.NotNull(exportContext);
+                Assert.Equal(1, NonSharedPart.InstantiationCounter);
+
+                var value = exportContext.Value;
+                Assert.NotNull(value);
+                Assert.Equal(0, NonSharedPart.DisposalCounter);
+            }
+
+            Assert.Equal(1, NonSharedPart.DisposalCounter);
+
+            container.Dispose();
+            Assert.Equal(1, NonSharedPart.DisposalCounter);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            Assert.Equal(0, NonSharedPart.RefCount);
+        }
+
+        [Trait("Disposal", "")]
         [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(PartWithPropertyExportingNonSharedPart))]
         public void ExportFactoryForNonSharedPartCreationDisposalFromPropertyV1(IContainer container)
         {
@@ -257,6 +286,34 @@
         }
 
         [Trait("Disposal", "")]
+        [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryV2), typeof(NonSharedPart))]
+        public void ExportFactoryForNonSharedPartCreationGarbageCollectionV2(IContainer container)
+        {
+            var partFactory = container.GetExportedValue<PartFactoryV2>();
+            Assert.NotNull(partFactory.Factory);
+            Assert.NotNull(partFactory.FactoryWithMetadata);
+            Assert.Equal("V", partFactory.FactoryWithMetadata.Metadata["N"]);
+            using (var exportContext = partFactory.Factory.CreateExport())
+            {
+                Assert.NotNull(exportContext);
+                Assert.Equal(1, NonSharedPart.InstantiationCounter);
+
+                var value = exportContext.Value;
+                Assert.NotNull(value);
+                Assert.Equal(0, NonSharedPart.DisposalCounter);
+            }
+
+            Assert.Equal(1, NonSharedPart.DisposalCounter);
+
+            container.Dispose();
+            Assert.Equal(1, NonSharedPart.DisposalCounter);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            Assert.Equal(0, NonSharedPart.RefCount);
+        }
+
+        [Trait("Disposal", "")]
         [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryV2), typeof(PartWithPropertyExportingNonSharedPart))]
         public void ExportFactoryForNonSharedPartCreationDisposalFromPropertyV2(IContainer container)
         {
@@ -430,15 +487,22 @@
         {
             internal static int InstantiationCounter;
             internal static int DisposalCounter;
+            internal static int RefCount;
 
             public NonSharedPart()
             {
                 InstantiationCounter++;
+                RefCount++;
             }
 
             public void Dispose()
             {
                 DisposalCounter++;
+            }
+
+            ~NonSharedPart()
+            {
+                RefCount--;
             }
         }
 
