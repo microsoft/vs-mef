@@ -50,24 +50,9 @@
         public void ExportFactoryForNonSharedPartCreationGarbageCollectionV1(IContainer container)
         {
             var partFactory = container.GetExportedValue<PartFactoryV1>();
-            Assert.NotNull(partFactory.Factory);
-            Assert.NotNull(partFactory.FactoryWithMetadata);
-            Assert.Equal("V", partFactory.FactoryWithMetadata.Metadata["N"]);
-            Assert.Equal("V", partFactory.FactoryWithTMetadata.Metadata.N);
             using (var exportContext = partFactory.Factory.CreateExport())
             {
-                Assert.NotNull(exportContext);
-                Assert.Equal(1, NonSharedPart.InstantiationCounter);
-
-                var value = exportContext.Value;
-                Assert.NotNull(value);
-                Assert.Equal(0, NonSharedPart.DisposalCounter);
             }
-
-            Assert.Equal(1, NonSharedPart.DisposalCounter);
-
-            container.Dispose();
-            Assert.Equal(1, NonSharedPart.DisposalCounter);
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -290,23 +275,9 @@
         public void ExportFactoryForNonSharedPartCreationGarbageCollectionV2(IContainer container)
         {
             var partFactory = container.GetExportedValue<PartFactoryV2>();
-            Assert.NotNull(partFactory.Factory);
-            Assert.NotNull(partFactory.FactoryWithMetadata);
-            Assert.Equal("V", partFactory.FactoryWithMetadata.Metadata["N"]);
             using (var exportContext = partFactory.Factory.CreateExport())
             {
-                Assert.NotNull(exportContext);
-                Assert.Equal(1, NonSharedPart.InstantiationCounter);
-
-                var value = exportContext.Value;
-                Assert.NotNull(value);
-                Assert.Equal(0, NonSharedPart.DisposalCounter);
             }
-
-            Assert.Equal(1, NonSharedPart.DisposalCounter);
-
-            container.Dispose();
-            Assert.Equal(1, NonSharedPart.DisposalCounter);
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
