@@ -12,7 +12,7 @@
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal partial class RuntimeExportProviderFactory : IExportProviderFactory
+    internal partial class RuntimeExportProviderFactory : IFaultReportingExportProviderFactory
     {
         private class RuntimeExportProvider : ExportProvider
         {
@@ -32,6 +32,13 @@
                 exportFactorySharingBoundaries: ImmutableHashSet<string>.Empty);
 
             private readonly RuntimeComposition composition;
+            private readonly ReportFaultCallback faultCallback;
+
+            internal RuntimeExportProvider(RuntimeComposition composition, ReportFaultCallback faultCallback)
+                : this(composition)
+            {
+                this.faultCallback = faultCallback;
+            }
 
             internal RuntimeExportProvider(RuntimeComposition composition)
                 : base(Requires.NotNull(composition, nameof(composition)).Resolver)
@@ -293,29 +300,39 @@
                     exportingRuntimePart.SharingBoundary,
                     import.Metadata,
                     !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
+                var faultCallback = this.faultCallback;
 
                 Func<object> exportedValue = () =>
                 {
-                    bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(importingPartTracker, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
-                    if (!fullyInitializedValueIsRequired && importingPartTracker != null && !import.IsExportFactory)
+                    try
                     {
-                        importingPartTracker.ReportPartiallyInitializedImport(partLifecycle);
-                    }
+                        bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(importingPartTracker, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
+                        if (!fullyInitializedValueIsRequired && importingPartTracker != null && !import.IsExportFactory)
+                        {
+                            importingPartTracker.ReportPartiallyInitializedImport(partLifecycle);
+                        }
 
-                    if (!export.MemberRef.IsEmpty)
-                    {
-                        object part = export.Member.IsStatic()
-                            ? null
-                            : (fullyInitializedValueIsRequired
+                        if (!export.MemberRef.IsEmpty)
+                        {
+                            object part = export.Member.IsStatic()
+                                ? null
+                                : (fullyInitializedValueIsRequired
+                                    ? partLifecycle.GetValueReadyToExpose()
+                                    : partLifecycle.GetValueReadyToRetrieveExportingMembers());
+                            return GetValueFromMember(part, export.Member, import.ImportingSiteElementType, export.ExportedValueTypeRef.Resolve());
+                        }
+                        else
+                        {
+                            return fullyInitializedValueIsRequired
                                 ? partLifecycle.GetValueReadyToExpose()
-                                : partLifecycle.GetValueReadyToRetrieveExportingMembers());
-                        return GetValueFromMember(part, export.Member, import.ImportingSiteElementType, export.ExportedValueTypeRef.Resolve());
+                                : partLifecycle.GetValueReadyToRetrieveExportingMembers();
+                        }
                     }
-                    else
+                    catch (Exception e)
                     {
-                        return fullyInitializedValueIsRequired
-                            ? partLifecycle.GetValueReadyToExpose()
-                            : partLifecycle.GetValueReadyToRetrieveExportingMembers();
+                        // Let the MEF host know that an exception has been thrown while resolving an exported value
+                        faultCallback?.Invoke(e, import, export);
+                        throw;
                     }
                 };
 
