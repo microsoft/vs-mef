@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         /// <summary>
-        /// The resolver to use when deserializing.
+        /// Gets the resolver to use when deserializing.
         /// </summary>
         protected Resolver Resolver { get; }
 

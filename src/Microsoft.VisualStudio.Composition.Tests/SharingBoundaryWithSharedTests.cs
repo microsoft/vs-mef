@@ -188,7 +188,7 @@
             public AnotherPartWithImportManyOfScopedExports ImportManyPart2 { get; set; }
 
             /// <summary>
-            /// A lazy import that is meant to help with GC tests.
+            /// Gets or sets a lazy import that is meant to help with GC tests.
             /// It must never be constructed, lest the value factory be released and defeat the test.
             /// </summary>
             [Import]
