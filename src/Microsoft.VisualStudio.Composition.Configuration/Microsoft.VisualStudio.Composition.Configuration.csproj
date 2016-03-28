@@ -131,7 +131,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Microsoft.VisualStudio.Composition.Configuration.ruleset" />
-    <None Include="stylecop.json" />
     <None Include="UpdateVS\UpdateVS.cmd">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
