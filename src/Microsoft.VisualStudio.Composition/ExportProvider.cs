@@ -1019,7 +1019,7 @@
             }
 
             /// <summary>
-            /// Gets the instantiated part, if applicable and after it has been created. Otherwise <c>null</c>.
+            /// Gets or sets the instantiated part, if applicable and after it has been created. Otherwise <c>null</c>.
             /// </summary>
             public object Value
             {

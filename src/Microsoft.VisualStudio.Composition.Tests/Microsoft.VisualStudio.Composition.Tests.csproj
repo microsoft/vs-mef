@@ -22,9 +22,11 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.Tests.ruleset</CodeAnalysisRuleSet>
+    <NoWarn>CS1762</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.Tests.ruleset</CodeAnalysisRuleSet>
+    <NoWarn>CS1762</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="DiffPlex">
@@ -259,14 +261,14 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="stylecop.json" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="..\..\packages\StyleCop.Analyzers.1.0.0-beta014\analyzers\dotnet\cs\Newtonsoft.Json.dll" />
-    <Analyzer Include="..\..\packages\StyleCop.Analyzers.1.0.0-beta014\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
+    <Analyzer Include="..\..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\Newtonsoft.Json.dll" />
+    <Analyzer Include="..\..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
+    <Analyzer Include="..\..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
@@ -282,7 +284,6 @@
     <Error Condition="!Exists('..\..\packages\xunit.runner.visualstudio.2.0.0\build\net20\xunit.runner.visualstudio.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\xunit.runner.visualstudio.2.0.0\build\net20\xunit.runner.visualstudio.props'))" />
     <Error Condition="!Exists('..\..\packages\Xunit.SkippableFact.1.0.15200-beta\build\Xunit.SkippableFact.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Xunit.SkippableFact.1.0.15200-beta\build\Xunit.SkippableFact.props'))" />
     <Error Condition="!Exists('..\..\packages\Nerdbank.GitVersioning.1.1.52-rc\build\dotnet\Nerdbank.GitVersioning.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Nerdbank.GitVersioning.1.1.52-rc\build\dotnet\Nerdbank.GitVersioning.targets'))" />
-    <Error Condition="!Exists('..\..\packages\StyleCop.Analyzers.1.0.0-beta014\build\StyleCop.Analyzers.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\StyleCop.Analyzers.1.0.0-beta014\build\StyleCop.Analyzers.targets'))" />
     <Error Condition="!Exists('..\..\packages\MicroBuild.1.0.89-rc-g4ef3c2b0d0\build\dotnet\MicroBuild.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MicroBuild.1.0.89-rc-g4ef3c2b0d0\build\dotnet\MicroBuild.props'))" />
     <Error Condition="!Exists('..\..\packages\MicroBuild.1.0.89-rc-g4ef3c2b0d0\build\dotnet\MicroBuild.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MicroBuild.1.0.89-rc-g4ef3c2b0d0\build\dotnet\MicroBuild.targets'))" />
     <Error Condition="!Exists('..\..\packages\MicroBuild.VisualStudio.1.0.89-rc-g4ef3c2b0d0\build\dotnet\MicroBuild.VisualStudio.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MicroBuild.VisualStudio.1.0.89-rc-g4ef3c2b0d0\build\dotnet\MicroBuild.VisualStudio.props'))" />
@@ -291,7 +292,6 @@
     <Error Condition="!Exists('..\..\packages\MicroBuild.NonShipping.1.0.89-rc-g4ef3c2b0d0\build\dotnet\MicroBuild.NonShipping.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MicroBuild.NonShipping.1.0.89-rc-g4ef3c2b0d0\build\dotnet\MicroBuild.NonShipping.targets'))" />
   </Target>
   <Import Project="..\..\packages\Nerdbank.GitVersioning.1.1.52-rc\build\dotnet\Nerdbank.GitVersioning.targets" Condition="Exists('..\..\packages\Nerdbank.GitVersioning.1.1.52-rc\build\dotnet\Nerdbank.GitVersioning.targets')" />
-  <Import Project="..\..\packages\StyleCop.Analyzers.1.0.0-beta014\build\StyleCop.Analyzers.targets" Condition="Exists('..\..\packages\StyleCop.Analyzers.1.0.0-beta014\build\StyleCop.Analyzers.targets')" />
   <Import Project="..\..\packages\MicroBuild.1.0.89-rc-g4ef3c2b0d0\build\dotnet\MicroBuild.targets" Condition="Exists('..\..\packages\MicroBuild.1.0.89-rc-g4ef3c2b0d0\build\dotnet\MicroBuild.targets')" />
   <Import Project="..\..\packages\MicroBuild.VisualStudio.1.0.89-rc-g4ef3c2b0d0\build\dotnet\MicroBuild.VisualStudio.targets" Condition="Exists('..\..\packages\MicroBuild.VisualStudio.1.0.89-rc-g4ef3c2b0d0\build\dotnet\MicroBuild.VisualStudio.targets')" />
   <Import Project="..\..\packages\MicroBuild.NonShipping.1.0.89-rc-g4ef3c2b0d0\build\dotnet\MicroBuild.NonShipping.targets" Condition="Exists('..\..\packages\MicroBuild.NonShipping.1.0.89-rc-g4ef3c2b0d0\build\dotnet\MicroBuild.NonShipping.targets')" />
