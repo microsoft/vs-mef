@@ -246,4 +246,7 @@
   <data name="WrongLength" xml:space="preserve">
     <value>Wrong length.</value>
   </data>
+  <data name="AssemblyLoaderGenericError" xml:space="preserve">
+    <value>The MEF assembly loader has thrown an exception: {0}</value>
+  </data>
 </root>

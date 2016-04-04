@@ -3,6 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Globalization;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.CompilerServices;
@@ -272,7 +274,20 @@
 
         internal static Module GetManifest(this Resolver resolver, AssemblyName assemblyName)
         {
-            return resolver.AssemblyLoader.LoadAssembly(assemblyName).ManifestModule;
+            Assembly assembly;
+            try
+            {
+                assembly = resolver.AssemblyLoader.LoadAssembly(assemblyName);
+            }
+            catch (Exception e) when (e is BadImageFormatException || e is FileLoadException || e is FileNotFoundException)
+            {
+                // Surround the exception with a new CompositionFailedException so we bucketize everything together.
+                throw new CompositionFailedException(
+                    string.Format(CultureInfo.CurrentCulture, Strings.AssemblyLoaderGenericError, e.Message),
+                    e);
+            }
+
+            return assembly.ManifestModule;
         }
     }
 }
