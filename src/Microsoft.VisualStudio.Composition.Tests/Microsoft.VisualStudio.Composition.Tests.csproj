@@ -149,6 +149,7 @@
     <Compile Include="InheritedImportTests.cs" />
     <Compile Include="InvalidGraphTests.cs" />
     <Compile Include="LazyServicesTests.cs" />
+    <Compile Include="Reflection\ResolverExtensionsTests.cs" />
     <Compile Include="ReportFaultDelegateTests.cs" />
     <Compile Include="XunitExtensions\Mef3TestCaseRunner.cs" />
     <Compile Include="XunitExtensions\MefFactDiscoverer.cs" />
