@@ -178,6 +178,16 @@
                 }
             }
 
+#if DEBUG
+            try
+            {
+                Debug.Assert(type.IsEquivalentTo(result.Resolve()), "Type reference failed to resolve to the original type.");
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"Error occurred while attempting to resolve the type: {e}");
+            }
+#endif
             return result;
         }
 
