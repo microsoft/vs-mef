@@ -43,14 +43,14 @@
         }
 
         /// <summary>
-        /// The catalog that backs this configuration.
+        /// Gets the catalog that backs this configuration.
         /// This may be a smaller catalog than the one passed in to create this configuration
         /// if invalid parts were removed.
         /// </summary>
         public ComposableCatalog Catalog { get; private set; }
 
         /// <summary>
-        /// The composed parts, with exports satisfied, that make up this configuration.
+        /// Gets the composed parts, with exports satisfied, that make up this configuration.
         /// </summary>
         public ISet<ComposedPart> Parts { get; private set; }
 
@@ -513,7 +513,7 @@
             }
 
             /// <summary>
-            /// Gets the part definition tracked by this instance.
+            /// Gets or sets the part definition tracked by this instance.
             /// </summary>
             public ComposablePartDefinition PartDefinition { get; set; }
 
