@@ -12,6 +12,7 @@
     using Xunit.Abstractions;
     using Xunit.Extensions;
     using Xunit.Sdk;
+
     public class ReportFaultDelegateTests
     {
         public static IEnumerable<object[]> ReportFaultTestCases
@@ -36,7 +37,6 @@
             public Exception ExpectedInnerException { get; set; }
 
             public int ExpectedCallbackCount { get; set; }
-
 
             public Func<ExportProvider, BaseImportingClass> GetBaseImportingClassFromExportProvider { get; set; }
 
@@ -154,7 +154,7 @@
                     {
                         new Action<BaseImportingClass>((failingImport) =>
                         {
-                            ExportWithLazyImportOfBadConstructorExport import = (ExportWithLazyImportOfBadConstructorExport) failingImport;
+                            ExportWithLazyImportOfBadConstructorExport import = (ExportWithLazyImportOfBadConstructorExport)failingImport;
                             var unused = import.FailingConstructor.Value;
                         })
                     }
@@ -190,7 +190,7 @@
                     {
                         new Action<BaseImportingClass>((failingImport) =>
                         {
-                            ExportWithLazyImportOfBadExportingMember import = (ExportWithLazyImportOfBadExportingMember) failingImport;
+                            ExportWithLazyImportOfBadExportingMember import = (ExportWithLazyImportOfBadExportingMember)failingImport;
                             var unused = import.FailingExport.Value;
                         })
                     }
@@ -230,12 +230,12 @@
                     {
                         new Action<BaseImportingClass>((failingImport) =>
                         {
-                            ExportWithLazyImportOfTwoBadExports import = (ExportWithLazyImportOfTwoBadExports) failingImport;
+                            ExportWithLazyImportOfTwoBadExports import = (ExportWithLazyImportOfTwoBadExports)failingImport;
                             var unused = import.FailingExports.ElementAt(0).Value;
                         }),
                         new Action<BaseImportingClass>((failingImport) =>
                         {
-                            ExportWithLazyImportOfTwoBadExports import = (ExportWithLazyImportOfTwoBadExports) failingImport;
+                            ExportWithLazyImportOfTwoBadExports import = (ExportWithLazyImportOfTwoBadExports)failingImport;
                             var unused = import.FailingExports.ElementAt(1).Value;
                         })
                     }
