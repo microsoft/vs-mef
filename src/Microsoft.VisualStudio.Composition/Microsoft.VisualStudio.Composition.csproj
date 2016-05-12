@@ -13,11 +13,12 @@
     <OutputPath Condition=" '$(OutputPath)' == '' ">bin</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <NoWarn>1591</NoWarn>
+    <NoWarn>CS1591</NoWarn>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.ruleset</CodeAnalysisRuleSet>
+    <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
