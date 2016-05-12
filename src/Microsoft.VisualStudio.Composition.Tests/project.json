@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "DiffPlex": "1.2.1",
+    "MicroBuild.NonShipping": "1.0.120-rc",
+    "xunit": "2.0.0",
+    "xunit.extensibility.execution": "2.0.0",
+    "xunit.runner.visualstudio": "2.0.0",
+    "Xunit.SkippableFact": "1.0.15200-beta"
+  },
+  "frameworks": {
+    "net451": { }
+  },
+  "runtimes": {
+    "win": { }
+  }
+}
