@@ -1,12 +1,12 @@
 ﻿namespace Microsoft.VisualStudio.Composition.AppDomainTests
 {
     using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Composition;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Composition;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
 
     [Export]
     public class PartThatLazyImportsExportWithTypeMetadataViaTMetadata

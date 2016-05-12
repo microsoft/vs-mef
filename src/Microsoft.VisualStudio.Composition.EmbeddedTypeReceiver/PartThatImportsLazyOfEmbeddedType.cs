@@ -9,7 +9,6 @@
     using MefV1 = System.ComponentModel.Composition;
     using MefV2 = System.Composition;
 
-
     // When these two using directives are switched in tandem with those
     // found in the PartThatImportsLazyOfEmbeddedType.cs source file,
     // one can verify that behaviors work with non-embeddable types
@@ -36,13 +35,13 @@
     [MefV1.Export, MefV2.Export]
     public class PartThatImportsLazyOfEmbeddedTypeNonPublic
     {
-        [MefV1.Import, MefV2.Import]
-        internal Lazy<TEmbedded> RetargetProject { get; set; }
-
         public TEmbedded RetargetProjectNoLazy
         {
             get { return this.RetargetProject.Value; }
         }
+
+        [MefV1.Import, MefV2.Import]
+        internal Lazy<TEmbedded> RetargetProject { get; set; }
     }
 
     [MefV1.Export, MefV2.Export]
