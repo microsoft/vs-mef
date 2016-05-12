@@ -1,8 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\packages\MicroBuild.VisualStudio.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.VisualStudio.props" Condition="Exists('..\..\packages\MicroBuild.VisualStudio.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.VisualStudio.props')" />
-  <Import Project="..\..\packages\MicroBuild.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.props" Condition="Exists('..\..\packages\MicroBuild.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.props')" />
-  <Import Project="..\..\packages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.props" Condition="Exists('..\..\packages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.props')" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|AnyCPU">
       <Configuration>Debug</Configuration>
@@ -17,8 +14,7 @@
     <ProjectGuid>e0f18440-ca64-4fbd-bd55-e912b663ba16</ProjectGuid>
   </PropertyGroup>
   <PropertyGroup>
-    <NuProjPath Condition=" '$(NuProjPath)' == '' ">..\..\packages\NuProj.0.10.0-beta-gd6d4e1ff23\tools\</NuProjPath>
-    <VersionDependsOn>$(VersionDependsOn);GetNuPkgVersion</VersionDependsOn>
+    <NuProjPath>$(UserProfile)\.nuget\packages\NuProj\0.10.48-beta-gea4a31bbc5\tools\</NuProjPath>
   </PropertyGroup>
   <Import Project="$(NuProjPath)\NuProj.props" Condition="Exists('$(NuProjPath)\NuProj.props')" />
   <PropertyGroup Label="Configuration">
@@ -38,44 +34,13 @@
     <ReleaseNotes>http://go.microsoft.com/fwlink/?LinkID=746387</ReleaseNotes>
     <NoPackageAnalysis>true</NoPackageAnalysis>
   </PropertyGroup>
-  <ItemGroup>
-    <Content Include="Readme.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.NuGet\Microsoft.VisualStudio.Composition.NuGet.nuproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="build\Microsoft.VisualStudio.Composition.AppHost.targets" />
-  </ItemGroup>
-  <Import Project="$(NuProjPath)\NuProj.targets" />
-  <Target Name="GetNuPkgVersion" DependsOnTargets="GetBuildVersion">
-    <PropertyGroup>
-      <Version>$(NuGetPackageVersion)</Version>
-    </PropertyGroup>
-  </Target>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\MicroBuild.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MicroBuild.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.props'))" />
-    <Error Condition="!Exists('..\..\packages\MicroBuild.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MicroBuild.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.targets'))" />
-    <Error Condition="!Exists('..\..\packages\MicroBuild.VisualStudio.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.VisualStudio.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MicroBuild.VisualStudio.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.VisualStudio.props'))" />
-    <Error Condition="!Exists('..\..\packages\MicroBuild.VisualStudio.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.VisualStudio.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MicroBuild.VisualStudio.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.VisualStudio.targets'))" />
-    <Error Condition="!Exists('..\..\packages\Nerdbank.GitVersioning.1.1.52-rc\build\NerdBank.GitVersioning.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Nerdbank.GitVersioning.1.1.52-rc\build\NerdBank.GitVersioning.targets'))" />
-    <Error Condition="!Exists('..\..\packages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.props'))" />
-    <Error Condition="!Exists('..\..\packages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.targets'))" />
-  </Target>
-  <Import Project="..\..\packages\MicroBuild.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.targets" Condition="Exists('..\..\packages\MicroBuild.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.targets')" />
-  <Import Project="..\..\packages\MicroBuild.VisualStudio.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.VisualStudio.targets" Condition="Exists('..\..\packages\MicroBuild.VisualStudio.1.0.89-rc-g4ef3c2b0d0\build\MicroBuild.VisualStudio.targets')" />
-  <Import Project="..\..\packages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.targets" Condition="Exists('..\..\packages\MicroBuild.Core.0.1.1\build\MicroBuild.Core.targets')" />
-  <Import Project="..\..\packages\Nerdbank.GitVersioning.1.1.52-rc\build\NerdBank.GitVersioning.targets" Condition="Exists('..\..\packages\Nerdbank.GitVersioning.1.1.52-rc\build\NerdBank.GitVersioning.targets')" />
   <PropertyGroup>
     <BinariesSourceLocation>..\..\bin\$(Configuration)\</BinariesSourceLocation>
     <BinariesSourceLocation Condition=" !Exists('$(BinariesSourceLocation)') ">$(OutDir)\</BinariesSourceLocation>
-    <!-- Accomodate TF Build that coerces everything to a single output directory. -->
-    <BinariesSourceLocation Condition=" '$(TF_BUILD_DROPLOCATION)' != '' ">$(OutDir)</BinariesSourceLocation>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Readme.txt" />
+    <Content Include="build\Microsoft.VisualStudio.Composition.AppHost.targets" />
     <Content Include="$(BinariesSourceLocation)Microsoft.VisualStudio.Composition.Configuration.dll">
       <Link>build\Microsoft.VisualStudio.Composition.Configuration.dll</Link>
     </Content>
@@ -103,6 +68,13 @@
       <AlwaysInclude>true</AlwaysInclude>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.NuGet\Microsoft.VisualStudio.Composition.NuGet.nuproj" />
+  </ItemGroup>
+  <Import Project="$(NuProjPath)\NuProj.targets" />
   <Target Name="EnsureBuildFilesAreIncluded" AfterTargets="GetPackageFiles">
     <ItemGroup>
       <PackageFile Include="@(Content)" Condition=" '%(Content.AlwaysInclude)' == 'true' ">

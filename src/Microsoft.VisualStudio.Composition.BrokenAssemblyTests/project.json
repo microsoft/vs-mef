@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "MicroBuild.Core": "0.1.1",
+    "MicroBuild.VisualStudio": "1.0.120-rc",
+    "MicroBuild.NonShipping": "1.0.120-rc",
+    "Microsoft.Composition": "1.0.27",
+    "Nerdbank.GitVersioning": "1.4.19",
+    "ReadOnlySourceTree": "0.1.37-beta"
+  },
+  "frameworks": {
+    "net45": { }
+  },
+  "runtimes": {
+    "win": { }
+  }
+}

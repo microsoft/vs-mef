@@ -1,0 +1,30 @@
+{
+  "dependencies": {
+    "MicroBuild.Core": {
+      "version": "0.1.1",
+      "suppressParent": "none"   
+    },
+    "MicroBuild.VisualStudio": {
+      "version": "1.0.120-rc",
+      "suppressParent": "none"   
+    },
+    "Microsoft.VisualStudio.Validation": "15.0.11-pre",
+    "Nerdbank.GitVersioning": {
+      "version": "1.4.19",
+      "suppressParent": "none"   
+    },
+    "ReadOnlySourceTree": {
+      "version": "0.1.37-beta",
+      "suppressParent": "none"   
+    },
+    "StyleCop.Analyzers": "1.0.0",
+    "System.Collections.Immutable": "1.1.36",
+    "Microsoft.Tpl.Dataflow": "4.5.24"
+  },
+  "frameworks": {
+    "net45": { }
+  },
+  "runtimes": {
+    "win": { }
+  }
+}
