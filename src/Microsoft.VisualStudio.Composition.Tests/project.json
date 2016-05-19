@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "DiffPlex": "1.2.1",
-    "MicroBuild.NonShipping": "1.0.120-rc",
+    "MicroBuild.NonShipping": "1.0.122-rc",
     "xunit": "2.0.0",
     "xunit.extensibility.execution": "2.0.0",
     "xunit.runner.visualstudio": "2.0.0",
