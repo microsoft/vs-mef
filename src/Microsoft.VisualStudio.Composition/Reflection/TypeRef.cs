@@ -210,8 +210,8 @@
 
         public bool Equals(TypeRef other)
         {
-            bool result = ByValueEquality.AssemblyName.Equals(this.AssemblyName, other.AssemblyName)
-                && this.MetadataToken == other.MetadataToken
+            bool result = this.MetadataToken == other.MetadataToken
+                && ByValueEquality.AssemblyName.Equals(this.AssemblyName, other.AssemblyName)
                 && this.IsArray == other.IsArray
                 && this.GenericTypeParameterCount == other.GenericTypeParameterCount
                 && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments)
@@ -266,7 +266,8 @@
             {
                 // Using ToString() rather than AbsoluteUri here to match the CLR's AssemblyName.CodeBase convention of paths without %20 space characters.
                 string normalizedCodeBase = new Uri(Path.GetFullPath(new Uri(assemblyName.CodeBase).LocalPath)).ToString();
-                normalizedAssemblyName = new AssemblyName(assemblyName.FullName);
+                normalizedAssemblyName = assemblyName.Clone() as AssemblyName;
+                Assumes.NotNull(normalizedAssemblyName);
                 normalizedAssemblyName.CodeBase = normalizedCodeBase;
             }
 
