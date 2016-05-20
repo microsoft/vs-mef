@@ -266,8 +266,7 @@
             {
                 // Using ToString() rather than AbsoluteUri here to match the CLR's AssemblyName.CodeBase convention of paths without %20 space characters.
                 string normalizedCodeBase = new Uri(Path.GetFullPath(new Uri(assemblyName.CodeBase).LocalPath)).ToString();
-                normalizedAssemblyName = assemblyName.Clone() as AssemblyName;
-                Assumes.NotNull(normalizedAssemblyName);
+                normalizedAssemblyName = (AssemblyName)assemblyName.Clone();
                 normalizedAssemblyName.CodeBase = normalizedCodeBase;
             }
 
