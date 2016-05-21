@@ -31,6 +31,8 @@
   <ItemGroup>
     <Compile Include="ArrayRental`1.cs" />
     <Compile Include="AttributeServices.cs" />
+    <Compile Include="ByValueEquality+AssemblyNameComparer.cs" />
+    <Compile Include="ByValueEquality+BufferComparer.cs" />
     <Compile Include="ByValueEquality.cs" />
     <Compile Include="CollectionServices.cs" />
     <Compile Include="ComposableCatalog.cs" />

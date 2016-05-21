@@ -56,6 +56,12 @@
     <Compile Include="..\Microsoft.VisualStudio.Composition\Rental`1.cs">
       <Link>Rental`1.cs</Link>
     </Compile>
+    <Compile Include="..\Microsoft.VisualStudio.Composition\ByValueEquality+AssemblyNameComparer.cs">
+      <Link>ByValueEquality+AssemblyNameComparer.cs</Link>
+    </Compile>
+    <Compile Include="..\Microsoft.VisualStudio.Composition\ByValueEquality+BufferComparer.cs">
+      <Link>ByValueEquality+BufferComparer.cs</Link>
+    </Compile>
     <Compile Include="AmbiguousPartNamesTests.cs" />
     <Compile Include="AssembliesLazyLoadedDataFileCacheTests.cs" />
     <Compile Include="AssembliesLazyLoadedTests.cs" />
@@ -64,6 +70,7 @@
     <Compile Include="AttributedPartDiscoveryTests.cs" />
     <Compile Include="AttributedPartDiscoveryV1Tests.cs" />
     <Compile Include="BaseGenericTypeTests.cs" />
+    <Compile Include="ByValueEqualityTests.cs" />
     <Compile Include="CacheAndReloadTests.cs" />
     <Compile Include="CardinalityMismatchTests.cs" />
     <Compile Include="CircularDependencyTests.cs" />
