@@ -7,7 +7,6 @@
 
     public class ByValueEqualityTests
     {
-
         [Fact]
         public void AssemblyNameComparer_EqualityIsCommutative()
         {
