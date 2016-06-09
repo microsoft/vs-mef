@@ -12,24 +12,21 @@
   <OwnedComments>
     <Cmt Name="Dev" />
     <Cmt Name="LcxAdmin" />
+    <Cmt Name="Loc" />
     <Cmt Name="Note" />
-    <Cmt Name="Rccx" />
+    <Cmt Name="RCCX" />
   </OwnedComments>
   <Settings Name="@vsLocTools@\current\default.lss" Type="LSS" />
   <Item ItemId=";HTML" ItemType="0" PsrId="22" Leaf="true">
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
-    <Modified By="Alex" DateTime="2015-02-26T18:44:58Z" />
   </Item>
   <Item ItemId=";Managed Resources" ItemType="0" PsrId="211" Leaf="true">
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
-    <Modified By="Alex" DateTime="2015-02-26T18:44:58Z" />
   </Item>
   <Item ItemId=";Microsoft.VisualStudio.Composition.ConfigurationStrings.resources" ItemType="0" PsrId="211" Leaf="false">
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" Path=" \ ;Managed Resources \ 0 \ 0" />
-    <Modified By="Alex" DateTime="2015-02-26T18:44:58Z" />
     <Item ItemId=";Strings" ItemType="0" PsrId="211" Leaf="false">
       <Disp Icon="Str" Disp="true" LocTbl="false" />
-      <Modified By="Alex" DateTime="2015-02-26T18:44:58Z" />
       <Item ItemId=";AssemblyNameMustBeSetFirst" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[AssemblyName must be set first.]]></Val>
@@ -38,7 +35,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";CannotBeEmpty" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -48,7 +44,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -58,7 +53,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
       </Item>
       <Item ItemId=";CompilerErrorsOccurred" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -68,7 +62,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";CustomImportSourceNotSupported" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -78,10 +71,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
-        <Props>
-          <Str Name="LsToolFpInstr" Val="{&quot;SrcLen&quot;:44,&quot;SrcHash&quot;:2438809620,&quot;Instructions&quot;:[{&quot;ModifiedDate&quot;:&quot;\/Date(1424947428876)\/&quot;,&quot;CreateBy&quot;:&quot;a_efremova&quot;,&quot;CheckName&quot;:&quot;Moravia Spell Check Validator&quot;,&quot;CheckCustomHash&quot;:null,&quot;FunctionName&quot;:null,&quot;msgCode&quot;:0,&quot;Reason&quot;:&quot;FP&quot;,&quot;Type&quot;:1,&quot;Approved&quot;:false,&quot;ApprovedBy&quot;:null}]}" />
-        </Props>
       </Item>
       <Item ItemId=";ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -91,7 +80,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";FailedToGenerateEmbeddableTypes" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -101,7 +89,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";ImportConstraintTypeNotSupported" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -111,7 +98,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";IsExpectedOnlyOnImportsOfExportFactoryOfT" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -121,7 +107,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";IsExportFactoryExpectedTrue" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -131,7 +116,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";MemberContainsBothImportAndImportMany" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -141,7 +125,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";NoImportingConstructorFound" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -151,7 +134,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";NoMemberToSatisfy" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -161,7 +143,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
       </Item>
       <Item ItemId=";OnImportsSatisfiedTakeNoParameters" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -171,7 +152,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";OnlyOneOnImportsSatisfiedMethodIsSupported" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -181,7 +161,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";OnlySupportedOnWriteOperations" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -191,7 +170,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";ReadableStreamRequired" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
         <Str Cat="Text">
@@ -201,10 +179,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
-        <Cmts>
-          <Cmt Name="RCCX"><![CDATA['stream' is in reference to System.IO.Stream]]></Cmt>
-        </Cmts>
       </Item>
       <Item ItemId=";TypeMustDefineMemberInfoOrDerivedType" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -214,7 +188,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
       </Item>
       <Item ItemId=";UnexpectedConstraintType" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -224,7 +197,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";UnsupportedFormat" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -234,7 +206,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";WritableStreamRequired" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
         <Str Cat="Text">
@@ -244,10 +215,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
-        <Cmts>
-          <Cmt Name="RCCX"><![CDATA['stream' is in reference to System.IO.Stream]]></Cmt>
-        </Cmts>
       </Item>
       <Item ItemId=";WrongType" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -257,16 +224,13 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
     </Item>
   </Item>
   <Item ItemId=";Microsoft.VisualStudio.Composition.Tasks.ExportProviderFactory.cs" ItemType="0" PsrId="22" Leaf="false">
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" Path=" \ ;HTML \ 0 \ 0" />
-    <Modified By="Alex" DateTime="2015-02-26T18:44:58Z" />
     <Item ItemId=";HTML Comments" ItemType="0" PsrId="22" Leaf="false">
       <Disp Icon="Str" Disp="true" LocTbl="false" />
-      <Modified By="Alex" DateTime="2015-02-26T18:44:58Z" />
       <Item ItemId="0;48ee7edce4baee920cad7562ef42ed2b" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[ <auto-generated>]]></Val>
@@ -274,11 +238,7 @@
             <Val><![CDATA[ <auto-generated>]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="2" />
-        <Modified By="a_efremova" DateTime="2015-02-26T10:00:06Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;9229dfe582f68a2ae66474943bf887fe" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
@@ -287,11 +247,7 @@
             <Val><![CDATA[     Изменения в этом файле могут привести к неправильному поведению и будут утрачены при]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="6" />
-        <Modified By="a_efremova" DateTime="2015-02-26T10:00:06Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;93b47212aea013b33dda11d51fbad42f" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
@@ -300,11 +256,7 @@
             <Val><![CDATA[  ]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="5" />
-        <Modified By="a_efremova" DateTime="2015-02-26T10:00:06Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;abf5b42476990d21997198856b2ef3d4" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
@@ -313,8 +265,7 @@
             <Val><![CDATA[ ------------------------------------------------------------------------------]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="1" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;cb30ee380a65b982c3dce252f893f42f" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
@@ -323,11 +274,7 @@
             <Val><![CDATA[     повторном создании кода.]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="7" />
-        <Modified By="a_efremova" DateTime="2015-02-26T10:00:06Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;db4a14d42f2ff15ff07483c5b52bbc6a" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
@@ -336,11 +283,7 @@
             <Val><![CDATA[ </auto-generated>]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="8" />
-        <Modified By="a_efremova" DateTime="2015-02-26T10:00:06Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;e0a2863e3a8928e88924c7bf1b4ae5da" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
@@ -349,8 +292,7 @@
             <Val><![CDATA[     Microsoft.VisualStudio.Composition]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="4" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;fb70992a466ce1fedf7ac5517dfb168f" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
@@ -359,11 +301,7 @@
             <Val><![CDATA[     Этот код создан программой.]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="3" />
-        <Modified By="a_efremova" DateTime="2015-02-26T10:00:06Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="1;abf5b42476990d21997198856b2ef3d4" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
@@ -372,20 +310,17 @@
             <Val><![CDATA[ ------------------------------------------------------------------------------]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="9" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
+        <Disp Icon="Str" />
       </Item>
     </Item>
   </Item>
   <Item ItemId=";Version" ItemType="0" PsrId="211" Leaf="false">
     <Disp Icon="Ver" Disp="true" LocTbl="false" Path=" \ ;Version \ 8 \ 0" />
-    <Modified By="Alex" DateTime="2015-02-26T18:44:58Z" />
     <Item ItemId=";AssemblyVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[14.0.0.0]]></Val>
+        <Val><![CDATA[15.0.0.0]]></Val>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
     </Item>
     <Item ItemId=";FileDescription" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
@@ -395,21 +330,18 @@
         </Tgt>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
     </Item>
     <Item ItemId=";FileVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[14.0.50223.1]]></Val>
+        <Val><![CDATA[15.0.30.38135]]></Val>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
     </Item>
     <Item ItemId=";InternalName" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
         <Val><![CDATA[Microsoft.VisualStudio.Composition.Configuration.dll]]></Val>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
     </Item>
     <Item ItemId=";LegalCopyright" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
@@ -419,17 +351,12 @@
         </Tgt>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="a_efremova" DateTime="2015-02-26T10:00:06Z" />
-      <Props>
-        <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-      </Props>
     </Item>
     <Item ItemId=";OriginalFilename" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
         <Val><![CDATA[Microsoft.VisualStudio.Composition.Configuration.dll]]></Val>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
     </Item>
     <Item ItemId=";ProductName" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
@@ -439,18 +366,15 @@
         </Tgt>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
     </Item>
     <Item ItemId=";ProductVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[14.0.50223.1-pre+commit.355fe69e6e]]></Val>
+        <Val><![CDATA[15.0.30-pre+gf794774c75.RR]]></Val>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
     </Item>
   </Item>
   <Item ItemId=";Version" ItemType="8" PsrId="211" Leaf="true">
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
-    <Modified By="Alex" DateTime="2015-02-26T18:44:58Z" />
   </Item>
 </LCX>
