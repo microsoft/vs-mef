@@ -23,228 +23,200 @@
       <Item ItemId=";AssemblyNameMustBeSetFirst" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[AssemblyName must be set first.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[必須先設定 AssemblyName。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";CannotBeEmpty" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Cannot be empty.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[不得為空白。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Collection must be public with a public constructor when used with an [ImportingConstructor]5D;.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[當集合與 [ImportingConstructor]5D; 並用時，必須開放給公用建構函式使用。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";CompilerErrorsOccurred" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Compilation errors occurred.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[發生編譯錯誤。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";CustomImportSourceNotSupported" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Custom import sources are not yet supported.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[目前不支援自訂匯入來源。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Exports on members not allowed when the declaring type is generic.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[當宣告類型為泛型時，無法匯出成員。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";FailedToGenerateEmbeddableTypes" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to generate embeddable types.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[無法產生可內嵌的類型。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";ImportConstraintTypeNotSupported" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The import constraint type {0} is not supported.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[不支援匯入條件約束類型 {0}。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";IsExpectedOnlyOnImportsOfExportFactoryOfT" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} is expected only on imports of ExportFactory<T>.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[只有在匯入 ExportFactory<T> 時才需要 {0}。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";IsExportFactoryExpectedTrue" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[IsExportFactory is expected to be true.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[IsExportFactory 應為 true。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";MemberContainsBothImportAndImportMany" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Member "{0}" contains both ImportAttribute and ImportManyAttribute.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[成員 "{0}" 同時包含了 ImportAttribute 及 ImportManyAttribute。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";NoImportingConstructorFound" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No importing constructor found.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[找不到匯入建構函式。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";NoMemberToSatisfy" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No member to satisfy.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[沒有相符的成員。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";OnImportsSatisfiedTakeNoParameters" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[OnImportsSatisfied method should take no parameters.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[OnImportsSatisfied 方法不應使用任何參數。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";OnlyOneOnImportsSatisfiedMethodIsSupported" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Only one OnImportsSatisfied method is supported.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[僅支援一個 OnImportsSatisfied 方法。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";OnlySupportedOnWriteOperations" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Only supported on write operations.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[只在寫入作業中才支援。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";ReadableStreamRequired" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Readable stream required.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[需要可讀取的資料流。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Cmts>
-          <Cmt Name="RCCX"><![CDATA['stream' is in reference to System.IO.Stream]]></Cmt>
-        </Cmts>
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";TypeMustDefineMemberInfoOrDerivedType" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Type must be the one that defines memberInfo or a derived type.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[必須是定義 memberInfo 的類型或衍生類型。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";UnexpectedConstraintType" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unexpected constraint type: {0}.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[未預期的條件約束類型: {0}。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";UnsupportedFormat" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unsupported format: {0}.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[不支援的格式: {0}。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";WritableStreamRequired" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Writable stream required.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[需要可寫入的資料流。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Cmts>
-          <Cmt Name="RCCX"><![CDATA['stream' is in reference to System.IO.Stream]]></Cmt>
-        </Cmts>
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
       <Item ItemId=";WrongType" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Wrong type.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[類型錯誤。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
       </Item>
     </Item>
   </Item>
@@ -255,110 +227,83 @@
       <Item ItemId="0;48ee7edce4baee920cad7562ef42ed2b" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[ <auto-generated>]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[ <auto-generated>]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="2" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;9229dfe582f68a2ae66474943bf887fe" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[     Changes to this file may cause incorrect behavior and will be lost if]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[     變更此檔案可能會造成錯誤的行為，而且若是重新產生程式碼，]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="6" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;93b47212aea013b33dda11d51fbad42f" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[  ]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Confidence="100" Orig="Auto" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
             <Val><![CDATA[  ]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="5" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;abf5b42476990d21997198856b2ef3d4" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[ ------------------------------------------------------------------------------]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[ ------------------------------------------------------------------------------]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="1" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;cb30ee380a65b982c3dce252f893f42f" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[     the code is regenerated.]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[     這些變更將會遺失。]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="7" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;db4a14d42f2ff15ff07483c5b52bbc6a" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[ </auto-generated>]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Confidence="100" Orig="Auto" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
             <Val><![CDATA[ </auto-generated>]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="8" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;e0a2863e3a8928e88924c7bf1b4ae5da" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[     Microsoft.VisualStudio.Composition]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[     Microsoft.VisualStudio.Composition]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="4" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;fb70992a466ce1fedf7ac5517dfb168f" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[     This code was generated by a tool.]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[     此程式碼由工具產生。]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="3" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="1;abf5b42476990d21997198856b2ef3d4" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[ ------------------------------------------------------------------------------]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[ ------------------------------------------------------------------------------]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="9" />
-        <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
+        <Disp Icon="Str" />
       </Item>
     </Item>
   </Item>
@@ -366,23 +311,22 @@
     <Disp Icon="Ver" Disp="true" LocTbl="false" Path=" \ ;Version \ 8 \ 0" />
     <Item ItemId=";AssemblyVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[14.0.0.0]]></Val>
+        <Val><![CDATA[15.0.0.0]]></Val>
       </Str>
       <Disp Icon="Str" />
     </Item>
     <Item ItemId=";FileDescription" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
         <Val><![CDATA[Microsoft.VisualStudio.Composition.Configuration]]></Val>
-        <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+        <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
           <Val><![CDATA[Microsoft.VisualStudio.Composition.Configuration]]></Val>
         </Tgt>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
     </Item>
     <Item ItemId=";FileVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[14.0.50223.1]]></Val>
+        <Val><![CDATA[15.0.30.38135]]></Val>
       </Str>
       <Disp Icon="Str" />
     </Item>
@@ -395,15 +339,11 @@
     <Item ItemId=";LegalCopyright" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
         <Val><![CDATA[© Microsoft Corporation. All rights reserved.]]></Val>
-        <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+        <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
           <Val><![CDATA[© Microsoft Corporation. 著作權所有，並保留一切權利。]]></Val>
         </Tgt>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
-      <Props>
-        <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-      </Props>
     </Item>
     <Item ItemId=";OriginalFilename" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
@@ -414,16 +354,15 @@
     <Item ItemId=";ProductName" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
         <Val><![CDATA[Microsoft® Visual Studio®]]></Val>
-        <Tgt Cat="Text" Stat="Loc" Orig="New" Appr="PreApproved">
+        <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
           <Val><![CDATA[Microsoft® Visual Studio®]]></Val>
         </Tgt>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Admin" DateTime="2015-02-27T08:56:51Z" />
     </Item>
     <Item ItemId=";ProductVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[14.0.50223.1-pre+commit.355fe69e6e]]></Val>
+        <Val><![CDATA[15.0.30-pre+gf794774c75.RR]]></Val>
       </Str>
       <Disp Icon="Str" />
     </Item>

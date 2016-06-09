@@ -12,20 +12,18 @@
   <OwnedComments>
     <Cmt Name="Dev" />
     <Cmt Name="LcxAdmin" />
+    <Cmt Name="Loc" />
     <Cmt Name="Note" />
-    <Cmt Name="Rccx" />
+    <Cmt Name="RCCX" />
   </OwnedComments>
   <Settings Name="@vsLocTools@\current\default.lss" Type="LSS" />
   <Item ItemId=";Managed Resources" ItemType="0" PsrId="211" Leaf="true">
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
-    <Modified By="Alex" DateTime="2015-02-26T18:44:58Z" />
   </Item>
   <Item ItemId=";Microsoft.VisualStudio.Composition.Strings.resources" ItemType="0" PsrId="211" Leaf="false">
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" Path=" \ ;Managed Resources \ 0 \ 0" />
-    <Modified By="Alex" DateTime="2015-02-26T18:44:58Z" />
     <Item ItemId=";Strings" ItemType="0" PsrId="211" Leaf="false">
       <Disp Icon="Str" Disp="true" LocTbl="false" />
-      <Modified By="Alex" DateTime="2015-02-26T18:44:58Z" />
       <Item ItemId=";AllValuesMustBeNonNull" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[All values must be non-null.]]></Val>
@@ -34,7 +32,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";CannotDirectlyDisposeAnImport" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -44,7 +41,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";CannotImportBecauseExportingPartCannotBeInstantiated" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -54,10 +50,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
-        <Props>
-          <Str Name="LsToolFpInstr" Val="{&quot;SrcLen&quot;:133,&quot;SrcHash&quot;:1732519204,&quot;Instructions&quot;:[{&quot;ModifiedDate&quot;:&quot;\/Date(1424944974577)\/&quot;,&quot;CreateBy&quot;:&quot;a_efremova&quot;,&quot;CheckName&quot;:&quot;Trailing and leading characters validator&quot;,&quot;CheckCustomHash&quot;:null,&quot;FunctionName&quot;:null,&quot;msgCode&quot;:0,&quot;Reason&quot;:&quot;FP&quot;,&quot;Type&quot;:1,&quot;Approved&quot;:false,&quot;ApprovedBy&quot;:null},{&quot;ModifiedDate&quot;:&quot;\/Date(1424944984270)\/&quot;,&quot;CreateBy&quot;:&quot;a_efremova&quot;,&quot;CheckName&quot;:&quot;Moravia Spell Check Validator&quot;,&quot;CheckCustomHash&quot;:null,&quot;FunctionName&quot;:null,&quot;msgCode&quot;:0,&quot;Reason&quot;:&quot;FP&quot;,&quot;Type&quot;:1,&quot;Approved&quot;:false,&quot;ApprovedBy&quot;:null}]}" />
-        </Props>
       </Item>
       <Item ItemId=";CollectionTypeMustDeriveFromICollectionOfT" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -67,7 +59,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";ContainerDisposalEncounteredExceptions" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -77,7 +68,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";ErrorWhileSettingImport" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -87,10 +77,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
-        <Props>
-          <Str Name="LsToolFpInstr" Val="{&quot;SrcLen&quot;:36,&quot;SrcHash&quot;:938369137,&quot;Instructions&quot;:[{&quot;ModifiedDate&quot;:&quot;\/Date(1424947521692)\/&quot;,&quot;CreateBy&quot;:&quot;a_efremova&quot;,&quot;CheckName&quot;:&quot;Trailing and leading characters validator&quot;,&quot;CheckCustomHash&quot;:null,&quot;FunctionName&quot;:null,&quot;msgCode&quot;:0,&quot;Reason&quot;:&quot;FP&quot;,&quot;Type&quot;:1,&quot;Approved&quot;:false,&quot;ApprovedBy&quot;:null}]}" />
-        </Props>
       </Item>
       <Item ItemId=";ErrorsDuringDiscovery" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -100,7 +86,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";ErrorsInComposition" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -110,7 +95,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";ExactlyOneEntryForEveryImport" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -120,7 +104,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";ExceptionThrownByPartUnderInitialization" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -130,7 +113,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";ExpectedExactlyOneExportButFound" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -140,7 +122,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";ExpectedOneOrZeroExportsButFound" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -150,7 +131,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";ExportOfExportProviderNotAllowed" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -160,10 +140,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
-        <Props>
-          <Str Name="LsToolFpInstr" Val="{&quot;SrcLen&quot;:45,&quot;SrcHash&quot;:1756575638,&quot;Instructions&quot;:[{&quot;ModifiedDate&quot;:&quot;\/Date(1424948385627)\/&quot;,&quot;CreateBy&quot;:&quot;a_efremova&quot;,&quot;CheckName&quot;:&quot;Capitalization validator&quot;,&quot;CheckCustomHash&quot;:null,&quot;FunctionName&quot;:null,&quot;msgCode&quot;:0,&quot;Reason&quot;:&quot;FP&quot;,&quot;Type&quot;:1,&quot;Approved&quot;:false,&quot;ApprovedBy&quot;:null},{&quot;ModifiedDate&quot;:&quot;\/Date(1424948389985)\/&quot;,&quot;CreateBy&quot;:&quot;a_efremova&quot;,&quot;CheckName&quot;:&quot;Moravia Spell Check Validator&quot;,&quot;CheckCustomHash&quot;:null,&quot;FunctionName&quot;:null,&quot;msgCode&quot;:0,&quot;Reason&quot;:&quot;FP&quot;,&quot;Type&quot;:1,&quot;Approved&quot;:false,&quot;ApprovedBy&quot;:null}]}" />
-        </Props>
       </Item>
       <Item ItemId=";ExportedValueNotAssignableToImport" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -173,7 +149,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";FailStableComposition" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -183,7 +158,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";FailureWhileScanningType" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -193,7 +167,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";ImportingCtorHasUnsupportedParameterTypeForImportMany" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -203,10 +176,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
-        <Props>
-          <Str Name="LsToolFpInstr" Val="{&quot;SrcLen&quot;:119,&quot;SrcHash&quot;:2026521257,&quot;Instructions&quot;:[{&quot;ModifiedDate&quot;:&quot;\/Date(1424947530513)\/&quot;,&quot;CreateBy&quot;:&quot;a_efremova&quot;,&quot;CheckName&quot;:&quot;Trailing and leading characters validator&quot;,&quot;CheckCustomHash&quot;:null,&quot;FunctionName&quot;:null,&quot;msgCode&quot;:0,&quot;Reason&quot;:&quot;FP&quot;,&quot;Type&quot;:1,&quot;Approved&quot;:false,&quot;ApprovedBy&quot;:null}]}" />
-        </Props>
       </Item>
       <Item ItemId=";ImportsThatUseGenericTypeParametersNotSupported" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -216,7 +185,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";InstanceEmpty" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -226,7 +194,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";IsNotAssignableFromExportedMEFValue" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -236,7 +203,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";LoopBetweenNonSharedParts" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -246,7 +212,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";LoopInvolvingImportingCtorArgumentAndAllNonLazyImports" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -256,17 +221,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
-      </Item>
-      <Item ItemId=";MEFPartAlreadyInFinalState" ItemType="0" PsrId="211" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[MEF part already in final state.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New">
-            <Val><![CDATA[Часть MEF уже находится в конечном состоянии.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";MetadataTypeNotSupported" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -276,7 +230,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";NoImportingConstructor" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -286,7 +239,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";NotATypeSpec" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -296,7 +248,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";NotClosedFormOfOther" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -306,7 +257,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";NotGenericTypeDefinition" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -316,7 +266,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";NotInitialized" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -326,10 +275,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T10:00:06Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-        </Props>
       </Item>
       <Item ItemId=";PartBelongsToAnotherSharingBoundary" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -339,7 +284,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
       </Item>
       <Item ItemId=";PartIsNotInstantiable" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -349,7 +293,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";PartIsNotShared" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -359,7 +302,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";ReflectionTypeLoadExceptionWhileEnumeratingTypes" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -369,7 +311,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";ScanningMEFAssemblies" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -379,10 +320,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
-        <Props>
-          <Str Name="LsToolFpInstr" Val="{&quot;SrcLen&quot;:26,&quot;SrcHash&quot;:1835519138,&quot;Instructions&quot;:[{&quot;ModifiedDate&quot;:&quot;\/Date(1424947659746)\/&quot;,&quot;CreateBy&quot;:&quot;a_efremova&quot;,&quot;CheckName&quot;:&quot;Moravia Spell Check Validator&quot;,&quot;CheckCustomHash&quot;:null,&quot;FunctionName&quot;:null,&quot;msgCode&quot;:0,&quot;Reason&quot;:&quot;FP&quot;,&quot;Type&quot;:1,&quot;Approved&quot;:false,&quot;ApprovedBy&quot;:null}]}" />
-        </Props>
       </Item>
       <Item ItemId=";TypeOfMetadataViewUnsupported" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -392,7 +329,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
       </Item>
       <Item ItemId=";UnableToDeterminePrimarySharingBoundary" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -402,7 +338,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";UnableToEnumerateTypes" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -412,7 +347,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";UnableToInstantiateCustomImportCollectionType" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -422,7 +356,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
       </Item>
       <Item ItemId=";UnableToLoadAssembly" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -432,7 +365,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";UnexpectedMemberType" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -442,7 +374,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";UnexpectedNumberOfExportsFound" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -452,7 +383,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";UnexpectedSharedPartState" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -462,7 +392,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
       <Item ItemId=";UnresolvableMetadataToken" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -472,10 +401,6 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
-        <Props>
-          <Str Name="LsToolFpInstr" Val="{&quot;SrcLen&quot;:28,&quot;SrcHash&quot;:800418877,&quot;Instructions&quot;:[{&quot;ModifiedDate&quot;:&quot;\/Date(1424948357417)\/&quot;,&quot;CreateBy&quot;:&quot;a_efremova&quot;,&quot;CheckName&quot;:&quot;Moravia Spell Check Validator&quot;,&quot;CheckCustomHash&quot;:null,&quot;FunctionName&quot;:null,&quot;msgCode&quot;:0,&quot;Reason&quot;:&quot;FP&quot;,&quot;Type&quot;:1,&quot;Approved&quot;:false,&quot;ApprovedBy&quot;:null}]}" />
-        </Props>
       </Item>
       <Item ItemId=";WrongLength" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
@@ -485,19 +410,16 @@
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
       </Item>
     </Item>
   </Item>
   <Item ItemId=";Version" ItemType="0" PsrId="211" Leaf="false">
     <Disp Icon="Ver" Disp="true" LocTbl="false" Path=" \ ;Version \ 8 \ 0" />
-    <Modified By="Alex" DateTime="2015-02-26T18:44:58Z" />
     <Item ItemId=";AssemblyVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[14.0.0.0]]></Val>
+        <Val><![CDATA[15.0.0.0]]></Val>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
     </Item>
     <Item ItemId=";FileDescription" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
@@ -507,21 +429,18 @@
         </Tgt>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
     </Item>
     <Item ItemId=";FileVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[14.0.50223.1]]></Val>
+        <Val><![CDATA[15.0.30.38135]]></Val>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
     </Item>
     <Item ItemId=";InternalName" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
         <Val><![CDATA[Microsoft.VisualStudio.Composition.dll]]></Val>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
     </Item>
     <Item ItemId=";LegalCopyright" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
@@ -531,17 +450,12 @@
         </Tgt>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="a_efremova" DateTime="2015-02-26T10:00:06Z" />
-      <Props>
-        <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-      </Props>
     </Item>
     <Item ItemId=";OriginalFilename" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
         <Val><![CDATA[Microsoft.VisualStudio.Composition.dll]]></Val>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
     </Item>
     <Item ItemId=";ProductName" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
@@ -551,18 +465,15 @@
         </Tgt>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="a_efremova" DateTime="2015-02-26T11:00:18Z" />
     </Item>
     <Item ItemId=";ProductVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[14.0.50223.1-pre+commit.355fe69e6e]]></Val>
+        <Val><![CDATA[15.0.30-pre+gf794774c75.RR]]></Val>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Alex" DateTime="2015-02-26T21:06:17Z" />
     </Item>
   </Item>
   <Item ItemId=";Version" ItemType="8" PsrId="211" Leaf="true">
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
-    <Modified By="Alex" DateTime="2015-02-26T18:44:58Z" />
   </Item>
 </LCX>

@@ -12,530 +12,369 @@
   <OwnedComments>
     <Cmt Name="Dev" />
     <Cmt Name="LcxAdmin" />
+    <Cmt Name="Loc" />
     <Cmt Name="Note" />
-    <Cmt Name="Rccx" />
+    <Cmt Name="RCCX" />
   </OwnedComments>
   <Settings Name="@vsLocTools@\current\default.lss" Type="LSS" />
   <Item ItemId=";HTML" ItemType="0" PsrId="22" Leaf="true">
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
-    <Modified By="Ewa" DateTime="2015-02-26T21:24:43Z" />
   </Item>
   <Item ItemId=";Managed Resources" ItemType="0" PsrId="211" Leaf="true">
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
-    <Modified By="Ewa" DateTime="2015-02-26T21:24:43Z" />
   </Item>
   <Item ItemId=";Microsoft.VisualStudio.Composition.ConfigurationStrings.resources" ItemType="0" PsrId="211" Leaf="false">
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" Path=" \ ;Managed Resources \ 0 \ 0" />
-    <Modified By="Ewa" DateTime="2015-02-26T21:24:43Z" />
     <Item ItemId=";Strings" ItemType="0" PsrId="211" Leaf="false">
       <Disp Icon="Str" Disp="true" LocTbl="false" />
-      <Modified By="Ewa" DateTime="2015-02-26T21:24:43Z" />
       <Item ItemId=";AssemblyNameMustBeSetFirst" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[AssemblyName must be set first.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Najpierw należy ustawić nazwę AssemblyName.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";CannotBeEmpty" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Cannot be empty.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Pusta wartość jest niedozwolona.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Collection must be public with a public constructor when used with an [ImportingConstructor]5D;.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Kolekcja używana z konstruktorem importującym [ImportingConstructor]5D; musi być publiczna z konstruktorem publicznym.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";CompilerErrorsOccurred" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Compilation errors occurred.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Wystąpiły błędy kompilacji.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";CustomImportSourceNotSupported" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Custom import sources are not yet supported.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Niestandardowe źródła importu nie są jeszcze obsługiwane.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Exports on members not allowed when the declaring type is generic.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Eksporty elementów członkowskich są niedozwolone, jeśli wybrano ogólny typ deklarujący.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";FailedToGenerateEmbeddableTypes" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to generate embeddable types.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Nie można wygenerować typów możliwych do osadzenia.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";ImportConstraintTypeNotSupported" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The import constraint type {0} is not supported.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Typ ograniczenia importu {0} nie jest obsługiwany.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";IsExpectedOnlyOnImportsOfExportFactoryOfT" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[{0} is expected only on imports of ExportFactory<T>.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Element {0} jest oczekiwany tylko w przypadku importów elementu ExportFactory<T>.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";IsExportFactoryExpectedTrue" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[IsExportFactory is expected to be true.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Element IsExportFactory powinien mieć następującą wartość true.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";MemberContainsBothImportAndImportMany" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Member "{0}" contains both ImportAttribute and ImportManyAttribute.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Element członkowski „{0}” zawiera oba atrybuty: ImportAttribute i ImportManyAttribute.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";NoImportingConstructorFound" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No importing constructor found.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Nie znaleziono konstruktora importującego.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";NoMemberToSatisfy" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[No member to satisfy.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Brak elementów członkowskich, których warunki należy spełnić.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";OnImportsSatisfiedTakeNoParameters" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[OnImportsSatisfied method should take no parameters.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Metoda OnImportsSatisfied nie powinna przyjmować parametrów.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";OnlyOneOnImportsSatisfiedMethodIsSupported" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Only one OnImportsSatisfied method is supported.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Obsługiwana jest tylko jedna metoda OnImportsSatisfied.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";OnlySupportedOnWriteOperations" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Only supported on write operations.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Obsługiwane tylko w przypadku operacji zapisu.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";ReadableStreamRequired" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Readable stream required.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Wymagany jest strumień możliwy do odczytania.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Cmts>
-          <Cmt Name="RCCX"><![CDATA['stream' is in reference to System.IO.Stream]]></Cmt>
-        </Cmts>
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";TypeMustDefineMemberInfoOrDerivedType" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Type must be the one that defines memberInfo or a derived type.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Typ musi definiować informacje memberInfo lub typ pochodny.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";UnexpectedConstraintType" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unexpected constraint type: {0}.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Nieoczekiwany typ ograniczenia: {0}.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";UnsupportedFormat" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Unsupported format: {0}.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Nieobsługiwany format: {0}.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";WritableStreamRequired" ItemType="0" PsrId="211" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Writable stream required.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Wymagany jest strumień możliwy do zapisania.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Cmts>
-          <Cmt Name="RCCX"><![CDATA['stream' is in reference to System.IO.Stream]]></Cmt>
-        </Cmts>
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
       <Item ItemId=";WrongType" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Wrong type.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[Błędny typ.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
       </Item>
     </Item>
   </Item>
   <Item ItemId=";Microsoft.VisualStudio.Composition.Tasks.ExportProviderFactory.cs" ItemType="0" PsrId="22" Leaf="false">
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" Path=" \ ;HTML \ 0 \ 0" />
-    <Modified By="Ewa" DateTime="2015-02-26T21:24:43Z" />
     <Item ItemId=";HTML Comments" ItemType="0" PsrId="22" Leaf="false">
       <Disp Icon="Str" Disp="true" LocTbl="false" />
-      <Modified By="Ewa" DateTime="2015-02-26T21:24:43Z" />
       <Item ItemId="0;48ee7edce4baee920cad7562ef42ed2b" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[ <auto-generated>]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="New" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="New">
             <Val><![CDATA[ <auto-generated>]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="2" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;9229dfe582f68a2ae66474943bf887fe" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[     Changes to this file may cause incorrect behavior and will be lost if]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="Auto" Confidence="100" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
             <Val><![CDATA[     Modyfikacje tego pliku mogą spowodować niewłaściwe zachowanie i zostaną utracone]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="6" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;93b47212aea013b33dda11d51fbad42f" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[  ]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="Auto" Confidence="100" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
             <Val><![CDATA[  ]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="5" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;abf5b42476990d21997198856b2ef3d4" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[ ------------------------------------------------------------------------------]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[ ------------------------------------------------------------------------------]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="1" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;cb30ee380a65b982c3dce252f893f42f" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[     the code is regenerated.]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="Auto" Confidence="100" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
             <Val><![CDATA[     w przypadku ponownego wygenerowania kodu.]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="7" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;db4a14d42f2ff15ff07483c5b52bbc6a" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[ </auto-generated>]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="Auto" Confidence="100" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
             <Val><![CDATA[ </auto-generated>]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="8" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;e0a2863e3a8928e88924c7bf1b4ae5da" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[     Microsoft.VisualStudio.Composition]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[     Microsoft.VisualStudio.Composition]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="4" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="0;fb70992a466ce1fedf7ac5517dfb168f" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[     This code was generated by a tool.]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="Auto" Confidence="100" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
             <Val><![CDATA[     Ten kod został wygenerowany przez narzędzie.]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="3" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:25Z" />
-        <Props>
-          <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
       <Item ItemId="1;abf5b42476990d21997198856b2ef3d4" ItemType="24;Comment" PsrId="22" Leaf="true">
         <Str Cat="Comment">
           <Val><![CDATA[ ------------------------------------------------------------------------------]]></Val>
-          <Tgt Cat="Comment" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+          <Tgt Cat="Comment" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
             <Val><![CDATA[ ------------------------------------------------------------------------------]]></Val>
           </Tgt>
         </Str>
-        <Disp Icon="Str" Order="9" />
-        <Modified By="dawidch" DateTime="2015-02-27T11:14:26Z" />
-        <Props>
-          <Str Name="Custom4" Val="LS79" />
-        </Props>
+        <Disp Icon="Str" />
       </Item>
     </Item>
   </Item>
   <Item ItemId=";Version" ItemType="0" PsrId="211" Leaf="false">
     <Disp Icon="Ver" Disp="true" LocTbl="false" Path=" \ ;Version \ 8 \ 0" />
-    <Modified By="Ewa" DateTime="2015-02-26T21:24:43Z" />
     <Item ItemId=";AssemblyVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[14.0.0.0]]></Val>
+        <Val><![CDATA[15.0.0.0]]></Val>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Ewa" DateTime="2015-02-26T21:24:43Z" />
     </Item>
     <Item ItemId=";FileDescription" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
         <Val><![CDATA[Microsoft.VisualStudio.Composition.Configuration]]></Val>
-        <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+        <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
           <Val><![CDATA[Microsoft.VisualStudio.Composition.Configuration]]></Val>
         </Tgt>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="dawidch" DateTime="2015-02-27T11:14:26Z" />
-      <Props>
-        <Str Name="Custom4" Val="LS79" />
-      </Props>
     </Item>
     <Item ItemId=";FileVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[14.0.50223.1]]></Val>
+        <Val><![CDATA[15.0.30.38135]]></Val>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Ewa" DateTime="2015-02-26T21:24:43Z" />
     </Item>
     <Item ItemId=";InternalName" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
         <Val><![CDATA[Microsoft.VisualStudio.Composition.Configuration.dll]]></Val>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Ewa" DateTime="2015-02-26T21:24:43Z" />
     </Item>
     <Item ItemId=";LegalCopyright" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
         <Val><![CDATA[© Microsoft Corporation. All rights reserved.]]></Val>
-        <Tgt Cat="Text" Stat="Loc" Orig="Auto" Confidence="100" Appr="PreApproved">
+        <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="Auto" Confidence="100">
           <Val><![CDATA[© Microsoft Corporation. Wszelkie prawa zastrzeżone.]]></Val>
         </Tgt>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="dawidch" DateTime="2015-02-27T11:14:26Z" />
-      <Props>
-        <Str Name="Custom2" Val="Ls_AT_Exact_Exact" />
-        <Str Name="Custom4" Val="LS79" />
-      </Props>
     </Item>
     <Item ItemId=";OriginalFilename" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
         <Val><![CDATA[Microsoft.VisualStudio.Composition.Configuration.dll]]></Val>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Ewa" DateTime="2015-02-26T21:24:43Z" />
     </Item>
     <Item ItemId=";ProductName" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
         <Val><![CDATA[Microsoft® Visual Studio®]]></Val>
-        <Tgt Cat="Text" Stat="Loc" Orig="New" AutoAppr="N/A" Appr="PreApproved">
+        <Tgt Cat="Text" Stat="Loc" Appr="PreApproved" Orig="New" AutoAppr="N/A">
           <Val><![CDATA[Microsoft® Visual Studio®]]></Val>
         </Tgt>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="dawidch" DateTime="2015-02-27T11:14:26Z" />
-      <Props>
-        <Str Name="Custom4" Val="LS79" />
-      </Props>
     </Item>
     <Item ItemId=";ProductVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[14.0.50223.1-pre+commit.355fe69e6e]]></Val>
+        <Val><![CDATA[15.0.30-pre+gf794774c75.RR]]></Val>
       </Str>
       <Disp Icon="Str" />
-      <Modified By="Ewa" DateTime="2015-02-26T21:24:43Z" />
     </Item>
   </Item>
   <Item ItemId=";Version" ItemType="8" PsrId="211" Leaf="true">
     <Disp Icon="Expand" Expand="true" Disp="true" LocTbl="false" />
-    <Modified By="Ewa" DateTime="2015-02-26T21:24:43Z" />
   </Item>
 </LCX>
