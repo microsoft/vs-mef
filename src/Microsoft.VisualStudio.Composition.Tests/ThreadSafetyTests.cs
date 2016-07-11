@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Composition;
     using System.Linq;
     using System.Text;
@@ -294,7 +295,7 @@
         /// <summary>
         /// Verify that visibility is not granted to types till their OnImportsSatisfied methods are finished.
         /// </summary>
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithBlockableOnImportsSatisfied))]
         public void OnImportsSatisfiedMustCompleteBeforePartIsVisible(IContainer container)
         {
             // Artificially control when OnImportsSatisfied is finished and try to prove that other parts are unveiled before they're done.
@@ -554,9 +555,123 @@
 
         #endregion
 
+        #region ReportPartiallyInitializedImport (bug 236476)
+
+        [Trait("Bug", "236476")]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(CircularDependencyPart), typeof(ImportingLazyAndBlockingTaskPart), Skip = "Bug 236476")]
+        public void ImportingConstructorAndBlockingTaskThatEvaluatesLazyImportHang(IContainer container)
+        {
+            var part = container.GetExportedValue<object>("rootObject");
+        }
+
+        [Trait("Bug", "236476")]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(CircularDependencyPart), typeof(SyncPrimitives), typeof(ImportingLazyAndSpinOffTaskPart), Skip = "Bug 236476")]
+        public void Bug236476(IContainer container)
+        {
+            var sync = container.GetExportedValue<SyncPrimitives>();
+            var part = container.GetExportedValue<object>("rootObject");
+            sync.OriginalExportRequestCompleted.Set();
+            sync.ThrowOnFailure();
+        }
+
+        [Export("rootObject", typeof(object)), Shared]
+        [MefV1.Export("rootObject", typeof(object))]
+        public class ImportingLazyAndBlockingTaskPart
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public ImportingLazyAndBlockingTaskPart(Lazy<CircularDependencyPart> export)
+            {
+                Task spinOff = Task.Run(delegate
+                {
+                    var dummy = export.Value;
+                });
+
+                // We expect this to hang until we give up.
+                Assert.False(spinOff.Wait(TestUtilities.ExpectedTimeout));
+            }
+        }
+
+        [Export("rootObject", typeof(object)), Shared]
+        [MefV1.Export("rootObject", typeof(object))]
+        public class ImportingLazyAndSpinOffTaskPart
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public ImportingLazyAndSpinOffTaskPart(SyncPrimitives sync, Lazy<CircularDependencyPart> export)
+            {
+                Task spinOff = Task.Run(delegate
+                {
+                    // Ideally we'd Set this event in the middle of evaluating the lazy import
+                    // in order to exploit a discovered thread-safety bug,
+                    // but this is the best we can do.
+                    sync.UnblockPartConstructor.Set();
+                    var dummy = export.Value;
+                    Assert.Same(this, dummy.ImportingProperty);
+                });
+                sync.Track(spinOff);
+
+                sync.UnblockPartConstructor.Wait();
+            }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class CircularDependencyPart
+        {
+            [Import("rootObject"), MefV1.Import("rootObject")]
+            public object ImportingProperty { get; set; }
+        }
+
+        #endregion
+
         [Export, Shared]
         [MefV1.Export]
         public class RandomExport { }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class SyncPrimitives
+        {
+            private ImmutableList<Exception> failures = ImmutableList<Exception>.Empty;
+
+            private ImmutableList<Task> trackedTasks = ImmutableList<Task>.Empty;
+
+            public ManualResetEventSlim OriginalExportRequestCompleted { get; } = new ManualResetEventSlim();
+
+            public ManualResetEventSlim UnblockPartConstructor { get; } = new ManualResetEventSlim();
+
+            public ImmutableList<Exception> Failures => this.failures;
+
+            public void Track(Task task)
+            {
+                Requires.NotNull(task, nameof(task));
+                ImmutableInterlocked.Update(ref this.trackedTasks, t => t.Add(task));
+                task.ContinueWith(
+                    t => this.Report(t.Exception),
+                    CancellationToken.None,
+                    TaskContinuationOptions.OnlyOnFaulted,
+                    TaskScheduler.Default);
+            }
+
+            public void Report(Exception failure)
+            {
+                Requires.NotNull(failure, nameof(failure));
+                ImmutableInterlocked.Update(ref this.failures, f => f.Add(failure));
+            }
+
+            public void ThrowOnFailure()
+            {
+                try
+                {
+                    Task.WaitAll(this.trackedTasks.ToArray());
+                }
+                catch (AggregateException) { }
+
+                if (!this.failures.IsEmpty)
+                {
+                    throw new AggregateException(this.failures);
+                }
+            }
+        }
 
         #region ParentAndChildExportProviderRaceForSharedPart
 
