@@ -431,21 +431,8 @@
         /// </returns>
         protected static bool IsFullyInitializedExportRequiredWhenSettingImport(PartLifecycleTracker importingPartTracker, bool isLazy, bool isImportingConstructorArgument)
         {
-            // We should fully prepare an exported value if it is a lazy property or a non-lazy importing constructor argument.
-            // Non-lazy properties can be initialized after being set, as can lazy importing constructor arguments (go figure!).
-            if (isLazy == !isImportingConstructorArgument)
-            {
-                return true;
-            }
-
-            if (isLazy && isImportingConstructorArgument && importingPartTracker != null && importingPartTracker.State >= PartLifecycleState.Created)
-            {
-                // This lazy was an importing constructor argument and that constructor has already finished executing.
-                // So we actually *do* need to fully initialize, even though within the importing constructor we would not have.
-                return true;
-            }
-
-            return false;
+            // Only non-lazy importing properties can receive exports that are only partially initialized.
+            return isLazy || isImportingConstructorArgument;
         }
 
         /// <summary>

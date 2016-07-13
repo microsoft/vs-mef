@@ -355,13 +355,12 @@
         }
 
         // V1 throws InvalidOperationException inside the ctor for this test, which if caught, turns into an InternalErrorException for this test.
-        [MefFact(CompositionEngines.V3EmulatingV1, typeof(RandomExport), typeof(PartWithImportingConstructorOfPartThatInitializesLater), typeof(PartThatInitializesLater))]
+        [MefFact(CompositionEngines.V1Compat, typeof(RandomExport), typeof(PartWithImportingConstructorOfPartThatInitializesLater), typeof(PartThatInitializesLater))]
         public void ImportingConstructorWithLazyImportPartEventuallyInitializesAfterEvaluatingInCtor(IContainer container)
         {
             PartWithImportingConstructorOfPartThatInitializesLater.EvaluateLazyInCtor = true;
-            var root = container.GetExportedValue<PartWithImportingConstructorOfPartThatInitializesLater>();
-            Assert.Same(root, root.LaterPart.Value.ImportingConstructorPart);
-            Assert.NotNull(root.LaterPart.Value.RandomExport);
+            Assert.Throws<CompositionFailedException>(() =>
+                container.GetExportedValue<PartWithImportingConstructorOfPartThatInitializesLater>());
         }
 
         [Export, Shared]
@@ -554,19 +553,19 @@
         }
 
         /// <summary>
-        /// Verifies that MEF can handle querying for parts with importing constructors with Lazy
-        /// imports of circular imports.
+        /// Verifies that MEF throws appropriately when querying for parts with importing
+        /// constructors with Lazy imports of circular imports.
         /// </summary>
         /// <remarks>
-        /// V1 throws an exception because it doesn't like B evaluating its Lazy.
+        /// V1 throws an exception because Lazy imports to ImportingConstructors
+        ///    must return fully initialized values and a circular dependency makes that impossible.
         /// V2 throws an InternalErrorException for this test.
         ///
         /// Although V1 and V2 fail this one, it's because neither can handle
         /// first querying for part with the importing constructor.
         /// But they *can* handle first querying for the part with the importing property.
-        /// V3 doesn't share this asymmetric failure, so we want to verify that it does it correctly.
         /// </remarks>
-        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]
         public void QueryImportingConstructorPartsEvaluateAfterTwo(IContainer container)
         {
             // In testing V3 we specifically obtain A first so that Lazy<C>
@@ -574,10 +573,8 @@
             var a = container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis1>();
 
             // Now get B, which should get its own Lazy<C> that does NOT require a fully initialized value.
-            var b = container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis2>();
-
-            // Now that we have obtained B and B partially evaluated C and returned, the C should be fully initialized.
-            Assert.Same(b, b.C.B);
+            Assert.Throws<CompositionFailedException>(() =>
+                container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis2>());
         }
 
         [Export, Shared]

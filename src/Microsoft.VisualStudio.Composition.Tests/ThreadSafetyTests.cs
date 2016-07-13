@@ -558,14 +558,14 @@
         #region ReportPartiallyInitializedImport (bug 236476)
 
         [Trait("Bug", "236476")]
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(CircularDependencyPart), typeof(ImportingLazyAndBlockingTaskPart), Skip = "Bug 236476")]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(CircularDependencyPart), typeof(ImportingLazyAndBlockingTaskPart))]
         public void ImportingConstructorAndBlockingTaskThatEvaluatesLazyImportHang(IContainer container)
         {
             var part = container.GetExportedValue<object>("rootObject");
         }
 
         [Trait("Bug", "236476")]
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(CircularDependencyPart), typeof(SyncPrimitives), typeof(ImportingLazyAndSpinOffTaskPart), Skip = "Bug 236476")]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(CircularDependencyPart), typeof(SyncPrimitives), typeof(ImportingLazyAndSpinOffTaskPart))]
         public void Bug236476(IContainer container)
         {
             var sync = container.GetExportedValue<SyncPrimitives>();

@@ -441,12 +441,11 @@
 
         // V1 cannot handle the Lazy being evaluated in the constructor IFF we query the container for the importing property part.
         // V2 in a really super-freaky way nests a second shared part ctor invocation, which we do NOT want to emulate.
-        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(PartWithImportingPropertyOfLazyImportingConstructor), typeof(PartWithLazyImportingConstructorOfPartWithImportingProperty))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(PartWithImportingPropertyOfLazyImportingConstructor), typeof(PartWithLazyImportingConstructorOfPartWithImportingProperty))]
         public void LoopWithLazyImportingConstructorAndImportingPropertyQueryForPartWithImportingProperty(IContainer container)
         {
-            var partWithImportingConstructor = container.GetExportedValue<PartWithLazyImportingConstructorOfPartWithImportingProperty>();
-            Assert.NotNull(partWithImportingConstructor.PartWithImportingProperty);
-            Assert.Same(partWithImportingConstructor, partWithImportingConstructor.PartWithImportingProperty.Value.PartWithImportingConstructor);
+            Assert.Throws<CompositionFailedException>(() =>
+                container.GetExportedValue<PartWithLazyImportingConstructorOfPartWithImportingProperty>());
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithImportingPropertyOfLazyImportingConstructor), typeof(PartWithLazyImportingConstructorOfPartWithImportingProperty))]
