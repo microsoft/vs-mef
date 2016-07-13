@@ -246,4 +246,7 @@
   <data name="WrongLength" xml:space="preserve">
     <value>Wrong length.</value>
   </data>
+  <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
+    <value>Unable to construct MEF part "{0}" due to an unresolvable recursive construction request.</value>
+  </data>
 </root>

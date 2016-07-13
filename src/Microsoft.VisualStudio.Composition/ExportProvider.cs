@@ -1252,6 +1252,8 @@
                         this.Create();
                         break;
                     case PartLifecycleState.Created:
+                        Verify.Operation(this.threadExecutingStep != Thread.CurrentThread, Strings.RecursiveRequestForPartConstruction, this.PartType);
+
                         // Another thread put this in the Creating state. Just wait for that thread to finish.
                         this.WaitForState(PartLifecycleState.Created);
                         break;
