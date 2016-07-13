@@ -540,7 +540,7 @@
         public void QueryImportingConstructorPartsEvaluateAfterOne(IContainer container)
         {
             // In testing V3 we specifically obtain A first so that Lazy<C>
-            // goes throw a transition of "now I should evaluate to a fully initialized C".
+            // goes through a transition of "now I should evaluate to a fully initialized C".
             var a = container.GetExportedValue<PartWithImportingConstructorOfLazyPartImportingThis1>();
             Assert.Same(a, a.C.Value.A);
 
@@ -561,8 +561,9 @@
         /// V1 throws an exception because it doesn't like B evaluating its Lazy.
         /// V2 throws an InternalErrorException for this test.
         ///
-        /// Although V1 and V2 fail this one, it's because neither can handle querying for the importing constructor
-        /// part. But they *can* handle querying for the importing property part first.
+        /// Although V1 and V2 fail this one, it's because neither can handle
+        /// first querying for part with the importing constructor.
+        /// But they *can* handle first querying for the part with the importing property.
         /// V3 doesn't share this asymmetric failure, so we want to verify that it does it correctly.
         /// </remarks>
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(PartWithImportingConstructorOfLazyPartImportingThis1), typeof(PartWithImportingConstructorOfLazyPartImportingThis2), typeof(PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis))]

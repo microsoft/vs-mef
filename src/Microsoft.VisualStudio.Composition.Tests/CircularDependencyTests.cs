@@ -440,7 +440,7 @@
         #region Loop involving one importing constructor with a lazy import, and a part with a non-lazy import
 
         // V1 cannot handle the Lazy being evaluated in the constructor IFF we query the container for the importing property part.
-        // V2 is a really super-freaky way nests a second shared part ctor invocation, which we do NOT want to emulate.
+        // V2 in a really super-freaky way nests a second shared part ctor invocation, which we do NOT want to emulate.
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(PartWithImportingPropertyOfLazyImportingConstructor), typeof(PartWithLazyImportingConstructorOfPartWithImportingProperty))]
         public void LoopWithLazyImportingConstructorAndImportingPropertyQueryForPartWithImportingProperty(IContainer container)
         {
