@@ -621,5 +621,28 @@
         }
 
         #endregion
+
+        #region ImportingConstructor lazy import initialization, other part does NOT have a circular dependency
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartWithImportingConstructorThatImportsRandomExport), typeof(RandomExport))]
+        public void ImportingConstructorCanEvaluateLazyImportWhereNoCircularDependencyExists(IContainer container)
+        {
+            var part = container.GetExportedValue<PartWithImportingConstructorThatImportsRandomExport>();
+            Assert.NotNull(part);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportingConstructorThatImportsRandomExport
+        {
+            [ImportingConstructor]
+            [MefV1.ImportingConstructor]
+            public PartWithImportingConstructorThatImportsRandomExport(Lazy<RandomExport> export)
+            {
+                Assert.NotNull(export.Value);
+            }
+        }
+
+        #endregion
     }
 }
