@@ -443,7 +443,7 @@
                 public PartLifecycleTracker ExportingPart { get; private set; }
             }
 
-            [DebuggerDisplay("{partDefinition.Type.ResolvedType.FullName,nq} ({State})")]
+            [DebuggerDisplay("{partDefinition.TypeRef.ResolvedType.FullName,nq} ({State})")]
             private class RuntimePartLifecycleTracker : PartLifecycleTracker
             {
                 private readonly RuntimeComposition.RuntimePart partDefinition;

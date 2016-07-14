@@ -336,6 +336,7 @@
             }
         }
 
+        [DebuggerDisplay("{ImportingSiteElementType}")]
         public class RuntimeImport : IEquatable<RuntimeImport>
         {
             private bool? isLazy;
