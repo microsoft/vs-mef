@@ -303,6 +303,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";RecursiveRequestForPartConstruction" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Unable to construct MEF part "{0}" due to an unresolvable recursive construction request.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nie można utworzyć części MEF „{0}” z powodu rekursywnego żądania konstrukcji, którego nie można rozpoznać.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ReflectionTypeLoadExceptionWhileEnumeratingTypes" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[ReflectionTypeLoadException while enumerating types in assembly "{0}". Results will be incomplete.]]></Val>
@@ -432,7 +441,7 @@
     </Item>
     <Item ItemId=";FileVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[15.0.30.38135]]></Val>
+        <Val><![CDATA[15.0.35.11479]]></Val>
       </Str>
       <Disp Icon="Str" />
     </Item>
@@ -468,7 +477,7 @@
     </Item>
     <Item ItemId=";ProductVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[15.0.30-pre+gf794774c75.RR]]></Val>
+        <Val><![CDATA[15.0.35-pre+gd72c955a20.RR]]></Val>
       </Str>
       <Disp Icon="Str" />
     </Item>
