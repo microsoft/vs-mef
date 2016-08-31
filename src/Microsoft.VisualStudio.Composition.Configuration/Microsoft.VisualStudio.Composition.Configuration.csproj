@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.VisualStudio.Composition</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.Composition.Configuration</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AssemblyAttributeClsCompliant>false</AssemblyAttributeClsCompliant>
     <OutputPath Condition=" '$(OutputPath)' == '' ">bin</OutputPath>
