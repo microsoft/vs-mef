@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/01/nuspec.xsd">
+  <metadata>
+    <id>placeholder</id>
+    <version>$version$</version>
+    <authors>aarnott</authors>
+    <owners></owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>to be overwritten by project file</description>
+    <releaseNotes></releaseNotes>
+    <copyright></copyright>
+    <tags></tags>
+    <dependencies>
+      <group targetFramework="net45">
+        <dependency id="System.Collections.Immutable" version="1.1.36" />
+        <dependency id="Microsoft.Tpl.Dataflow" version="4.5.24" />
+        <dependency id="Microsoft.VisualStudio.Validation" version="15.0.11-pre" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>
