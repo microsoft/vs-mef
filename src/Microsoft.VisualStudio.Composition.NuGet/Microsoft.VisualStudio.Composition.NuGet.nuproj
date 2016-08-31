@@ -14,6 +14,7 @@
     <ProjectGuid>2101EA0E-1443-40C1-AF3B-F5C6B5B0A523</ProjectGuid>
   </PropertyGroup>
   <PropertyGroup>
+    <NuSpecTemplate>Microsoft.VisualStudio.Composition.nuspec</NuSpecTemplate>
     <NuProjPath>$(UserProfile)\.nuget\packages\NuProj\0.10.48-beta-gea4a31bbc5\tools\</NuProjPath>
   </PropertyGroup>
   <Import Project="$(NuProjPath)\NuProj.props" Condition="Exists('$(NuProjPath)\NuProj.props')" />
@@ -36,6 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="project.json" />
+    <None Include="Microsoft.VisualStudio.Composition.nuspec" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.Configuration\Microsoft.VisualStudio.Composition.Configuration.csproj" />
