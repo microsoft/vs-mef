@@ -127,10 +127,40 @@ var catalog = ComposableCatalog.Create(Resolver.DefaultInstance)
     .AddParts(discovery.CreatePartsAsync(Assembly.GetExecutingAssembly()).Result)
     .WithDesktopSupport() // Adds desktop-only features such as metadata view interface support 
     .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import 
+
+// Assemble the parts into a valid graph.
 var config = CompositionConfiguration.Create(catalog);
+
+// Prepare an ExportProvider factory based on this graph.
 var epf = config.CreateExportProviderFactory();
+
+// Create an export provider, which represents a unique container of values.
+// You can create as many of these as you want, but typically an app needs just one.
 var exportProvider = epf.CreateExportProvider();
+
+// Obtain our first exported value
 var program = exportProvider.GetExportedValue<Program>();
 ```
+
+When composing the graph from the catalog with `CompositionConfiguration.Create`,
+errors in the graph may be detected. MEF parts that introduce errors (e.g.
+cardinality mismatches) are rejected from the graph. The rejection of these parts
+can lead to a cascade of other cardinality mismatches and more parts being rejected.
+When this recursive process is done and all the invalid parts are rejected, what
+remains in the composition is a fully valid graph that should only fail at runtime
+if a MEF part throws an exception during construction.
+
+MEF "rejection" leading to incomplete graphs is a bug in the application or an extension.
+You can choose to throw when any error occurs by calling `config.ThrowOnErrors()`,
+where `config` is as defined in the example above.
+Or you can choose to let the app continue to run, but produce an error report that
+can be analyzed when necessary. To obtain the diagnostics report from VS MEF,
+inspect the `config.CompositionErrors` collection, which is in the form of a stack
+where the top element represents the root causes and each subsequent element in the
+stack represents a cascade of failures that resulted from rejecting the original
+defective MEF parts. Usually when debugging MEF failures, the first level errors
+are the ones to focus on. But listing them all can be helpful to answer the question
+of "Why is export *X* missing?" since X itself may not be defective but may have been
+rejected in the cascade.   
 
 [PkgFeed]: https://mseng.pkgs.visualstudio.com/_packaging/VSIDEProj-RealSigned-Release/nuget/v3/index.json
