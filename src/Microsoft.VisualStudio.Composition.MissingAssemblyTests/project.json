@@ -3,7 +3,7 @@
     "MicroBuild.VisualStudio": "2.0.25-beta",
     "MicroBuild.NonShipping": "2.0.25-beta",
     "Microsoft.Composition": "1.0.27",
-    "Nerdbank.GitVersioning": "1.4.19",
+    "Nerdbank.GitVersioning": "1.5.58",
     "ReadOnlySourceTree": "0.1.37-beta"
   },
   "frameworks": {

@@ -6,7 +6,7 @@
     },
     "Microsoft.VisualStudio.Validation": "15.0.42-pre",
     "Nerdbank.GitVersioning": {
-      "version": "1.4.19",
+      "version": "1.5.58",
       "suppressParent": "none"   
     },
     "ReadOnlySourceTree": {
