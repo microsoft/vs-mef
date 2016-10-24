@@ -1,16 +1,12 @@
 {
   "dependencies": {
-    "MicroBuild.Core": {
-      "version": "0.1.1",
-      "suppressParent": "none"   
-    },
     "MicroBuild.VisualStudio": {
-      "version": "1.0.129-rc",
+      "version": "2.0.27-beta",
       "suppressParent": "none"   
     },
     "Microsoft.VisualStudio.Validation": "15.0.42-pre",
     "Nerdbank.GitVersioning": {
-      "version": "1.4.19",
+      "version": "1.5.58",
       "suppressParent": "none"   
     },
     "ReadOnlySourceTree": {

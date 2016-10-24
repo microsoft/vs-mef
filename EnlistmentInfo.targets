@@ -3,18 +3,14 @@
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
 
-    <ProjectBuildOutputGroup Condition=" '$(TargetFrameworkProfile)' != '' ">$(TargetFrameworkProfile)\</ProjectBuildOutputGroup>
-    <ProjectBuildOutputGroup Condition=" '$(TargetFrameworkProfile)' == '' ">$(OutputPathSuffix)</ProjectBuildOutputGroup>
-    <ProjectBuildOutputGroup Condition=" '$(NonShipping)' == 'true' ">Tests\$(ProjectBuildOutputGroup)</ProjectBuildOutputGroup>
+    <ProjectBuildOutputGroup Condition=" $(MSBuildProjectName.EndsWith('NuGet')) ">Packages\</ProjectBuildOutputGroup>
+    <ProjectBuildOutputGroup Condition=" '$(NonShipping)' == 'true' ">Tests\</ProjectBuildOutputGroup>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)src\stylecop.json">
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)src\stylecop.json">
       <Visible>true</Visible>
       <Link>stylecop.json</Link>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)src\stylecop.json" />
+    </AdditionalFiles>    
   </ItemGroup>
 </Project>

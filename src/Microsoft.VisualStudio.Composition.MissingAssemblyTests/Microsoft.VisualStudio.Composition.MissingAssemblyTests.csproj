@@ -11,12 +11,16 @@
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
     <OutputPathSuffix>OutsideProbingPath\</OutputPathSuffix>
-    <MicroBuild_GenerateDocumentationFile>false</MicroBuild_GenerateDocumentationFile>
-    <DocumentationFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

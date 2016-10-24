@@ -35,8 +35,7 @@
     <NoPackageAnalysis>true</NoPackageAnalysis>
   </PropertyGroup>
   <PropertyGroup>
-    <BinariesSourceLocation>..\..\bin\$(Configuration)\</BinariesSourceLocation>
-    <BinariesSourceLocation Condition=" !Exists('$(BinariesSourceLocation)') ">$(OutDir)\</BinariesSourceLocation>
+    <BinariesSourceLocation>..\..\bin\$(Configuration)\Microsoft.VisualStudio.Composition.Configuration\</BinariesSourceLocation>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="Readme.txt" />
