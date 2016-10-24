@@ -4,6 +4,7 @@
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
 
     <ProjectBuildOutputGroup Condition=" $(MSBuildProjectName.EndsWith('NuGet')) ">Packages\</ProjectBuildOutputGroup>
+    <ProjectBuildOutputGroup Condition=" '$(NonShipping)' == 'true' ">Tests\</ProjectBuildOutputGroup>
   </PropertyGroup>
 
   <ItemGroup>
