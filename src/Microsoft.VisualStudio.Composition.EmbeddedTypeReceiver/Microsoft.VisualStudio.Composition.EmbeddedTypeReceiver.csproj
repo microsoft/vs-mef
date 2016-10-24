@@ -12,12 +12,20 @@
     <OutputPath Condition=" '$(OutputPath)' == '' ">bin</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver.ruleset</CodeAnalysisRuleSet>
     <NoWarn>CS1591</NoWarn>
+    <DocumentationFile>$(OutputPath)\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver.ruleset</CodeAnalysisRuleSet>
     <NoWarn>CS1591</NoWarn>
+    <DocumentationFile>$(OutputPath)\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.Shell.Interop.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
