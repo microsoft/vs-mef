@@ -1,7 +1,7 @@
 {
   "dependencies": {
     "MicroBuild.VisualStudio": {
-      "version": "2.0.27-beta-g1fc6134d5c",
+      "version": "2.0.27-beta",
       "suppressParent": "none"   
     },
     "Microsoft.VisualStudio.Validation": "15.0.42-pre",
