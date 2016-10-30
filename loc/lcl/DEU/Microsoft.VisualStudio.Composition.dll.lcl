@@ -441,12 +441,12 @@
     </Item>
     <Item ItemId=";FileVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[15.0.58.42776]]></Val>
+        <Val><![CDATA[15.0.59.42751]]></Val>
       </Str>
       <Disp Icon="Str" />
     </Item>
     <Item ItemId=";InternalName" ItemType="0" PsrId="211" Leaf="true">
-      <Str Cat="Text" DevLk="true">
+      <Str Cat="Text" DevLk="true" UsrLk="true">
         <Val><![CDATA[Microsoft.VisualStudio.Composition.dll]]></Val>
       </Str>
       <Disp Icon="Str" />
@@ -461,7 +461,7 @@
       <Disp Icon="Str" />
     </Item>
     <Item ItemId=";OriginalFilename" ItemType="0" PsrId="211" Leaf="true">
-      <Str Cat="Text" DevLk="true">
+      <Str Cat="Text" DevLk="true" UsrLk="true">
         <Val><![CDATA[Microsoft.VisualStudio.Composition.dll]]></Val>
       </Str>
       <Disp Icon="Str" />
@@ -477,7 +477,7 @@
     </Item>
     <Item ItemId=";ProductVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[15.0.58-rc+g18a7fd06d3.RR]]></Val>
+        <Val><![CDATA[15.0.59-rc+gffa6b8f96f.RT]]></Val>
       </Str>
       <Disp Icon="Str" />
     </Item>
