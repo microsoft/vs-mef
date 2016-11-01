@@ -326,7 +326,7 @@
     </Item>
     <Item ItemId=";FileVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[15.0.59.42751]]></Val>
+        <Val><![CDATA[15.0.60.3141]]></Val>
       </Str>
       <Disp Icon="Str" />
     </Item>
@@ -362,7 +362,7 @@
     </Item>
     <Item ItemId=";ProductVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[15.0.59-rc+gffa6b8f96f.RT]]></Val>
+        <Val><![CDATA[15.0.60-rc+g450c0a4930.RT]]></Val>
       </Str>
       <Disp Icon="Str" />
     </Item>
