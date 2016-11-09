@@ -80,6 +80,7 @@
     <Compile Include="CircularDependencyTests.cs" />
     <Compile Include="ClosedGenericExportedTypeTests.cs" />
     <Compile Include="ComposableCatalogTests.cs" />
+    <Compile Include="ComposablePartDefinitionTests.cs" />
     <Compile Include="CompositionFailedExceptionTests.cs" />
     <Compile Include="CompressedUIntTests.cs" />
     <Compile Include="DataFileCacheAndReloadTests.cs" />
