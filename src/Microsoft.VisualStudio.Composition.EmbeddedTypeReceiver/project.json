@@ -2,7 +2,7 @@
   "dependencies": {
     "MicroBuild.VisualStudio": "2.0.27-beta",
     "MicroBuild.NonShipping": "2.0.27-beta",
-    "Microsoft.Composition": "1.0.27",
+    "System.Composition": "1.0.31",
     "Nerdbank.GitVersioning": "1.5.58",
     "ReadOnlySourceTree": "0.1.37-beta"
   },
