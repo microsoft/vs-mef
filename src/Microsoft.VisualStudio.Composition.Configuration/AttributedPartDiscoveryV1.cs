@@ -342,7 +342,8 @@
                     {
                         var usage = attrType.GetFirstAttribute<AttributeUsageAttribute>(true);
                         var properties = attribute.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
-                        foreach (var property in properties.Where(p => p.DeclaringType != typeof(Attribute)))
+
+                        foreach (var property in properties.Where(p => p.DeclaringType != typeof(Attribute) && p.DeclaringType != typeof(ExportAttribute)))
                         {
                             if (usage != null && usage.AllowMultiple)
                             {

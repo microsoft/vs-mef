@@ -90,6 +90,63 @@
             Assert.True(beforeArray.Contains("BeforeValue"));
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportWithDerivedExportMetadata), typeof(ImportingPartForDerivedExportMetadata))]
+        public void BasePropertiesAreNotIgnoredInMefV1(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportingPartForDerivedExportMetadata>();
+
+            object prop1 = part.ImportingProperty.Metadata["Property"];
+            Assert.IsType<string[]>(prop1);
+            var prop1Array = (string[])prop1;
+            Assert.Contains("prop1", prop1Array);
+
+            object prop2 = part.ImportingProperty.Metadata["AnotherProperty"];
+            Assert.IsType<string[]>(prop2);
+            var prop2Array = (string[])prop2;
+            Assert.Contains("prop2", prop2Array);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportUsingDerivedExportAttribute), typeof(PartThatImportsSingleDerivedExportAttributes))]
+        public void BasePropertiesForExportAttributeAreIgnoredInMefV1(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsSingleDerivedExportAttributes>();
+
+            foreach (var propertyName in typeof(ExportAttribute).GetProperties().Select(p => p.Name))
+            {
+                Assert.DoesNotContain(propertyName, part.ImportingProperty.Metadata.Keys);
+            }
+
+            object somePropertyValue = part.ImportingProperty.Metadata["SomeProperty"];
+            Assert.IsType<string>(somePropertyValue);
+            Assert.Equal("SomePropertyValue", somePropertyValue.ToString());
+            Assert.NotNull(part.ImportingProperty.Value);
+        }
+
+        // The MEF v2 behavior is that properties from a base class do not get included in the metadata. Currently, our MEF v2 discovery does include them. After fixing this, we can enable the test for MEF v2 compat.
+        [MefFact(CompositionEngines.V2, typeof(ExportWithDerivedExportMetadata), typeof(ImportingPartForDerivedExportMetadata))]
+        public void BasePropertiesAreIgnoredInMefV2(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportingPartForDerivedExportMetadata>();
+
+            Assert.False(part.ImportingProperty.Metadata.ContainsKey("Property"));
+
+            object prop2 = part.ImportingProperty.Metadata["AnotherProperty"];
+            Assert.Equal("prop2", prop2.ToString());
+        }
+
+        [MefV1.Export, Export]
+        [DerivedMetadata("prop1", "prop2")]
+        public class ExportWithDerivedExportMetadata
+        {
+        }
+
+        [MefV1.Export, Export]
+        public class ImportingPartForDerivedExportMetadata
+        {
+            [MefV1.Import, Import]
+            public Lazy<ExportWithDerivedExportMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+        }
+
         [Export, MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class ImportingPart
         {
@@ -166,6 +223,17 @@
             public Lazy<ExportWithMultipleMetadataAttributesAndComplementingMetadataValues, IDictionary<string, object>> ImportingProperty { get; set; }
         }
 
+        [DerivedFromExportAttribute("SomePropertyValue")]
+        [MefV1DerivedFromExportAttribute("SomePropertyValue")]
+        public class ExportUsingDerivedExportAttribute { }
+
+        [Export, MefV1.Export]
+        public class PartThatImportsSingleDerivedExportAttributes
+        {
+            [Import, MefV1.Import]
+            public Lazy<ExportUsingDerivedExportAttribute, IDictionary<string, object>> ImportingProperty { get; set; }
+        }
+
         /// <summary>
         /// An attribute that exports "Name" metadata with IsMultiple=true (meaning the value is string[] instead of just string).
         /// </summary>
@@ -194,6 +262,87 @@
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
         public class NameDerivedAttribute : NameMultipleAttribute
         {
+        }
+
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+        [MetadataAttribute]
+        public class DerivedFromExportAttributeAttribute : ExportAttribute
+        {
+            public DerivedFromExportAttributeAttribute()
+                : this(string.Empty) { }
+
+            public DerivedFromExportAttributeAttribute(string someProperty)
+                : base()
+            {
+                this.SomeProperty = someProperty;
+            }
+
+            public DerivedFromExportAttributeAttribute(string someProperty, Type t)
+                : base(t)
+            {
+                this.SomeProperty = someProperty;
+            }
+
+            public string SomeProperty { get; set; }
+        }
+
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+        [MefV1.MetadataAttribute]
+        public class MefV1DerivedFromExportAttributeAttribute : MefV1.ExportAttribute
+        {
+            public MefV1DerivedFromExportAttributeAttribute()
+                : this(string.Empty) { }
+
+            public MefV1DerivedFromExportAttributeAttribute(string someProperty)
+                : base()
+            {
+                this.SomeProperty = someProperty;
+            }
+
+            public MefV1DerivedFromExportAttributeAttribute(string someProperty, Type t)
+                : base(t)
+            {
+                this.SomeProperty = someProperty;
+            }
+
+            public string SomeProperty { get; set; }
+        }
+
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true)]
+        [MefV1.MetadataAttribute, MetadataAttribute]
+        public class BaseMetadataAttribute : Attribute
+        {
+            public BaseMetadataAttribute(string property)
+            {
+                this.Property = property;
+            }
+
+            public string Property { get; }
+        }
+
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false)]
+        [MefV1.MetadataAttribute, MetadataAttribute]
+        public class OtherMetadataAttribute : Attribute
+        {
+            public OtherMetadataAttribute(string property)
+            {
+                this.Property = property;
+            }
+
+            public string Property { get; }
+        }
+
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true)]
+        [MefV1.MetadataAttribute, MetadataAttribute]
+        public class DerivedMetadataAttribute : BaseMetadataAttribute
+        {
+            public DerivedMetadataAttribute(string property, string anotherProperty)
+                : base(property)
+            {
+                this.AnotherProperty = anotherProperty;
+            }
+
+            public string AnotherProperty { get; }
         }
 
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
