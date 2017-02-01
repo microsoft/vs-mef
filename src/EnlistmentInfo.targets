@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory)src\stylecop.json">
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json">
       <Visible>true</Visible>
       <Link>stylecop.json</Link>
     </AdditionalFiles>    
