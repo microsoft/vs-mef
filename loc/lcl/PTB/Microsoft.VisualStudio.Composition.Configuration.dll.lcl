@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <LCX SchemaVersion="6.0" Name="F:\987\bin\Microsoft.VisualStudio.Composition.Configuration.dll" PsrId="211" FileType="1" SrcCul="en-US" TgtCul="pt-BR" xmlns="http://schemas.microsoft.com/locstudio/2006/6/lcx">
   <Props>
     <Str Name="HobbitID" Val="9f4cf58c-db46-4c41-a06f-57f7ffaaeaff" />
@@ -311,7 +311,7 @@
     <Disp Icon="Ver" Disp="true" LocTbl="false" Path=" \ ;Version \ 8 \ 0" />
     <Item ItemId=";AssemblyVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[15.0.0.0]]></Val>
+        <Val><![CDATA[15.1.0.0]]></Val>
       </Str>
       <Disp Icon="Str" />
     </Item>
@@ -326,7 +326,7 @@
     </Item>
     <Item ItemId=";FileVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[15.0.60.3141]]></Val>
+        <Val><![CDATA[15.1.5.13240]]></Val>
       </Str>
       <Disp Icon="Str" />
     </Item>
@@ -362,7 +362,7 @@
     </Item>
     <Item ItemId=";ProductVersion" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text" DevLk="true">
-        <Val><![CDATA[15.0.60-rc+g450c0a4930.RT]]></Val>
+        <Val><![CDATA[15.1.5+gb833d6b32d.RT]]></Val>
       </Str>
       <Disp Icon="Str" />
     </Item>
