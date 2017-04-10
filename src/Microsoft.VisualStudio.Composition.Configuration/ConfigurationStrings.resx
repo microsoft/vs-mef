@@ -132,6 +132,11 @@
   <data name="CustomImportSourceNotSupported" xml:space="preserve">
     <value>Custom import sources are not yet supported.</value>
   </data>
+  <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
+    <value>Member "{0}" contains metadata attributes with an identical property name. Property name: "{1}".</value>
+    <comment>{0} = member (full name if possible) with invalid metadata attributes.
+{1} = the property's name.</comment>
+  </data>
   <data name="ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" xml:space="preserve">
     <value>Exports on members not allowed when the declaring type is generic.</value>
   </data>

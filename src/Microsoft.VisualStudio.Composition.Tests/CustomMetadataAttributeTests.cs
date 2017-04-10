@@ -46,7 +46,7 @@
         }
 
         // BUGBUG: MEFv2 throws NullReferenceException in this case.
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(ImportingPart), typeof(ExportedTypeWithMetadata), typeof(ExportedTypeWithMultipleMetadata), typeof(TypeWithExportingMemberAndMetadata))]
         public void MultipleCustomMetadataOnExportedType(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPart>();
@@ -132,6 +132,24 @@
 
             object prop2 = part.ImportingProperty.Metadata["AnotherProperty"];
             Assert.Equal("prop2", prop2.ToString());
+        }
+
+        [Fact]
+        public async Task PartWithAttributesDefiningSamePropertyContainsDiscoveryErrorsForV1()
+        {
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(PartThatExportsWithMetadataThatHasMatchingProperties)));
+            Assert.NotEmpty(catalog.DiscoveredParts.DiscoveryErrors);
+            PartDiscoveryException exception = catalog.DiscoveredParts.DiscoveryErrors.First();
+            Assert.IsType<NotSupportedException>(exception.InnerException);
+        }
+
+        [Fact]
+        public async Task PartWithAttributesDefiningSamePropertyDoesNotContainDiscoveryErrorsForV2()
+        {
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartThatExportsWithMetadataThatHasMatchingProperties)));
+            Assert.Empty(catalog.DiscoveredParts.DiscoveryErrors);
         }
 
         [MefV1.Export, Export]
@@ -233,6 +251,11 @@
             [Import, MefV1.Import]
             public Lazy<ExportUsingDerivedExportAttribute, IDictionary<string, object>> ImportingProperty { get; set; }
         }
+
+        [FirstAttributeWithIdenticalProperties("SomeValue")]
+        [SecondAttributeWithIdenticalProperties("SomeOtherValue")]
+        [Export, MefV1.Export]
+        public class PartThatExportsWithMetadataThatHasMatchingProperties { }
 
         /// <summary>
         /// An attribute that exports "Name" metadata with IsMultiple=true (meaning the value is string[] instead of just string).
@@ -352,6 +375,30 @@
             public string Before { get; set; }
 
             public string After { get; set; }
+        }
+
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+        [MetadataAttribute, MefV1.MetadataAttribute]
+        public class FirstAttributeWithIdenticalPropertiesAttribute : Attribute
+        {
+            public string Property { get; set; }
+
+            public FirstAttributeWithIdenticalPropertiesAttribute(string property)
+            {
+                this.Property = property;
+            }
+        }
+
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+        [MetadataAttribute, MefV1.MetadataAttribute]
+        public class SecondAttributeWithIdenticalPropertiesAttribute : Attribute
+        {
+            public string Property { get; set; }
+
+            public SecondAttributeWithIdenticalPropertiesAttribute(string property)
+            {
+                this.Property = property;
+            }
         }
 
         #region CustomMetadataAttributeLotsOfTypesAndVisibilities test

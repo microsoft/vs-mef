@@ -11,6 +11,7 @@
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
     using MefV1 = System.ComponentModel.Composition;
+    using System.Globalization;
 
     public class AttributedPartDiscoveryV1 : PartDiscovery
     {
@@ -314,7 +315,7 @@
             return new ImportDefinitionBinding(definition, TypeRef.Get(parameter.Member.DeclaringType, this.Resolver), ParameterRef.Get(parameter, this.Resolver));
         }
 
-        private static IReadOnlyDictionary<string, object> GetExportMetadata(ICustomAttributeProvider member)
+        private static IReadOnlyDictionary<string, object> GetExportMetadata(MemberInfo member)
         {
             Requires.NotNull(member, nameof(member));
 
@@ -351,6 +352,15 @@
                             }
                             else
                             {
+                                if (result.ContainsKey(property.Name))
+                                {
+                                    string memberName = member.MemberType.HasFlag(MemberTypes.TypeInfo) || member.MemberType.HasFlag(MemberTypes.NestedType)
+                                        ? ((Type)member).FullName
+                                        : $"{member.DeclaringType.FullName}.{member.Name}";
+
+                                    throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, ConfigurationStrings.DiscoveredIdenticalPropertiesInMetadataAttributesForPart, memberName, property.Name));
+                                }
+
                                 result.Add(property.Name, property.GetValue(attribute));
                             }
                         }
