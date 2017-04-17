@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net451</TargetFramework>
+    <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.Tests.ruleset</CodeAnalysisRuleSet>
+    <NoWarn>$(NoWarn);CS1762</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="DiffPlex" Version="1.2.1" />
+    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="15.0.4" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop" Version="7.10.6071" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.11.0" Version="11.0.61030" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.12.0" Version="12.0.30110" />
+    <PackageReference Include="Xunit" Version="2.0.0" />
+    <PackageReference Include="xunit.extensibility.execution" Version="2.0.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.0.0" />
+    <PackageReference Include="Xunit.SkippableFact" Version="1.0.15200-beta" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\Microsoft.VisualStudio.Composition\ArrayRental`1.cs">
+      <Link>ArrayRental`1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Microsoft.VisualStudio.Composition\CompressedUInt.cs">
+      <Link>CompressedUInt.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Microsoft.VisualStudio.Composition\DelegateServices.cs">
+      <Link>DelegateServices.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Microsoft.VisualStudio.Composition\LazyServices.cs">
+      <Link>LazyServices.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Microsoft.VisualStudio.Composition\Rental`1.cs">
+      <Link>Rental`1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Microsoft.VisualStudio.Composition\ByValueEquality+AssemblyNameComparer.cs">
+      <Link>ByValueEquality+AssemblyNameComparer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Microsoft.VisualStudio.Composition\ByValueEquality+BufferComparer.cs">
+      <Link>ByValueEquality+BufferComparer.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />
+    <ProjectReference Include="..\..\Microsoft.VisualStudio.Composition.Configuration\Microsoft.VisualStudio.Composition.Configuration.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AppDomainTests2\Microsoft.VisualStudio.Composition.AppDomainTests2.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AppDomainTests\Microsoft.VisualStudio.Composition.AppDomainTests.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.BrokenAssemblyTests\Microsoft.VisualStudio.Composition.BrokenAssemblyTests.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver\Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver\Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+</Project>

@@ -5,13 +5,13 @@
     using System.Collections.Immutable;
     using System.ComponentModel.Composition;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
     using MefV1 = System.ComponentModel.Composition;
-    using System.Globalization;
 
     public class AttributedPartDiscoveryV1 : PartDiscovery
     {

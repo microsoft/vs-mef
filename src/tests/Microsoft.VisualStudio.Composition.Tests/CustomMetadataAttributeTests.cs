@@ -280,7 +280,7 @@
 
         /// <summary>
         /// An export metadata attribute that derives from another,
-        /// and intentionally does not have <see cref="MetadataAttribute"/> applied directly.
+        /// and intentionally does not have <see cref="MetadataAttributeAttribute"/> applied directly.
         /// </summary>
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
         public class NameDerivedAttribute : NameMultipleAttribute
