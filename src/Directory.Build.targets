@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <CodeAnalysisRuleSet Condition=" '$(CodeAnalysisRuleSet)' == '' ">$(MSBuildThisFileDirectory)Microsoft.VisualStudio.Composition.Tests\Microsoft.VisualStudio.Composition.Tests.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+</Project>

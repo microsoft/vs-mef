@@ -1,88 +1,50 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{2285F0B1-0B9E-43C5-9BA5-0CB293C9BC63}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.VisualStudio.Composition</RootNamespace>
-    <AssemblyName>Microsoft.VisualStudio.Composition.Configuration</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <AssemblyAttributeClsCompliant>false</AssemblyAttributeClsCompliant>
-    <OutputPath Condition=" '$(OutputPath)' == '' ">bin</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
+    <TargetFramework>net45</TargetFramework>
     <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <NoWarn>CS1591</NoWarn>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.Configuration.ruleset</CodeAnalysisRuleSet>
-    <DocumentationFile>bin\Debug\Microsoft.VisualStudio.Composition.Configuration.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.Configuration.ruleset</CodeAnalysisRuleSet>
-    <NoWarn>CS1591</NoWarn>
-    <DocumentationFile>bin\Release\Microsoft.VisualStudio.Composition.Configuration.xml</DocumentationFile>
+
+    <PackageId>Microsoft.VisualStudio.Composition</PackageId>
+    <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
+    <PackageTags>Mef Composition Extensibility</PackageTags>
+    <Company>Microsoft</Company>
+    <Authors>Microsoft</Authors>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <PackageReleaseNotes>https://go.microsoft.com/fwlink/?LinkID=746387</PackageReleaseNotes>
+    <PackageLicenseUrl>http://go.microsoft.com/fwlink/?LinkID=746386</PackageLicenseUrl>
+    <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AttributedPartDiscovery.cs" />
-    <Compile Include="AttributedPartDiscoveryV1.cs" />
-    <Compile Include="CachedCatalog.cs" />
-    <Compile Include="CachedComposition.cs" />
-    <Compile Include="ExportMetadataViewInterfaceEmitProxy.cs" />
-    <Compile Include="MetadataViewGenerator.cs" />
-    <Compile Include="ConfigurationStrings.Designer.cs">
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0" />
+    <PackageReference Include="System.Composition" Version="1.0.31" />
+    <PackageReference Include="MicroBuild.VisualStudio" Version="2.0.40" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="ConfigurationStrings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>ConfigurationStrings.resx</DependentUpon>
     </Compile>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SerializationContextBase.cs" />
-    <Compile Include="NetFxAdapters.cs" />
-    <Compile Include="Tasks\ExceptionHelpers.cs" />
-    <EmbeddedResource Include="ConfigurationStrings.resx">
+    <EmbeddedResource Update="ConfigurationStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ConfigurationStrings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="Tasks\ExportProviderFactory.cs" />
-    <Compile Include="Tasks\CreateComposition.cs" />
-    <Compile Include="Tasks\CreateContainerFactoryBootstrapFile.cs" />
+    <Compile Remove="Tasks\ExportProviderFactory.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Microsoft.VisualStudio.Composition.Configuration.ruleset" />
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj">
-      <Project>{1ca6a92c-5dd9-4be5-b5b7-ee4a1318b4c2}</Project>
-      <Name>Microsoft.VisualStudio.Composition</Name>
-    </ProjectReference>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="SetNuSpecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
+    <PropertyGroup>
+      <PackagePackageLicenseUrl>https://raw.githubusercontent.com/Microsoft/vs-validation/$(GitCommitIdShort)/LICENSE</PackagePackageLicenseUrl>
+    </PropertyGroup>
+  </Target>
 </Project>
