@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver
 {
     using System;
     using System.Collections.Generic;

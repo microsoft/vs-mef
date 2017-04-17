@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition.MissingAssemblyTests
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition.MissingAssemblyTests
 {
     using System;
     using System.Collections.Generic;

@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition.AppDomainTests2
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition.AppDomainTests2
 {
     using System;
     using System.Collections.Generic;

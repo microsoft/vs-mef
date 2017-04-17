@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     /// <summary>
     /// The bits set on metadata tokens based on type of token.

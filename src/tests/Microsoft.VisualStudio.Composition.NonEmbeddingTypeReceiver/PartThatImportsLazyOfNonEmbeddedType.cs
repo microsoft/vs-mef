@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver
 {
     using System;
     using System.Collections.Generic;

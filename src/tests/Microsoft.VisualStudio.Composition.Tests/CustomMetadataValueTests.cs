@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition.Tests
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
     using System.Collections.Generic;
@@ -24,6 +26,7 @@
             Assert.Equal(7, ((MyObjectType)importer.ImportingProperty.Metadata["SomeName"]).Value);
         }
 
+#pragma warning disable CS1574
         /// <summary>
         /// Verifies that metadata values can be complex, non-serializable objects.
         /// </summary>
@@ -32,6 +35,7 @@
         /// is expected to come in useful. We can cache that CustomAttributeData the same way we cache other reflection
         /// data, and use it to reconsistute the value at runtime.
         /// </remarks>
+#pragma warning restore CS1574
         [MefFact(CompositionEngines.V2)]
         public void CustomMetadataValueV2(IContainer container)
         {

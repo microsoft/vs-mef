@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition.Reflection
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition.Reflection
 {
     using System;
     using System.Collections.Generic;

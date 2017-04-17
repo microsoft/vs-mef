@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition.Tests
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
     using System.CodeDom.Compiler;

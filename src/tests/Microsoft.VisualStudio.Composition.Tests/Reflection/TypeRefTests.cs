@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition.Tests.Reflection
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition.Tests.Reflection
 {
     using System;
     using System.Collections.Generic;

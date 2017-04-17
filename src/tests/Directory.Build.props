@@ -2,5 +2,6 @@
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., Directory.Build.props))\Directory.Build.props" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., Directory.Build.props))' != '' " />
   <PropertyGroup>
     <OutputPath>$(MSBuildThisFileDirectory)..\..\bin\Tests\$(Configuration)\</OutputPath>
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Microsoft.VisualStudio.Composition.Tests\Microsoft.VisualStudio.Composition.Tests.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 </Project>
