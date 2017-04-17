@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net45</TargetFramework>
-    <NoWarn>CS1591</NoWarn>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.ruleset</CodeAnalysisRuleSet>
     <DebugType>full</DebugType>
     <IsPackable>false</IsPackable>

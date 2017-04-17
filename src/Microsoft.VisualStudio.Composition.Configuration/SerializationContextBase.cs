@@ -30,7 +30,9 @@ namespace Microsoft.VisualStudio.Composition
 
         protected int indentationLevel;
 
+#if TRACESTATS
         protected Dictionary<string, int> sizeStats;
+#endif
 
         private readonly ImmutableDictionary<string, object>.Builder metadataBuilder = ImmutableDictionary.CreateBuilder<string, object>();
 
@@ -868,6 +870,7 @@ namespace Microsoft.VisualStudio.Composition
         [Conditional("TRACESTATS")]
         protected void TraceStats()
         {
+#if TRACESTATS
             if (this.sizeStats != null)
             {
                 foreach (var item in this.sizeStats.OrderByDescending(kv => kv.Value))
@@ -875,6 +878,7 @@ namespace Microsoft.VisualStudio.Composition
                     Debug.WriteLine("{0,7} {1}", item.Value, item.Key);
                 }
             }
+#endif
         }
 
         protected struct SerializationTrace : IDisposable
@@ -912,12 +916,14 @@ namespace Microsoft.VisualStudio.Composition
 
                 if (this.stream != null)
                 {
+#if TRACESTATS
                     if (this.context.sizeStats != null)
                     {
                         int length = (int)this.stream.Position - this.startStreamPosition;
                         string elementNameWitharray = this.isArray ? (this.elementName + "[]") : this.elementName;
                         this.context.sizeStats[elementNameWitharray] = this.context.sizeStats.GetValueOrDefault(elementNameWitharray) + length;
                     }
+#endif
                 }
             }
         }
