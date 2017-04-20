@@ -32,10 +32,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tests\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2", "tests\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2.csproj", "{A424CBE4-248E-477C-88BD-575FA240EACB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.AppHost", "Microsoft.VisualStudio.Composition.AppHost\Microsoft.VisualStudio.Composition.AppHost.csproj", "{93C14982-BB95-4554-BE09-2D0A4C9ADA09}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{1CA6A92C-5DD9-4BE5-B5B7-EE4A1318B4C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -82,6 +88,18 @@ Global
 		{A424CBE4-248E-477C-88BD-575FA240EACB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A424CBE4-248E-477C-88BD-575FA240EACB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A424CBE4-248E-477C-88BD-575FA240EACB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Debug|x64.ActiveCfg = Debug|x64
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Debug|x64.Build.0 = Debug|x64
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Debug|x86.ActiveCfg = Debug|x86
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Debug|x86.Build.0 = Debug|x86
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|x64.ActiveCfg = Release|x64
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|x64.Build.0 = Release|x64
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|x86.ActiveCfg = Release|x86
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

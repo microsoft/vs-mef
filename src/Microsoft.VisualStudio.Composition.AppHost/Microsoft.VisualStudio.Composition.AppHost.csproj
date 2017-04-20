@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net45</TargetFramework>
+    <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.AppHost.ruleset</CodeAnalysisRuleSet>
+
+    <!-- This package does not yet work after the .NET SDK mgiration. -->
+    <IsPackable>false</IsPackable>
 
     <Description>Adds a VS MEF system with a pre-computed, cached MEF graph.</Description>
     <PackageTags>Mef Composition Extensibility</PackageTags>
@@ -13,8 +17,8 @@
     <BinariesSourceLocation>..\..\bin\$(Configuration)\Microsoft.VisualStudio.Composition.Configuration\</BinariesSourceLocation>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Configuration\Tasks\ExportProviderFactory.cs" />
-    <Compile Remove="Configuration\Tasks\ExportProviderFactory.cs" />
+    <EmbeddedResource Include="ExportProviderFactory.cs" />
+    <Compile Remove="ExportProviderFactory.cs" />
     <Content Include="Readme.txt" />
     <Content Include="build\Microsoft.VisualStudio.Composition.AppHost.targets" />
     <Content Include="$(BinariesSourceLocation)Microsoft.VisualStudio.Composition.Configuration.dll">
@@ -49,5 +53,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0" />
+    <PackageReference Include="MicroBuild.VisualStudio" Version="2.0.40" PrivateAssets="all" />
   </ItemGroup>
 </Project>
