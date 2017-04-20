@@ -3,7 +3,7 @@
     <RepoBinPath>$(MSBuildThisFileDirectory)..\bin\</RepoBinPath>
     <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)..\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
     <OutputPath>$(RepoBinPath)$(MSBuildProjectName)\$(Configuration)\</OutputPath>
-    <PackageOutputPath>$(RepoBinPath)Packages\</PackageOutputPath>
+    <PackageOutputPath>$(RepoBinPath)$(Configuration)\Packages\</PackageOutputPath>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>CS1591</NoWarn>
