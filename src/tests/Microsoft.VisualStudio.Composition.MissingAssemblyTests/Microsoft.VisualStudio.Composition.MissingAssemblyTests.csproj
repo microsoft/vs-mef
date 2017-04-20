@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net45</TargetFramework>
-    <OutputPath>$(MSBuildThisFileDirectory)..\..\bin\Tests\$(Configuration)\OutsideProbingPath\</OutputPath>
+    <TargetFramework>net451</TargetFramework>
+    <OutputPath>$(RepoBinPath)Tests\$(Configuration)\OutsideProbingPath\</OutputPath>
   </PropertyGroup>
 </Project>

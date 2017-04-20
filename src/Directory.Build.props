@@ -1,8 +1,9 @@
 <Project>
   <PropertyGroup>
+    <RepoBinPath>$(MSBuildThisFileDirectory)..\bin\</RepoBinPath>
     <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)..\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
-    <OutputPath>$(MSBuildThisFileDirectory)..\bin\$(MSBuildProjectName)\$(Configuration)\</OutputPath>
-    <PackageOutputPath>$(MSBuildThisFileDirectory)..\bin\Packages\</PackageOutputPath>
+    <OutputPath>$(RepoBinPath)$(MSBuildProjectName)\$(Configuration)\</OutputPath>
+    <PackageOutputPath>$(RepoBinPath)Packages\</PackageOutputPath>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>CS1591</NoWarn>
