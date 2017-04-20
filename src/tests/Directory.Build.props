@@ -3,5 +3,6 @@
   <PropertyGroup>
     <OutputPath>$(MSBuildThisFileDirectory)..\..\bin\Tests\$(Configuration)\</OutputPath>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Microsoft.VisualStudio.Composition.Tests\Microsoft.VisualStudio.Composition.Tests.ruleset</CodeAnalysisRuleSet>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 </Project>

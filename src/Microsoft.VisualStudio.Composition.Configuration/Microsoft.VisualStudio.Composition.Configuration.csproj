@@ -5,46 +5,22 @@
     <DebugType>full</DebugType>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.Configuration.ruleset</CodeAnalysisRuleSet>
 
-    <PackageId>Microsoft.VisualStudio.Composition</PackageId>
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
     <PackageTags>Mef Composition Extensibility</PackageTags>
     <Company>Microsoft</Company>
     <Authors>Microsoft</Authors>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
-    <PackageReleaseNotes>https://go.microsoft.com/fwlink/?LinkID=746387</PackageReleaseNotes>
-    <PackageLicenseUrl>http://go.microsoft.com/fwlink/?LinkID=746386</PackageLicenseUrl>
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System.ComponentModel.Composition" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0" />
-    <PackageReference Include="System.Composition" Version="1.0.31" />
     <PackageReference Include="MicroBuild.VisualStudio" Version="2.0.40" PrivateAssets="all" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="ConfigurationStrings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ConfigurationStrings.resx</DependentUpon>
-    </Compile>
-    <EmbeddedResource Update="ConfigurationStrings.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ConfigurationStrings.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Tasks\ExportProviderFactory.cs" />
-    <Compile Remove="Tasks\ExportProviderFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
   <Target Name="SetNuSpecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
     <PropertyGroup>
-      <PackagePackageLicenseUrl>https://raw.githubusercontent.com/Microsoft/vs-validation/$(GitCommitIdShort)/LICENSE</PackagePackageLicenseUrl>
+      <PackageLicenseUrl>https://raw.githubusercontent.com/Microsoft/vs-mef/$(GitCommitIdShort)/LICENSE</PackageLicenseUrl>
     </PropertyGroup>
   </Target>
 </Project>

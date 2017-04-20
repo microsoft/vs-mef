@@ -44,7 +44,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />
-    <ProjectReference Include="..\..\Microsoft.VisualStudio.Composition.Configuration\Microsoft.VisualStudio.Composition.Configuration.csproj" />
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AppDomainTests2\Microsoft.VisualStudio.Composition.AppDomainTests2.csproj" />
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AppDomainTests\Microsoft.VisualStudio.Composition.AppDomainTests.csproj" />
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2.csproj" />
