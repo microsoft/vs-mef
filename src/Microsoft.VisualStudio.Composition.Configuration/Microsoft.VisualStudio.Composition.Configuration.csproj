@@ -13,7 +13,7 @@
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MicroBuild.VisualStudio" Version="2.0.40" PrivateAssets="all" />
+    <PackageReference Include="MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />

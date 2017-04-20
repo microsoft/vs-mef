@@ -1,10 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFrameworks>net45</TargetFrameworks>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.AppHost.ruleset</CodeAnalysisRuleSet>
-
-    <!-- This package does not yet work after the .NET SDK mgiration. -->
-    <IsPackable>false</IsPackable>
 
     <Description>Adds a VS MEF system with a pre-computed, cached MEF graph.</Description>
     <PackageTags>Mef Composition Extensibility</PackageTags>
@@ -13,46 +10,17 @@
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
   </PropertyGroup>
-  <PropertyGroup>
-    <BinariesSourceLocation>..\..\bin\$(Configuration)\Microsoft.VisualStudio.Composition.Configuration\</BinariesSourceLocation>
-  </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="ExportProviderFactory.cs" />
     <Compile Remove="ExportProviderFactory.cs" />
-    <Content Include="Readme.txt" />
-    <Content Include="build\Microsoft.VisualStudio.Composition.AppHost.targets" />
-    <Content Include="$(BinariesSourceLocation)Microsoft.VisualStudio.Composition.Configuration.dll">
-      <Link>build\Microsoft.VisualStudio.Composition.Configuration.dll</Link>
-    </Content>
-    <Content Include="$(BinariesSourceLocation)Microsoft.VisualStudio.Composition.dll">
-      <Link>build\Microsoft.VisualStudio.Composition.dll</Link>
-    </Content>
-    <Content Include="$(BinariesSourceLocation)System.Collections.Immutable.dll">
-      <Link>build\System.Collections.Immutable.dll</Link>
-      <AlwaysInclude>true</AlwaysInclude>
-    </Content>
-    <Content Include="$(BinariesSourceLocation)System.Composition.AttributedModel.dll">
-      <Link>build\System.Composition.AttributedModel.dll</Link>
-      <AlwaysInclude>true</AlwaysInclude>
-    </Content>
-    <Content Include="$(BinariesSourceLocation)System.Composition.Runtime.dll">
-      <Link>build\System.Composition.Runtime.dll</Link>
-      <AlwaysInclude>true</AlwaysInclude>
-    </Content>
-    <Content Include="$(BinariesSourceLocation)Microsoft.VisualStudio.Validation.dll">
-      <Link>build\Microsoft.VisualStudio.Validation.dll</Link>
-      <AlwaysInclude>true</AlwaysInclude>
-    </Content>
-    <Content Include="$(BinariesSourceLocation)System.Threading.Tasks.Dataflow.dll">
-      <Link>build\System.Threading.Tasks.Dataflow.dll</Link>
-      <AlwaysInclude>true</AlwaysInclude>
-    </Content>
+    <None Include="Readme.txt" Pack="true" PackagePath="Readme.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0" />
-    <PackageReference Include="MicroBuild.VisualStudio" Version="2.0.40" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="14.3.0" PrivateAssets="all" />
+    <PackageReference Include="MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" PrivateAssets="all" />
+    <PackageReference Include="Nerdbank.MSBuildExtension" Version="0.1.17-beta" PrivateAssets="all" />
   </ItemGroup>
 </Project>
