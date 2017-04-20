@@ -351,6 +351,8 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+#pragma warning disable CS3016 // Arrays as attribute arguments is not CLS compliant. But these are private so we don't care.
+
         // The part creation policy is NonShared so that it can satisfy exports within any sharing boundary.
         [MefV1.Export(typeof(MefV1.ICompositionService))]
         [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
