@@ -28,6 +28,8 @@ try {
     dotnet restore src
 
     $MicroBuildPackageSource = 'https://devdiv.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
+    $VSPackageSource = 'https://devdiv.pkgs.visualstudio.com/_packaging/VS/nuget/v3/index.json'
+
     if ($Signing) {
         Write-Host "Installing MicroBuild signing plugin" -ForegroundColor $HeaderColor
         & "$toolsPath\Install-NuGetPackage.ps1" MicroBuild.Plugins.Signing -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
@@ -36,13 +38,13 @@ try {
 
     if ($IBCMerge) {
         Write-Host "Installing MicroBuild IBCMerge plugin" -ForegroundColor $HeaderColor
-        & "$toolsPath\Install-NuGetPackage.ps1" MicroBuild.Plugins.IBCMerge -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
+        & "$toolsPath\Install-NuGetPackage.ps1" MicroBuild.Plugins.IBCMerge -source $MicroBuildPackageSource -FallbackSources $VSPackageSource -Verbosity $nugetVerbosity
         $env:IBCMergeBranch = "master"
     }
 
     if ($Localization) {
         Write-Host "Installing MicroBuild localization plugin" -ForegroundColor $HeaderColor
-        & "$toolsPath\Install-NuGetPackage.ps1" MicroBuild.Plugins.Localization -source $MicroBuildPackageSource
+        & "$toolsPath\Install-NuGetPackage.ps1" MicroBuild.Plugins.Localization -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
         $env:LocType = "Pseudo"
         $env:LocLanguages = "VS"
     }
