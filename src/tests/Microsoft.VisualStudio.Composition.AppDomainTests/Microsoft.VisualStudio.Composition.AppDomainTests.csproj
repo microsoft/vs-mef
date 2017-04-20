@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net451</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.AppDomainTests2\Microsoft.VisualStudio.Composition.AppDomainTests2.csproj" />
+    <ProjectReference Include="..\..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />
+  </ItemGroup>
+</Project>

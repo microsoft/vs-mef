@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
 

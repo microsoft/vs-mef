@@ -1,134 +1,52 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1CA6A92C-5DD9-4BE5-B5B7-EE4A1318B4C2}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.VisualStudio.Composition</RootNamespace>
-    <AssemblyName>Microsoft.VisualStudio.Composition</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <MinimumVisualStudioVersion>11.0</MinimumVisualStudioVersion>
-    <OutputPath Condition=" '$(OutputPath)' == '' ">bin</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <NoWarn>CS1591</NoWarn>
+    <TargetFramework>net45</TargetFramework>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.ruleset</CodeAnalysisRuleSet>
-    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
-    <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <DocumentationFile>bin\Debug\Microsoft.VisualStudio.Composition.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.ruleset</CodeAnalysisRuleSet>
-    <NoWarn>CS1591</NoWarn>
-    <DocumentationFile>bin\Release\Microsoft.VisualStudio.Composition.xml</DocumentationFile>
+
+    <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
+    <PackageTags>Mef Composition Extensibility</PackageTags>
+    <Company>Microsoft</Company>
+    <Authors>Microsoft</Authors>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ArrayRental`1.cs" />
-    <Compile Include="AttributeServices.cs" />
-    <Compile Include="ByValueEquality+AssemblyNameComparer.cs" />
-    <Compile Include="ByValueEquality+BufferComparer.cs" />
-    <Compile Include="ByValueEquality.cs" />
-    <Compile Include="CollectionServices.cs" />
-    <Compile Include="ComposableCatalog.cs" />
-    <Compile Include="ComposedPart.cs" />
-    <Compile Include="ComposedPartDiagnostic.cs" />
-    <Compile Include="CompositionConstants.cs" />
-    <Compile Include="CompositionFailedException.cs" />
-    <Compile Include="CompressedUInt.cs" />
-    <Compile Include="ContractNameServices.cs" />
-    <Compile Include="CreationPolicy.cs" />
-    <Compile Include="DelegateServices.cs" />
-    <Compile Include="DelegatingExportProvider.cs" />
-    <Compile Include="Dgml.cs" />
-    <Compile Include="DiscoveredParts.cs" />
-    <Compile Include="DiscoveryProgress.cs" />
-    <Compile Include="DisposableWithAction.cs" />
-    <Compile Include="ExportDefinitionBinding.cs" />
-    <Compile Include="ExportedDelegate.cs" />
-    <Compile Include="ExportFactory.cs" />
-    <Compile Include="Export.cs" />
-    <Compile Include="ExportTypeIdentityConstraint.cs" />
-    <Compile Include="IAssemblyLoader.cs" />
-    <Compile Include="IExportProviderFactory.cs" />
-    <Compile Include="IFaultReportingExportProviderFactory.cs" />
-    <Compile Include="IRuntimeCompositionCacheManager.cs" />
-    <Compile Include="ICompositionCacheManager.cs" />
-    <Compile Include="IDescriptiveToString.cs" />
-    <Compile Include="IMetadataViewProvider.cs" />
-    <Compile Include="ImportMetadataViewConstraint.cs" />
-    <Compile Include="IImportSatisfiabilityConstraint.cs" />
-    <Compile Include="ImportDefinitionBinding.cs" />
-    <Compile Include="ImportCardinality.cs" />
-    <Compile Include="ExportMetadataValueImportConstraint.cs" />
-    <Compile Include="IndentingTextWriter.cs" />
-    <Compile Include="LazyMetadataWrapper.cs" />
-    <Compile Include="LazyServices.cs" />
-    <Compile Include="MetadataTokenType.cs" />
-    <Compile Include="MetadataViewClassProvider.cs" />
-    <Compile Include="PartCreationPolicyConstraint.cs" />
-    <Compile Include="PartDiscovery.cs" />
-    <Compile Include="ComposablePartDefinition.cs" />
-    <Compile Include="CompositionConfiguration.cs" />
-    <Compile Include="ExportDefinition.cs" />
-    <Compile Include="ExportProvider.cs" />
-    <Compile Include="ImportDefinition.cs" />
-    <Compile Include="PartDiscoveryException.cs" />
-    <Compile Include="PassthroughMetadataViewProvider.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReflectionHelpers.cs" />
-    <Compile Include="Reflection\ConstructorDesc.cs" />
-    <Compile Include="Reflection\ConstructorRef.cs" />
-    <Compile Include="Reflection\FieldDesc.cs" />
-    <Compile Include="Reflection\FieldRef.cs" />
-    <Compile Include="Reflection\MemberDesc.cs" />
-    <Compile Include="Reflection\MemberRef.cs" />
-    <Compile Include="Reflection\MethodDesc.cs" />
-    <Compile Include="Reflection\MethodRef.cs" />
-    <Compile Include="Reflection\ParameterRef.cs" />
-    <Compile Include="Reflection\PropertyDesc.cs" />
-    <Compile Include="Reflection\PropertyRef.cs" />
-    <Compile Include="Resolver.cs" />
-    <Compile Include="Reflection\ResolverExtensions.cs" />
-    <Compile Include="Reflection\TypeDesc.cs" />
-    <Compile Include="Reflection\TypeRef.cs" />
-    <Compile Include="Rental`1.cs" />
-    <Compile Include="RuntimeComposition.cs" />
-    <Compile Include="RuntimeExportProviderFactory+RuntimeExportProvider.cs" />
-    <Compile Include="RuntimeExportProviderFactory.cs" />
-    <Compile Include="StandardAssemblyLoader.cs" />
-    <Compile Include="Strings.Designer.cs">
+    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="15.0.82" />
+    <PackageReference Include="System.Collections.Immutable" Version="1.1.36" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.5.24" />
+    <PackageReference Include="MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" PrivateAssets="all" />
+    <PackageReference Include="PdbGit" Version="3.0.41" PrivateAssets="all" />
+    <PackageReference Include="System.Composition" Version="1.0.31" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Strings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
-    <Compile Include="UniquePropertyNameComparer.cs" />
-    <Compile Include="Utilities.cs" />
+    <Compile Update="ConfigurationStrings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ConfigurationStrings.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Microsoft.VisualStudio.Composition.ruleset" />
-    <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Strings.resx">
+    <EmbeddedResource Update="ConfigurationStrings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ConfigurationStrings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Strings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="SetNuSpecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
+    <PropertyGroup>
+      <PackageLicenseUrl>https://raw.githubusercontent.com/Microsoft/vs-mef/$(GitCommitIdShort)/LICENSE</PackageLicenseUrl>
+    </PropertyGroup>
+  </Target>
 </Project>

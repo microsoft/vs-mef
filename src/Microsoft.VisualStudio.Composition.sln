@@ -1,51 +1,47 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition", "Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj", "{1CA6A92C-5DD9-4BE5-B5B7-EE4A1318B4C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.Tests", "Microsoft.VisualStudio.Composition.Tests\Microsoft.VisualStudio.Composition.Tests.csproj", "{C92F90BA-CD5B-4847-832A-EE738F0FDB13}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.Tests", "tests\Microsoft.VisualStudio.Composition.Tests\Microsoft.VisualStudio.Composition.Tests.csproj", "{C92F90BA-CD5B-4847-832A-EE738F0FDB13}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.AppDomainTests", "Microsoft.VisualStudio.Composition.AppDomainTests\Microsoft.VisualStudio.Composition.AppDomainTests.csproj", "{15FC5B0E-AE82-4437-8916-B59E646C41E7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.AppDomainTests", "tests\Microsoft.VisualStudio.Composition.AppDomainTests\Microsoft.VisualStudio.Composition.AppDomainTests.csproj", "{15FC5B0E-AE82-4437-8916-B59E646C41E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.AppDomainTests2", "Microsoft.VisualStudio.Composition.AppDomainTests2\Microsoft.VisualStudio.Composition.AppDomainTests2.csproj", "{8FEA4ED5-0504-43A6-92C0-E9DACB20F1C8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.AppDomainTests2", "tests\Microsoft.VisualStudio.Composition.AppDomainTests2\Microsoft.VisualStudio.Composition.AppDomainTests2.csproj", "{8FEA4ED5-0504-43A6-92C0-E9DACB20F1C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests", "Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests.csproj", "{37E36AEC-3319-4219-974F-D258FBE8D143}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests", "tests\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests.csproj", "{37E36AEC-3319-4219-974F-D258FBE8D143}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.Configuration", "Microsoft.VisualStudio.Composition.Configuration\Microsoft.VisualStudio.Composition.Configuration.csproj", "{2285F0B1-0B9E-43C5-9BA5-0CB293C9BC63}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver", "Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver\Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver.csproj", "{843DB118-C15B-48B5-A9DC-B815CC788CEF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver", "tests\Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver\Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver.csproj", "{843DB118-C15B-48B5-A9DC-B815CC788CEF}"
 EndProject
-Project("{FF286327-C783-4F7A-AB73-9BCBAD0D4460}") = "Microsoft.VisualStudio.Composition.AppHost.NuGet", "Microsoft.VisualStudio.Composition.AppHost.NuGet\Microsoft.VisualStudio.Composition.AppHost.NuGet.nuproj", "{E0F18440-CA64-4FBD-BD55-E912B663BA16}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver", "tests\Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver\Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver.csproj", "{3E996534-55E8-428D-8668-2C49E8770F32}"
 EndProject
-Project("{FF286327-C783-4F7A-AB73-9BCBAD0D4460}") = "Microsoft.VisualStudio.Composition.NuGet", "Microsoft.VisualStudio.Composition.NuGet\Microsoft.VisualStudio.Composition.NuGet.nuproj", "{2101EA0E-1443-40C1-AF3B-F5C6B5B0A523}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.MissingAssemblyTests", "tests\Microsoft.VisualStudio.Composition.MissingAssemblyTests\Microsoft.VisualStudio.Composition.MissingAssemblyTests.csproj", "{635A4876-52BA-47C7-874C-8DFB125C020A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver", "Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver\Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver.csproj", "{3E996534-55E8-428D-8668-2C49E8770F32}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.MissingAssemblyTests", "Microsoft.VisualStudio.Composition.MissingAssemblyTests\Microsoft.VisualStudio.Composition.MissingAssemblyTests.csproj", "{635A4876-52BA-47C7-874C-8DFB125C020A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.BrokenAssemblyTests", "Microsoft.VisualStudio.Composition.BrokenAssemblyTests\Microsoft.VisualStudio.Composition.BrokenAssemblyTests.csproj", "{0FD27327-EBFD-459A-887D-349BC3835C20}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{C6967B80-59AD-443D-B72F-FDA2B684E0B3}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\packages.config = .nuget\packages.config
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.BrokenAssemblyTests", "tests\Microsoft.VisualStudio.Composition.BrokenAssemblyTests\Microsoft.VisualStudio.Composition.BrokenAssemblyTests.csproj", "{0FD27327-EBFD-459A-887D-349BC3835C20}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{28B65BDB-4470-4946-BAC3-4EE840F40B37}"
 	ProjectSection(SolutionItems) = preProject
-		..\EnlistmentInfo.props = ..\EnlistmentInfo.props
-		..\EnlistmentInfo.targets = ..\EnlistmentInfo.targets
-		..\nuget.config = ..\nuget.config
-		..\version.json = ..\version.json
+		Directory.Build.props = Directory.Build.props
+		nuget.config = nuget.config
+		version.json = version.json
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2", "Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2.csproj", "{A424CBE4-248E-477C-88BD-575FA240EACB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tests\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2", "tests\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2.csproj", "{A424CBE4-248E-477C-88BD-575FA240EACB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.AppHost", "Microsoft.VisualStudio.Composition.AppHost\Microsoft.VisualStudio.Composition.AppHost.csproj", "{93C14982-BB95-4554-BE09-2D0A4C9ADA09}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{1CA6A92C-5DD9-4BE5-B5B7-EE4A1318B4C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -76,14 +72,6 @@ Global
 		{843DB118-C15B-48B5-A9DC-B815CC788CEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{843DB118-C15B-48B5-A9DC-B815CC788CEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{843DB118-C15B-48B5-A9DC-B815CC788CEF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E0F18440-CA64-4FBD-BD55-E912B663BA16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E0F18440-CA64-4FBD-BD55-E912B663BA16}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E0F18440-CA64-4FBD-BD55-E912B663BA16}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E0F18440-CA64-4FBD-BD55-E912B663BA16}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2101EA0E-1443-40C1-AF3B-F5C6B5B0A523}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2101EA0E-1443-40C1-AF3B-F5C6B5B0A523}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2101EA0E-1443-40C1-AF3B-F5C6B5B0A523}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2101EA0E-1443-40C1-AF3B-F5C6B5B0A523}.Release|Any CPU.Build.0 = Release|Any CPU
 		{3E996534-55E8-428D-8668-2C49E8770F32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3E996534-55E8-428D-8668-2C49E8770F32}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E996534-55E8-428D-8668-2C49E8770F32}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -100,6 +88,18 @@ Global
 		{A424CBE4-248E-477C-88BD-575FA240EACB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A424CBE4-248E-477C-88BD-575FA240EACB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A424CBE4-248E-477C-88BD-575FA240EACB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Debug|x64.ActiveCfg = Debug|x64
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Debug|x64.Build.0 = Debug|x64
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Debug|x86.ActiveCfg = Debug|x86
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Debug|x86.Build.0 = Debug|x86
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|x64.ActiveCfg = Release|x64
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|x64.Build.0 = Release|x64
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|x86.ActiveCfg = Release|x86
+		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
