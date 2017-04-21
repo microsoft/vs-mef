@@ -3,16 +3,12 @@
     Restores NuGet packages.
 .PARAMETER Signing
     Install the MicroBuild signing plugin for building test-signed builds on desktop machines.
-.PARAMETER Localization
-    Install the MicroBuild localization plugin for building loc builds on desktop machines.
 .PARAMETER IBCMerge
     Install the MicroBuild IBCMerge plugin for building optimized assemblies on desktop machines.
 #>
 Param(
     [Parameter()]
     [switch]$Signing,
-    [Parameter()]
-    [switch]$Localization,
     [Parameter()]
     [switch]$IBCMerge
 )
@@ -40,13 +36,6 @@ try {
         Write-Host "Installing MicroBuild IBCMerge plugin" -ForegroundColor $HeaderColor
         & "$toolsPath\Install-NuGetPackage.ps1" MicroBuild.Plugins.IBCMerge -source $MicroBuildPackageSource -FallbackSources $VSPackageSource -Verbosity $nugetVerbosity
         $env:IBCMergeBranch = "master"
-    }
-
-    if ($Localization) {
-        Write-Host "Installing MicroBuild localization plugin" -ForegroundColor $HeaderColor
-        & "$toolsPath\Install-NuGetPackage.ps1" MicroBuild.Plugins.Localization -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
-        $env:LocType = "Pseudo"
-        $env:LocLanguages = "VS"
     }
 
     Write-Host "Successfully restored all dependencies" -ForegroundColor Yellow
