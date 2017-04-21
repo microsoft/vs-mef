@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(configuration, nameof(configuration));
             Requires.NotNull(cacheStream, nameof(cacheStream));
-            Requires.Argument(cacheStream.CanWrite, "cacheStream", ConfigurationStrings.WritableStreamRequired);
+            Requires.Argument(cacheStream.CanWrite, "cacheStream", Strings.WritableStreamRequired);
 
             return Task.Run(async delegate
             {
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(composition, nameof(composition));
             Requires.NotNull(cacheStream, nameof(cacheStream));
-            Requires.Argument(cacheStream.CanWrite, "cacheStream", ConfigurationStrings.WritableStreamRequired);
+            Requires.Argument(cacheStream.CanWrite, "cacheStream", Strings.WritableStreamRequired);
 
             return Task.Run(() =>
             {
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.Composition
         public Task<RuntimeComposition> LoadRuntimeCompositionAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(cacheStream, nameof(cacheStream));
-            Requires.Argument(cacheStream.CanRead, "cacheStream", ConfigurationStrings.ReadableStreamRequired);
+            Requires.Argument(cacheStream.CanRead, "cacheStream", Strings.ReadableStreamRequired);
             Requires.NotNull(resolver, nameof(resolver));
 
             return Task.Run(() =>

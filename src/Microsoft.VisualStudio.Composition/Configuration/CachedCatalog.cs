@@ -292,7 +292,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
                     else
                     {
-                        throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, ConfigurationStrings.ImportConstraintTypeNotSupported, importConstraint.GetType().FullName));
+                        throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ImportConstraintTypeNotSupported, importConstraint.GetType().FullName));
                     }
 
                     this.writer.Write((byte)type);
@@ -361,7 +361,7 @@ namespace Microsoft.VisualStudio.Composition
                             }
 
                         default:
-                            throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, ConfigurationStrings.UnexpectedConstraintType, type));
+                            throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.UnexpectedConstraintType, type));
                     }
                 }
             }

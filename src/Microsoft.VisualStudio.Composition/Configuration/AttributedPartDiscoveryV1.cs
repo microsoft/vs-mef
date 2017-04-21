@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.Composition
                 else
                 {
                     MemberInfo exportingTypeOrPropertyOrField = export.Key;
-                    Verify.Operation(export.Key is Type || !partType.IsGenericTypeDefinition, ConfigurationStrings.ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric);
+                    Verify.Operation(export.Key is Type || !partType.IsGenericTypeDefinition, Strings.ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric);
                     Type exportSiteType = ReflectionHelpers.GetMemberType(exportingTypeOrPropertyOrField);
                     foreach (var exportAttribute in export.Value)
                     {
@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.Composition
                     var import = this.CreateImport(parameter);
                     if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
                     {
-                        Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(import), ConfigurationStrings.CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor);
+                        Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(import), Strings.CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor);
                     }
 
                     importingConstructorParameters.Add(import);
@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (importAttribute.Source != ImportSource.Any)
                 {
-                    throw new NotSupportedException(ConfigurationStrings.CustomImportSourceNotSupported);
+                    throw new NotSupportedException(Strings.CustomImportSourceNotSupported);
                 }
 
                 var requiredCreationPolicy = importingType.IsExportFactoryTypeV1()
@@ -285,7 +285,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (importManyAttribute.Source != ImportSource.Any)
                 {
-                    throw new NotSupportedException(ConfigurationStrings.CustomImportSourceNotSupported);
+                    throw new NotSupportedException(Strings.CustomImportSourceNotSupported);
                 }
 
                 var requiredCreationPolicy = GetElementTypeFromMany(importingType).IsExportFactoryTypeV1()
@@ -360,7 +360,7 @@ namespace Microsoft.VisualStudio.Composition
                                         ? ((Type)member).FullName
                                         : $"{member.DeclaringType.FullName}.{member.Name}";
 
-                                    throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, ConfigurationStrings.DiscoveredIdenticalPropertiesInMetadataAttributesForPart, memberName, property.Name));
+                                    throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.DiscoveredIdenticalPropertiesInMetadataAttributesForPart, memberName, property.Name));
                                 }
 
                                 result.Add(property.Name, property.GetValue(attribute));

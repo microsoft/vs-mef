@@ -70,6 +70,24 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to AssemblyName must be set first..
+        /// </summary>
+        internal static string AssemblyNameMustBeSetFirst {
+            get {
+                return ResourceManager.GetString("AssemblyNameMustBeSetFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot be empty..
+        /// </summary>
+        internal static string CannotBeEmpty {
+            get {
+                return ResourceManager.GetString("CannotBeEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This instance is an import and cannot be directly disposed..
         /// </summary>
         internal static string CannotDirectlyDisposeAnImport {
@@ -88,6 +106,15 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Collection must be public with a public constructor when used with an [ImportingConstructor]..
+        /// </summary>
+        internal static string CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor {
+            get {
+                return ResourceManager.GetString("CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Collection type must derive from ICollection&lt;T&gt;..
         /// </summary>
         internal static string CollectionTypeMustDeriveFromICollectionOfT {
@@ -97,11 +124,38 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Compilation errors occurred..
+        /// </summary>
+        internal static string CompilerErrorsOccurred {
+            get {
+                return ResourceManager.GetString("CompilerErrorsOccurred", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Instantiated part(s) threw exception(s) from IDisposable.Dispose()..
         /// </summary>
         internal static string ContainerDisposalEncounteredExceptions {
             get {
                 return ResourceManager.GetString("ContainerDisposalEncounteredExceptions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Custom import sources are not yet supported..
+        /// </summary>
+        internal static string CustomImportSourceNotSupported {
+            get {
+                return ResourceManager.GetString("CustomImportSourceNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Member &quot;{0}&quot; contains metadata attributes with an identical property name. Property name: &quot;{1}&quot;..
+        /// </summary>
+        internal static string DiscoveredIdenticalPropertiesInMetadataAttributesForPart {
+            get {
+                return ResourceManager.GetString("DiscoveredIdenticalPropertiesInMetadataAttributesForPart", resourceCulture);
             }
         }
         
@@ -187,6 +241,24 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Exports on members not allowed when the declaring type is generic..
+        /// </summary>
+        internal static string ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric {
+            get {
+                return ResourceManager.GetString("ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to generate embeddable types..
+        /// </summary>
+        internal static string FailedToGenerateEmbeddableTypes {
+            get {
+                return ResourceManager.GetString("FailedToGenerateEmbeddableTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to find a stable composition..
         /// </summary>
         internal static string FailStableComposition {
@@ -201,6 +273,15 @@ namespace Microsoft.VisualStudio.Composition {
         internal static string FailureWhileScanningType {
             get {
                 return ResourceManager.GetString("FailureWhileScanningType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The import constraint type {0} is not supported..
+        /// </summary>
+        internal static string ImportConstraintTypeNotSupported {
+            get {
+                return ResourceManager.GetString("ImportConstraintTypeNotSupported", resourceCulture);
             }
         }
         
@@ -232,6 +313,24 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} is expected only on imports of ExportFactory&lt;T&gt;..
+        /// </summary>
+        internal static string IsExpectedOnlyOnImportsOfExportFactoryOfT {
+            get {
+                return ResourceManager.GetString("IsExpectedOnlyOnImportsOfExportFactoryOfT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IsExportFactory is expected to be true..
+        /// </summary>
+        internal static string IsExportFactoryExpectedTrue {
+            get {
+                return ResourceManager.GetString("IsExportFactoryExpectedTrue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0}: is not assignable from exported MEF value {1}..
         /// </summary>
         internal static string IsNotAssignableFromExportedMEFValue {
@@ -259,6 +358,15 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Member &quot;{0}&quot; contains both ImportAttribute and ImportManyAttribute..
+        /// </summary>
+        internal static string MemberContainsBothImportAndImportMany {
+            get {
+                return ResourceManager.GetString("MemberContainsBothImportAndImportMany", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0}: metadata type {1} is not supported..
         /// </summary>
         internal static string MetadataTypeNotSupported {
@@ -273,6 +381,24 @@ namespace Microsoft.VisualStudio.Composition {
         internal static string NoImportingConstructor {
             get {
                 return ResourceManager.GetString("NoImportingConstructor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No importing constructor found..
+        /// </summary>
+        internal static string NoImportingConstructorFound {
+            get {
+                return ResourceManager.GetString("NoImportingConstructorFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No member to satisfy..
+        /// </summary>
+        internal static string NoMemberToSatisfy {
+            get {
+                return ResourceManager.GetString("NoMemberToSatisfy", resourceCulture);
             }
         }
         
@@ -313,6 +439,33 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to OnImportsSatisfied method should take no parameters..
+        /// </summary>
+        internal static string OnImportsSatisfiedTakeNoParameters {
+            get {
+                return ResourceManager.GetString("OnImportsSatisfiedTakeNoParameters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only one OnImportsSatisfied method is supported..
+        /// </summary>
+        internal static string OnlyOneOnImportsSatisfiedMethodIsSupported {
+            get {
+                return ResourceManager.GetString("OnlyOneOnImportsSatisfiedMethodIsSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only supported on write operations..
+        /// </summary>
+        internal static string OnlySupportedOnWriteOperations {
+            get {
+                return ResourceManager.GetString("OnlySupportedOnWriteOperations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Inappropriate request for export from part that belongs to another sharing boundary..
         /// </summary>
         internal static string PartBelongsToAnotherSharingBoundary {
@@ -340,6 +493,15 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Readable stream required..
+        /// </summary>
+        internal static string ReadableStreamRequired {
+            get {
+                return ResourceManager.GetString("ReadableStreamRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to construct MEF part &quot;{0}&quot; due to an unresolvable recursive construction request..
         /// </summary>
         internal static string RecursiveRequestForPartConstruction {
@@ -363,6 +525,15 @@ namespace Microsoft.VisualStudio.Composition {
         internal static string ScanningMEFAssemblies {
             get {
                 return ResourceManager.GetString("ScanningMEFAssemblies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type must be the one that defines memberInfo or a derived type..
+        /// </summary>
+        internal static string TypeMustDefineMemberInfoOrDerivedType {
+            get {
+                return ResourceManager.GetString("TypeMustDefineMemberInfoOrDerivedType", resourceCulture);
             }
         }
         
@@ -412,6 +583,15 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unexpected constraint type: {0}..
+        /// </summary>
+        internal static string UnexpectedConstraintType {
+            get {
+                return ResourceManager.GetString("UnexpectedConstraintType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unexpected member type..
         /// </summary>
         internal static string UnexpectedMemberType {
@@ -448,11 +628,38 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unsupported format: {0}..
+        /// </summary>
+        internal static string UnsupportedFormat {
+            get {
+                return ResourceManager.GetString("UnsupportedFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Writable stream required..
+        /// </summary>
+        internal static string WritableStreamRequired {
+            get {
+                return ResourceManager.GetString("WritableStreamRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Wrong length..
         /// </summary>
         internal static string WrongLength {
             get {
                 return ResourceManager.GetString("WrongLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Wrong type..
+        /// </summary>
+        internal static string WrongType {
+            get {
+                return ResourceManager.GetString("WrongType", resourceCulture);
             }
         }
     }

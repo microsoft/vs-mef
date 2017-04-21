@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.Composition
                 else // property
                 {
                     var property = (PropertyInfo)member;
-                    Verify.Operation(!partType.IsGenericTypeDefinition, ConfigurationStrings.ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric);
+                    Verify.Operation(!partType.IsGenericTypeDefinition, Strings.ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric);
                     var exportDefinitions = ImmutableList.CreateBuilder<ExportDefinition>();
                     foreach (var exportAttribute in export.Value)
                     {
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 var importAttribute = member.GetFirstAttribute<ImportAttribute>();
                 var importManyAttribute = member.GetFirstAttribute<ImportManyAttribute>();
-                Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", ConfigurationStrings.MemberContainsBothImportAndImportMany, member.Name);
+                Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", Strings.MemberContainsBothImportAndImportMany, member.Name);
 
                 var importConstraints = GetImportConstraints(member);
                 ImportDefinition importDefinition;
@@ -150,21 +150,21 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (method.IsAttributeDefined<OnImportsSatisfiedAttribute>())
                 {
-                    Verify.Operation(method.GetParameters().Length == 0, ConfigurationStrings.OnImportsSatisfiedTakeNoParameters);
-                    Verify.Operation(onImportsSatisfied == null, ConfigurationStrings.OnlyOneOnImportsSatisfiedMethodIsSupported);
+                    Verify.Operation(method.GetParameters().Length == 0, Strings.OnImportsSatisfiedTakeNoParameters);
+                    Verify.Operation(onImportsSatisfied == null, Strings.OnlyOneOnImportsSatisfiedMethodIsSupported);
                     onImportsSatisfied = method;
                 }
             }
 
             var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
             var importingCtor = GetImportingConstructor<ImportingConstructorAttribute>(partType, publicOnly: !this.IsNonPublicSupported);
-            Verify.Operation(importingCtor != null, ConfigurationStrings.NoImportingConstructorFound);
+            Verify.Operation(importingCtor != null, Strings.NoImportingConstructorFound);
             foreach (var parameter in importingCtor.GetParameters())
             {
                 var import = this.CreateImport(parameter, GetImportConstraints(parameter));
                 if (import.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore)
                 {
-                    Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(import), ConfigurationStrings.CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor);
+                    Verify.Operation(PartDiscovery.IsImportManyCollectionTypeCreateable(import), Strings.CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor);
                 }
 
                 importingConstructorParameters.Add(import);
@@ -279,7 +279,7 @@ namespace Microsoft.VisualStudio.Composition
             var sharingBoundaryAttribute = member.GetFirstAttribute<SharingBoundaryAttribute>();
             if (sharingBoundaryAttribute != null)
             {
-                Verify.Operation(importingType.IsExportFactoryTypeV2(), ConfigurationStrings.IsExpectedOnlyOnImportsOfExportFactoryOfT, typeof(SharingBoundaryAttribute).Name);
+                Verify.Operation(importingType.IsExportFactoryTypeV2(), Strings.IsExpectedOnlyOnImportsOfExportFactoryOfT, typeof(SharingBoundaryAttribute).Name);
                 sharingBoundaries = sharingBoundaries.Union(sharingBoundaryAttribute.SharingBoundaryNames);
             }
 

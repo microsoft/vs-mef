@@ -249,4 +249,77 @@
   <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
     <value>Unable to construct MEF part "{0}" due to an unresolvable recursive construction request.</value>
   </data>
+  <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
+    <value>AssemblyName must be set first.</value>
+  </data>
+  <data name="CannotBeEmpty" xml:space="preserve">
+    <value>Cannot be empty.</value>
+  </data>
+  <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
+    <value>Collection must be public with a public constructor when used with an [ImportingConstructor].</value>
+  </data>
+  <data name="CompilerErrorsOccurred" xml:space="preserve">
+    <value>Compilation errors occurred.</value>
+  </data>
+  <data name="CustomImportSourceNotSupported" xml:space="preserve">
+    <value>Custom import sources are not yet supported.</value>
+  </data>
+  <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
+    <value>Member "{0}" contains metadata attributes with an identical property name. Property name: "{1}".</value>
+    <comment>{0} = member (full name if possible) with invalid metadata attributes.
+{1} = the property's name.</comment>
+  </data>
+  <data name="ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" xml:space="preserve">
+    <value>Exports on members not allowed when the declaring type is generic.</value>
+  </data>
+  <data name="FailedToGenerateEmbeddableTypes" xml:space="preserve">
+    <value>Failed to generate embeddable types.</value>
+  </data>
+  <data name="ImportConstraintTypeNotSupported" xml:space="preserve">
+    <value>The import constraint type {0} is not supported.</value>
+  </data>
+  <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
+    <value>{0} is expected only on imports of ExportFactory&lt;T&gt;.</value>
+  </data>
+  <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
+    <value>IsExportFactory is expected to be true.</value>
+  </data>
+  <data name="MemberContainsBothImportAndImportMany" xml:space="preserve">
+    <value>Member "{0}" contains both ImportAttribute and ImportManyAttribute.</value>
+  </data>
+  <data name="NoImportingConstructorFound" xml:space="preserve">
+    <value>No importing constructor found.</value>
+  </data>
+  <data name="NoMemberToSatisfy" xml:space="preserve">
+    <value>No member to satisfy.</value>
+  </data>
+  <data name="OnImportsSatisfiedTakeNoParameters" xml:space="preserve">
+    <value>OnImportsSatisfied method should take no parameters.</value>
+  </data>
+  <data name="OnlyOneOnImportsSatisfiedMethodIsSupported" xml:space="preserve">
+    <value>Only one OnImportsSatisfied method is supported.</value>
+  </data>
+  <data name="OnlySupportedOnWriteOperations" xml:space="preserve">
+    <value>Only supported on write operations.</value>
+  </data>
+  <data name="ReadableStreamRequired" xml:space="preserve">
+    <value>Readable stream required.</value>
+    <comment>'stream' is in reference to System.IO.Stream</comment>
+  </data>
+  <data name="TypeMustDefineMemberInfoOrDerivedType" xml:space="preserve">
+    <value>Type must be the one that defines memberInfo or a derived type.</value>
+  </data>
+  <data name="UnexpectedConstraintType" xml:space="preserve">
+    <value>Unexpected constraint type: {0}.</value>
+  </data>
+  <data name="UnsupportedFormat" xml:space="preserve">
+    <value>Unsupported format: {0}.</value>
+  </data>
+  <data name="WritableStreamRequired" xml:space="preserve">
+    <value>Writable stream required.</value>
+    <comment>'stream' is in reference to System.IO.Stream</comment>
+  </data>
+  <data name="WrongType" xml:space="preserve">
+    <value>Wrong type.</value>
+  </data>
 </root>
