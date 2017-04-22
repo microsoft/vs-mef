@@ -1,282 +1,282 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
-  <file datatype="xml" source-language="en-US" target-language="de" original="MICROSOFT.VISUALSTUDIO.COMPOSITION/STRINGS.RESX" tool-id="MultilingualAppToolkit" product-name="n/a" product-version="n/a" build-num="n/a">
+  <file datatype="xml" source-language="en-US" target-language="pt-BR" original="MICROSOFT.VISUALSTUDIO.COMPOSITION.LOCALIZATIONSHELL/STRINGS.RESX" tool-id="MultilingualAppToolkit" product-name="n/a" product-version="n/a" build-num="n/a">
     <header>
-      <tool tool-id="MultilingualAppToolkit" tool-name="Multilingual App Toolkit" tool-version="4.0.1795.0" tool-company="Microsoft" />
+      <tool tool-id="MultilingualAppToolkit" tool-name="Multilingual App Toolkit" tool-version="4.0.6799.0" tool-company="Microsoft" />
     </header>
     <body>
-      <group id="MICROSOFT.VISUALSTUDIO.COMPOSITION/STRINGS.RESX" datatype="resx">
+      <group id="MICROSOFT.VISUALSTUDIO.COMPOSITION.LOCALIZATIONSHELL/STRINGS.RESX" datatype="resx">
         <trans-unit id="CannotDirectlyDisposeAnImport" translate="yes" xml:space="preserve">
           <source>This instance is an import and cannot be directly disposed.</source>
-          <target state="new">This instance is an import and cannot be directly disposed.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Esta instância é uma importação e não pode ser descartada diretamente.</target>
         </trans-unit>
         <trans-unit id="ContainerDisposalEncounteredExceptions" translate="yes" xml:space="preserve">
           <source>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</source>
-          <target state="new">Instantiated part(s) threw exception(s) from IDisposable.Dispose().</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">As partes instanciadas geraram exceções por meio de IDisposable.Dispose().</target>
         </trans-unit>
         <trans-unit id="ErrorsDuringDiscovery" translate="yes" xml:space="preserve">
           <source>Errors occurred during discovery.</source>
-          <target state="new">Errors occurred during discovery.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Ocorreram erros durante a descoberta.</target>
         </trans-unit>
         <trans-unit id="ErrorsInComposition" translate="yes" xml:space="preserve">
           <source>Errors exist in the composition.</source>
-          <target state="new">Errors exist in the composition.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Existem erros na composição.</target>
         </trans-unit>
         <trans-unit id="ErrorWhileSettingImport" translate="yes" xml:space="preserve">
           <source>Import "{0}" could not be satisfied.</source>
-          <target state="new">Import "{0}" could not be satisfied.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Não foi possível satisfazer à importação de "{0}".</target>
         </trans-unit>
         <trans-unit id="ExceptionThrownByPartUnderInitialization" translate="yes" xml:space="preserve">
           <source>An exception was thrown while initializing part "{0}".</source>
-          <target state="new">An exception was thrown while initializing part "{0}".</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Uma exceção foi gerada ao inicializar a parte "{0}".</target>
         </trans-unit>
         <trans-unit id="ExportedValueNotAssignableToImport" translate="yes" xml:space="preserve">
           <source>Value exported from "{0}" cannot be assigned to import site "{1}".</source>
-          <target state="new">Value exported from "{0}" cannot be assigned to import site "{1}".</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">O valor exportado de "{0}" não pode ser atribuído para importar o site "{1}".</target>
         </trans-unit>
         <trans-unit id="FailStableComposition" translate="yes" xml:space="preserve">
           <source>Failed to find a stable composition.</source>
-          <target state="new">Failed to find a stable composition.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Falha ao localizar uma composição estável.</target>
         </trans-unit>
         <trans-unit id="FailureWhileScanningType" translate="yes" xml:space="preserve">
           <source>Failure while scanning type "{0}".</source>
-          <target state="new">Failure while scanning type "{0}".</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Falha ao verificar o tipo "{0}".</target>
         </trans-unit>
         <trans-unit id="NoImportingConstructor" translate="yes" xml:space="preserve">
           <source>No importing constructor.</source>
-          <target state="new">No importing constructor.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nenhum construtor de importação.</target>
         </trans-unit>
         <trans-unit id="PartBelongsToAnotherSharingBoundary" translate="yes" xml:space="preserve">
           <source>Inappropriate request for export from part that belongs to another sharing boundary.</source>
-          <target state="new">Inappropriate request for export from part that belongs to another sharing boundary.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Solicitação inadequada de exportação da parte que pertence a outro limite de compartilhamento.</target>
         </trans-unit>
         <trans-unit id="PartIsNotInstantiable" translate="yes" xml:space="preserve">
           <source>This part ({0}) cannot be instantiated.</source>
-          <target state="new">This part ({0}) cannot be instantiated.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Não é possível criar uma instância desta parte ({0}).</target>
         </trans-unit>
         <trans-unit id="ReflectionTypeLoadExceptionWhileEnumeratingTypes" translate="yes" xml:space="preserve">
           <source>ReflectionTypeLoadException while enumerating types in assembly "{0}". Results will be incomplete.</source>
-          <target state="new">ReflectionTypeLoadException while enumerating types in assembly "{0}". Results will be incomplete.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">ExceçãoDeCargaTipoReflexão ao enumerar tipos em assembly "{0}". Os resultados serão incompletos.</target>
         </trans-unit>
         <trans-unit id="ScanningMEFAssemblies" translate="yes" xml:space="preserve">
           <source>Scanning MEF assemblies...</source>
-          <target state="new">Scanning MEF assemblies...</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Verificando assemblies de MEF...</target>
         </trans-unit>
         <trans-unit id="TypeOfMetadataViewUnsupported" translate="yes" xml:space="preserve">
           <source>Type of metadata view is unsupported.</source>
-          <target state="new">Type of metadata view is unsupported.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Não há suporte para o tipo de exibição de metadados.</target>
         </trans-unit>
         <trans-unit id="UnableToDeterminePrimarySharingBoundary" translate="yes" xml:space="preserve">
           <source>Unable to determine the primary sharing boundary for MEF part "{0}".</source>
-          <target state="new">Unable to determine the primary sharing boundary for MEF part "{0}".</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Não é possível determinar o limite de compartilhamento principal da parte de MEF "{0}".</target>
         </trans-unit>
         <trans-unit id="UnableToEnumerateTypes" translate="yes" xml:space="preserve">
           <source>Unable to enumerate types in assembly "{0}".</source>
-          <target state="new">Unable to enumerate types in assembly "{0}".</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Não é possível enumerar os tipos no assembly "{0}".</target>
         </trans-unit>
         <trans-unit id="UnableToInstantiateCustomImportCollectionType" translate="yes" xml:space="preserve">
           <source>Unable to instantiate custom import collection type.</source>
-          <target state="new">Unable to instantiate custom import collection type.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Não é possível criar uma instância do tipo de coleção de importação personalizada.</target>
         </trans-unit>
         <trans-unit id="UnableToLoadAssembly" translate="yes" xml:space="preserve">
           <source>Unable to load assembly "{0}" for scanning.</source>
-          <target state="new">Unable to load assembly "{0}" for scanning.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Não é possível carregar o assembly "{0}" para verificação.</target>
         </trans-unit>
         <trans-unit id="UnexpectedMemberType" translate="yes" xml:space="preserve">
           <source>Unexpected member type.</source>
-          <target state="new">Unexpected member type.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Tipo de membro inesperado.</target>
         </trans-unit>
         <trans-unit id="UnexpectedNumberOfExportsFound" translate="yes" xml:space="preserve">
           <source>Expected {0} export(s) with contract name "{1}" but found {2} after applying applicable constraints.</source>
-          <target state="new">Expected {0} export(s) with contract name "{1}" but found {2} after applying applicable constraints.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0} exportação(ões) esperada(s) com nome de contrato "{1}", mas foram encontradas {2} após aplicação das restrições aplicáveis.</target>
         </trans-unit>
         <trans-unit id="UnexpectedSharedPartState" translate="yes" xml:space="preserve">
           <source>This shared part is in state {0} but must be in state {1} for this operation.</source>
-          <target state="new">This shared part is in state {0} but must be in state {1} for this operation.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Esta parte compartilhada está em estado {0}, mas deve estar em estado {1} para esta operação.</target>
         </trans-unit>
         <trans-unit id="AllValuesMustBeNonNull" translate="yes" xml:space="preserve">
           <source>All values must be non-null.</source>
-          <target state="new">All values must be non-null.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Todos os valores devem ser não nulos.</target>
         </trans-unit>
         <trans-unit id="CannotImportBecauseExportingPartCannotBeInstantiated" translate="yes" xml:space="preserve">
           <source>{0}: cannot import exported value from {1} because the exporting part cannot be instantiated. Is it missing an importing constructor?</source>
-          <target state="new">{0}: cannot import exported value from {1} because the exporting part cannot be instantiated. Is it missing an importing constructor?</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: não é possível importar o valor exportado de {1} porque não é possível criar uma instância da parte de exportação. Um construtor de importação está ausente?</target>
         </trans-unit>
         <trans-unit id="CollectionTypeMustDeriveFromICollectionOfT" translate="yes" xml:space="preserve">
           <source>Collection type must derive from ICollection<it id="1" pos="open">&lt;T&gt;</it>.</source>
-          <target state="new">Collection type must derive from ICollection<it id="1" pos="open">&lt;T&gt;</it>.</target>
+          <target state="needs-review-translation" state-qualifier="mt-suggestion">Tipo de coleção deve derivar de ICollection<it id="1" pos="open">&lt;T&gt;</it>.</target>
         </trans-unit>
         <trans-unit id="ExactlyOneEntryForEveryImport" translate="yes" xml:space="preserve">
           <source>There should be exactly one entry for every import.</source>
-          <target state="new">There should be exactly one entry for every import.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Deve haver exatamente uma entrada para cada importação.</target>
         </trans-unit>
         <trans-unit id="ExpectedExactlyOneExportButFound" translate="yes" xml:space="preserve">
           <source>{0}: expected exactly 1 export of {1} but found {2}.{3}</source>
-          <target state="new">{0}: expected exactly 1 export of {1} but found {2}.{3}</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: esperava-se exatamente 1 exportação de {1}, mas foram encontradas {2}.{3}</target>
         </trans-unit>
         <trans-unit id="ExpectedOneOrZeroExportsButFound" translate="yes" xml:space="preserve">
           <source>{0}: expected 1 or 0 exports of {1} but found {2}.{3}</source>
-          <target state="new">{0}: expected 1 or 0 exports of {1} but found {2}.{3}</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: esperava-se 1 ou 0 exportação de {1}, mas foram encontradas {2}.{3}</target>
         </trans-unit>
         <trans-unit id="ExportOfExportProviderNotAllowed" translate="yes" xml:space="preserve">
           <source>{0}: Export of ExportProvider is not allowed.</source>
-          <target state="new">{0}: Export of ExportProvider is not allowed.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: Não é permitida exportação do ProvedorDeExportação.</target>
         </trans-unit>
         <trans-unit id="ImportingCtorHasUnsupportedParameterTypeForImportMany" translate="yes" xml:space="preserve">
           <source>Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable<it id="1" pos="open">&lt;T&gt;</it> are supported.</source>
-          <target state="new">Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable<it id="1" pos="open">&lt;T&gt;</it> are supported.</target>
+          <target state="needs-review-translation" state-qualifier="mt-suggestion">Importar o construtor tem um tipo de parâmetro sem suporte para um [ImportMany]. Único [] T e IEnumerable<it id="1" pos="open"> &lt;T&gt; </it> são suportados.</target>
         </trans-unit>
         <trans-unit id="ImportsThatUseGenericTypeParametersNotSupported" translate="yes" xml:space="preserve">
           <source>{0}: imports that use generic type parameters are not supported.</source>
-          <target state="new">{0}: imports that use generic type parameters are not supported.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: importações que usam parâmetros de tipo genérico não têm suporte.</target>
         </trans-unit>
         <trans-unit id="InstanceEmpty" translate="yes" xml:space="preserve">
           <source>This instance is empty.</source>
-          <target state="new">This instance is empty.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Esta instância está vazia.</target>
         </trans-unit>
         <trans-unit id="IsNotAssignableFromExportedMEFValue" translate="yes" xml:space="preserve">
           <source>{0}: is not assignable from exported MEF value {1}.</source>
-          <target state="new">{0}: is not assignable from exported MEF value {1}.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: não pode ser atribuído por meio do valor de MEF exportado {1}.</target>
         </trans-unit>
         <trans-unit id="LoopBetweenNonSharedParts" translate="yes" xml:space="preserve">
           <source>Loop between non-shared parts.</source>
-          <target state="new">Loop between non-shared parts.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Loop entre as partes não compartilhadas.</target>
         </trans-unit>
         <trans-unit id="LoopInvolvingImportingCtorArgumentAndAllNonLazyImports" translate="yes" xml:space="preserve">
           <source>Loop involving ImportingConstructor argument and all non-lazy imports.</source>
-          <target state="new">Loop involving ImportingConstructor argument and all non-lazy imports.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Loop envolvendo o argumento ImportingConstructor e todas as importações não lentas.</target>
         </trans-unit>
         <trans-unit id="MetadataTypeNotSupported" translate="yes" xml:space="preserve">
           <source>{0}: metadata type {1} is not supported.</source>
-          <target state="new">{0}: metadata type {1} is not supported.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: o tipo de metadados {1} não tem suporte.</target>
         </trans-unit>
         <trans-unit id="NotATypeSpec" translate="yes" xml:space="preserve">
           <source>Not a type spec.</source>
-          <target state="new">Not a type spec.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Não é uma especificação de tipo.</target>
         </trans-unit>
         <trans-unit id="NotClosedFormOfOther" translate="yes" xml:space="preserve">
           <source>Not a closed form of the other.</source>
-          <target state="new">Not a closed form of the other.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Não é uma forma fechada do outro.</target>
         </trans-unit>
         <trans-unit id="NotGenericTypeDefinition" translate="yes" xml:space="preserve">
           <source>This is not a generic type definition.</source>
-          <target state="new">This is not a generic type definition.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Esta não é uma definição de tipo genérico.</target>
         </trans-unit>
         <trans-unit id="NotInitialized" translate="yes" xml:space="preserve">
           <source>Not initialized.</source>
-          <target state="new">Not initialized.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Não inicializado.</target>
         </trans-unit>
         <trans-unit id="PartIsNotShared" translate="yes" xml:space="preserve">
           <source>Part is not shared.</source>
-          <target state="new">Part is not shared.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">A parte não é compartilhada.</target>
         </trans-unit>
         <trans-unit id="UnresolvableMetadataToken" translate="yes" xml:space="preserve">
           <source>Unresolvable metadata token.</source>
-          <target state="new">Unresolvable metadata token.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Token de metadados não resolvido.</target>
         </trans-unit>
         <trans-unit id="WrongLength" translate="yes" xml:space="preserve">
           <source>Wrong length.</source>
-          <target state="new">Wrong length.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Comprimento incorreto.</target>
         </trans-unit>
         <trans-unit id="RecursiveRequestForPartConstruction" translate="yes" xml:space="preserve">
           <source>Unable to construct MEF part "{0}" due to an unresolvable recursive construction request.</source>
-          <target state="new">Unable to construct MEF part "{0}" due to an unresolvable recursive construction request.</target>
+          <target state="needs-review-translation" state-qualifier="mt-suggestion">Não é possível construir parte do MEF "{0}" devido a uma solicitação de construção unresolvable recursiva.</target>
         </trans-unit>
         <trans-unit id="AssemblyNameMustBeSetFirst" translate="yes" xml:space="preserve">
           <source>AssemblyName must be set first.</source>
-          <target state="new">AssemblyName must be set first.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">O NomeDoAssembly deve ser definido primeiro.</target>
         </trans-unit>
         <trans-unit id="CannotBeEmpty" translate="yes" xml:space="preserve">
           <source>Cannot be empty.</source>
-          <target state="new">Cannot be empty.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Não pode ficar em branco.</target>
         </trans-unit>
         <trans-unit id="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" translate="yes" xml:space="preserve">
           <source>Collection must be public with a public constructor when used with an [ImportingConstructor].</source>
-          <target state="new">Collection must be public with a public constructor when used with an [ImportingConstructor].</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">A coleção deve ser pública, com um construtor público quando usado com um [ConstrutorDeImportação].</target>
         </trans-unit>
         <trans-unit id="CompilerErrorsOccurred" translate="yes" xml:space="preserve">
           <source>Compilation errors occurred.</source>
-          <target state="new">Compilation errors occurred.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Ocorreram erros de compilação.</target>
         </trans-unit>
         <trans-unit id="CustomImportSourceNotSupported" translate="yes" xml:space="preserve">
           <source>Custom import sources are not yet supported.</source>
-          <target state="new">Custom import sources are not yet supported.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Ainda não há suporte para fontes de importação personalizadas.</target>
         </trans-unit>
         <trans-unit id="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" translate="yes" xml:space="preserve">
           <source>Member "{0}" contains metadata attributes with an identical property name. Property name: "{1}".</source>
-          <target state="new">Member "{0}" contains metadata attributes with an identical property name. Property name: "{1}".</target>
+          <target state="needs-review-translation" state-qualifier="mt-suggestion">Membros "{0}" contém os atributos de metadados com um nome de propriedade idênticos. Nome da propriedade: "{1}".</target>
           <note from="MultilingualBuild" annotates="source" priority="2">{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</note>
         </trans-unit>
         <trans-unit id="ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" translate="yes" xml:space="preserve">
           <source>Exports on members not allowed when the declaring type is generic.</source>
-          <target state="new">Exports on members not allowed when the declaring type is generic.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Não são permitidas exportações em membros quando o tipo de declaração é genérico.</target>
         </trans-unit>
         <trans-unit id="FailedToGenerateEmbeddableTypes" translate="yes" xml:space="preserve">
           <source>Failed to generate embeddable types.</source>
-          <target state="new">Failed to generate embeddable types.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Falha ao gerar tipos que permitem inserção.</target>
         </trans-unit>
         <trans-unit id="ImportConstraintTypeNotSupported" translate="yes" xml:space="preserve">
           <source>The import constraint type {0} is not supported.</source>
-          <target state="new">The import constraint type {0} is not supported.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">O tipo de restrição de importação {0} não tem suporte.</target>
         </trans-unit>
         <trans-unit id="IsExpectedOnlyOnImportsOfExportFactoryOfT" translate="yes" xml:space="preserve">
           <source>{0} is expected only on imports of ExportFactory<it id="1" pos="open">&lt;T&gt;</it>.</source>
-          <target state="new">{0} is expected only on imports of ExportFactory<it id="1" pos="open">&lt;T&gt;</it>.</target>
+          <target state="needs-review-translation" state-qualifier="mt-suggestion">{0} é esperado apenas sobre as importações de ExportFactory<it id="1" pos="open">&lt;T&gt;</it>.</target>
         </trans-unit>
         <trans-unit id="IsExportFactoryExpectedTrue" translate="yes" xml:space="preserve">
           <source>IsExportFactory is expected to be true.</source>
-          <target state="new">IsExportFactory is expected to be true.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Espera-se que IsExportFactory seja true.</target>
         </trans-unit>
         <trans-unit id="MemberContainsBothImportAndImportMany" translate="yes" xml:space="preserve">
           <source>Member "{0}" contains both ImportAttribute and ImportManyAttribute.</source>
-          <target state="new">Member "{0}" contains both ImportAttribute and ImportManyAttribute.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">O membro "{0}" contém tanto o AtributoImportar quanto o AtributoImportarMuitos.</target>
         </trans-unit>
         <trans-unit id="NoImportingConstructorFound" translate="yes" xml:space="preserve">
           <source>No importing constructor found.</source>
-          <target state="new">No importing constructor found.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nenhum construtor de importação encontrado.</target>
         </trans-unit>
         <trans-unit id="NoMemberToSatisfy" translate="yes" xml:space="preserve">
           <source>No member to satisfy.</source>
-          <target state="new">No member to satisfy.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nenhum membro a satisfazer.</target>
         </trans-unit>
         <trans-unit id="OnImportsSatisfiedTakeNoParameters" translate="yes" xml:space="preserve">
           <source>OnImportsSatisfied method should take no parameters.</source>
-          <target state="new">OnImportsSatisfied method should take no parameters.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">O método OnImportsSatisfied não deve conter nenhum parâmetro.</target>
         </trans-unit>
         <trans-unit id="OnlyOneOnImportsSatisfiedMethodIsSupported" translate="yes" xml:space="preserve">
           <source>Only one OnImportsSatisfied method is supported.</source>
-          <target state="new">Only one OnImportsSatisfied method is supported.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Somente um método OnImportsSatisfied tem suporte.</target>
         </trans-unit>
         <trans-unit id="OnlySupportedOnWriteOperations" translate="yes" xml:space="preserve">
           <source>Only supported on write operations.</source>
-          <target state="new">Only supported on write operations.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Com suporte somente em operações de gravação.</target>
         </trans-unit>
         <trans-unit id="ReadableStreamRequired" translate="yes" xml:space="preserve">
           <source>Readable stream required.</source>
-          <target state="new">Readable stream required.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Fluxo legível necessário.</target>
           <note from="MultilingualBuild" annotates="source" priority="2">'stream' is in reference to System.IO.Stream</note>
         </trans-unit>
         <trans-unit id="TypeMustDefineMemberInfoOrDerivedType" translate="yes" xml:space="preserve">
           <source>Type must be the one that defines memberInfo or a derived type.</source>
-          <target state="new">Type must be the one that defines memberInfo or a derived type.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">O tipo deve ser aquele que define as InformaçõesDoMembro ou um tipo derivado.</target>
         </trans-unit>
         <trans-unit id="UnexpectedConstraintType" translate="yes" xml:space="preserve">
           <source>Unexpected constraint type: {0}.</source>
-          <target state="new">Unexpected constraint type: {0}.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Tipo de restrição inesperado: {0}.</target>
         </trans-unit>
         <trans-unit id="UnsupportedFormat" translate="yes" xml:space="preserve">
           <source>Unsupported format: {0}.</source>
-          <target state="new">Unsupported format: {0}.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Formato sem suporte: {0}.</target>
         </trans-unit>
         <trans-unit id="WritableStreamRequired" translate="yes" xml:space="preserve">
           <source>Writable stream required.</source>
-          <target state="new">Writable stream required.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Fluxo gravável necessário.</target>
           <note from="MultilingualBuild" annotates="source" priority="2">'stream' is in reference to System.IO.Stream</note>
         </trans-unit>
         <trans-unit id="WrongType" translate="yes" xml:space="preserve">
           <source>Wrong type.</source>
-          <target state="new">Wrong type.</target>
+          <target state="needs-review-translation" state-qualifier="tm-suggestion">Tipo incorreto.</target>
         </trans-unit>
       </group>
     </body>

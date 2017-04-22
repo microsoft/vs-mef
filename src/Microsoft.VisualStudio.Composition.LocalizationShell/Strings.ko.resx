@@ -1,0 +1,220 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CannotDirectlyDisposeAnImport" xml:space="preserve">
+    <value>이 인스턴스는 가져오기이며 직접 삭제할 수 없습니다.</value>
+  </data>
+  <data name="ContainerDisposalEncounteredExceptions" xml:space="preserve">
+    <value>IDisposable.Dispose()의 인스턴스화된 파트에서 예외가 발생했습니다.</value>
+  </data>
+  <data name="ErrorsDuringDiscovery" xml:space="preserve">
+    <value>검색 중 오류가 발생했습니다.</value>
+  </data>
+  <data name="ErrorsInComposition" xml:space="preserve">
+    <value>컴퍼지션에 오류가 있습니다.</value>
+  </data>
+  <data name="ErrorWhileSettingImport" xml:space="preserve">
+    <value>"{0}" 가져오기가 충족되지 않습니다.</value>
+  </data>
+  <data name="ExceptionThrownByPartUnderInitialization" xml:space="preserve">
+    <value>"{0}"파트를 초기화하는 중 예외가 발생했습니다.</value>
+  </data>
+  <data name="ExportedValueNotAssignableToImport" xml:space="preserve">
+    <value>"{0}"에서 가져온 값을 가져오기 사이트 "{1}"에 할당할 수 없습니다.</value>
+  </data>
+  <data name="FailStableComposition" xml:space="preserve">
+    <value>안정적인 컴퍼지션을 찾지 못했습니다.</value>
+  </data>
+  <data name="FailureWhileScanningType" xml:space="preserve">
+    <value>"{0}" 형식을 검색하는 중 오류가 발생했습니다.</value>
+  </data>
+  <data name="NoImportingConstructor" xml:space="preserve">
+    <value>가져오기 생성자가 없습니다.</value>
+  </data>
+  <data name="PartBelongsToAnotherSharingBoundary" xml:space="preserve">
+    <value>다른 공유 경계에 속한 파트에서 가져오기에 대한 잘못된 요청입니다.</value>
+  </data>
+  <data name="PartIsNotInstantiable" xml:space="preserve">
+    <value>이 파트({0})는 인스턴스화할 수 없습니다.</value>
+  </data>
+  <data name="ReflectionTypeLoadExceptionWhileEnumeratingTypes" xml:space="preserve">
+    <value>"{0}" 어셈블리에서 형식을 열거하는 중 ReflectionTypeLoadException이 발생했습니다. 결과가 완전하지 않습니다.</value>
+  </data>
+  <data name="ScanningMEFAssemblies" xml:space="preserve">
+    <value>MEF 어셈블리를 검색하는 중...</value>
+  </data>
+  <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
+    <value>지원되지 않는 메타데이터 뷰 유형입니다.</value>
+  </data>
+  <data name="UnableToDeterminePrimarySharingBoundary" xml:space="preserve">
+    <value>MEF 파트 "{0}"에 대한 주 공유 경계를 결정할 수 없습니다.</value>
+  </data>
+  <data name="UnableToEnumerateTypes" xml:space="preserve">
+    <value>"{0}" 어셈블리에서 형식을 열거할 수 없습니다.</value>
+  </data>
+  <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
+    <value>사용자 지정 가져오기 수집 형식을 인스턴스화할 수 없습니다.</value>
+  </data>
+  <data name="UnableToLoadAssembly" xml:space="preserve">
+    <value>검색할 "{0}" 어셈블리를 로드할 수 없습니다.</value>
+  </data>
+  <data name="UnexpectedMemberType" xml:space="preserve">
+    <value>예기치 않은 멤버 유형입니다.</value>
+  </data>
+  <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
+    <value>적용 가능한 제약 조건을 적용한 후 계약 이름이 "{1}"인 내보내기가 {0}개 필요하지만 {2}개를 찾았습니다.</value>
+  </data>
+  <data name="UnexpectedSharedPartState" xml:space="preserve">
+    <value>이 공유 파트는 {0} 상태이지만 이 작업의 경우 {1} 상태여야 합니다.</value>
+  </data>
+  <data name="AllValuesMustBeNonNull" xml:space="preserve">
+    <value>모든 값은 null이 아니어야 합니다.</value>
+  </data>
+  <data name="CannotImportBecauseExportingPartCannotBeInstantiated" xml:space="preserve">
+    <value>{0}: 내보내기 파트를 인스턴스화할 수 없어서 {1}에서 내보낸 값을 가져올 수 없습니다. 가져오기 생성자가 없나요?\n</value>
+  </data>
+  <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
+    <value>컬렉션 형식 ICollection&lt;T&gt;에서에서 파생 되어야 합니다.</value>
+  </data>
+  <data name="ExactlyOneEntryForEveryImport" xml:space="preserve">
+    <value>모든 가져오기에 대한 항목은 하나만 있어야 합니다.</value>
+  </data>
+  <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
+    <value>{0}: {1} 내보내기 1 또는 0개가 필요한 데 {2}개를 찾았습니다.{3}</value>
+  </data>
+  <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
+    <value>{0}: {1} 내보내기 1 또는 0개가 필요한 데 {2}개를 찾았습니다.{3}</value>
+  </data>
+  <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
+    <value>{0}: ExportProvider를 내보낼 수 없습니다.</value>
+  </data>
+  <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
+    <value>생성자를 가져오기는 지원 되지 않는 매개 변수 형식을 [ImportMany] 있다. T와 IEnumerable &lt;T&gt;  만 지원 됩니다.</value>
+  </data>
+  <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
+    <value>{0}: 제너릭 형식 매개 변수를 사용하는 가져오기는 지원되지 않습니다.</value>
+  </data>
+  <data name="InstanceEmpty" xml:space="preserve">
+    <value>이 인스턴스는 비어 있습니다.</value>
+  </data>
+  <data name="IsNotAssignableFromExportedMEFValue" xml:space="preserve">
+    <value>{0}: 내보낸 MEF 값 {1}에서 할당할 수 없습니다.</value>
+  </data>
+  <data name="LoopBetweenNonSharedParts" xml:space="preserve">
+    <value>비공유 파트 사이의 루프입니다.</value>
+  </data>
+  <data name="LoopInvolvingImportingCtorArgumentAndAllNonLazyImports" xml:space="preserve">
+    <value>ImportingConstructor 인수 및 모든 비지연 가져오기가 포함된 루프입니다.</value>
+  </data>
+  <data name="MetadataTypeNotSupported" xml:space="preserve">
+    <value>{0}: 메타데이터 유형 {1}은(는) 지원되지 않습니다.</value>
+  </data>
+  <data name="NotATypeSpec" xml:space="preserve">
+    <value>형식 사양이 아닙니다.</value>
+  </data>
+  <data name="NotClosedFormOfOther" xml:space="preserve">
+    <value>다른 항목에 닫힌 형식이 아닙니다.</value>
+  </data>
+  <data name="NotGenericTypeDefinition" xml:space="preserve">
+    <value>제너릭 형식 정의가 아닙니다.</value>
+  </data>
+  <data name="NotInitialized" xml:space="preserve">
+    <value>초기화되지 않습니다.</value>
+  </data>
+  <data name="PartIsNotShared" xml:space="preserve">
+    <value>파트가 공유되어 있지 않습니다.</value>
+  </data>
+  <data name="UnresolvableMetadataToken" xml:space="preserve">
+    <value>확인할 수 없는 메타데이터 토큰입니다.</value>
+  </data>
+  <data name="WrongLength" xml:space="preserve">
+    <value>잘못된 길이입니다.</value>
+  </data>
+  <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
+    <value>해결할 수 없는 재귀 건설 요청으로 인해 MEF 파트 "{0}" 구성 수 없습니다.</value>
+  </data>
+  <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
+    <value>먼저 AssemblyName을 설정해야 합니다.</value>
+  </data>
+  <data name="CannotBeEmpty" xml:space="preserve">
+    <value>비워 둘 수 없습니다.</value>
+  </data>
+  <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
+    <value>수집이 [ImportingConstructor]에서 사용되는 경우 공용 생성자와 함께 public이어야 합니다.</value>
+  </data>
+  <data name="CompilerErrorsOccurred" xml:space="preserve">
+    <value>컴파일 오류가 발생했습니다.</value>
+  </data>
+  <data name="CustomImportSourceNotSupported" xml:space="preserve">
+    <value>사용자 지정 가져오기 원본은 아직 지원되지 않습니다.</value>
+  </data>
+  <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
+    <value>멤버 "{0}" 속성을 동일한 이름으로 메타 데이터 특성을 포함합니다. 속성 이름: "{1}".</value>
+    <comment>{0} = member (full name if possible) with invalid metadata attributes.
+{1} = the property's name.</comment>
+  </data>
+  <data name="ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" xml:space="preserve">
+    <value>선언 형식이 제네릭인 경우 멤버의 내보내기가 허용되지 않습니다.</value>
+  </data>
+  <data name="FailedToGenerateEmbeddableTypes" xml:space="preserve">
+    <value>포함 가능한 형식을 생성하지 못했습니다.</value>
+  </data>
+  <data name="ImportConstraintTypeNotSupported" xml:space="preserve">
+    <value>가져오기 제약 조건 형식 {0}이(가) 지원되지 않습니다.</value>
+  </data>
+  <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
+    <value>{0}의 ExportFactory&lt;T&gt;수입에만 전망 이다.</value>
+  </data>
+  <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
+    <value>IsExportFactory는 true여야 합니다.</value>
+  </data>
+  <data name="MemberContainsBothImportAndImportMany" xml:space="preserve">
+    <value>"{0}" 멤버는 ImportAttribute 및 ImportManyAttribute를 모두 포함해야 합니다.</value>
+  </data>
+  <data name="NoImportingConstructorFound" xml:space="preserve">
+    <value>가져오기 생성자가 없습니다.</value>
+  </data>
+  <data name="NoMemberToSatisfy" xml:space="preserve">
+    <value>충족하는 멤버가 없습니다.</value>
+  </data>
+  <data name="OnImportsSatisfiedTakeNoParameters" xml:space="preserve">
+    <value>OnImportsSatisfied 메서드에는 매개 변수가 없어야 합니다.</value>
+  </data>
+  <data name="OnlyOneOnImportsSatisfiedMethodIsSupported" xml:space="preserve">
+    <value>OnImportsSatisfied 메서드는 하나만 지원됩니다.</value>
+  </data>
+  <data name="OnlySupportedOnWriteOperations" xml:space="preserve">
+    <value>쓰기 작업에서만 지원됩니다.</value>
+  </data>
+  <data name="ReadableStreamRequired" xml:space="preserve">
+    <value>읽을 수 있는 스트림이 필요합니다.</value>
+    <comment>'stream' is in reference to System.IO.Stream</comment>
+  </data>
+  <data name="TypeMustDefineMemberInfoOrDerivedType" xml:space="preserve">
+    <value>MemberInfo 또는 파생 형식을 정의하는 형식이어야 합니다.</value>
+  </data>
+  <data name="UnexpectedConstraintType" xml:space="preserve">
+    <value>예기치 못한 제약 조건 형식입니다. {0}.</value>
+  </data>
+  <data name="UnsupportedFormat" xml:space="preserve">
+    <value>지원되지 않는 형식입니다. {0}.</value>
+  </data>
+  <data name="WritableStreamRequired" xml:space="preserve">
+    <value>쓸 수 있는 스트림이 필요합니다.</value>
+    <comment>'stream' is in reference to System.IO.Stream</comment>
+  </data>
+  <data name="WrongType" xml:space="preserve">
+    <value>잘못된 형식입니다.</value>
+  </data>
+</root>

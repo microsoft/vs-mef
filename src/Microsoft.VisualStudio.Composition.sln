@@ -1,8 +1,11 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26412.1
+VisualStudioVersion = 15.0.26421.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition", "Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj", "{1CA6A92C-5DD9-4BE5-B5B7-EE4A1318B4C2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC} = {6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.Tests", "tests\Microsoft.VisualStudio.Composition.Tests\Microsoft.VisualStudio.Composition.Tests.csproj", "{C92F90BA-CD5B-4847-832A-EE738F0FDB13}"
 EndProject
@@ -32,6 +35,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2", "tests\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2.csproj", "{A424CBE4-248E-477C-88BD-575FA240EACB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.AppHost", "Microsoft.VisualStudio.Composition.AppHost\Microsoft.VisualStudio.Composition.AppHost.csproj", "{93C14982-BB95-4554-BE09-2D0A4C9ADA09}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.LocalizationShell", "Microsoft.VisualStudio.Composition.LocalizationShell\Microsoft.VisualStudio.Composition.LocalizationShell.csproj", "{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -143,6 +148,18 @@ Global
 		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|x64.Build.0 = Release|Any CPU
 		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|x86.ActiveCfg = Release|Any CPU
 		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|x86.Build.0 = Release|Any CPU
+		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Debug|x64.Build.0 = Debug|Any CPU
+		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Debug|x86.Build.0 = Debug|Any CPU
+		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Release|x64.ActiveCfg = Release|Any CPU
+		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Release|x64.Build.0 = Release|Any CPU
+		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Release|x86.ActiveCfg = Release|Any CPU
+		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
