@@ -19,6 +19,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.0.0" />
     <PackageReference Include="xunit.runner.console" Version="2.2.0" />
     <PackageReference Include="Xunit.SkippableFact" Version="1.0.15200-beta" />
+    <PackageReference Include="OpenCover" Version="4.6.519" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Microsoft.VisualStudio.Composition\ArrayRental`1.cs">
