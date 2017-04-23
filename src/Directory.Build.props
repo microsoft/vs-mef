@@ -10,6 +10,14 @@
 
     <NerdbankGitVersioningVersion>1.6.25</NerdbankGitVersioningVersion>
     <MicroBuildVersion>2.0.40</MicroBuildVersion>
+
+    <PackageTags>Mef Composition Extensibility</PackageTags>
+    <Company>Microsoft</Company>
+    <PackageProjectUrl>https://github.com/Microsoft/vs-mef</PackageProjectUrl>
+    <PackageIconUrl>https://aka.ms/VsExtensibilityIcon</PackageIconUrl>
+    <Authors>Microsoft</Authors>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Nerdbank.GitVersioning" Version="$(NerdbankGitVersioningVersion)" PrivateAssets="all" />
@@ -32,4 +40,10 @@
       BeforeTargets="_GenerateRestoreProjectSpec"
       DependsOnTargets="GetBuildVersion"
       Condition=" '$(NerdbankGitVersioningTasksPath)' != '' " />
+
+  <Target Name="SetNuSpecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
+    <PropertyGroup>
+      <PackageLicenseUrl>https://raw.githubusercontent.com/Microsoft/vs-mef/$(GitCommitIdShort)/LICENSE</PackageLicenseUrl>
+    </PropertyGroup>
+  </Target>
 </Project>
