@@ -1,0 +1,220 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CannotDirectlyDisposeAnImport" xml:space="preserve">
+    <value>To wystąpienie jest importem i nie można go bezpośrednio usunąć.</value>
+  </data>
+  <data name="ContainerDisposalEncounteredExceptions" xml:space="preserve">
+    <value>Części z utworzonymi wystąpieniami zgłosiły wyjątki z elementu IDisposable.Dispose().</value>
+  </data>
+  <data name="ErrorsDuringDiscovery" xml:space="preserve">
+    <value>Wystąpiły błędy podczas odnajdowania.</value>
+  </data>
+  <data name="ErrorsInComposition" xml:space="preserve">
+    <value>W kompozycji są błędy.</value>
+  </data>
+  <data name="ErrorWhileSettingImport" xml:space="preserve">
+    <value>Nie można spełnić wymagań importu „{0}”.</value>
+  </data>
+  <data name="ExceptionThrownByPartUnderInitialization" xml:space="preserve">
+    <value>Zgłoszono wyjątek podczas inicjowania części „{0}”.</value>
+  </data>
+  <data name="ExportedValueNotAssignableToImport" xml:space="preserve">
+    <value>Nie można przypisać wartości wyeksportowanej z elementu „{0}” do importowanej witryny „{1}”.</value>
+  </data>
+  <data name="FailStableComposition" xml:space="preserve">
+    <value>Nie można znaleźć stabilnej kompozycji.</value>
+  </data>
+  <data name="FailureWhileScanningType" xml:space="preserve">
+    <value>Błąd podczas skanowania typu „{0}”.</value>
+  </data>
+  <data name="NoImportingConstructor" xml:space="preserve">
+    <value>Brak konstruktora importującego.</value>
+  </data>
+  <data name="PartBelongsToAnotherSharingBoundary" xml:space="preserve">
+    <value>Nieodpowiednie żądanie eksportu pochodzące z części należącej do innej granicy udostępniania.</value>
+  </data>
+  <data name="PartIsNotInstantiable" xml:space="preserve">
+    <value>Nie można utworzyć wystąpienia tej części ({0}).</value>
+  </data>
+  <data name="ReflectionTypeLoadExceptionWhileEnumeratingTypes" xml:space="preserve">
+    <value>Wyjątek ReflectionTypeLoadException podczas wyliczania typów w zestawie „{0}”. Wyniki będą niekompletne.</value>
+  </data>
+  <data name="ScanningMEFAssemblies" xml:space="preserve">
+    <value>Trwa skanowanie zestawów MEF...</value>
+  </data>
+  <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
+    <value>Typ widoku metadanych jest nieobsługiwany.</value>
+  </data>
+  <data name="UnableToDeterminePrimarySharingBoundary" xml:space="preserve">
+    <value>Nie można określić podstawowej granicy udostępniania dla części MEF „{0}”.</value>
+  </data>
+  <data name="UnableToEnumerateTypes" xml:space="preserve">
+    <value>Nie można wyliczyć typów w zestawie „{0}”.</value>
+  </data>
+  <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
+    <value>Nie można utworzyć wystąpienia niestandardowego typu kolekcji importu.</value>
+  </data>
+  <data name="UnableToLoadAssembly" xml:space="preserve">
+    <value>Nie można załadować zestawu „{0}” do przeskanowania.</value>
+  </data>
+  <data name="UnexpectedMemberType" xml:space="preserve">
+    <value>Nieoczekiwany typ elementu członkowskiego.</value>
+  </data>
+  <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
+    <value>Oczekiwano następującej liczby eksportów: {0} z nazwą kontraktu „{1}”, ale po zastosowaniu odpowiednich ograniczeń znaleziono {2}.</value>
+  </data>
+  <data name="UnexpectedSharedPartState" xml:space="preserve">
+    <value>Ta część udostępniona jest w stanie {0}, ale do wykonania tej operacji jest wymagany stan {1}.</value>
+  </data>
+  <data name="AllValuesMustBeNonNull" xml:space="preserve">
+    <value>Wszystkie wartości muszą być inne niż null.</value>
+  </data>
+  <data name="CannotImportBecauseExportingPartCannotBeInstantiated" xml:space="preserve">
+    <value>{0}: nie można zaimportować wartości wyeksportowanej z elementu {1}, ponieważ nie można utworzyć wystąpienia części eksportującej. Czy brakuje konstruktora importującego?</value>
+  </data>
+  <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
+    <value>Typ kolekcji musi pochodzić z kolekcji ICollection&lt;T&gt;.</value>
+  </data>
+  <data name="ExactlyOneEntryForEveryImport" xml:space="preserve">
+    <value>Dla każdego importu powinien istnieć dokładnie jeden wpis.</value>
+  </data>
+  <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
+    <value>{0}: oczekiwano dokładnie 1 eksportu elementu {1}, ale znaleziono {2}.{3}</value>
+  </data>
+  <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
+    <value>{0}: oczekiwano 1 eksportu elementu {1} lub nie oczekiwano eksportu, ale znaleziono {2}.{3}</value>
+  </data>
+  <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
+    <value>{0}: Eksport elementu ExportProvider jest niedozwolony.</value>
+  </data>
+  <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
+    <value>Importowanie Konstruktor ma typ nieobsługiwany parametr dla [ImportMany]. Obsługiwane są tylko [T] i IEnumerable &lt;T&gt;  .</value>
+  </data>
+  <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
+    <value>{0}: importy, podczas których używane są parametry typu ogólnego, nie są obsługiwane.</value>
+  </data>
+  <data name="InstanceEmpty" xml:space="preserve">
+    <value>To wystąpienie jest puste.</value>
+  </data>
+  <data name="IsNotAssignableFromExportedMEFValue" xml:space="preserve">
+    <value>{0}: nie można przydzielić elementu z wyeksportowanej wartości MEF {1}.</value>
+  </data>
+  <data name="LoopBetweenNonSharedParts" xml:space="preserve">
+    <value>Pętla między częściami nieudostępnionymi.</value>
+  </data>
+  <data name="LoopInvolvingImportingCtorArgumentAndAllNonLazyImports" xml:space="preserve">
+    <value>Pętla obejmująca argument ImportingConstructor i wszystkie importy bez opóźnień.</value>
+  </data>
+  <data name="MetadataTypeNotSupported" xml:space="preserve">
+    <value>{0}: typ metadanych {1} nie jest obsługiwany.</value>
+  </data>
+  <data name="NotATypeSpec" xml:space="preserve">
+    <value>To nie jest specyfikacja typu.</value>
+  </data>
+  <data name="NotClosedFormOfOther" xml:space="preserve">
+    <value>To nie jest zamknięty formularz innego elementu.</value>
+  </data>
+  <data name="NotGenericTypeDefinition" xml:space="preserve">
+    <value>To nie jest definicja typu ogólnego.</value>
+  </data>
+  <data name="NotInitialized" xml:space="preserve">
+    <value>Nie zainicjowano.</value>
+  </data>
+  <data name="PartIsNotShared" xml:space="preserve">
+    <value>Część nie została udostępniona.</value>
+  </data>
+  <data name="UnresolvableMetadataToken" xml:space="preserve">
+    <value>Nierozpoznawalny token metadanych.</value>
+  </data>
+  <data name="WrongLength" xml:space="preserve">
+    <value>Błędna długość.</value>
+  </data>
+  <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
+    <value>Nie można skonstruować MEF składnika "{0}" z powodu żądania budowy nierozpoznawalnych cykliczne.</value>
+  </data>
+  <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
+    <value>Najpierw należy ustawić nazwę AssemblyName.</value>
+  </data>
+  <data name="CannotBeEmpty" xml:space="preserve">
+    <value>Pusta wartość jest niedozwolona.</value>
+  </data>
+  <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
+    <value>Kolekcja używana z konstruktorem importującym [ImportingConstructor] musi być publiczna z konstruktorem publicznym.</value>
+  </data>
+  <data name="CompilerErrorsOccurred" xml:space="preserve">
+    <value>Wystąpiły błędy kompilacji.</value>
+  </data>
+  <data name="CustomImportSourceNotSupported" xml:space="preserve">
+    <value>Niestandardowe źródła importu nie są jeszcze obsługiwane.</value>
+  </data>
+  <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
+    <value>Element "{0}" zawiera atrybuty metadanych o nazwie identyczne właściwości. Nazwa właściwości: "{1}".</value>
+    <comment>{0} = member (full name if possible) with invalid metadata attributes.
+{1} = the property's name.</comment>
+  </data>
+  <data name="ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" xml:space="preserve">
+    <value>Eksporty elementów członkowskich są niedozwolone, jeśli wybrano ogólny typ deklarujący.</value>
+  </data>
+  <data name="FailedToGenerateEmbeddableTypes" xml:space="preserve">
+    <value>Nie można wygenerować typów możliwych do osadzenia.</value>
+  </data>
+  <data name="ImportConstraintTypeNotSupported" xml:space="preserve">
+    <value>Typ ograniczenia importu {0} nie jest obsługiwany.</value>
+  </data>
+  <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
+    <value>{0} ma się tylko na przywóz ExportFactory&lt;T&gt;.</value>
+  </data>
+  <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
+    <value>Element IsExportFactory powinien mieć następującą wartość true.</value>
+  </data>
+  <data name="MemberContainsBothImportAndImportMany" xml:space="preserve">
+    <value>Element członkowski „{0}” zawiera oba atrybuty: ImportAttribute i ImportManyAttribute.</value>
+  </data>
+  <data name="NoImportingConstructorFound" xml:space="preserve">
+    <value>Nie znaleziono konstruktora importującego.</value>
+  </data>
+  <data name="NoMemberToSatisfy" xml:space="preserve">
+    <value>Brak elementów członkowskich, których warunki należy spełnić.</value>
+  </data>
+  <data name="OnImportsSatisfiedTakeNoParameters" xml:space="preserve">
+    <value>Metoda OnImportsSatisfied nie powinna przyjmować parametrów.</value>
+  </data>
+  <data name="OnlyOneOnImportsSatisfiedMethodIsSupported" xml:space="preserve">
+    <value>Obsługiwana jest tylko jedna metoda OnImportsSatisfied.</value>
+  </data>
+  <data name="OnlySupportedOnWriteOperations" xml:space="preserve">
+    <value>Obsługiwane tylko w przypadku operacji zapisu.</value>
+  </data>
+  <data name="ReadableStreamRequired" xml:space="preserve">
+    <value>Wymagany jest strumień możliwy do odczytania.</value>
+    <comment>'stream' is in reference to System.IO.Stream</comment>
+  </data>
+  <data name="TypeMustDefineMemberInfoOrDerivedType" xml:space="preserve">
+    <value>Typ musi definiować informacje memberInfo lub typ pochodny.</value>
+  </data>
+  <data name="UnexpectedConstraintType" xml:space="preserve">
+    <value>Nieoczekiwany typ ograniczenia: {0}.</value>
+  </data>
+  <data name="UnsupportedFormat" xml:space="preserve">
+    <value>Nieobsługiwany format: {0}.</value>
+  </data>
+  <data name="WritableStreamRequired" xml:space="preserve">
+    <value>Wymagany jest strumień możliwy do zapisania.</value>
+    <comment>'stream' is in reference to System.IO.Stream</comment>
+  </data>
+  <data name="WrongType" xml:space="preserve">
+    <value>Błędny typ.</value>
+  </data>
+</root>

@@ -1,0 +1,220 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CannotDirectlyDisposeAnImport" xml:space="preserve">
+    <value>このインスタンスはインポートであり、直接破棄することはできません。</value>
+  </data>
+  <data name="ContainerDisposalEncounteredExceptions" xml:space="preserve">
+    <value>インスタンス化されたパーツが IDisposable.Dispose() から例外をスローしました。</value>
+  </data>
+  <data name="ErrorsDuringDiscovery" xml:space="preserve">
+    <value>検出中にエラーが発生しました。</value>
+  </data>
+  <data name="ErrorsInComposition" xml:space="preserve">
+    <value>コンポジション内にエラーが存在します。</value>
+  </data>
+  <data name="ErrorWhileSettingImport" xml:space="preserve">
+    <value>インポート "{0}" の要件を満たせませんでした。</value>
+  </data>
+  <data name="ExceptionThrownByPartUnderInitialization" xml:space="preserve">
+    <value>パーツ "{0}" の初期化中に例外がスローされました。</value>
+  </data>
+  <data name="ExportedValueNotAssignableToImport" xml:space="preserve">
+    <value>"{0}" からエクスポートされた値を、サイト "{1}" のインポート用に割り当てることはできません。</value>
+  </data>
+  <data name="FailStableComposition" xml:space="preserve">
+    <value>安定したコンポジションが見つかりませんでした。</value>
+  </data>
+  <data name="FailureWhileScanningType" xml:space="preserve">
+    <value>型 "{0}" のスキャン中にエラーが発生しました。</value>
+  </data>
+  <data name="NoImportingConstructor" xml:space="preserve">
+    <value>インポート コンストラクターがありません。</value>
+  </data>
+  <data name="PartBelongsToAnotherSharingBoundary" xml:space="preserve">
+    <value>別の共有境界に属するパーツへのエクスポートに関する不適切な要求です。</value>
+  </data>
+  <data name="PartIsNotInstantiable" xml:space="preserve">
+    <value>このパーツ ({0}) はインスタンス化できません。</value>
+  </data>
+  <data name="ReflectionTypeLoadExceptionWhileEnumeratingTypes" xml:space="preserve">
+    <value>アセンブリ "{0}" 内の型の列挙中に ReflectionTypeLoadException が発生しました。結果は不完全になります。</value>
+  </data>
+  <data name="ScanningMEFAssemblies" xml:space="preserve">
+    <value>MEF アセンブリをスキャンしています...</value>
+  </data>
+  <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
+    <value>メタデータ ビューの型がサポートされていません。</value>
+  </data>
+  <data name="UnableToDeterminePrimarySharingBoundary" xml:space="preserve">
+    <value>MEF パーツ "{0}" の主な共有境界を特定できません。</value>
+  </data>
+  <data name="UnableToEnumerateTypes" xml:space="preserve">
+    <value>アセンブリ "{0}" 内の型を列挙できません。</value>
+  </data>
+  <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
+    <value>カスタム インポート コレクション型をインスタンス化できません。</value>
+  </data>
+  <data name="UnableToLoadAssembly" xml:space="preserve">
+    <value>スキャン用にアセンブリ "{0}" を読み込めません。</value>
+  </data>
+  <data name="UnexpectedMemberType" xml:space="preserve">
+    <value>予期しないメンバー型です。</value>
+  </data>
+  <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
+    <value>契約名 "{1}" による {0} 回のエクスポートが予想されましたが、適用可能な制約の適用後に {2} が見つかりました。</value>
+  </data>
+  <data name="UnexpectedSharedPartState" xml:space="preserve">
+    <value>この共有済みパーツは {0} の状態ですが、この操作の場合は {1} の状態でなければなりません。</value>
+  </data>
+  <data name="AllValuesMustBeNonNull" xml:space="preserve">
+    <value>値はすべて NULL 以外でなければなりません。</value>
+  </data>
+  <data name="CannotImportBecauseExportingPartCannotBeInstantiated" xml:space="preserve">
+    <value>{0}: エクスポートされたパーツはインスタンス化できないため、{1} からエクスポートされた値をインポートすることはできません。インポート コンストラクターが不足していますか?</value>
+  </data>
+  <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
+    <value>コレクション型は、ICollection&lt;T&gt;から派生する必要があります。</value>
+  </data>
+  <data name="ExactlyOneEntryForEveryImport" xml:space="preserve">
+    <value>インポートごとに 1 つのエントリが必要です。</value>
+  </data>
+  <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
+    <value>{0}: {1} のエクスポートは 1 と予想されましたが、見つかったのは {2} です。{3}</value>
+  </data>
+  <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
+    <value>{0}: {1} のエクスポートは 1 または 0 と予想されましたが、見つかったのは {2} です。{3}</value>
+  </data>
+  <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
+    <value>{0}: ExportProvider のエクスポートは許可されていません。</value>
+  </data>
+  <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
+    <value>[ImportMany] のサポートされていないパラメーター型にはコンス トラクターをインポートします。T[] と IEnumerable&lt;T&gt;のみがサポートされます。</value>
+  </data>
+  <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
+    <value>{0}: ジェネリック型パラメーターを使用するインポートはサポートされていません。</value>
+  </data>
+  <data name="InstanceEmpty" xml:space="preserve">
+    <value>このインスタンスは空です。</value>
+  </data>
+  <data name="IsNotAssignableFromExportedMEFValue" xml:space="preserve">
+    <value>{0}: エクスポートされた MEF 値 {1} から割り当てることはできません。</value>
+  </data>
+  <data name="LoopBetweenNonSharedParts" xml:space="preserve">
+    <value>共有されないパーツ間でのループ。</value>
+  </data>
+  <data name="LoopInvolvingImportingCtorArgumentAndAllNonLazyImports" xml:space="preserve">
+    <value>ImportingConstructor 引数とすべての non-lazy インポートを含むループ。</value>
+  </data>
+  <data name="MetadataTypeNotSupported" xml:space="preserve">
+    <value>{0}: メタデータ型 {1} はサポートされていません。</value>
+  </data>
+  <data name="NotATypeSpec" xml:space="preserve">
+    <value>型仕様ではありません。</value>
+  </data>
+  <data name="NotClosedFormOfOther" xml:space="preserve">
+    <value>他方に対する閉じたフォームではありません。</value>
+  </data>
+  <data name="NotGenericTypeDefinition" xml:space="preserve">
+    <value>これはジェネリック型定義ではありません。</value>
+  </data>
+  <data name="NotInitialized" xml:space="preserve">
+    <value>初期化されていません。</value>
+  </data>
+  <data name="PartIsNotShared" xml:space="preserve">
+    <value>パーツは共有されていません。</value>
+  </data>
+  <data name="UnresolvableMetadataToken" xml:space="preserve">
+    <value>解決できないメタデータ トークンです。</value>
+  </data>
+  <data name="WrongLength" xml:space="preserve">
+    <value>長さが正しくありません。</value>
+  </data>
+  <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
+    <value>未解決の再帰構造要求が原因の MEF 部分「{0}」を構築できません。</value>
+  </data>
+  <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
+    <value>最初に AssemblyName を設定する必要があります。</value>
+  </data>
+  <data name="CannotBeEmpty" xml:space="preserve">
+    <value>空にすることはできません。</value>
+  </data>
+  <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
+    <value>コレクションは、[ImportingConstructor] で使用する場合には、パブリック コンストラクターと共に一般公開されている必要があります。</value>
+  </data>
+  <data name="CompilerErrorsOccurred" xml:space="preserve">
+    <value>コンパイル エラーが発生しました。</value>
+  </data>
+  <data name="CustomImportSourceNotSupported" xml:space="preserve">
+    <value>カスタム インポート ソースは現在サポートされていません。</value>
+  </data>
+  <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
+    <value>メンバー「{0}」には、同じプロパティ名を持つメタデータ属性が含まれています。プロパティ名:「{1}」。</value>
+    <comment>{0} = member (full name if possible) with invalid metadata attributes.
+{1} = the property's name.</comment>
+  </data>
+  <data name="ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" xml:space="preserve">
+    <value>宣言する型がジェネリックの場合、メンバー上のエクスポートは許可されていません。</value>
+  </data>
+  <data name="FailedToGenerateEmbeddableTypes" xml:space="preserve">
+    <value>埋め込み可能な型を生成できませんでした。</value>
+  </data>
+  <data name="ImportConstraintTypeNotSupported" xml:space="preserve">
+    <value>インポートの制約型 {0} がサポートされていません。</value>
+  </data>
+  <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
+    <value>{0} は、ExportFactory&lt;T&gt;の輸入のみの予定です。</value>
+  </data>
+  <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
+    <value>IsExportFactory が true である必要があります。</value>
+  </data>
+  <data name="MemberContainsBothImportAndImportMany" xml:space="preserve">
+    <value>メンバー "{0}" には、ImportAttribute と ImportManyAttribute の両方が含まれます。</value>
+  </data>
+  <data name="NoImportingConstructorFound" xml:space="preserve">
+    <value>インポート コンストラクターが見つかりません。</value>
+  </data>
+  <data name="NoMemberToSatisfy" xml:space="preserve">
+    <value>要件を満たすメンバーがありません。</value>
+  </data>
+  <data name="OnImportsSatisfiedTakeNoParameters" xml:space="preserve">
+    <value>OnImportsSatisfied メソッドは、パラメーターを取りません。</value>
+  </data>
+  <data name="OnlyOneOnImportsSatisfiedMethodIsSupported" xml:space="preserve">
+    <value>サポートされている OnImportsSatisfied メソッドは 1 つだけです。</value>
+  </data>
+  <data name="OnlySupportedOnWriteOperations" xml:space="preserve">
+    <value>書き込み操作でのみサポートされます。</value>
+  </data>
+  <data name="ReadableStreamRequired" xml:space="preserve">
+    <value>読み取り可能なストリームが必要です。</value>
+    <comment>'stream' is in reference to System.IO.Stream</comment>
+  </data>
+  <data name="TypeMustDefineMemberInfoOrDerivedType" xml:space="preserve">
+    <value>memberInfo または派生型を定義する型でなければなりません。</value>
+  </data>
+  <data name="UnexpectedConstraintType" xml:space="preserve">
+    <value>予期しない制約型: {0}。</value>
+  </data>
+  <data name="UnsupportedFormat" xml:space="preserve">
+    <value>サポートされない形式: {0}。</value>
+  </data>
+  <data name="WritableStreamRequired" xml:space="preserve">
+    <value>書き込み可能なストリームが必要です。</value>
+    <comment>'stream' is in reference to System.IO.Stream</comment>
+  </data>
+  <data name="WrongType" xml:space="preserve">
+    <value>型が正しくありません。</value>
+  </data>
+</root>

@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en-US" target-language="ru" original="MICROSOFT.VISUALSTUDIO.COMPOSITION.LOCALIZATIONSHELL/STRINGS.RESX" tool-id="MultilingualAppToolkit" product-name="n/a" product-version="n/a" build-num="n/a">
+    <header>
+      <tool tool-id="MultilingualAppToolkit" tool-name="Multilingual App Toolkit" tool-version="4.0.6799.0" tool-company="Microsoft" />
+    </header>
+    <body>
+      <group id="MICROSOFT.VISUALSTUDIO.COMPOSITION.LOCALIZATIONSHELL/STRINGS.RESX" datatype="resx">
+        <trans-unit id="CannotDirectlyDisposeAnImport" translate="yes" xml:space="preserve">
+          <source>This instance is an import and cannot be directly disposed.</source>
+          <target state="translated">Этот экземпляр является операцией импорта и не может быть раскрыт напрямую.</target>
+        </trans-unit>
+        <trans-unit id="ContainerDisposalEncounteredExceptions" translate="yes" xml:space="preserve">
+          <source>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</source>
+          <target state="translated">Возникли исключения в частях с созданными экземплярами из IDisposable.Dispose().</target>
+        </trans-unit>
+        <trans-unit id="ErrorsDuringDiscovery" translate="yes" xml:space="preserve">
+          <source>Errors occurred during discovery.</source>
+          <target state="translated">Произошли ошибки при обнаружении.</target>
+        </trans-unit>
+        <trans-unit id="ErrorsInComposition" translate="yes" xml:space="preserve">
+          <source>Errors exist in the composition.</source>
+          <target state="translated">Произошли ошибки в композиции.</target>
+        </trans-unit>
+        <trans-unit id="ErrorWhileSettingImport" translate="yes" xml:space="preserve">
+          <source>Import "{0}" could not be satisfied.</source>
+          <target state="translated">Не удалось выполнить импорт "{0}".</target>
+        </trans-unit>
+        <trans-unit id="ExceptionThrownByPartUnderInitialization" translate="yes" xml:space="preserve">
+          <source>An exception was thrown while initializing part "{0}".</source>
+          <target state="translated">Возникло исключение при инициализации части "{0}".</target>
+        </trans-unit>
+        <trans-unit id="ExportedValueNotAssignableToImport" translate="yes" xml:space="preserve">
+          <source>Value exported from "{0}" cannot be assigned to import site "{1}".</source>
+          <target state="translated">Значение, экспортированное из "{0}", не может быть назначено для сайта импорта "{1}".</target>
+        </trans-unit>
+        <trans-unit id="FailStableComposition" translate="yes" xml:space="preserve">
+          <source>Failed to find a stable composition.</source>
+          <target state="translated">Не удалось найти стабильную композицию.</target>
+        </trans-unit>
+        <trans-unit id="FailureWhileScanningType" translate="yes" xml:space="preserve">
+          <source>Failure while scanning type "{0}".</source>
+          <target state="translated">Сбой сканирования типа "{0}".</target>
+        </trans-unit>
+        <trans-unit id="NoImportingConstructor" translate="yes" xml:space="preserve">
+          <source>No importing constructor.</source>
+          <target state="translated">Отсутствует конструктор импорта.</target>
+        </trans-unit>
+        <trans-unit id="PartBelongsToAnotherSharingBoundary" translate="yes" xml:space="preserve">
+          <source>Inappropriate request for export from part that belongs to another sharing boundary.</source>
+          <target state="translated">Недопустимый запрос экспорта из части, которая принадлежит другой общей границе.</target>
+        </trans-unit>
+        <trans-unit id="PartIsNotInstantiable" translate="yes" xml:space="preserve">
+          <source>This part ({0}) cannot be instantiated.</source>
+          <target state="translated">Невозможно создать экземпляры этой части ({0}).</target>
+        </trans-unit>
+        <trans-unit id="ReflectionTypeLoadExceptionWhileEnumeratingTypes" translate="yes" xml:space="preserve">
+          <source>ReflectionTypeLoadException while enumerating types in assembly "{0}". Results will be incomplete.</source>
+          <target state="translated">Возникло исключение ReflectionTypeLoadException при перечислении типов в сборке "{0}". Результаты будут неполными.</target>
+        </trans-unit>
+        <trans-unit id="ScanningMEFAssemblies" translate="yes" xml:space="preserve">
+          <source>Scanning MEF assemblies...</source>
+          <target state="translated">Идет сканирование сборок MEF...</target>
+        </trans-unit>
+        <trans-unit id="TypeOfMetadataViewUnsupported" translate="yes" xml:space="preserve">
+          <source>Type of metadata view is unsupported.</source>
+          <target state="translated">Тип представления метаданных не поддерживается.</target>
+        </trans-unit>
+        <trans-unit id="UnableToDeterminePrimarySharingBoundary" translate="yes" xml:space="preserve">
+          <source>Unable to determine the primary sharing boundary for MEF part "{0}".</source>
+          <target state="translated">Не удалось определить первичную общую границу для части MEF "{0}".</target>
+        </trans-unit>
+        <trans-unit id="UnableToEnumerateTypes" translate="yes" xml:space="preserve">
+          <source>Unable to enumerate types in assembly "{0}".</source>
+          <target state="translated">Не удалось перечислить типы в сборке "{0}".</target>
+        </trans-unit>
+        <trans-unit id="UnableToInstantiateCustomImportCollectionType" translate="yes" xml:space="preserve">
+          <source>Unable to instantiate custom import collection type.</source>
+          <target state="translated">Не удалось создать экземпляр типа коллекции пользовательского импорта.</target>
+        </trans-unit>
+        <trans-unit id="UnableToLoadAssembly" translate="yes" xml:space="preserve">
+          <source>Unable to load assembly "{0}" for scanning.</source>
+          <target state="translated">Не удалось загрузить сборку "{0}" для сканирования.</target>
+        </trans-unit>
+        <trans-unit id="UnexpectedMemberType" translate="yes" xml:space="preserve">
+          <source>Unexpected member type.</source>
+          <target state="translated">Неожиданный тип элемента.</target>
+        </trans-unit>
+        <trans-unit id="UnexpectedNumberOfExportsFound" translate="yes" xml:space="preserve">
+          <source>Expected {0} export(s) with contract name "{1}" but found {2} after applying applicable constraints.</source>
+          <target state="translated">Ожидаются операции экспорта ({0}) с названием контракта "{1}", но после применения соответствующих ограничений найдено {2}.</target>
+        </trans-unit>
+        <trans-unit id="UnexpectedSharedPartState" translate="yes" xml:space="preserve">
+          <source>This shared part is in state {0} but must be in state {1} for this operation.</source>
+          <target state="translated">Эта общая часть находится в состоянии {0}, но должна быть в состоянии {1} для данной операции.</target>
+        </trans-unit>
+        <trans-unit id="AllValuesMustBeNonNull" translate="yes" xml:space="preserve">
+          <source>All values must be non-null.</source>
+          <target state="translated">Значения не должны быть равны NULL.</target>
+        </trans-unit>
+        <trans-unit id="CannotImportBecauseExportingPartCannotBeInstantiated" translate="yes" xml:space="preserve">
+          <source>{0}: cannot import exported value from {1} because the exporting part cannot be instantiated. Is it missing an importing constructor?</source>
+          <target state="translated">{0}: невозможно импортировать экспортированное значение из {1}, так как не удается создать экземпляр экспортируемой части. Возможно, отсутствует импортирующий конструктор.</target>
+        </trans-unit>
+        <trans-unit id="CollectionTypeMustDeriveFromICollectionOfT" translate="yes" xml:space="preserve">
+          <source>Collection type must derive from ICollection<it id="1" pos="open">&lt;T&gt;</it>.</source>
+          <target state="translated">Тип коллекции должен быть производным от ICollection<it id="1" pos="open">&lt;T&gt;</it>.</target>
+        </trans-unit>
+        <trans-unit id="ExactlyOneEntryForEveryImport" translate="yes" xml:space="preserve">
+          <source>There should be exactly one entry for every import.</source>
+          <target state="translated">Для каждого импорта требуется только одна запись.</target>
+        </trans-unit>
+        <trans-unit id="ExpectedExactlyOneExportButFound" translate="yes" xml:space="preserve">
+          <source>{0}: expected exactly 1 export of {1} but found {2}.{3}</source>
+          <target state="translated">{0}: ожидается только 1 операция экспорта {1}, но найдено {2}.{3}</target>
+        </trans-unit>
+        <trans-unit id="ExpectedOneOrZeroExportsButFound" translate="yes" xml:space="preserve">
+          <source>{0}: expected 1 or 0 exports of {1} but found {2}.{3}</source>
+          <target state="translated">{0}: ожидается 1 или 0 операций экспорта {1}, но найдено {2}.{3}</target>
+        </trans-unit>
+        <trans-unit id="ExportOfExportProviderNotAllowed" translate="yes" xml:space="preserve">
+          <source>{0}: Export of ExportProvider is not allowed.</source>
+          <target state="translated">{0}: экспорт ExportProvider запрещен.</target>
+        </trans-unit>
+        <trans-unit id="ImportingCtorHasUnsupportedParameterTypeForImportMany" translate="yes" xml:space="preserve">
+          <source>Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable<it id="1" pos="open">&lt;T&gt;</it> are supported.</source>
+          <target state="translated">В импорте конструктора указан неподдерживаемый тип параметра для [ImportMany]. Поддерживаются только T[] и IEnumerable<it id="1" pos="open">&lt;T&gt;</it>.</target>
+        </trans-unit>
+        <trans-unit id="ImportsThatUseGenericTypeParametersNotSupported" translate="yes" xml:space="preserve">
+          <source>{0}: imports that use generic type parameters are not supported.</source>
+          <target state="translated">{0}: операции импорта, в которых используются параметры универсального типа, не поддерживаются.</target>
+        </trans-unit>
+        <trans-unit id="InstanceEmpty" translate="yes" xml:space="preserve">
+          <source>This instance is empty.</source>
+          <target state="translated">Экземпляр пуст.</target>
+        </trans-unit>
+        <trans-unit id="IsNotAssignableFromExportedMEFValue" translate="yes" xml:space="preserve">
+          <source>{0}: is not assignable from exported MEF value {1}.</source>
+          <target state="translated">{0}: невозможно назначить из экспортированного значения MEF {1}.</target>
+        </trans-unit>
+        <trans-unit id="LoopBetweenNonSharedParts" translate="yes" xml:space="preserve">
+          <source>Loop between non-shared parts.</source>
+          <target state="translated">Цикл между частями, которые не являются общими.</target>
+        </trans-unit>
+        <trans-unit id="LoopInvolvingImportingCtorArgumentAndAllNonLazyImports" translate="yes" xml:space="preserve">
+          <source>Loop involving ImportingConstructor argument and all non-lazy imports.</source>
+          <target state="translated">Цикл, включающий аргумент ImportingConstructor и все не отложенные операции импорта.</target>
+        </trans-unit>
+        <trans-unit id="MetadataTypeNotSupported" translate="yes" xml:space="preserve">
+          <source>{0}: metadata type {1} is not supported.</source>
+          <target state="translated">{0}: тип метаданных {1} не поддерживается.</target>
+        </trans-unit>
+        <trans-unit id="NotATypeSpec" translate="yes" xml:space="preserve">
+          <source>Not a type spec.</source>
+          <target state="translated">Не является спецификацией типа.</target>
+        </trans-unit>
+        <trans-unit id="NotClosedFormOfOther" translate="yes" xml:space="preserve">
+          <source>Not a closed form of the other.</source>
+          <target state="translated">Не является закрытой формой другого элемента.</target>
+        </trans-unit>
+        <trans-unit id="NotGenericTypeDefinition" translate="yes" xml:space="preserve">
+          <source>This is not a generic type definition.</source>
+          <target state="translated">Это не определение универсального типа.</target>
+        </trans-unit>
+        <trans-unit id="NotInitialized" translate="yes" xml:space="preserve">
+          <source>Not initialized.</source>
+          <target state="translated">Не инициализировано.</target>
+        </trans-unit>
+        <trans-unit id="PartIsNotShared" translate="yes" xml:space="preserve">
+          <source>Part is not shared.</source>
+          <target state="translated">Часть не является общей.</target>
+        </trans-unit>
+        <trans-unit id="UnresolvableMetadataToken" translate="yes" xml:space="preserve">
+          <source>Unresolvable metadata token.</source>
+          <target state="translated">Неразрешимый токен метаданных.</target>
+        </trans-unit>
+        <trans-unit id="WrongLength" translate="yes" xml:space="preserve">
+          <source>Wrong length.</source>
+          <target state="translated">Неправильная длина.</target>
+        </trans-unit>
+        <trans-unit id="RecursiveRequestForPartConstruction" translate="yes" xml:space="preserve">
+          <source>Unable to construct MEF part "{0}" due to an unresolvable recursive construction request.</source>
+          <target state="translated">Не удалось создать часть MEF "{0}" из-за неразрешимого рекурсивного запроса на создание.</target>
+        </trans-unit>
+        <trans-unit id="AssemblyNameMustBeSetFirst" translate="yes" xml:space="preserve">
+          <source>AssemblyName must be set first.</source>
+          <target state="translated">Сначала необходимо задать AssemblyName.</target>
+        </trans-unit>
+        <trans-unit id="CannotBeEmpty" translate="yes" xml:space="preserve">
+          <source>Cannot be empty.</source>
+          <target state="translated">Не может быть пустым.</target>
+        </trans-unit>
+        <trans-unit id="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" translate="yes" xml:space="preserve">
+          <source>Collection must be public with a public constructor when used with an [ImportingConstructor].</source>
+          <target state="translated">Коллекция должна быть общей, с общим конструктором, если он используется с атрибутом [ImportingConstructor].</target>
+        </trans-unit>
+        <trans-unit id="CompilerErrorsOccurred" translate="yes" xml:space="preserve">
+          <source>Compilation errors occurred.</source>
+          <target state="translated">Произошли ошибки компиляции.</target>
+        </trans-unit>
+        <trans-unit id="CustomImportSourceNotSupported" translate="yes" xml:space="preserve">
+          <source>Custom import sources are not yet supported.</source>
+          <target state="translated">Пользовательские источники импорта еще не поддерживаются.</target>
+        </trans-unit>
+        <trans-unit id="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" translate="yes" xml:space="preserve">
+          <source>Member "{0}" contains metadata attributes with an identical property name. Property name: "{1}".</source>
+          <target state="translated">Член "{0}" содержит атрибуты метаданных с идентичным именем свойства. Имя свойства: "{1}".</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">{0} = member (full name if possible) with invalid metadata attributes.
+{1} = the property's name.</note>
+        </trans-unit>
+        <trans-unit id="ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" translate="yes" xml:space="preserve">
+          <source>Exports on members not allowed when the declaring type is generic.</source>
+          <target state="translated">Операции экспорта в элементах запрещены, если объявляющий тип является универсальным.</target>
+        </trans-unit>
+        <trans-unit id="FailedToGenerateEmbeddableTypes" translate="yes" xml:space="preserve">
+          <source>Failed to generate embeddable types.</source>
+          <target state="translated">Не удалось создать встраиваемые типы.</target>
+        </trans-unit>
+        <trans-unit id="ImportConstraintTypeNotSupported" translate="yes" xml:space="preserve">
+          <source>The import constraint type {0} is not supported.</source>
+          <target state="translated">Тип ограничения импорта {0} не поддерживается.</target>
+        </trans-unit>
+        <trans-unit id="IsExpectedOnlyOnImportsOfExportFactoryOfT" translate="yes" xml:space="preserve">
+          <source>{0} is expected only on imports of ExportFactory<it id="1" pos="open">&lt;T&gt;</it>.</source>
+          <target state="translated">{0} ожидается только при импорте ExportFactory<it id="1" pos="open">&lt;T&gt;</it>.</target>
+        </trans-unit>
+        <trans-unit id="IsExportFactoryExpectedTrue" translate="yes" xml:space="preserve">
+          <source>IsExportFactory is expected to be true.</source>
+          <target state="translated">Для IsExportFactory требуется значение true.</target>
+        </trans-unit>
+        <trans-unit id="MemberContainsBothImportAndImportMany" translate="yes" xml:space="preserve">
+          <source>Member "{0}" contains both ImportAttribute and ImportManyAttribute.</source>
+          <target state="translated">Элемент "{0}" содержит атрибуты ImportAttribute и ImportManyAttribute.</target>
+        </trans-unit>
+        <trans-unit id="NoImportingConstructorFound" translate="yes" xml:space="preserve">
+          <source>No importing constructor found.</source>
+          <target state="translated">Не удалось найти конструктор импорта.</target>
+        </trans-unit>
+        <trans-unit id="NoMemberToSatisfy" translate="yes" xml:space="preserve">
+          <source>No member to satisfy.</source>
+          <target state="translated">Отсутствуют соответствующие элементы.</target>
+        </trans-unit>
+        <trans-unit id="OnImportsSatisfiedTakeNoParameters" translate="yes" xml:space="preserve">
+          <source>OnImportsSatisfied method should take no parameters.</source>
+          <target state="translated">Метод OnImportsSatisfied не должен принимать параметры.</target>
+        </trans-unit>
+        <trans-unit id="OnlyOneOnImportsSatisfiedMethodIsSupported" translate="yes" xml:space="preserve">
+          <source>Only one OnImportsSatisfied method is supported.</source>
+          <target state="translated">Поддерживается только метод OnImportsSatisfied.</target>
+        </trans-unit>
+        <trans-unit id="OnlySupportedOnWriteOperations" translate="yes" xml:space="preserve">
+          <source>Only supported on write operations.</source>
+          <target state="translated">Поддерживается только в операциях записи.</target>
+        </trans-unit>
+        <trans-unit id="ReadableStreamRequired" translate="yes" xml:space="preserve">
+          <source>Readable stream required.</source>
+          <target state="translated">Требуется поток, доступный для чтения.</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">'stream' is in reference to System.IO.Stream</note>
+        </trans-unit>
+        <trans-unit id="TypeMustDefineMemberInfoOrDerivedType" translate="yes" xml:space="preserve">
+          <source>Type must be the one that defines memberInfo or a derived type.</source>
+          <target state="translated">Тип должен определять memberInfo или производный тип.</target>
+        </trans-unit>
+        <trans-unit id="UnexpectedConstraintType" translate="yes" xml:space="preserve">
+          <source>Unexpected constraint type: {0}.</source>
+          <target state="translated">Неожиданный тип ограничения: {0}.</target>
+        </trans-unit>
+        <trans-unit id="UnsupportedFormat" translate="yes" xml:space="preserve">
+          <source>Unsupported format: {0}.</source>
+          <target state="translated">Неподдерживаемый формат: {0}.</target>
+        </trans-unit>
+        <trans-unit id="WritableStreamRequired" translate="yes" xml:space="preserve">
+          <source>Writable stream required.</source>
+          <target state="translated">Требуется поток, доступный для записи.</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">'stream' is in reference to System.IO.Stream</note>
+        </trans-unit>
+        <trans-unit id="WrongType" translate="yes" xml:space="preserve">
+          <source>Wrong type.</source>
+          <target state="translated">Неправильный тип.</target>
+        </trans-unit>
+      </group>
+    </body>
+  </file>
+</xliff>

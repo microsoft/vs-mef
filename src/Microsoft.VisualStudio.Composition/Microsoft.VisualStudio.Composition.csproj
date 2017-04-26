@@ -18,25 +18,9 @@
     <PackageReference Include="System.Composition" Version="1.0.31" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Strings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Strings.resx</DependentUpon>
-    </Compile>
-    <Compile Update="ConfigurationStrings.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ConfigurationStrings.resx</DependentUpon>
-    </Compile>
+    <Compile Include="..\Microsoft.VisualStudio.Composition.LocalizationShell\Strings.Designer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="ConfigurationStrings.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ConfigurationStrings.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Strings.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <EmbeddedResource Include="..\Microsoft.VisualStudio.Composition.LocalizationShell\*.resx" />
   </ItemGroup>
 </Project>

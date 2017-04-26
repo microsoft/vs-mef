@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected internal void FinalizeObjectTableCapacity()
         {
-            Verify.Operation(this.writer != null, ConfigurationStrings.OnlySupportedOnWriteOperations);
+            Verify.Operation(this.writer != null, Strings.OnlySupportedOnWriteOperations);
 
             // For efficiency in deserialization, go back and write the actual number of objects
             // in the object table so the deserializer can allocate space up front and avoid dictionary resizing
@@ -355,7 +355,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             uint token = (uint)metadataToken;
             uint flags = (uint)type;
-            Requires.Argument((token & (uint)MetadataTokenType.Mask) == flags, "type", ConfigurationStrings.WrongType); // just a sanity check
+            Requires.Argument((token & (uint)MetadataTokenType.Mask) == flags, "type", Strings.WrongType); // just a sanity check
             this.WriteCompressedUInt(token & ~(uint)MetadataTokenType.Mask);
         }
 
@@ -366,7 +366,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(ConstructorRef constructorRef)
         {
-            Requires.Argument(!constructorRef.IsEmpty, "constructorRef", ConfigurationStrings.CannotBeEmpty);
+            Requires.Argument(!constructorRef.IsEmpty, "constructorRef", Strings.CannotBeEmpty);
             using (this.Trace("ConstructorRef"))
             {
                 this.Write(constructorRef.DeclaringType);
@@ -851,7 +851,7 @@ namespace Microsoft.VisualStudio.Composition
                         var formatter = new BinaryFormatter();
                         return formatter.Deserialize(this.reader.BaseStream);
                     default:
-                        throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, ConfigurationStrings.UnsupportedFormat, objectType));
+                        throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.UnsupportedFormat, objectType));
                 }
             }
         }

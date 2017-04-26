@@ -1,0 +1,220 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CannotDirectlyDisposeAnImport" xml:space="preserve">
+    <value>Toto je instance importu a nedá se přímo zrušit.</value>
+  </data>
+  <data name="ContainerDisposalEncounteredExceptions" xml:space="preserve">
+    <value>Části v instancích vrátily výjimky z metody IDisposable.Dispose().</value>
+  </data>
+  <data name="ErrorsDuringDiscovery" xml:space="preserve">
+    <value>Při zjišťování došlo k chybě.</value>
+  </data>
+  <data name="ErrorsInComposition" xml:space="preserve">
+    <value>V kompozici jsou chyby.</value>
+  </data>
+  <data name="ErrorWhileSettingImport" xml:space="preserve">
+    <value>Podmínky importu {0} se nedají splnit.</value>
+  </data>
+  <data name="ExceptionThrownByPartUnderInitialization" xml:space="preserve">
+    <value>Při inicializaci části {0} se vrátila výjimka.</value>
+  </data>
+  <data name="ExportedValueNotAssignableToImport" xml:space="preserve">
+    <value>Hodnota exportovaná z {0} se nedá přiřadit k importované lokalitě {1}.</value>
+  </data>
+  <data name="FailStableComposition" xml:space="preserve">
+    <value>Nepovedlo se najít stabilní kompozici.</value>
+  </data>
+  <data name="FailureWhileScanningType" xml:space="preserve">
+    <value>Při skenování typu {0} došlo k chybě.</value>
+  </data>
+  <data name="NoImportingConstructor" xml:space="preserve">
+    <value>Chybí importující konstruktor.</value>
+  </data>
+  <data name="PartBelongsToAnotherSharingBoundary" xml:space="preserve">
+    <value>Nesprávný požadavek na export z části, která spadá do jiné hranice sdílení.</value>
+  </data>
+  <data name="PartIsNotInstantiable" xml:space="preserve">
+    <value>Pro tuto část ({0}) se nedají vytvořit instance.</value>
+  </data>
+  <data name="ReflectionTypeLoadExceptionWhileEnumeratingTypes" xml:space="preserve">
+    <value>Při vytváření výčtů typů v sestavení {0} se vrátila výjimka ReflectionTypeLoadException. Výsledky nebudou úplné.</value>
+  </data>
+  <data name="ScanningMEFAssemblies" xml:space="preserve">
+    <value>Skenují se sestavení rozhraní MEF...</value>
+  </data>
+  <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
+    <value>Typ zobrazení metadat není podporovaný.</value>
+  </data>
+  <data name="UnableToDeterminePrimarySharingBoundary" xml:space="preserve">
+    <value>Nedá se určit primární hranice sdílení pro část rozhraní MEF {0}.</value>
+  </data>
+  <data name="UnableToEnumerateTypes" xml:space="preserve">
+    <value>Nedá se vytvořit výčet typů v sestavení {0}.</value>
+  </data>
+  <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
+    <value>Nedají se vytvořit instance vlastního typu kolekce importu.</value>
+  </data>
+  <data name="UnableToLoadAssembly" xml:space="preserve">
+    <value>Nedá se načíst sestavení {0} ke skenování.</value>
+  </data>
+  <data name="UnexpectedMemberType" xml:space="preserve">
+    <value>Neočekávaný typ člena</value>
+  </data>
+  <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
+    <value>Očekával se následující počet exportů s názvem kontraktu {1}: {0}. Nalezený počet po použití příslušných omezení byl ale: {2}.</value>
+  </data>
+  <data name="UnexpectedSharedPartState" xml:space="preserve">
+    <value>Tato sdílená část je ve stavu {0}, pro tuto operaci ale musí být ve stavu {1}.</value>
+  </data>
+  <data name="AllValuesMustBeNonNull" xml:space="preserve">
+    <value>Žádná hodnota nesmí být null.</value>
+  </data>
+  <data name="CannotImportBecauseExportingPartCannotBeInstantiated" xml:space="preserve">
+    <value>{0}: exportovaná hodnota se nedá importovat z {1}, protože pro exportující část nejdou vytvořit instance. Chybí importující konstruktor?</value>
+  </data>
+  <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
+    <value>Typ kolekce se musí odvodit od ICollection&lt;T&gt;.</value>
+  </data>
+  <data name="ExactlyOneEntryForEveryImport" xml:space="preserve">
+    <value>Ke každému importu musí být právě jedna položka.</value>
+  </data>
+  <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
+    <value>{0}: očekával se právě 1 export {1}, ale počet nalezených exportů je: {2}.{3}</value>
+  </data>
+  <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
+    <value>{0}: očekával se 1 nebo 0 exportů {1}, ale počet nalezených exportů je: {2}.{3}</value>
+  </data>
+  <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
+    <value>{0}: Export objektu ExportProvider není povolený.</value>
+  </data>
+  <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
+    <value>Importování konstruktor má nepodporovaný parametr typ pro [ImportMany]. Jsou podporovány pouze [T] a IEnumerable &lt;T&gt;  .</value>
+  </data>
+  <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
+    <value>{0}: Importy používající parametry generického typu nejsou podporované.</value>
+  </data>
+  <data name="InstanceEmpty" xml:space="preserve">
+    <value>Tato instance je prázdná.</value>
+  </data>
+  <data name="IsNotAssignableFromExportedMEFValue" xml:space="preserve">
+    <value>{0}: Nedá se přiřadit z exportované hodnoty rozhraní MEF {1}.</value>
+  </data>
+  <data name="LoopBetweenNonSharedParts" xml:space="preserve">
+    <value>Mezi nesdílenými součástmi došlo k zacyklení.</value>
+  </data>
+  <data name="LoopInvolvingImportingCtorArgumentAndAllNonLazyImports" xml:space="preserve">
+    <value>Došlo k zacyklení, které zahrnuje argument ImportingConstructor a všechny importy ze seznamu non-lazy.</value>
+  </data>
+  <data name="MetadataTypeNotSupported" xml:space="preserve">
+    <value>{0}: Typ metadat {1} není podporovaný.</value>
+  </data>
+  <data name="NotATypeSpec" xml:space="preserve">
+    <value>Toto není specifikace typu.</value>
+  </data>
+  <data name="NotClosedFormOfOther" xml:space="preserve">
+    <value>Toto není uzavřená forma druhého objektu.</value>
+  </data>
+  <data name="NotGenericTypeDefinition" xml:space="preserve">
+    <value>Toto není definice generického typu.</value>
+  </data>
+  <data name="NotInitialized" xml:space="preserve">
+    <value>Nezinicializováno.</value>
+  </data>
+  <data name="PartIsNotShared" xml:space="preserve">
+    <value>Část není sdílená.</value>
+  </data>
+  <data name="UnresolvableMetadataToken" xml:space="preserve">
+    <value>Nedá se rozpoznat token metadat.</value>
+  </data>
+  <data name="WrongLength" xml:space="preserve">
+    <value>Nesprávná délka</value>
+  </data>
+  <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
+    <value>Nelze vytvořit MEF součást "{0}" kvůli požadavku konstrukce nelze rozpoznat rekurzivní.</value>
+  </data>
+  <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
+    <value>Nejdřív je potřeba nastavit parametr AssemblyName.</value>
+  </data>
+  <data name="CannotBeEmpty" xml:space="preserve">
+    <value>Nemůže být prázdný.</value>
+  </data>
+  <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
+    <value>Při použití s [ImportingConstructor] musí být kolekce veřejná s veřejným konstruktorem.</value>
+  </data>
+  <data name="CompilerErrorsOccurred" xml:space="preserve">
+    <value>Došlo k chybám kompilace.</value>
+  </data>
+  <data name="CustomImportSourceNotSupported" xml:space="preserve">
+    <value>Vlastní zdroje pro import ještě nejsou podporované.</value>
+  </data>
+  <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
+    <value>Člen "{0}" obsahuje atributy metadat s názvem shodné vlastnosti. Název vlastnosti: "{1}".</value>
+    <comment>{0} = member (full name if possible) with invalid metadata attributes.
+{1} = the property's name.</comment>
+  </data>
+  <data name="ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" xml:space="preserve">
+    <value>Pokud je deklarující typ generický, exporty u členů nejsou povolené.</value>
+  </data>
+  <data name="FailedToGenerateEmbeddableTypes" xml:space="preserve">
+    <value>Nepovedlo se generovat typy umožňující vložení.</value>
+  </data>
+  <data name="ImportConstraintTypeNotSupported" xml:space="preserve">
+    <value>Typ omezení importu {0} není podporovaný.</value>
+  </data>
+  <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
+    <value>{0} očekává pouze na dovoz ExportFactory&lt;T&gt;.</value>
+  </data>
+  <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
+    <value>Očekává se, že IsExportFactory bude mít hodnotu True.</value>
+  </data>
+  <data name="MemberContainsBothImportAndImportMany" xml:space="preserve">
+    <value>Člen {0} obsahuje třídu ImportAttribute i ImportManyAttribute.</value>
+  </data>
+  <data name="NoImportingConstructorFound" xml:space="preserve">
+    <value>Nenašel se žádný importující konstruktor.</value>
+  </data>
+  <data name="NoMemberToSatisfy" xml:space="preserve">
+    <value>Nedá se splnit u žádného člena.</value>
+  </data>
+  <data name="OnImportsSatisfiedTakeNoParameters" xml:space="preserve">
+    <value>Metoda OnImportsSatisfied by neměla mít žádné parametry.</value>
+  </data>
+  <data name="OnlyOneOnImportsSatisfiedMethodIsSupported" xml:space="preserve">
+    <value>Podporovaná je jenom jedna metoda OnImportsSatisfied.</value>
+  </data>
+  <data name="OnlySupportedOnWriteOperations" xml:space="preserve">
+    <value>Podporované jenom u operací zápisu.</value>
+  </data>
+  <data name="ReadableStreamRequired" xml:space="preserve">
+    <value>Je vyžadovaný stream s možností čtení.</value>
+    <comment>'stream' is in reference to System.IO.Stream</comment>
+  </data>
+  <data name="TypeMustDefineMemberInfoOrDerivedType" xml:space="preserve">
+    <value>Typ musí být takový, který definuje třídu memberInfo nebo odvozený typ.</value>
+  </data>
+  <data name="UnexpectedConstraintType" xml:space="preserve">
+    <value>Neočekávaný typ omezení: {0}.</value>
+  </data>
+  <data name="UnsupportedFormat" xml:space="preserve">
+    <value>Nepodporovaný formát: {0}.</value>
+  </data>
+  <data name="WritableStreamRequired" xml:space="preserve">
+    <value>Je vyžadovaný stream s možností zápisu.</value>
+    <comment>'stream' is in reference to System.IO.Stream</comment>
+  </data>
+  <data name="WrongType" xml:space="preserve">
+    <value>Nesprávný typ</value>
+  </data>
+</root>

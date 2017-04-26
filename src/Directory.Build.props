@@ -10,6 +10,7 @@
 
     <NerdbankGitVersioningVersion>1.6.30</NerdbankGitVersioningVersion>
     <MicroBuildVersion>2.0.40</MicroBuildVersion>
+    <MicroBuild_LocalizeOutputAssembly>false</MicroBuild_LocalizeOutputAssembly>
 
     <PackageTags>Mef Composition Extensibility</PackageTags>
     <Company>Microsoft</Company>
