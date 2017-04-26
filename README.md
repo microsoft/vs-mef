@@ -2,6 +2,7 @@
 
 [![NuGet package](https://img.shields.io/nuget/v/Microsoft.VisualStudio.Composition.svg)](https://nuget.org/packages/Microsoft.VisualStudio.Composition)
 [![Build status](https://ci.appveyor.com/api/projects/status/q4uavk7qso20cd9t/branch/master?svg=true)](https://ci.appveyor.com/project/AArnott/vs-mef/branch/master)
+[![codecov](https://codecov.io/gh/Microsoft/vs-mef/branch/master/graph/badge.svg)](https://codecov.io/gh/Microsoft/vs-mef)
 
 ## Why VS MEF?
 
