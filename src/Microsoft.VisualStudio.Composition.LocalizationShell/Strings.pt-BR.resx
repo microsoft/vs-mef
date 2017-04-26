@@ -85,7 +85,7 @@
     <value>{0}: não é possível importar o valor exportado de {1} porque não é possível criar uma instância da parte de exportação. Um construtor de importação está ausente?</value>
   </data>
   <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
-    <value>Tipo de coleção deve derivar de ICollection&lt;T&gt;.</value>
+    <value>O tipo de coleção deve derivar de ICollection&lt;T&gt;.</value>
   </data>
   <data name="ExactlyOneEntryForEveryImport" xml:space="preserve">
     <value>Deve haver exatamente uma entrada para cada importação.</value>
@@ -100,7 +100,7 @@
     <value>{0}: Não é permitida exportação do ProvedorDeExportação.</value>
   </data>
   <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
-    <value>Importar o construtor tem um tipo de parâmetro sem suporte para um [ImportMany]. Único [] T e IEnumerable &lt;T&gt;  são suportados.</value>
+    <value>O construtor de importação possui um tipo de parâmetro sem suporte para um [ImportarMuitos]. Somente T[] e IEnumerable&lt;T&gt; têm suporte.</value>
   </data>
   <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
     <value>{0}: importações que usam parâmetros de tipo genérico não têm suporte.</value>
@@ -142,7 +142,7 @@
     <value>Comprimento incorreto.</value>
   </data>
   <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
-    <value>Não é possível construir parte do MEF "{0}" devido a uma solicitação de construção unresolvable recursiva.</value>
+    <value>Não foi possível construir a parte "{0}" do MEF devido a uma solicitação de construção recursiva não resolvida.</value>
   </data>
   <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
     <value>O NomeDoAssembly deve ser definido primeiro.</value>
@@ -160,7 +160,7 @@
     <value>Ainda não há suporte para fontes de importação personalizadas.</value>
   </data>
   <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
-    <value>Membros "{0}" contém os atributos de metadados com um nome de propriedade idênticos. Nome da propriedade: "{1}".</value>
+    <value>O membro "{0}" contém atributos de metadados com um nome de propriedade idêntico. Nome da propriedade: "{1}".</value>
     <comment>{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</comment>
   </data>
@@ -174,7 +174,7 @@
     <value>O tipo de restrição de importação {0} não tem suporte.</value>
   </data>
   <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
-    <value>{0} é esperado apenas sobre as importações de ExportFactory&lt;T&gt;.</value>
+    <value>{0} é esperado somente em importações da FábricaDeExportação&lt;T&gt;.</value>
   </data>
   <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
     <value>Espera-se que IsExportFactory seja true.</value>

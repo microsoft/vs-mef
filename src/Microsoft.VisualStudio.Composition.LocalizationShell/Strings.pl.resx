@@ -85,7 +85,7 @@
     <value>{0}: nie można zaimportować wartości wyeksportowanej z elementu {1}, ponieważ nie można utworzyć wystąpienia części eksportującej. Czy brakuje konstruktora importującego?</value>
   </data>
   <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
-    <value>Typ kolekcji musi pochodzić z kolekcji ICollection&lt;T&gt;.</value>
+    <value>Typ kolekcji musi być typem pochodnym typu ICollection&lt;T&gt;.</value>
   </data>
   <data name="ExactlyOneEntryForEveryImport" xml:space="preserve">
     <value>Dla każdego importu powinien istnieć dokładnie jeden wpis.</value>
@@ -100,7 +100,7 @@
     <value>{0}: Eksport elementu ExportProvider jest niedozwolony.</value>
   </data>
   <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
-    <value>Importowanie Konstruktor ma typ nieobsługiwany parametr dla [ImportMany]. Obsługiwane są tylko [T] i IEnumerable &lt;T&gt;  .</value>
+    <value>Konstruktor importujący ma nieobsługiwany typ parametru elementu [ImportMany]. Obsługiwane są tylko typy T[] i IEnumerable&lt;T&gt;.</value>
   </data>
   <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
     <value>{0}: importy, podczas których używane są parametry typu ogólnego, nie są obsługiwane.</value>
@@ -130,7 +130,7 @@
     <value>To nie jest definicja typu ogólnego.</value>
   </data>
   <data name="NotInitialized" xml:space="preserve">
-    <value>Nie zainicjowano.</value>
+    <value>Niezainicjowany.</value>
   </data>
   <data name="PartIsNotShared" xml:space="preserve">
     <value>Część nie została udostępniona.</value>
@@ -142,7 +142,7 @@
     <value>Błędna długość.</value>
   </data>
   <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
-    <value>Nie można skonstruować MEF składnika "{0}" z powodu żądania budowy nierozpoznawalnych cykliczne.</value>
+    <value>Nie można utworzyć części MEF „{0}” z powodu rekursywnego żądania konstrukcji, którego nie można rozpoznać.</value>
   </data>
   <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
     <value>Najpierw należy ustawić nazwę AssemblyName.</value>
@@ -160,7 +160,7 @@
     <value>Niestandardowe źródła importu nie są jeszcze obsługiwane.</value>
   </data>
   <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
-    <value>Element "{0}" zawiera atrybuty metadanych o nazwie identyczne właściwości. Nazwa właściwości: "{1}".</value>
+    <value>Element członkowski „{0}” zawiera atrybuty metadanych z identyczną nazwą właściwości. Nazwa właściwości: „{1}”.</value>
     <comment>{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</comment>
   </data>
@@ -174,7 +174,7 @@
     <value>Typ ograniczenia importu {0} nie jest obsługiwany.</value>
   </data>
   <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
-    <value>{0} ma się tylko na przywóz ExportFactory&lt;T&gt;.</value>
+    <value>Element {0} jest oczekiwany tylko w przypadku importów elementu ExportFactory&lt;T&gt;.</value>
   </data>
   <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
     <value>Element IsExportFactory powinien mieć następującą wartość true.</value>

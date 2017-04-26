@@ -85,7 +85,7 @@
     <value>{0}: エクスポートされたパーツはインスタンス化できないため、{1} からエクスポートされた値をインポートすることはできません。インポート コンストラクターが不足していますか?</value>
   </data>
   <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
-    <value>コレクション型は、ICollection&lt;T&gt;から派生する必要があります。</value>
+    <value>コレクション型は ICollection&lt;T&gt; から派生しなければなりません。</value>
   </data>
   <data name="ExactlyOneEntryForEveryImport" xml:space="preserve">
     <value>インポートごとに 1 つのエントリが必要です。</value>
@@ -100,7 +100,7 @@
     <value>{0}: ExportProvider のエクスポートは許可されていません。</value>
   </data>
   <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
-    <value>[ImportMany] のサポートされていないパラメーター型にはコンス トラクターをインポートします。T[] と IEnumerable&lt;T&gt;のみがサポートされます。</value>
+    <value>インポート コンストラクターには、[ImportMany] に対してサポートされていないパラメーター型があります。T[] および IEnumerable&lt;T&gt; のみサポートされています。</value>
   </data>
   <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
     <value>{0}: ジェネリック型パラメーターを使用するインポートはサポートされていません。</value>
@@ -142,7 +142,7 @@
     <value>長さが正しくありません。</value>
   </data>
   <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
-    <value>未解決の再帰構造要求が原因の MEF 部分「{0}」を構築できません。</value>
+    <value>MEF パーツ "{0}" を作成できません。再帰的構築要求を解決できません。</value>
   </data>
   <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
     <value>最初に AssemblyName を設定する必要があります。</value>
@@ -160,7 +160,7 @@
     <value>カスタム インポート ソースは現在サポートされていません。</value>
   </data>
   <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
-    <value>メンバー「{0}」には、同じプロパティ名を持つメタデータ属性が含まれています。プロパティ名:「{1}」。</value>
+    <value>メンバー "{0}" に同じプロパティ名のメタデータ属性が含まれています。プロパティ名: "{1}"。</value>
     <comment>{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</comment>
   </data>
@@ -174,7 +174,7 @@
     <value>インポートの制約型 {0} がサポートされていません。</value>
   </data>
   <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
-    <value>{0} は、ExportFactory&lt;T&gt;の輸入のみの予定です。</value>
+    <value>{0} は、 ExportFactory&lt;T&gt; をインポートする場合にのみ必要です。</value>
   </data>
   <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
     <value>IsExportFactory が true である必要があります。</value>

@@ -13,208 +13,208 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CannotDirectlyDisposeAnImport" xml:space="preserve">
-    <value>這是匯入的執行個體，無法直接處置。</value>
+    <value>這個執行個體是匯入，而且無法直接處置。</value>
   </data>
   <data name="ContainerDisposalEncounteredExceptions" xml:space="preserve">
-    <value>已個體化的組件從 IDisposable.Dispose() 擲回例外狀況。</value>
+    <value>從 IDisposable.Dispose() 執行個體化的部分擲回的例外狀況。</value>
   </data>
   <data name="ErrorsDuringDiscovery" xml:space="preserve">
-    <value>探索時發生錯誤。</value>
+    <value>探索期間發生錯誤。</value>
   </data>
   <data name="ErrorsInComposition" xml:space="preserve">
-    <value>組合中有錯誤。</value>
+    <value>複合裡有錯誤。</value>
   </data>
   <data name="ErrorWhileSettingImport" xml:space="preserve">
-    <value>無法完成匯入 "{0}"。</value>
+    <value>無法滿足匯入"{0}"。</value>
   </data>
   <data name="ExceptionThrownByPartUnderInitialization" xml:space="preserve">
-    <value>初始化組件 "{0}" 時擲回例外狀況。</value>
+    <value>初始化組件"{0}"時，擲回例外狀況。</value>
   </data>
   <data name="ExportedValueNotAssignableToImport" xml:space="preserve">
-    <value>從 "{0}" 匯出的值不得指派給匯入網站 "{1}"。</value>
+    <value>匯出從"{0}"的值不能指定要匯入網站"{1}"。</value>
   </data>
   <data name="FailStableComposition" xml:space="preserve">
-    <value>找不到穩定的組合。</value>
+    <value>無法找到穩定的組合。</value>
   </data>
   <data name="FailureWhileScanningType" xml:space="preserve">
-    <value>掃描 "{0}" 失敗。</value>
+    <value>掃描類型"{0}"時發生失敗。</value>
   </data>
   <data name="NoImportingConstructor" xml:space="preserve">
-    <value>沒有匯入建構函式。</value>
+    <value>沒有匯入的建構函式。</value>
   </data>
   <data name="PartBelongsToAnotherSharingBoundary" xml:space="preserve">
-    <value>不應要求從隸屬於其他共用界限的組件匯出。</value>
+    <value>不適當的要求，使其能從另一個共用的邊界所屬的組件的匯出。</value>
   </data>
   <data name="PartIsNotInstantiable" xml:space="preserve">
-    <value>此組件 ({0}) 無法個體化。</value>
+    <value>此組件 ({0}) 不能執行個體化。</value>
   </data>
   <data name="ReflectionTypeLoadExceptionWhileEnumeratingTypes" xml:space="preserve">
-    <value>列舉組件 "{0}" 中的類型時擲回 ReflectionTypeLoadException。結果將會不完整。</value>
+    <value>列舉型別在組件"{0}"中的 ReflectionTypeLoadException。結果會不完整。</value>
   </data>
   <data name="ScanningMEFAssemblies" xml:space="preserve">
     <value>正在掃描 MEF 組件...</value>
   </data>
   <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
-    <value>不支援此類型的中繼資料檢視。</value>
+    <value>中繼資料檢視的型別不支援。</value>
   </data>
   <data name="UnableToDeterminePrimarySharingBoundary" xml:space="preserve">
-    <value>無法判斷 MEF 組件 "{0}" 的主要共用界限。</value>
+    <value>無法判斷 MEF 組件"{0}"的主要共用界限。</value>
   </data>
   <data name="UnableToEnumerateTypes" xml:space="preserve">
-    <value>無法列舉組件 "{0}" 中的類型。</value>
+    <value>無法列舉組件"{0}"中的型別。</value>
   </data>
   <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
-    <value>無法個體化自訂匯入集合類型。</value>
+    <value>無法具現化自訂的匯入集合型別。</value>
   </data>
   <data name="UnableToLoadAssembly" xml:space="preserve">
-    <value>無法載入組件 "{0}" 進行掃描。</value>
+    <value>無法載入組件"{0}"進行掃描。</value>
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
-    <value>未預期的成員類型。</value>
+    <value>未預期的成員型別。</value>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
-    <value>預期有 {0} 個合約名稱為 "{1}" 的匯出，但在套用適用的條件約束後，卻發現有 {2} 個。</value>
+    <value>必須是的 {0}，export(s) 有合約名稱"{1}"，但找到的 {2} 之後套用適當的條件約束。</value>
   </data>
   <data name="UnexpectedSharedPartState" xml:space="preserve">
-    <value>此共用組件的狀態為 {0}，但此作業需要其狀態為 {1}。</value>
+    <value>此共用的組件是在狀態為 {0}，但必須在這項作業的狀態 {1} 中。</value>
   </data>
   <data name="AllValuesMustBeNonNull" xml:space="preserve">
-    <value>所有值必須都不是 Null。</value>
+    <value>所有的值必須為非 null。</value>
   </data>
   <data name="CannotImportBecauseExportingPartCannotBeInstantiated" xml:space="preserve">
-    <value>{0}: 因為無法個體化匯出的組件，所以無法從 {1} 匯入匯出的值。其是否缺少匯入建構函式?</value>
+    <value>{0}︰ 無法匯入匯出值從 {1} 因為匯出的組件無法具現化。它是否有遺漏匯入的建構函式？</value>
   </data>
   <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
-    <value>集合類型必須派生自 ICollection&lt;T&gt;。</value>
+    <value>集合類型必須衍生自 ICollection&lt;T&gt;.</value>
   </data>
   <data name="ExactlyOneEntryForEveryImport" xml:space="preserve">
-    <value>每個匯入只可有一個項目。</value>
+    <value>應該只有一個項目，每個匯入。</value>
   </data>
   <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
-    <value>{0}: 應只有 1 個 {1} 匯出，但卻發現 {2}.{3}</value>
+    <value>{0}: 必須是 1 個匯出的 {1}，但找到 {2}。{3}</value>
   </data>
   <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
-    <value>{0}: {應只有 1 個或 0 個 {1} 的匯出，但卻發現 {2}.{3}</value>
+    <value>{0}: 必須是 1 或 0 的 {1}，但找到 {2} 的匯出。{3}</value>
   </data>
   <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
-    <value>{0}: 無法匯出 ExportProvider。</value>
+    <value>{0}︰ 不允許匯出的 ExportProvider。</value>
   </data>
   <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
-    <value>導入建構函式有一個不受支援的參數類型為 [ImportMany]。支援唯一 T [] 和 IEnumerable &lt;T&gt; 。</value>
+    <value>匯入建構函式包含 [ImportMany] 不支援的參數類型。目前只支援 T[] 及 IEnumerable&lt;T&gt;。</value>
   </data>
   <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
-    <value>{0}: 不支援使用泛型類型參數的匯入。</value>
+    <value>{0}︰ 不支援使用泛型型別參數的匯入。</value>
   </data>
   <data name="InstanceEmpty" xml:space="preserve">
-    <value>此執行個體是空的。</value>
+    <value>這個執行個體是空的。</value>
   </data>
   <data name="IsNotAssignableFromExportedMEFValue" xml:space="preserve">
-    <value>{0}: 無法從匯出的 MEF 值 {1} 指派。</value>
+    <value>{0}: 中匯出的 MEF 值 {1} 不可以指派。</value>
   </data>
   <data name="LoopBetweenNonSharedParts" xml:space="preserve">
-    <value>非共用組件之間的迴圈。</value>
+    <value>非共用的組件之間的循環播放。</value>
   </data>
   <data name="LoopInvolvingImportingCtorArgumentAndAllNonLazyImports" xml:space="preserve">
-    <value>迴圈中包含 ImportingConstructor 引數及所有非 Lazy 匯入。</value>
+    <value>循環播放，牽涉到 ImportingConstructor 引數和所有的非延遲匯入。</value>
   </data>
   <data name="MetadataTypeNotSupported" xml:space="preserve">
-    <value>{0}: 不支援中繼資料類型 {1}。</value>
+    <value>{0}︰ 不支援中繼資料型別 {1}。</value>
   </data>
   <data name="NotATypeSpec" xml:space="preserve">
-    <value>不是類型規格。</value>
+    <value>不是型別規格。</value>
   </data>
   <data name="NotClosedFormOfOther" xml:space="preserve">
-    <value>不是開始格式的結束格式。</value>
+    <value>未封閉的其他表單。</value>
   </data>
   <data name="NotGenericTypeDefinition" xml:space="preserve">
-    <value>這不是泛型類型定義。</value>
+    <value>這不是泛型型別定義。</value>
   </data>
   <data name="NotInitialized" xml:space="preserve">
-    <value>並未初始。</value>
+    <value>未初始化。</value>
   </data>
   <data name="PartIsNotShared" xml:space="preserve">
-    <value>組件未共用。</value>
+    <value>不共用組件。</value>
   </data>
   <data name="UnresolvableMetadataToken" xml:space="preserve">
     <value>無法解析的中繼資料語彙基元。</value>
   </data>
   <data name="WrongLength" xml:space="preserve">
-    <value>長度錯誤。</value>
+    <value>錯誤的長度。</value>
   </data>
   <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
-    <value>無法構造 MEF 部分"{0}"由於無法解析遞迴構造請求。</value>
+    <value>無法建構 MEF 組件"{0}"因為無法解析的遞迴的建構要求。</value>
   </data>
   <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
     <value>必須先設定 AssemblyName。</value>
   </data>
   <data name="CannotBeEmpty" xml:space="preserve">
-    <value>不得為空白。</value>
+    <value>不可為空白。</value>
   </data>
   <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
-    <value>當集合與 [ImportingConstructor] 並用時，必須開放給公用建構函式使用。</value>
+    <value>集合必須具有公用建構函式與 [ImportingConstructor] 搭配使用時。</value>
   </data>
   <data name="CompilerErrorsOccurred" xml:space="preserve">
     <value>發生編譯錯誤。</value>
   </data>
   <data name="CustomImportSourceNotSupported" xml:space="preserve">
-    <value>目前不支援自訂匯入來源。</value>
+    <value>還不支援自訂的匯入來源。</value>
   </data>
   <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
-    <value>成員"{0}"包含中繼資料屬性具有相同的屬性名稱。屬性名稱:"{1}"。</value>
+    <value>成員 "{0}" 包含屬性名稱相同的中繼資料屬性。屬性名稱: "{1}"。</value>
     <comment>{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</comment>
   </data>
   <data name="ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" xml:space="preserve">
-    <value>當宣告類型為泛型時，無法匯出成員。</value>
+    <value>宣告的型別是泛型時，不允許的成員上的匯出。</value>
   </data>
   <data name="FailedToGenerateEmbeddableTypes" xml:space="preserve">
-    <value>無法產生可內嵌的類型。</value>
+    <value>無法產生內嵌的型別。</value>
   </data>
   <data name="ImportConstraintTypeNotSupported" xml:space="preserve">
-    <value>不支援匯入條件約束類型 {0}。</value>
+    <value>不支援匯入條件約束型別 {0}。</value>
   </data>
   <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
-    <value>{0} 預計僅對進口的 ExportFactory&lt;T&gt;。</value>
+    <value>只有在匯入 ExportFactory&lt;T&gt; 時才需要 {0}。</value>
   </data>
   <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
-    <value>IsExportFactory 應為 true。</value>
+    <value>IsExportFactory 必須為 true。</value>
   </data>
   <data name="MemberContainsBothImportAndImportMany" xml:space="preserve">
-    <value>成員 "{0}" 同時包含了 ImportAttribute 及 ImportManyAttribute。</value>
+    <value>成員"{0}"包含 ImportAttribute 及 ImportManyAttribute。</value>
   </data>
   <data name="NoImportingConstructorFound" xml:space="preserve">
-    <value>找不到匯入建構函式。</value>
+    <value>沒有找到匯入建構函式。</value>
   </data>
   <data name="NoMemberToSatisfy" xml:space="preserve">
-    <value>沒有相符的成員。</value>
+    <value>要滿足沒有成員。</value>
   </data>
   <data name="OnImportsSatisfiedTakeNoParameters" xml:space="preserve">
-    <value>OnImportsSatisfied 方法不應使用任何參數。</value>
+    <value>OnImportsSatisfied 方法應該不採用參數。</value>
   </data>
   <data name="OnlyOneOnImportsSatisfiedMethodIsSupported" xml:space="preserve">
-    <value>僅支援一個 OnImportsSatisfied 方法。</value>
+    <value>支援只有一個 OnImportsSatisfied 方法。</value>
   </data>
   <data name="OnlySupportedOnWriteOperations" xml:space="preserve">
-    <value>只在寫入作業中才支援。</value>
+    <value>只支援寫入作業。</value>
   </data>
   <data name="ReadableStreamRequired" xml:space="preserve">
-    <value>需要可讀取的資料流。</value>
+    <value>所需的可讀取資料流。</value>
     <comment>'stream' is in reference to System.IO.Stream</comment>
   </data>
   <data name="TypeMustDefineMemberInfoOrDerivedType" xml:space="preserve">
-    <value>必須是定義 memberInfo 的類型或衍生類型。</value>
+    <value>型別必須是一個定義 memberInfo 或衍生的型別。</value>
   </data>
   <data name="UnexpectedConstraintType" xml:space="preserve">
-    <value>未預期的條件約束類型: {0}。</value>
+    <value>未預期的條件約束型別︰ {0}。</value>
   </data>
   <data name="UnsupportedFormat" xml:space="preserve">
     <value>不支援的格式: {0}。</value>
   </data>
   <data name="WritableStreamRequired" xml:space="preserve">
-    <value>需要可寫入的資料流。</value>
+    <value>所需的可寫入資料流。</value>
     <comment>'stream' is in reference to System.IO.Stream</comment>
   </data>
   <data name="WrongType" xml:space="preserve">
-    <value>類型錯誤。</value>
+    <value>錯誤的型別。</value>
   </data>
 </root>

@@ -82,10 +82,11 @@
     <value>모든 값은 null이 아니어야 합니다.</value>
   </data>
   <data name="CannotImportBecauseExportingPartCannotBeInstantiated" xml:space="preserve">
-    <value>{0}: 내보내기 파트를 인스턴스화할 수 없어서 {1}에서 내보낸 값을 가져올 수 없습니다. 가져오기 생성자가 없나요?\n</value>
+    <value>{0}: 내보내기 파트를 인스턴스화할 수 없어서 {1}에서 내보낸 값을 가져올 수 없습니다. 가져오기 생성자가 없나요?
+</value>
   </data>
   <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
-    <value>컬렉션 형식 ICollection&lt;T&gt;에서에서 파생 되어야 합니다.</value>
+    <value>수집 형식은 ICollection에서 파생되어야 합니다&lt;T&gt;.</value>
   </data>
   <data name="ExactlyOneEntryForEveryImport" xml:space="preserve">
     <value>모든 가져오기에 대한 항목은 하나만 있어야 합니다.</value>
@@ -100,7 +101,7 @@
     <value>{0}: ExportProvider를 내보낼 수 없습니다.</value>
   </data>
   <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
-    <value>생성자를 가져오기는 지원 되지 않는 매개 변수 형식을 [ImportMany] 있다. T와 IEnumerable &lt;T&gt;  만 지원 됩니다.</value>
+    <value>가져오기 생성자의 매개 변수 형식이 [ImportMany]에 대해 지원되지 않습니다. T[] 및 IEnumerable&lt;T&gt;만 지원됩니다.</value>
   </data>
   <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
     <value>{0}: 제너릭 형식 매개 변수를 사용하는 가져오기는 지원되지 않습니다.</value>
@@ -130,7 +131,7 @@
     <value>제너릭 형식 정의가 아닙니다.</value>
   </data>
   <data name="NotInitialized" xml:space="preserve">
-    <value>초기화되지 않습니다.</value>
+    <value>초기화되지 않았습니다.</value>
   </data>
   <data name="PartIsNotShared" xml:space="preserve">
     <value>파트가 공유되어 있지 않습니다.</value>
@@ -142,7 +143,7 @@
     <value>잘못된 길이입니다.</value>
   </data>
   <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
-    <value>해결할 수 없는 재귀 건설 요청으로 인해 MEF 파트 "{0}" 구성 수 없습니다.</value>
+    <value>확인할 수 없는 재귀 생성 요청으로 인해 MEF 파트 "{0}"을(를) 생성할 수 없습니다.</value>
   </data>
   <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
     <value>먼저 AssemblyName을 설정해야 합니다.</value>
@@ -160,7 +161,7 @@
     <value>사용자 지정 가져오기 원본은 아직 지원되지 않습니다.</value>
   </data>
   <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
-    <value>멤버 "{0}" 속성을 동일한 이름으로 메타 데이터 특성을 포함합니다. 속성 이름: "{1}".</value>
+    <value>"{0}" 멤버에 속성 이름이 동일한 메타데이터 특성이 포함되어 있습니다. 속성 이름: "{1}".</value>
     <comment>{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</comment>
   </data>
@@ -174,7 +175,7 @@
     <value>가져오기 제약 조건 형식 {0}이(가) 지원되지 않습니다.</value>
   </data>
   <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
-    <value>{0}의 ExportFactory&lt;T&gt;수입에만 전망 이다.</value>
+    <value>{0}은(는) ExportFactory 가져오기에서만 필요합니다&lt;T&gt;.</value>
   </data>
   <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
     <value>IsExportFactory는 true여야 합니다.</value>

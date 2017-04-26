@@ -85,7 +85,7 @@
     <value>{0}: no se puede importar el valor exportado desde {1} porque no se puede crear una instancia para el elemento de exportación. ¿Falta algún constructor de importación?</value>
   </data>
   <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
-    <value>Tipo de colección debe derivar de ICollection&lt;T&gt;.</value>
+    <value>El tipo de colección debe derivar de ICollection&lt;T&gt;.</value>
   </data>
   <data name="ExactlyOneEntryForEveryImport" xml:space="preserve">
     <value>Debe haber una entrada para cada importación.</value>
@@ -100,7 +100,7 @@
     <value>{0}: no está permitida la exportación de ExportProvider.</value>
   </data>
   <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
-    <value>Importación de constructor tiene un tipo de parámetro no compatibles para un [ImportMany]. Se admiten sólo [T] y IEnumerable &lt;T&gt;  .</value>
+    <value>El constructor de importación tiene un tipo de parámetro no compatible para [ImportMany]. Solo son compatibles T[] y IEnumerable&lt;T&gt;.</value>
   </data>
   <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
     <value>{0}: las importaciones que usan los parámetros de tipo genérico no son compatibles.</value>
@@ -130,7 +130,7 @@
     <value>No es una definición de tipo genérica.</value>
   </data>
   <data name="NotInitialized" xml:space="preserve">
-    <value>No inicializado.</value>
+    <value>No se inicializó.</value>
   </data>
   <data name="PartIsNotShared" xml:space="preserve">
     <value>El elemento no está compartido.</value>
@@ -142,7 +142,7 @@
     <value>Longitud errónea.</value>
   </data>
   <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
-    <value>No se puede construir parte MEF "{0}" debido a una solicitud de construcción recursiva irresoluble.</value>
+    <value>No se puede construir la parte "{0}" de MEF debido a una solicitud de construcción recursiva que no se puede resolver.</value>
   </data>
   <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
     <value>AssemblyName debe establecerse primero.</value>
@@ -160,7 +160,7 @@
     <value>Los orígenes de importación personalizados aún no son compatibles.</value>
   </data>
   <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
-    <value>Miembro "{0}" contiene atributos de metadatos con un nombre idéntico. Nombre de la propiedad: "{1}".</value>
+    <value>El miembro "{0}" contiene los atributos de metadatos con un nombre de propiedad idéntico. Nombre de la propiedad: "{1}".</value>
     <comment>{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</comment>
   </data>
@@ -174,7 +174,7 @@
     <value>El tipo de restricción de importación {0} no es compatible.</value>
   </data>
   <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
-    <value>{0} se espera sólo a las importaciones de ExportFactory&lt;T&gt;.</value>
+    <value>{0} solo se espera en importaciones de ExportFactory&lt;T&gt;.</value>
   </data>
   <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
     <value>Se espera que IsExportFactory sea verdadero.</value>

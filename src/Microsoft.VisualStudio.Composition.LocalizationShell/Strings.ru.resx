@@ -100,7 +100,7 @@
     <value>{0}: экспорт ExportProvider запрещен.</value>
   </data>
   <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
-    <value>Импорт конструктор имеет неподдерживаемый параметр тип для [ImportMany]. Поддерживаются только [T] и IEnumerable &lt;T&gt;  .</value>
+    <value>В импорте конструктора указан неподдерживаемый тип параметра для [ImportMany]. Поддерживаются только T[] и IEnumerable&lt;T&gt;.</value>
   </data>
   <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
     <value>{0}: операции импорта, в которых используются параметры универсального типа, не поддерживаются.</value>
@@ -142,7 +142,7 @@
     <value>Неправильная длина.</value>
   </data>
   <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
-    <value>Не удалось построить часть MEF «{0}» из-за строительства запрос на неразрешимый рекурсивно.</value>
+    <value>Не удалось создать часть MEF "{0}" из-за неразрешимого рекурсивного запроса на создание.</value>
   </data>
   <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
     <value>Сначала необходимо задать AssemblyName.</value>
@@ -160,7 +160,7 @@
     <value>Пользовательские источники импорта еще не поддерживаются.</value>
   </data>
   <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
-    <value>Член «{0}» содержит атрибуты метаданных с именем идентичные свойства. Имя свойства: «{1}».</value>
+    <value>Член "{0}" содержит атрибуты метаданных с идентичным именем свойства. Имя свойства: "{1}".</value>
     <comment>{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</comment>
   </data>
@@ -174,7 +174,7 @@
     <value>Тип ограничения импорта {0} не поддерживается.</value>
   </data>
   <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
-    <value>{0} ожидается только на импорт ExportFactory&lt;T&gt;.</value>
+    <value>{0} ожидается только при импорте ExportFactory&lt;T&gt;.</value>
   </data>
   <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
     <value>Для IsExportFactory требуется значение true.</value>

@@ -64,7 +64,7 @@
     <value>Die Typen in Assembly "{0}" können nicht aufgezählt werden.</value>
   </data>
   <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
-    <value>Der Typ der benutzerdefinierten Importauflistung kann nicht instanziiert werden.</value>
+    <value>Der Typ der benutzerdefinierten Importsammlung kann nicht instanziiert werden.</value>
   </data>
   <data name="UnableToLoadAssembly" xml:space="preserve">
     <value>Die Assembly "{0}" kann nicht für die Überprüfung geladen werden.</value>
@@ -85,7 +85,7 @@
     <value>{0}: Der exportierte Wert aus {1} kann nicht importiert werden, da der exportierende Teil nicht instanziiert werden kann. Fehlt ein importierender Konstruktor?</value>
   </data>
   <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
-    <value>Auflistungstyp muss von ICollection&lt;T&gt;ableiten.</value>
+    <value>Der Sammlungstyp muss von ICollection&lt;T&gt; abgeleitet werden.</value>
   </data>
   <data name="ExactlyOneEntryForEveryImport" xml:space="preserve">
     <value>Für jeden Import muss genau einen Eintrag vorhanden sein.</value>
@@ -100,7 +100,7 @@
     <value>{0}: Ein Export von ExportProvider ist nicht zulässig.</value>
   </data>
   <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
-    <value>Importieren von Konstruktor verfügt über einen nicht unterstützten Parametertyp für eine [ImportMany]. Nur [T] und IEnumerable &lt;T&gt;  werden unterstützt.</value>
+    <value>Der importierende Konstruktor weist einen nicht unterstützten Parametertyp für [ImportMany] auf. Nur T[] und IEnumerable&lt;T&gt; werden unterstützt.</value>
   </data>
   <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
     <value>{0}: Importe, die Parameter eines generischen Typs verwenden, werden nicht unterstützt.</value>
@@ -142,7 +142,7 @@
     <value>Falsche Länge.</value>
   </data>
   <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
-    <value>Nicht in der Lage, die MEF-Komponente "{0}" aufgrund einer unlösbaren rekursive Konstruktion Anfrage zu konstruieren.</value>
+    <value>Das MEF-Part "{0}" kann aufgrund einer nicht auflösbaren rekursiven Konstruktionsanforderung nicht erstellt werden.</value>
   </data>
   <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
     <value>AssemblyName muss zuerst festgelegt werden.</value>
@@ -151,7 +151,7 @@
     <value>Darf nicht leer sein.</value>
   </data>
   <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
-    <value>Die Auflistung muss bei Verwendung mit einem [ImportingConstructor] öffentlich mit einem öffentlichen Konstruktor sein.</value>
+    <value>Die Sammlung muss bei Verwendung mit einem [ImportingConstructor] öffentlich mit einem öffentlichen Konstruktor sein.</value>
   </data>
   <data name="CompilerErrorsOccurred" xml:space="preserve">
     <value>Fehler bei der Kompilierung.</value>
@@ -160,7 +160,7 @@
     <value>Benutzerdefinierte Importquellen werden noch nicht unterstützt.</value>
   </data>
   <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
-    <value>Element "{0}" enthält Metadaten-Attribute mit einem identischen Eigenschaftennamen. Eigenschaftenname: "{1}".</value>
+    <value>Das Element "{0}" enthält Metadatenattribute mit einem identischen Eigenschaftennamen. Name der Eigenschaft: "{1}.</value>
     <comment>{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</comment>
   </data>
@@ -174,7 +174,7 @@
     <value>Der Importeinschränkungstyp {0} wird nicht unterstützt.</value>
   </data>
   <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
-    <value>{0} wird nur für die Einfuhr von ExportFactory&lt;T&gt;erwartet.</value>
+    <value>{0} wird nur bei Importen von ExportFactory&lt;T&gt; erwartet.</value>
   </data>
   <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
     <value>Für IsExportFactory wird "true" erwartet.</value>

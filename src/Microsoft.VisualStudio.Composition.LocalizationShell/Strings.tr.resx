@@ -49,10 +49,10 @@
     <value>Bu bölümün ({0}) örneği oluşturulamıyor.</value>
   </data>
   <data name="ReflectionTypeLoadExceptionWhileEnumeratingTypes" xml:space="preserve">
-    <value>"{0}" derlemesindeki türlerin numaralandırılması sırasında ReflectionTypeLoadException oluştu. Sonuçlar eksik olacak.</value>
+    <value>"{0}" bütünleştirilmiş kodundaki türlerin numaralandırılması sırasında ReflectionTypeLoadException oluştu. Sonuçlar eksik olacak.</value>
   </data>
   <data name="ScanningMEFAssemblies" xml:space="preserve">
-    <value>MEF derlemeleri taranıyor...</value>
+    <value>MEF bütünleştirilmiş kodları taranıyor...</value>
   </data>
   <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
     <value>Meta veri görüntüleme türü desteklenmiyor.</value>
@@ -61,13 +61,13 @@
     <value>MEF bölümü "{0}" için birincil paylaşım sınırı belirlenemedi.</value>
   </data>
   <data name="UnableToEnumerateTypes" xml:space="preserve">
-    <value>"{0}" derlemesindeki türler numaralandırılamadı.</value>
+    <value>"{0}" bütünleştirilmiş kodundaki türler numaralandırılamadı.</value>
   </data>
   <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
     <value>Özel içeri aktarma koleksiyonu türünün örneği oluşturulamıyor.</value>
   </data>
   <data name="UnableToLoadAssembly" xml:space="preserve">
-    <value>Tarama için "{0}" derlemesi yüklenemiyor.</value>
+    <value>Tarama için "{0}" bütünleştirilmiş kodu yüklenemiyor.</value>
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
     <value>Beklenmeyen üye türü.</value>
@@ -85,7 +85,7 @@
     <value>Dışarı aktarılan bölümün örneği oluşturulamadığından, {0}, {1} öğesinden dışarı aktarılan değeri içeri aktaramıyor. Önemli bir oluşturucusu mu eksik?</value>
   </data>
   <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
-    <value>Koleksiyon türü ICollection&lt;T&gt;türetilmelidir.</value>
+    <value>Koleksiyon türü ICollection&lt;T&gt;'den türetilmelidir.</value>
   </data>
   <data name="ExactlyOneEntryForEveryImport" xml:space="preserve">
     <value>Her içeri aktarma için tam olarak bir giriş olmalıdır.</value>
@@ -100,7 +100,7 @@
     <value>{0}: ExportProvider'ın dışarı aktarılmasına izin verilmiyor.</value>
   </data>
   <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
-    <value>Oluşturucu alma bir desteklenmeyen parametre türü [ImportMany] için vardır. Yalnızca T [] ve IEnumerable &lt;T&gt;  desteklenir.</value>
+    <value>İçeri aktarma oluşturucusunda, [ImportMany] için desteklenmeyen bir parametre türü var. Yalnızca T[] ve IEnumerable&lt;T&gt; desteklenir.</value>
   </data>
   <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
     <value>{0}: Genel tür parametrelerini kullanan içeri aktarmalar desteklenmez.</value>
@@ -130,7 +130,7 @@
     <value>Bu, bir genel tür tanımı değil.</value>
   </data>
   <data name="NotInitialized" xml:space="preserve">
-    <value>Başlatılmamış.</value>
+    <value>Başlatılmadı.</value>
   </data>
   <data name="PartIsNotShared" xml:space="preserve">
     <value>Bölüm paylaşılmıyor.</value>
@@ -142,7 +142,7 @@
     <value>Yanlış uzunluk.</value>
   </data>
   <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
-    <value>MEF parçası "{0}" çözülemeyen özyinelemeli inşaat isteği nedeniyle inşa edilemiyor.</value>
+    <value>Çözümlenemeyen özyinelemeli bir oluşturma isteği nedeniyle MEF bölümü "{0}" oluşturulamıyor.</value>
   </data>
   <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
     <value>Önce AssemblyName değeri ayarlanmalıdır.</value>
@@ -160,7 +160,7 @@
     <value>Özel içeri aktarma kaynakları henüz desteklenmiyor.</value>
   </data>
   <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
-    <value>Üye "{0}" meta veriler özniteliklere sahip bir aynı özellik adını içerir. Özellik adı: "{1}".</value>
+    <value>"{0}" adlı üye, aynı özellik adına sahip meta veri öznitelikleri içeriyor. Özellik adı: "{1}".</value>
     <comment>{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</comment>
   </data>
@@ -174,7 +174,7 @@
     <value>İçeri aktarma kısıtlama türü {0} desteklenmiyor.</value>
   </data>
   <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
-    <value>{0} yalnızca ExportFactory&lt;T&gt;ithalatı üzerinde bekleniyor.</value>
+    <value>{0} yalnızca ExportFactory&lt;T&gt; içeri aktarmalarında beklenir.</value>
   </data>
   <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
     <value>IsExportFactory değerinin true olması bekleniyor.</value>
