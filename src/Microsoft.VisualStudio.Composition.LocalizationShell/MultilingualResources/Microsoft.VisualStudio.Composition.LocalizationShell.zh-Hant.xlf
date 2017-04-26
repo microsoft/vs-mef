@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en-US" target-language="zh-Hant" original="MICROSOFT.VISUALSTUDIO.COMPOSITION.LOCALIZATIONSHELL/STRINGS.RESX" tool-id="MultilingualAppToolkit" product-name="n/a" product-version="n/a" build-num="n/a">
     <header>
       <tool tool-id="MultilingualAppToolkit" tool-name="Multilingual App Toolkit" tool-version="4.0.6799.0" tool-company="Microsoft" />
@@ -8,275 +8,275 @@
       <group id="MICROSOFT.VISUALSTUDIO.COMPOSITION.LOCALIZATIONSHELL/STRINGS.RESX" datatype="resx">
         <trans-unit id="CannotDirectlyDisposeAnImport" translate="yes" xml:space="preserve">
           <source>This instance is an import and cannot be directly disposed.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">這是匯入的執行個體，無法直接處置。</target>
+          <target state="translated">這個執行個體是匯入，而且無法直接處置。</target>
         </trans-unit>
         <trans-unit id="ContainerDisposalEncounteredExceptions" translate="yes" xml:space="preserve">
           <source>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">已個體化的組件從 IDisposable.Dispose() 擲回例外狀況。</target>
+          <target state="translated">從 IDisposable.Dispose() 執行個體化的部分擲回的例外狀況。</target>
         </trans-unit>
         <trans-unit id="ErrorsDuringDiscovery" translate="yes" xml:space="preserve">
           <source>Errors occurred during discovery.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">探索時發生錯誤。</target>
+          <target state="translated">探索期間發生錯誤。</target>
         </trans-unit>
         <trans-unit id="ErrorsInComposition" translate="yes" xml:space="preserve">
           <source>Errors exist in the composition.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">組合中有錯誤。</target>
+          <target state="translated">複合裡有錯誤。</target>
         </trans-unit>
         <trans-unit id="ErrorWhileSettingImport" translate="yes" xml:space="preserve">
           <source>Import "{0}" could not be satisfied.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">無法完成匯入 "{0}"。</target>
+          <target state="translated">無法滿足匯入"{0}"。</target>
         </trans-unit>
         <trans-unit id="ExceptionThrownByPartUnderInitialization" translate="yes" xml:space="preserve">
           <source>An exception was thrown while initializing part "{0}".</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">初始化組件 "{0}" 時擲回例外狀況。</target>
+          <target state="translated">初始化組件"{0}"時，擲回例外狀況。</target>
         </trans-unit>
         <trans-unit id="ExportedValueNotAssignableToImport" translate="yes" xml:space="preserve">
           <source>Value exported from "{0}" cannot be assigned to import site "{1}".</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">從 "{0}" 匯出的值不得指派給匯入網站 "{1}"。</target>
+          <target state="translated">匯出從"{0}"的值不能指定要匯入網站"{1}"。</target>
         </trans-unit>
         <trans-unit id="FailStableComposition" translate="yes" xml:space="preserve">
           <source>Failed to find a stable composition.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">找不到穩定的組合。</target>
+          <target state="translated">無法找到穩定的組合。</target>
         </trans-unit>
         <trans-unit id="FailureWhileScanningType" translate="yes" xml:space="preserve">
           <source>Failure while scanning type "{0}".</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">掃描 "{0}" 失敗。</target>
+          <target state="translated">掃描類型"{0}"時發生失敗。</target>
         </trans-unit>
         <trans-unit id="NoImportingConstructor" translate="yes" xml:space="preserve">
           <source>No importing constructor.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">沒有匯入建構函式。</target>
+          <target state="translated">沒有匯入的建構函式。</target>
         </trans-unit>
         <trans-unit id="PartBelongsToAnotherSharingBoundary" translate="yes" xml:space="preserve">
           <source>Inappropriate request for export from part that belongs to another sharing boundary.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">不應要求從隸屬於其他共用界限的組件匯出。</target>
+          <target state="translated">不適當的要求，使其能從另一個共用的邊界所屬的組件的匯出。</target>
         </trans-unit>
         <trans-unit id="PartIsNotInstantiable" translate="yes" xml:space="preserve">
           <source>This part ({0}) cannot be instantiated.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">此組件 ({0}) 無法個體化。</target>
+          <target state="translated">此組件 ({0}) 不能執行個體化。</target>
         </trans-unit>
         <trans-unit id="ReflectionTypeLoadExceptionWhileEnumeratingTypes" translate="yes" xml:space="preserve">
           <source>ReflectionTypeLoadException while enumerating types in assembly "{0}". Results will be incomplete.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">列舉組件 "{0}" 中的類型時擲回 ReflectionTypeLoadException。結果將會不完整。</target>
+          <target state="translated">列舉型別在組件"{0}"中的 ReflectionTypeLoadException。結果會不完整。</target>
         </trans-unit>
         <trans-unit id="ScanningMEFAssemblies" translate="yes" xml:space="preserve">
           <source>Scanning MEF assemblies...</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">正在掃描 MEF 組件...</target>
+          <target state="translated">正在掃描 MEF 組件...</target>
         </trans-unit>
         <trans-unit id="TypeOfMetadataViewUnsupported" translate="yes" xml:space="preserve">
           <source>Type of metadata view is unsupported.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">不支援此類型的中繼資料檢視。</target>
+          <target state="translated">中繼資料檢視的型別不支援。</target>
         </trans-unit>
         <trans-unit id="UnableToDeterminePrimarySharingBoundary" translate="yes" xml:space="preserve">
           <source>Unable to determine the primary sharing boundary for MEF part "{0}".</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">無法判斷 MEF 組件 "{0}" 的主要共用界限。</target>
+          <target state="translated">無法判斷 MEF 組件"{0}"的主要共用界限。</target>
         </trans-unit>
         <trans-unit id="UnableToEnumerateTypes" translate="yes" xml:space="preserve">
           <source>Unable to enumerate types in assembly "{0}".</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">無法列舉組件 "{0}" 中的類型。</target>
+          <target state="translated">無法列舉組件"{0}"中的型別。</target>
         </trans-unit>
         <trans-unit id="UnableToInstantiateCustomImportCollectionType" translate="yes" xml:space="preserve">
           <source>Unable to instantiate custom import collection type.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">無法個體化自訂匯入集合類型。</target>
+          <target state="translated">無法具現化自訂的匯入集合型別。</target>
         </trans-unit>
         <trans-unit id="UnableToLoadAssembly" translate="yes" xml:space="preserve">
           <source>Unable to load assembly "{0}" for scanning.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">無法載入組件 "{0}" 進行掃描。</target>
+          <target state="translated">無法載入組件"{0}"進行掃描。</target>
         </trans-unit>
         <trans-unit id="UnexpectedMemberType" translate="yes" xml:space="preserve">
           <source>Unexpected member type.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">未預期的成員類型。</target>
+          <target state="translated">未預期的成員型別。</target>
         </trans-unit>
         <trans-unit id="UnexpectedNumberOfExportsFound" translate="yes" xml:space="preserve">
           <source>Expected {0} export(s) with contract name "{1}" but found {2} after applying applicable constraints.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">預期有 {0} 個合約名稱為 "{1}" 的匯出，但在套用適用的條件約束後，卻發現有 {2} 個。</target>
+          <target state="translated">必須是的 {0}，export(s) 有合約名稱"{1}"，但找到的 {2} 之後套用適當的條件約束。</target>
         </trans-unit>
         <trans-unit id="UnexpectedSharedPartState" translate="yes" xml:space="preserve">
           <source>This shared part is in state {0} but must be in state {1} for this operation.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">此共用組件的狀態為 {0}，但此作業需要其狀態為 {1}。</target>
+          <target state="translated">此共用的組件是在狀態為 {0}，但必須在這項作業的狀態 {1} 中。</target>
         </trans-unit>
         <trans-unit id="AllValuesMustBeNonNull" translate="yes" xml:space="preserve">
           <source>All values must be non-null.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">所有值必須都不是 Null。</target>
+          <target state="translated">所有的值必須為非 null。</target>
         </trans-unit>
         <trans-unit id="CannotImportBecauseExportingPartCannotBeInstantiated" translate="yes" xml:space="preserve">
           <source>{0}: cannot import exported value from {1} because the exporting part cannot be instantiated. Is it missing an importing constructor?</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: 因為無法個體化匯出的組件，所以無法從 {1} 匯入匯出的值。其是否缺少匯入建構函式?</target>
+          <target state="translated">{0}︰ 無法匯入匯出值從 {1} 因為匯出的組件無法具現化。它是否有遺漏匯入的建構函式？</target>
         </trans-unit>
         <trans-unit id="CollectionTypeMustDeriveFromICollectionOfT" translate="yes" xml:space="preserve">
           <source>Collection type must derive from ICollection<it id="1" pos="open">&lt;T&gt;</it>.</source>
-          <target state="needs-review-translation" state-qualifier="mt-suggestion">集合類型必須派生自 ICollection<it id="1" pos="open">&lt;T&gt;</it>。</target>
+          <target state="translated">集合類型必須衍生自 ICollection<it id="1" pos="open">&lt;T&gt;</it>.</target>
         </trans-unit>
         <trans-unit id="ExactlyOneEntryForEveryImport" translate="yes" xml:space="preserve">
           <source>There should be exactly one entry for every import.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">每個匯入只可有一個項目。</target>
+          <target state="translated">應該只有一個項目，每個匯入。</target>
         </trans-unit>
         <trans-unit id="ExpectedExactlyOneExportButFound" translate="yes" xml:space="preserve">
           <source>{0}: expected exactly 1 export of {1} but found {2}.{3}</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: 應只有 1 個 {1} 匯出，但卻發現 {2}.{3}</target>
+          <target state="translated">{0}: 必須是 1 個匯出的 {1}，但找到 {2}。{3}</target>
         </trans-unit>
         <trans-unit id="ExpectedOneOrZeroExportsButFound" translate="yes" xml:space="preserve">
           <source>{0}: expected 1 or 0 exports of {1} but found {2}.{3}</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: {應只有 1 個或 0 個 {1} 的匯出，但卻發現 {2}.{3}</target>
+          <target state="translated">{0}: 必須是 1 或 0 的 {1}，但找到 {2} 的匯出。{3}</target>
         </trans-unit>
         <trans-unit id="ExportOfExportProviderNotAllowed" translate="yes" xml:space="preserve">
           <source>{0}: Export of ExportProvider is not allowed.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: 無法匯出 ExportProvider。</target>
+          <target state="translated">{0}︰ 不允許匯出的 ExportProvider。</target>
         </trans-unit>
         <trans-unit id="ImportingCtorHasUnsupportedParameterTypeForImportMany" translate="yes" xml:space="preserve">
           <source>Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable<it id="1" pos="open">&lt;T&gt;</it> are supported.</source>
-          <target state="needs-review-translation" state-qualifier="mt-suggestion">導入建構函式有一個不受支援的參數類型為 [ImportMany]。支援唯一 T [] 和 IEnumerable<it id="1" pos="open"> &lt;T&gt; </it>。</target>
+          <target state="translated">匯入建構函式包含 [ImportMany] 不支援的參數類型。目前只支援 T[] 及 IEnumerable<it id="1" pos="open">&lt;T&gt;</it>。</target>
         </trans-unit>
         <trans-unit id="ImportsThatUseGenericTypeParametersNotSupported" translate="yes" xml:space="preserve">
           <source>{0}: imports that use generic type parameters are not supported.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: 不支援使用泛型類型參數的匯入。</target>
+          <target state="translated">{0}︰ 不支援使用泛型型別參數的匯入。</target>
         </trans-unit>
         <trans-unit id="InstanceEmpty" translate="yes" xml:space="preserve">
           <source>This instance is empty.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">此執行個體是空的。</target>
+          <target state="translated">這個執行個體是空的。</target>
         </trans-unit>
         <trans-unit id="IsNotAssignableFromExportedMEFValue" translate="yes" xml:space="preserve">
           <source>{0}: is not assignable from exported MEF value {1}.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: 無法從匯出的 MEF 值 {1} 指派。</target>
+          <target state="translated">{0}: 中匯出的 MEF 值 {1} 不可以指派。</target>
         </trans-unit>
         <trans-unit id="LoopBetweenNonSharedParts" translate="yes" xml:space="preserve">
           <source>Loop between non-shared parts.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">非共用組件之間的迴圈。</target>
+          <target state="translated">非共用的組件之間的循環播放。</target>
         </trans-unit>
         <trans-unit id="LoopInvolvingImportingCtorArgumentAndAllNonLazyImports" translate="yes" xml:space="preserve">
           <source>Loop involving ImportingConstructor argument and all non-lazy imports.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">迴圈中包含 ImportingConstructor 引數及所有非 Lazy 匯入。</target>
+          <target state="translated">循環播放，牽涉到 ImportingConstructor 引數和所有的非延遲匯入。</target>
         </trans-unit>
         <trans-unit id="MetadataTypeNotSupported" translate="yes" xml:space="preserve">
           <source>{0}: metadata type {1} is not supported.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: 不支援中繼資料類型 {1}。</target>
+          <target state="translated">{0}︰ 不支援中繼資料型別 {1}。</target>
         </trans-unit>
         <trans-unit id="NotATypeSpec" translate="yes" xml:space="preserve">
           <source>Not a type spec.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">不是類型規格。</target>
+          <target state="translated">不是型別規格。</target>
         </trans-unit>
         <trans-unit id="NotClosedFormOfOther" translate="yes" xml:space="preserve">
           <source>Not a closed form of the other.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">不是開始格式的結束格式。</target>
+          <target state="translated">未封閉的其他表單。</target>
         </trans-unit>
         <trans-unit id="NotGenericTypeDefinition" translate="yes" xml:space="preserve">
           <source>This is not a generic type definition.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">這不是泛型類型定義。</target>
+          <target state="translated">這不是泛型型別定義。</target>
         </trans-unit>
         <trans-unit id="NotInitialized" translate="yes" xml:space="preserve">
           <source>Not initialized.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">並未初始。</target>
+          <target state="translated">未初始化。</target>
         </trans-unit>
         <trans-unit id="PartIsNotShared" translate="yes" xml:space="preserve">
           <source>Part is not shared.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">組件未共用。</target>
+          <target state="translated">不共用組件。</target>
         </trans-unit>
         <trans-unit id="UnresolvableMetadataToken" translate="yes" xml:space="preserve">
           <source>Unresolvable metadata token.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">無法解析的中繼資料語彙基元。</target>
+          <target state="translated">無法解析的中繼資料語彙基元。</target>
         </trans-unit>
         <trans-unit id="WrongLength" translate="yes" xml:space="preserve">
           <source>Wrong length.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">長度錯誤。</target>
+          <target state="translated">錯誤的長度。</target>
         </trans-unit>
         <trans-unit id="RecursiveRequestForPartConstruction" translate="yes" xml:space="preserve">
           <source>Unable to construct MEF part "{0}" due to an unresolvable recursive construction request.</source>
-          <target state="needs-review-translation" state-qualifier="mt-suggestion">無法構造 MEF 部分"{0}"由於無法解析遞迴構造請求。</target>
+          <target state="translated">無法建構 MEF 組件"{0}"因為無法解析的遞迴的建構要求。</target>
         </trans-unit>
         <trans-unit id="AssemblyNameMustBeSetFirst" translate="yes" xml:space="preserve">
           <source>AssemblyName must be set first.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">必須先設定 AssemblyName。</target>
+          <target state="translated">必須先設定 AssemblyName。</target>
         </trans-unit>
         <trans-unit id="CannotBeEmpty" translate="yes" xml:space="preserve">
           <source>Cannot be empty.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">不得為空白。</target>
+          <target state="translated">不可為空白。</target>
         </trans-unit>
         <trans-unit id="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" translate="yes" xml:space="preserve">
           <source>Collection must be public with a public constructor when used with an [ImportingConstructor].</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">當集合與 [ImportingConstructor] 並用時，必須開放給公用建構函式使用。</target>
+          <target state="translated">集合必須具有公用建構函式與 [ImportingConstructor] 搭配使用時。</target>
         </trans-unit>
         <trans-unit id="CompilerErrorsOccurred" translate="yes" xml:space="preserve">
           <source>Compilation errors occurred.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">發生編譯錯誤。</target>
+          <target state="translated">發生編譯錯誤。</target>
         </trans-unit>
         <trans-unit id="CustomImportSourceNotSupported" translate="yes" xml:space="preserve">
           <source>Custom import sources are not yet supported.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">目前不支援自訂匯入來源。</target>
+          <target state="translated">還不支援自訂的匯入來源。</target>
         </trans-unit>
         <trans-unit id="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" translate="yes" xml:space="preserve">
           <source>Member "{0}" contains metadata attributes with an identical property name. Property name: "{1}".</source>
-          <target state="needs-review-translation" state-qualifier="mt-suggestion">成員"{0}"包含中繼資料屬性具有相同的屬性名稱。屬性名稱:"{1}"。</target>
+          <target state="translated">成員 "{0}" 包含屬性名稱相同的中繼資料屬性。屬性名稱: "{1}"。</target>
           <note from="MultilingualBuild" annotates="source" priority="2">{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</note>
         </trans-unit>
         <trans-unit id="ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" translate="yes" xml:space="preserve">
           <source>Exports on members not allowed when the declaring type is generic.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">當宣告類型為泛型時，無法匯出成員。</target>
+          <target state="translated">宣告的型別是泛型時，不允許的成員上的匯出。</target>
         </trans-unit>
         <trans-unit id="FailedToGenerateEmbeddableTypes" translate="yes" xml:space="preserve">
           <source>Failed to generate embeddable types.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">無法產生可內嵌的類型。</target>
+          <target state="translated">無法產生內嵌的型別。</target>
         </trans-unit>
         <trans-unit id="ImportConstraintTypeNotSupported" translate="yes" xml:space="preserve">
           <source>The import constraint type {0} is not supported.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">不支援匯入條件約束類型 {0}。</target>
+          <target state="translated">不支援匯入條件約束型別 {0}。</target>
         </trans-unit>
         <trans-unit id="IsExpectedOnlyOnImportsOfExportFactoryOfT" translate="yes" xml:space="preserve">
           <source>{0} is expected only on imports of ExportFactory<it id="1" pos="open">&lt;T&gt;</it>.</source>
-          <target state="needs-review-translation" state-qualifier="mt-suggestion">{0} 預計僅對進口的 ExportFactory<it id="1" pos="open">&lt;T&gt;</it>。</target>
+          <target state="translated">只有在匯入 ExportFactory<it id="1" pos="open">&lt;T&gt;</it> 時才需要 {0}。</target>
         </trans-unit>
         <trans-unit id="IsExportFactoryExpectedTrue" translate="yes" xml:space="preserve">
           <source>IsExportFactory is expected to be true.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">IsExportFactory 應為 true。</target>
+          <target state="translated">IsExportFactory 必須為 true。</target>
         </trans-unit>
         <trans-unit id="MemberContainsBothImportAndImportMany" translate="yes" xml:space="preserve">
           <source>Member "{0}" contains both ImportAttribute and ImportManyAttribute.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">成員 "{0}" 同時包含了 ImportAttribute 及 ImportManyAttribute。</target>
+          <target state="translated">成員"{0}"包含 ImportAttribute 及 ImportManyAttribute。</target>
         </trans-unit>
         <trans-unit id="NoImportingConstructorFound" translate="yes" xml:space="preserve">
           <source>No importing constructor found.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">找不到匯入建構函式。</target>
+          <target state="translated">沒有找到匯入建構函式。</target>
         </trans-unit>
         <trans-unit id="NoMemberToSatisfy" translate="yes" xml:space="preserve">
           <source>No member to satisfy.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">沒有相符的成員。</target>
+          <target state="translated">要滿足沒有成員。</target>
         </trans-unit>
         <trans-unit id="OnImportsSatisfiedTakeNoParameters" translate="yes" xml:space="preserve">
           <source>OnImportsSatisfied method should take no parameters.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">OnImportsSatisfied 方法不應使用任何參數。</target>
+          <target state="translated">OnImportsSatisfied 方法應該不採用參數。</target>
         </trans-unit>
         <trans-unit id="OnlyOneOnImportsSatisfiedMethodIsSupported" translate="yes" xml:space="preserve">
           <source>Only one OnImportsSatisfied method is supported.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">僅支援一個 OnImportsSatisfied 方法。</target>
+          <target state="translated">支援只有一個 OnImportsSatisfied 方法。</target>
         </trans-unit>
         <trans-unit id="OnlySupportedOnWriteOperations" translate="yes" xml:space="preserve">
           <source>Only supported on write operations.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">只在寫入作業中才支援。</target>
+          <target state="translated">只支援寫入作業。</target>
         </trans-unit>
         <trans-unit id="ReadableStreamRequired" translate="yes" xml:space="preserve">
           <source>Readable stream required.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">需要可讀取的資料流。</target>
+          <target state="translated">所需的可讀取資料流。</target>
           <note from="MultilingualBuild" annotates="source" priority="2">'stream' is in reference to System.IO.Stream</note>
         </trans-unit>
         <trans-unit id="TypeMustDefineMemberInfoOrDerivedType" translate="yes" xml:space="preserve">
           <source>Type must be the one that defines memberInfo or a derived type.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">必須是定義 memberInfo 的類型或衍生類型。</target>
+          <target state="translated">型別必須是一個定義 memberInfo 或衍生的型別。</target>
         </trans-unit>
         <trans-unit id="UnexpectedConstraintType" translate="yes" xml:space="preserve">
           <source>Unexpected constraint type: {0}.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">未預期的條件約束類型: {0}。</target>
+          <target state="translated">未預期的條件約束型別︰ {0}。</target>
         </trans-unit>
         <trans-unit id="UnsupportedFormat" translate="yes" xml:space="preserve">
           <source>Unsupported format: {0}.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">不支援的格式: {0}。</target>
+          <target state="translated">不支援的格式: {0}。</target>
         </trans-unit>
         <trans-unit id="WritableStreamRequired" translate="yes" xml:space="preserve">
           <source>Writable stream required.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">需要可寫入的資料流。</target>
+          <target state="translated">所需的可寫入資料流。</target>
           <note from="MultilingualBuild" annotates="source" priority="2">'stream' is in reference to System.IO.Stream</note>
         </trans-unit>
         <trans-unit id="WrongType" translate="yes" xml:space="preserve">
           <source>Wrong type.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">類型錯誤。</target>
+          <target state="translated">錯誤的型別。</target>
         </trans-unit>
       </group>
     </body>

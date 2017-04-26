@@ -1,5 +1,5 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en-US" target-language="cs" original="MICROSOFT.VISUALSTUDIO.COMPOSITION.LOCALIZATIONSHELL/STRINGS.RESX" tool-id="MultilingualAppToolkit" product-name="n/a" product-version="n/a" build-num="n/a">
     <header>
       <tool tool-id="MultilingualAppToolkit" tool-name="Multilingual App Toolkit" tool-version="4.0.6799.0" tool-company="Microsoft" />
@@ -8,275 +8,275 @@
       <group id="MICROSOFT.VISUALSTUDIO.COMPOSITION.LOCALIZATIONSHELL/STRINGS.RESX" datatype="resx">
         <trans-unit id="CannotDirectlyDisposeAnImport" translate="yes" xml:space="preserve">
           <source>This instance is an import and cannot be directly disposed.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Toto je instance importu a nedá se přímo zrušit.</target>
+          <target state="translated">Toto je instance importu a nedá se přímo zrušit.</target>
         </trans-unit>
         <trans-unit id="ContainerDisposalEncounteredExceptions" translate="yes" xml:space="preserve">
           <source>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Části v instancích vrátily výjimky z metody IDisposable.Dispose().</target>
+          <target state="translated">Části v instancích vrátily výjimky z metody IDisposable.Dispose().</target>
         </trans-unit>
         <trans-unit id="ErrorsDuringDiscovery" translate="yes" xml:space="preserve">
           <source>Errors occurred during discovery.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Při zjišťování došlo k chybě.</target>
+          <target state="translated">Při zjišťování došlo k chybě.</target>
         </trans-unit>
         <trans-unit id="ErrorsInComposition" translate="yes" xml:space="preserve">
           <source>Errors exist in the composition.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">V kompozici jsou chyby.</target>
+          <target state="translated">V kompozici jsou chyby.</target>
         </trans-unit>
         <trans-unit id="ErrorWhileSettingImport" translate="yes" xml:space="preserve">
           <source>Import "{0}" could not be satisfied.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Podmínky importu {0} se nedají splnit.</target>
+          <target state="translated">Podmínky importu {0} se nedají splnit.</target>
         </trans-unit>
         <trans-unit id="ExceptionThrownByPartUnderInitialization" translate="yes" xml:space="preserve">
           <source>An exception was thrown while initializing part "{0}".</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Při inicializaci části {0} se vrátila výjimka.</target>
+          <target state="translated">Při inicializaci části {0} se vrátila výjimka.</target>
         </trans-unit>
         <trans-unit id="ExportedValueNotAssignableToImport" translate="yes" xml:space="preserve">
           <source>Value exported from "{0}" cannot be assigned to import site "{1}".</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Hodnota exportovaná z {0} se nedá přiřadit k importované lokalitě {1}.</target>
+          <target state="translated">Hodnota exportovaná z {0} se nedá přiřadit k importované lokalitě {1}.</target>
         </trans-unit>
         <trans-unit id="FailStableComposition" translate="yes" xml:space="preserve">
           <source>Failed to find a stable composition.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nepovedlo se najít stabilní kompozici.</target>
+          <target state="translated">Nepovedlo se najít stabilní kompozici.</target>
         </trans-unit>
         <trans-unit id="FailureWhileScanningType" translate="yes" xml:space="preserve">
           <source>Failure while scanning type "{0}".</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Při skenování typu {0} došlo k chybě.</target>
+          <target state="translated">Při skenování typu {0} došlo k chybě.</target>
         </trans-unit>
         <trans-unit id="NoImportingConstructor" translate="yes" xml:space="preserve">
           <source>No importing constructor.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Chybí importující konstruktor.</target>
+          <target state="translated">Chybí importující konstruktor.</target>
         </trans-unit>
         <trans-unit id="PartBelongsToAnotherSharingBoundary" translate="yes" xml:space="preserve">
           <source>Inappropriate request for export from part that belongs to another sharing boundary.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nesprávný požadavek na export z části, která spadá do jiné hranice sdílení.</target>
+          <target state="translated">Nesprávný požadavek na export z části, která spadá do jiné hranice sdílení.</target>
         </trans-unit>
         <trans-unit id="PartIsNotInstantiable" translate="yes" xml:space="preserve">
           <source>This part ({0}) cannot be instantiated.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Pro tuto část ({0}) se nedají vytvořit instance.</target>
+          <target state="translated">Pro tuto část ({0}) se nedají vytvořit instance.</target>
         </trans-unit>
         <trans-unit id="ReflectionTypeLoadExceptionWhileEnumeratingTypes" translate="yes" xml:space="preserve">
           <source>ReflectionTypeLoadException while enumerating types in assembly "{0}". Results will be incomplete.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Při vytváření výčtů typů v sestavení {0} se vrátila výjimka ReflectionTypeLoadException. Výsledky nebudou úplné.</target>
+          <target state="translated">Při vytváření výčtů typů v sestavení {0} se vrátila výjimka ReflectionTypeLoadException. Výsledky nebudou úplné.</target>
         </trans-unit>
         <trans-unit id="ScanningMEFAssemblies" translate="yes" xml:space="preserve">
           <source>Scanning MEF assemblies...</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Skenují se sestavení rozhraní MEF...</target>
+          <target state="translated">Skenují se sestavení rozhraní MEF...</target>
         </trans-unit>
         <trans-unit id="TypeOfMetadataViewUnsupported" translate="yes" xml:space="preserve">
           <source>Type of metadata view is unsupported.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Typ zobrazení metadat není podporovaný.</target>
+          <target state="translated">Typ zobrazení metadat není podporovaný.</target>
         </trans-unit>
         <trans-unit id="UnableToDeterminePrimarySharingBoundary" translate="yes" xml:space="preserve">
           <source>Unable to determine the primary sharing boundary for MEF part "{0}".</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nedá se určit primární hranice sdílení pro část rozhraní MEF {0}.</target>
+          <target state="translated">Nedá se určit primární hranice sdílení pro část rozhraní MEF {0}.</target>
         </trans-unit>
         <trans-unit id="UnableToEnumerateTypes" translate="yes" xml:space="preserve">
           <source>Unable to enumerate types in assembly "{0}".</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nedá se vytvořit výčet typů v sestavení {0}.</target>
+          <target state="translated">Nedá se vytvořit výčet typů v sestavení {0}.</target>
         </trans-unit>
         <trans-unit id="UnableToInstantiateCustomImportCollectionType" translate="yes" xml:space="preserve">
           <source>Unable to instantiate custom import collection type.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nedají se vytvořit instance vlastního typu kolekce importu.</target>
+          <target state="translated">Nedají se vytvořit instance vlastního typu kolekce importu.</target>
         </trans-unit>
         <trans-unit id="UnableToLoadAssembly" translate="yes" xml:space="preserve">
           <source>Unable to load assembly "{0}" for scanning.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nedá se načíst sestavení {0} ke skenování.</target>
+          <target state="translated">Nedá se načíst sestavení {0} ke skenování.</target>
         </trans-unit>
         <trans-unit id="UnexpectedMemberType" translate="yes" xml:space="preserve">
           <source>Unexpected member type.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Neočekávaný typ člena</target>
+          <target state="translated">Neočekávaný typ člena</target>
         </trans-unit>
         <trans-unit id="UnexpectedNumberOfExportsFound" translate="yes" xml:space="preserve">
           <source>Expected {0} export(s) with contract name "{1}" but found {2} after applying applicable constraints.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Očekával se následující počet exportů s názvem kontraktu {1}: {0}. Nalezený počet po použití příslušných omezení byl ale: {2}.</target>
+          <target state="translated">Očekával se následující počet exportů s názvem kontraktu {1}: {0}. Nalezený počet po použití příslušných omezení byl ale: {2}.</target>
         </trans-unit>
         <trans-unit id="UnexpectedSharedPartState" translate="yes" xml:space="preserve">
           <source>This shared part is in state {0} but must be in state {1} for this operation.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Tato sdílená část je ve stavu {0}, pro tuto operaci ale musí být ve stavu {1}.</target>
+          <target state="translated">Tato sdílená část je ve stavu {0}, pro tuto operaci ale musí být ve stavu {1}.</target>
         </trans-unit>
         <trans-unit id="AllValuesMustBeNonNull" translate="yes" xml:space="preserve">
           <source>All values must be non-null.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Žádná hodnota nesmí být null.</target>
+          <target state="translated">Žádná hodnota nesmí být null.</target>
         </trans-unit>
         <trans-unit id="CannotImportBecauseExportingPartCannotBeInstantiated" translate="yes" xml:space="preserve">
           <source>{0}: cannot import exported value from {1} because the exporting part cannot be instantiated. Is it missing an importing constructor?</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: exportovaná hodnota se nedá importovat z {1}, protože pro exportující část nejdou vytvořit instance. Chybí importující konstruktor?</target>
+          <target state="translated">{0}: exportovaná hodnota se nedá importovat z {1}, protože pro exportující část nejdou vytvořit instance. Chybí importující konstruktor?</target>
         </trans-unit>
         <trans-unit id="CollectionTypeMustDeriveFromICollectionOfT" translate="yes" xml:space="preserve">
           <source>Collection type must derive from ICollection<it id="1" pos="open">&lt;T&gt;</it>.</source>
-          <target state="needs-review-translation" state-qualifier="mt-suggestion">Typ kolekce se musí odvodit od ICollection<it id="1" pos="open">&lt;T&gt;</it>.</target>
+          <target state="translated">Typ kolekce musí být odvozený z rozhraní ICollection<it id="1" pos="open">&lt;T&gt;</it>.</target>
         </trans-unit>
         <trans-unit id="ExactlyOneEntryForEveryImport" translate="yes" xml:space="preserve">
           <source>There should be exactly one entry for every import.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Ke každému importu musí být právě jedna položka.</target>
+          <target state="translated">Ke každému importu musí být právě jedna položka.</target>
         </trans-unit>
         <trans-unit id="ExpectedExactlyOneExportButFound" translate="yes" xml:space="preserve">
           <source>{0}: expected exactly 1 export of {1} but found {2}.{3}</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: očekával se právě 1 export {1}, ale počet nalezených exportů je: {2}.{3}</target>
+          <target state="translated">{0}: očekával se právě 1 export {1}, ale počet nalezených exportů je: {2}.{3}</target>
         </trans-unit>
         <trans-unit id="ExpectedOneOrZeroExportsButFound" translate="yes" xml:space="preserve">
           <source>{0}: expected 1 or 0 exports of {1} but found {2}.{3}</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: očekával se 1 nebo 0 exportů {1}, ale počet nalezených exportů je: {2}.{3}</target>
+          <target state="translated">{0}: očekával se 1 nebo 0 exportů {1}, ale počet nalezených exportů je: {2}.{3}</target>
         </trans-unit>
         <trans-unit id="ExportOfExportProviderNotAllowed" translate="yes" xml:space="preserve">
           <source>{0}: Export of ExportProvider is not allowed.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: Export objektu ExportProvider není povolený.</target>
+          <target state="translated">{0}: Export objektu ExportProvider není povolený.</target>
         </trans-unit>
         <trans-unit id="ImportingCtorHasUnsupportedParameterTypeForImportMany" translate="yes" xml:space="preserve">
           <source>Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable<it id="1" pos="open">&lt;T&gt;</it> are supported.</source>
-          <target state="needs-review-translation" state-qualifier="mt-suggestion">Importování konstruktor má nepodporovaný parametr typ pro [ImportMany]. Jsou podporovány pouze [T] a IEnumerable<it id="1" pos="open"> &lt;T&gt; </it> .</target>
+          <target state="translated">Importující konstruktor obsahuje nepodporovaný typ parametru pro [ImportMany]. Podporované jsou jenom typy T[] a IEnumerable<it id="1" pos="open">&lt;T&gt;</it>.</target>
         </trans-unit>
         <trans-unit id="ImportsThatUseGenericTypeParametersNotSupported" translate="yes" xml:space="preserve">
           <source>{0}: imports that use generic type parameters are not supported.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: Importy používající parametry generického typu nejsou podporované.</target>
+          <target state="translated">{0}: Importy používající parametry generického typu nejsou podporované.</target>
         </trans-unit>
         <trans-unit id="InstanceEmpty" translate="yes" xml:space="preserve">
           <source>This instance is empty.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Tato instance je prázdná.</target>
+          <target state="translated">Tato instance je prázdná.</target>
         </trans-unit>
         <trans-unit id="IsNotAssignableFromExportedMEFValue" translate="yes" xml:space="preserve">
           <source>{0}: is not assignable from exported MEF value {1}.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: Nedá se přiřadit z exportované hodnoty rozhraní MEF {1}.</target>
+          <target state="translated">{0}: Nedá se přiřadit z exportované hodnoty rozhraní MEF {1}.</target>
         </trans-unit>
         <trans-unit id="LoopBetweenNonSharedParts" translate="yes" xml:space="preserve">
           <source>Loop between non-shared parts.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Mezi nesdílenými součástmi došlo k zacyklení.</target>
+          <target state="translated">Mezi nesdílenými součástmi došlo k zacyklení.</target>
         </trans-unit>
         <trans-unit id="LoopInvolvingImportingCtorArgumentAndAllNonLazyImports" translate="yes" xml:space="preserve">
           <source>Loop involving ImportingConstructor argument and all non-lazy imports.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Došlo k zacyklení, které zahrnuje argument ImportingConstructor a všechny importy ze seznamu non-lazy.</target>
+          <target state="translated">Došlo k zacyklení, které zahrnuje argument ImportingConstructor a všechny importy ze seznamu non-lazy.</target>
         </trans-unit>
         <trans-unit id="MetadataTypeNotSupported" translate="yes" xml:space="preserve">
           <source>{0}: metadata type {1} is not supported.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">{0}: Typ metadat {1} není podporovaný.</target>
+          <target state="translated">{0}: Typ metadat {1} není podporovaný.</target>
         </trans-unit>
         <trans-unit id="NotATypeSpec" translate="yes" xml:space="preserve">
           <source>Not a type spec.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Toto není specifikace typu.</target>
+          <target state="translated">Toto není specifikace typu.</target>
         </trans-unit>
         <trans-unit id="NotClosedFormOfOther" translate="yes" xml:space="preserve">
           <source>Not a closed form of the other.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Toto není uzavřená forma druhého objektu.</target>
+          <target state="translated">Toto není uzavřená forma druhého objektu.</target>
         </trans-unit>
         <trans-unit id="NotGenericTypeDefinition" translate="yes" xml:space="preserve">
           <source>This is not a generic type definition.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Toto není definice generického typu.</target>
+          <target state="translated">Toto není definice generického typu.</target>
         </trans-unit>
         <trans-unit id="NotInitialized" translate="yes" xml:space="preserve">
           <source>Not initialized.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nezinicializováno.</target>
+          <target state="translated">Není inicializovaný.</target>
         </trans-unit>
         <trans-unit id="PartIsNotShared" translate="yes" xml:space="preserve">
           <source>Part is not shared.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Část není sdílená.</target>
+          <target state="translated">Část není sdílená.</target>
         </trans-unit>
         <trans-unit id="UnresolvableMetadataToken" translate="yes" xml:space="preserve">
           <source>Unresolvable metadata token.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nedá se rozpoznat token metadat.</target>
+          <target state="translated">Nedá se rozpoznat token metadat.</target>
         </trans-unit>
         <trans-unit id="WrongLength" translate="yes" xml:space="preserve">
           <source>Wrong length.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nesprávná délka</target>
+          <target state="translated">Nesprávná délka</target>
         </trans-unit>
         <trans-unit id="RecursiveRequestForPartConstruction" translate="yes" xml:space="preserve">
           <source>Unable to construct MEF part "{0}" due to an unresolvable recursive construction request.</source>
-          <target state="needs-review-translation" state-qualifier="mt-suggestion">Nelze vytvořit MEF součást "{0}" kvůli požadavku konstrukce nelze rozpoznat rekurzivní.</target>
+          <target state="translated">Nelze konstruovat část MEF {0} kvůli neřešitelné žádosti o rekurzivní konstrukci.</target>
         </trans-unit>
         <trans-unit id="AssemblyNameMustBeSetFirst" translate="yes" xml:space="preserve">
           <source>AssemblyName must be set first.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nejdřív je potřeba nastavit parametr AssemblyName.</target>
+          <target state="translated">Nejdřív je potřeba nastavit parametr AssemblyName.</target>
         </trans-unit>
         <trans-unit id="CannotBeEmpty" translate="yes" xml:space="preserve">
           <source>Cannot be empty.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nemůže být prázdný.</target>
+          <target state="translated">Nemůže být prázdný.</target>
         </trans-unit>
         <trans-unit id="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" translate="yes" xml:space="preserve">
           <source>Collection must be public with a public constructor when used with an [ImportingConstructor].</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Při použití s [ImportingConstructor] musí být kolekce veřejná s veřejným konstruktorem.</target>
+          <target state="translated">Při použití s [ImportingConstructor] musí být kolekce veřejná s veřejným konstruktorem.</target>
         </trans-unit>
         <trans-unit id="CompilerErrorsOccurred" translate="yes" xml:space="preserve">
           <source>Compilation errors occurred.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Došlo k chybám kompilace.</target>
+          <target state="translated">Došlo k chybám kompilace.</target>
         </trans-unit>
         <trans-unit id="CustomImportSourceNotSupported" translate="yes" xml:space="preserve">
           <source>Custom import sources are not yet supported.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Vlastní zdroje pro import ještě nejsou podporované.</target>
+          <target state="translated">Vlastní zdroje pro import ještě nejsou podporované.</target>
         </trans-unit>
         <trans-unit id="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" translate="yes" xml:space="preserve">
           <source>Member "{0}" contains metadata attributes with an identical property name. Property name: "{1}".</source>
-          <target state="needs-review-translation" state-qualifier="mt-suggestion">Člen "{0}" obsahuje atributy metadat s názvem shodné vlastnosti. Název vlastnosti: "{1}".</target>
+          <target state="translated">Člen {0} obsahuje atributy metadat se stejným názvem vlastnosti. Název vlastnosti: "{1}".</target>
           <note from="MultilingualBuild" annotates="source" priority="2">{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</note>
         </trans-unit>
         <trans-unit id="ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" translate="yes" xml:space="preserve">
           <source>Exports on members not allowed when the declaring type is generic.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Pokud je deklarující typ generický, exporty u členů nejsou povolené.</target>
+          <target state="translated">Pokud je deklarující typ generický, exporty u členů nejsou povolené.</target>
         </trans-unit>
         <trans-unit id="FailedToGenerateEmbeddableTypes" translate="yes" xml:space="preserve">
           <source>Failed to generate embeddable types.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nepovedlo se generovat typy umožňující vložení.</target>
+          <target state="translated">Nepovedlo se generovat typy umožňující vložení.</target>
         </trans-unit>
         <trans-unit id="ImportConstraintTypeNotSupported" translate="yes" xml:space="preserve">
           <source>The import constraint type {0} is not supported.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Typ omezení importu {0} není podporovaný.</target>
+          <target state="translated">Typ omezení importu {0} není podporovaný.</target>
         </trans-unit>
         <trans-unit id="IsExpectedOnlyOnImportsOfExportFactoryOfT" translate="yes" xml:space="preserve">
           <source>{0} is expected only on imports of ExportFactory<it id="1" pos="open">&lt;T&gt;</it>.</source>
-          <target state="needs-review-translation" state-qualifier="mt-suggestion">{0} očekává pouze na dovoz ExportFactory<it id="1" pos="open">&lt;T&gt;</it>.</target>
+          <target state="translated">{0} se očekává jenom u importů třídy ExportFactory<it id="1" pos="open">&lt;T&gt;</it>.</target>
         </trans-unit>
         <trans-unit id="IsExportFactoryExpectedTrue" translate="yes" xml:space="preserve">
           <source>IsExportFactory is expected to be true.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Očekává se, že IsExportFactory bude mít hodnotu True.</target>
+          <target state="translated">Očekává se, že IsExportFactory bude mít hodnotu True.</target>
         </trans-unit>
         <trans-unit id="MemberContainsBothImportAndImportMany" translate="yes" xml:space="preserve">
           <source>Member "{0}" contains both ImportAttribute and ImportManyAttribute.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Člen {0} obsahuje třídu ImportAttribute i ImportManyAttribute.</target>
+          <target state="translated">Člen {0} obsahuje třídu ImportAttribute i ImportManyAttribute.</target>
         </trans-unit>
         <trans-unit id="NoImportingConstructorFound" translate="yes" xml:space="preserve">
           <source>No importing constructor found.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nenašel se žádný importující konstruktor.</target>
+          <target state="translated">Nenašel se žádný importující konstruktor.</target>
         </trans-unit>
         <trans-unit id="NoMemberToSatisfy" translate="yes" xml:space="preserve">
           <source>No member to satisfy.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nedá se splnit u žádného člena.</target>
+          <target state="translated">Nedá se splnit u žádného člena.</target>
         </trans-unit>
         <trans-unit id="OnImportsSatisfiedTakeNoParameters" translate="yes" xml:space="preserve">
           <source>OnImportsSatisfied method should take no parameters.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Metoda OnImportsSatisfied by neměla mít žádné parametry.</target>
+          <target state="translated">Metoda OnImportsSatisfied by neměla mít žádné parametry.</target>
         </trans-unit>
         <trans-unit id="OnlyOneOnImportsSatisfiedMethodIsSupported" translate="yes" xml:space="preserve">
           <source>Only one OnImportsSatisfied method is supported.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Podporovaná je jenom jedna metoda OnImportsSatisfied.</target>
+          <target state="translated">Podporovaná je jenom jedna metoda OnImportsSatisfied.</target>
         </trans-unit>
         <trans-unit id="OnlySupportedOnWriteOperations" translate="yes" xml:space="preserve">
           <source>Only supported on write operations.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Podporované jenom u operací zápisu.</target>
+          <target state="translated">Podporované jenom u operací zápisu.</target>
         </trans-unit>
         <trans-unit id="ReadableStreamRequired" translate="yes" xml:space="preserve">
           <source>Readable stream required.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Je vyžadovaný stream s možností čtení.</target>
+          <target state="translated">Je vyžadovaný stream s možností čtení.</target>
           <note from="MultilingualBuild" annotates="source" priority="2">'stream' is in reference to System.IO.Stream</note>
         </trans-unit>
         <trans-unit id="TypeMustDefineMemberInfoOrDerivedType" translate="yes" xml:space="preserve">
           <source>Type must be the one that defines memberInfo or a derived type.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Typ musí být takový, který definuje třídu memberInfo nebo odvozený typ.</target>
+          <target state="translated">Typ musí být takový, který definuje třídu memberInfo nebo odvozený typ.</target>
         </trans-unit>
         <trans-unit id="UnexpectedConstraintType" translate="yes" xml:space="preserve">
           <source>Unexpected constraint type: {0}.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Neočekávaný typ omezení: {0}.</target>
+          <target state="translated">Neočekávaný typ omezení: {0}.</target>
         </trans-unit>
         <trans-unit id="UnsupportedFormat" translate="yes" xml:space="preserve">
           <source>Unsupported format: {0}.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nepodporovaný formát: {0}.</target>
+          <target state="translated">Nepodporovaný formát: {0}.</target>
         </trans-unit>
         <trans-unit id="WritableStreamRequired" translate="yes" xml:space="preserve">
           <source>Writable stream required.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Je vyžadovaný stream s možností zápisu.</target>
+          <target state="translated">Je vyžadovaný stream s možností zápisu.</target>
           <note from="MultilingualBuild" annotates="source" priority="2">'stream' is in reference to System.IO.Stream</note>
         </trans-unit>
         <trans-unit id="WrongType" translate="yes" xml:space="preserve">
           <source>Wrong type.</source>
-          <target state="needs-review-translation" state-qualifier="tm-suggestion">Nesprávný typ</target>
+          <target state="translated">Nesprávný typ</target>
         </trans-unit>
       </group>
     </body>
