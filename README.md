@@ -1,7 +1,7 @@
 # VS MEF (Visual Studio's flavor of the Managed Extensibility Framework)
 
 [![NuGet package](https://img.shields.io/nuget/v/Microsoft.VisualStudio.Composition.svg)](https://nuget.org/packages/Microsoft.VisualStudio.Composition)
-
+[![Build status](https://ci.appveyor.com/api/projects/status/q4uavk7qso20cd9t/branch/master?svg=true)](https://ci.appveyor.com/project/AArnott/vs-mef/branch/master)
 
 ## Why VS MEF?
 
