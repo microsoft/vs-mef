@@ -8,6 +8,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests;
     using Shell.Interop;
     using Xunit;
     using MEFv1 = System.ComponentModel.Composition;
@@ -286,10 +287,34 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.True(expected.SetEquals(actual));
         }
 
+        [Fact]
+        public async Task GetAssemblyInputs_ContainsDefiningAttributeAssemblyForMetadataV1()
+        {
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingTypeWithMetadataWhoseDefiningAttributeIsInAnotherAssembly)));
+
+            var inputAssemblies = catalog.GetInputAssemblies();
+            Assert.Contains(typeof(SomeMetadataAttributeFromAnotherAssemblyAttribute).Assembly.GetName(), inputAssemblies, AssemblyNameComparer.Default);
+        }
+
+        [Fact]
+        public async Task GetAssemblyInputs_ContainsDefiningAttributeAssemblyForMetadataV2()
+        {
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportingTypeWithMetadataWhoseDefiningAttributeIsInAnotherAssembly)));
+
+            var inputAssemblies = catalog.GetInputAssemblies();
+            Assert.Contains(typeof(SomeMetadataAttributeFromAnotherAssemblyAttribute).Assembly.GetName(), inputAssemblies, AssemblyNameComparer.Default);
+        }
+
         public class NonExportingType { }
 
         [Export, MEFv1.Export]
         public class ExportingType { }
+
+        [Export, MEFv1.Export]
+        [SomeMetadataAttributeFromAnotherAssembly("My property value")]
+        public class ExportingTypeWithMetadataWhoseDefiningAttributeIsInAnotherAssembly { }
 
         [Export, MEFv1.Export]
         [ExportMetadata("External", typeof(ClassWithExternalDependencies))]

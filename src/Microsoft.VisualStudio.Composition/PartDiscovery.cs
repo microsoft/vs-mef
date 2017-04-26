@@ -159,6 +159,22 @@ namespace Microsoft.VisualStudio.Composition
             return result.Merge(new DiscoveredParts(Enumerable.Empty<ComposablePartDefinition>(), exceptions));
         }
 
+        internal static void GetAssemblyNamesFromMetadataAttributes<TMetadataAttribute>(MemberInfo member, ISet<AssemblyName> assemblyNames)
+            where TMetadataAttribute : class
+        {
+            Requires.NotNull(member, nameof(member));
+            Requires.NotNull(assemblyNames, nameof(assemblyNames));
+
+            foreach (var attribute in member.GetAttributes<Attribute>())
+            {
+                Type attrType = attribute.GetType();
+                if (attrType.IsAttributeDefined<TMetadataAttribute>(inherit: true))
+                {
+                    assemblyNames.Add(attrType.Assembly.GetName());
+                }
+            }
+        }
+
         protected internal static string GetContractName(Type type)
         {
             return ContractNameServices.GetTypeIdentity(type);

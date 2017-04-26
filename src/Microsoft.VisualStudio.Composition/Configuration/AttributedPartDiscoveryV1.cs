@@ -190,6 +190,12 @@ namespace Microsoft.VisualStudio.Composition
                                     group kv.Value by kv.Key into byMember
                                     select byMember).ToDictionary(g => MemberRef.Get(g.Key, this.Resolver), g => (IReadOnlyCollection<ExportDefinition>)g.ToArray());
 
+            var assemblyNamesForMetadataAttributes = ImmutableHashSet.CreateBuilder<AssemblyName>();
+            foreach (var export in exportsByMember)
+            {
+                GetAssemblyNamesFromMetadataAttributes<MetadataAttributeAttribute>(export.Key, assemblyNamesForMetadataAttributes);
+            }
+
             return new ComposablePartDefinition(
                 TypeRef.Get(partType, this.Resolver),
                 partMetadata.ToImmutable(),
@@ -201,6 +207,7 @@ namespace Microsoft.VisualStudio.Composition
                 ConstructorRef.Get(importingCtor, this.Resolver),
                 importingCtor != null ? importingConstructorParameters.ToImmutable() : null, // some MEF parts are only for metadata
                 partCreationPolicy,
+                assemblyNamesForMetadataAttributes,
                 partCreationPolicy != CreationPolicy.NonShared);
         }
 
