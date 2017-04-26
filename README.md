@@ -12,8 +12,8 @@ The .NET team went on to create an all new implementation of MEF, which was "por
 and shipped in a NuGet package called Microsoft.Composition. This was faster in some
 respects than the .NET Framework, but lacked the extensibility Visual Studio required,
 was incompatible with MEF parts written for ".NET MEF", and suffered from poor startup
-performance. "NuGet MEF" suffered from a very low download count on nuget.org and lost
-funding.    
+performance. This new MEF implementation was later renamed to [System.Composition][MEFv2Pkg],
+but has otherwise not received much by way of upgrades.
 
 VS MEF was created to reach performance benchmarks beyond .NET MEF's reach, to meet
 the demanding requirements of Visual Studio's heavy use of MEF for the editor and the
@@ -26,7 +26,7 @@ by a .NET MEF part, and vice versa.
 VS MEF utilizes a fully precomputed and validated composition graph for maximum throughput
 when constructing MEF exports. This also produces a complete list of compositional diagnostics
 that describe MEF parts that were rejected from the graph with root causes and cascading effects
-identified.  
+identified.
 
 Both VS MEF's catalog and composition can be serialized after being created, and
 later deserialized in a subsequent instance of the application for very fast startup time
@@ -91,11 +91,9 @@ is the `ExportProvider` returned from an `ExportProviderFactory`.
 ### Hosting MEF in a closed (non-extensible) application
 
 The easiest way to do it, and get a MEF cache for faster startup to boot, just
-install the Microsoft.VisualStudio.Composition.AppHost nuget package:
- 
-    Install-Package Microsoft.VisualStudio.Composition.AppHost
+install the [Microsoft.VisualStudio.Composition.AppHost][AppHostPkg] NuGet package:
 
-You can get this package from the [VS IDE Real-signed release][PkgFeed] feed.  
+    Install-Package Microsoft.VisualStudio.Composition.AppHost
 
 Installing this package adds assembly references to VS MEF and adds a step to your build
 to create a MEF catalog cache that your app can load at runtime to avoid the startup hit
@@ -111,10 +109,14 @@ var exportProvider = exportProviderFactory.CreateExportProvider();
 var program = exportProvider.GetExportedValue<Program>();
 ```
 
-### Hosting MEF in an extensible application 
+### Hosting MEF in an extensible application
 
-To have more control over the MEF catalog or to allow extensibility after you ship your app, 
-you can install the Microsoft.VisualStudio.Composition package and host VS MEF with code like this:
+To have more control over the MEF catalog or to allow extensibility after you ship your app,
+you can install the [Microsoft.VisualStudio.Composition][VSMEFPkg] NuGet package:
+
+    Install-Package Microsoft.VisualStudio.Composition
+
+Then host VS MEF with code like this:
 
 ```csharp
 // Prepare part discovery to support both flavors of MEF attributes.
@@ -122,11 +124,11 @@ var discovery = PartDiscovery.Combine(
     new AttributedPartDiscovery(Resolver.DefaultInstance), // "NuGet MEF" attributes (Microsoft.Composition)
     new AttributedPartDiscoveryV1(Resolver.DefaultInstance)); // ".NET MEF" attributes (System.ComponentModel.Composition)
 
-// Build up a catalog of MEF parts  
+// Build up a catalog of MEF parts
 var catalog = ComposableCatalog.Create(Resolver.DefaultInstance)
     .AddParts(discovery.CreatePartsAsync(Assembly.GetExecutingAssembly()).Result)
-    .WithDesktopSupport() // Adds desktop-only features such as metadata view interface support 
-    .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import 
+    .WithDesktopSupport() // Adds desktop-only features such as metadata view interface support
+    .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
 
 // Assemble the parts into a valid graph.
 var config = CompositionConfiguration.Create(catalog);
@@ -161,6 +163,8 @@ stack represents a cascade of failures that resulted from rejecting the original
 defective MEF parts. Usually when debugging MEF failures, the first level errors
 are the ones to focus on. But listing them all can be helpful to answer the question
 of "Why is export *X* missing?" since X itself may not be defective but may have been
-rejected in the cascade.   
+rejected in the cascade.
 
-[PkgFeed]: https://mseng.pkgs.visualstudio.com/_packaging/VSIDEProj-RealSigned-Release/nuget/v3/index.json
+[AppHostPkg]: https://www.nuget.org/packages/Microsoft.VisualStudio.Composition.AppHost
+[VSMEFPkg]: https://www.nuget.org/packages/Microsoft.VisualStudio.Composition
+[MEFv2Pkg]: https://www.nuget.org/packages/system.composition
