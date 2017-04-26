@@ -49,6 +49,29 @@ namespace Microsoft.VisualStudio.Composition
             this.ImportingConstructorImports = importingConstructorImports;
             this.CreationPolicy = partCreationPolicy;
             this.IsSharingBoundaryInferred = isSharingBoundaryInferred;
+            this.ExtraInputAssemblies = Enumerable.Empty<AssemblyName>();
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ComposablePartDefinition"/> class.
+        /// </summary>
+        /// <param name="partType">Type of the part.</param>
+        /// <param name="metadata">The metadata discovered on the part.</param>
+        /// <param name="exportedTypes">The exported types.</param>
+        /// <param name="exportingMembers">The exporting members.</param>
+        /// <param name="importingMembers">The importing members.</param>
+        /// <param name="sharingBoundary">The sharing boundary that this part is shared within.</param>
+        /// <param name="onImportsSatisfied">The method to invoke after satisfying imports, if any.</param>
+        /// <param name="importingConstructorRef">The constructor to invoke to construct the part.</param>
+        /// <param name="importingConstructorImports">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
+        /// <param name="partCreationPolicy">The creation policy for this part.</param>
+        /// <param name="extraInputAssemblies">A sequence of extra assemblies to be added to the set for <see cref="GetInputAssemblies(ISet{AssemblyName})"/></param>
+        /// <param name="isSharingBoundaryInferred">A value indicating whether the part does not have an explicit sharing boundary, and therefore can obtain its sharing boundary based on its imports.</param>
+        public ComposablePartDefinition(TypeRef partType, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers, IEnumerable<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodRef onImportsSatisfied, ConstructorRef importingConstructorRef, IReadOnlyList<ImportDefinitionBinding> importingConstructorImports, CreationPolicy partCreationPolicy, IEnumerable<AssemblyName> extraInputAssemblies, bool isSharingBoundaryInferred = false)
+            : this(partType, metadata, exportedTypes, exportingMembers, importingMembers, sharingBoundary, onImportsSatisfied, importingConstructorRef, importingConstructorImports, partCreationPolicy, isSharingBoundaryInferred)
+        {
+            Requires.NotNull(extraInputAssemblies, nameof(extraInputAssemblies));
+            this.ExtraInputAssemblies = extraInputAssemblies;
         }
 
         public Type Type
@@ -131,6 +154,12 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
         }
+
+        /// <summary>
+        /// Gets the sequence of extra input assemblies that will be added to the
+        /// input assemblies for this <see cref="ComposablePartDefinition"/>.
+        /// </summary>
+        public IEnumerable<AssemblyName> ExtraInputAssemblies { get; }
 
         public ImmutableHashSet<ImportDefinitionBinding> ImportingMembers { get; private set; }
 
@@ -283,6 +312,11 @@ namespace Microsoft.VisualStudio.Composition
         internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
         {
             Requires.NotNull(assemblies, nameof(assemblies));
+
+            foreach (var inputAssembly in this.ExtraInputAssemblies)
+            {
+                assemblies.Add(inputAssembly);
+            }
 
             this.TypeRef.GetInputAssemblies(assemblies);
             ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata);

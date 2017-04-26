@@ -176,6 +176,12 @@ namespace Microsoft.VisualStudio.Composition
                 partMetadata[partMetadataAttribute.Name] = partMetadataAttribute.Value;
             }
 
+            var assemblyNamesForMetadataAttributes = ImmutableHashSet.CreateBuilder<AssemblyName>();
+            foreach (var export in exportsByMember)
+            {
+                GetAssemblyNamesFromMetadataAttributes<MetadataAttributeAttribute>(export.Key, assemblyNamesForMetadataAttributes);
+            }
+
             return new ComposablePartDefinition(
                 TypeRef.Get(partType, this.Resolver),
                 partMetadata.ToImmutable(),
@@ -186,7 +192,8 @@ namespace Microsoft.VisualStudio.Composition
                 MethodRef.Get(onImportsSatisfied, this.Resolver),
                 ConstructorRef.Get(importingCtor, this.Resolver),
                 importingConstructorParameters.ToImmutable(),
-                partCreationPolicy);
+                partCreationPolicy,
+                assemblyNamesForMetadataAttributes);
         }
 
         public override bool IsExportFactoryType(Type type)
