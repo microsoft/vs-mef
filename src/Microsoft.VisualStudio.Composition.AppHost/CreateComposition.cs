@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace Microsoft.VisualStudio.Composition.Tasks
+namespace Microsoft.VisualStudio.Composition.AppHost
 {
     using System;
     using System.Collections.Generic;
