@@ -6,11 +6,6 @@
     <RootNamespace>Microsoft.VisualStudio.Composition</RootNamespace>
 
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
-    <PackageTags>Mef Composition Extensibility</PackageTags>
-    <Company>Microsoft</Company>
-    <Authors>Microsoft</Authors>
-    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
-    <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" PrivateAssets="all" />
@@ -18,9 +13,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />
   </ItemGroup>
-  <Target Name="SetNuSpecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
-    <PropertyGroup>
-      <PackageLicenseUrl>https://raw.githubusercontent.com/Microsoft/vs-mef/$(GitCommitIdShort)/LICENSE</PackageLicenseUrl>
-    </PropertyGroup>
-  </Target>
 </Project>

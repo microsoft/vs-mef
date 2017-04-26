@@ -5,11 +5,6 @@
     <DebugType>full</DebugType>
 
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
-    <PackageTags>Mef Composition Extensibility</PackageTags>
-    <Company>Microsoft</Company>
-    <Authors>Microsoft</Authors>
-    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
-    <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System.ComponentModel.Composition" />
@@ -28,9 +23,4 @@
   <ItemGroup>
     <EmbeddedResource Include="..\Microsoft.VisualStudio.Composition.LocalizationShell\*.resx" />
   </ItemGroup>
-  <Target Name="SetNuSpecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
-    <PropertyGroup>
-      <PackageLicenseUrl>https://raw.githubusercontent.com/Microsoft/vs-mef/$(GitCommitIdShort)/LICENSE</PackageLicenseUrl>
-    </PropertyGroup>
-  </Target>
 </Project>
