@@ -17,7 +17,7 @@ before_build:
 
     dotnet restore
 build_script:
-- ps: msbuild /nologo /m /t:build,pack
+- ps: msbuild /nologo /m /v:minimal /t:build,pack
 test_script:
 - cmd: >-
     cd ..
