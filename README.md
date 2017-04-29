@@ -92,30 +92,9 @@ In VS MEF, the catalog and composition API is immutable and supports a fluent sy
 generate efficient new copies with modifications applied. The first element that is mutable
 is the `ExportProvider` returned from an `ExportProviderFactory`.
 
-### Hosting MEF in a closed (non-extensible) application
-
-The easiest way to do it, and get a MEF cache for faster startup to boot, just
-install the [Microsoft.VisualStudio.Composition.AppHost][AppHostPkg] NuGet package:
-
-    Install-Package Microsoft.VisualStudio.Composition.AppHost
-
-Installing this package adds assembly references to VS MEF and adds a step to your build
-to create a MEF catalog cache that your app can load at runtime to avoid the startup hit
-of loading and scanning all your MEF assemblies. The entire composition is cached, making
-acquiring your first export as fast as possible.
-
-Then with just 3 lines of code (which the package presents to you) you can bootstrap MEF
-and get your first export:
-
-```csharp
-var exportProviderFactory = ExportProviderFactory.LoadDefault();
-var exportProvider = exportProviderFactory.CreateExportProvider();
-var program = exportProvider.GetExportedValue<Program>();
-```
-
 ### Hosting MEF in an extensible application
 
-To have more control over the MEF catalog or to allow extensibility after you ship your app,
+To have control over the MEF catalog or to allow extensibility after you ship your app,
 you can install the [Microsoft.VisualStudio.Composition][VSMEFPkg] NuGet package:
 
     Install-Package Microsoft.VisualStudio.Composition
@@ -168,6 +147,32 @@ defective MEF parts. Usually when debugging MEF failures, the first level errors
 are the ones to focus on. But listing them all can be helpful to answer the question
 of "Why is export *X* missing?" since X itself may not be defective but may have been
 rejected in the cascade.
+
+### Hosting MEF in a closed (non-extensible) application
+
+**WARNING:** This scenario is a proof of concept and not vetted for shipping applications.
+The cache it builds is good only for the local machine and can become invalid when
+.NET Framework assemblies are serviced by Windows Update. With that warning aside,
+the following describes the proof of concept...
+
+The easiest way to do it, and get a MEF cache for faster startup to boot, just
+install the [Microsoft.VisualStudio.Composition.AppHost][AppHostPkg] NuGet package:
+
+    Install-Package Microsoft.VisualStudio.Composition.AppHost
+
+Installing this package adds assembly references to VS MEF and adds a step to your build
+to create a MEF catalog cache that your app can load at runtime to avoid the startup hit
+of loading and scanning all your MEF assemblies. The entire composition is cached, making
+acquiring your first export as fast as possible.
+
+Then with just 3 lines of code (which the package presents to you) you can bootstrap MEF
+and get your first export:
+
+```csharp
+var exportProviderFactory = ExportProviderFactory.LoadDefault();
+var exportProvider = exportProviderFactory.CreateExportProvider();
+var program = exportProvider.GetExportedValue<Program>();
+```
 
 [AppHostPkg]: https://www.nuget.org/packages/Microsoft.VisualStudio.Composition.AppHost
 [VSMEFPkg]: https://www.nuget.org/packages/Microsoft.VisualStudio.Composition
