@@ -7,6 +7,7 @@
     <TargetFramework>netstandard1.0</TargetFramework>
     <RootNamespace>Microsoft.VisualStudio.Composition</RootNamespace>
     <IsPackable>false</IsPackable>
+    <CodeAnalysisRuleSet>$(MSBuildProjectName).ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Label="MultilingualAppToolkit">
     <MultilingualAppToolkitVersion>4.0</MultilingualAppToolkitVersion>
