@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Trait("Disposal", "")]
         [Trait("SharingBoundary", "Isolation")]
         [Trait("WeakReference", "true")]
-        [Trait(Traits.SkipOnMono, "weakreference")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
         public void DisposeExportReleasesContainer(IContainer container)
         {
             var rootPart = container.GetExportedValue<RootPart>();

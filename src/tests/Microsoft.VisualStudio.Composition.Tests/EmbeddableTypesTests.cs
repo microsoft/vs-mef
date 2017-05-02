@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     /// embedded in that assembly and it will therefore be deemed compatible at runtime.
     /// </remarks>
     [Trait("NoPIA", "true")]
-    [Trait("SkipOnMono", "NoPIA")]
+    [Trait(Traits.SkipOnMono, "NoPIA")]
     public class EmbeddableTypesTests
     {
         /// <summary>
