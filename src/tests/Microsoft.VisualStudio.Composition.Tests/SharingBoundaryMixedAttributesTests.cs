@@ -18,6 +18,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefFact(CompositionEngines.V3EmulatingV1AndV2AtOnce)]
         [Trait("Disposal", "")]
         [Trait("SharingBoundary", "Isolation")]
+        [Trait("WeakReference", "true")]
         public void DisposeExportReleasesContainer(IContainer container)
         {
             var rootPart = container.GetExportedValue<RootPart>();

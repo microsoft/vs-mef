@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     public class EmbeddedableTypesMixedTests
     {
         [MefFact(CompositionEngines.V1Compat, "Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver", typeof(EmbeddableTypesTests.PartThatExportsIVsProjectReference), SkipOnMono = true)]
-        [Trait("NoPIA", "SkipOnMono")]
+        [Trait("NoPIA", "true")]
         public void EmbeddableTypeEmbeddedAndNotMixed(IContainer container)
         {
             var part = container.GetExportedValue<IExportedInterface>();

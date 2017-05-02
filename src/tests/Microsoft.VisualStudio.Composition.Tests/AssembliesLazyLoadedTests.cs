@@ -118,6 +118,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// their metadata is actually retrieved.
         /// </summary>
         [Fact]
+        [Trait("AppDomains", "true")]
         public async Task ComposableAssembliesLazyLoadedByLazyMetadataDictionary()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(

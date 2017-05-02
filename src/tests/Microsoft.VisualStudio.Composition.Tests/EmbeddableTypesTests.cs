@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             typeof(PartThatImportsLazyOfEmbeddedType),
             typeof(PartThatExportsEmbeddedType),
             SkipOnMono = true)]
-        [Trait("NoPIA", "SkipOnMono")]
+        [Trait("NoPIA", "true")]
         public void EmbeddedGenericTypeArgument(IContainer container)
         {
             var exporter = container.GetExportedValue<TEmbedded>();
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             typeof(PartThatImportsLazyOfEmbeddedTypeNonPublic),
             typeof(PartThatExportsEmbeddedType),
             SkipOnMono = true)]
-        [Trait("NoPIA", "SkipOnMono")]
+        [Trait("NoPIA", "true")]
         public void EmbeddedGenericTypeArgumentNonPublicImportingProperty(IContainer container)
         {
             var exporter = container.GetExportedValue<TEmbedded>();
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             typeof(PartThatImportsEmbeddedType),
             typeof(PartThatExportsEmbeddedType),
             SkipOnMono = true)]
-        [Trait("NoPIA", "SkipOnMono")]
+        [Trait("NoPIA", "true")]
         public void EmbeddedTypePublicImportingProperty(IContainer container)
         {
             var exporter = container.GetExportedValue<TEmbedded>();
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             typeof(PartThatImportsExportFactoryOfEmbeddedTypeV1),
             typeof(PartThatExportsEmbeddedType),
             SkipOnMono = true)]
-        [Trait("NoPIA", "SkipOnMono")]
+        [Trait("NoPIA", "true")]
         public void EmbeddedTypePublicExportFactoryImportingPropertyV1(IContainer container)
         {
             var importer = container.GetExportedValue<PartThatImportsExportFactoryOfEmbeddedTypeV1>();
@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             typeof(PartThatImportsExportFactoryOfEmbeddedTypeV2),
             typeof(PartThatExportsEmbeddedType),
             SkipOnMono = true)]
-        [Trait("NoPIA", "SkipOnMono")]
+        [Trait("NoPIA", "true")]
         public void EmbeddedTypePublicExportFactoryImportingPropertyV2(IContainer container)
         {
             var importer = container.GetExportedValue<PartThatImportsExportFactoryOfEmbeddedTypeV2>();
@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         #region Tests for embedded types with base types that are also embedded
 
         [MefFact(CompositionEngines.V1Compat, typeof(PartThatExportsIVsProjectReference), SkipOnMono = true)]
-        [Trait("NoPIA", "SkipOnMono")]
+        [Trait("NoPIA", "true")]
         public void EmbeddedTypeWithBaseEmbeddedType(IContainer container)
         {
             var part = container.GetExportedValue<PartThatExportsIVsProjectReference>();
