@@ -243,9 +243,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return totalSummary;
         }
 
-        internal static void SkipOnMono()
+        /// <summary>
+        /// Gets a value indicating whether the test is running on the Mono runtime.
+        /// </summary>
+        internal static bool IsOnMono => Type.GetType("Mono.Runtime") != null;
+
+        /// <summary>
+        /// Causes a <see cref="SkippableFactAttribute"/> based test to skip if <see cref="IsOnMono"/>.
+        /// </summary>
+        internal static void SkipOnMono(string unsupportedFeature)
         {
-            Skip.If(Type.GetType("Mono.Runtime") != null, "Test marked as skipped on Mono runtime");
+            Skip.If(IsOnMono, "Test marked as skipped on Mono runtime due to feature: " + unsupportedFeature);
         }
 
         internal class DebuggableCompositionContainer : MefV1.Hosting.CompositionContainer

@@ -15,10 +15,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
     [Trait("SharingBoundary", "")]
     public class SharingBoundaryMixedAttributesTests
     {
-        [MefFact(CompositionEngines.V3EmulatingV1AndV2AtOnce, SkipOnMono = true)]
+        [MefFact(CompositionEngines.V3EmulatingV1AndV2AtOnce)]
         [Trait("Disposal", "")]
         [Trait("SharingBoundary", "Isolation")]
         [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "weakreference")]
         public void DisposeExportReleasesContainer(IContainer container)
         {
             var rootPart = container.GetExportedValue<RootPart>();

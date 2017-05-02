@@ -39,6 +39,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     /// embedded in that assembly and it will therefore be deemed compatible at runtime.
     /// </remarks>
     [Trait("NoPIA", "true")]
+    [Trait("SkipOnMono", "NoPIA")]
     public class EmbeddableTypesTests
     {
         /// <summary>
@@ -50,8 +51,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefFact(
             CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2,
             typeof(PartThatImportsLazyOfEmbeddedType),
-            typeof(PartThatExportsEmbeddedType),
-            SkipOnMono = true)]
+            typeof(PartThatExportsEmbeddedType))]
         public void EmbeddedGenericTypeArgument(IContainer container)
         {
             var exporter = container.GetExportedValue<TEmbedded>();
@@ -62,8 +62,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefFact(
             CompositionEngines.V1Compat,
             typeof(PartThatImportsLazyOfEmbeddedTypeNonPublic),
-            typeof(PartThatExportsEmbeddedType),
-            SkipOnMono = true)]
+            typeof(PartThatExportsEmbeddedType))]
         public void EmbeddedGenericTypeArgumentNonPublicImportingProperty(IContainer container)
         {
             var exporter = container.GetExportedValue<TEmbedded>();
@@ -74,8 +73,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefFact(
             CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2,
             typeof(PartThatImportsEmbeddedType),
-            typeof(PartThatExportsEmbeddedType),
-            SkipOnMono = true)]
+            typeof(PartThatExportsEmbeddedType))]
         public void EmbeddedTypePublicImportingProperty(IContainer container)
         {
             var exporter = container.GetExportedValue<TEmbedded>();
@@ -86,8 +84,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefFact(
             CompositionEngines.V1Compat,
             typeof(PartThatImportsExportFactoryOfEmbeddedTypeV1),
-            typeof(PartThatExportsEmbeddedType),
-            SkipOnMono = true)]
+            typeof(PartThatExportsEmbeddedType))]
         public void EmbeddedTypePublicExportFactoryImportingPropertyV1(IContainer container)
         {
             var importer = container.GetExportedValue<PartThatImportsExportFactoryOfEmbeddedTypeV1>();
@@ -97,8 +94,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefFact(
             CompositionEngines.V3EmulatingV2,
             typeof(PartThatImportsExportFactoryOfEmbeddedTypeV2),
-            typeof(PartThatExportsEmbeddedType),
-            SkipOnMono = true)]
+            typeof(PartThatExportsEmbeddedType))]
         public void EmbeddedTypePublicExportFactoryImportingPropertyV2(IContainer container)
         {
             var importer = container.GetExportedValue<PartThatImportsExportFactoryOfEmbeddedTypeV2>();
@@ -129,7 +125,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         #region Tests for embedded types with base types that are also embedded
 
-        [MefFact(CompositionEngines.V1Compat, typeof(PartThatExportsIVsProjectReference), SkipOnMono = true)]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartThatExportsIVsProjectReference))]
         public void EmbeddedTypeWithBaseEmbeddedType(IContainer container)
         {
             var part = container.GetExportedValue<PartThatExportsIVsProjectReference>();

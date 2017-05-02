@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Trait("AppDomains", "true")]
         public async Task ComposableAssembliesLazyLoadedByLazyMetadataDictionary()
         {
-            TestUtilities.SkipOnMono();
+            TestUtilities.SkipOnMono("AppDomains(?)");
             var catalog = TestUtilities.EmptyCatalog.AddParts(
                 await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaDictionary), typeof(AnExportWithMetadataTypeValue)));
             var catalogCache = await this.SaveCatalogAsync(catalog);

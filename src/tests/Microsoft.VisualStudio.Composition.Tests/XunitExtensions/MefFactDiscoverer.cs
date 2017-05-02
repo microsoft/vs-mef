@@ -71,9 +71,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 this.noCompatGoal = factAttribute.NoCompatGoal;
                 this.invalidConfiguration = factAttribute.InvalidConfiguration;
 
-                if (factAttribute.SkipOnMono && Type.GetType("Mono.Runtime") != null)
+                if (this.Traits.ContainsKey(Tests.Traits.SkipOnMono) && TestUtilities.IsOnMono)
                 {
-                    this.SkipReason = this.SkipReason ?? "Test marked as skipped on Mono runtime";
+                    this.SkipReason = this.SkipReason ?? "Test marked as skipped on Mono runtime due to unsupported feature: " + string.Join(", ", this.Traits[Tests.Traits.SkipOnMono]);
                 }
             }
 
