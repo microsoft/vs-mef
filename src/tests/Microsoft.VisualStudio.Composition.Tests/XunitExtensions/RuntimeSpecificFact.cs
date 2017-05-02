@@ -8,9 +8,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     [XunitTestCaseDiscoverer("Xunit.Sdk.FactDiscoverer", "xunit.execution.{Platform}")]
-    public class SkippableFactAttribute : FactAttribute
+    public class RuntimeSpecificFactAttribute : FactAttribute
     {
-        public SkippableFactAttribute(bool skipOnMono)
+        public RuntimeSpecificFactAttribute(bool skipOnMono)
         {
             if (skipOnMono && Type.GetType("Mono.Runtime") != null)
             {

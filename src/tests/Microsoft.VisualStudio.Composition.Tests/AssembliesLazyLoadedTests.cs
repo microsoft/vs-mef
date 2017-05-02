@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// Verifies that the assemblies that MEF parts belong to are only loaded when
         /// their metadata is actually retrieved.
         /// </summary>
-        [SkippableFact(skipOnMono: true)]
+        [RuntimeSpecificFact(skipOnMono: true)]
         [Trait("AppDomains", "true")]
         public async Task ComposableAssembliesLazyLoadedByLazyMetadataDictionary()
         {
