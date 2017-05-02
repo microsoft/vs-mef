@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     [Trait("SharingBoundary", "")]
     public class SharingBoundaryMixedAttributesTests
     {
-        [MefFact(CompositionEngines.V3EmulatingV1AndV2AtOnce)]
+        [MefFact(CompositionEngines.V3EmulatingV1AndV2AtOnce, SkipOnMono = true)]
         [Trait("Disposal", "")]
         [Trait("SharingBoundary", "Isolation")]
         [Trait("WeakReference", "true")]
