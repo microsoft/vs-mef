@@ -26,6 +26,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(DisposableNonSharedPart))]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
         public void DisposableNonSharedPartDisposedWithContainerForAllInstancesAndThenReleased(IContainer container)
         {
             // The allocations have to happen in another method so that any references held by locals

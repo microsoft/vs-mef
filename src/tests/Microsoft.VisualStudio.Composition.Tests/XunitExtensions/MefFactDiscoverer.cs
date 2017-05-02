@@ -70,6 +70,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 this.compositionVersions = factAttribute.CompositionVersions;
                 this.noCompatGoal = factAttribute.NoCompatGoal;
                 this.invalidConfiguration = factAttribute.InvalidConfiguration;
+
+                if (this.Traits.ContainsKey(Tests.Traits.SkipOnMono) && TestUtilities.IsOnMono)
+                {
+                    this.SkipReason = this.SkipReason ?? "Test marked as skipped on Mono runtime due to unsupported feature: " + string.Join(", ", this.Traits[Tests.Traits.SkipOnMono]);
+                }
             }
 
             public override async Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)

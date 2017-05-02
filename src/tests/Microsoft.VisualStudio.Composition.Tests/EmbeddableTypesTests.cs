@@ -38,6 +38,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
     /// the value will be passed. That way, we'll get the instance of the Type that is
     /// embedded in that assembly and it will therefore be deemed compatible at runtime.
     /// </remarks>
+    [Trait("NoPIA", "true")]
+    [Trait(Traits.SkipOnMono, "NoPIA")]
     public class EmbeddableTypesTests
     {
         /// <summary>
