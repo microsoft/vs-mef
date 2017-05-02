@@ -117,10 +117,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// Verifies that the assemblies that MEF parts belong to are only loaded when
         /// their metadata is actually retrieved.
         /// </summary>
-        [RuntimeSpecificFact(skipOnMono: true)]
+        [SkippableFact]
         [Trait("AppDomains", "true")]
         public async Task ComposableAssembliesLazyLoadedByLazyMetadataDictionary()
         {
+            TestUtilities.SkipOnMono();
             var catalog = TestUtilities.EmptyCatalog.AddParts(
                 await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaDictionary), typeof(AnExportWithMetadataTypeValue)));
             var catalogCache = await this.SaveCatalogAsync(catalog);

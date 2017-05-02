@@ -243,6 +243,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return totalSummary;
         }
 
+        internal static void SkipOnMono()
+        {
+            Skip.If(Type.GetType("Mono.Runtime") != null, "Test marked as skipped on Mono runtime");
+        }
+
         internal class DebuggableCompositionContainer : MefV1.Hosting.CompositionContainer
         {
             protected override IEnumerable<MefV1.Primitives.Export> GetExportsCore(MefV1.Primitives.ImportDefinition definition, MefV1.Hosting.AtomicComposition atomicComposition)
