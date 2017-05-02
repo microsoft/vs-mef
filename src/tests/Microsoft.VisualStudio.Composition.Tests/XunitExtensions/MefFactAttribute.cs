@@ -56,6 +56,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// </summary>
         public bool NoCompatGoal { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether to skip the test when running on Mono runtime
+        /// </summary>
+        public bool SkipOnMono { get; set; }
+
         internal CompositionEngines CompositionVersions { get; }
 
         internal Type[] Parts { get; }
