@@ -18,10 +18,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
     /// <summary>
     /// Tests for support of embeddable types mixed with types that are not embedded (but could be elsewhere).
     /// </summary>
+    [Trait("NoPIA", "true")]
     public class EmbeddedableTypesMixedTests
     {
         [MefFact(CompositionEngines.V1Compat, "Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver", typeof(EmbeddableTypesTests.PartThatExportsIVsProjectReference), SkipOnMono = true)]
-        [Trait("NoPIA", "true")]
         public void EmbeddableTypeEmbeddedAndNotMixed(IContainer container)
         {
             var part = container.GetExportedValue<IExportedInterface>();
