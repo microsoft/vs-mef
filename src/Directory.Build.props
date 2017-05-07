@@ -8,7 +8,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>CS1591</NoWarn>
 
-    <NerdbankGitVersioningVersion>1.6.30</NerdbankGitVersioningVersion>
+    <NerdbankGitVersioningVersion>1.6.35</NerdbankGitVersioningVersion>
     <MicroBuildVersion>2.0.40</MicroBuildVersion>
     <MicroBuild_LocalizeOutputAssembly>false</MicroBuild_LocalizeOutputAssembly>
 
