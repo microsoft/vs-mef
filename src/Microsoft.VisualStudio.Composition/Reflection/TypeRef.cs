@@ -50,11 +50,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             Requires.NotNull(type, nameof(type));
 
             this.resolver = resolver;
-            this.AssemblyName = GetNormalizedAssemblyName(type.Assembly.GetName());
+            this.AssemblyName = GetNormalizedAssemblyName(type.GetTypeInfo().Assembly.GetName());
             this.IsArray = type.IsArray;
 
             Type elementType = type.IsArray ? type.GetElementType() : type;
-            this.MetadataToken = elementType.MetadataToken;
+            this.MetadataToken = elementType.GetTypeInfo().MetadataToken;
             this.GenericTypeParameterCount = elementType.GetTypeInfo().GenericTypeParameters.Length;
             this.GenericTypeArguments = elementType.GenericTypeArguments != null && elementType.GenericTypeArguments.Length > 0
                 ? elementType.GenericTypeArguments.Select(t => new TypeRef(resolver, t)).ToImmutableArray()
@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             if (elementType.IsGenericParameter)
             {
                 // Generic type parameters may come in without be type specs. So the only way to reconstruct them is by way of who references them.
-                var declaringMember = (MemberInfo)elementType.DeclaringMethod ?? elementType.DeclaringType;
+                var declaringMember = (MemberInfo)elementType.GetTypeInfo().DeclaringMethod ?? elementType.DeclaringType.GetTypeInfo();
                 this.GenericParameterDeclaringMemberRef = MemberRef.Get(declaringMember, resolver);
                 this.GenericParameterDeclaringMemberIndex = Array.IndexOf(GetGenericTypeArguments(declaringMember), elementType);
             }
@@ -245,13 +245,13 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         private static Type[] GetGenericTypeArguments(MemberInfo member)
         {
-            if (member is Type)
+            if (member is TypeInfo typeInfo)
             {
-                return ((Type)member).GetGenericArguments();
+                return typeInfo.GetGenericArguments();
             }
-            else if (member is MethodInfo)
+            else if (member is MethodInfo methodInfo)
             {
-                return ((MethodInfo)member).GetGenericArguments();
+                return methodInfo.GetGenericArguments();
             }
             else
             {

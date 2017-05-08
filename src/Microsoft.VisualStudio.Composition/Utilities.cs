@@ -7,6 +7,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
@@ -32,7 +33,7 @@ namespace Microsoft.VisualStudio.Composition
                 ImmutableList<ImportDefinitionBinding>.Empty,
                 string.Empty,
                 default(MethodRef),
-                ConstructorRef.Get(providerType.GetConstructor(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance, null, new Type[0], null), resolver),
+                ConstructorRef.Get(providerType.GetTypeInfo().GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Single(c => c.GetParameters().Length == 0), resolver),
                 ImmutableList<ImportDefinitionBinding>.Empty,
                 CreationPolicy.Shared,
                 false);

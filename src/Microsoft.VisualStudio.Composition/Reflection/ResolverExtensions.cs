@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             if (memberRef.IsType)
             {
-                return memberRef.Type.Resolve();
+                return memberRef.Type.Resolve().GetTypeInfo();
             }
 
             throw new NotSupportedException();
@@ -185,13 +185,13 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 var type = typeRef.Resolve();
                 foreach (var baseType in type.EnumTypeAndBaseTypes())
                 {
-                    assemblies.Add(baseType.Assembly.GetName());
+                    assemblies.Add(baseType.GetTypeInfo().Assembly.GetName());
                 }
 
                 // Interfaces may also define [InheritedExport] attributes, metadata view filters, etc.
-                foreach (var iface in type.GetInterfaces())
+                foreach (var iface in type.GetTypeInfo().GetInterfaces())
                 {
-                    assemblies.Add(iface.Assembly.GetName());
+                    assemblies.Add(iface.GetTypeInfo().Assembly.GetName());
                 }
             }
         }

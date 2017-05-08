@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 if (exportedValue != null)
                 {
-                    if (!import.ImportingSiteTypeWithoutCollection.IsAssignableFrom(exportedValue.GetType()))
+                    if (!import.ImportingSiteTypeWithoutCollection.GetTypeInfo().IsAssignableFrom(exportedValue.GetType()))
                     {
                         throw new CompositionFailedException(
                             string.Format(
@@ -374,7 +374,7 @@ namespace Microsoft.VisualStudio.Composition
                 bool containsGenericParameters = member.DeclaringType.GetTypeInfo().ContainsGenericParameters;
                 if (containsGenericParameters)
                 {
-                    member = ReflectionHelpers.CloseGenericType(member.DeclaringType, part.GetType())
+                    member = ReflectionHelpers.CloseGenericType(member.DeclaringType, part.GetType()).GetTypeInfo()
                         .GetMember(member.Name, MemberTypes.Property | MemberTypes.Field, DeclaredOnlyLookup)[0];
                 }
 

@@ -168,9 +168,9 @@ namespace Microsoft.VisualStudio.Composition
             foreach (var attribute in member.GetAttributes<Attribute>())
             {
                 Type attrType = attribute.GetType();
-                if (attrType.IsAttributeDefined<TMetadataAttribute>(inherit: true))
+                if (attrType.GetTypeInfo().IsAttributeDefined<TMetadataAttribute>(inherit: true))
                 {
-                    assemblyNames.Add(attrType.Assembly.GetName());
+                    assemblyNames.Add(attrType.GetTypeInfo().Assembly.GetName());
                 }
             }
         }
@@ -395,7 +395,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
                     catch (Exception ex)
                     {
-                        return new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.FailureWhileScanningType, type.FullName), ex) { AssemblyPath = type.Assembly.Location, ScannedType = type };
+                        return new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.FailureWhileScanningType, type.FullName), ex) { AssemblyPath = type.GetTypeInfo().Assembly.Location, ScannedType = type };
                     }
                 },
                 new ExecutionDataflowBlockOptions
