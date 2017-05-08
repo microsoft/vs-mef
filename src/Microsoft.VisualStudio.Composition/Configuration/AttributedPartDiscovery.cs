@@ -49,9 +49,10 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(partType, nameof(partType));
 
+            var partTypeInfo = partType.GetTypeInfo();
             if (!typeExplicitlyRequested)
             {
-                bool isPublic = partType.IsNested ? partType.IsNestedPublic : partType.IsPublic;
+                bool isPublic = partType.IsNested ? partTypeInfo.IsNestedPublic : partTypeInfo.IsPublic;
                 if (!this.IsNonPublicSupported && !isPublic)
                 {
                     // Skip non-public types.
@@ -59,12 +60,12 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            var declaredProperties = partType.GetProperties(BindingFlags.Instance | this.PublicVsNonPublicFlags);
+            var declaredProperties = partTypeInfo.GetProperties(BindingFlags.Instance | this.PublicVsNonPublicFlags);
             var exportingProperties = from member in declaredProperties
                                       from export in member.GetAttributes<ExportAttribute>()
                                       select new KeyValuePair<MemberInfo, ExportAttribute>(member, export);
-            var exportedTypes = from export in partType.GetAttributes<ExportAttribute>()
-                                select new KeyValuePair<MemberInfo, ExportAttribute>(partType, export);
+            var exportedTypes = from export in partTypeInfo.GetAttributes<ExportAttribute>()
+                                select new KeyValuePair<MemberInfo, ExportAttribute>(partTypeInfo, export);
             var exportsByMember = (from export in exportingProperties.Concat(exportedTypes)
                                    group export.Value by export.Key into exportsByType
                                    select exportsByType).Select(g => new KeyValuePair<MemberInfo, ExportAttribute[]>(g.Key, g.ToArray())).ToArray();
@@ -79,16 +80,16 @@ namespace Microsoft.VisualStudio.Composition
             // part anyway. Checking for the PartNotDiscoverableAttribute first, which is rarely defined,
             // doesn't usually pay for itself in terms of short-circuiting. But it does add an extra
             // attribute to look for that we don't need to find for all the types that have no export attributes either.
-            if (!typeExplicitlyRequested && partType.IsAttributeDefined<PartNotDiscoverableAttribute>())
+            if (!typeExplicitlyRequested && partTypeInfo.IsAttributeDefined<PartNotDiscoverableAttribute>())
             {
                 return null;
             }
 
             TypeRef partTypeRef = TypeRef.Get(partType, this.Resolver);
-            Type partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
+            Type partTypeAsGenericTypeDefinition = partTypeInfo.IsGenericType ? partType.GetGenericTypeDefinition() : null;
 
             string sharingBoundary = null;
-            var sharedAttribute = partType.GetFirstAttribute<SharedAttribute>();
+            var sharedAttribute = partTypeInfo.GetFirstAttribute<SharedAttribute>();
             if (sharedAttribute != null)
             {
                 sharingBoundary = sharedAttribute.SharingBoundary ?? string.Empty;
@@ -106,7 +107,7 @@ namespace Microsoft.VisualStudio.Composition
                 var member = export.Key;
                 var memberExportMetadata = allExportsMetadata.AddRange(this.GetExportMetadata(member));
 
-                if (member is Type)
+                if (member is TypeInfo)
                 {
                     foreach (var exportAttribute in export.Value)
                     {
@@ -118,7 +119,7 @@ namespace Microsoft.VisualStudio.Composition
                 else // property
                 {
                     var property = (PropertyInfo)member;
-                    Verify.Operation(!partType.IsGenericTypeDefinition, Strings.ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric);
+                    Verify.Operation(!partTypeInfo.IsGenericTypeDefinition, Strings.ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric);
                     var exportDefinitions = ImmutableList.CreateBuilder<ExportDefinition>();
                     foreach (var exportAttribute in export.Value)
                     {
@@ -146,7 +147,7 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             MethodInfo onImportsSatisfied = null;
-            foreach (var method in partType.GetMethods(this.PublicVsNonPublicFlags | BindingFlags.Instance))
+            foreach (var method in partTypeInfo.GetMethods(this.PublicVsNonPublicFlags | BindingFlags.Instance))
             {
                 if (method.IsAttributeDefined<OnImportsSatisfiedAttribute>())
                 {
@@ -171,7 +172,7 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             var partMetadata = ImmutableDictionary.CreateBuilder<string, object>();
-            foreach (var partMetadataAttribute in partType.GetAttributes<PartMetadataAttribute>())
+            foreach (var partMetadataAttribute in partTypeInfo.GetAttributes<PartMetadataAttribute>())
             {
                 partMetadata[partMetadataAttribute.Name] = partMetadataAttribute.Value;
             }
@@ -225,7 +226,7 @@ namespace Microsoft.VisualStudio.Composition
             var namesOfMetadataWithMultipleValues = new HashSet<string>(StringComparer.Ordinal);
             foreach (var attribute in member.GetAttributes<Attribute>())
             {
-                var attrType = attribute.GetType();
+                var attrType = attribute.GetType().GetTypeInfo();
                 var exportMetadataAttribute = attribute as ExportMetadataAttribute;
                 if (exportMetadataAttribute != null)
                 {
@@ -295,7 +296,7 @@ namespace Microsoft.VisualStudio.Composition
                 Type contractType = GetTypeIdentityFromImportingType(importingType, importMany: false);
                 if (contractType.IsAnyLazyType() || contractType.IsExportFactoryTypeV2())
                 {
-                    contractType = contractType.GetGenericArguments()[0];
+                    contractType = contractType.GetTypeInfo().GetGenericArguments()[0];
                 }
 
                 importConstraints = importConstraints

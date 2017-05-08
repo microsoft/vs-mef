@@ -581,7 +581,7 @@ namespace Microsoft.VisualStudio.Composition
                     throw new NotSupportedException();
                 }
 
-                var list = Array.CreateInstance(elementType, count);
+                var list = Array.CreateInstance(elementType, (int)count);
                 for (int i = 0; i < list.Length; i++)
                 {
                     object value = itemReader();
@@ -766,7 +766,7 @@ namespace Microsoft.VisualStudio.Composition
                         this.Write(ObjectType.CreationPolicy);
                         this.writer.Write((byte)(CreationPolicy)value);
                     }
-                    else if (typeof(Type).IsAssignableFrom(valueType))
+                    else if (typeof(Type).GetTypeInfo().IsAssignableFrom(valueType))
                     {
                         this.Write(ObjectType.Type);
                         this.Write(TypeRef.Get((Type)value, this.Resolver));

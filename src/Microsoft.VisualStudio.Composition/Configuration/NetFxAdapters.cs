@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+#if NET45
+
 namespace Microsoft.VisualStudio.Composition
 {
     using System;
@@ -418,3 +420,5 @@ namespace Microsoft.VisualStudio.Composition
         }
     }
 }
+
+#endif

@@ -15,8 +15,8 @@ namespace Microsoft.VisualStudio.Composition
     /// </summary>
     internal static class LazyServices
     {
-        private static readonly MethodInfo CreateStronglyTypedLazyOfTMValue = typeof(LazyServices).GetMethod("CreateStronglyTypedLazyOfTM", BindingFlags.NonPublic | BindingFlags.Static);
-        private static readonly MethodInfo CreateStronglyTypedLazyOfTValue = typeof(LazyServices).GetMethod("CreateStronglyTypedLazyOfT", BindingFlags.NonPublic | BindingFlags.Static);
+        private static readonly MethodInfo CreateStronglyTypedLazyOfTMValue = typeof(LazyServices).GetTypeInfo().GetMethod("CreateStronglyTypedLazyOfTM", BindingFlags.NonPublic | BindingFlags.Static);
+        private static readonly MethodInfo CreateStronglyTypedLazyOfTValue = typeof(LazyServices).GetTypeInfo().GetMethod("CreateStronglyTypedLazyOfT", BindingFlags.NonPublic | BindingFlags.Static);
 
         internal static readonly Type DefaultMetadataViewType = typeof(IDictionary<string, object>);
         internal static readonly Type DefaultExportedValueType = typeof(object);
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <returns><c>true</c> if <paramref name="type"/> is some Lazy type.</returns>
         internal static bool IsAnyLazyType(this Type type)
         {
-            if (type.IsGenericType)
+            if (type.GetTypeInfo().IsGenericType)
             {
                 Type genericTypeDefinition = type.GetGenericTypeDefinition();
                 if (genericTypeDefinition == typeof(Lazy<>) || genericTypeDefinition == typeof(Lazy<,>))

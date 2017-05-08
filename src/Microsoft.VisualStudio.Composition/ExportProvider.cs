@@ -511,7 +511,7 @@ namespace Microsoft.VisualStudio.Composition
                     ctorArgs.Value[1] = this.GetStrongTypedMetadata(exportMetadata, exportFactoryType.GenericTypeArguments[1]);
                 }
 
-                var ctor = exportFactoryType.GetConstructors()[0];
+                var ctor = exportFactoryType.GetTypeInfo().GetConstructors()[0];
                 return ctor.Invoke(ctorArgs.Value);
             }
         }
@@ -770,7 +770,7 @@ namespace Microsoft.VisualStudio.Composition
 
         private static T CastValueTo<T>(object value)
         {
-            if (value is ExportedDelegate && typeof(Delegate).IsAssignableFrom(typeof(T)))
+            if (value is ExportedDelegate && typeof(Delegate).GetTypeInfo().IsAssignableFrom(typeof(T)))
             {
                 var exportedDelegate = (ExportedDelegate)value;
                 return (T)(object)exportedDelegate.CreateDelegate(typeof(T));
@@ -975,7 +975,7 @@ namespace Microsoft.VisualStudio.Composition
             private HashSet<PartLifecycleTracker> deferredInitializationParts;
 
             /// <summary>
-            /// The thread that is currently executing a particular step.
+            /// The managed thread ID of the thread that is currently executing a particular step.
             /// </summary>
             /// <remarks>
             /// This is used to avoid deadlocking when we're executing a particular step
@@ -985,7 +985,7 @@ namespace Microsoft.VisualStudio.Composition
             /// deadlock by trying to wait for a fully initialized one.
             /// This matches MEFv1 and MEFv2 behavior.
             /// </remarks>
-            private Thread threadExecutingStep;
+            private int? executingStepThreadId;
 
             /// <summary>
             /// Stores any exception captured during initialization.
@@ -1053,7 +1053,7 @@ namespace Microsoft.VisualStudio.Composition
                 // If this very thread is already executing a step on this part, then we have some
                 // form of reentrancy going on. In which case, the general policy seems to be that
                 // we return an incompletely initialized part.
-                if (this.threadExecutingStep != Thread.CurrentThread)
+                if (this.executingStepThreadId != Environment.CurrentManagedThreadId)
                 {
                     this.MoveToState(PartLifecycleState.Final);
                 }
@@ -1156,7 +1156,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     try
                     {
-                        this.threadExecutingStep = Thread.CurrentThread;
+                        this.executingStepThreadId = Environment.CurrentManagedThreadId;
                         object value = this.CreateValue();
 
                         lock (this.syncObject)
@@ -1192,7 +1192,7 @@ namespace Microsoft.VisualStudio.Composition
                     {
                         try
                         {
-                            this.threadExecutingStep = Thread.CurrentThread;
+                            this.executingStepThreadId = Environment.CurrentManagedThreadId;
                             this.SatisfyImports();
                             this.UpdateState(PartLifecycleState.ImmediateImportsSatisfied);
                         }
@@ -1228,7 +1228,7 @@ namespace Microsoft.VisualStudio.Composition
                     if (shouldInvoke)
                     {
                         Assumes.False(Monitor.IsEntered(this.syncObject)); // avoid holding locks while invoking others' code.
-                        this.threadExecutingStep = Thread.CurrentThread;
+                        this.executingStepThreadId = Environment.CurrentManagedThreadId;
                         this.InvokeOnImportsSatisfied();
 
                         Assumes.True(this.UpdateState(PartLifecycleState.OnImportsSatisfiedInvoked));
@@ -1254,7 +1254,7 @@ namespace Microsoft.VisualStudio.Composition
                         this.Create();
                         break;
                     case PartLifecycleState.Created:
-                        Verify.Operation(this.threadExecutingStep != Thread.CurrentThread, Strings.RecursiveRequestForPartConstruction, this.PartType);
+                        Verify.Operation(this.executingStepThreadId != Environment.CurrentManagedThreadId, Strings.RecursiveRequestForPartConstruction, this.PartType);
 
                         // Another thread put this in the Creating state. Just wait for that thread to finish.
                         this.WaitForState(PartLifecycleState.Created);
@@ -1416,7 +1416,7 @@ namespace Microsoft.VisualStudio.Composition
                     if (this.State < newState)
                     {
                         this.State = newState;
-                        this.threadExecutingStep = null;
+                        this.executingStepThreadId = null;
 
                         // Alert any other threads waiting for this (see the WaitForState method).
                         Monitor.PulseAll(this.syncObject);

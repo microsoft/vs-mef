@@ -37,8 +37,8 @@ namespace Microsoft.VisualStudio.Composition
             public bool IsMetadataViewSupported(Type metadataType)
             {
                 // We apply to interfaces with nothing but property getters.
-                return metadataType.IsInterface
-                    && metadataType.GetMembers().All(IsPropertyRelated);
+                return metadataType.GetTypeInfo().IsInterface
+                    && metadataType.GetTypeInfo().GetMembers().All(IsPropertyRelated);
             }
 
             public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)

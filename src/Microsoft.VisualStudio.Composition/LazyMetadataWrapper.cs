@@ -14,8 +14,8 @@ namespace Microsoft.VisualStudio.Composition
     internal class LazyMetadataWrapper : ExportProvider.IMetadataDictionary
     {
         private static readonly HashSet<Assembly> AlwaysLoadedAssemblies = new HashSet<Assembly>(new[] {
-            typeof(CreationPolicy).Assembly,
-            typeof(string).Assembly,
+            typeof(CreationPolicy).GetTypeInfo().Assembly,
+            typeof(string).GetTypeInfo().Assembly,
         });
 
         /// <summary>
@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(typeOfValue, nameof(typeOfValue));
 
-            return !AlwaysLoadedAssemblies.Contains(typeOfValue.Assembly);
+            return !AlwaysLoadedAssemblies.Contains(typeOfValue.GetTypeInfo().Assembly);
         }
 
         internal class Enum32Substitution : ISubstitutedValue, IEquatable<Enum32Substitution>
@@ -292,7 +292,7 @@ namespace Microsoft.VisualStudio.Composition
                 if (value != null)
                 {
                     Type valueType = value.GetType();
-                    if (valueType.IsEnum && Enum.GetUnderlyingType(valueType) == typeof(int) && IsTypeWorthDeferring(valueType))
+                    if (valueType.GetTypeInfo().IsEnum && Enum.GetUnderlyingType(valueType) == typeof(int) && IsTypeWorthDeferring(valueType))
                     {
                         substitutedValue = new Enum32Substitution(TypeRef.Get(valueType, resolver), (int)value);
                         return true;
