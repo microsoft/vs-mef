@@ -207,10 +207,10 @@ namespace Microsoft.VisualStudio.Composition
 
         internal static Type GetMemberType(MemberInfo fieldOrPropertyOrType)
         {
-            var type = fieldOrPropertyOrType as TypeInfo;
-            if (type != null)
+            var typeInfo = fieldOrPropertyOrType as TypeInfo;
+            if (typeInfo != null)
             {
-                return type.AsType();
+                return typeInfo.AsType();
             }
 
             var property = fieldOrPropertyOrType as PropertyInfo;

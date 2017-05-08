@@ -63,9 +63,9 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                     this.Property = new PropertyRef((PropertyInfo)member, resolver);
                     break;
                 default:
-                    if (member is TypeInfo type)
+                    if (member is TypeInfo typeInfo)
                     {
-                        this.Type = TypeRef.Get(type.AsType(), resolver);
+                        this.Type = TypeRef.Get(typeInfo.AsType(), resolver);
                     }
                     else
                     {
