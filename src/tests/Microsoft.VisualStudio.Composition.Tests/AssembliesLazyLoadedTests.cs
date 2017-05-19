@@ -15,6 +15,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using Microsoft.VisualStudio.Composition.AppDomainTests;
     using Microsoft.VisualStudio.Composition.AppDomainTests2;
     using Xunit;
+    using static Microsoft.VisualStudio.Composition.Tests.AssertEx;
 
     [Trait("Efficiency", "LazyLoad")]
     public abstract class AssembliesLazyLoadedTests : IDisposable
@@ -270,130 +271,87 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 this.container = containerFactory.CreateExportProvider();
             }
 
-            /// <summary>
-            /// Since the exceptions thrown by xUnit asserts are not serializable we lose information
-            /// in case tests fail in another appdomain. These four helpers throw a serializable exception
-            /// that results in a more information exception in the error log.
-            /// </summary>
-            internal void AssertFalse(bool condition, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
-            {
-                if (condition)
-                {
-                    var message = $"Assert failed: expected false (actual: true) at {filePath}, {memberName} line {lineNumber}";
-                    throw new AssertFailedException(message);
-                }
-            }
-
-            internal void AssertTrue(bool condition, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
-            {
-                if (!condition)
-                {
-                    var message = $"Assert failed: expected true (actual: false) at {filePath}, {memberName} line {lineNumber}";
-                    throw new AssertFailedException(message);
-                }
-            }
-
-            internal void AssertNotNull(object reference, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
-            {
-                if (reference == null)
-                {
-                    var message = $"Assert failed: unexpected null at {filePath}, {memberName} line {lineNumber}";
-                    throw new AssertFailedException(message);
-                }
-            }
-
-            internal void AssertEqual<T>(T expected, T actual, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
-                where T : IEquatable<T>
-            {
-                if (!EqualityComparer<T>.Default.Equals(expected, actual))
-                {
-                    var message = $"Assert failed: expected: {expected} actual: {actual} at {filePath}, {memberName} line {lineNumber}";
-                    throw new AssertFailedException(message);
-                }
-            }
-
             internal void TestGetInputAssembliesDoesNotLoadLazyExport(string lazyLoadedAssemblyPath)
             {
-                this.AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 this.catalog.GetInputAssemblies();
-                this.AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
             internal void TestExternalExport(string lazyLoadedAssemblyPath)
             {
-                this.AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 this.CauseLazyLoad1(this.container);
-                this.AssertTrue(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertTrue(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
             internal void TestYetAnotherExport(string lazyLoadedAssemblyPath)
             {
-                this.AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 this.CauseLazyLoad2(this.container);
-                this.AssertTrue(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertTrue(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
             internal void TestExternalExportWithLazy(string lazyLoadedAssemblyPath)
             {
-                this.AssertFalse(true);
-                this.AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 var exportWithLazy = this.container.GetExportedValue<ExternalExportWithLazy>();
-                this.AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 Assert.NotNull(exportWithLazy.YetAnotherExport.Value);
-                this.AssertTrue(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertTrue(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
             internal void TestPartThatImportsExportWithTypeMetadataViaDictionary(string lazyLoadedAssemblyPath)
             {
-                this.AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 var exportWithLazy = this.container.GetExportedValue<PartThatLazyImportsExportWithTypeMetadataViaDictionary>();
-                this.AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 Assert.NotNull(exportWithLazy.ImportWithDictionary.Metadata.ContainsKey("foo"));
-                this.AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 Type type = (Type)exportWithLazy.ImportWithDictionary.Metadata["SomeType"];
                 Type[] types = (Type[])exportWithLazy.ImportWithDictionary.Metadata["SomeTypes"];
-                this.AssertEqual("YetAnotherExport", type.Name);
+                AssertEqual("YetAnotherExport", type.Name);
                 types.Single(t => t.Name == "String");
                 types.Single(t => t.Name == "YetAnotherExport");
-                this.AssertTrue(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertTrue(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
             internal void TestPartThatImportsExportWithTypeMetadataViaTMetadata(string lazyLoadedAssemblyPath)
             {
-                this.AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 var exportWithLazy = this.container.GetExportedValue<PartThatLazyImportsExportWithTypeMetadataViaTMetadata>();
-                this.AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 Assert.Equal("default", exportWithLazy.ImportWithTMetadata.Metadata.SomeProperty);
-                this.AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 Type type = exportWithLazy.ImportWithTMetadata.Metadata.SomeType;
                 Type[] types = exportWithLazy.ImportWithTMetadata.Metadata.SomeTypes;
-                this.AssertEqual("YetAnotherExport", type.Name);
+                AssertEqual("YetAnotherExport", type.Name);
                 types.Single(t => t.Name == "String");
                 types.Single(t => t.Name == "YetAnotherExport");
-                this.AssertTrue(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertTrue(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
             internal void TestPartThatImportsExportWithGenericTypeArg(string lazyLoadedAssemblyPath)
             {
-                this.AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 var exportWithLazy = this.container.GetExportedValue<PartImportingOpenGenericExport>();
-                this.AssertTrue(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertTrue(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
             internal void TestPartThatLazyImportsExportWithMetadataOfCustomType(string lazyLoadedAssemblyPath, bool isRuntime)
             {
-                this.AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertFalse(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 var exportWithLazy = this.container.GetExportedValue<PartThatLazyImportsExportWithMetadataOfCustomType>();
 
                 // This next segment we'll permit an assembly load only for code gen cases, which aren't as well tuned at present.
-                this.AssertFalse(isRuntime && GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
-                this.AssertEqual("Value", exportWithLazy.ImportingProperty.Metadata["Simple"] as string);
-                this.AssertFalse(isRuntime && GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertFalse(isRuntime && GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertEqual("Value", exportWithLazy.ImportingProperty.Metadata["Simple"] as string);
+                AssertFalse(isRuntime && GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
 
                 // At this point, loading the assembly is absolutely required.
                 object customEnum = exportWithLazy.ImportingProperty.Metadata["CustomValue"];
-                this.AssertEqual("CustomEnum", customEnum.GetType().Name);
-                this.AssertTrue(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+                AssertEqual("CustomEnum", customEnum.GetType().Name);
+                AssertTrue(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
             private static IEnumerable<Assembly> GetLoadedAssemblies()
@@ -415,7 +373,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 // Actually the lazy load happens before GetExport is actually called since this method
                 // references a type in that assembly.
                 var export = container.GetExportedValue<ExternalExport>();
-                this.AssertNotNull(export);
+                AssertNotNull(export);
             }
 
             [MethodImpl(MethodImplOptions.NoInlining)] // if this method is inlined, it defeats the point of it being a separate method in the test and causes test failure.
@@ -424,7 +382,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 // Actually the lazy load happens before GetExport is actually called since this method
                 // references a type in that assembly.
                 var export = container.GetExportedValue<YetAnotherExport>();
-                this.AssertNotNull(export);
+                AssertNotNull(export);
             }
         }
     }
