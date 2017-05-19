@@ -6,16 +6,16 @@
     [Serializable]
     internal class AssertFailedException : Exception
     {
-        public AssertFailedException()
+        internal AssertFailedException()
         {
         }
 
-        public AssertFailedException(string message)
+        internal AssertFailedException(string message)
             : base(message)
         {
         }
 
-        public AssertFailedException(string message, Exception innerException)
+        internal AssertFailedException(string message, Exception innerException)
             : base(message, innerException)
         {
         }
