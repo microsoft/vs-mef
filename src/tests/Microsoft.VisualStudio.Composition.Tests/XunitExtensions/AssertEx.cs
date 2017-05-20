@@ -4,14 +4,17 @@
     using System.Collections.Generic;
     using System.Runtime.CompilerServices;
 
+    /// <summary>
+    /// Xunit-like assertions that throw a serializable exception.
+    /// </summary>
+    /// <remarks>
+    /// Since the exceptions thrown by xUnit asserts are not serializable we lose information
+    /// in case tests fail in another appdomain. These four helpers throw a serializable exception
+    /// that results in a more information exception in the error log.
+    /// </remarks>
     internal static class AssertEx
     {
-        /// <summary>
-        /// Since the exceptions thrown by xUnit asserts are not serializable we lose information
-        /// in case tests fail in another appdomain. These four helpers throw a serializable exception
-        /// that results in a more information exception in the error log.
-        /// </summary>
-        internal static void AssertFalse(bool condition, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
+        internal static void False(bool condition, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
         {
             if (condition)
             {
@@ -20,7 +23,7 @@
             }
         }
 
-        internal static void AssertTrue(bool condition, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
+        internal static void True(bool condition, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
         {
             if (!condition)
             {
@@ -29,7 +32,7 @@
             }
         }
 
-        internal static void AssertNotNull(object reference, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
+        internal static void NotNull(object reference, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
         {
             if (reference == null)
             {
@@ -38,7 +41,7 @@
             }
         }
 
-        internal static void AssertEqual<T>(T expected, T actual, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
+        internal static void Equal<T>(T expected, T actual, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
             where T : IEquatable<T>
         {
             if (!EqualityComparer<T>.Default.Equals(expected, actual))
