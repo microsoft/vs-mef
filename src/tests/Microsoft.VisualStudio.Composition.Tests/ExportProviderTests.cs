@@ -54,6 +54,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(export.Value);
         }
 
+        [Trait("Access", "NonPublic")]
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
         public void GetExportWithInternalMetadataView(IContainer container)
         {
