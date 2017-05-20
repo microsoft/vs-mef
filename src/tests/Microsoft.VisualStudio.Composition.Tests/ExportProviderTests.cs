@@ -54,6 +54,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(export.Value);
         }
 
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
+        public void GetExportWithInternalMetadataView(IContainer container)
+        {
+            var export = container.GetExport<SomeOtherPart, ISomeOtherPartInternalMetadataView>();
+            Assert.Equal(1, export.Metadata.A);
+            Assert.NotNull(export.Value);
+        }
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
         public void GetExportWithFilteringMetadataView(IContainer container)
         {
@@ -114,6 +122,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class SomeOtherPart { }
 
         public interface ISomeOtherPartMetadataView
+        {
+            int A { get; }
+        }
+
+        internal interface ISomeOtherPartInternalMetadataView
         {
             int A { get; }
         }
