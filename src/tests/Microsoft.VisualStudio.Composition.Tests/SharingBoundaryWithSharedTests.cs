@@ -106,6 +106,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         [Trait("Disposal", "")]
         [MefFact(CompositionEngines.V2Compat)]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
         public void DisposeExportDisposesContainer(IContainer container)
         {
             var root = container.GetExportedValue<RootPart>();
