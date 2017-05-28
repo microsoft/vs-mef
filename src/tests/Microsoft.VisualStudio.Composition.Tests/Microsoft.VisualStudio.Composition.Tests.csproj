@@ -16,7 +16,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.12.0" Version="12.0.30110" />
     <PackageReference Include="Xunit" Version="2.0.0" />
     <PackageReference Include="xunit.extensibility.execution" Version="2.0.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.0.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
     <PackageReference Include="xunit.runner.console" Version="2.2.0" />
     <PackageReference Include="Xunit.SkippableFact" Version="1.0.15200-beta" />
     <PackageReference Include="OpenCover" Version="4.6.519" />
