@@ -554,11 +554,15 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (namedArgument.IsField)
                 {
-                    ((FieldInfo)namedArgument.MemberInfo).SetValue(attribute, namedArgument.TypedValue.Value);
+                    var field = attributeData.AttributeType.GetField(namedArgument.MemberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    Assumes.NotNull(field);
+                    field.SetValue(attribute, namedArgument.TypedValue.Value);
                 }
                 else
                 {
-                    ((PropertyInfo)namedArgument.MemberInfo).SetValue(attribute, namedArgument.TypedValue.Value);
+                    var property = attributeData.AttributeType.GetProperty(namedArgument.MemberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    Assumes.NotNull(property);
+                    property.SetValue(attribute, namedArgument.TypedValue.Value);
                 }
             }
 
