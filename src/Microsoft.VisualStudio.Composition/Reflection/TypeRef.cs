@@ -264,6 +264,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             Requires.NotNull(assemblyName, nameof(assemblyName));
 
             AssemblyName normalizedAssemblyName = assemblyName;
+#if NET45
             if (assemblyName.CodeBase.IndexOf('~') >= 0)
             {
                 // Using ToString() rather than AbsoluteUri here to match the CLR's AssemblyName.CodeBase convention of paths without %20 space characters.
@@ -271,6 +272,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 normalizedAssemblyName = (AssemblyName)assemblyName.Clone();
                 normalizedAssemblyName.CodeBase = normalizedCodeBase;
             }
+#endif
 
             return normalizedAssemblyName;
         }

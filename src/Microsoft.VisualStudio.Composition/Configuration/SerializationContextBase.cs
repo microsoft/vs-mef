@@ -456,7 +456,11 @@ namespace Microsoft.VisualStudio.Composition
                 if (this.TryPrepareSerializeReusableObject(assemblyName))
                 {
                     this.Write(assemblyName.FullName);
+#if NET45
                     this.Write(assemblyName.CodeBase);
+#else
+                    this.Write((string)null); // keep the binary format consistent even if we can't write this.
+#endif
                 }
             }
         }
@@ -471,7 +475,10 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     string fullName = this.ReadString();
                     string codeBase = this.ReadString();
-                    value = new AssemblyName(fullName) { CodeBase = codeBase };
+                    value = new AssemblyName(fullName);
+#if NET45
+                    value.CodeBase = codeBase;
+#endif
                     this.OnDeserializedReusableObject(id, value);
                 }
 

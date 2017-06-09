@@ -32,11 +32,13 @@ namespace Microsoft.VisualStudio.Composition
                     return true;
                 }
 
+#if NET45
                 // fast path
                 if (x.CodeBase == y.CodeBase)
                 {
                     return true;
                 }
+#endif
 
                 // There are some cases where two AssemblyNames who are otherwise equivalent
                 // have a null PublicKey but a correct PublicKeyToken, and vice versa. We should

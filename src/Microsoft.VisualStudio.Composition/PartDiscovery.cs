@@ -112,6 +112,7 @@ namespace Microsoft.VisualStudio.Composition
             return result;
         }
 
+#if NET45
         /// <summary>
         /// Reflects over a set of assemblies and produces MEF parts for every applicable type.
         /// </summary>
@@ -158,6 +159,7 @@ namespace Microsoft.VisualStudio.Composition
             var result = await tuple.Item2;
             return result.Merge(new DiscoveredParts(Enumerable.Empty<ComposablePartDefinition>(), exceptions));
         }
+#endif
 
         internal static void GetAssemblyNamesFromMetadataAttributes<TMetadataAttribute>(MemberInfo member, ISet<AssemblyName> assemblyNames)
             where TMetadataAttribute : class
