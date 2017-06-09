@@ -13,7 +13,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Runtime.Serialization.Formatters.Binary;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
@@ -804,11 +803,15 @@ namespace Microsoft.VisualStudio.Composition
                     }
                     else
                     {
+#if NET45
                         Debug.WriteLine("Falling back to binary formatter for value of type: {0}", valueType);
                         this.Write(ObjectType.BinaryFormattedObject);
-                        var formatter = new BinaryFormatter();
+                        var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                         this.writer.Flush();
                         formatter.Serialize(this.writer.BaseStream, value);
+#else
+                        throw new NotSupportedException("Object of type " + valueType + " cannot be serialized on this platform.");
+#endif
                     }
                 }
             }
@@ -855,8 +858,12 @@ namespace Microsoft.VisualStudio.Composition
                         IReadOnlyList<TypeRef> typeRefArray = this.ReadList(this.reader, this.ReadTypeRef);
                         return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray, this.Resolver);
                     case ObjectType.BinaryFormattedObject:
-                        var formatter = new BinaryFormatter();
+#if NET45
+                        var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                         return formatter.Deserialize(this.reader.BaseStream);
+#else
+                        throw new NotSupportedException("BinaryFormatter object cannot be deserialized on this platform.");
+#endif
                     default:
                         throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.UnsupportedFormat, objectType));
                 }
