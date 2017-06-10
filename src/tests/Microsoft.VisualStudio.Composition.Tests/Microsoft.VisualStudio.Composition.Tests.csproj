@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net451</TargetFramework>
+    <TargetFrameworks>net451</TargetFrameworks>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.Tests.ruleset</CodeAnalysisRuleSet>
     <NoWarn>$(NoWarn);CS1762</NoWarn>
   </PropertyGroup>
