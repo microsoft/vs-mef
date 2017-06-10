@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <RepoBinPath>$(MSBuildThisFileDirectory)..\bin\</RepoBinPath>
     <BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)..\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
     <OutputPath>$(RepoBinPath)$(MSBuildProjectName)\$(Configuration)\</OutputPath>
