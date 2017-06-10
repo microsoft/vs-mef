@@ -159,6 +159,8 @@ namespace Microsoft.VisualStudio.Composition
                     this.writer.Write((byte)1);
                     this.Write(methodRef.DeclaringType);
                     this.WriteCompressedMetadataToken(methodRef.MetadataToken, MetadataTokenType.Method);
+                    this.Write(methodRef.Name);
+                    this.Write(methodRef.ParameterTypes, this.Write);
                     this.Write(methodRef.GenericMethodArguments, this.Write);
                 }
             }
@@ -173,8 +175,10 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     var declaringType = this.ReadTypeRef();
                     var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
-                    var genericMethodArguments = this.ReadList(this.reader, this.ReadTypeRef);
-                    return new MethodRef(declaringType, metadataToken, genericMethodArguments.ToImmutableArray());
+                    var name = this.ReadString();
+                    var parameterTypes = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
+                    var genericMethodArguments = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
+                    return new MethodRef(declaringType, metadataToken, name, parameterTypes, genericMethodArguments);
                 }
                 else
                 {
@@ -243,6 +247,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 this.Write(propertyRef.DeclaringType);
                 this.WriteCompressedMetadataToken(propertyRef.MetadataToken, MetadataTokenType.Property);
+                this.Write(propertyRef.Name);
 
                 byte flags = 0;
                 flags |= propertyRef.GetMethodMetadataToken.HasValue ? (byte)0x1 : (byte)0x0;
@@ -267,6 +272,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 var declaringType = this.ReadTypeRef();
                 var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Property);
+                var name = this.ReadString();
 
                 byte flags = this.reader.ReadByte();
                 int? getter = null, setter = null;
@@ -284,7 +290,8 @@ namespace Microsoft.VisualStudio.Composition
                     declaringType,
                     metadataToken,
                     getter,
-                    setter);
+                    setter,
+                    name);
             }
         }
 
@@ -297,6 +304,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     this.Write(fieldRef.DeclaringType);
                     this.WriteCompressedMetadataToken(fieldRef.MetadataToken, MetadataTokenType.Field);
+                    this.Write(fieldRef.Name);
                 }
             }
         }
@@ -309,7 +317,8 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     var declaringType = this.ReadTypeRef();
                     int metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Field);
-                    return new FieldRef(declaringType, metadataToken);
+                    var name = this.ReadString();
+                    return new FieldRef(declaringType, metadataToken, name);
                 }
                 else
                 {
@@ -325,8 +334,8 @@ namespace Microsoft.VisualStudio.Composition
                 this.writer.Write(!parameterRef.IsEmpty);
                 if (!parameterRef.IsEmpty)
                 {
-                    this.Write(parameterRef.DeclaringType);
-                    this.WriteCompressedMetadataToken(parameterRef.MethodMetadataToken, MetadataTokenType.Method);
+                    this.Write(parameterRef.Constructor);
+                    this.Write(parameterRef.Method);
                     this.writer.Write((byte)parameterRef.ParameterIndex);
                 }
             }
@@ -338,10 +347,10 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (this.reader.ReadBoolean())
                 {
-                    var declaringType = this.ReadTypeRef();
-                    int methodMetadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
+                    var ctor = this.ReadConstructorRef();
+                    var method = this.ReadMethodRef();
                     var parameterIndex = this.reader.ReadByte();
-                    return new ParameterRef(declaringType, methodMetadataToken, parameterIndex);
+                    return ctor.IsEmpty ? new ParameterRef(method, parameterIndex) : new ParameterRef(ctor, parameterIndex);
                 }
                 else
                 {
@@ -370,6 +379,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 this.Write(constructorRef.DeclaringType);
                 this.WriteCompressedMetadataToken(constructorRef.MetadataToken, MetadataTokenType.Method);
+                this.Write(constructorRef.ParameterTypes, this.Write);
             }
         }
 
@@ -379,10 +389,12 @@ namespace Microsoft.VisualStudio.Composition
             {
                 var declaringType = this.ReadTypeRef();
                 var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
+                var argumentTypes = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
 
                 return new ConstructorRef(
                     declaringType,
-                    metadataToken);
+                    metadataToken,
+                    argumentTypes);
             }
         }
 
@@ -394,6 +406,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     this.Write(typeRef.AssemblyName);
                     this.WriteCompressedMetadataToken(typeRef.MetadataToken, MetadataTokenType.Type);
+                    this.Write(typeRef.FullName);
 
                     var flags = TypeRefFlags.None;
                     flags |= typeRef.IsArray ? TypeRefFlags.IsArray : TypeRefFlags.None;
@@ -427,6 +440,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     var assemblyName = this.ReadAssemblyName();
                     var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Type);
+                    var fullName = this.ReadString();
                     var flags = (TypeRefFlags)this.reader.ReadByte();
                     int genericTypeParameterCount = (int)this.ReadCompressedUInt();
                     var genericTypeArguments = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
@@ -434,11 +448,11 @@ namespace Microsoft.VisualStudio.Composition
                     var genericParameterDeclaringMemberIndex = flags.HasFlag(TypeRefFlags.HasGenericParameterDeclaringMemberIndex) ? (int)this.ReadCompressedUInt() : -1;
                     if (genericParameterDeclaringMember.IsEmpty)
                     {
-                        value = TypeRef.Get(this.Resolver, assemblyName, metadataToken, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments);
+                        value = TypeRef.Get(this.Resolver, assemblyName, metadataToken, fullName, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments);
                     }
                     else
                     {
-                        value = TypeRef.Get(this.Resolver, assemblyName, metadataToken, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments, genericParameterDeclaringMember, genericParameterDeclaringMemberIndex);
+                        value = TypeRef.Get(this.Resolver, assemblyName, metadataToken, fullName, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments, genericParameterDeclaringMember, genericParameterDeclaringMemberIndex);
                     }
 
                     this.OnDeserializedReusableObject(id, value);

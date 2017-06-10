@@ -131,6 +131,18 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+        internal static ImmutableArray<TypeRef> GetParameterTypes(this MethodBase method, Resolver resolver)
+        {
+            Requires.NotNull(method, nameof(method));
+            return method.GetParameters().Select(pi => TypeRef.Get(pi.ParameterType, resolver)).ToImmutableArray();
+        }
+
+        internal static ImmutableArray<TypeRef> GetGenericTypeArguments(this MethodBase method, Resolver resolver)
+        {
+            Requires.NotNull(method, nameof(method));
+            return method.GetGenericArguments().Select(t => TypeRef.Get(t, resolver)).ToImmutableArray();
+        }
+
         internal static IEnumerable<PropertyInfo> EnumProperties(this Type type)
         {
             Requires.NotNull(type, nameof(type));

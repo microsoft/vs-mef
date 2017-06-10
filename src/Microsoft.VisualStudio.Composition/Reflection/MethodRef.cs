@@ -14,22 +14,45 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
     public struct MethodRef : IEquatable<MethodRef>
     {
-        public MethodRef(TypeRef declaringType, int metadataToken, ImmutableArray<TypeRef> genericMethodArguments)
+        private Type[] resolvedParameterTypes;
+
+        public MethodRef(TypeRef declaringType, int metadataToken, string name, ImmutableArray<TypeRef> parameterTypes, ImmutableArray<TypeRef> genericMethodArguments)
             : this()
         {
+            Requires.NotNullOrEmpty(name, nameof(name));
+
             this.DeclaringType = declaringType;
             this.MetadataToken = metadataToken;
+            this.ParameterTypes = parameterTypes;
+            this.Name = name;
             this.GenericMethodArguments = genericMethodArguments;
         }
 
         public MethodRef(MethodInfo method, Resolver resolver)
-            : this(TypeRef.Get(method.DeclaringType, resolver), method.MetadataToken, method.GetGenericArguments().Select(t => TypeRef.Get(t, resolver)).ToImmutableArray())
+            : this(TypeRef.Get(method.DeclaringType, resolver), method.MetadataToken, method.Name, method.GetParameterTypes(resolver), method.GetGenericTypeArguments(resolver))
         {
         }
 
         public TypeRef DeclaringType { get; private set; }
 
         public int MetadataToken { get; private set; }
+
+        public string Name { get; private set; }
+
+        public ImmutableArray<TypeRef> ParameterTypes { get; private set; }
+
+        public Type[] ResolvedParameterTypes
+        {
+            get
+            {
+                if (this.resolvedParameterTypes == null)
+                {
+                    this.resolvedParameterTypes = this.ParameterTypes.Select(a => a.Resolve()).ToArray();
+                }
+
+                return this.resolvedParameterTypes;
+            }
+        }
 
         public ImmutableArray<TypeRef> GenericMethodArguments { get; private set; }
 
@@ -59,6 +82,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             return EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType)
                 && this.MetadataToken == other.MetadataToken
+                && this.Name == other.Name
                 && this.GenericMethodArguments.EqualsByValue(other.GenericMethodArguments);
         }
 

@@ -13,13 +13,14 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
     public struct PropertyRef : IEquatable<PropertyRef>
     {
-        public PropertyRef(TypeRef declaringType, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken)
+        public PropertyRef(TypeRef declaringType, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken, string name)
             : this()
         {
             this.DeclaringType = declaringType;
             this.MetadataToken = metadataToken;
             this.GetMethodMetadataToken = getMethodMetadataToken;
             this.SetMethodMetadataToken = setMethodMetadataToken;
+            this.Name = name;
         }
 
         public PropertyRef(PropertyInfo propertyInfo, Resolver resolver)
@@ -29,6 +30,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.MetadataToken = propertyInfo.MetadataToken;
             this.GetMethodMetadataToken = propertyInfo.GetMethod != null ? (int?)propertyInfo.GetMethod.MetadataToken : null;
             this.SetMethodMetadataToken = propertyInfo.SetMethod != null ? (int?)propertyInfo.SetMethod.MetadataToken : null;
+            this.Name = propertyInfo.Name;
         }
 
         public TypeRef DeclaringType { get; private set; }
@@ -38,6 +40,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         public int? GetMethodMetadataToken { get; private set; }
 
         public int? SetMethodMetadataToken { get; private set; }
+
+        public string Name { get; private set; }
 
         public bool IsEmpty
         {
@@ -49,7 +53,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         public bool Equals(PropertyRef other)
         {
             return EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType)
-                && this.MetadataToken == other.MetadataToken;
+                && this.MetadataToken == other.MetadataToken
+                && this.Name == other.Name;
         }
 
         public override int GetHashCode()

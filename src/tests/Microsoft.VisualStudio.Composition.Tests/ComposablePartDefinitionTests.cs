@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     null,
                     default(MethodRef),
-                    new ConstructorRef(typeRef, metadataToken: 1000),
+                    new ConstructorRef(typeRef, metadataToken: 1000, parameterTypes: ImmutableArray<TypeRef>.Empty),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     CreationPolicy.Any,
                     true);
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     null,
                     default(MethodRef),
-                    new ConstructorRef(typeRef, metadataToken: 1001),
+                    new ConstructorRef(typeRef, metadataToken: 1001, parameterTypes: ImmutableArray<TypeRef>.Empty),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     CreationPolicy.Any,
                     true);

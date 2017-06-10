@@ -13,23 +13,27 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
     public struct FieldRef : IEquatable<FieldRef>
     {
-        public FieldRef(TypeRef declaringType, int metadataToken)
+        public FieldRef(TypeRef declaringType, int metadataToken, string name)
             : this()
         {
             Requires.NotNull(declaringType, nameof(declaringType));
+            Requires.NotNullOrEmpty(name, nameof(name));
 
             this.DeclaringType = declaringType;
             this.MetadataToken = metadataToken;
+            this.Name = name;
         }
 
         public FieldRef(FieldInfo field, Resolver resolver)
-            : this(TypeRef.Get(field.DeclaringType, resolver), field.MetadataToken)
+            : this(TypeRef.Get(field.DeclaringType, resolver), field.MetadataToken, field.Name)
         {
         }
 
         public TypeRef DeclaringType { get; private set; }
 
         public int MetadataToken { get; private set; }
+
+        public string Name { get; private set; }
 
         public AssemblyName AssemblyName
         {

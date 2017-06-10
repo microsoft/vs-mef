@@ -18,34 +18,23 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// </summary>
         private readonly int parameterIndex;
 
-        public ParameterRef(TypeRef declaringType, int methodMetadataToken, int parameterIndex)
+        public ParameterRef(MethodRef method, int parameterIndex)
             : this()
         {
-            Requires.NotNull(declaringType, nameof(declaringType));
-
-            this.DeclaringType = declaringType;
-            this.MethodMetadataToken = methodMetadataToken;
+            this.Method = method;
             this.parameterIndex = parameterIndex;
         }
 
         public ParameterRef(ConstructorRef ctor, int parameterIndex)
-            : this(ctor.DeclaringType, ctor.MetadataToken, parameterIndex)
+            : this()
         {
+            this.Constructor = ctor;
+            this.parameterIndex = parameterIndex;
         }
 
-        public ParameterRef(MethodRef method, int parameterIndex)
-            : this(method.DeclaringType, method.MetadataToken, parameterIndex)
-        {
-        }
+        public MethodRef Method { get; private set; }
 
-        public ParameterRef(ParameterInfo parameter, Resolver resolver)
-            : this(TypeRef.Get(parameter.Member.DeclaringType, resolver), parameter.Member.MetadataToken, parameter.Position)
-        {
-        }
-
-        public TypeRef DeclaringType { get; private set; }
-
-        public int MethodMetadataToken { get; private set; }
+        public ConstructorRef Constructor { get; private set; }
 
         public int ParameterIndex
         {
@@ -54,30 +43,49 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public AssemblyName AssemblyName
         {
-            get { return this.IsEmpty ? null : this.DeclaringType.AssemblyName; }
+            get { return this.DeclaringType.AssemblyName; }
         }
 
         public bool IsEmpty
         {
-            get { return this.DeclaringType == null; }
+            get { return this.Method.IsEmpty && this.Constructor.IsEmpty; }
         }
 
         internal Resolver Resolver => this.DeclaringType?.Resolver;
 
+        internal TypeRef DeclaringType => this.Constructor.DeclaringType ?? this.Method.DeclaringType;
+
         public static ParameterRef Get(ParameterInfo parameter, Resolver resolver)
         {
-            return parameter != null ? new ParameterRef(parameter, resolver) : default(ParameterRef);
+            if (parameter != null)
+            {
+                if (parameter.Member is ConstructorInfo ctor)
+                {
+                    return new ParameterRef(new ConstructorRef(ctor, resolver), parameter.Position);
+                }
+                else if (parameter.Member is MethodInfo methodInfo)
+                {
+                    return new ParameterRef(new MethodRef(methodInfo, resolver), parameter.Position);
+                }
+                else
+                {
+                    throw new NotSupportedException("Unsupported member type: " + parameter.Member.GetType().Name);
+                }
+            }
+
+            return default(ParameterRef);
         }
 
         public bool Equals(ParameterRef other)
         {
-            return this.MethodMetadataToken.Equals(other.MethodMetadataToken)
+            return this.Constructor.Equals(other.Constructor)
+                && this.Method.Equals(other.Method)
                 && this.ParameterIndex == other.ParameterIndex;
         }
 
         public override int GetHashCode()
         {
-            return unchecked(this.MethodMetadataToken + this.parameterIndex);
+            return unchecked(this.Method.MetadataToken + this.Constructor.MetadataToken + this.parameterIndex);
         }
 
         public override bool Equals(object obj)
