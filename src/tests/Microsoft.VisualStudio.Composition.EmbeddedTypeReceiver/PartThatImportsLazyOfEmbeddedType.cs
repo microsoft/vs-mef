@@ -8,7 +8,9 @@ namespace Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Shell.Interop;
+#if DESKTOP
     using MefV1 = System.ComponentModel.Composition;
+#endif
     using MefV2 = System.Composition;
 
     // When these two using directives are switched in tandem with those
@@ -22,10 +24,16 @@ namespace Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver
     /// The type must appear in a different assembly from the exporting part
     /// so that the two assemblies have distinct Type instances for the embeddable interface.
     /// </summary>
-    [MefV1.Export, MefV2.Export]
+#if DESKTOP
+    [MefV1.Export]
+#endif
+    [MefV2.Export]
     public class PartThatImportsLazyOfEmbeddedType
     {
-        [MefV1.Import, MefV2.Import]
+#if DESKTOP
+        [MefV1.Import]
+#endif
+        [MefV2.Import]
         public Lazy<TEmbedded> RetargetProject { get; set; }
 
         public TEmbedded RetargetProjectNoLazy
@@ -34,7 +42,10 @@ namespace Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver
         }
     }
 
-    [MefV1.Export, MefV2.Export]
+#if DESKTOP
+    [MefV1.Export]
+#endif
+    [MefV2.Export]
     public class PartThatImportsLazyOfEmbeddedTypeNonPublic
     {
         public TEmbedded RetargetProjectNoLazy
@@ -42,17 +53,27 @@ namespace Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver
             get { return this.RetargetProject.Value; }
         }
 
-        [MefV1.Import, MefV2.Import]
+#if DESKTOP
+        [MefV1.Import]
+#endif
+        [MefV2.Import]
         internal Lazy<TEmbedded> RetargetProject { get; set; }
     }
 
-    [MefV1.Export, MefV2.Export]
+#if DESKTOP
+    [MefV1.Export]
+#endif
+    [MefV2.Export]
     public class PartThatImportsEmbeddedType
     {
-        [MefV1.Import, MefV2.Import]
+#if DESKTOP
+        [MefV1.Import]
+#endif
+        [MefV2.Import]
         public TEmbedded RetargetProject { get; set; }
     }
 
+#if DESKTOP
     /// <summary>
     /// The type must appear in a different assembly from the exporting part
     /// so that the two assemblies have distinct Type instances for the embeddable interface.
@@ -68,6 +89,7 @@ namespace Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver
             return this.RetargetProjectFactory.CreateExport().Value;
         }
     }
+#endif
 
     /// <summary>
     /// The type must appear in a different assembly from the exporting part

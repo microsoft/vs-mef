@@ -8,7 +8,9 @@ namespace Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Shell.Interop;
+#if DESKTOP
     using MefV1 = System.ComponentModel.Composition;
+#endif
     using MefV2 = System.Composition;
 
     public interface IExportedInterface { }
@@ -19,7 +21,10 @@ namespace Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver
     {
     }
 
+#if DESKTOP
     [MefV1.Export(typeof(IExportedInterface))]
+#endif
+    [MefV2.Export(typeof(IExportedInterface))]
     internal class PartThatExportsIVsProjectReference : BaseClassForPartThatExportsIVsProjectReference<IVsProjectReference, VsProjectReference>, IExportedInterface
     {
     }
