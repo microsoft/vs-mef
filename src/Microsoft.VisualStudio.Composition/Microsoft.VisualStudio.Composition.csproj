@@ -5,7 +5,6 @@
     <DebugType>full</DebugType>
 
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
-    <DefineConstants Condition=" '$(TargetFramework)' == 'net45' ">$(DefineConstants);RuntimeHandles</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
     <Reference Include="System.ComponentModel.Composition" />

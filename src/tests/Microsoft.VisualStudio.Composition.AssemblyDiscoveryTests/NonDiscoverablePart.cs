@@ -8,10 +8,16 @@ namespace Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+#if DESKTOP
     using MefV1 = System.ComponentModel.Composition;
+#endif
 
-    [PartNotDiscoverable, MefV1.PartNotDiscoverable]
-    [Export, MefV1.Export]
+    [PartNotDiscoverable]
+    [Export]
+#if DESKTOP
+    [MefV1.PartNotDiscoverable]
+    [MefV1.Export]
+#endif
     public class NonDiscoverablePart
     {
     }

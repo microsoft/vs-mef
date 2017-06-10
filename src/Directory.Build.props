@@ -8,6 +8,7 @@
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>CS1591</NoWarn>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net45' ">$(DefineConstants);DESKTOP;RuntimeHandles</DefineConstants>
 
     <NerdbankGitVersioningVersion>1.6.35</NerdbankGitVersioningVersion>
     <MicroBuildVersion>2.0.40</MicroBuildVersion>
