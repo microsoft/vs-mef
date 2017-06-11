@@ -15,6 +15,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
     public class CompositionCatalogTests
     {
+#if DESKTOP
         [Fact]
         public async Task CreateFromTypesOmitsNonPartsV1()
         {
@@ -24,6 +25,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(1, catalog.Parts.Count);
             Assert.Equal(typeof(ExportingType), catalog.Parts.Single().Type);
         }
+#endif
 
         [Fact]
         public async Task CreateFromTypesOmitsNonPartsV2()
@@ -51,12 +53,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningParts()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(NonExportingType), typeof(ExportingType)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(NonExportingType), typeof(ExportingType)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(NonExportingType).Assembly.GetName(),
-                typeof(object).Assembly.GetName(),
+                typeof(NonExportingType).GetTypeInfo().Assembly.GetName(),
+                typeof(object).GetTypeInfo().Assembly.GetName(),
             };
             var actual = catalog.GetInputAssemblies();
             Assert.True(expected.SetEquals(actual));
@@ -66,13 +68,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningBaseTypesOfParts()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingTypeDerivesFromOtherAssembly)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportingTypeDerivesFromOtherAssembly)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(ExportingTypeDerivesFromOtherAssembly).Assembly.GetName(),
-                typeof(AssemblyDiscoveryTests.NonPart).Assembly.GetName(),
-                typeof(object).Assembly.GetName(),
+                typeof(ExportingTypeDerivesFromOtherAssembly).GetTypeInfo().Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.NonPart).GetTypeInfo().Assembly.GetName(),
+                typeof(object).GetTypeInfo().Assembly.GetName(),
             };
             var actual = catalog.GetInputAssemblies();
             Assert.True(expected.SetEquals(actual));
@@ -82,13 +84,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningInterfacesOfParts()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingTypeImplementsFromOtherAssembly)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportingTypeImplementsFromOtherAssembly)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(ExportingTypeImplementsFromOtherAssembly).Assembly.GetName(),
-                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
-                typeof(object).Assembly.GetName(),
+                typeof(ExportingTypeImplementsFromOtherAssembly).GetTypeInfo().Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
+                typeof(object).GetTypeInfo().Assembly.GetName(),
             };
             var actual = catalog.GetInputAssemblies();
             Assert.True(expected.SetEquals(actual));
@@ -98,13 +100,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningEnumUsedInPartMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(PartWithEnumValueMetadata)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartWithEnumValueMetadata)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
-                typeof(PartWithEnumValueMetadata).Assembly.GetName(),
-                typeof(object).Assembly.GetName()
+                typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
+                typeof(PartWithEnumValueMetadata).GetTypeInfo().Assembly.GetName(),
+                typeof(object).GetTypeInfo().Assembly.GetName()
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -115,13 +117,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningTypeSingleMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithTypeSingleMetadata)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportingWithTypeSingleMetadata)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
-                typeof(ExportingWithTypeSingleMetadata).Assembly.GetName(),
-                typeof(object).Assembly.GetName()
+                typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
+                typeof(ExportingWithTypeSingleMetadata).GetTypeInfo().Assembly.GetName(),
+                typeof(object).GetTypeInfo().Assembly.GetName()
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -132,13 +134,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningTypeMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithTypeMetadata)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportingWithTypeMetadata)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
-                typeof(ExportingWithTypeMetadata).Assembly.GetName(),
-                typeof(object).Assembly.GetName()
+                typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
+                typeof(ExportingWithTypeMetadata).GetTypeInfo().Assembly.GetName(),
+                typeof(object).GetTypeInfo().Assembly.GetName()
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -149,14 +151,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningMultipleTypeMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithMultipleTypeMetadata)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportingWithMultipleTypeMetadata)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(AllColorableItemInfo).Assembly.GetName(),
-                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
-                typeof(ExportingWithMultipleTypeMetadata).Assembly.GetName(),
-                typeof(object).Assembly.GetName()
+                typeof(AllColorableItemInfo).GetTypeInfo().Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
+                typeof(ExportingWithMultipleTypeMetadata).GetTypeInfo().Assembly.GetName(),
+                typeof(object).GetTypeInfo().Assembly.GetName()
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -167,13 +169,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningEnumMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithEnumMetadata)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportingWithEnumMetadata)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(AssemblyDiscoveryTests.SomeEnum).Assembly.GetName(),
-                typeof(ExportingWithEnumMetadata).Assembly.GetName(),
-                typeof(object).Assembly.GetName()
+                typeof(AssemblyDiscoveryTests.SomeEnum).GetTypeInfo().Assembly.GetName(),
+                typeof(ExportingWithEnumMetadata).GetTypeInfo().Assembly.GetName(),
+                typeof(object).GetTypeInfo().Assembly.GetName()
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -184,14 +186,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningMultipleDifferentEnumMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithMultipleDifferentEnumMetadata)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportingWithMultipleDifferentEnumMetadata)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(AssemblyDiscoveryTests.SomeEnum).Assembly.GetName(),
-                typeof(AssemblyDiscoveryTests2.SomeOtherEnum).Assembly.GetName(),
-                typeof(ExportingWithMultipleDifferentEnumMetadata).Assembly.GetName(),
-                typeof(object).Assembly.GetName()
+                typeof(AssemblyDiscoveryTests.SomeEnum).GetTypeInfo().Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests2.SomeOtherEnum).GetTypeInfo().Assembly.GetName(),
+                typeof(ExportingWithMultipleDifferentEnumMetadata).GetTypeInfo().Assembly.GetName(),
+                typeof(object).GetTypeInfo().Assembly.GetName()
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -202,15 +204,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningLotsOfMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithLotsOfMetadata)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportingWithLotsOfMetadata)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(AssemblyDiscoveryTests.SomeEnum).Assembly.GetName(),
-                typeof(AssemblyDiscoveryTests2.SomeOtherEnum).Assembly.GetName(),
-                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
-                typeof(ExportingWithLotsOfMetadata).Assembly.GetName(),
-                typeof(object).Assembly.GetName()
+                typeof(AssemblyDiscoveryTests.SomeEnum).GetTypeInfo().Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests2.SomeOtherEnum).GetTypeInfo().Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
+                typeof(ExportingWithLotsOfMetadata).GetTypeInfo().Assembly.GetName(),
+                typeof(object).GetTypeInfo().Assembly.GetName()
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -221,13 +223,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task GetAssemblyInputs_IdentifiesAssembliesDefiningExportingMembersWithTypeMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingWithExportingMembers)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportingWithExportingMembers)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
-                typeof(ExportingWithExportingMembers).Assembly.GetName(),
-                typeof(object).Assembly.GetName()
+                typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
+                typeof(ExportingWithExportingMembers).GetTypeInfo().Assembly.GetName(),
+                typeof(object).GetTypeInfo().Assembly.GetName()
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -238,13 +240,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task GetAssemblyInputs_FunctionsCorrectlyWithNullMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingTypeWithNullExportMetadata)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportingTypeWithNullExportMetadata)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
-                typeof(ExportingTypeWithNullExportMetadata).Assembly.GetName(),
-                typeof(object).Assembly.GetName()
+                typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
+                typeof(ExportingTypeWithNullExportMetadata).GetTypeInfo().Assembly.GetName(),
+                typeof(object).GetTypeInfo().Assembly.GetName()
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -255,14 +257,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task GetAssemblyInputs_RecursesThroughTypeTreeInMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingTypeWithExportMetadataWithExternalDependencies)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportingTypeWithExportMetadataWithExternalDependencies)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(AssemblyDiscoveryTests.ISomeInterface).Assembly.GetName(),
-                typeof(System.Exception).Assembly.GetName(),
-                typeof(ExportingTypeWithExportMetadataWithExternalDependencies).Assembly.GetName(),
-                typeof(object).Assembly.GetName()
+                typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
+                typeof(System.Exception).GetTypeInfo().Assembly.GetName(),
+                typeof(ExportingTypeWithExportMetadataWithExternalDependencies).GetTypeInfo().Assembly.GetName(),
+                typeof(object).GetTypeInfo().Assembly.GetName()
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -273,14 +275,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task GetAssemblyInputs_RecursesThroughInterfaceTreeInMetadata()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingTypeWithExportMetadataWithExternalDependenciesAndInterfaceTree)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportingTypeWithExportMetadataWithExternalDependenciesAndInterfaceTree)));
 
             var expected = new HashSet<AssemblyName>(AssemblyNameComparer.Default)
             {
-                typeof(AssemblyDiscoveryTests.ISomeInterfaceWithBaseInterface).Assembly.GetName(),
-                typeof(AssemblyDiscoveryTests2.IBlankInterface).Assembly.GetName(),
-                typeof(ExportingTypeWithExportMetadataWithExternalDependenciesAndInterfaceTree).Assembly.GetName(),
-                typeof(object).Assembly.GetName()
+                typeof(AssemblyDiscoveryTests.ISomeInterfaceWithBaseInterface).GetTypeInfo().Assembly.GetName(),
+                typeof(AssemblyDiscoveryTests2.IBlankInterface).GetTypeInfo().Assembly.GetName(),
+                typeof(ExportingTypeWithExportMetadataWithExternalDependenciesAndInterfaceTree).GetTypeInfo().Assembly.GetName(),
+                typeof(object).GetTypeInfo().Assembly.GetName()
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -291,10 +293,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task GetAssemblyInputs_ContainsDefiningAttributeAssemblyForMetadataV1()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V1Discovery.CreatePartsAsync(typeof(ExportingTypeWithMetadataWhoseDefiningAttributeIsInAnotherAssembly)));
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportingTypeWithMetadataWhoseDefiningAttributeIsInAnotherAssembly)));
 
             var inputAssemblies = catalog.GetInputAssemblies();
-            Assert.Contains(typeof(SomeMetadataAttributeFromAnotherAssemblyAttribute).Assembly.GetName(), inputAssemblies, AssemblyNameComparer.Default);
+            Assert.Contains(typeof(SomeMetadataAttributeFromAnotherAssemblyAttribute).GetTypeInfo().Assembly.GetName(), inputAssemblies, AssemblyNameComparer.Default);
         }
 
         [Fact]
@@ -304,7 +306,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportingTypeWithMetadataWhoseDefiningAttributeIsInAnotherAssembly)));
 
             var inputAssemblies = catalog.GetInputAssemblies();
-            Assert.Contains(typeof(SomeMetadataAttributeFromAnotherAssemblyAttribute).Assembly.GetName(), inputAssemblies, AssemblyNameComparer.Default);
+            Assert.Contains(typeof(SomeMetadataAttributeFromAnotherAssemblyAttribute).GetTypeInfo().Assembly.GetName(), inputAssemblies, AssemblyNameComparer.Default);
         }
 
         public class NonExportingType { }
@@ -420,11 +422,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     return true;
                 }
 
+#if DESKTOP
                 // fast path
                 if (x.CodeBase == y.CodeBase)
                 {
                     return true;
                 }
+#endif
 
                 // Testing on FullName is horrifically slow.
                 // So test directly on its components instead.

@@ -14,7 +14,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using Xunit.Abstractions;
     using Xunit.Sdk;
 
+#if DESKTOP
     [Serializable]
+#endif
     public class LegacyMefTestCaseRunner : XunitTestCaseRunner
     {
         private readonly CompositionEngines engineVersion;
@@ -58,11 +60,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
             try
             {
                 parts = parts ?? new Type[0];
-                var loadedAssemblies = assemblies != null ? assemblies.Select(Assembly.Load).ToImmutableList() : ImmutableList<Assembly>.Empty;
+                var loadedAssemblies = assemblies != null ? assemblies.Select(an => Assembly.Load(new AssemblyName(an))).ToImmutableList() : ImmutableList<Assembly>.Empty;
 
                 if (attributesVersion.HasFlag(CompositionEngines.V1))
                 {
+#if DESKTOP
                     return await test(TestUtilities.CreateContainerV1(loadedAssemblies, parts));
+#endif
                 }
 
                 if (attributesVersion.HasFlag(CompositionEngines.V2))

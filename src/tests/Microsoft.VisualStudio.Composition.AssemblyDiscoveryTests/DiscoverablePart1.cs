@@ -8,14 +8,10 @@ namespace Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-#if DESKTOP
     using MefV1 = System.ComponentModel.Composition;
-#endif
 
     [Export]
-#if DESKTOP
     [MefV1.Export]
-#endif
     public class DiscoverablePart1
     {
     }

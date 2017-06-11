@@ -3,7 +3,9 @@
     using System;
     using System.Runtime.Serialization;
 
+#if DESKTOP
     [Serializable]
+#endif
     internal class AssertFailedException : Exception
     {
         internal AssertFailedException()
@@ -20,9 +22,11 @@
         {
         }
 
+#if DESKTOP
         protected AssertFailedException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
+#endif
     }
 }

@@ -7,6 +7,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Collections.Immutable;
     using System.ComponentModel;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -37,7 +38,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             Requires.NotNull(parentType, nameof(parentType));
 
-            foreach (var nested in parentType.GetNestedTypes())
+            foreach (var nested in parentType.GetTypeInfo().GetNestedTypes())
             {
                 yield return nested;
 
@@ -95,7 +96,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
                 if (this.parts == null && this.assemblies == null)
                 {
-                    this.parts = GetNestedTypesRecursively(this.TestMethod.TestClass.Class.ToRuntimeType()).Where(t => (!t.IsAbstract || t.IsSealed) && !t.IsInterface).ToArray();
+                    this.parts = GetNestedTypesRecursively(this.TestMethod.TestClass.Class.ToRuntimeType()).Where(t => (!t.GetTypeInfo().IsAbstract || t.GetTypeInfo().IsSealed) && !t.GetTypeInfo().IsInterface).ToArray();
                 }
 
                 if (this.compositionVersions.HasFlag(CompositionEngines.V1))

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-#if DESKTOP
-
 namespace Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests
 {
     using System;
@@ -18,5 +16,3 @@ namespace Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests
     {
     }
 }
-
-#endif
