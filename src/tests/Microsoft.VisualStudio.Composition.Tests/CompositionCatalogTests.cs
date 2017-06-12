@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 return new PartDiscovery[]
                 {
                     TestUtilities.V1Discovery,
-                    ////TestUtilities.V2Discovery,
+                    TestUtilities.V2Discovery,
                 };
             }
         }
