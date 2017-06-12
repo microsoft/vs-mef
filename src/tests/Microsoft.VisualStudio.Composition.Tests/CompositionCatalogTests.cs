@@ -338,7 +338,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             this.logger.WriteLine(string.Join(Environment.NewLine, expectedSubset.OrderBy(async => async.FullName)));
             this.logger.WriteLine("Actual:");
             this.logger.WriteLine(string.Join(Environment.NewLine, actual.OrderBy(async => async.FullName)));
-            Assert.Equal(expectedSubset, actual);
+            Assert.True(expectedSubset.IsSubsetOf(actual)); // Allow for extra assemblies, since V2 discovery adds MS.VS.Composition itself for Shared/NonShared part metadata
         }
 
         public class NonExportingType { }
