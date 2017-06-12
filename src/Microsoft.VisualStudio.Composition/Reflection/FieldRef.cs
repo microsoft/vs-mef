@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public bool Equals(FieldRef other)
         {
-            return ByValueEquality.AssemblyName.Equals(this.AssemblyName, other.AssemblyName)
+            return ByValueEquality.AssemblyNameNoFastCheck.Equals(this.AssemblyName, other.AssemblyName)
                 && this.MetadataToken == other.MetadataToken;
         }
 
