@@ -385,6 +385,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         [Export, MEFv1.Export]
         [MEFv1.ExportMetadata("Type", typeof(AssemblyDiscoveryTests.ISomeInterface))]
+        [ExportMetadata("Type", typeof(AssemblyDiscoveryTests.ISomeInterface))]
         public class ExportingWithTypeMetadata { }
 
         [Export, MEFv1.Export]
@@ -394,21 +395,28 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         [Export, MEFv1.Export]
         [MEFv1.ExportMetadata("AdornmentLayerType", typeof(AssemblyDiscoveryTests.ISomeInterface), IsMultiple = false)]
+        [ExportMetadata("AdornmentLayerType", typeof(AssemblyDiscoveryTests.ISomeInterface))]
         public class ExportingWithTypeSingleMetadata { }
 
         [Export, MEFv1.Export]
         [MEFv1.ExportMetadata("Position", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
+        [ExportMetadata("Position", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
         public class ExportingWithEnumMetadata { }
 
         [Export, MEFv1.Export]
         [MEFv1.ExportMetadata("SomeEnum", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
         [MEFv1.ExportMetadata("SomeOtherEnum", AssemblyDiscoveryTests2.SomeOtherEnum.EnumValue)]
+        [ExportMetadata("SomeEnum", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
+        [ExportMetadata("SomeOtherEnum", AssemblyDiscoveryTests2.SomeOtherEnum.EnumValue)]
         public class ExportingWithMultipleDifferentEnumMetadata { }
 
         [Export, MEFv1.Export]
         [MEFv1.ExportMetadata("SomeEnum", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
         [MEFv1.ExportMetadata("SomeOtherEnum", AssemblyDiscoveryTests2.SomeOtherEnum.EnumValue)]
         [MEFv1.ExportMetadata("SomeInterface", typeof(AssemblyDiscoveryTests.ISomeInterface))]
+        [ExportMetadata("SomeEnum", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
+        [ExportMetadata("SomeOtherEnum", AssemblyDiscoveryTests2.SomeOtherEnum.EnumValue)]
+        [ExportMetadata("SomeInterface", typeof(AssemblyDiscoveryTests.ISomeInterface))]
         [MultipleTypeMetadata(typeof(AssemblyDiscoveryTests.SomeEnum))]
         [MultipleTypeMetadata(typeof(AssemblyDiscoveryTests2.SomeOtherEnum))]
         [PartMetadata("ExternalAssemblyValue", typeof(AssemblyDiscoveryTests.SomeEnum))]
@@ -417,8 +425,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         public class ExportingWithExportingMembers
         {
-            [MEFv1.Export]
+            [Export, MEFv1.Export]
             [MEFv1.ExportMetadata("SomeInterface", typeof(AssemblyDiscoveryTests.ISomeInterface))]
+            [ExportMetadata("SomeInterface", typeof(AssemblyDiscoveryTests.ISomeInterface))]
             public object Export { get; set; }
         }
 
