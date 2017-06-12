@@ -62,13 +62,13 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     return x.Name == y.Name
                         && x.Version.Equals(y.Version)
-                        && x.CultureName.Equals(y.CultureName)
+                        && string.Equals(x.CultureName, y.CultureName)
                         && ByValueEquality.Buffer.Equals(xPublicKey, yPublicKey);
                 }
 
                 return x.Name == y.Name
                     && x.Version.Equals(y.Version)
-                    && x.CultureName.Equals(y.CultureName)
+                    && string.Equals(x.CultureName, y.CultureName)
                     && ByValueEquality.Buffer.Equals(x.GetPublicKeyToken(), y.GetPublicKeyToken());
             }
 
