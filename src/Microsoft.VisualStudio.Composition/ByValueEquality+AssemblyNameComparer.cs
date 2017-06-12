@@ -12,12 +12,20 @@ namespace Microsoft.VisualStudio.Composition
             get { return AssemblyNameComparer.Default; }
         }
 
+        internal static IEqualityComparer<AssemblyName> AssemblyNameNoFastCheck
+        {
+            get { return AssemblyNameComparer.NoFastCheck; }
+        }
+
         private class AssemblyNameComparer : IEqualityComparer<AssemblyName>
         {
             internal static readonly AssemblyNameComparer Default = new AssemblyNameComparer();
+            internal static readonly AssemblyNameComparer NoFastCheck = new AssemblyNameComparer(fastCheck: false);
+            private bool fastCheck;
 
-            internal AssemblyNameComparer()
+            internal AssemblyNameComparer(bool fastCheck = true)
             {
+                this.fastCheck = fastCheck;
             }
 
             public bool Equals(AssemblyName x, AssemblyName y)
@@ -33,8 +41,8 @@ namespace Microsoft.VisualStudio.Composition
                 }
 
 #if NET45
-                // fast path
-                if (x.CodeBase == y.CodeBase)
+                // If fast check is enabled, we can compare the code bases
+                if (this.fastCheck && x.CodeBase == y.CodeBase)
                 {
                     return true;
                 }

@@ -15,6 +15,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     [DebuggerDisplay("{ResolvedType.FullName,nq}")]
     public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
     {
+        private static readonly IEqualityComparer<AssemblyName> AssemblyNameComparer = ByValueEquality.AssemblyNameNoFastCheck;
         private readonly Resolver resolver;
 
         /// <summary>
@@ -221,7 +222,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         {
             if (!this.hashCode.HasValue)
             {
-                this.hashCode = ByValueEquality.AssemblyName.GetHashCode(this.AssemblyName) + this.MetadataToken;
+                this.hashCode = AssemblyNameComparer.GetHashCode(this.AssemblyName) + this.MetadataToken;
             }
 
             return this.hashCode.Value;
@@ -236,7 +237,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         {
             bool result = this.MetadataToken == other.MetadataToken
                 && this.FullName == other.FullName
-                && ByValueEquality.AssemblyName.Equals(this.AssemblyName, other.AssemblyName)
+                && AssemblyNameComparer.Equals(this.AssemblyName, other.AssemblyName)
                 && this.IsArray == other.IsArray
                 && this.GenericTypeParameterCount == other.GenericTypeParameterCount
                 && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments)

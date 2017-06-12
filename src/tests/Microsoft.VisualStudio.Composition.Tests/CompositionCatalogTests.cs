@@ -29,12 +29,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 return new PartDiscovery[]
                 {
-                    // TODO: Fix V2Discovery tests so they pass, and can be included on desktop test runs.
 #if DESKTOP
                     TestUtilities.V1Discovery,
-#else
-                    TestUtilities.V2Discovery,
 #endif
+                    TestUtilities.V2Discovery,
                 };
             }
         }
@@ -82,7 +80,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 typeof(object).GetTypeInfo().Assembly.GetName(),
             };
             var actual = catalog.GetInputAssemblies();
-            this.AssertSuperset(expected, actual);
+            this.AssertExpectedInputAssemblies(expected, actual);
         }
 
         [Theory]
@@ -99,7 +97,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 typeof(object).GetTypeInfo().Assembly.GetName(),
             };
             var actual = catalog.GetInputAssemblies();
-            this.AssertSuperset(expected, actual);
+            this.AssertExpectedInputAssemblies(expected, actual);
         }
 
         [Theory]
@@ -116,7 +114,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 typeof(object).GetTypeInfo().Assembly.GetName(),
             };
             var actual = catalog.GetInputAssemblies();
-            this.AssertSuperset(expected, actual);
+            this.AssertExpectedInputAssemblies(expected, actual);
         }
 
         [Theory]
@@ -134,7 +132,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             };
 
             var actual = catalog.GetInputAssemblies();
-            this.AssertSuperset(expected, actual);
+            this.AssertExpectedInputAssemblies(expected, actual);
         }
 
         [Theory]
@@ -152,7 +150,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             };
 
             var actual = catalog.GetInputAssemblies();
-            this.AssertSuperset(expected, actual);
+            this.AssertExpectedInputAssemblies(expected, actual);
         }
 
         [Theory]
@@ -170,7 +168,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             };
 
             var actual = catalog.GetInputAssemblies();
-            this.AssertSuperset(expected, actual);
+            this.AssertExpectedInputAssemblies(expected, actual);
         }
 
         [Theory]
@@ -189,7 +187,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             };
 
             var actual = catalog.GetInputAssemblies();
-            this.AssertSuperset(expected, actual);
+            this.AssertExpectedInputAssemblies(expected, actual);
         }
 
         [Theory]
@@ -207,7 +205,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             };
 
             var actual = catalog.GetInputAssemblies();
-            this.AssertSuperset(expected, actual);
+            this.AssertExpectedInputAssemblies(expected, actual);
         }
 
         [Theory]
@@ -226,7 +224,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             };
 
             var actual = catalog.GetInputAssemblies();
-            this.AssertSuperset(expected, actual);
+            this.AssertExpectedInputAssemblies(expected, actual);
         }
 
         [Theory]
@@ -246,7 +244,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             };
 
             var actual = catalog.GetInputAssemblies();
-            this.AssertSuperset(expected, actual);
+            this.AssertExpectedInputAssemblies(expected, actual);
         }
 
         [Theory]
@@ -264,7 +262,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             };
 
             var actual = catalog.GetInputAssemblies();
-            this.AssertSuperset(expected, actual);
+            this.AssertExpectedInputAssemblies(expected, actual);
         }
 
         [Theory]
@@ -282,7 +280,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             };
 
             var actual = catalog.GetInputAssemblies();
-            this.AssertSuperset(expected, actual);
+            this.AssertExpectedInputAssemblies(expected, actual);
         }
 
         [Theory]
@@ -301,7 +299,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             };
 
             var actual = catalog.GetInputAssemblies();
-            this.AssertSuperset(expected, actual);
+            this.AssertExpectedInputAssemblies(expected, actual);
         }
 
         [Theory]
@@ -320,7 +318,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             };
 
             var actual = catalog.GetInputAssemblies();
-            this.AssertSuperset(expected, actual);
+            this.AssertExpectedInputAssemblies(expected, actual);
         }
 
         [Theory]
@@ -334,13 +332,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Contains(typeof(SomeMetadataAttributeFromAnotherAssemblyAttribute).GetTypeInfo().Assembly.GetName(), inputAssemblies, AssemblyNameComparer.Default);
         }
 
-        private void AssertSuperset(ISet<AssemblyName> expectedSubset, IEnumerable<AssemblyName> actual)
+        private void AssertExpectedInputAssemblies(ISet<AssemblyName> expectedSubset, IEnumerable<AssemblyName> actual)
         {
             this.logger.WriteLine("Expected:");
             this.logger.WriteLine(string.Join(Environment.NewLine, expectedSubset.OrderBy(async => async.FullName)));
             this.logger.WriteLine("Actual:");
             this.logger.WriteLine(string.Join(Environment.NewLine, actual.OrderBy(async => async.FullName)));
-            Assert.True(expectedSubset.IsSubsetOf(actual), "Actual was not a superset of the expected.");
+            Assert.Equal(expectedSubset, actual);
         }
 
         public class NonExportingType { }
@@ -389,6 +387,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         [Export, MEFv1.Export]
         [MEFv1.ExportMetadata("Type", typeof(AssemblyDiscoveryTests.ISomeInterface))]
+        [ExportMetadata("Type", typeof(AssemblyDiscoveryTests.ISomeInterface))]
         public class ExportingWithTypeMetadata { }
 
         [Export, MEFv1.Export]
@@ -398,21 +397,28 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         [Export, MEFv1.Export]
         [MEFv1.ExportMetadata("AdornmentLayerType", typeof(AssemblyDiscoveryTests.ISomeInterface), IsMultiple = false)]
+        [ExportMetadata("AdornmentLayerType", typeof(AssemblyDiscoveryTests.ISomeInterface))]
         public class ExportingWithTypeSingleMetadata { }
 
         [Export, MEFv1.Export]
         [MEFv1.ExportMetadata("Position", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
+        [ExportMetadata("Position", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
         public class ExportingWithEnumMetadata { }
 
         [Export, MEFv1.Export]
         [MEFv1.ExportMetadata("SomeEnum", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
         [MEFv1.ExportMetadata("SomeOtherEnum", AssemblyDiscoveryTests2.SomeOtherEnum.EnumValue)]
+        [ExportMetadata("SomeEnum", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
+        [ExportMetadata("SomeOtherEnum", AssemblyDiscoveryTests2.SomeOtherEnum.EnumValue)]
         public class ExportingWithMultipleDifferentEnumMetadata { }
 
         [Export, MEFv1.Export]
         [MEFv1.ExportMetadata("SomeEnum", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
         [MEFv1.ExportMetadata("SomeOtherEnum", AssemblyDiscoveryTests2.SomeOtherEnum.EnumValue)]
         [MEFv1.ExportMetadata("SomeInterface", typeof(AssemblyDiscoveryTests.ISomeInterface))]
+        [ExportMetadata("SomeEnum", AssemblyDiscoveryTests.SomeEnum.SomeEnumValue)]
+        [ExportMetadata("SomeOtherEnum", AssemblyDiscoveryTests2.SomeOtherEnum.EnumValue)]
+        [ExportMetadata("SomeInterface", typeof(AssemblyDiscoveryTests.ISomeInterface))]
         [MultipleTypeMetadata(typeof(AssemblyDiscoveryTests.SomeEnum))]
         [MultipleTypeMetadata(typeof(AssemblyDiscoveryTests2.SomeOtherEnum))]
         [PartMetadata("ExternalAssemblyValue", typeof(AssemblyDiscoveryTests.SomeEnum))]
@@ -421,8 +427,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         public class ExportingWithExportingMembers
         {
-            [MEFv1.Export]
+            [Export, MEFv1.Export]
             [MEFv1.ExportMetadata("SomeInterface", typeof(AssemblyDiscoveryTests.ISomeInterface))]
+            [ExportMetadata("SomeInterface", typeof(AssemblyDiscoveryTests.ISomeInterface))]
             public object Export { get; set; }
         }
 
