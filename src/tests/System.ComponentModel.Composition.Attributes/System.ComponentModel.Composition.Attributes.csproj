@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.0;net40;net45</TargetFrameworks>
     <RootNamespace>System.ComponentModel.Composition</RootNamespace>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

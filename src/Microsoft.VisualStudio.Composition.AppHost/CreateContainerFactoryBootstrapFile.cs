@@ -37,8 +37,8 @@ namespace Microsoft.VisualStudio.Composition.AppHost
 
         private string GetSourceFileTemplate()
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            using (Stream resourceStream = assembly.GetManifestResourceStream(this.GetType(), "ExportProviderFactory.cs"))
+            var assembly = typeof(CreateContainerFactoryBootstrapFile).GetTypeInfo().Assembly;
+            using (Stream resourceStream = assembly.GetManifestResourceStream(ThisAssembly.RootNamespace + ".ExportProviderFactory.cs"))
             {
                 using (var sr = new StreamReader(resourceStream))
                 {
