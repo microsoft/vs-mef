@@ -260,6 +260,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
         internal static bool IsOnMono => Type.GetType("Mono.Runtime") != null;
 
         /// <summary>
+        /// Gets a value indicating whether the test is running on the CoreCLR runtime.
+        /// </summary>
+        internal static bool IsOnCoreCLR
+        {
+            get
+            {
+#if NETCOREAPP1_0
+                return true;
+#else
+                return false;
+#endif
+            }
+        }
+
+        /// <summary>
         /// Causes a <see cref="SkippableFactAttribute"/> based test to skip if <see cref="IsOnMono"/>.
         /// </summary>
         internal static void SkipOnMono(string unsupportedFeature)

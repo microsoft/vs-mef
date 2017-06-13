@@ -76,6 +76,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 {
                     this.SkipReason = this.SkipReason ?? "Test marked as skipped on Mono runtime due to unsupported feature: " + string.Join(", ", this.Traits[Tests.Traits.SkipOnMono]);
                 }
+
+                if (this.Traits.ContainsKey(Tests.Traits.SkipOnCoreCLR) && TestUtilities.IsOnCoreCLR)
+                {
+                    this.SkipReason = this.SkipReason ?? "Test marked as skipped on CoreCLR runtime due to unsupported feature: " + string.Join(", ", this.Traits[Tests.Traits.SkipOnCoreCLR]);
+                }
             }
 
             public override async Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
@@ -148,6 +153,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 data.AddValue(nameof(this.compositionVersions), this.compositionVersions);
                 data.AddValue(nameof(this.noCompatGoal), this.noCompatGoal);
                 data.AddValue(nameof(this.invalidConfiguration), this.invalidConfiguration);
+                data.AddValue(nameof(this.SkipReason), this.SkipReason);
             }
 
             public override void Deserialize(IXunitSerializationInfo data)
@@ -158,6 +164,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 this.compositionVersions = data.GetValue<CompositionEngines>(nameof(this.compositionVersions));
                 this.noCompatGoal = data.GetValue<bool>(nameof(this.noCompatGoal));
                 this.invalidConfiguration = data.GetValue<bool>(nameof(this.invalidConfiguration));
+                this.SkipReason = data.GetValue<string>(nameof(this.SkipReason));
             }
         }
     }
