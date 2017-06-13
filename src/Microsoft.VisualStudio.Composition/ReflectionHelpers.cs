@@ -219,6 +219,8 @@ namespace Microsoft.VisualStudio.Composition
 
         internal static Type GetMemberType(MemberInfo fieldOrPropertyOrType)
         {
+            Requires.NotNull(fieldOrPropertyOrType, nameof(fieldOrPropertyOrType));
+
             var typeInfo = fieldOrPropertyOrType as TypeInfo;
             if (typeInfo != null)
             {
@@ -237,7 +239,7 @@ namespace Microsoft.VisualStudio.Composition
                 return field.FieldType;
             }
 
-            throw new ArgumentException(Strings.UnexpectedMemberType);
+            throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Strings.UnexpectedMemberType, fieldOrPropertyOrType.MemberType));
         }
 
         internal static bool IsPublicInstance(this MethodInfo methodInfo)

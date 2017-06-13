@@ -19,6 +19,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         public ConstructorRef(TypeRef declaringType, int metadataToken, ImmutableArray<TypeRef> parameterTypes)
             : this()
         {
+            Requires.NotNull(declaringType, nameof(declaringType));
             if (parameterTypes.IsDefault)
             {
                 throw new ArgumentNullException(nameof(parameterTypes));
