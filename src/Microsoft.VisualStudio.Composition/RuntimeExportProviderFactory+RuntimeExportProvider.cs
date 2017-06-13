@@ -445,7 +445,7 @@ namespace Microsoft.VisualStudio.Composition
                 public PartLifecycleTracker ExportingPart { get; private set; }
             }
 
-            [DebuggerDisplay("{partDefinition.TypeRef.ResolvedType.FullName,nq} ({State})")]
+            [DebuggerDisplay("{" + nameof(partDefinition) + "." + nameof(RuntimeComposition.RuntimePart.TypeRef) + "." + nameof(TypeRef.ResolvedType) + ".FullName,nq} ({State})")]
             private class RuntimePartLifecycleTracker : PartLifecycleTracker
             {
                 private readonly RuntimeComposition.RuntimePart partDefinition;
