@@ -98,6 +98,15 @@ namespace Microsoft.VisualStudio.Composition
             Enum32Substitution,
             TypeSubstitution,
             TypeArraySubstitution,
+            Single,
+            Double,
+            UInt16,
+            Int64,
+            UInt64,
+            Int16,
+            UInt32,
+            Byte,
+            SByte,
         }
 
         /// <summary>
@@ -766,10 +775,55 @@ namespace Microsoft.VisualStudio.Composition
                         this.Write(ObjectType.String);
                         this.Write((string)value);
                     }
+                    else if (valueType == typeof(long))
+                    {
+                        this.Write(ObjectType.Int64);
+                        this.writer.Write((long)value);
+                    }
+                    else if (valueType == typeof(ulong))
+                    {
+                        this.Write(ObjectType.UInt64);
+                        this.writer.Write((ulong)value);
+                    }
                     else if (valueType == typeof(int))
                     {
                         this.Write(ObjectType.Int32);
                         this.writer.Write((int)value);
+                    }
+                    else if (valueType == typeof(uint))
+                    {
+                        this.Write(ObjectType.UInt32);
+                        this.writer.Write((uint)value);
+                    }
+                    else if (valueType == typeof(short))
+                    {
+                        this.Write(ObjectType.Int16);
+                        this.writer.Write((short)value);
+                    }
+                    else if (valueType == typeof(ushort))
+                    {
+                        this.Write(ObjectType.UInt16);
+                        this.writer.Write((ushort)value);
+                    }
+                    else if (valueType == typeof(byte))
+                    {
+                        this.Write(ObjectType.Byte);
+                        this.writer.Write((byte)value);
+                    }
+                    else if (valueType == typeof(sbyte))
+                    {
+                        this.Write(ObjectType.SByte);
+                        this.writer.Write((sbyte)value);
+                    }
+                    else if (valueType == typeof(float))
+                    {
+                        this.Write(ObjectType.Single);
+                        this.writer.Write((float)value);
+                    }
+                    else if (valueType == typeof(double))
+                    {
+                        this.Write(ObjectType.Double);
+                        this.writer.Write((double)value);
                     }
                     else if (valueType == typeof(char))
                     {
@@ -847,8 +901,26 @@ namespace Microsoft.VisualStudio.Composition
                         return true;
                     case ObjectType.BoolFalse:
                         return false;
+                    case ObjectType.Int64:
+                        return this.reader.ReadInt64();
+                    case ObjectType.UInt64:
+                        return this.reader.ReadUInt64();
                     case ObjectType.Int32:
                         return this.reader.ReadInt32();
+                    case ObjectType.UInt32:
+                        return this.reader.ReadUInt32();
+                    case ObjectType.Int16:
+                        return this.reader.ReadInt16();
+                    case ObjectType.UInt16:
+                        return this.reader.ReadUInt16();
+                    case ObjectType.Byte:
+                        return this.reader.ReadByte();
+                    case ObjectType.SByte:
+                        return this.reader.ReadSByte();
+                    case ObjectType.Single:
+                        return this.reader.ReadSingle();
+                    case ObjectType.Double:
+                        return this.reader.ReadDouble();
                     case ObjectType.String:
                         return this.ReadString();
                     case ObjectType.Char:
