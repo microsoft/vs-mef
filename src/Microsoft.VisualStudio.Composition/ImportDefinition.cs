@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Text;
     using System.Threading.Tasks;
 
-    [DebuggerDisplay("{ContractName,nq} ({Cardinality})")]
+    [DebuggerDisplay("{" + nameof(ContractName) + ",nq} ({Cardinality})")]
     public class ImportDefinition : IEquatable<ImportDefinition>
     {
         private readonly ImmutableList<IImportSatisfiabilityConstraint> exportConstraints;
