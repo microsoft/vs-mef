@@ -47,8 +47,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
 
             this.CancellationToken.ThrowIfCancellationRequested();
             var catalog = ComposableCatalog.Create(resolver)
-                .AddParts(parts.Parts)
-                .WithDesktopSupport();
+                .AddParts(parts.Parts);
             this.CancellationToken.ThrowIfCancellationRequested();
             var configuration = CompositionConfiguration.Create(catalog);
 

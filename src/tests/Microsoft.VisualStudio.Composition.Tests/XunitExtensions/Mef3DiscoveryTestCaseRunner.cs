@@ -106,7 +106,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
                         var catalogWithSupport = uniqueCatalog
 #if DESKTOP
                             .WithCompositionService()
-                            .WithDesktopSupport()
 #endif
                             ;
 

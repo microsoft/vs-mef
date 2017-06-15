@@ -201,7 +201,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var catalogWithCompositionService = catalog
 #if DESKTOP
                 .WithCompositionService()
-                .WithDesktopSupport()
 #endif
                 ;
             var configuration = CompositionConfiguration.Create(catalogWithCompositionService);
