@@ -236,7 +236,7 @@ namespace Microsoft.VisualStudio.Composition
                 resolver);
         }
 
-        [DebuggerDisplay("{Type.ResolvedType.FullName,nq}")]
+        [DebuggerDisplay("{" + nameof(RuntimePart.TypeRef) + "." + nameof(Reflection.TypeRef.ResolvedType) + ".FullName,nq}")]
         public class RuntimePart : IEquatable<RuntimePart>
         {
             private ConstructorInfo importingConstructor;
@@ -338,7 +338,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        [DebuggerDisplay("{ImportingSiteElementType}")]
+        [DebuggerDisplay("{" + nameof(ImportingSiteElementType) + "}")]
         public class RuntimeImport : IEquatable<RuntimeImport>
         {
             private bool? isLazy;

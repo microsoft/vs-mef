@@ -100,4 +100,7 @@
     <Rule Id="SA1640" Action="Hidden" />
     <Rule Id="SA1641" Action="Hidden" />
   </Rules>
+  <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers" RuleNamespace="Roslyn.Diagnostics.Analyzers">
+    <Rule Id="RS0026" Action="Info" />
+  </Rules>
 </RuleSet>

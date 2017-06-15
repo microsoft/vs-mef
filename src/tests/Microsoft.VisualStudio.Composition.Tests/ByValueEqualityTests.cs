@@ -79,6 +79,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotEqual(a1, a2, ByValueEquality.AssemblyName);
         }
 
+        [Fact]
+        public void AssemblyNameComparerNoFastCheck_SkipsCodeBaseCheck()
+        {
+            byte[] publicKey = GetPublicKeyFromExecutingAssembly();
+            AssemblyName a1 = CreateAssemblyName("AssemblyA", new Version(1, 0), CultureInfo.CurrentCulture, @"C:\some\path\AssemblyA.dll", publicKey: publicKey);
+            AssemblyName a2 = CreateAssemblyName("AssemblyA", new Version(2, 0), CultureInfo.CurrentCulture, @"C:\some\path\AssemblyA.dll", publicKey: publicKey);
+
+            // a1 is version 1.0.0.0, a2 is version 2.0.0.0, so the assemblies are different
+            Assert.NotEqual(a1, a2, ByValueEquality.AssemblyNameNoFastCheck);
+        }
+
         private static byte[] GetPublicKeyFromExecutingAssembly()
         {
             byte[] publicKey = Assembly.GetExecutingAssembly().GetName().GetPublicKey();
