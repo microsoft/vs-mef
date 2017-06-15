@@ -14,8 +14,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
     public struct ConstructorRef : IEquatable<ConstructorRef>
     {
-        private Type[] resolvedParameterTypes;
-
         public ConstructorRef(TypeRef declaringType, int metadataToken, ImmutableArray<TypeRef> parameterTypes)
             : this()
         {
@@ -40,19 +38,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         public int MetadataToken { get; private set; }
 
         public ImmutableArray<TypeRef> ParameterTypes { get; private set; }
-
-        public Type[] ResolvedParameterTypes
-        {
-            get
-            {
-                if (this.resolvedParameterTypes == null)
-                {
-                    this.resolvedParameterTypes = this.ParameterTypes.Select(a => a.Resolve()).ToArray();
-                }
-
-                return this.resolvedParameterTypes;
-            }
-        }
 
         public bool IsEmpty
         {

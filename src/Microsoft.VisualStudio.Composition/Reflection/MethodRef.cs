@@ -14,8 +14,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
     public struct MethodRef : IEquatable<MethodRef>
     {
-        private Type[] resolvedParameterTypes;
-
         public MethodRef(TypeRef declaringType, int metadataToken, string name, ImmutableArray<TypeRef> parameterTypes, ImmutableArray<TypeRef> genericMethodArguments)
             : this()
         {
@@ -40,19 +38,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         public string Name { get; private set; }
 
         public ImmutableArray<TypeRef> ParameterTypes { get; private set; }
-
-        public Type[] ResolvedParameterTypes
-        {
-            get
-            {
-                if (this.resolvedParameterTypes == null)
-                {
-                    this.resolvedParameterTypes = this.ParameterTypes.Select(a => a.Resolve()).ToArray();
-                }
-
-                return this.resolvedParameterTypes;
-            }
-        }
 
         public ImmutableArray<TypeRef> GenericMethodArguments { get; private set; }
 
