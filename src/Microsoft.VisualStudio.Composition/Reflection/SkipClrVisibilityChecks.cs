@@ -4,6 +4,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
 
@@ -132,7 +133,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             var il = cb.GetILGenerator();
             il.Emit(OpCodes.Ldarg_0);
-            ConstructorInfo attrBaseCtor = typeof(Attribute).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null);
+            ConstructorInfo attrBaseCtor = typeof(Attribute).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single(ctor => ctor.GetParameters().Length == 0);
             il.Emit(OpCodes.Call, attrBaseCtor);
             il.Emit(OpCodes.Ret);
 
