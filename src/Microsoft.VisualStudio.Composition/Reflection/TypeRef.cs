@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Text;
     using System.Threading.Tasks;
 
-    [DebuggerDisplay("{ResolvedType.FullName,nq}")]
+    [DebuggerDisplay("{" + nameof(ResolvedType) + ".FullName,nq}")]
     public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
     {
         private static readonly IEqualityComparer<AssemblyName> AssemblyNameComparer = ByValueEquality.AssemblyNameNoFastCheck;

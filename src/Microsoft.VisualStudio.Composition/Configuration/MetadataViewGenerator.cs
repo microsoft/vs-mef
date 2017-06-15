@@ -9,16 +9,14 @@
 namespace Microsoft.VisualStudio.Composition
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
-    using System.ComponentModel;
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
     using System.Security;
     using System.Threading;
-    using Microsoft.Internal;
+    using Microsoft.VisualStudio.Composition.Reflection;
 
     /// <summary>
     /// Constructs concrete types for metadata view interfaces.
@@ -90,6 +88,7 @@ namespace Microsoft.VisualStudio.Composition
         private static readonly ConstructorInfo ObjectCtor = typeof(object).GetTypeInfo().GetConstructor(Type.EmptyTypes);
 
         private static ModuleBuilder transparentProxyModuleBuilder;
+        private static SkipClrVisibilityChecks skipClrVisibilityChecks;
 
         public delegate object MetadataViewFactory(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata);
 
@@ -106,6 +105,7 @@ namespace Microsoft.VisualStudio.Composition
                 // make a new assemblybuilder and modulebuilder
                 var assemblyBuilder = CreateProxyAssemblyBuilder(typeof(SecurityTransparentAttribute).GetTypeInfo().GetConstructor(Type.EmptyTypes));
                 transparentProxyModuleBuilder = assemblyBuilder.DefineDynamicModule("MetadataViewProxiesModule");
+                skipClrVisibilityChecks = new SkipClrVisibilityChecks(assemblyBuilder, transparentProxyModuleBuilder);
             }
 
             return transparentProxyModuleBuilder;
@@ -142,6 +142,8 @@ namespace Microsoft.VisualStudio.Composition
             Type[] interfaces = { viewType };
 
             var proxyModuleBuilder = GetProxyModuleBuilder();
+            skipClrVisibilityChecks.SkipVisibilityChecksFor(viewType.GetTypeInfo());
+
             proxyTypeBuilder = proxyModuleBuilder.DefineType(
                 string.Format(CultureInfo.InvariantCulture, "_proxy_{0}_{1}", viewType.FullName, Guid.NewGuid()),
                 TypeAttributes.Public,

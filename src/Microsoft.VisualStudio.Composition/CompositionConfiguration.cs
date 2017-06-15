@@ -505,7 +505,7 @@ namespace Microsoft.VisualStudio.Composition
             return dgml;
         }
 
-        [DebuggerDisplay("{PartDefinition.Type.Name}")]
+        [DebuggerDisplay("{" + nameof(PartDefinition) + "." + nameof(ComposablePartDefinition.Type) + ".Name}")]
         private class PartBuilder
         {
             internal PartBuilder(ComposablePartDefinition partDefinition, IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> importedParts)

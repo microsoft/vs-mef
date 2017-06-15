@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    [DebuggerDisplay("{Type.Name}")]
+    [DebuggerDisplay("{" + nameof(Type) + ".Name}")]
     public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>
     {
         /// <summary>
