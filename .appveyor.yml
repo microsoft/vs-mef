@@ -39,7 +39,9 @@ test_script:
 
     codecov -f "%testdir%code_coverage.xml"
 
-    dotnet test -f netcoreapp1.0 --no-build src\tests\Microsoft.VisualStudio.Composition.Tests
+    cd src\tests\Microsoft.VisualStudio.Composition.Tests
+
+    dotnet test -f netcoreapp1.0 --no-build
 artifacts:
 - path: bin\%configuration%\Packages\Microsoft.VisualStudio.Composition.15.*.nupkg
   name: NuGet Package
