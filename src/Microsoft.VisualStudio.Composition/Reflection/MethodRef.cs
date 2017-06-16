@@ -26,6 +26,19 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.GenericMethodArguments = genericMethodArguments;
         }
 
+#if NET45
+        [Obsolete]
+        public MethodRef(TypeRef declaringType, int metadataToken, ImmutableArray<TypeRef> genericMethodArguments)
+            : this(
+                  declaringType,
+                  metadataToken,
+                  declaringType.Resolve().Assembly.ManifestModule.ResolveMethod(metadataToken).Name,
+                  declaringType.Resolve().Assembly.ManifestModule.ResolveMethod(metadataToken).GetParameterTypes(declaringType.Resolver),
+                  genericMethodArguments)
+        {
+        }
+#endif
+
         public MethodRef(MethodInfo method, Resolver resolver)
             : this(TypeRef.Get(method.DeclaringType, resolver), method.MetadataToken, method.Name, method.GetParameterTypes(resolver), method.GetGenericTypeArguments(resolver))
         {

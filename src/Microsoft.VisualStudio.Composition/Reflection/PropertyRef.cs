@@ -23,6 +23,19 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.Name = name;
         }
 
+#if NET45
+        [Obsolete]
+        public PropertyRef(TypeRef declaringType, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken)
+            : this(
+                  declaringType,
+                  metadataToken,
+                  getMethodMetadataToken,
+                  setMethodMetadataToken,
+                  declaringType.Resolve().Assembly.ManifestModule.ResolveMember(metadataToken).Name)
+        {
+        }
+#endif
+
         public PropertyRef(PropertyInfo propertyInfo, Resolver resolver)
             : this()
         {

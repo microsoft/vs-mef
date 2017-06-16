@@ -25,6 +25,45 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.parameterIndex = parameterIndex;
         }
 
+#if NET45
+        [Obsolete]
+        public ParameterRef(TypeRef declaringType, int methodMetadataToken, int parameterIndex)
+        {
+            var methodBase = declaringType.Resolve().Assembly.ManifestModule.ResolveMethod(methodMetadataToken);
+            if (methodBase is ConstructorInfo ctor)
+            {
+                this.Constructor = new ConstructorRef(ctor, declaringType.Resolver);
+                this.Method = default(MethodRef);
+            }
+            else
+            {
+                this.Method = new MethodRef((MethodInfo)methodBase, declaringType.Resolver);
+                this.Constructor = default(ConstructorRef);
+            }
+
+            this.parameterIndex = parameterIndex;
+        }
+
+        [Obsolete]
+        public ParameterRef(ParameterInfo parameter, Resolver resolver)
+        {
+            var memberInfo = parameter.Member;
+            var declaringType = memberInfo.DeclaringType;
+            if (memberInfo is ConstructorInfo ctor)
+            {
+                this.Constructor = new ConstructorRef(ctor, resolver);
+                this.Method = default(MethodRef);
+            }
+            else
+            {
+                this.Method = new MethodRef((MethodInfo)memberInfo, resolver);
+                this.Constructor = default(ConstructorRef);
+            }
+
+            this.parameterIndex = parameter.Position;
+        }
+#endif
+
         public ParameterRef(ConstructorRef ctor, int parameterIndex)
             : this()
         {
@@ -35,6 +74,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         public MethodRef Method { get; private set; }
 
         public ConstructorRef Constructor { get; private set; }
+
+        public TypeRef DeclaringType => this.Constructor.DeclaringType ?? this.Method.DeclaringType;
+
+        public int MethodMetadataToken => this.Constructor.IsEmpty ? this.Method.MetadataToken : this.Constructor.MetadataToken;
 
         public int ParameterIndex
         {
@@ -52,8 +95,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         }
 
         internal Resolver Resolver => this.DeclaringType?.Resolver;
-
-        internal TypeRef DeclaringType => this.Constructor.DeclaringType ?? this.Method.DeclaringType;
 
         public static ParameterRef Get(ParameterInfo parameter, Resolver resolver)
         {

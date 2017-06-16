@@ -24,6 +24,17 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.Name = name;
         }
 
+#if NET45
+        [Obsolete]
+        public FieldRef(TypeRef declaringType, int metadataToken)
+            : this(
+                  declaringType,
+                  metadataToken,
+                  declaringType.Resolve().Assembly.ManifestModule.ResolveField(metadataToken).Name)
+        {
+        }
+#endif
+
         public FieldRef(FieldInfo field, Resolver resolver)
             : this(TypeRef.Get(field.DeclaringType, resolver), field.MetadataToken, field.Name)
         {

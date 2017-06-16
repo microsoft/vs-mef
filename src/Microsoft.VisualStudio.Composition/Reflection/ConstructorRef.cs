@@ -28,6 +28,17 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.ParameterTypes = parameterTypes;
         }
 
+#if NET45
+        [Obsolete]
+        public ConstructorRef(TypeRef declaringType, int metadataToken)
+            : this(
+                  declaringType,
+                  metadataToken,
+                  declaringType.Resolve().Assembly.ManifestModule.ResolveMethod(metadataToken).GetParameterTypes(declaringType.Resolver))
+        {
+        }
+#endif
+
         public ConstructorRef(ConstructorInfo constructor, Resolver resolver)
             : this(TypeRef.Get(constructor.DeclaringType, resolver), constructor.MetadataToken, constructor.GetParameterTypes(resolver))
         {
