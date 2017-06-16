@@ -20,7 +20,7 @@ build_script:
 - ps: msbuild src\Microsoft.VisualStudio.Composition.sln /nologo /m /v:minimal /t:build,pack
 test_script:
 - cmd: >-
-    SET testdir=bin\Tests\%configuration%\net451\
+    SET testdir=bin\Tests\%configuration%\net452\
 
     "%userprofile%\.nuget\packages\OpenCover\4.6.519\tools\OpenCover.Console.exe"
     -register:user
