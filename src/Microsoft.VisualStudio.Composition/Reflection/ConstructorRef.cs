@@ -71,10 +71,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 return true;
             }
 
+            // If we ever stop comparing metadata tokens,
+            // we would need to compare the other properties that describe this member.
             return !this.IsEmpty && !other.IsEmpty
                 && EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType)
-                && this.MetadataToken == other.MetadataToken
-                && this.ParameterTypes.EqualsByValue(other.ParameterTypes);
+                && this.MetadataToken == other.MetadataToken;
         }
 
         public override int GetHashCode()
@@ -84,7 +85,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public override bool Equals(object obj)
         {
-            return obj is ConstructorRef && this.Equals((ConstructorRef)obj);
+            return obj is ConstructorRef ctor && this.Equals(ctor);
         }
     }
 }

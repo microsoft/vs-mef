@@ -60,6 +60,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public bool Equals(FieldRef other)
         {
+            // If we ever stop comparing metadata tokens,
+            // we would need to compare the other properties that describe this member.
             return ByValueEquality.AssemblyNameNoFastCheck.Equals(this.AssemblyName, other.AssemblyName)
                 && this.MetadataToken == other.MetadataToken;
         }
@@ -71,7 +73,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public override bool Equals(object obj)
         {
-            return obj is FieldRef && this.Equals((FieldRef)obj);
+            return obj is FieldRef field && this.Equals(field);
         }
     }
 }

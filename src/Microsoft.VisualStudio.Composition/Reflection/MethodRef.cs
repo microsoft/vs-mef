@@ -78,9 +78,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 return true;
             }
 
+            // If we ever stop comparing metadata tokens,
+            // we would need to compare the other properties that describe this member.
             return EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType)
                 && this.MetadataToken == other.MetadataToken
-                && this.Name == other.Name
                 && this.GenericMethodArguments.EqualsByValue(other.GenericMethodArguments);
         }
 
@@ -91,7 +92,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public override bool Equals(object obj)
         {
-            return obj is MethodRef && this.Equals((MethodRef)obj);
+            return obj is MethodRef method && this.Equals(method);
         }
     }
 }

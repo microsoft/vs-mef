@@ -246,13 +246,14 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public override bool Equals(object obj)
         {
-            return obj is TypeRef && this.Equals((TypeRef)obj);
+            return obj is TypeRef typeRef && this.Equals(typeRef);
         }
 
         public bool Equals(TypeRef other)
         {
+            // If we ever stop comparing metadata tokens,
+            // we would need to compare the other properties that describe this member.
             bool result = this.MetadataToken == other.MetadataToken
-                && this.FullName == other.FullName
                 && AssemblyNameComparer.Equals(this.AssemblyName, other.AssemblyName)
                 && this.IsArray == other.IsArray
                 && this.GenericTypeParameterCount == other.GenericTypeParameterCount

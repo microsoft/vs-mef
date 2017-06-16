@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public override bool Equals(object obj)
         {
-            return obj is ParameterRef && this.Equals((ParameterRef)obj);
+            return obj is ParameterRef parameter && this.Equals(parameter);
         }
     }
 }

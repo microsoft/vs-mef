@@ -65,9 +65,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public bool Equals(PropertyRef other)
         {
+            // If we ever stop comparing metadata tokens,
+            // we would need to compare the other properties that describe this member.
             return EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType)
-                && this.MetadataToken == other.MetadataToken
-                && this.Name == other.Name;
+                && this.MetadataToken == other.MetadataToken;
         }
 
         public override int GetHashCode()
@@ -77,7 +78,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public override bool Equals(object obj)
         {
-            return obj is PropertyRef && this.Equals((PropertyRef)obj);
+            return obj is PropertyRef prop && this.Equals(prop);
         }
     }
 }
