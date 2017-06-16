@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.Composition
                 else
                 {
                     // Perf optimization, relies on short circuit evaluation, often a property attribute is an ExportAttribute
-                    if (attrType != typeof(ExportAttribute) && attrType.IsAttributeDefined<MetadataAttributeAttribute>())
+                    if (attrType != typeof(ExportAttribute).GetTypeInfo() && attrType.IsAttributeDefined<MetadataAttributeAttribute>())
                     {
                         var properties = attrType.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
                         foreach (var property in properties.Where(p => p.DeclaringType != typeof(Attribute)))

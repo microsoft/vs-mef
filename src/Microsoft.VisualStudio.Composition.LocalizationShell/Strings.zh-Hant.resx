@@ -71,6 +71,7 @@
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
     <value>未預期的成員型別。</value>
+    <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
     <value>必須是的 {0}，export(s) 有合約名稱"{1}"，但找到的 {2} 之後套用適當的條件約束。</value>

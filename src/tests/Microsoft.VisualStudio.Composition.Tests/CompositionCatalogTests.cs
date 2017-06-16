@@ -29,7 +29,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 return new PartDiscovery[]
                 {
+#if DESKTOP
                     TestUtilities.V1Discovery,
+#endif
                     TestUtilities.V2Discovery,
                 };
             }

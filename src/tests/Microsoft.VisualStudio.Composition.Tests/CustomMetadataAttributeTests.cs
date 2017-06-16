@@ -6,6 +6,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Collections.Generic;
     using System.Composition;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
@@ -113,7 +114,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var part = container.GetExportedValue<PartThatImportsSingleDerivedExportAttributes>();
 
-            foreach (var propertyName in typeof(ExportAttribute).GetProperties().Select(p => p.Name))
+            foreach (var propertyName in typeof(ExportAttribute).GetTypeInfo().GetProperties().Select(p => p.Name))
             {
                 Assert.DoesNotContain(propertyName, part.ImportingProperty.Metadata.Keys);
             }
@@ -136,6 +137,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal("prop2", prop2.ToString());
         }
 
+#if DESKTOP
         [Fact]
         public async Task PartWithAttributesDefiningSamePropertyContainsDiscoveryErrorsForV1()
         {
@@ -145,6 +147,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             PartDiscoveryException exception = catalog.DiscoveredParts.DiscoveryErrors.First();
             Assert.IsType<NotSupportedException>(exception.InnerException);
         }
+#endif
 
         [Fact]
         public async Task PartWithAttributesDefiningSamePropertyDoesNotContainDiscoveryErrorsForV2()

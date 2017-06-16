@@ -7,6 +7,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Collections.Immutable;
     using System.ComponentModel;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -37,7 +38,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             Requires.NotNull(parentType, nameof(parentType));
 
-            foreach (var nested in parentType.GetNestedTypes())
+            foreach (var nested in parentType.GetTypeInfo().GetNestedTypes())
             {
                 yield return nested;
 
@@ -75,6 +76,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 {
                     this.SkipReason = this.SkipReason ?? "Test marked as skipped on Mono runtime due to unsupported feature: " + string.Join(", ", this.Traits[Tests.Traits.SkipOnMono]);
                 }
+
+                if (this.Traits.ContainsKey(Tests.Traits.SkipOnCoreCLR) && TestUtilities.IsOnCoreCLR)
+                {
+                    this.SkipReason = this.SkipReason ?? "Test marked as skipped on CoreCLR runtime due to unsupported feature: " + string.Join(", ", this.Traits[Tests.Traits.SkipOnCoreCLR]);
+                }
             }
 
             public override async Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
@@ -95,14 +101,16 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
                 if (this.parts == null && this.assemblies == null)
                 {
-                    this.parts = GetNestedTypesRecursively(this.TestMethod.TestClass.Class.ToRuntimeType()).Where(t => (!t.IsAbstract || t.IsSealed) && !t.IsInterface).ToArray();
+                    this.parts = GetNestedTypesRecursively(this.TestMethod.TestClass.Class.ToRuntimeType()).Where(t => (!t.GetTypeInfo().IsAbstract || t.GetTypeInfo().IsSealed) && !t.GetTypeInfo().IsInterface).ToArray();
                 }
 
+#if DESKTOP
                 if (this.compositionVersions.HasFlag(CompositionEngines.V1))
                 {
                     var runner = new LegacyMefTestCaseRunner(this, "V1", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, CompositionEngines.V1, this.parts, this.assemblies, this.invalidConfiguration);
                     runSummary.Aggregate(await runner.RunAsync());
                 }
+#endif
 
                 if (this.compositionVersions.HasFlag(CompositionEngines.V2))
                 {
@@ -147,6 +155,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 data.AddValue(nameof(this.compositionVersions), this.compositionVersions);
                 data.AddValue(nameof(this.noCompatGoal), this.noCompatGoal);
                 data.AddValue(nameof(this.invalidConfiguration), this.invalidConfiguration);
+                data.AddValue(nameof(this.SkipReason), this.SkipReason);
             }
 
             public override void Deserialize(IXunitSerializationInfo data)
@@ -157,6 +166,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 this.compositionVersions = data.GetValue<CompositionEngines>(nameof(this.compositionVersions));
                 this.noCompatGoal = data.GetValue<bool>(nameof(this.noCompatGoal));
                 this.invalidConfiguration = data.GetValue<bool>(nameof(this.invalidConfiguration));
+                this.SkipReason = data.GetValue<string>(nameof(this.SkipReason));
             }
         }
     }

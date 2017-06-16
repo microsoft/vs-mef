@@ -8,7 +8,6 @@ namespace Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using MefV1 = System.ComponentModel.Composition;
 
     [PartNotDiscoverable]
     [Export]

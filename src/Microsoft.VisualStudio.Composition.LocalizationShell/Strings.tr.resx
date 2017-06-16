@@ -71,6 +71,7 @@
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
     <value>Beklenmeyen üye türü.</value>
+    <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
     <value>Sözleşme adı "{1}" olan {0} dışarı aktarma bekleniyordu, ancak ilgili kısıtlamalar uygulandıktan sonra {2} bulundu.</value>

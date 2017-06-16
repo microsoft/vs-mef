@@ -40,6 +40,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     /// </remarks>
     [Trait("NoPIA", "true")]
     [Trait(Traits.SkipOnMono, "NoPIA")]
+    [Trait(Traits.SkipOnCoreCLR, "NoPIA")]
     public class EmbeddableTypesTests
     {
         /// <summary>

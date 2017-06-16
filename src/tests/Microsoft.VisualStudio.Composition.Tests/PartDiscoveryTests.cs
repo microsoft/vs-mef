@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task CreatePartsAsync_Assembly_ResilientAgainstReflectionErrors()
         {
             var discovery = new SketchyPartDiscovery();
-            var parts = await discovery.CreatePartsAsync(this.GetType().Assembly);
+            var parts = await discovery.CreatePartsAsync(this.GetType().GetTypeInfo().Assembly);
             Assert.Equal(1, parts.DiscoveryErrors.Count);
             Assert.Equal(0, parts.Parts.Count);
         }
@@ -49,14 +49,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(1, parts.Parts.Count);
         }
 
+#if DESKTOP
         [Fact]
         public async Task Combined_CreatePartsAsync_AssemblyPathEnumerable()
         {
             var discovery = PartDiscovery.Combine(TestUtilities.V2Discovery, TestUtilities.V1Discovery);
             var assemblies = new[]
             {
-                typeof(AssemblyDiscoveryTests.DiscoverablePart1).Assembly,
-                this.GetType().Assembly,
+                typeof(AssemblyDiscoveryTests.DiscoverablePart1).GetTypeInfo().Assembly,
+                this.GetType().GetTypeInfo().Assembly,
             };
             var parts = await discovery.CreatePartsAsync(assemblies.Select(a => a.Location));
             Assert.NotEqual(0, parts.Parts.Count);
@@ -68,8 +69,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var discovery = PartDiscovery.Combine(TestUtilities.V2Discovery, TestUtilities.V1Discovery);
             var assemblies = new[]
             {
-                typeof(AssemblyDiscoveryTests.DiscoverablePart1).Assembly,
-                this.GetType().Assembly,
+                typeof(AssemblyDiscoveryTests.DiscoverablePart1).GetTypeInfo().Assembly,
+                this.GetType().GetTypeInfo().Assembly,
             };
             DiscoveryProgress lastReceivedUpdate = default(DiscoveryProgress);
             int progressUpdateCount = 0;
@@ -93,6 +94,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.True(lastReceivedUpdate.Completion > 0);
             Assert.True(progressUpdateCount > 2);
         }
+#endif
 
         [Fact]
         public async Task CatalogAssemblyLoadFailure()

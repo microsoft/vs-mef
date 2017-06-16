@@ -125,8 +125,8 @@ namespace Microsoft.VisualStudio.Composition
                     // We actually create the proxy type within the lock because we're
                     // tampering with the ModuleBuilder which isn't thread-safe.
                     TypeInfo generatedProxyType = GenerateInterfaceViewProxyType(viewType);
-                    metadataViewFactory = (MetadataViewFactory)Delegate.CreateDelegate(
-                        typeof(MetadataViewFactory), generatedProxyType.GetMethod(MetadataViewGenerator.MetadataViewFactoryName, BindingFlags.Public | BindingFlags.Static));
+                    var methodInfo = generatedProxyType.GetMethod(MetadataViewGenerator.MetadataViewFactoryName, BindingFlags.Public | BindingFlags.Static);
+                    metadataViewFactory = (MetadataViewFactory)methodInfo.CreateDelegate(typeof(MetadataViewFactory));
                     MetadataViewFactories.Add(viewType, metadataViewFactory);
                 }
             }

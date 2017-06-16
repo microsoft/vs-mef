@@ -7,7 +7,8 @@
     <PackageOutputPath>$(RepoBinPath)$(Configuration)\Packages\</PackageOutputPath>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>CS1591</NoWarn>
+    <NoWarn>CS1591;CS1701</NoWarn>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net452' ">$(DefineConstants);DESKTOP;RuntimeHandles</DefineConstants>
 
     <NerdbankGitVersioningVersion>1.6.35</NerdbankGitVersioningVersion>
     <MicroBuildVersion>2.0.40</MicroBuildVersion>

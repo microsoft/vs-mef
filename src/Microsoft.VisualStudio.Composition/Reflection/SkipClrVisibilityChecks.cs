@@ -4,6 +4,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
 
@@ -13,6 +14,21 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     /// </summary>
     internal class SkipClrVisibilityChecks
     {
+        /// <summary>
+        /// The <see cref="Attribute.Attribute()"/> constructor.
+        /// </summary>
+        private static readonly ConstructorInfo AttributeBaseClassCtor = typeof(Attribute).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single(ctor => ctor.GetParameters().Length == 0);
+
+        /// <summary>
+        /// The <see cref="AttributeUsageAttribute(AttributeTargets)"/> constructor.
+        /// </summary>
+        private static readonly ConstructorInfo AttributeUsageCtor = typeof(AttributeUsageAttribute).GetConstructor(new Type[] { typeof(AttributeTargets) });
+
+        /// <summary>
+        /// The <see cref="AttributeUsageAttribute.AllowMultiple"/> property.
+        /// </summary>
+        private static readonly PropertyInfo AttributeUsageAllowMultipleProperty = typeof(AttributeUsageAttribute).GetProperty(nameof(AttributeUsageAttribute.AllowMultiple));
+
         /// <summary>
         /// The assembly builder that is constructing the dynamic assembly.
         /// </summary>
@@ -112,12 +128,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 TypeAttributes.NotPublic,
                 typeof(Attribute));
 
-            var attributeUsageCtor = typeof(AttributeUsageAttribute).GetConstructor(
-                new Type[] { typeof(AttributeTargets) });
             var attributeUsage = new CustomAttributeBuilder(
-                attributeUsageCtor,
+                AttributeUsageCtor,
                 new object[] { AttributeTargets.Assembly },
-                new PropertyInfo[] { typeof(AttributeUsageAttribute).GetProperty(nameof(AttributeUsageAttribute.AllowMultiple)) },
+                new PropertyInfo[] { AttributeUsageAllowMultipleProperty },
                 new object[] { false });
             tb.SetCustomAttribute(attributeUsage);
 
@@ -132,8 +146,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             var il = cb.GetILGenerator();
             il.Emit(OpCodes.Ldarg_0);
-            ConstructorInfo attrBaseCtor = typeof(Attribute).GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null, new Type[0], null);
-            il.Emit(OpCodes.Call, attrBaseCtor);
+            il.Emit(OpCodes.Call, AttributeBaseClassCtor);
             il.Emit(OpCodes.Ret);
 
             return tb.CreateTypeInfo();

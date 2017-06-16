@@ -159,6 +159,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(1, Foo2.ActivationCounter);
         }
 
+#if DESKTOP
         /// <summary>
         /// Verifies that V3 emulates V1 correctly when using the V1 ExportProvider shim.
         /// </summary>
@@ -173,6 +174,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(1, Foo1.ActivationCounter);
             Assert.Equal(1, Foo2.ActivationCounter);
         }
+#endif
 
         /// <summary>
         /// MEFv3 is more lazy at activating parts than MEFv1 and MEFv2.
@@ -229,7 +231,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public static int ActivationCounter;
         }
 
-        #endregion
+#endregion
 
         #region NonShared parts activated once per query
 

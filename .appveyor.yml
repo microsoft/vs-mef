@@ -20,12 +20,12 @@ build_script:
 - ps: msbuild src\Microsoft.VisualStudio.Composition.sln /nologo /m /v:minimal /t:build,pack
 test_script:
 - cmd: >-
-    SET testdir=bin\Tests\%configuration%\net451\
+    SET testdir=bin\Tests\%configuration%\net452\
 
     "%userprofile%\.nuget\packages\OpenCover\4.6.519\tools\OpenCover.Console.exe"
     -register:user
     -target:"%xunit20%\xunit.console.x86.exe"
-    -targetargs:"%testdir%Microsoft.VisualStudio.Composition.Tests.dll -noshadow -html %testdir%testresults.html -xml %testdir%testresults.xml -appveyor -notrait TestCategory=FailsInCloudTest -nologo"
+    -targetargs:"%testdir%Microsoft.VisualStudio.Composition.Tests.dll -noshadow -html %testdir%testresults.html -xml %testdir%testresults.xml -appveyor -notrait TestCategory=FailsInCloudTest -nologo -parallel none"
     -returntargetcode
     -excludebyattribute:*.ExcludeFromCodeCoverage*
     -excludebyfile:*\*Designer.cs
@@ -38,6 +38,10 @@ test_script:
     pip install codecov
 
     codecov -f "%testdir%code_coverage.xml"
+
+    cd src\tests\Microsoft.VisualStudio.Composition.Tests
+
+    dotnet test -f netcoreapp1.0 --no-build
 artifacts:
 - path: bin\%configuration%\Packages\Microsoft.VisualStudio.Composition.15.*.nupkg
   name: NuGet Package
