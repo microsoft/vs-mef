@@ -233,7 +233,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
 #endregion
 
-#region NonShared parts activated once per query
+        #region NonShared parts activated once per query
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(NonSharedPart))]
         public void NonSharedPartActivatedOncePerNonLazyQuery(IContainer container)
@@ -259,9 +259,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class NonSharedPart { }
 
-#endregion
+        #endregion
 
-#region GUID contract name
+        #region GUID contract name
 
         [MefFact(CompositionEngines.V2Compat, typeof(SomeExportedPartWithGuidContractName))]
         public void GuidContractName(IContainer container)
@@ -272,9 +272,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Export("{C18E5D73-E6D1-43AA-AC5E-58D82E44DA9C}")]
         public class SomeExportedPartWithGuidContractName { }
 
-#endregion
+        #endregion
 
-#region Static exports tests
+        #region Static exports tests
 
         [MefFact(CompositionEngines.V1Compat, typeof(StaticPart))]
         public void GetExports_StaticExports(IContainer container)
@@ -293,6 +293,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
-#endregion
+        #endregion
     }
 }

@@ -406,7 +406,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
-#region CustomMetadataAttributeLotsOfTypesAndVisibilities test
+        #region CustomMetadataAttributeLotsOfTypesAndVisibilities test
 
         [MefFact(CompositionEngines.V1Compat, typeof(PartThatImportsLotsOfTypesAndVisibilitiesAttribute), typeof(PartWithLotsOfTypesAndVisibilitiesAttribute))]
         public void CustomMetadataAttributeLotsOfTypesAndVisibilitiesV1(IContainer container)
@@ -452,6 +452,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             internal bool InternalField = true;
         }
 
-#endregion
+        #endregion
     }
 }

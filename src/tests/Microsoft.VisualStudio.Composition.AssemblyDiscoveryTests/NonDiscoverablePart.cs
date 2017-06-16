@@ -10,10 +10,8 @@ namespace Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests
     using System.Threading.Tasks;
     using MefV1 = System.ComponentModel.Composition;
 
-    [PartNotDiscoverable]
-    [Export]
-    [MefV1.PartNotDiscoverable]
-    [MefV1.Export]
+    [PartNotDiscoverable, MefV1.PartNotDiscoverable]
+    [Export, MefV1.Export]
     public class NonDiscoverablePart
     {
     }

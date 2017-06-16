@@ -12,8 +12,7 @@ namespace Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests
 
     public class OuterClass
     {
-        [Export]
-        [MefV1.Export]
+        [Export, MefV1.Export]
         public class NestedPart { }
     }
 }

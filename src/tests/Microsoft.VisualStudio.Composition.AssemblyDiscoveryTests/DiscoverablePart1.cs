@@ -10,8 +10,7 @@ namespace Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests
     using System.Threading.Tasks;
     using MefV1 = System.ComponentModel.Composition;
 
-    [Export]
-    [MefV1.Export]
+    [Export, MefV1.Export]
     public class DiscoverablePart1
     {
     }

@@ -22,12 +22,10 @@ namespace Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver
     /// The type must appear in a different assembly from the exporting part
     /// so that the two assemblies have distinct Type instances for the embeddable interface.
     /// </summary>
-    [MefV1.Export]
-    [MefV2.Export]
+    [MefV1.Export, MefV2.Export]
     public class PartThatImportsLazyOfEmbeddedType
     {
-        [MefV1.Import]
-        [MefV2.Import]
+        [MefV1.Import, MefV2.Import]
         public Lazy<TEmbedded> RetargetProject { get; set; }
 
         public TEmbedded RetargetProjectNoLazy
@@ -36,8 +34,7 @@ namespace Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver
         }
     }
 
-    [MefV1.Export]
-    [MefV2.Export]
+    [MefV1.Export, MefV2.Export]
     public class PartThatImportsLazyOfEmbeddedTypeNonPublic
     {
         public TEmbedded RetargetProjectNoLazy
@@ -45,17 +42,14 @@ namespace Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver
             get { return this.RetargetProject.Value; }
         }
 
-        [MefV1.Import]
-        [MefV2.Import]
+        [MefV1.Import, MefV2.Import]
         internal Lazy<TEmbedded> RetargetProject { get; set; }
     }
 
-    [MefV1.Export]
-    [MefV2.Export]
+    [MefV1.Export, MefV2.Export]
     public class PartThatImportsEmbeddedType
     {
-        [MefV1.Import]
-        [MefV2.Import]
+        [MefV1.Import, MefV2.Import]
         public TEmbedded RetargetProject { get; set; }
     }
 

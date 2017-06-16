@@ -4,8 +4,7 @@
     using System.Composition;
     using MefV1 = System.ComponentModel.Composition;
 
-    [MetadataAttribute]
-    [MefV1.MetadataAttribute]
+    [MetadataAttribute, MefV1.MetadataAttribute]
     [AttributeUsage(AttributeTargets.All)]
     public class SomeMetadataAttributeFromAnotherAssemblyAttribute : Attribute
     {

@@ -156,7 +156,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.True(result.Parts.Any(p => p.Type == typeof(DiscoverablePart1)));
         }
 
-#region TypeDiscoveryOmitsNestedTypes test
+        #region TypeDiscoveryOmitsNestedTypes test
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(OuterClass))]
         public void TypeDiscoveryOmitsNestedTypes(IContainer container)
@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(0, container.GetExportedValues<OuterClass.NestedPart>().Count());
         }
 
-#endregion
+        #endregion
 
         [Export]
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -174,7 +174,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.Export]
         public class SharedPart { }
 
-#region Indexer overloading tests
+        #region Indexer overloading tests
 
         [Fact]
         public void IndexerInDerivedAndBase()
@@ -207,9 +207,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
-#endregion
+        #endregion
 
-#region Part Metadata tests
+        #region Part Metadata tests
 
         /// <summary>
         /// Verifies that part metadata is available in the catalog.
@@ -260,9 +260,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public bool MemberExport { get { return true; } }
         }
 
-#endregion
+        #endregion
 
-#region Type discovery failures
+        #region Type discovery failures
 
         [MefV1.Export, Export]
         public class SomePartWithoutImportingConstructor
@@ -270,7 +270,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public SomePartWithoutImportingConstructor(int foo) { }
         }
 
-#endregion
+        #endregion
 
         /// <summary>
         /// A discovery mock that produces no parts, but includes all types for consideration.
