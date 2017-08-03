@@ -33,12 +33,12 @@ namespace Microsoft.VisualStudio.Composition
     ///
     /// The class to be generated will look approximately like:
     /// <code><![CDATA[
-    /// public class __Foo__MedataViewProxy : TMetadataView
+    /// public class __Foo__MetadataViewProxy : TMetadataView
     ///
     ///     private readonly IReadOnlyDictionary<string, object> metadata;
     ///     private readonly IReadOnlyDictionary<string, object> defaultMetadata;
     ///
-    ///     private __Foo__MedataViewProxy (IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata)
+    ///     private __Foo__MetadataViewProxy (IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata)
     ///     {
     ///         this.metadata = metadata;
     ///         this.defaultMetadata = defaultMetadata;
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.Composition
     ///
     ///     public static object Create(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata)
     ///     {
-    ///        return new __Foo__MedataViewProxy(metadata, defaultMetadata);
+    ///        return new __Foo__MetadataViewProxy(metadata, defaultMetadata);
     ///     }
     /// }
     /// ]]></code>
