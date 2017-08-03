@@ -11,20 +11,8 @@ namespace Microsoft.VisualStudio.Composition
 
     internal static class ExportMetadataViewInterfaceEmitProxy
     {
-        private static readonly ComposablePartDefinition ProxySupportPartDefinition = new AttributedPartDiscovery(Resolver.DefaultInstance).CreatePart(typeof(MetadataViewProxyProvider));
-
-        /// <summary>
-        /// Adds support for queries to <see cref="ExportProvider.GetExports{T, TMetadata}()"/> where
-        /// <c>TMetadata</c> is an interface.
-        /// </summary>
-        /// <param name="catalog">The catalog from which constructed ExportProviders may have this support added.</param>
-        /// <returns>The catalog with the additional support.</returns>
-        public static ComposableCatalog WithMetadataViewEmitProxySupport(this ComposableCatalog catalog)
-        {
-            Requires.NotNull(catalog, nameof(catalog));
-
-            return catalog.AddPart(ProxySupportPartDefinition);
-        }
+        internal static readonly ComposablePartDefinition PartDefinition =
+            Utilities.GetMetadataViewProviderPartDefinition(typeof(MetadataViewProxyProvider), 50, Resolver.DefaultInstance);
 
 #pragma warning disable CS3016 // Arrays as attribute arguments is not CLS compliant. But these are private so we don't care.
 

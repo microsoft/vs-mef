@@ -25,7 +25,12 @@ namespace Microsoft.VisualStudio.Composition
         private static readonly ImmutableHashSet<ComposablePartDefinition> AlwaysBundledParts = ImmutableHashSet.Create(
             ExportProvider.ExportProviderPartDefinition,
             PassthroughMetadataViewProvider.PartDefinition,
-            MetadataViewClassProvider.PartDefinition);
+            MetadataViewClassProvider.PartDefinition,
+            ExportMetadataViewInterfaceEmitProxy.PartDefinition)
+#if NET45
+            .Add(MetadataViewImplProxy.PartDefinition)
+#endif
+            ;
 
         private ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides;
 

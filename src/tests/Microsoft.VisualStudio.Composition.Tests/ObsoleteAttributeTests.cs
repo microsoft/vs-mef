@@ -6,6 +6,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Collections.Generic;
     using System.Composition;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests;
@@ -87,7 +88,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void ObsoleteImportingField(IContainer container)
         {
             var export = container.GetExportedValue<PartWithObsoleteImportingField>();
-            Assert.NotNull(typeof(PartWithObsoleteImportingField).GetField("ObsoleteField").GetValue(export));
+            Assert.NotNull(typeof(PartWithObsoleteImportingField).GetTypeInfo().GetField("ObsoleteField").GetValue(export));
         }
 
         [MefV1.Export]

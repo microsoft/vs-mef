@@ -92,14 +92,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         private static byte[] GetPublicKeyFromExecutingAssembly()
         {
-            byte[] publicKey = Assembly.GetExecutingAssembly().GetName().GetPublicKey();
+            byte[] publicKey = typeof(ByValueEqualityTests).GetTypeInfo().Assembly.GetName().GetPublicKey();
             Assert.NotNull(publicKey);
             return publicKey;
         }
 
         private static byte[] GetPublicKeyTokenFromExecutingAssembly()
         {
-            byte[] publicKeyToken = Assembly.GetExecutingAssembly().GetName().GetPublicKeyToken();
+            byte[] publicKeyToken = typeof(ByValueEqualityTests).GetTypeInfo().Assembly.GetName().GetPublicKeyToken();
             Assert.NotNull(publicKeyToken);
             return publicKeyToken;
         }
@@ -109,8 +109,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
             AssemblyName assemblyName = new AssemblyName();
             assemblyName.Name = name;
             assemblyName.Version = version;
+#if DESKTOP
             assemblyName.CultureInfo = cultureInfo;
             assemblyName.CodeBase = codeBase;
+#endif
 
             if (publicKey != null)
             {

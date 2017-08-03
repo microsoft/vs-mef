@@ -131,6 +131,18 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+        internal static ImmutableArray<TypeRef> GetParameterTypes(this MethodBase method, Resolver resolver)
+        {
+            Requires.NotNull(method, nameof(method));
+            return method.GetParameters().Select(pi => TypeRef.Get(pi.ParameterType, resolver)).ToImmutableArray();
+        }
+
+        internal static ImmutableArray<TypeRef> GetGenericTypeArguments(this MethodBase method, Resolver resolver)
+        {
+            Requires.NotNull(method, nameof(method));
+            return method.GetGenericArguments().Select(t => TypeRef.Get(t, resolver)).ToImmutableArray();
+        }
+
         internal static IEnumerable<PropertyInfo> EnumProperties(this Type type)
         {
             Requires.NotNull(type, nameof(type));
@@ -207,6 +219,8 @@ namespace Microsoft.VisualStudio.Composition
 
         internal static Type GetMemberType(MemberInfo fieldOrPropertyOrType)
         {
+            Requires.NotNull(fieldOrPropertyOrType, nameof(fieldOrPropertyOrType));
+
             var typeInfo = fieldOrPropertyOrType as TypeInfo;
             if (typeInfo != null)
             {
@@ -225,7 +239,7 @@ namespace Microsoft.VisualStudio.Composition
                 return field.FieldType;
             }
 
-            throw new ArgumentException(Strings.UnexpectedMemberType);
+            throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Strings.UnexpectedMemberType, fieldOrPropertyOrType.MemberType));
         }
 
         internal static bool IsPublicInstance(this MethodInfo methodInfo)
@@ -554,11 +568,15 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (namedArgument.IsField)
                 {
-                    ((FieldInfo)namedArgument.MemberInfo).SetValue(attribute, namedArgument.TypedValue.Value);
+                    var field = attributeData.AttributeType.GetField(namedArgument.MemberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    Assumes.NotNull(field);
+                    field.SetValue(attribute, namedArgument.TypedValue.Value);
                 }
                 else
                 {
-                    ((PropertyInfo)namedArgument.MemberInfo).SetValue(attribute, namedArgument.TypedValue.Value);
+                    var property = attributeData.AttributeType.GetProperty(namedArgument.MemberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    Assumes.NotNull(property);
+                    property.SetValue(attribute, namedArgument.TypedValue.Value);
                 }
             }
 

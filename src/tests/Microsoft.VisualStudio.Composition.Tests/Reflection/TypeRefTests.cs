@@ -41,12 +41,16 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
         private void TestAssemblyNameEqualityNotEqual(string assemblyNameV1String, string assemblyNameV2String, string codeBaseV1, string codeBaseV2)
         {
             AssemblyName assemblyNameV1 = new AssemblyName(assemblyNameV1String);
+#if DESKTOP
             assemblyNameV1.CodeBase = codeBaseV1;
+#endif
             AssemblyName assemblyNameV2 = new AssemblyName(assemblyNameV2String);
+#if DESKTOP
             assemblyNameV2.CodeBase = codeBaseV2;
+#endif
 
-            TypeRef typeRefV1 = TypeRef.Get(TestUtilities.Resolver, assemblyNameV1, 0x02000001, false, 0, ImmutableArray<TypeRef>.Empty);
-            TypeRef typeRefV2 = TypeRef.Get(TestUtilities.Resolver, assemblyNameV2, 0x02000001, false, 0, ImmutableArray<TypeRef>.Empty);
+            TypeRef typeRefV1 = TypeRef.Get(TestUtilities.Resolver, assemblyNameV1, 0x02000001, "SomeType", false, 0, ImmutableArray<TypeRef>.Empty);
+            TypeRef typeRefV2 = TypeRef.Get(TestUtilities.Resolver, assemblyNameV2, 0x02000001, "SomeType", false, 0, ImmutableArray<TypeRef>.Empty);
 
             Assert.NotEqual(typeRefV1, typeRefV2);
         }

@@ -40,11 +40,13 @@ namespace Microsoft.VisualStudio.Composition
                     return true;
                 }
 
+#if NET45
                 // If fast check is enabled, we can compare the code bases
                 if (this.fastCheck && x.CodeBase == y.CodeBase)
                 {
                     return true;
                 }
+#endif
 
                 // There are some cases where two AssemblyNames who are otherwise equivalent
                 // have a null PublicKey but a correct PublicKeyToken, and vice versa. We should
@@ -60,13 +62,13 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     return x.Name == y.Name
                         && x.Version.Equals(y.Version)
-                        && x.CultureName.Equals(y.CultureName)
+                        && string.Equals(x.CultureName, y.CultureName)
                         && ByValueEquality.Buffer.Equals(xPublicKey, yPublicKey);
                 }
 
                 return x.Name == y.Name
                     && x.Version.Equals(y.Version)
-                    && x.CultureName.Equals(y.CultureName)
+                    && string.Equals(x.CultureName, y.CultureName)
                     && ByValueEquality.Buffer.Equals(x.GetPublicKeyToken(), y.GetPublicKeyToken());
             }
 

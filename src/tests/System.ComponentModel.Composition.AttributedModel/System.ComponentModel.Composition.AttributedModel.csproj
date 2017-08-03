@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.0;net40;net45</TargetFrameworks>
+    <RootNamespace>System.ComponentModel.Composition</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.ComponentModel.Composition" Condition=" '$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net45' " />
+  </ItemGroup>
+</Project>

@@ -10,7 +10,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Text;
     using System.Threading.Tasks;
     using EmbeddedTypeReceiver;
-    using Shell.Interop;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 

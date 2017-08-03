@@ -14,7 +14,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using Xunit.Abstractions;
     using Xunit.Sdk;
 
+#if DESKTOP
     [Serializable]
+#endif
     public class LegacyMefTestCaseRunner : XunitTestCaseRunner
     {
         private readonly CompositionEngines engineVersion;
@@ -58,11 +60,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
             try
             {
                 parts = parts ?? new Type[0];
-                var loadedAssemblies = assemblies != null ? assemblies.Select(Assembly.Load).ToImmutableList() : ImmutableList<Assembly>.Empty;
+                var loadedAssemblies = assemblies != null ? assemblies.Select(an => Assembly.Load(new AssemblyName(an))).ToImmutableList() : ImmutableList<Assembly>.Empty;
 
                 if (attributesVersion.HasFlag(CompositionEngines.V1))
                 {
+#if DESKTOP
                     return await test(TestUtilities.CreateContainerV1(loadedAssemblies, parts));
+#else
+                    var t = new XunitTest(this.TestCase, this.DisplayName);
+                    if (!this.MessageBus.QueueMessage(new TestSkipped(t, ".NET MEF is not available on .NET Core")))
+                    {
+                        this.CancellationTokenSource.Cancel();
+                    }
+
+                    return new RunSummary { Total = 1, Skipped = 1 };
+#endif
                 }
 
                 if (attributesVersion.HasFlag(CompositionEngines.V2))

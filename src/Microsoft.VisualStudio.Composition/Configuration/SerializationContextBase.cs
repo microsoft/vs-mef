@@ -13,7 +13,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Runtime.Serialization.Formatters.Binary;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
@@ -99,6 +98,15 @@ namespace Microsoft.VisualStudio.Composition
             Enum32Substitution,
             TypeSubstitution,
             TypeArraySubstitution,
+            Single,
+            Double,
+            UInt16,
+            Int64,
+            UInt64,
+            Int16,
+            UInt32,
+            Byte,
+            SByte,
         }
 
         /// <summary>
@@ -160,6 +168,8 @@ namespace Microsoft.VisualStudio.Composition
                     this.writer.Write((byte)1);
                     this.Write(methodRef.DeclaringType);
                     this.WriteCompressedMetadataToken(methodRef.MetadataToken, MetadataTokenType.Method);
+                    this.Write(methodRef.Name);
+                    this.Write(methodRef.ParameterTypes, this.Write);
                     this.Write(methodRef.GenericMethodArguments, this.Write);
                 }
             }
@@ -174,8 +184,10 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     var declaringType = this.ReadTypeRef();
                     var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
-                    var genericMethodArguments = this.ReadList(this.reader, this.ReadTypeRef);
-                    return new MethodRef(declaringType, metadataToken, genericMethodArguments.ToImmutableArray());
+                    var name = this.ReadString();
+                    var parameterTypes = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
+                    var genericMethodArguments = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
+                    return new MethodRef(declaringType, metadataToken, name, parameterTypes, genericMethodArguments);
                 }
                 else
                 {
@@ -244,6 +256,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 this.Write(propertyRef.DeclaringType);
                 this.WriteCompressedMetadataToken(propertyRef.MetadataToken, MetadataTokenType.Property);
+                this.Write(propertyRef.Name);
 
                 byte flags = 0;
                 flags |= propertyRef.GetMethodMetadataToken.HasValue ? (byte)0x1 : (byte)0x0;
@@ -268,6 +281,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 var declaringType = this.ReadTypeRef();
                 var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Property);
+                var name = this.ReadString();
 
                 byte flags = this.reader.ReadByte();
                 int? getter = null, setter = null;
@@ -285,7 +299,8 @@ namespace Microsoft.VisualStudio.Composition
                     declaringType,
                     metadataToken,
                     getter,
-                    setter);
+                    setter,
+                    name);
             }
         }
 
@@ -298,6 +313,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     this.Write(fieldRef.DeclaringType);
                     this.WriteCompressedMetadataToken(fieldRef.MetadataToken, MetadataTokenType.Field);
+                    this.Write(fieldRef.Name);
                 }
             }
         }
@@ -310,7 +326,8 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     var declaringType = this.ReadTypeRef();
                     int metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Field);
-                    return new FieldRef(declaringType, metadataToken);
+                    var name = this.ReadString();
+                    return new FieldRef(declaringType, metadataToken, name);
                 }
                 else
                 {
@@ -326,8 +343,8 @@ namespace Microsoft.VisualStudio.Composition
                 this.writer.Write(!parameterRef.IsEmpty);
                 if (!parameterRef.IsEmpty)
                 {
-                    this.Write(parameterRef.DeclaringType);
-                    this.WriteCompressedMetadataToken(parameterRef.MethodMetadataToken, MetadataTokenType.Method);
+                    this.Write(parameterRef.Constructor);
+                    this.Write(parameterRef.Method);
                     this.writer.Write((byte)parameterRef.ParameterIndex);
                 }
             }
@@ -339,10 +356,10 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (this.reader.ReadBoolean())
                 {
-                    var declaringType = this.ReadTypeRef();
-                    int methodMetadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
+                    var ctor = this.ReadConstructorRef();
+                    var method = this.ReadMethodRef();
                     var parameterIndex = this.reader.ReadByte();
-                    return new ParameterRef(declaringType, methodMetadataToken, parameterIndex);
+                    return ctor.IsEmpty ? new ParameterRef(method, parameterIndex) : new ParameterRef(ctor, parameterIndex);
                 }
                 else
                 {
@@ -371,6 +388,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 this.Write(constructorRef.DeclaringType);
                 this.WriteCompressedMetadataToken(constructorRef.MetadataToken, MetadataTokenType.Method);
+                this.Write(constructorRef.ParameterTypes, this.Write);
             }
         }
 
@@ -380,10 +398,12 @@ namespace Microsoft.VisualStudio.Composition
             {
                 var declaringType = this.ReadTypeRef();
                 var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
+                var argumentTypes = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
 
                 return new ConstructorRef(
                     declaringType,
-                    metadataToken);
+                    metadataToken,
+                    argumentTypes);
             }
         }
 
@@ -395,6 +415,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     this.Write(typeRef.AssemblyName);
                     this.WriteCompressedMetadataToken(typeRef.MetadataToken, MetadataTokenType.Type);
+                    this.Write(typeRef.FullName);
 
                     var flags = TypeRefFlags.None;
                     flags |= typeRef.IsArray ? TypeRefFlags.IsArray : TypeRefFlags.None;
@@ -428,6 +449,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     var assemblyName = this.ReadAssemblyName();
                     var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Type);
+                    var fullName = this.ReadString();
                     var flags = (TypeRefFlags)this.reader.ReadByte();
                     int genericTypeParameterCount = (int)this.ReadCompressedUInt();
                     var genericTypeArguments = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
@@ -435,11 +457,11 @@ namespace Microsoft.VisualStudio.Composition
                     var genericParameterDeclaringMemberIndex = flags.HasFlag(TypeRefFlags.HasGenericParameterDeclaringMemberIndex) ? (int)this.ReadCompressedUInt() : -1;
                     if (genericParameterDeclaringMember.IsEmpty)
                     {
-                        value = TypeRef.Get(this.Resolver, assemblyName, metadataToken, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments);
+                        value = TypeRef.Get(this.Resolver, assemblyName, metadataToken, fullName, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments);
                     }
                     else
                     {
-                        value = TypeRef.Get(this.Resolver, assemblyName, metadataToken, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments, genericParameterDeclaringMember, genericParameterDeclaringMemberIndex);
+                        value = TypeRef.Get(this.Resolver, assemblyName, metadataToken, fullName, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments, genericParameterDeclaringMember, genericParameterDeclaringMemberIndex);
                     }
 
                     this.OnDeserializedReusableObject(id, value);
@@ -456,7 +478,11 @@ namespace Microsoft.VisualStudio.Composition
                 if (this.TryPrepareSerializeReusableObject(assemblyName))
                 {
                     this.Write(assemblyName.FullName);
+#if NET45
                     this.Write(assemblyName.CodeBase);
+#else
+                    this.Write((string)null); // keep the binary format consistent even if we can't write this.
+#endif
                 }
             }
         }
@@ -471,7 +497,10 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     string fullName = this.ReadString();
                     string codeBase = this.ReadString();
-                    value = new AssemblyName(fullName) { CodeBase = codeBase };
+                    value = new AssemblyName(fullName);
+#if NET45
+                    value.CodeBase = codeBase;
+#endif
                     this.OnDeserializedReusableObject(id, value);
                 }
 
@@ -746,10 +775,55 @@ namespace Microsoft.VisualStudio.Composition
                         this.Write(ObjectType.String);
                         this.Write((string)value);
                     }
+                    else if (valueType == typeof(long))
+                    {
+                        this.Write(ObjectType.Int64);
+                        this.writer.Write((long)value);
+                    }
+                    else if (valueType == typeof(ulong))
+                    {
+                        this.Write(ObjectType.UInt64);
+                        this.writer.Write((ulong)value);
+                    }
                     else if (valueType == typeof(int))
                     {
                         this.Write(ObjectType.Int32);
                         this.writer.Write((int)value);
+                    }
+                    else if (valueType == typeof(uint))
+                    {
+                        this.Write(ObjectType.UInt32);
+                        this.writer.Write((uint)value);
+                    }
+                    else if (valueType == typeof(short))
+                    {
+                        this.Write(ObjectType.Int16);
+                        this.writer.Write((short)value);
+                    }
+                    else if (valueType == typeof(ushort))
+                    {
+                        this.Write(ObjectType.UInt16);
+                        this.writer.Write((ushort)value);
+                    }
+                    else if (valueType == typeof(byte))
+                    {
+                        this.Write(ObjectType.Byte);
+                        this.writer.Write((byte)value);
+                    }
+                    else if (valueType == typeof(sbyte))
+                    {
+                        this.Write(ObjectType.SByte);
+                        this.writer.Write((sbyte)value);
+                    }
+                    else if (valueType == typeof(float))
+                    {
+                        this.Write(ObjectType.Single);
+                        this.writer.Write((float)value);
+                    }
+                    else if (valueType == typeof(double))
+                    {
+                        this.Write(ObjectType.Double);
+                        this.writer.Write((double)value);
                     }
                     else if (valueType == typeof(char))
                     {
@@ -797,11 +871,15 @@ namespace Microsoft.VisualStudio.Composition
                     }
                     else
                     {
+#if NET45
                         Debug.WriteLine("Falling back to binary formatter for value of type: {0}", valueType);
                         this.Write(ObjectType.BinaryFormattedObject);
-                        var formatter = new BinaryFormatter();
+                        var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                         this.writer.Flush();
                         formatter.Serialize(this.writer.BaseStream, value);
+#else
+                        throw new NotSupportedException("Object of type " + valueType + " cannot be serialized on this platform.");
+#endif
                     }
                 }
             }
@@ -823,8 +901,26 @@ namespace Microsoft.VisualStudio.Composition
                         return true;
                     case ObjectType.BoolFalse:
                         return false;
+                    case ObjectType.Int64:
+                        return this.reader.ReadInt64();
+                    case ObjectType.UInt64:
+                        return this.reader.ReadUInt64();
                     case ObjectType.Int32:
                         return this.reader.ReadInt32();
+                    case ObjectType.UInt32:
+                        return this.reader.ReadUInt32();
+                    case ObjectType.Int16:
+                        return this.reader.ReadInt16();
+                    case ObjectType.UInt16:
+                        return this.reader.ReadUInt16();
+                    case ObjectType.Byte:
+                        return this.reader.ReadByte();
+                    case ObjectType.SByte:
+                        return this.reader.ReadSByte();
+                    case ObjectType.Single:
+                        return this.reader.ReadSingle();
+                    case ObjectType.Double:
+                        return this.reader.ReadDouble();
                     case ObjectType.String:
                         return this.ReadString();
                     case ObjectType.Char:
@@ -848,8 +944,12 @@ namespace Microsoft.VisualStudio.Composition
                         IReadOnlyList<TypeRef> typeRefArray = this.ReadList(this.reader, this.ReadTypeRef);
                         return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray, this.Resolver);
                     case ObjectType.BinaryFormattedObject:
-                        var formatter = new BinaryFormatter();
+#if NET45
+                        var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                         return formatter.Deserialize(this.reader.BaseStream);
+#else
+                        throw new NotSupportedException("BinaryFormatter object cannot be deserialized on this platform.");
+#endif
                     default:
                         throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.UnsupportedFormat, objectType));
                 }

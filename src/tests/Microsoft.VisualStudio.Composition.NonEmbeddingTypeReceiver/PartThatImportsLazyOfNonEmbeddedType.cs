@@ -20,6 +20,7 @@ namespace Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver
     }
 
     [MefV1.Export(typeof(IExportedInterface))]
+    [MefV2.Export(typeof(IExportedInterface))]
     internal class PartThatExportsIVsProjectReference : BaseClassForPartThatExportsIVsProjectReference<IVsProjectReference, VsProjectReference>, IExportedInterface
     {
     }
