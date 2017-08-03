@@ -27,8 +27,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 return null;
             }
 
-            var manifest = constructorRef.Resolver.GetManifest(constructorRef.DeclaringType.AssemblyName);
 #if RuntimeHandles
+            var manifest = constructorRef.Resolver.GetManifest(constructorRef.DeclaringType.AssemblyName);
             return (ConstructorInfo)manifest.ResolveMethod(constructorRef.MetadataToken);
 #else
             return FindMethodByParameters(
@@ -45,8 +45,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 return null;
             }
 
-            var manifest = methodRef.Resolver.GetManifest(methodRef.DeclaringType.AssemblyName);
 #if RuntimeHandles
+            var manifest = methodRef.Resolver.GetManifest(methodRef.DeclaringType.AssemblyName);
             var method = (MethodInfo)manifest.ResolveMethod(methodRef.MetadataToken);
 #else
             var method = FindMethodByParameters(
