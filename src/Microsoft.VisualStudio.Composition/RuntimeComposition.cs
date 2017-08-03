@@ -214,7 +214,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
-            var exportingMember = exportingMemberRef.Resolve();
+            var exportingMember = exportingMemberRef.MemberInfo;
             return new RuntimeExport(
                 exportDefinition.ContractName,
                 TypeRef.Get(partType, resolver),
@@ -290,7 +290,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     if (this.importingConstructor == null)
                     {
-                        this.importingConstructor = this.ImportingConstructorRef.Resolve();
+                        this.importingConstructor = this.ImportingConstructorRef.ConstructorInfo;
                     }
 
                     return this.importingConstructor;
@@ -303,7 +303,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     if (this.onImportsSatisfied == null)
                     {
-                        this.onImportsSatisfied = this.OnImportsSatisfiedRef.Resolve();
+                        this.onImportsSatisfied = this.OnImportsSatisfiedRef.MethodBase as MethodInfo;
                     }
 
                     return this.onImportsSatisfied;
@@ -420,7 +420,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     if (this.importingMember == null)
                     {
-                        this.importingMember = this.ImportingMemberRef.Resolve();
+                        this.importingMember = this.ImportingMemberRef.MemberInfo;
                     }
 
                     return this.importingMember;
@@ -598,7 +598,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     if (this.member == null)
                     {
-                        this.member = this.MemberRef.Resolve();
+                        this.member = this.MemberRef.MemberInfo;
                     }
 
                     return this.member;

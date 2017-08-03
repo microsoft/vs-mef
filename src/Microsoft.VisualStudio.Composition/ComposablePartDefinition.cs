@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public MethodInfo OnImportsSatisfied
         {
-            get { return this.OnImportsSatisfiedRef.Resolve(); }
+            get { return this.OnImportsSatisfiedRef.MethodBase as MethodInfo; }
         }
 
         public MethodRef OnImportsSatisfiedRef { get; private set; }
@@ -177,7 +177,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public ConstructorInfo ImportingConstructorInfo
         {
-            get { return this.ImportingConstructorRef.Resolve(); }
+            get { return this.ImportingConstructorRef.ConstructorInfo; }
         }
 
         /// <summary>
@@ -272,7 +272,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 foreach (var exportingMember in this.ExportingMembers)
                 {
-                    indentingWriter.WriteLine(exportingMember.Key.Resolve().Name);
+                    indentingWriter.WriteLine(exportingMember.Key.MemberInfo.Name);
                     using (indentingWriter.Indent())
                     {
                         foreach (var export in exportingMember.Value)

@@ -38,7 +38,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 #endif
         }
 
-        public static MethodInfo Resolve(this MethodRef methodRef)
+        [Obsolete("Use Resolve2 instead.", error: true)]
+        public static MethodInfo Resolve(this MethodRef methodRef) => (MethodInfo)Resolve2(methodRef);
+
+        public static MethodBase Resolve2(this MethodRef methodRef)
         {
             if (methodRef.IsEmpty)
             {
@@ -47,7 +50,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
 #if RuntimeHandles
             var manifest = methodRef.Resolver.GetManifest(methodRef.DeclaringType.AssemblyName);
-            var method = (MethodInfo)manifest.ResolveMethod(methodRef.MetadataToken);
+            var method = manifest.ResolveMethod(methodRef.MetadataToken);
 #else
             var method = FindMethodByParameters(
                 Resolve(methodRef.DeclaringType).GetTypeInfo().GetMethods(AllInstanceMembers),
@@ -56,7 +59,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 #endif
             if (methodRef.GenericMethodArguments.Length > 0)
             {
-                var constructedMethod = method.MakeGenericMethod(methodRef.GenericMethodArguments.Select(Resolve).ToArray());
+                var constructedMethod = ((MethodInfo)method).MakeGenericMethod(methodRef.GenericMethodArguments.Select(Resolve).ToArray());
                 return constructedMethod;
             }
 
@@ -86,7 +89,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 Module manifest = propertyRef.Resolver.GetManifest(propertyRef.DeclaringType.AssemblyName);
                 return (MethodInfo)manifest.ResolveMethod(propertyRef.GetMethodMetadataToken.Value);
 #else
-                return Resolve(propertyRef).GetMethod;
+                return propertyRef.PropertyInfo.GetMethod;
 #endif
             }
 
@@ -101,7 +104,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 Module manifest = propertyRef.Resolver.GetManifest(propertyRef.DeclaringType.AssemblyName);
                 return (MethodInfo)manifest.ResolveMethod(propertyRef.SetMethodMetadataToken.Value);
 #else
-                return Resolve(propertyRef).SetMethod;
+                return propertyRef.PropertyInfo.SetMethod;
 #endif
             }
 
@@ -134,7 +137,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             Module manifest = parameterRef.Resolver.GetManifest(parameterRef.AssemblyName);
             MethodBase method = manifest.ResolveMethod(parameterRef.Constructor.IsEmpty ? parameterRef.Method.MetadataToken : parameterRef.Constructor.MetadataToken);
 #else
-            MethodBase method = (MethodBase)Resolve(parameterRef.Constructor) ?? Resolve(parameterRef.Method);
+            MethodBase method = (MethodBase)parameterRef.Constructor.ConstructorInfo ?? parameterRef.Method.MethodBase;
 #endif
             return method.GetParameters()[parameterRef.ParameterIndex];
         }
@@ -148,22 +151,22 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             if (memberRef.IsField)
             {
-                return memberRef.Field.Resolve();
+                return memberRef.Field.FieldInfo;
             }
 
             if (memberRef.IsProperty)
             {
-                return memberRef.Property.Resolve();
+                return memberRef.Property.PropertyInfo;
             }
 
             if (memberRef.IsMethod)
             {
-                return memberRef.Method.Resolve();
+                return memberRef.Method.MethodBase;
             }
 
             if (memberRef.IsConstructor)
             {
-                return memberRef.Constructor.Resolve();
+                return memberRef.Constructor.ConstructorInfo;
             }
 
             if (memberRef.IsType)
@@ -177,30 +180,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         [Obsolete("Use " + nameof(MemberRef) + " instead.", error: true)]
         public static MemberInfo Resolve(this MemberDesc memberDesc)
         {
-            var fieldDesc = memberDesc as FieldDesc;
-            if (fieldDesc != null)
-            {
-                return fieldDesc.Field.Resolve();
-            }
-
-            var propertyDesc = memberDesc as PropertyDesc;
-            if (propertyDesc != null)
-            {
-                return propertyDesc.Property.Resolve();
-            }
-
-            var methodDesc = memberDesc as MethodDesc;
-            if (methodDesc != null)
-            {
-                return methodDesc.Method.Resolve();
-            }
-
-            var constructorDesc = memberDesc as ConstructorDesc;
-            if (constructorDesc != null)
-            {
-                return constructorDesc.Constructor.Resolve();
-            }
-
             throw new NotSupportedException();
         }
 

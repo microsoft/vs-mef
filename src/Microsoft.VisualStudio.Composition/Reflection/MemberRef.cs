@@ -117,6 +117,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
         }
 
+        public MemberInfo MemberInfo => this.Resolve();
+
         public bool IsEmpty
         {
             get { return this.Constructor.IsEmpty && this.Field.IsEmpty && this.Property.IsEmpty && this.Method.IsEmpty && this.Type == null; }
