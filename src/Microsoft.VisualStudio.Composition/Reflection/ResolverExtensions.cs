@@ -74,15 +74,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 #if RuntimeHandles
             return type.GetRuntimeProperties().First(p => p.MetadataToken == propertyRef.MetadataToken);
 #else
-            foreach (var property in type.GetProperties(AllInstanceMembers))
-            {
-                if (property.Name == propertyRef.Name)
-                {
-                    return property;
-                }
-            }
-
-            return null;
+            return type.GetProperty(propertyRef.Name, AllInstanceMembers);
 #endif
         }
 
