@@ -174,6 +174,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             throw new NotSupportedException();
         }
 
+        [Obsolete("Use " + nameof(MemberRef) + " instead.", error: true)]
         public static MemberInfo Resolve(this MemberDesc memberDesc)
         {
             var fieldDesc = memberDesc as FieldDesc;

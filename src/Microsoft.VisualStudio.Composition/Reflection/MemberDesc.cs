@@ -2,6 +2,9 @@
 
 namespace Microsoft.VisualStudio.Composition.Reflection
 {
+    using System;
+
+    [Obsolete("Use " + nameof(MemberRef) + " instead.", error: true)]
     public abstract class MemberDesc
     {
         protected MemberDesc(string name, bool isStatic)

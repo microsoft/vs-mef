@@ -8,6 +8,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Text;
     using System.Threading.Tasks;
 
+    [Obsolete("Use " + nameof(FieldRef) + " instead.", error: true)]
     public class FieldDesc : MemberDesc
     {
         public FieldDesc(FieldRef fieldRef, TypeDesc fieldType, string name, bool isStatic)
