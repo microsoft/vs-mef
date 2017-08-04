@@ -136,9 +136,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
                     if (v3DiscoveryTest.Passed && (!this.invalidConfiguration || this.compositionVersions.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors)))
                     {
-                        foreach (var configuration in v3DiscoveryTest.ResultingConfigurations)
+                        foreach (var namedConfiguration in v3DiscoveryTest.ResultingConfigurations)
                         {
-                            var runner = new Mef3TestCaseRunner(this, "V3 engine", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, configuration, this.compositionVersions);
+                            string name = "V3 engine";
+                            if (!string.IsNullOrEmpty(namedConfiguration.Description))
+                            {
+                                name += $"({namedConfiguration.Description})";
+                            }
+
+                            var runner = new Mef3TestCaseRunner(this, name, null, constructorArguments, messageBus, aggregator, cancellationTokenSource, namedConfiguration.Configuration, this.compositionVersions);
                             runSummary.Aggregate(await runner.RunAsync());
                         }
                     }

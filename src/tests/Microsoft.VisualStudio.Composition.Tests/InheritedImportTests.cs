@@ -20,11 +20,34 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(derived.ImportingField);
         }
 
+        [MefFact(CompositionEngines.V1Compat)]
+        public void ClosedGenericBaseClassWithImportingFieldSeveralDerivedTypes(IContainer container)
+        {
+            var derived = container.GetExportedValue<DerivedClass>();
+            Assert.NotNull(derived.ImportingField);
+
+            var derived2 = container.GetExportedValue<DerivedClass2>();
+            Assert.NotNull(derived2.ImportingField);
+
+            var derived3 = container.GetExportedValue<DerivedClass3>();
+            Assert.NotNull(derived3.ImportingField);
+        }
+
         [MefV1.Export]
         public class EmptyPart { }
 
         [MefV1.Export]
         public class DerivedClass : BaseClass<object>
+        {
+        }
+
+        [MefV1.Export]
+        public class DerivedClass2 : BaseClass<int>
+        {
+        }
+
+        [MefV1.Export]
+        public class DerivedClass3 : BaseClass<int>
         {
         }
 
