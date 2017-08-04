@@ -52,10 +52,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             var manifest = methodRef.Resolver.GetManifest(methodRef.DeclaringType.AssemblyName);
             var method = manifest.ResolveMethod(methodRef.MetadataToken);
 #else
-            var method = FindMethodByParameters(
-                Resolve(methodRef.DeclaringType).GetTypeInfo().GetMethods(AllInstanceMembers),
-                methodRef.Name,
-                methodRef.ParameterTypes);
+            TypeInfo declaringType = methodRef.DeclaringType.ResolvedType.GetTypeInfo();
+            var candidates = methodRef.Name == ConstructorInfo.ConstructorName
+                ? (MethodBase[])declaringType.GetConstructors(AllInstanceMembers)
+                : declaringType.GetMethods(AllInstanceMembers);
+            var method = FindMethodByParameters(candidates, methodRef.Name, methodRef.ParameterTypes);
 #endif
             if (methodRef.GenericMethodArguments.Length > 0)
             {
