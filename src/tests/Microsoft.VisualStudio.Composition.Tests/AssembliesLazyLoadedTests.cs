@@ -19,6 +19,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using Xunit;
 
     [Trait("Efficiency", "LazyLoad")]
+    [Trait("AppDomains", "true")]
     public abstract class AssembliesLazyLoadedTests : IDisposable
     {
         private ICompositionCacheManager cacheManager;
@@ -42,7 +43,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
         /// </summary>
         [SkippableFact]
-        [Trait("AppDomains", "true")]
         public async Task ComposableAssembliesLazyLoadedWhenQueried()
         {
             SkipOnMono();
@@ -95,7 +95,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
         /// </summary>
         [SkippableFact]
-        [Trait("AppDomains", "true")]
         public async Task ComposableAssembliesLazyLoadedByLazyImport()
         {
             SkipOnMono();
@@ -124,7 +123,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// their metadata is actually retrieved.
         /// </summary>
         [SkippableFact]
-        [Trait("AppDomains", "true")]
         public async Task ComposableAssembliesLazyLoadedByLazyMetadataDictionary()
         {
             SkipOnMono();
@@ -153,7 +151,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// their metadata is actually retrieved.
         /// </summary>
         [SkippableFact]
-        [Trait("AppDomains", "true")]
         public async Task ComposableAssembliesLazyLoadedByLazyTMetadata()
         {
             SkipOnMono();
@@ -182,7 +179,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// defines a type used as a generic type argument elsewhere.
         /// </summary>
         [SkippableFact]
-        [Trait("AppDomains", "true")]
         public async Task ComposableAssembliesLazyLoadedWithGenericTypeArg()
         {
             SkipOnMono();
@@ -211,7 +207,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// are actually required by some import.
         /// </summary>
         [SkippableFact]
-        [Trait("AppDomains", "true")]
         public async Task ComposableAssembliesLazyLoadedWhenCustomMetadataIsRequired()
         {
             SkipOnMono();

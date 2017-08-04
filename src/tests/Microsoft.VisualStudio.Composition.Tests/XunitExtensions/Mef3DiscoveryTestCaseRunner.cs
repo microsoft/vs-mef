@@ -17,6 +17,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using Xunit.Abstractions;
     using Xunit.Sdk;
 
+// StyleCop.Analyzers 1.x doesn't support tuple literals
+#pragma warning disable SA1009 // Closing parenthesis must be spaced correctly
+
     public class Mef3DiscoveryTestCaseRunner : XunitTestCaseRunner
     {
         private readonly CompositionEngines compositionVersions;
@@ -37,7 +40,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             this.expectInvalidConfiguration = expectInvalidConfiguration;
         }
 
-        public IReadOnlyList<CompositionConfiguration> ResultingConfigurations { get; set; }
+        public IReadOnlyList<(CompositionConfiguration Configuration, string Description)> ResultingConfigurations { get; set; }
 
         public bool Passed { get; private set; }
 
@@ -100,7 +103,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     }
 
                     // For each distinct catalog, create one configuration and verify it meets expectations.
-                    var configurations = new List<CompositionConfiguration>(uniqueCatalogs.Length);
+                    var configurations = new List<(CompositionConfiguration, string)>(2 * uniqueCatalogs.Length);
                     foreach (var uniqueCatalog in uniqueCatalogs)
                     {
                         var catalogWithSupport = uniqueCatalog
@@ -120,7 +123,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                         }
 
                         // Save the configuration in a property so that the engine test that follows can reuse the work we've done.
-                        configurations.Add(configuration);
+                        configurations.Add((configuration, string.Empty));
                     }
 
                     this.ResultingConfigurations = configurations;
