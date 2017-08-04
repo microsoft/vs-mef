@@ -9,14 +9,18 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
 
     [DebuggerDisplay("{" + nameof(ResolvedType) + ".FullName,nq}")]
     public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
     {
         private static readonly IEqualityComparer<AssemblyName> AssemblyNameComparer = ByValueEquality.AssemblyNameNoFastCheck;
         private readonly Resolver resolver;
+
+        /// <summary>
+        /// The metadata token for this member if read from a persisted assembly.
+        /// We do not store metadata tokens for members in dynamic assemblies because they can change till the Type is closed.
+        /// </summary>
+        private readonly int? metadataToken;
 
         /// <summary>
         /// Backing field for the lazily initialized <see cref="ResolvedType"/> property.
@@ -35,9 +39,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             string fullName,
             bool isArray,
             int genericTypeParameterCount,
-            ImmutableArray<TypeRef> genericTypeArguments,
-            MemberRef declaringMember,
-            int declaringMethodParameterIndex)
+            ImmutableArray<TypeRef> genericTypeArguments)
         {
             Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(assemblyName, nameof(assemblyName));
@@ -47,44 +49,54 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             this.resolver = resolver;
             this.AssemblyName = GetNormalizedAssemblyName(assemblyName);
-            this.MetadataToken = metadataToken;
+            this.metadataToken = metadataToken;
             this.FullName = fullName;
             this.IsArray = isArray;
             this.GenericTypeParameterCount = genericTypeParameterCount;
             this.GenericTypeArguments = genericTypeArguments;
-            this.GenericParameterDeclaringMemberRef = declaringMember;
-            this.GenericParameterDeclaringMemberIndex = declaringMethodParameterIndex;
         }
 
-        private TypeRef(Resolver resolver, Type type)
+        private TypeRef(Resolver resolver, Type type, AssemblyName assemblyName = null)
         {
             Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(type, nameof(type));
 
             this.resolver = resolver;
-            this.AssemblyName = GetNormalizedAssemblyName(type.GetTypeInfo().Assembly.GetName());
+            this.resolvedType = type;
+            this.AssemblyName = assemblyName ?? GetNormalizedAssemblyName(type.GetTypeInfo().Assembly.GetName());
             this.IsArray = type.IsArray;
 
-            Type elementType = type.IsArray ? type.GetElementType() : type;
-            this.MetadataToken = elementType.GetTypeInfo().MetadataToken;
+            Type elementType = this.ElementType;
+            Requires.Argument(!elementType.IsGenericParameter, nameof(type), "Generic parameters are not supported.");
             this.FullName = (elementType.GetTypeInfo().IsGenericType ? elementType.GetGenericTypeDefinition() : elementType).FullName;
             this.GenericTypeParameterCount = elementType.GetTypeInfo().GenericTypeParameters.Length;
             this.GenericTypeArguments = elementType.GenericTypeArguments != null && elementType.GenericTypeArguments.Length > 0
                 ? elementType.GenericTypeArguments.Select(t => new TypeRef(resolver, t)).ToImmutableArray()
                 : ImmutableArray<TypeRef>.Empty;
-
-            if (elementType.IsGenericParameter)
-            {
-                // Generic type parameters may come in without be type specs. So the only way to reconstruct them is by way of who references them.
-                var declaringMember = (MemberInfo)elementType.GetTypeInfo().DeclaringMethod ?? elementType.DeclaringType.GetTypeInfo();
-                this.GenericParameterDeclaringMemberRef = MemberRef.Get(declaringMember, resolver);
-                this.GenericParameterDeclaringMemberIndex = Array.IndexOf(GetGenericTypeArguments(declaringMember), elementType);
-            }
         }
 
         public AssemblyName AssemblyName { get; private set; }
 
-        public int MetadataToken { get; private set; }
+        public int MetadataToken
+        {
+            get
+            {
+                if (this.metadataToken.HasValue)
+                {
+                    return this.metadataToken.Value;
+                }
+
+#if DESKTOP
+                // Avoid calling TypeInfo.MetadataToken on TypeBuilders because they throw exceptions
+                if (this.ElementType is System.Reflection.Emit.TypeBuilder tb)
+                {
+                    return tb.TypeToken.Token;
+                }
+#endif
+
+                return this.ElementType.GetTypeInfo().MetadataToken;
+            }
+        }
 
         /// <summary>
         /// Gets the full name of the type represented by this instance.
@@ -97,10 +109,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         public int GenericTypeParameterCount { get; private set; }
 
         public ImmutableArray<TypeRef> GenericTypeArguments { get; private set; }
-
-        public MemberRef GenericParameterDeclaringMemberRef { get; private set; }
-
-        public int GenericParameterDeclaringMemberIndex { get; private set; }
 
         public bool IsGenericTypeDefinition
         {
@@ -119,31 +127,22 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 if (this.resolvedType == null)
                 {
                     Type type;
-                    if (((MetadataTokenType)this.MetadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type)
-                    {
-                        var manifest = this.Resolver.GetManifest(this.AssemblyName);
+                    var manifest = this.Resolver.GetManifest(this.AssemblyName);
 #if RuntimeHandles
-                        var resolvedType = manifest.ResolveType(this.MetadataToken);
+                    var resolvedType = manifest.ResolveType(this.MetadataToken);
 #else
-                        var resolvedType = manifest.GetType(this.FullName);
+                    var resolvedType = manifest.GetType(this.FullName);
 #endif
-                        if (this.GenericTypeArguments.Length > 0)
+                    if (this.GenericTypeArguments.Length > 0)
+                    {
+                        using (var genericTypeArguments = GetResolvedTypeArray(this.GenericTypeArguments))
                         {
-                            using (var genericTypeArguments = GetResolvedTypeArray(this.GenericTypeArguments))
-                            {
-                                type = resolvedType.MakeGenericType(genericTypeArguments.Value);
-                            }
-                        }
-                        else
-                        {
-                            type = resolvedType;
+                            type = resolvedType.MakeGenericType(genericTypeArguments.Value);
                         }
                     }
                     else
                     {
-                        MemberInfo declaringMember = this.GenericParameterDeclaringMemberRef.MemberInfo;
-                        Type[] genericTypeArgs = GetGenericTypeArguments(declaringMember);
-                        type = genericTypeArgs[this.GenericParameterDeclaringMemberIndex];
+                        type = resolvedType;
                     }
 
                     if (this.IsArray)
@@ -159,14 +158,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
         }
 
+        private Type ElementType => this.IsArray ? this.ResolvedType.GetElementType() : this.ResolvedType;
+
         public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
-            return new TypeRef(resolver, assemblyName, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments, default(MemberRef), 0);
-        }
-
-        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = 0)
-        {
-            return new TypeRef(resolver, assemblyName, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments, declaringMember, declaringMethodParameterIndex);
+            return new TypeRef(resolver, assemblyName, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments);
         }
 
         /// <summary>
@@ -175,7 +171,16 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// <param name="type">The Type to represent. May be <c>null</c> to get a <c>null</c> result.</param>
         /// <param name="resolver">The resolver to use to reconstitute <paramref name="type"/> or derivatives later.</param>
         /// <returns>An instance of TypeRef if <paramref name="type"/> is not <c>null</c>; otherwise <c>null</c>.</returns>
-        public static TypeRef Get(Type type, Resolver resolver)
+        public static TypeRef Get(Type type, Resolver resolver) => Get(type, resolver, null);
+
+        /// <summary>
+        /// Gets a TypeRef that represents a given Type instance.
+        /// </summary>
+        /// <param name="type">The Type to represent. May be <c>null</c> to get a <c>null</c> result.</param>
+        /// <param name="resolver">The resolver to use to reconstitute <paramref name="type"/> or derivatives later.</param>
+        /// <param name="assemblyName">An optional assembly name to consider that created the Type.</param>
+        /// <returns>An instance of TypeRef if <paramref name="type"/> is not <c>null</c>; otherwise <c>null</c>.</returns>
+        internal static TypeRef Get(Type type, Resolver resolver, AssemblyName assemblyName)
         {
             Requires.NotNull(resolver, nameof(resolver));
 
@@ -190,14 +195,14 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 WeakReference<TypeRef> weakResult;
                 if (!resolver.InstanceCache.TryGetValue(type, out weakResult))
                 {
-                    result = new TypeRef(resolver, type);
+                    result = new TypeRef(resolver, type, assemblyName);
                     resolver.InstanceCache.Add(type, new WeakReference<TypeRef>(result));
                 }
                 else
                 {
                     if (!weakResult.TryGetTarget(out result))
                     {
-                        result = new TypeRef(resolver, type);
+                        result = new TypeRef(resolver, type, assemblyName);
                         weakResult.SetTarget(result);
                     }
                 }
@@ -231,14 +236,16 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             // We use the resolver parameter instead of the field here because this TypeRef instance
             // might have been constructed by TypeRef.Get(Type) and thus not have a resolver.
-            return new TypeRef(this.Resolver, this.AssemblyName, this.MetadataToken, this.FullName, this.IsArray, this.GenericTypeParameterCount, genericTypeArguments, default(MemberRef), 0);
+            return new TypeRef(this.Resolver, this.AssemblyName, this.MetadataToken, this.FullName, this.IsArray, this.GenericTypeParameterCount, genericTypeArguments);
         }
 
         public override int GetHashCode()
         {
             if (!this.hashCode.HasValue)
             {
-                this.hashCode = AssemblyNameComparer.GetHashCode(this.AssemblyName) + this.MetadataToken;
+                int hashCode = AssemblyNameComparer.GetHashCode(this.AssemblyName);
+                hashCode += this.FullName.GetHashCode();
+                this.hashCode = hashCode;
             }
 
             return this.hashCode.Value;
@@ -251,15 +258,26 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public bool Equals(TypeRef other)
         {
-            // If we ever stop comparing metadata tokens,
-            // we would need to compare the other properties that describe this member.
-            bool result = this.MetadataToken == other.MetadataToken
-                && AssemblyNameComparer.Equals(this.AssemblyName, other.AssemblyName)
+            if (this.resolvedType != null && other.resolvedType != null)
+            {
+                return this.resolvedType.IsEquivalentTo(other.resolvedType);
+            }
+            else if (this.metadataToken.HasValue && other.metadataToken.HasValue)
+            {
+                if (this.metadataToken.Value != other.metadataToken.Value)
+                {
+                    return false;
+                }
+            }
+            else if (this.FullName != other.FullName)
+            {
+                return false;
+            }
+
+            bool result = AssemblyNameComparer.Equals(this.AssemblyName, other.AssemblyName)
                 && this.IsArray == other.IsArray
                 && this.GenericTypeParameterCount == other.GenericTypeParameterCount
-                && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments)
-                && this.GenericParameterDeclaringMemberRef.Equals(other.GenericParameterDeclaringMemberRef)
-                && this.GenericParameterDeclaringMemberIndex == other.GenericParameterDeclaringMemberIndex;
+                && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments);
             return result;
         }
 
@@ -306,7 +324,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             AssemblyName normalizedAssemblyName = assemblyName;
 #if NET45
-            if (assemblyName.CodeBase.IndexOf('~') >= 0)
+            if (assemblyName.CodeBase != null && assemblyName.CodeBase.IndexOf('~') >= 0)
             {
                 // Using ToString() rather than AbsoluteUri here to match the CLR's AssemblyName.CodeBase convention of paths without %20 space characters.
                 string normalizedCodeBase = new Uri(Path.GetFullPath(new Uri(assemblyName.CodeBase).LocalPath)).ToString();

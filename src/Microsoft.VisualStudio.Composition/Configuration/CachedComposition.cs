@@ -196,7 +196,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 using (this.Trace("RuntimePart"))
                 {
-                    ConstructorRef importingCtor = default(ConstructorRef);
+                    MethodRef importingCtor = default(MethodRef);
                     IReadOnlyList<RuntimeComposition.RuntimeImport> importingCtorArguments = ImmutableList<RuntimeComposition.RuntimeImport>.Empty;
 
                     var type = this.ReadTypeRef();
@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.Composition
                     bool hasCtor = this.reader.ReadBoolean();
                     if (hasCtor)
                     {
-                        importingCtor = this.ReadConstructorRef();
+                        importingCtor = this.ReadMethodRef();
                         importingCtorArguments = this.ReadList(this.reader, this.ReadRuntimeImport);
                     }
 

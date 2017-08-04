@@ -192,7 +192,7 @@ namespace Microsoft.VisualStudio.Composition
                                     group kv.Value by kv.Key into byMember
                                     select byMember).ToDictionary(g => MemberRef.Get(g.Key, this.Resolver), g => (IReadOnlyCollection<ExportDefinition>)g.ToArray());
 
-            var assemblyNamesForMetadataAttributes = ImmutableHashSet.CreateBuilder<AssemblyName>(ByValueEquality.AssemblyName);
+            var assemblyNamesForMetadataAttributes = ImmutableHashSet.CreateBuilder<AssemblyName>();
             foreach (var export in exportsByMember)
             {
                 GetAssemblyNamesFromMetadataAttributes<MetadataAttributeAttribute>(export.Key, assemblyNamesForMetadataAttributes);
@@ -206,7 +206,7 @@ namespace Microsoft.VisualStudio.Composition
                 imports.ToImmutable(),
                 partCreationPolicy != CreationPolicy.NonShared ? string.Empty : null,
                 MethodRef.Get(onImportsSatisfied, this.Resolver),
-                ConstructorRef.Get(importingCtor, this.Resolver),
+                MethodRef.Get(importingCtor, this.Resolver),
                 importingCtor != null ? importingConstructorParameters.ToImmutable() : null, // some MEF parts are only for metadata
                 partCreationPolicy,
                 assemblyNamesForMetadataAttributes,
@@ -224,10 +224,16 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (!member.IsStatic())
                 {
-                    ImportDefinition importDefinition;
-                    if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, out importDefinition))
+                    if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, out ImportDefinition importDefinition))
                     {
-                        imports.Add(new ImportDefinitionBinding(importDefinition, partTypeRef, MemberRef.Get(member, this.Resolver)));
+                        Type importingSiteType = ReflectionHelpers.GetMemberType(member);
+                        var importDefinitionBinding = new ImportDefinitionBinding(
+                            importDefinition,
+                            partTypeRef,
+                            MemberRef.Get(member, this.Resolver),
+                            TypeRef.Get(importingSiteType, this.Resolver),
+                            TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, importingSiteType), this.Resolver));
+                        imports.Add(importDefinitionBinding);
                     }
                 }
             }
@@ -321,9 +327,13 @@ namespace Microsoft.VisualStudio.Composition
 
         private ImportDefinitionBinding CreateImport(ParameterInfo parameter)
         {
-            ImportDefinition definition;
-            Assumes.True(this.TryCreateImportDefinition(parameter.ParameterType, parameter, out definition));
-            return new ImportDefinitionBinding(definition, TypeRef.Get(parameter.Member.DeclaringType, this.Resolver), ParameterRef.Get(parameter, this.Resolver));
+            Assumes.True(this.TryCreateImportDefinition(parameter.ParameterType, parameter, out ImportDefinition importDefinition));
+            return new ImportDefinitionBinding(
+                importDefinition,
+                TypeRef.Get(parameter.Member.DeclaringType, this.Resolver),
+                ParameterRef.Get(parameter, this.Resolver),
+                TypeRef.Get(parameter.ParameterType, this.Resolver),
+                TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, parameter.ParameterType), this.Resolver));
         }
 
         private static IReadOnlyDictionary<string, object> GetExportMetadata(MemberInfo member)

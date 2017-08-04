@@ -19,34 +19,50 @@ namespace Microsoft.VisualStudio.Composition
 
         private Type importingSiteElementType;
 
-        private TypeRef importingSiteTypeRef;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
         /// to represent an importing member.
         /// </summary>
-        public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef composablePartType, MemberRef importingMember)
+        public ImportDefinitionBinding(
+            ImportDefinition importDefinition,
+            TypeRef composablePartType,
+            MemberRef importingMember,
+            TypeRef importingSiteTypeRef,
+            TypeRef importingSiteTypeWithoutCollectionRef)
         {
             Requires.NotNull(importDefinition, nameof(importDefinition));
             Requires.NotNull(composablePartType, nameof(composablePartType));
+            Requires.NotNull(importingSiteTypeRef, nameof(importingSiteTypeRef));
+            Requires.NotNull(importingSiteTypeWithoutCollectionRef, nameof(importingSiteTypeWithoutCollectionRef));
 
             this.ImportDefinition = importDefinition;
             this.ComposablePartTypeRef = composablePartType;
             this.ImportingMemberRef = importingMember;
+            this.ImportingSiteTypeRef = importingSiteTypeRef;
+            this.ImportingSiteTypeWithoutCollectionRef = importingSiteTypeWithoutCollectionRef;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
         /// to represent a parameter in an importing constructor.
         /// </summary>
-        public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef composablePartType, ParameterRef importingConstructorParameter)
+        public ImportDefinitionBinding(
+            ImportDefinition importDefinition,
+            TypeRef composablePartType,
+            ParameterRef importingConstructorParameter,
+            TypeRef importingSiteTypeRef,
+            TypeRef importingSiteTypeWithoutCollectionRef)
         {
             Requires.NotNull(importDefinition, nameof(importDefinition));
             Requires.NotNull(composablePartType, nameof(composablePartType));
+            Requires.NotNull(importingSiteTypeRef, nameof(importingSiteTypeRef));
+            Requires.NotNull(importingSiteTypeWithoutCollectionRef, nameof(importingSiteTypeWithoutCollectionRef));
 
             this.ImportDefinition = importDefinition;
             this.ComposablePartTypeRef = composablePartType;
             this.ImportingParameterRef = importingConstructorParameter;
+            this.ImportingSiteTypeRef = importingSiteTypeRef;
+            this.ImportingSiteTypeWithoutCollectionRef = importingSiteTypeWithoutCollectionRef;
         }
 
         /// <summary>
@@ -59,7 +75,7 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public MemberInfo ImportingMember
         {
-            get { return this.ImportingMemberRef.MemberInfo; }
+            get { return this.ImportingMemberRef.Resolve(); }
         }
 
         /// <summary>
@@ -96,44 +112,11 @@ namespace Microsoft.VisualStudio.Composition
         /// This includes any Lazy, ExportFactory or collection wrappers.
         /// </summary>
         /// <value>Never null.</value>
-        public TypeRef ImportingSiteTypeRef
-        {
-            get
-            {
-                if (this.importingSiteTypeRef == null)
-                {
-                    if (!this.ImportingMemberRef.IsEmpty)
-                    {
-                        this.importingSiteTypeRef = TypeRef.Get(ReflectionHelpers.GetMemberType(this.ImportingMemberRef.MemberInfo), this.ImportingMemberRef.Resolver);
-                    }
-                    else if (!this.ImportingParameterRef.IsEmpty)
-                    {
-                        this.importingSiteTypeRef = TypeRef.Get(this.ImportingParameterRef.Resolve().ParameterType, this.ImportingParameterRef.Resolver);
-                    }
-                    else
-                    {
-                        throw Assumes.NotReachable();
-                    }
-                }
+        public TypeRef ImportingSiteTypeRef { get; }
 
-                return this.importingSiteTypeRef;
-            }
-        }
+        public Type ImportingSiteTypeWithoutCollection => this.ImportingSiteTypeWithoutCollectionRef?.ResolvedType;
 
-        public Type ImportingSiteTypeWithoutCollection
-        {
-            get
-            {
-                if (this.importingSiteTypeWithoutCollection == null)
-                {
-                    this.importingSiteTypeWithoutCollection = this.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore
-                        ? PartDiscovery.GetElementTypeFromMany(this.ImportingSiteType)
-                        : this.ImportingSiteType;
-                }
-
-                return this.importingSiteTypeWithoutCollection;
-            }
-        }
+        public TypeRef ImportingSiteTypeWithoutCollectionRef { get; }
 
         /// <summary>
         /// Gets the type of the member, with the ImportMany collection and Lazy/ExportFactory stripped off, when present.
@@ -183,7 +166,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public bool IsExportFactory
         {
-            get { return this.ImportingSiteTypeWithoutCollection.IsExportFactoryType(); }
+            get { return this.ImportingSiteTypeWithoutCollectionRef.IsExportFactoryType(); }
         }
 
         public Type ExportFactoryType

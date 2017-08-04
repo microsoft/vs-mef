@@ -225,6 +225,16 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+        protected static Type GetImportingSiteTypeWithoutCollection(ImportDefinition importDefinition, Type importingSiteType)
+        {
+            Requires.NotNull(importDefinition, nameof(importDefinition));
+            Requires.NotNull(importingSiteType, nameof(importingSiteType));
+
+            return importDefinition.Cardinality == ImportCardinality.ZeroOrMore
+                ? GetElementTypeFromMany(importingSiteType)
+                : importingSiteType;
+        }
+
         protected static ConstructorInfo GetImportingConstructor<TImportingConstructorAttribute>(Type type, bool publicOnly)
             where TImportingConstructorAttribute : Attribute
         {

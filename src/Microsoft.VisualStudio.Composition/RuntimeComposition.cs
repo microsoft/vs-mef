@@ -164,16 +164,13 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(part, nameof(part));
 
-            var partDefinitionType = part.Definition.Type;
-            var importingConstructor = part.Definition.ImportingConstructorInfo;
-            var onImportsSatisfied = part.Definition.OnImportsSatisfied;
             var runtimePart = new RuntimePart(
-                TypeRef.Get(partDefinitionType, part.Resolver),
-                importingConstructor != null ? new ConstructorRef(importingConstructor, part.Resolver) : default(ConstructorRef),
+                part.Definition.TypeRef,
+                part.Definition.ImportingConstructorOrFactoryRef,
                 part.GetImportingConstructorImports().Select(kvp => CreateRuntimeImport(kvp.Key, kvp.Value, part.Resolver)).ToImmutableArray(),
                 part.Definition.ImportingMembers.Select(idb => CreateRuntimeImport(idb, part.SatisfyingExports[idb], part.Resolver)).ToImmutableArray(),
-                part.Definition.ExportDefinitions.Select(ed => CreateRuntimeExport(ed.Value, partDefinitionType, ed.Key, part.Resolver)).ToImmutableArray(),
-                onImportsSatisfied != null ? new MethodRef(onImportsSatisfied, part.Resolver) : default(MethodRef),
+                part.Definition.ExportDefinitions.Select(ed => CreateRuntimeExport(ed.Value, part.Definition.Type, ed.Key, part.Resolver)).ToImmutableArray(),
+                part.Definition.OnImportsSatisfiedRef,
                 part.Definition.IsShared ? configuration.GetEffectiveSharingBoundary(part.Definition) : null);
             return runtimePart;
         }
@@ -214,7 +211,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
-            var exportingMember = exportingMemberRef.MemberInfo;
+            var exportingMember = exportingMemberRef.Resolve();
             return new RuntimeExport(
                 exportDefinition.ContractName,
                 TypeRef.Get(partType, resolver),
@@ -239,12 +236,11 @@ namespace Microsoft.VisualStudio.Composition
         [DebuggerDisplay("{" + nameof(RuntimePart.TypeRef) + "." + nameof(Reflection.TypeRef.ResolvedType) + ".FullName,nq}")]
         public class RuntimePart : IEquatable<RuntimePart>
         {
-            private ConstructorInfo importingConstructor;
             private MethodInfo onImportsSatisfied;
 
             public RuntimePart(
                 TypeRef type,
-                ConstructorRef importingConstructor,
+                MethodRef importingConstructor,
                 IReadOnlyList<RuntimeImport> importingConstructorArguments,
                 IReadOnlyList<RuntimeImport> importingMembers,
                 IReadOnlyList<RuntimeExport> exports,
@@ -262,7 +258,7 @@ namespace Microsoft.VisualStudio.Composition
 
             public TypeRef TypeRef { get; private set; }
 
-            public ConstructorRef ImportingConstructorRef { get; private set; }
+            public MethodRef ImportingConstructorRef { get; private set; }
 
             public IReadOnlyList<RuntimeImport> ImportingConstructorArguments { get; private set; }
 
@@ -284,31 +280,9 @@ namespace Microsoft.VisualStudio.Composition
                 get { return !this.ImportingConstructorRef.IsEmpty; }
             }
 
-            public ConstructorInfo ImportingConstructor
-            {
-                get
-                {
-                    if (this.importingConstructor == null)
-                    {
-                        this.importingConstructor = this.ImportingConstructorRef.ConstructorInfo;
-                    }
+            public MethodBase ImportingConstructor => this.ImportingConstructorRef.MethodBase;
 
-                    return this.importingConstructor;
-                }
-            }
-
-            public MethodInfo OnImportsSatisfied
-            {
-                get
-                {
-                    if (this.onImportsSatisfied == null)
-                    {
-                        this.onImportsSatisfied = this.OnImportsSatisfiedRef.MethodBase as MethodInfo;
-                    }
-
-                    return this.onImportsSatisfied;
-                }
-            }
+            public MethodInfo OnImportsSatisfied => (MethodInfo)this.OnImportsSatisfiedRef.MethodBase;
 
             public override bool Equals(object obj)
             {
@@ -420,7 +394,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     if (this.importingMember == null)
                     {
-                        this.importingMember = this.ImportingMemberRef.MemberInfo;
+                        this.importingMember = this.ImportingMemberRef.Resolve();
                     }
 
                     return this.importingMember;
@@ -598,7 +572,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     if (this.member == null)
                     {
-                        this.member = this.MemberRef.MemberInfo;
+                        this.member = this.MemberRef.Resolve();
                     }
 
                     return this.member;
