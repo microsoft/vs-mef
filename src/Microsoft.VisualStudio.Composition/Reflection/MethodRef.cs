@@ -14,13 +14,25 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
     public struct MethodRef : IEquatable<MethodRef>
     {
+        /// <summary>
+        /// The metadata token for this member if read from a persisted assembly.
+        /// We do not store metadata tokens for members in dynamic assemblies because they can change till the Type is closed.
+        /// </summary>
+        private readonly int? metadataToken;
+
+        /// <summary>
+        /// The <see cref="MemberInfo"/> that this value was instantiated with,
+        /// or cached later when a metadata token was resolved.
+        /// </summary>
+        private MethodBase methodBase;
+
         public MethodRef(TypeRef declaringType, int metadataToken, string name, ImmutableArray<TypeRef> parameterTypes, ImmutableArray<TypeRef> genericMethodArguments)
-            : this()
+               : this()
         {
             Requires.NotNullOrEmpty(name, nameof(name));
 
             this.DeclaringType = declaringType;
-            this.MetadataToken = metadataToken;
+            this.metadataToken = metadataToken;
             this.ParameterTypes = parameterTypes;
             this.Name = name;
             this.GenericMethodArguments = genericMethodArguments;
@@ -40,13 +52,58 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 #endif
 
         public MethodRef(MethodInfo method, Resolver resolver)
-            : this(TypeRef.Get(method.DeclaringType, resolver), method.MetadataToken, method.Name, method.GetParameterTypes(resolver), method.GetGenericTypeArguments(resolver))
+            : this((MethodBase)method, resolver)
         {
+        }
+
+        public MethodRef(MethodBase method, Resolver resolver)
+            : this(method, resolver, Requires.NotNull(method, nameof(method)).GetParameterTypes(resolver))
+        {
+        }
+
+        public MethodRef(MethodBase method, Resolver resolver, ImmutableArray<TypeRef> parameterTypes)
+            : this()
+        {
+            Requires.NotNull(method, nameof(method));
+            Requires.NotNull(resolver, nameof(resolver));
+
+            this.DeclaringType = TypeRef.Get(method.DeclaringType, resolver);
+            this.ParameterTypes = parameterTypes;
+            this.Name = method.Name;
+            this.GenericMethodArguments = method.GetGenericTypeArguments(resolver);
+            this.methodBase = method;
+        }
+
+        public MethodRef(ConstructorRef constructor)
+            : this(constructor.DeclaringType, constructor.MetadataToken, ConstructorInfo.ConstructorName, constructor.ParameterTypes, ImmutableArray<TypeRef>.Empty)
+        {
+            this.methodBase = constructor.ConstructorInfoNoResolve;
         }
 
         public TypeRef DeclaringType { get; private set; }
 
-        public int MetadataToken { get; private set; }
+        public int MetadataToken
+        {
+            get
+            {
+                if (this.metadataToken.HasValue)
+                {
+                    return this.metadataToken.Value;
+                }
+
+#if DESKTOP
+                // Avoid calling MemberInfo.MetadataToken on MethodBuilders because they throw exceptions
+                if (this.methodBase is System.Reflection.Emit.MethodBuilder mb)
+                {
+                    return mb.GetToken().Token;
+                }
+#endif
+
+                return this.methodBase.MetadataToken;
+            }
+        }
+
+        public MethodBase MethodBase => this.methodBase ?? (this.methodBase = this.Resolve2());
 
         public string Name { get; private set; }
 
@@ -61,10 +118,9 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         internal Resolver Resolver => this.DeclaringType?.Resolver;
 
-        public static MethodRef Get(MethodInfo method, Resolver resolver)
-        {
-            return method != null ? new MethodRef(method, resolver) : default(MethodRef);
-        }
+        public static MethodRef Get(MethodInfo method, Resolver resolver) => Get((MethodBase)method, resolver);
+
+        public static MethodRef Get(MethodBase method, Resolver resolver) => method != null ? new MethodRef(method, resolver) : default(MethodRef);
 
         public bool Equals(MethodRef other)
         {
@@ -78,16 +134,40 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 return true;
             }
 
-            // If we ever stop comparing metadata tokens,
-            // we would need to compare the other properties that describe this member.
-            return EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType)
-                && this.MetadataToken == other.MetadataToken
-                && this.GenericMethodArguments.EqualsByValue(other.GenericMethodArguments);
+            if (this.methodBase != null && other.methodBase != null)
+            {
+                if (this.methodBase == other.methodBase)
+                {
+                    return true;
+                }
+            }
+
+            if (!EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType))
+            {
+                return false;
+            }
+
+            if (this.metadataToken.HasValue && other.metadataToken.HasValue)
+            {
+                if (this.metadataToken.Value != other.metadataToken.Value)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if (this.Name != other.Name || !this.ParameterTypes.EqualsByValue(other.ParameterTypes))
+                {
+                    return false;
+                }
+            }
+
+            return this.GenericMethodArguments.EqualsByValue(other.GenericMethodArguments);
         }
 
         public override int GetHashCode()
         {
-            return this.MetadataToken;
+            return this.DeclaringType.GetHashCode() + this.Name.GetHashCode();
         }
 
         public override bool Equals(object obj)

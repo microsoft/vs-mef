@@ -1,14 +1,24 @@
+Microsoft.VisualStudio.Composition.Reflection.ConstructorRef.ConstructorInfo.get -> System.Reflection.ConstructorInfo
 Microsoft.VisualStudio.Composition.Reflection.ConstructorRef.ConstructorRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef declaringType, int metadataToken, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> parameterTypes) -> void
 Microsoft.VisualStudio.Composition.Reflection.ConstructorRef.ParameterTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef>
+Microsoft.VisualStudio.Composition.Reflection.FieldRef.FieldInfo.get -> System.Reflection.FieldInfo
 Microsoft.VisualStudio.Composition.Reflection.FieldRef.FieldRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef declaringType, int metadataToken, string name) -> void
 Microsoft.VisualStudio.Composition.Reflection.FieldRef.Name.get -> string
+Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberInfo.get -> System.Reflection.MemberInfo
+Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodBase.get -> System.Reflection.MethodBase
+Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodRef(Microsoft.VisualStudio.Composition.Reflection.ConstructorRef constructor) -> void
 Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef declaringType, int metadataToken, string name, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> parameterTypes, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> genericMethodArguments) -> void
+Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodRef(System.Reflection.MethodBase method, Microsoft.VisualStudio.Composition.Resolver resolver) -> void
+Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodRef(System.Reflection.MethodBase method, Microsoft.VisualStudio.Composition.Resolver resolver, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> parameterTypes) -> void
 Microsoft.VisualStudio.Composition.Reflection.MethodRef.Name.get -> string
 Microsoft.VisualStudio.Composition.Reflection.MethodRef.ParameterTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef>
 Microsoft.VisualStudio.Composition.Reflection.ParameterRef.Constructor.get -> Microsoft.VisualStudio.Composition.Reflection.ConstructorRef
 Microsoft.VisualStudio.Composition.Reflection.ParameterRef.Method.get -> Microsoft.VisualStudio.Composition.Reflection.MethodRef
 Microsoft.VisualStudio.Composition.Reflection.PropertyRef.Name.get -> string
+Microsoft.VisualStudio.Composition.Reflection.PropertyRef.PropertyInfo.get -> System.Reflection.PropertyInfo
 Microsoft.VisualStudio.Composition.Reflection.PropertyRef.PropertyRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef declaringType, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken, string name) -> void
 Microsoft.VisualStudio.Composition.Reflection.TypeRef.FullName.get -> string
+static Microsoft.VisualStudio.Composition.Reflection.MethodRef.Get(System.Reflection.MethodBase method, Microsoft.VisualStudio.Composition.Resolver resolver) -> Microsoft.VisualStudio.Composition.Reflection.MethodRef
+static Microsoft.VisualStudio.Composition.Reflection.ResolverExtensions.Resolve2(this Microsoft.VisualStudio.Composition.Reflection.MethodRef methodRef) -> System.Reflection.MethodBase
 static Microsoft.VisualStudio.Composition.Reflection.TypeRef.Get(Microsoft.VisualStudio.Composition.Resolver resolver, System.Reflection.AssemblyName assemblyName, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> genericTypeArguments) -> Microsoft.VisualStudio.Composition.Reflection.TypeRef
 static Microsoft.VisualStudio.Composition.Reflection.TypeRef.Get(Microsoft.VisualStudio.Composition.Resolver resolver, System.Reflection.AssemblyName assemblyName, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> genericTypeArguments, Microsoft.VisualStudio.Composition.Reflection.MemberRef declaringMember, int declaringMethodParameterIndex = 0) -> Microsoft.VisualStudio.Composition.Reflection.TypeRef

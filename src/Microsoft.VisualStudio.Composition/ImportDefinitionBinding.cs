@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public MemberInfo ImportingMember
         {
-            get { return this.ImportingMemberRef.Resolve(); }
+            get { return this.ImportingMemberRef.MemberInfo; }
         }
 
         /// <summary>
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     if (!this.ImportingMemberRef.IsEmpty)
                     {
-                        this.importingSiteTypeRef = TypeRef.Get(ReflectionHelpers.GetMemberType(this.ImportingMemberRef.Resolve()), this.ImportingMemberRef.Resolver);
+                        this.importingSiteTypeRef = TypeRef.Get(ReflectionHelpers.GetMemberType(this.ImportingMemberRef.MemberInfo), this.ImportingMemberRef.Resolver);
                     }
                     else if (!this.ImportingParameterRef.IsEmpty)
                     {

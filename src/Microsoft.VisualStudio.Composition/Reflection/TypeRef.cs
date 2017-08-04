@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                     }
                     else
                     {
-                        MemberInfo declaringMember = this.GenericParameterDeclaringMemberRef.Resolve();
+                        MemberInfo declaringMember = this.GenericParameterDeclaringMemberRef.MemberInfo;
                         Type[] genericTypeArgs = GetGenericTypeArguments(declaringMember);
                         type = genericTypeArgs[this.GenericParameterDeclaringMemberIndex];
                     }
