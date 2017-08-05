@@ -15,8 +15,6 @@ namespace Microsoft.VisualStudio.Composition
     {
         private bool? isLazy;
 
-        private Type importingSiteTypeWithoutCollection;
-
         private Type importingSiteElementType;
 
         /// <summary>

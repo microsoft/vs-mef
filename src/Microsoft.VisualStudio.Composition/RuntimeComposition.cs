@@ -236,8 +236,6 @@ namespace Microsoft.VisualStudio.Composition
         [DebuggerDisplay("{" + nameof(RuntimePart.TypeRef) + "." + nameof(Reflection.TypeRef.ResolvedType) + ".FullName,nq}")]
         public class RuntimePart : IEquatable<RuntimePart>
         {
-            private MethodInfo onImportsSatisfied;
-
             public RuntimePart(
                 TypeRef type,
                 MethodRef importingConstructor,
