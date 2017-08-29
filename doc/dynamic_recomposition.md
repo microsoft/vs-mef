@@ -57,4 +57,6 @@ public void SomeTest()
 
 In this way, you control the creation and exported types of mock values created within your tests.
 
+When the test queries for an export that requires activating a part that imports an IFoo, then MEF would activate the `MockSupplier` and query its exporting property. If you have already set the property's value, the MEF import will be satisfied with that value; otherwise the default value for that property will be used to satisfy the import (`null` in this case).
+
 [1]: https://docs.microsoft.com/en-us/dotnet/api/system.componentmodel.composition.attributedmodelservices.composeparts?view=netframework-4.7#System_ComponentModel_Composition_AttributedModelServices_ComposeParts_System_ComponentModel_Composition_Hosting_CompositionContainer_System_Object___
