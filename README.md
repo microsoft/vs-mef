@@ -79,8 +79,7 @@ NuGet MEF attributes as only they can describe sharing boundaries.
 * .NET MEF offered a `CompositionContainer.Compose` method which leveraged its dynamic
   recomposition feature to add a part to the graph after the container was instantiated.
   VS MEF offers no such facility. The catalog must be complete before the graph is created.
-  Note that `SatisfyImportsOnce` functionality is available in VS MEF and is often a reasonable
-  substitute.
+  VS-MEF has [compatible equivalents for two common uses of `CompositionContainer.Compose`][Compose].
 
 ## Hosting MEF
 
@@ -177,3 +176,4 @@ var program = exportProvider.GetExportedValue<Program>();
 [AppHostPkg]: https://www.nuget.org/packages/Microsoft.VisualStudio.Composition.AppHost
 [VSMEFPkg]: https://www.nuget.org/packages/Microsoft.VisualStudio.Composition
 [MEFv2Pkg]: https://www.nuget.org/packages/system.composition
+[Compose]: doc/dynamic_recomposition.md
