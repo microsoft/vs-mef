@@ -175,14 +175,14 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     this.Write(part.TypeRef);
                     this.Write(part.Exports, this.Write);
-                    if (part.ImportingConstructorRef.IsEmpty)
+                    if (part.ImportingConstructorOrFactoryMethodRef.IsEmpty)
                     {
                         this.writer.Write(false);
                     }
                     else
                     {
                         this.writer.Write(true);
-                        this.Write(part.ImportingConstructorRef);
+                        this.Write(part.ImportingConstructorOrFactoryMethodRef);
                         this.Write(part.ImportingConstructorArguments, this.Write);
                     }
 

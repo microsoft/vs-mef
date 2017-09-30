@@ -16,6 +16,24 @@ namespace Microsoft.VisualStudio.Composition
     [DebuggerDisplay("{" + nameof(Type) + ".Name}")]
     public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>
     {
+        [Obsolete]
+        public ComposablePartDefinition(TypeRef partType, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers, IEnumerable<ImportDefinitionBinding> importingMembers, string sharingBoundary, MethodRef onImportsSatisfied, ConstructorRef importingConstructorRef, IReadOnlyList<ImportDefinitionBinding> importingConstructorImports, CreationPolicy partCreationPolicy, IEnumerable<AssemblyName> extraInputAssemblies, bool isSharingBoundaryInferred = false)
+            : this(
+                  partType,
+                  metadata,
+                  exportedTypes,
+                  exportingMembers,
+                  importingMembers,
+                  sharingBoundary,
+                  onImportsSatisfied,
+                  new MethodRef(importingConstructorRef),
+                  importingConstructorImports,
+                  partCreationPolicy,
+                  extraInputAssemblies,
+                  isSharingBoundaryInferred)
+        {
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ComposablePartDefinition"/> class.
         /// </summary>

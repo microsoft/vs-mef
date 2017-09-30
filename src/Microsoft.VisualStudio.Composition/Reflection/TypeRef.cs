@@ -110,6 +110,12 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public ImmutableArray<TypeRef> GenericTypeArguments { get; private set; }
 
+        [Obsolete]
+        public MemberRef GenericParameterDeclaringMemberRef => default(MemberRef);
+
+        [Obsolete]
+        public int GenericParameterDeclaringMemberIndex => 0;
+
         public bool IsGenericTypeDefinition
         {
             get { return this.GenericTypeParameterCount > 0 && this.GenericTypeArguments.Length == 0; }
@@ -172,6 +178,13 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// <param name="resolver">The resolver to use to reconstitute <paramref name="type"/> or derivatives later.</param>
         /// <returns>An instance of TypeRef if <paramref name="type"/> is not <c>null</c>; otherwise <c>null</c>.</returns>
         public static TypeRef Get(Type type, Resolver resolver) => Get(type, resolver, null);
+
+        [Obsolete]
+        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = 0)
+        {
+            // We don't support generic type parameters as constructor parameters.
+            throw new NotSupportedException();
+        }
 
         /// <summary>
         /// Gets a TypeRef that represents a given Type instance.
