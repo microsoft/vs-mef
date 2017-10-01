@@ -35,9 +35,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             string fullName,
             bool isArray,
             int genericTypeParameterCount,
-            ImmutableArray<TypeRef> genericTypeArguments,
-            MemberRef declaringMember,
-            int declaringMethodParameterIndex)
+            ImmutableArray<TypeRef> genericTypeArguments)
         {
             Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(assemblyName, nameof(assemblyName));
@@ -52,8 +50,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.IsArray = isArray;
             this.GenericTypeParameterCount = genericTypeParameterCount;
             this.GenericTypeArguments = genericTypeArguments;
-            this.GenericParameterDeclaringMemberRef = declaringMember;
-            this.GenericParameterDeclaringMemberIndex = declaringMethodParameterIndex;
         }
 
         private TypeRef(Resolver resolver, Type type)
@@ -62,24 +58,18 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             Requires.NotNull(type, nameof(type));
 
             this.resolver = resolver;
+            this.resolvedType = type;
             this.AssemblyName = GetNormalizedAssemblyName(type.GetTypeInfo().Assembly.GetName());
             this.IsArray = type.IsArray;
 
-            Type elementType = type.IsArray ? type.GetElementType() : type;
+            Type elementType = this.ElementType;
+            Requires.Argument(!elementType.IsGenericParameter, nameof(type), "Generic parameters are not supported.");
             this.MetadataToken = elementType.GetTypeInfo().MetadataToken;
             this.FullName = (elementType.GetTypeInfo().IsGenericType ? elementType.GetGenericTypeDefinition() : elementType).FullName;
             this.GenericTypeParameterCount = elementType.GetTypeInfo().GenericTypeParameters.Length;
             this.GenericTypeArguments = elementType.GenericTypeArguments != null && elementType.GenericTypeArguments.Length > 0
                 ? elementType.GenericTypeArguments.Select(t => new TypeRef(resolver, t)).ToImmutableArray()
                 : ImmutableArray<TypeRef>.Empty;
-
-            if (elementType.IsGenericParameter)
-            {
-                // Generic type parameters may come in without be type specs. So the only way to reconstruct them is by way of who references them.
-                var declaringMember = (MemberInfo)elementType.GetTypeInfo().DeclaringMethod ?? elementType.DeclaringType.GetTypeInfo();
-                this.GenericParameterDeclaringMemberRef = MemberRef.Get(declaringMember, resolver);
-                this.GenericParameterDeclaringMemberIndex = Array.IndexOf(GetGenericTypeArguments(declaringMember), elementType);
-            }
         }
 
         public AssemblyName AssemblyName { get; private set; }
@@ -98,9 +88,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public ImmutableArray<TypeRef> GenericTypeArguments { get; private set; }
 
-        public MemberRef GenericParameterDeclaringMemberRef { get; private set; }
+        [Obsolete]
+        public MemberRef GenericParameterDeclaringMemberRef => default(MemberRef);
 
-        public int GenericParameterDeclaringMemberIndex { get; private set; }
+        [Obsolete]
+        public int GenericParameterDeclaringMemberIndex => 0;
 
         public bool IsGenericTypeDefinition
         {
@@ -119,31 +111,22 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 if (this.resolvedType == null)
                 {
                     Type type;
-                    if (((MetadataTokenType)this.MetadataToken & MetadataTokenType.Mask) == MetadataTokenType.Type)
-                    {
-                        var manifest = this.Resolver.GetManifest(this.AssemblyName);
+                    var manifest = this.Resolver.GetManifest(this.AssemblyName);
 #if RuntimeHandles
-                        var resolvedType = manifest.ResolveType(this.MetadataToken);
+                    var resolvedType = manifest.ResolveType(this.MetadataToken);
 #else
-                        var resolvedType = manifest.GetType(this.FullName);
+                    var resolvedType = manifest.GetType(this.FullName);
 #endif
-                        if (this.GenericTypeArguments.Length > 0)
+                    if (this.GenericTypeArguments.Length > 0)
+                    {
+                        using (var genericTypeArguments = GetResolvedTypeArray(this.GenericTypeArguments))
                         {
-                            using (var genericTypeArguments = GetResolvedTypeArray(this.GenericTypeArguments))
-                            {
-                                type = resolvedType.MakeGenericType(genericTypeArguments.Value);
-                            }
-                        }
-                        else
-                        {
-                            type = resolvedType;
+                            type = resolvedType.MakeGenericType(genericTypeArguments.Value);
                         }
                     }
                     else
                     {
-                        MemberInfo declaringMember = this.GenericParameterDeclaringMemberRef.MemberInfo;
-                        Type[] genericTypeArgs = GetGenericTypeArguments(declaringMember);
-                        type = genericTypeArgs[this.GenericParameterDeclaringMemberIndex];
+                        type = resolvedType;
                     }
 
                     if (this.IsArray)
@@ -159,14 +142,23 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
         }
 
+        private Type ElementType => this.IsArray ? this.ResolvedType.GetElementType() : this.ResolvedType;
+
         public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
-            return new TypeRef(resolver, assemblyName, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments, default(MemberRef), 0);
+            return new TypeRef(resolver, assemblyName, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments);
         }
 
+        [Obsolete]
         public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = 0)
         {
-            return new TypeRef(resolver, assemblyName, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments, declaringMember, declaringMethodParameterIndex);
+            if (!declaringMember.IsEmpty)
+            {
+                // We don't support generic type parameters as constructor parameters.
+                throw new NotSupportedException();
+            }
+
+            return new TypeRef(resolver, assemblyName, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments);
         }
 
         /// <summary>
@@ -231,7 +223,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             // We use the resolver parameter instead of the field here because this TypeRef instance
             // might have been constructed by TypeRef.Get(Type) and thus not have a resolver.
-            return new TypeRef(this.Resolver, this.AssemblyName, this.MetadataToken, this.FullName, this.IsArray, this.GenericTypeParameterCount, genericTypeArguments, default(MemberRef), 0);
+            return new TypeRef(this.Resolver, this.AssemblyName, this.MetadataToken, this.FullName, this.IsArray, this.GenericTypeParameterCount, genericTypeArguments);
         }
 
         public override int GetHashCode()
@@ -257,9 +249,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 && AssemblyNameComparer.Equals(this.AssemblyName, other.AssemblyName)
                 && this.IsArray == other.IsArray
                 && this.GenericTypeParameterCount == other.GenericTypeParameterCount
-                && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments)
-                && this.GenericParameterDeclaringMemberRef.Equals(other.GenericParameterDeclaringMemberRef)
-                && this.GenericParameterDeclaringMemberIndex == other.GenericParameterDeclaringMemberIndex;
+                && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments);
             return result;
         }
 
