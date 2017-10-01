@@ -183,7 +183,7 @@ namespace Microsoft.VisualStudio.Composition
                 where export.Value.ContractName == ContractNameServices.GetTypeIdentity(typeof(IMetadataViewProvider))
                 orderby ExportProvider.GetOrderMetadata(export.Value.Metadata) descending
                 let exportDefinitionBinding = new ExportDefinitionBinding(export.Value, part, default(MemberRef))
-                let provider = (IMetadataViewProvider)part.ImportingConstructorInfo.Invoke(Type.EmptyTypes)
+                let provider = (IMetadataViewProvider)part.ImportingConstructorOrFactory.Instantiate(Type.EmptyTypes)
                 select Tuple.Create(provider, exportDefinitionBinding)).ToList();
 
             var metadataTypes = new HashSet<Type>(

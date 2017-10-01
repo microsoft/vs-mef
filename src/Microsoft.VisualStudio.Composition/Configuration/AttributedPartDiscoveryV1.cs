@@ -206,7 +206,7 @@ namespace Microsoft.VisualStudio.Composition
                 imports.ToImmutable(),
                 partCreationPolicy != CreationPolicy.NonShared ? string.Empty : null,
                 MethodRef.Get(onImportsSatisfied, this.Resolver),
-                ConstructorRef.Get(importingCtor, this.Resolver),
+                MethodRef.Get(importingCtor, this.Resolver),
                 importingCtor != null ? importingConstructorParameters.ToImmutable() : null, // some MEF parts are only for metadata
                 partCreationPolicy,
                 assemblyNamesForMetadataAttributes,

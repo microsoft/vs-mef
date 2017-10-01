@@ -164,16 +164,13 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(part, nameof(part));
 
-            var partDefinitionType = part.Definition.Type;
-            var importingConstructor = part.Definition.ImportingConstructorInfo;
-            var onImportsSatisfied = part.Definition.OnImportsSatisfied;
             var runtimePart = new RuntimePart(
-                TypeRef.Get(partDefinitionType, part.Resolver),
-                importingConstructor != null ? new ConstructorRef(importingConstructor, part.Resolver) : default(ConstructorRef),
+                part.Definition.TypeRef,
+                part.Definition.ImportingConstructorOrFactoryRef,
                 part.GetImportingConstructorImports().Select(kvp => CreateRuntimeImport(kvp.Key, kvp.Value, part.Resolver)).ToImmutableArray(),
                 part.Definition.ImportingMembers.Select(idb => CreateRuntimeImport(idb, part.SatisfyingExports[idb], part.Resolver)).ToImmutableArray(),
-                part.Definition.ExportDefinitions.Select(ed => CreateRuntimeExport(ed.Value, partDefinitionType, ed.Key, part.Resolver)).ToImmutableArray(),
-                onImportsSatisfied != null ? new MethodRef(onImportsSatisfied, part.Resolver) : default(MethodRef),
+                part.Definition.ExportDefinitions.Select(ed => CreateRuntimeExport(ed.Value, part.Definition.Type, ed.Key, part.Resolver)).ToImmutableArray(),
+                part.Definition.OnImportsSatisfiedRef,
                 part.Definition.IsShared ? configuration.GetEffectiveSharingBoundary(part.Definition) : null);
             return runtimePart;
         }
@@ -239,9 +236,7 @@ namespace Microsoft.VisualStudio.Composition
         [DebuggerDisplay("{" + nameof(RuntimePart.TypeRef) + "." + nameof(Reflection.TypeRef.ResolvedType) + ".FullName,nq}")]
         public class RuntimePart : IEquatable<RuntimePart>
         {
-            private ConstructorInfo importingConstructor;
-            private MethodInfo onImportsSatisfied;
-
+            [Obsolete]
             public RuntimePart(
                 TypeRef type,
                 ConstructorRef importingConstructor,
@@ -250,9 +245,28 @@ namespace Microsoft.VisualStudio.Composition
                 IReadOnlyList<RuntimeExport> exports,
                 MethodRef onImportsSatisfied,
                 string sharingBoundary)
+                : this(
+                    type,
+                    new MethodRef(importingConstructor),
+                    importingConstructorArguments,
+                    importingMembers,
+                    exports,
+                    onImportsSatisfied,
+                    sharingBoundary)
+            {
+            }
+
+            public RuntimePart(
+                TypeRef type,
+                MethodRef importingConstructor,
+                IReadOnlyList<RuntimeImport> importingConstructorArguments,
+                IReadOnlyList<RuntimeImport> importingMembers,
+                IReadOnlyList<RuntimeExport> exports,
+                MethodRef onImportsSatisfied,
+                string sharingBoundary)
             {
                 this.TypeRef = type;
-                this.ImportingConstructorRef = importingConstructor;
+                this.ImportingConstructorOrFactoryMethodRef = importingConstructor;
                 this.ImportingConstructorArguments = importingConstructorArguments;
                 this.ImportingMembers = importingMembers;
                 this.Exports = exports;
@@ -262,7 +276,18 @@ namespace Microsoft.VisualStudio.Composition
 
             public TypeRef TypeRef { get; private set; }
 
-            public ConstructorRef ImportingConstructorRef { get; private set; }
+            [Obsolete("Use " + nameof(ImportingConstructorOrFactoryMethodRef) + " instead.")]
+            public ConstructorRef ImportingConstructorRef
+            {
+                get
+                {
+                    return new ConstructorRef(this.ImportingConstructorOrFactoryMethodRef.DeclaringType, this.ImportingConstructorOrFactoryMethodRef.MetadataToken, this.ImportingConstructorOrFactoryMethod.GetParameterTypes(this.TypeRef.Resolver));
+                }
+            }
+
+            public MethodRef ImportingConstructorOrFactoryMethodRef { get; private set; }
+
+            public MethodBase ImportingConstructorOrFactoryMethod => this.ImportingConstructorOrFactoryMethodRef.MethodBase;
 
             public IReadOnlyList<RuntimeImport> ImportingConstructorArguments { get; private set; }
 
@@ -281,19 +306,15 @@ namespace Microsoft.VisualStudio.Composition
 
             public bool IsInstantiable
             {
-                get { return !this.ImportingConstructorRef.IsEmpty; }
+                get { return !this.ImportingConstructorOrFactoryMethodRef.IsEmpty; }
             }
 
+            [Obsolete("Use " + nameof(ImportingConstructorOrFactoryMethod) + " instead.")]
             public ConstructorInfo ImportingConstructor
             {
                 get
                 {
-                    if (this.importingConstructor == null)
-                    {
-                        this.importingConstructor = this.ImportingConstructorRef.ConstructorInfo;
-                    }
-
-                    return this.importingConstructor;
+                    return (ConstructorInfo)this.ImportingConstructorOrFactoryMethod;
                 }
             }
 
@@ -301,12 +322,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 get
                 {
-                    if (this.onImportsSatisfied == null)
-                    {
-                        this.onImportsSatisfied = this.OnImportsSatisfiedRef.MethodBase as MethodInfo;
-                    }
-
-                    return this.onImportsSatisfied;
+                    return (MethodInfo)this.OnImportsSatisfiedRef.MethodBase;
                 }
             }
 
@@ -328,7 +344,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
 
                 bool result = this.TypeRef.Equals(other.TypeRef)
-                    && this.ImportingConstructorRef.Equals(other.ImportingConstructorRef)
+                    && this.ImportingConstructorOrFactoryMethodRef.Equals(other.ImportingConstructorOrFactoryMethodRef)
                     && this.ImportingConstructorArguments.SequenceEqual(other.ImportingConstructorArguments)
                     && ByValueEquality.EquivalentIgnoreOrder<RuntimeImport>().Equals(this.ImportingMembers, other.ImportingMembers)
                     && ByValueEquality.EquivalentIgnoreOrder<RuntimeExport>().Equals(this.Exports, other.Exports)

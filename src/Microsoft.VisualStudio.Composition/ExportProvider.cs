@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.Composition
             ImmutableList<ImportDefinitionBinding>.Empty,
             string.Empty,
             default(MethodRef),
-            default(ConstructorRef),
+            default(MethodRef),
             null,
             CreationPolicy.Shared,
             true);
