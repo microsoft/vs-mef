@@ -183,7 +183,7 @@ namespace Microsoft.VisualStudio.Composition
                 partMetadata[partMetadataAttribute.Name] = partMetadataAttribute.Value;
             }
 
-            var assemblyNamesForMetadataAttributes = ImmutableHashSet.CreateBuilder<AssemblyName>();
+            var assemblyNamesForMetadataAttributes = ImmutableHashSet.CreateBuilder<AssemblyName>(ByValueEquality.AssemblyName);
             foreach (var export in exportsByMember)
             {
                 GetAssemblyNamesFromMetadataAttributes<MetadataAttributeAttribute>(export.Key, assemblyNamesForMetadataAttributes);

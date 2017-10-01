@@ -171,19 +171,22 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return new TypeRef(resolver, assemblyName, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments);
         }
 
+        [Obsolete]
+        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = 0)
+        {
+            // We don't support generic type parameters as constructor parameters.
+            throw new NotSupportedException();
+        }
+
         /// <summary>
         /// Gets a TypeRef that represents a given Type instance.
         /// </summary>
         /// <param name="type">The Type to represent. May be <c>null</c> to get a <c>null</c> result.</param>
         /// <param name="resolver">The resolver to use to reconstitute <paramref name="type"/> or derivatives later.</param>
         /// <returns>An instance of TypeRef if <paramref name="type"/> is not <c>null</c>; otherwise <c>null</c>.</returns>
-        public static TypeRef Get(Type type, Resolver resolver) => Get(type, resolver, null);
-
-        [Obsolete]
-        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = 0)
+        public static TypeRef Get(Type type, Resolver resolver)
         {
-            // We don't support generic type parameters as constructor parameters.
-            throw new NotSupportedException();
+            return Get(type, resolver, null);
         }
 
         /// <summary>
