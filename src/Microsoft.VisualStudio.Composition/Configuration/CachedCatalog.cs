@@ -233,6 +233,9 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     this.Write(importDefinitionBinding.ImportDefinition);
                     this.Write(importDefinitionBinding.ComposablePartTypeRef);
+                    this.Write(importDefinitionBinding.ImportingSiteTypeRef);
+                    this.Write(importDefinitionBinding.ImportingSiteTypeWithoutCollectionRef);
+
                     if (importDefinitionBinding.ImportingMemberRef.IsEmpty)
                     {
                         this.writer.Write(false);
@@ -252,6 +255,8 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     var importDefinition = this.ReadImportDefinition();
                     var part = this.ReadTypeRef();
+                    var importingSiteTypeRef = this.ReadTypeRef();
+                    var importingSiteTypeWithoutCollectionRef = this.ReadTypeRef();
 
                     MemberRef member;
                     ParameterRef parameter;
@@ -259,12 +264,12 @@ namespace Microsoft.VisualStudio.Composition
                     if (isMember)
                     {
                         member = this.ReadMemberRef();
-                        return new ImportDefinitionBinding(importDefinition, part, member);
+                        return new ImportDefinitionBinding(importDefinition, part, member, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
                     }
                     else
                     {
                         parameter = this.ReadParameterRef();
-                        return new ImportDefinitionBinding(importDefinition, part, parameter);
+                        return new ImportDefinitionBinding(importDefinition, part, parameter, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
                     }
                 }
             }

@@ -24,6 +24,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(genericPart);
             Assert.IsType<SomeOtherPart>(genericPart.Value);
 
+            var genericPartViaCtor = container.GetExportedValue<PartThatImportsTViaImportingConstructor<SomeOtherPart>>();
+            Assert.NotNull(genericPartViaCtor);
+            Assert.IsType<SomeOtherPart>(genericPartViaCtor.Value);
+
             var genericPartLazy = container.GetExportedValue<PartThatImportsLazyT<SomeOtherPart>>();
             Assert.NotNull(genericPartLazy);
             Assert.IsType<SomeOtherPart>(genericPartLazy.Value.Value);
@@ -42,6 +46,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             Assert.NotNull(container.GetExportedValue<SomeOtherPart>());
             Assert.Equal(0, container.GetExportedValues<PartThatImportsT<SomeOtherPart>>().Count());
+            Assert.Equal(0, container.GetExportedValues<PartThatImportsTViaImportingConstructor<SomeOtherPart>>().Count());
             Assert.Equal(0, container.GetExportedValues<PartThatImportsLazyT<SomeOtherPart>>().Count());
             Assert.Equal(0, container.GetExportedValues<PartThatImportsArrayOfT<SomeOtherPart>>().Count());
             Assert.Equal(0, container.GetExportedValues<PartThatImportsEnumerableOfT<SomeOtherPart>>().Count());
@@ -52,6 +57,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import, MefV1.Import]
             public T Value { get; set; }
+        }
+
+        [Export, Shared, MefV1.Export]
+        public class PartThatImportsTViaImportingConstructor<T>
+        {
+            [ImportingConstructor, MefV1.ImportingConstructor]
+            public PartThatImportsTViaImportingConstructor(T value)
+            {
+                this.Value = value;
+            }
+
+            public T Value { get; }
         }
 
         [Export, Shared, MefV1.Export]

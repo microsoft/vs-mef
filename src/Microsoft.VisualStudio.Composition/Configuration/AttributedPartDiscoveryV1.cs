@@ -224,10 +224,16 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (!member.IsStatic())
                 {
-                    ImportDefinition importDefinition;
-                    if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, out importDefinition))
+                    if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, out ImportDefinition importDefinition))
                     {
-                        imports.Add(new ImportDefinitionBinding(importDefinition, partTypeRef, MemberRef.Get(member, this.Resolver)));
+                        Type importingSiteType = ReflectionHelpers.GetMemberType(member);
+                        var importDefinitionBinding = new ImportDefinitionBinding(
+                            importDefinition,
+                            partTypeRef,
+                            MemberRef.Get(member, this.Resolver),
+                            TypeRef.Get(importingSiteType, this.Resolver),
+                            TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, importingSiteType), this.Resolver));
+                        imports.Add(importDefinitionBinding);
                     }
                 }
             }
@@ -321,9 +327,13 @@ namespace Microsoft.VisualStudio.Composition
 
         private ImportDefinitionBinding CreateImport(ParameterInfo parameter)
         {
-            ImportDefinition definition;
-            Assumes.True(this.TryCreateImportDefinition(parameter.ParameterType, parameter, out definition));
-            return new ImportDefinitionBinding(definition, TypeRef.Get(parameter.Member.DeclaringType, this.Resolver), ParameterRef.Get(parameter, this.Resolver));
+            Assumes.True(this.TryCreateImportDefinition(parameter.ParameterType, parameter, out ImportDefinition importDefinition));
+            return new ImportDefinitionBinding(
+                importDefinition,
+                TypeRef.Get(parameter.Member.DeclaringType, this.Resolver),
+                ParameterRef.Get(parameter, this.Resolver),
+                TypeRef.Get(parameter.ParameterType, this.Resolver),
+                TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, parameter.ParameterType), this.Resolver));
         }
 
         private static IReadOnlyDictionary<string, object> GetExportMetadata(MemberInfo member)
