@@ -378,21 +378,17 @@ namespace Microsoft.VisualStudio.Composition
                         .GetMember(member.Name, MemberTypes.Property | MemberTypes.Field, DeclaredOnlyLookup)[0];
                 }
 
-                var property = member as PropertyInfo;
-                if (property != null)
+                switch (member)
                 {
-                    property.SetValue(part, value);
-                    return;
+                    case PropertyInfo property:
+                        property.SetValue(part, value);
+                        break;
+                    case FieldInfo field:
+                        field.SetValue(part, value);
+                        break;
+                    default:
+                        throw new NotSupportedException();
                 }
-
-                var field = member as FieldInfo;
-                if (field != null)
-                {
-                    field.SetValue(part, value);
-                    return;
-                }
-
-                throw new NotSupportedException();
             }
 
             private static object GetImportingMember(object part, MemberInfo member)

@@ -9,8 +9,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
 
     [DebuggerDisplay("{" + nameof(ResolvedType) + ".FullName,nq}")]
     public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
