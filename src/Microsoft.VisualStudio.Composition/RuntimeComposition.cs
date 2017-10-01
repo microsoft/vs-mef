@@ -342,7 +342,6 @@ namespace Microsoft.VisualStudio.Composition
         public class RuntimeImport : IEquatable<RuntimeImport>
         {
             private bool? isLazy;
-            private Type importingSiteType;
             private Type importingSiteTypeWithoutCollection;
             private Type importingSiteElementType;
             private Func<Func<object>, object, object> lazyFactory;
@@ -453,18 +452,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            public Type ImportingSiteType
-            {
-                get
-                {
-                    if (this.importingSiteType == null)
-                    {
-                        this.importingSiteType = this.ImportingSiteTypeRef.Resolve();
-                    }
-
-                    return this.importingSiteType;
-                }
-            }
+            public Type ImportingSiteType => this.ImportingSiteTypeRef?.ResolvedType;
 
             public Type ImportingSiteTypeWithoutCollection
             {
