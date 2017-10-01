@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public TypeRef DeclaringType { get; private set; }
 
-        public int MetadataToken => this.metadataToken ?? this.propertyInfo.MetadataToken;
+        public int MetadataToken => this.metadataToken ?? this.propertyInfo?.MetadataToken ?? 0;
 
         public PropertyInfo PropertyInfo => this.propertyInfo ?? (this.propertyInfo = this.Resolve());
 

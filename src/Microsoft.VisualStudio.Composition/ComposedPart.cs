@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public IEnumerable<KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>> GetImportingConstructorImports()
         {
-            if (!this.Definition.ImportingConstructorRef.IsEmpty)
+            if (!this.Definition.ImportingConstructorOrFactoryRef.IsEmpty)
             {
                 foreach (var import in this.Definition.ImportingConstructorImports)
                 {
