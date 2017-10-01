@@ -493,7 +493,7 @@ namespace Microsoft.VisualStudio.Composition
                     var constructedPartType = GetPartConstructedTypeRef(this.partDefinition, this.importMetadata);
                     var ctorArgs = this.partDefinition.ImportingConstructorArguments
                         .Select(import => this.OwningExportProvider.GetValueForImportSite(this, import).Value).ToArray();
-                    ConstructorInfo importingConstructor = this.partDefinition.ImportingConstructor;
+                    MethodBase importingConstructor = this.partDefinition.ImportingConstructorOrFactoryMethod;
                     if (importingConstructor.ContainsGenericParameters)
                     {
                         // TODO: fix this to find the precise match, including cases where the matching constructor includes a generic type parameter.
@@ -502,7 +502,7 @@ namespace Microsoft.VisualStudio.Composition
 
                     try
                     {
-                        object part = importingConstructor.Invoke(ctorArgs);
+                        object part = importingConstructor.Instantiate(ctorArgs);
                         return part;
                     }
                     catch (TargetInvocationException ex)

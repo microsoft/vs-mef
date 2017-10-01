@@ -197,7 +197,7 @@ namespace Microsoft.VisualStudio.Composition
                 imports.ToImmutable(),
                 sharingBoundary,
                 MethodRef.Get(onImportsSatisfied, this.Resolver),
-                ConstructorRef.Get(importingCtor, this.Resolver),
+                MethodRef.Get(importingCtor, this.Resolver),
                 importingConstructorParameters.ToImmutable(),
                 partCreationPolicy,
                 assemblyNamesForMetadataAttributes);

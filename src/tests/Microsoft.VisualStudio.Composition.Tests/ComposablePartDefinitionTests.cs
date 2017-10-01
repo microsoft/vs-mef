@@ -4,6 +4,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Reflection;
     using Composition.Reflection;
     using Xunit;
 
@@ -23,7 +24,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     null,
                     default(MethodRef),
-                    new ConstructorRef(typeRef, metadataToken: 1000, parameterTypes: ImmutableArray<TypeRef>.Empty),
+                    new MethodRef(typeRef, metadataToken: 1000, name: ConstructorInfo.ConstructorName, parameterTypes: ImmutableArray<TypeRef>.Empty, genericMethodArguments: ImmutableArray<TypeRef>.Empty),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     CreationPolicy.Any,
                     true);
@@ -37,7 +38,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     null,
                     default(MethodRef),
-                    new ConstructorRef(typeRef, metadataToken: 1001, parameterTypes: ImmutableArray<TypeRef>.Empty),
+                    new MethodRef(typeRef, metadataToken: 1001, name: ConstructorInfo.ConstructorName, parameterTypes: ImmutableArray<TypeRef>.Empty, genericMethodArguments: ImmutableArray<TypeRef>.Empty),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     CreationPolicy.Any,
                     true);
