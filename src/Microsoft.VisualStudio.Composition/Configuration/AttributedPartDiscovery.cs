@@ -142,7 +142,13 @@ namespace Microsoft.VisualStudio.Composition
                 ImportDefinition importDefinition;
                 if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, importConstraints, out importDefinition))
                 {
-                    imports.Add(new ImportDefinitionBinding(importDefinition, TypeRef.Get(partType, this.Resolver), MemberRef.Get(member, this.Resolver)));
+                    var importDefinitionBinding = new ImportDefinitionBinding(
+                        importDefinition,
+                        TypeRef.Get(partType, this.Resolver),
+                        MemberRef.Get(member, this.Resolver),
+                        TypeRef.Get(member.PropertyType, this.Resolver),
+                        TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, member.PropertyType), this.Resolver));
+                    imports.Add(importDefinitionBinding);
                 }
             }
 
@@ -333,9 +339,13 @@ namespace Microsoft.VisualStudio.Composition
 
         private ImportDefinitionBinding CreateImport(ParameterInfo parameter, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints)
         {
-            ImportDefinition result;
-            Assumes.True(this.TryCreateImportDefinition(parameter.ParameterType, parameter, importConstraints, out result));
-            return new ImportDefinitionBinding(result, TypeRef.Get(parameter.Member.DeclaringType, this.Resolver), ParameterRef.Get(parameter, this.Resolver));
+            Assumes.True(this.TryCreateImportDefinition(parameter.ParameterType, parameter, importConstraints, out ImportDefinition importDefinition));
+            return new ImportDefinitionBinding(
+                importDefinition,
+                TypeRef.Get(parameter.Member.DeclaringType, this.Resolver),
+                ParameterRef.Get(parameter, this.Resolver),
+                TypeRef.Get(parameter.ParameterType, this.Resolver),
+                TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, parameter.ParameterType), this.Resolver));
         }
 
         /// <summary>
