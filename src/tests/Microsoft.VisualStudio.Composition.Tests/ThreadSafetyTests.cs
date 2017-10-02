@@ -33,7 +33,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// to break circular dependencies in a way that tries to force
         /// thread safety issues to show themselves.
         /// </summary>
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(PartThatImportsSharedPartWithBlockableConstructor), typeof(SharedPartWithBlockableConstructor))]
+        /// <remarks>
+        /// This test should pass on V1 and V2, but both actually have a thread-safety bug where
+        /// this test occasionally fails. So we exclude them for our own test run reliability.
+        /// </remarks>
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(PartThatImportsSharedPartWithBlockableConstructor), typeof(SharedPartWithBlockableConstructor))]
         public async Task LazyOfSharedPartConstructsOnlyOneInstanceAcrossThreads(IContainer container)
         {
             var testFailedCancellationSource = new CancellationTokenSource();
