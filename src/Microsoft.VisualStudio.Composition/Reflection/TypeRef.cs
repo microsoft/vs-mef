@@ -12,10 +12,17 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Text;
     using System.Threading.Tasks;
 
-    [DebuggerDisplay("{" + nameof(FullName) + ",nq}")]
+    [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
     {
+        /// <summary>
+        /// Gets the string to display in the debugger watch window for this value.
+        /// </summary>
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        internal string DebuggerDisplay => this.FullName;
+
         private static readonly IEqualityComparer<AssemblyName> AssemblyNameComparer = ByValueEquality.AssemblyNameNoFastCheck;
+
         private readonly Resolver resolver;
 
         /// <summary>
