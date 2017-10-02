@@ -12,7 +12,7 @@
     /// two assemblies are equivalent.
     /// </summary>
     [DebuggerDisplay("{" + nameof(Name) + "}")]
-    internal class StrongAssemblyIdentity : IEquatable<StrongAssemblyIdentity>
+    public class StrongAssemblyIdentity : IEquatable<StrongAssemblyIdentity>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="StrongAssemblyIdentity"/> class.
@@ -20,7 +20,7 @@
         /// <param name="name">The assembly name. Cannot be null.</param>
         /// <param name="lastWriteTimeUtc">The LastWriteTimeUtc of the assembly manifest file.</param>
         /// <param name="mvid">The MVID of the ManifestModule of the assembly.</param>
-        internal StrongAssemblyIdentity(AssemblyName name, DateTime lastWriteTimeUtc, Guid mvid)
+        public StrongAssemblyIdentity(AssemblyName name, DateTime lastWriteTimeUtc, Guid mvid)
         {
             Requires.NotNull(name, nameof(name));
             this.Name = name;
@@ -31,27 +31,27 @@
         /// <summary>
         /// Gets the assembly's full name.
         /// </summary>
-        internal AssemblyName Name { get; }
+        public AssemblyName Name { get; }
 
         /// <summary>
         /// Gets the LastWriteTimeUtc for the assembly manifest file.
         /// </summary>
-        internal DateTime LastWriteTimeUtc { get; }
+        public DateTime LastWriteTimeUtc { get; }
 
         /// <summary>
         /// Gets the MVID for the assembly's manifest module. This is a unique identifier that represents individual
         /// builds of an assembly.
         /// </summary>
-        internal Guid Mvid { get; }
+        public Guid Mvid { get; }
 
         /// <summary>
         /// Gets the metadata from an assembly at the specified path.
         /// </summary>
         /// <param name="assemblyFile">The path to the assembly to read metadata from.</param>
-        /// <param name="assemblyName">The assembly name, if already known.</param>
+        /// <param name="assemblyName">The assembly name, if already known; otherwise <c>null</c>.</param>
         /// <returns>The assembly metadata.</returns>
         /// <exception cref="FileNotFoundException">Thrown if <paramref name="assemblyFile"/> does not refer to an existing file.</exception>
-        internal static StrongAssemblyIdentity CreateFrom(string assemblyFile, AssemblyName assemblyName = null)
+        public static StrongAssemblyIdentity CreateFrom(string assemblyFile, AssemblyName assemblyName)
         {
             Requires.NotNullOrEmpty(assemblyFile, nameof(assemblyFile));
 
@@ -76,7 +76,7 @@
         /// <param name="assembly">The assembly to read metadata from.</param>
         /// <param name="assemblyName">An optional <see cref="AssemblyName"/> that may be important for dynamic assemblies to find their CodeBase.</param>
         /// <returns>The assembly metadata.</returns>
-        internal static StrongAssemblyIdentity CreateFrom(Assembly assembly, AssemblyName assemblyName)
+        public static StrongAssemblyIdentity CreateFrom(Assembly assembly, AssemblyName assemblyName)
         {
             Requires.NotNull(assembly, nameof(assembly));
 

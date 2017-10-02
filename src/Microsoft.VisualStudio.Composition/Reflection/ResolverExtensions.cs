@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 TypeInfo declaringType = methodRef.DeclaringType.ResolvedType.GetTypeInfo();
                 var candidates = methodRef.Name == ConstructorInfo.ConstructorName
                     ? (MethodBase[])declaringType.GetConstructors(AllInstanceMembers)
-                    : declaringType.GetMethods(AllInstanceMembers);
+                    : declaringType.GetMethods(AllMembers);
                 method = FindMethodByParameters(candidates, methodRef.Name, methodRef.ParameterTypes);
             }
 
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
             else
             {
-                return type.GetProperty(propertyRef.Name, AllInstanceMembers);
+                return type.GetProperty(propertyRef.Name, AllMembers);
             }
         }
 

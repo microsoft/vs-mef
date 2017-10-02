@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             get { return this.GenericTypeParameterCount > 0 && this.GenericTypeArguments.Length == 0; }
         }
 
-        internal StrongAssemblyIdentity AssemblyId
+        public StrongAssemblyIdentity AssemblyId
         {
             get
             {
@@ -185,7 +185,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return new TypeRef(resolver, assemblyName, null, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments);
         }
 
-        internal static TypeRef Get(Resolver resolver, StrongAssemblyIdentity assemblyId, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
+        public static TypeRef Get(Resolver resolver, StrongAssemblyIdentity assemblyId, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
             return new TypeRef(resolver, assemblyId.Name, assemblyId, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments);
         }
@@ -284,6 +284,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public bool Equals(TypeRef other)
         {
+            if (other == null)
+            {
+                return false;
+            }
+
             // If we ever stop comparing metadata tokens,
             // we would need to compare the other properties that describe this member.
             bool result = this.MetadataToken == other.MetadataToken

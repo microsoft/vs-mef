@@ -164,7 +164,8 @@ namespace Microsoft.VisualStudio.Composition
         public ImmutableHashSet<ImportDefinitionBinding> ImportingMembers { get; private set; }
 
         /// <summary>
-        /// Gets the list of parameters on the importing constructor.
+        /// Gets the list of parameters on the importing constructor,
+        /// or <c>null</c> if the part cannot be instantiated.
         /// </summary>
         public IReadOnlyList<ImportDefinitionBinding> ImportingConstructorImports { get; private set; }
 

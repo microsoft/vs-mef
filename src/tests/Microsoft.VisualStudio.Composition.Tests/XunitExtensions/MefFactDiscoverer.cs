@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                             string name = "V3 engine";
                             if (!string.IsNullOrEmpty(namedConfiguration.Description))
                             {
-                                name += $"({namedConfiguration.Description})";
+                                name += $" ({namedConfiguration.Description})";
                             }
 
                             var runner = new Mef3TestCaseRunner(this, name, null, constructorArguments, messageBus, aggregator, cancellationTokenSource, namedConfiguration.Configuration, this.compositionVersions);
