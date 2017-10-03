@@ -4,15 +4,23 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
 
+    [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
     public struct FieldRef : IEquatable<FieldRef>
     {
+        /// <summary>
+        /// Gets the string to display in the debugger watch window for this value.
+        /// </summary>
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        internal string DebuggerDisplay => this.IsEmpty ? "(empty)" : $"{this.DeclaringType.FullName}.{this.Name}";
+
         /// <summary>
         /// The metadata token for this member if read from a persisted assembly.
         /// We do not store metadata tokens for members in dynamic assemblies because they can change till the Type is closed.
