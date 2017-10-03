@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     null,
                     default(MethodRef),
-                    default(ConstructorRef),
+                    default(MethodRef),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     CreationPolicy.Any,
                     true);

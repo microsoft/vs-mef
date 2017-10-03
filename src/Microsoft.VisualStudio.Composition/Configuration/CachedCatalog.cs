@@ -104,14 +104,14 @@ namespace Microsoft.VisualStudio.Composition
                     this.Write(partDefinition.ImportingMembers, this.Write);
                     this.Write(partDefinition.SharingBoundary);
                     this.Write(partDefinition.OnImportsSatisfiedRef);
-                    if (partDefinition.ImportingConstructorRef.IsEmpty)
+                    if (partDefinition.ImportingConstructorOrFactoryRef.IsEmpty)
                     {
                         this.writer.Write(false);
                     }
                     else
                     {
                         this.writer.Write(true);
-                        this.Write(partDefinition.ImportingConstructorRef);
+                        this.Write(partDefinition.ImportingConstructorOrFactoryRef);
                         this.Write(partDefinition.ImportingConstructorImports, this.Write);
                     }
 
@@ -140,11 +140,11 @@ namespace Microsoft.VisualStudio.Composition
                     var sharingBoundary = this.ReadString();
                     var onImportsSatisfied = this.ReadMethodRef();
 
-                    ConstructorRef importingConstructor = default(ConstructorRef);
+                    MethodRef importingConstructor = default(MethodRef);
                     IReadOnlyList<ImportDefinitionBinding> importingConstructorImports = null;
                     if (this.reader.ReadBoolean())
                     {
-                        importingConstructor = this.ReadConstructorRef();
+                        importingConstructor = this.ReadMethodRef();
                         importingConstructorImports = this.ReadList(this.ReadImportDefinitionBinding);
                     }
 

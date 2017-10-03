@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Composition
                 ImmutableList<ImportDefinitionBinding>.Empty,
                 string.Empty,
                 default(MethodRef),
-                ConstructorRef.Get(providerType.GetTypeInfo().GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Single(c => c.GetParameters().Length == 0), resolver),
+                MethodRef.Get(providerType.GetTypeInfo().GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Single(c => c.GetParameters().Length == 0), resolver),
                 ImmutableList<ImportDefinitionBinding>.Empty,
                 CreationPolicy.Shared,
                 false);
