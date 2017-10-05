@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 part.ImportingMembers.Select(this.Scramble).ToList(),
                 part.SharingBoundary,
                 this.Scramble(part.OnImportsSatisfiedRef),
-                this.Scramble(part.ImportingConstructorRef),
+                this.Scramble(part.ImportingConstructorOrFactoryRef),
                 part.ImportingConstructorImports?.Select(this.Scramble).ToList(),
                 part.CreationPolicy,
                 part.IsSharingBoundaryInferred);
