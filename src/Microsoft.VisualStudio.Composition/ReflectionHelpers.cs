@@ -577,6 +577,24 @@ namespace Microsoft.VisualStudio.Composition
             return attribute;
         }
 
+        internal static object Instantiate(this MethodBase ctorOrFactoryMethod, object[] arguments)
+        {
+            Requires.NotNull(ctorOrFactoryMethod, nameof(ctorOrFactoryMethod));
+
+            if (ctorOrFactoryMethod is ConstructorInfo ctor)
+            {
+                return ctor.Invoke(arguments);
+            }
+            else if (ctorOrFactoryMethod is MethodInfo method && method.IsStatic)
+            {
+                return method.Invoke(null, arguments);
+            }
+            else
+            {
+                throw new NotSupportedException("Cannot instantiate with unsupported importing constructor of type: " + ctorOrFactoryMethod.GetType().Name);
+            }
+        }
+
         internal static void GetInputAssembliesFromMetadata(ISet<AssemblyName> assemblies, IReadOnlyDictionary<string, object> metadata)
         {
             Requires.NotNull(assemblies, nameof(assemblies));

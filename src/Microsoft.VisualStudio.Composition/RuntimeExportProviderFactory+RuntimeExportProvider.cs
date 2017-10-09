@@ -378,21 +378,17 @@ namespace Microsoft.VisualStudio.Composition
                         .GetMember(member.Name, MemberTypes.Property | MemberTypes.Field, DeclaredOnlyLookup)[0];
                 }
 
-                var property = member as PropertyInfo;
-                if (property != null)
+                switch (member)
                 {
-                    property.SetValue(part, value);
-                    return;
+                    case PropertyInfo property:
+                        property.SetValue(part, value);
+                        break;
+                    case FieldInfo field:
+                        field.SetValue(part, value);
+                        break;
+                    default:
+                        throw new NotSupportedException();
                 }
-
-                var field = member as FieldInfo;
-                if (field != null)
-                {
-                    field.SetValue(part, value);
-                    return;
-                }
-
-                throw new NotSupportedException();
             }
 
             private static object GetImportingMember(object part, MemberInfo member)
@@ -497,7 +493,7 @@ namespace Microsoft.VisualStudio.Composition
                     var constructedPartType = GetPartConstructedTypeRef(this.partDefinition, this.importMetadata);
                     var ctorArgs = this.partDefinition.ImportingConstructorArguments
                         .Select(import => this.OwningExportProvider.GetValueForImportSite(this, import).Value).ToArray();
-                    ConstructorInfo importingConstructor = this.partDefinition.ImportingConstructor;
+                    MethodBase importingConstructor = this.partDefinition.ImportingConstructorOrFactoryMethod;
                     if (importingConstructor.ContainsGenericParameters)
                     {
                         // TODO: fix this to find the precise match, including cases where the matching constructor includes a generic type parameter.
@@ -506,7 +502,7 @@ namespace Microsoft.VisualStudio.Composition
 
                     try
                     {
-                        object part = importingConstructor.Invoke(ctorArgs);
+                        object part = importingConstructor.Instantiate(ctorArgs);
                         return part;
                     }
                     catch (TargetInvocationException ex)

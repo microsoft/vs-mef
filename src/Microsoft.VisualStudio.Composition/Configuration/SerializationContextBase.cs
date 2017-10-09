@@ -77,8 +77,6 @@ namespace Microsoft.VisualStudio.Composition
         {
             None = 0x0,
             IsArray = 0x1,
-            HasGenericParameterDeclaringMember = 0x8,
-            HasGenericParameterDeclaringMemberIndex = 0x10,
         }
 
         protected enum ObjectType : byte
@@ -419,22 +417,10 @@ namespace Microsoft.VisualStudio.Composition
 
                     var flags = TypeRefFlags.None;
                     flags |= typeRef.IsArray ? TypeRefFlags.IsArray : TypeRefFlags.None;
-                    flags |= !typeRef.GenericParameterDeclaringMemberRef.IsEmpty ? TypeRefFlags.HasGenericParameterDeclaringMember : TypeRefFlags.None;
-                    flags |= typeRef.GenericParameterDeclaringMemberIndex >= 0 ? TypeRefFlags.HasGenericParameterDeclaringMemberIndex : TypeRefFlags.None;
                     this.writer.Write((byte)flags);
 
                     this.WriteCompressedUInt((uint)typeRef.GenericTypeParameterCount);
                     this.Write(typeRef.GenericTypeArguments, this.Write);
-
-                    if (!typeRef.GenericParameterDeclaringMemberRef.IsEmpty)
-                    {
-                        this.Write(typeRef.GenericParameterDeclaringMemberRef);
-                    }
-
-                    if (typeRef.GenericParameterDeclaringMemberIndex >= 0)
-                    {
-                        this.WriteCompressedUInt((uint)typeRef.GenericParameterDeclaringMemberIndex);
-                    }
                 }
             }
         }
@@ -453,16 +439,7 @@ namespace Microsoft.VisualStudio.Composition
                     var flags = (TypeRefFlags)this.reader.ReadByte();
                     int genericTypeParameterCount = (int)this.ReadCompressedUInt();
                     var genericTypeArguments = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
-                    var genericParameterDeclaringMember = flags.HasFlag(TypeRefFlags.HasGenericParameterDeclaringMember) ? this.ReadMemberRef() : default(MemberRef);
-                    var genericParameterDeclaringMemberIndex = flags.HasFlag(TypeRefFlags.HasGenericParameterDeclaringMemberIndex) ? (int)this.ReadCompressedUInt() : -1;
-                    if (genericParameterDeclaringMember.IsEmpty)
-                    {
-                        value = TypeRef.Get(this.Resolver, assemblyName, metadataToken, fullName, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments);
-                    }
-                    else
-                    {
-                        value = TypeRef.Get(this.Resolver, assemblyName, metadataToken, fullName, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments, genericParameterDeclaringMember, genericParameterDeclaringMemberIndex);
-                    }
+                    value = TypeRef.Get(this.Resolver, assemblyName, metadataToken, fullName, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments);
 
                     this.OnDeserializedReusableObject(id, value);
                 }

@@ -38,4 +38,4 @@ applications already.
 Learn more about [the differences between .NET MEF, NuGet MEF, and this library][Differences].
 
 [MEFv2Pkg]: https://www.nuget.org/packages/system.composition
-[Differences]: doc/mef_library_differences.md
+[Differences]: mef_library_differences.md

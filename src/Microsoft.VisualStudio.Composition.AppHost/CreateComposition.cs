@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
         protected override bool ExecuteIsolated()
         {
             var resolver = Resolver.DefaultInstance;
-            var discovery = PartDiscovery.Combine(new AttributedPartDiscoveryV1(resolver), new AttributedPartDiscovery(resolver));
+            var discovery = PartDiscovery.Combine(new AttributedPartDiscoveryV1(resolver), new AttributedPartDiscovery(resolver, isNonPublicSupported: true));
 
             this.CancellationToken.ThrowIfCancellationRequested();
 
