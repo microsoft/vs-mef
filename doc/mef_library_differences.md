@@ -38,4 +38,4 @@ NuGet MEF attributes as only they can describe sharing boundaries.
   VS MEF offers no such facility. The catalog must be complete before the graph is created.
   VS-MEF has [compatible equivalents for two common uses of `CompositionContainer.Compose`][Compose].
 
-[Compose]: doc/dynamic_recomposition.md
+[Compose]: dynamic_recomposition.md
