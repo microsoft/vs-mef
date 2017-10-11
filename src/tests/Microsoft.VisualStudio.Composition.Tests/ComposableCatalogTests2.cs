@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     {
         private readonly ITestOutputHelper logger;
 
-        public CompositionCatalogTests(ITestOutputHelper logger)
+        public ComposableCatalogTests2(ITestOutputHelper logger)
         {
             this.logger = logger;
         }
