@@ -8,13 +8,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Composition;
     using System.IO;
     using System.Linq;
-    using System.Runtime.Serialization.Formatters.Binary;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
 
     public class CompositionFailedExceptionTests
     {
+#if DESKTOP
         [Fact(Skip = "Not yet implemented.")]
         public void ExceptionIsSerializable()
         {
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 exception = ex;
             }
 
-            var formatter = new BinaryFormatter();
+            var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
             var ms = new MemoryStream();
             formatter.Serialize(ms, exception);
 
@@ -45,6 +45,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(1, actual.Errors.Peek().Count);
             Assert.Equal(exception.Errors.Peek().Single().Message, actual.Errors.Peek().Single().Message);
         }
+#endif
 
         [Export]
         public class Tree

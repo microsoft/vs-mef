@@ -4,15 +4,29 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
 
+    [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
     public struct MemberRef : IEquatable<MemberRef>
     {
+        /// <summary>
+        /// Gets the string to display in the debugger watch window for this value.
+        /// </summary>
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        internal string DebuggerDisplay => this.IsEmpty ? "(empty)"
+            : this.IsConstructor ? this.Constructor.DebuggerDisplay
+            : this.IsField ? this.Field.DebuggerDisplay
+            : this.IsProperty ? this.Property.DebuggerDisplay
+            : this.IsMethod ? this.Method.DebuggerDisplay
+            : this.IsType ? this.Type.DebuggerDisplay
+            : "(unknown)";
+
         public MemberRef(ConstructorRef constructor)
             : this()
         {
@@ -116,6 +130,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 }
             }
         }
+
+        public MemberInfo MemberInfo => this.Resolve();
 
         public bool IsEmpty
         {

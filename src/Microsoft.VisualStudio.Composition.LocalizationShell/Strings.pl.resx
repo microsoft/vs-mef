@@ -71,6 +71,7 @@
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
     <value>Nieoczekiwany typ elementu członkowskiego.</value>
+    <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
     <value>Oczekiwano następującej liczby eksportów: {0} z nazwą kontraktu „{1}”, ale po zastosowaniu odpowiednich ograniczeń znaleziono {2}.</value>

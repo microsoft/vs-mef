@@ -25,7 +25,12 @@ namespace Microsoft.VisualStudio.Composition
         private static readonly ImmutableHashSet<ComposablePartDefinition> AlwaysBundledParts = ImmutableHashSet.Create(
             ExportProvider.ExportProviderPartDefinition,
             PassthroughMetadataViewProvider.PartDefinition,
-            MetadataViewClassProvider.PartDefinition);
+            MetadataViewClassProvider.PartDefinition,
+            ExportMetadataViewInterfaceEmitProxy.PartDefinition)
+#if NET45
+            .Add(MetadataViewImplProxy.PartDefinition)
+#endif
+            ;
 
         private ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides;
 
@@ -178,7 +183,7 @@ namespace Microsoft.VisualStudio.Composition
                 where export.Value.ContractName == ContractNameServices.GetTypeIdentity(typeof(IMetadataViewProvider))
                 orderby ExportProvider.GetOrderMetadata(export.Value.Metadata) descending
                 let exportDefinitionBinding = new ExportDefinitionBinding(export.Value, part, default(MemberRef))
-                let provider = (IMetadataViewProvider)part.ImportingConstructorInfo.Invoke(Type.EmptyTypes)
+                let provider = (IMetadataViewProvider)part.ImportingConstructorOrFactory.Instantiate(Type.EmptyTypes)
                 select Tuple.Create(provider, exportDefinitionBinding)).ToList();
 
             var metadataTypes = new HashSet<Type>(
@@ -500,7 +505,7 @@ namespace Microsoft.VisualStudio.Composition
             return dgml;
         }
 
-        [DebuggerDisplay("{PartDefinition.Type.Name}")]
+        [DebuggerDisplay("{" + nameof(PartDefinition) + "." + nameof(ComposablePartDefinition.Type) + ".Name}")]
         private class PartBuilder
         {
             internal PartBuilder(ComposablePartDefinition partDefinition, IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> importedParts)

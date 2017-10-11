@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Threading.Tasks;
     using Reflection;
 
-    [DebuggerDisplay("{Definition.Type.Name}")]
+    [DebuggerDisplay("{" + nameof(Definition) + "." + nameof(ComposablePartDefinition.Type) + ".Name}")]
     public class ComposedPart
     {
         public ComposedPart(ComposablePartDefinition definition, IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExports, IImmutableSet<string> requiredSharingBoundaries)
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public IEnumerable<KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>> GetImportingConstructorImports()
         {
-            if (!this.Definition.ImportingConstructorRef.IsEmpty)
+            if (!this.Definition.ImportingConstructorOrFactoryRef.IsEmpty)
             {
                 foreach (var import in this.Definition.ImportingConstructorImports)
                 {

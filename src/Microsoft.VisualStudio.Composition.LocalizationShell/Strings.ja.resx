@@ -71,6 +71,7 @@
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
     <value>予期しないメンバー型です。</value>
+    <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
     <value>契約名 "{1}" による {0} 回のエクスポートが予想されましたが、適用可能な制約の適用後に {2} が見つかりました。</value>

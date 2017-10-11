@@ -1,11 +1,11 @@
 <Project>
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., Directory.Build.props))\Directory.Build.props" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., Directory.Build.props))' != '' " />
   <PropertyGroup>
-    <OutputPath>$(MSBuildThisFileDirectory)..\..\bin\Tests\$(Configuration)\</OutputPath>
+    <BaseOutputPath Condition=" '$(BaseOutputPath)' == '' ">$(MSBuildThisFileDirectory)..\..\bin\Tests\</BaseOutputPath>
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Microsoft.VisualStudio.Composition.Tests\Microsoft.VisualStudio.Composition.Tests.ruleset</CodeAnalysisRuleSet>
     <IsPackable>false</IsPackable>
 
     <!-- VS2017 Test Explorer test navigation and callstack links don't work with portable PDBs yet. -->
     <DebugType>Full</DebugType>
   </PropertyGroup>
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., Directory.Build.props))\Directory.Build.props" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., Directory.Build.props))' != '' " />
 </Project>

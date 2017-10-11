@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+#if DESKTOP
+
 namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
@@ -17,6 +19,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using Xunit;
 
     [Trait("Efficiency", "LazyLoad")]
+    [Trait("AppDomains", "true")]
     public abstract class AssembliesLazyLoadedTests : IDisposable
     {
         private ICompositionCacheManager cacheManager;
@@ -39,9 +42,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// <summary>
         /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
         /// </summary>
-        [Fact]
+        [SkippableFact]
         public async Task ComposableAssembliesLazyLoadedWhenQueried()
         {
+            SkipOnMono();
             var catalog = TestUtilities.EmptyCatalog.AddParts(
                 await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExternalExport), typeof(YetAnotherExport)));
             var catalogCache = await this.SaveCatalogAsync(catalog);
@@ -90,9 +94,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// <summary>
         /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
         /// </summary>
-        [Fact]
+        [SkippableFact]
         public async Task ComposableAssembliesLazyLoadedByLazyImport()
         {
+            SkipOnMono();
             var catalog = TestUtilities.EmptyCatalog.AddParts(
                 await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExternalExportWithLazy), typeof(YetAnotherExport)));
             var catalogCache = await this.SaveCatalogAsync(catalog);
@@ -118,10 +123,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// their metadata is actually retrieved.
         /// </summary>
         [SkippableFact]
-        [Trait("AppDomains", "true")]
         public async Task ComposableAssembliesLazyLoadedByLazyMetadataDictionary()
         {
-            TestUtilities.SkipOnMono("AppDomains(?)");
+            SkipOnMono();
             var catalog = TestUtilities.EmptyCatalog.AddParts(
                 await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaDictionary), typeof(AnExportWithMetadataTypeValue)));
             var catalogCache = await this.SaveCatalogAsync(catalog);
@@ -146,12 +150,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// Verifies that the assemblies that MEF parts belong to are only loaded when
         /// their metadata is actually retrieved.
         /// </summary>
-        [Fact]
+        [SkippableFact]
         public async Task ComposableAssembliesLazyLoadedByLazyTMetadata()
         {
+            SkipOnMono();
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaTMetadata), typeof(AnExportWithMetadataTypeValue)))
-                .WithDesktopSupport();
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartThatLazyImportsExportWithTypeMetadataViaTMetadata), typeof(AnExportWithMetadataTypeValue)));
             var catalogCache = await this.SaveCatalogAsync(catalog);
             var configuration = CompositionConfiguration.Create(catalog);
             var compositionCache = await this.SaveConfigurationAsync(configuration);
@@ -174,12 +178,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// Verifies that lazy assembly load isn't defeated when that assembly
         /// defines a type used as a generic type argument elsewhere.
         /// </summary>
-        [Fact]
+        [SkippableFact]
         public async Task ComposableAssembliesLazyLoadedWithGenericTypeArg()
         {
+            SkipOnMono();
             var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartImportingOpenGenericExport), typeof(OpenGenericExport<>)))
-                .WithDesktopSupport();
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartImportingOpenGenericExport), typeof(OpenGenericExport<>)));
             var catalogCache = await this.SaveCatalogAsync(catalog);
             var configuration = CompositionConfiguration.Create(catalog);
             var compositionCache = await this.SaveConfigurationAsync(configuration);
@@ -202,9 +206,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// Verifies that the assemblies that MEF parts belong to are only loaded when the custom metadata types they define
         /// are actually required by some import.
         /// </summary>
-        [Fact]
+        [SkippableFact]
         public async Task ComposableAssembliesLazyLoadedWhenCustomMetadataIsRequired()
         {
+            SkipOnMono();
             var catalog = TestUtilities.EmptyCatalog.AddParts(
                 await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExportWithCustomMetadata), typeof(PartThatLazyImportsExportWithMetadataOfCustomType)));
             var catalogCache = await this.SaveCatalogAsync(catalog);
@@ -223,6 +228,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 AppDomain.Unload(appDomain);
             }
+        }
+
+        private static void SkipOnMono()
+        {
+            TestUtilities.SkipOnMono("Assemblies are loaded more eagerly in other AppDomains on Mono");
         }
 
         private async Task<Stream> SaveConfigurationAsync(CompositionConfiguration configuration)
@@ -386,3 +396,5 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
     }
 }
+
+#endif

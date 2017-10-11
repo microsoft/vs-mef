@@ -13,14 +13,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using Microsoft.VisualStudio.Composition.AppDomainTests;
     using Microsoft.VisualStudio.Composition.AppDomainTests2;
     using Xunit;
+    using Xunit.Abstractions;
 
     public abstract class CacheAndReloadTests
     {
+        private readonly ITestOutputHelper logger;
         private ICompositionCacheManager cacheManager;
 
-        protected CacheAndReloadTests(ICompositionCacheManager cacheManager)
+        protected CacheAndReloadTests(ITestOutputHelper logger, ICompositionCacheManager cacheManager)
         {
             Requires.NotNull(cacheManager, nameof(cacheManager));
+            this.logger = logger;
             this.cacheManager = cacheManager;
         }
 

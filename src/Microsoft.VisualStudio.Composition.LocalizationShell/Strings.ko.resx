@@ -71,6 +71,7 @@
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
     <value>예기치 않은 멤버 유형입니다.</value>
+    <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
     <value>적용 가능한 제약 조건을 적용한 후 계약 이름이 "{1}"인 내보내기가 {0}개 필요하지만 {2}개를 찾았습니다.</value>

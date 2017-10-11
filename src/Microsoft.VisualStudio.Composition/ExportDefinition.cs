@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Text;
     using System.Threading.Tasks;
 
-    [DebuggerDisplay("{ContractName,nq}")]
+    [DebuggerDisplay("{" + nameof(ContractName) + ",nq}")]
     public class ExportDefinition : IEquatable<ExportDefinition>
     {
         public ExportDefinition(string contractName, IReadOnlyDictionary<string, object> metadata)

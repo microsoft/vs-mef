@@ -54,6 +54,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(export.Value);
         }
 
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
+        public void GetExportWithInternalMetadataView(IContainer container)
+        {
+            var export = container.GetExport<SomeOtherPart, ISomeOtherPartInternalMetadataView>();
+            Assert.Equal(1, export.Metadata.A);
+            Assert.NotNull(export.Value);
+        }
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
         public void GetExportWithFilteringMetadataView(IContainer container)
         {
@@ -118,6 +127,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
             int A { get; }
         }
 
+        internal interface ISomeOtherPartInternalMetadataView
+        {
+            int A { get; }
+        }
+
         public interface IMetadataViewWithBMember
         {
             int B { get; }
@@ -145,6 +159,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(1, Foo2.ActivationCounter);
         }
 
+#if DESKTOP
         /// <summary>
         /// Verifies that V3 emulates V1 correctly when using the V1 ExportProvider shim.
         /// </summary>
@@ -159,6 +174,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(1, Foo1.ActivationCounter);
             Assert.Equal(1, Foo2.ActivationCounter);
         }
+#endif
 
         /// <summary>
         /// MEFv3 is more lazy at activating parts than MEFv1 and MEFv2.
@@ -215,7 +231,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public static int ActivationCounter;
         }
 
-        #endregion
+#endregion
 
         #region NonShared parts activated once per query
 
