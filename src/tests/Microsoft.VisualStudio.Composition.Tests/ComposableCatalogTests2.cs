@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using Xunit;
     using MEFv1 = System.ComponentModel.Composition;
 
-    public class CompositionCatalogTests
+    public class ComposableCatalogTests2
     {
         [Fact]
         public async Task CreateFromTypesOmitsNonPartsV1()
