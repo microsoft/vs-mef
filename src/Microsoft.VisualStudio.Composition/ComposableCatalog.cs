@@ -84,7 +84,7 @@ namespace Microsoft.VisualStudio.Composition
             var typesBackingParts = this.typesBackingParts.Add(partDefinition.TypeRef);
             if (typesBackingParts == this.typesBackingParts)
             {
-                Requires.Argument(false, nameof(partDefinition), Strings.TypeAlreadyInCatalogAsAnotherPart, partDefinition.TypeRef.ResolvedType.FullName);
+                Requires.Argument(false, nameof(partDefinition), Strings.TypeAlreadyInCatalogAsAnotherPart, partDefinition.TypeRef.FullName);
             }
 
             var exportsByContract = this.exportsByContract;
