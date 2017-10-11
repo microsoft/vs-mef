@@ -602,7 +602,7 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unexpected member type..
+        ///   Looks up a localized string similar to Unexpected member type {0}..
         /// </summary>
         internal static string UnexpectedMemberType {
             get {

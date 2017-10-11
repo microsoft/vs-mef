@@ -11,7 +11,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.Linq;
     using System.Reflection;
     using System.Runtime.CompilerServices;
-    using System.Runtime.Serialization.Formatters.Binary;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -176,14 +175,14 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     this.Write(part.TypeRef);
                     this.Write(part.Exports, this.Write);
-                    if (part.ImportingConstructorRef.IsEmpty)
+                    if (part.ImportingConstructorOrFactoryMethodRef.IsEmpty)
                     {
                         this.writer.Write(false);
                     }
                     else
                     {
                         this.writer.Write(true);
-                        this.Write(part.ImportingConstructorRef);
+                        this.Write(part.ImportingConstructorOrFactoryMethodRef);
                         this.Write(part.ImportingConstructorArguments, this.Write);
                     }
 
@@ -197,7 +196,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 using (this.Trace("RuntimePart"))
                 {
-                    ConstructorRef importingCtor = default(ConstructorRef);
+                    MethodRef importingCtor = default(MethodRef);
                     IReadOnlyList<RuntimeComposition.RuntimeImport> importingCtorArguments = ImmutableList<RuntimeComposition.RuntimeImport>.Empty;
 
                     var type = this.ReadTypeRef();
@@ -205,7 +204,7 @@ namespace Microsoft.VisualStudio.Composition
                     bool hasCtor = this.reader.ReadBoolean();
                     if (hasCtor)
                     {
-                        importingCtor = this.ReadConstructorRef();
+                        importingCtor = this.ReadMethodRef();
                         importingCtorArguments = this.ReadList(this.reader, this.ReadRuntimeImport);
                     }
 

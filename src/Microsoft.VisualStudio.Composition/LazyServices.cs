@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.Composition
                 genericMethod = CreateStronglyTypedLazyOfTValue.MakeGenericMethod(exportType ?? DefaultExportedValueType);
             }
 
-            return (Func<Func<object>, object, object>)Delegate.CreateDelegate(typeof(Func<Func<object>, object, object>), genericMethod);
+            return (Func<Func<object>, object, object>)genericMethod.CreateDelegate(typeof(Func<Func<object>, object, object>));
         }
 
         internal static Func<T> AsFunc<T>(this Lazy<T> lazy)

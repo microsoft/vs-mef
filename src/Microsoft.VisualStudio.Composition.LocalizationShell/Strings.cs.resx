@@ -71,6 +71,7 @@
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
     <value>Neočekávaný typ člena</value>
+    <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
     <value>Očekával se následující počet exportů s názvem kontraktu {1}: {0}. Nalezený počet po použití příslušných omezení byl ale: {2}.</value>

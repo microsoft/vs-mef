@@ -131,6 +131,20 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+        internal static ImmutableArray<TypeRef> GetParameterTypes(this MethodBase method, Resolver resolver)
+        {
+            Requires.NotNull(method, nameof(method));
+            return method.GetParameters().Select(pi => TypeRef.Get(pi.ParameterType, resolver)).ToImmutableArray();
+        }
+
+        internal static ImmutableArray<TypeRef> GetGenericTypeArguments(this MethodBase methodBase, Resolver resolver)
+        {
+            Requires.NotNull(methodBase, nameof(methodBase));
+
+            return (methodBase as MethodInfo)?.GetGenericArguments()?.Select(t => TypeRef.Get(t, resolver)).ToImmutableArray()
+                ?? ImmutableArray<TypeRef>.Empty;
+        }
+
         internal static IEnumerable<PropertyInfo> EnumProperties(this Type type)
         {
             Requires.NotNull(type, nameof(type));
@@ -207,25 +221,19 @@ namespace Microsoft.VisualStudio.Composition
 
         internal static Type GetMemberType(MemberInfo fieldOrPropertyOrType)
         {
-            var typeInfo = fieldOrPropertyOrType as TypeInfo;
-            if (typeInfo != null)
-            {
-                return typeInfo.AsType();
-            }
+            Requires.NotNull(fieldOrPropertyOrType, nameof(fieldOrPropertyOrType));
 
-            var property = fieldOrPropertyOrType as PropertyInfo;
-            if (property != null)
+            switch (fieldOrPropertyOrType)
             {
-                return property.PropertyType;
+                case TypeInfo typeInfo:
+                    return typeInfo.AsType();
+                case PropertyInfo property:
+                    return property.PropertyType;
+                case FieldInfo field:
+                    return field.FieldType;
+                default:
+                    throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Strings.UnexpectedMemberType, fieldOrPropertyOrType.MemberType));
             }
-
-            var field = fieldOrPropertyOrType as FieldInfo;
-            if (field != null)
-            {
-                return field.FieldType;
-            }
-
-            throw new ArgumentException(Strings.UnexpectedMemberType);
         }
 
         internal static bool IsPublicInstance(this MethodInfo methodInfo)
@@ -554,15 +562,37 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (namedArgument.IsField)
                 {
-                    ((FieldInfo)namedArgument.MemberInfo).SetValue(attribute, namedArgument.TypedValue.Value);
+                    var field = attributeData.AttributeType.GetField(namedArgument.MemberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    Assumes.NotNull(field);
+                    field.SetValue(attribute, namedArgument.TypedValue.Value);
                 }
                 else
                 {
-                    ((PropertyInfo)namedArgument.MemberInfo).SetValue(attribute, namedArgument.TypedValue.Value);
+                    var property = attributeData.AttributeType.GetProperty(namedArgument.MemberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    Assumes.NotNull(property);
+                    property.SetValue(attribute, namedArgument.TypedValue.Value);
                 }
             }
 
             return attribute;
+        }
+
+        internal static object Instantiate(this MethodBase ctorOrFactoryMethod, object[] arguments)
+        {
+            Requires.NotNull(ctorOrFactoryMethod, nameof(ctorOrFactoryMethod));
+
+            if (ctorOrFactoryMethod is ConstructorInfo ctor)
+            {
+                return ctor.Invoke(arguments);
+            }
+            else if (ctorOrFactoryMethod is MethodInfo method && method.IsStatic)
+            {
+                return method.Invoke(null, arguments);
+            }
+            else
+            {
+                throw new NotSupportedException("Cannot instantiate with unsupported importing constructor of type: " + ctorOrFactoryMethod.GetType().Name);
+            }
         }
 
         internal static void GetInputAssembliesFromMetadata(ISet<AssemblyName> assemblies, IReadOnlyDictionary<string, object> metadata)

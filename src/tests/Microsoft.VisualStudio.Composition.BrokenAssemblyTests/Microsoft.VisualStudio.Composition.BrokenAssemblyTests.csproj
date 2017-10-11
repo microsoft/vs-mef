@@ -1,14 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net451</TargetFramework>
+    <TargetFrameworks>netstandard1.2;net45</TargetFrameworks>
   </PropertyGroup>
-  <ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.MissingAssemblyTests\Microsoft.VisualStudio.Composition.MissingAssemblyTests.csproj">
       <Private>False</Private>
     </ProjectReference>
+    <ProjectReference Include="..\System.ComponentModel.Composition.AttributedModel\System.ComponentModel.Composition.AttributedModel.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Composition" Version="1.0.31" />

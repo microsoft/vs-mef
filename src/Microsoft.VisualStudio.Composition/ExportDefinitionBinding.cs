@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public MemberInfo ExportingMember
         {
-            get { return this.ExportingMemberRef.Resolve(); }
+            get { return this.ExportingMemberRef.MemberInfo; }
         }
 
         /// <summary>

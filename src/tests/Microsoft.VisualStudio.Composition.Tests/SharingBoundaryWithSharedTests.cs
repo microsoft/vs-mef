@@ -120,6 +120,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [MefFact(CompositionEngines.V2Compat)]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
         public void DisposeExportReleasesContainer(IContainer container)
         {
             var root = container.GetExportedValue<RootPart>();

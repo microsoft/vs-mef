@@ -107,6 +107,19 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Single().Value);
         }
 
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ImportManyPartWithInternalMetadataInterface), typeof(PartWithExportMetadata))]
+        public void ImportManyWithInternalMetadataInterface(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<ImportManyPartWithInternalMetadataInterface>();
+            Assert.NotNull(importingPart.ImportingProperty);
+            Assert.Equal(1, importingPart.ImportingProperty.Count());
+            Assert.Equal("b", importingPart.ImportingProperty.Single().Metadata.a);
+            Assert.Equal("internal!", importingPart.ImportingProperty.Single().Metadata.MetadataOnInternalInterface);
+            Assert.False(importingPart.ImportingProperty.Single().IsValueCreated);
+            Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Single().Value);
+        }
+
         [MefFact(CompositionEngines.Unspecified, typeof(ImportingPartWithMetadataInterface), typeof(PartWithExportMetadata))]
         [Trait("Efficiency", "InstanceReuse")]
         public void MetadataViewInterfaceInstanceSharedAcrossImports(IContainer container)
@@ -552,8 +565,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [MefV1.ExportMetadata("a", "b")]
+        [MefV1.ExportMetadata(nameof(AssemblyDiscoveryTests.IInternalMetadataView.MetadataOnInternalInterface), "internal!")]
         [Export]
         [ExportMetadata("a", "b")]
+        [ExportMetadata(nameof(AssemblyDiscoveryTests.IInternalMetadataView.MetadataOnInternalInterface), "internal!")]
         public class PartWithExportMetadata { }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -606,6 +621,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         [Export]
+        public class ImportManyPartWithInternalMetadataInterface
+        {
+            [ImportMany, MefV1.ImportMany]
+            internal IEnumerable<Lazy<PartWithExportMetadata, IMetadataInternal>> ImportingProperty { get; set; }
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        [Export]
         public class ImportManyPartWithMetadataClass
         {
             [ImportMany, MefV1.ImportMany]
@@ -635,6 +658,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             [DefaultValue(4)]
             int SomeInt { get; }
+        }
+
+        internal interface IMetadataInternal : IMetadata, AssemblyDiscoveryTests.IInternalMetadataView
+        {
         }
 
         public class MetadataClass

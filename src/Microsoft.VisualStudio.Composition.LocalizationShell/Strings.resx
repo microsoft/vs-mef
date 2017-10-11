@@ -175,7 +175,8 @@
     <value>Unable to load assembly "{0}" for scanning.</value>
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
-    <value>Unexpected member type.</value>
+    <value>Unexpected member type {0}.</value>
+    <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
     <value>Expected {0} export(s) with contract name "{1}" but found {2} after applying applicable constraints.</value>

@@ -130,8 +130,13 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     try
                     {
-                        var assembly = Assembly.Load(AssemblyName.GetAssemblyName(path));
-                        return new Assembly[] { assembly };
+#if NET45
+                        return new Assembly[] { Assembly.Load(AssemblyName.GetAssemblyName(path)) };
+#elif NETCOREAPP1_0
+                        return new Assembly[] { System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(path) };
+#else
+                        throw new NotSupportedException();
+#endif
                     }
                     catch (Exception ex)
                     {
@@ -218,6 +223,16 @@ namespace Microsoft.VisualStudio.Composition
                 var icollectionType = icollectionTypes.First();
                 return icollectionType.GenericTypeArguments[0]; // IEnumerable<T> -> T
             }
+        }
+
+        protected static Type GetImportingSiteTypeWithoutCollection(ImportDefinition importDefinition, Type importingSiteType)
+        {
+            Requires.NotNull(importDefinition, nameof(importDefinition));
+            Requires.NotNull(importingSiteType, nameof(importingSiteType));
+
+            return importDefinition.Cardinality == ImportCardinality.ZeroOrMore
+                ? GetElementTypeFromMany(importingSiteType)
+                : importingSiteType;
         }
 
         protected static ConstructorInfo GetImportingConstructor<TImportingConstructorAttribute>(Type type, bool publicOnly)

@@ -8,6 +8,7 @@ EnlistmentInfo.xml
 *.user
 *.sln.docstates
 .vs/
+.cr/
 
 # Build results
 

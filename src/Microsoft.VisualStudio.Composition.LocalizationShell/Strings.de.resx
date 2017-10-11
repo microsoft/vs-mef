@@ -71,6 +71,7 @@
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
     <value>Unerwarteter Membertyp.</value>
+    <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
     <value>Es wurde(n) {0} Export(e) mit dem Vertragsnamen "{1}" erwartet, nach der Anwendung geltender Einschränkungen wurden jedoch {2} gefunden.</value>

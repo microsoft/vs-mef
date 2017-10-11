@@ -13,6 +13,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
     public static class ResolverExtensions
     {
+        private const BindingFlags AllInstanceMembers = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+
         public static Type Resolve(this TypeRef typeRef)
         {
             return typeRef?.ResolvedType;
@@ -25,22 +27,40 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 return null;
             }
 
+#if RuntimeHandles
             var manifest = constructorRef.Resolver.GetManifest(constructorRef.DeclaringType.AssemblyName);
             return (ConstructorInfo)manifest.ResolveMethod(constructorRef.MetadataToken);
+#else
+            return FindMethodByParameters(
+                Resolve(constructorRef.DeclaringType).GetConstructors(AllInstanceMembers),
+                ConstructorInfo.ConstructorName,
+                constructorRef.ParameterTypes);
+#endif
         }
 
-        public static MethodInfo Resolve(this MethodRef methodRef)
+        [Obsolete("Use Resolve2 instead.", error: true)]
+        public static MethodInfo Resolve(this MethodRef methodRef) => (MethodInfo)Resolve2(methodRef);
+
+        public static MethodBase Resolve2(this MethodRef methodRef)
         {
             if (methodRef.IsEmpty)
             {
                 return null;
             }
 
+#if RuntimeHandles
             var manifest = methodRef.Resolver.GetManifest(methodRef.DeclaringType.AssemblyName);
-            var method = (MethodInfo)manifest.ResolveMethod(methodRef.MetadataToken);
+            var method = manifest.ResolveMethod(methodRef.MetadataToken);
+#else
+            TypeInfo declaringType = methodRef.DeclaringType.ResolvedType.GetTypeInfo();
+            var candidates = methodRef.Name == ConstructorInfo.ConstructorName
+                ? (MethodBase[])declaringType.GetConstructors(AllInstanceMembers)
+                : declaringType.GetMethods(AllInstanceMembers);
+            var method = FindMethodByParameters(candidates, methodRef.Name, methodRef.ParameterTypes);
+#endif
             if (methodRef.GenericMethodArguments.Length > 0)
             {
-                var constructedMethod = method.MakeGenericMethod(methodRef.GenericMethodArguments.Select(Resolve).ToArray());
+                var constructedMethod = ((MethodInfo)method).MakeGenericMethod(methodRef.GenericMethodArguments.Select(Resolve).ToArray());
                 return constructedMethod;
             }
 
@@ -55,15 +75,23 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
 
             Type type = propertyRef.DeclaringType.Resolve();
+#if RuntimeHandles
             return type.GetRuntimeProperties().First(p => p.MetadataToken == propertyRef.MetadataToken);
+#else
+            return type.GetProperty(propertyRef.Name, AllInstanceMembers);
+#endif
         }
 
         public static MethodInfo ResolveGetter(this PropertyRef propertyRef)
         {
             if (propertyRef.GetMethodMetadataToken.HasValue)
             {
+#if RuntimeHandles
                 Module manifest = propertyRef.Resolver.GetManifest(propertyRef.DeclaringType.AssemblyName);
                 return (MethodInfo)manifest.ResolveMethod(propertyRef.GetMethodMetadataToken.Value);
+#else
+                return propertyRef.PropertyInfo.GetMethod;
+#endif
             }
 
             return null;
@@ -73,8 +101,12 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         {
             if (propertyRef.SetMethodMetadataToken.HasValue)
             {
+#if RuntimeHandles
                 Module manifest = propertyRef.Resolver.GetManifest(propertyRef.DeclaringType.AssemblyName);
                 return (MethodInfo)manifest.ResolveMethod(propertyRef.SetMethodMetadataToken.Value);
+#else
+                return propertyRef.PropertyInfo.SetMethod;
+#endif
             }
 
             return null;
@@ -87,8 +119,12 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 return null;
             }
 
+#if RuntimeHandles
             var manifest = fieldRef.Resolver.GetManifest(fieldRef.AssemblyName);
             return manifest.ResolveField(fieldRef.MetadataToken);
+#else
+            return Resolve(fieldRef.DeclaringType).GetField(fieldRef.Name, AllInstanceMembers);
+#endif
         }
 
         public static ParameterInfo Resolve(this ParameterRef parameterRef)
@@ -98,8 +134,12 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 return null;
             }
 
+#if RuntimeHandles
             Module manifest = parameterRef.Resolver.GetManifest(parameterRef.AssemblyName);
-            MethodBase method = manifest.ResolveMethod(parameterRef.MethodMetadataToken);
+            MethodBase method = manifest.ResolveMethod(parameterRef.Constructor.IsEmpty ? parameterRef.Method.MetadataToken : parameterRef.Constructor.MetadataToken);
+#else
+            MethodBase method = (MethodBase)parameterRef.Constructor.ConstructorInfo ?? parameterRef.Method.MethodBase;
+#endif
             return method.GetParameters()[parameterRef.ParameterIndex];
         }
 
@@ -112,22 +152,22 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             if (memberRef.IsField)
             {
-                return memberRef.Field.Resolve();
+                return memberRef.Field.FieldInfo;
             }
 
             if (memberRef.IsProperty)
             {
-                return memberRef.Property.Resolve();
+                return memberRef.Property.PropertyInfo;
             }
 
             if (memberRef.IsMethod)
             {
-                return memberRef.Method.Resolve();
+                return memberRef.Method.MethodBase;
             }
 
             if (memberRef.IsConstructor)
             {
-                return memberRef.Constructor.Resolve();
+                return memberRef.Constructor.ConstructorInfo;
             }
 
             if (memberRef.IsType)
@@ -138,32 +178,9 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             throw new NotSupportedException();
         }
 
+        [Obsolete("Use " + nameof(MemberRef) + " instead.", error: true)]
         public static MemberInfo Resolve(this MemberDesc memberDesc)
         {
-            var fieldDesc = memberDesc as FieldDesc;
-            if (fieldDesc != null)
-            {
-                return fieldDesc.Field.Resolve();
-            }
-
-            var propertyDesc = memberDesc as PropertyDesc;
-            if (propertyDesc != null)
-            {
-                return propertyDesc.Property.Resolve();
-            }
-
-            var methodDesc = memberDesc as MethodDesc;
-            if (methodDesc != null)
-            {
-                return methodDesc.Method.Resolve();
-            }
-
-            var constructorDesc = memberDesc as ConstructorDesc;
-            if (constructorDesc != null)
-            {
-                return constructorDesc.Constructor.Resolve();
-            }
-
             throw new NotSupportedException();
         }
 
@@ -275,6 +292,38 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         internal static Module GetManifest(this Resolver resolver, AssemblyName assemblyName)
         {
             return resolver.AssemblyLoader.LoadAssembly(assemblyName).ManifestModule;
+        }
+
+        private static T FindMethodByParameters<T>(IEnumerable<T> members, string memberName, ImmutableArray<TypeRef> parameterTypes)
+            where T : MethodBase
+        {
+            Requires.NotNull(members, nameof(members));
+
+            foreach (var member in members)
+            {
+                if (member.Name != memberName)
+                {
+                    continue;
+                }
+
+                var parameters = member.GetParameters();
+                if (parameters.Length != parameterTypes.Length)
+                {
+                    continue;
+                }
+
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    if (!parameterTypes[i].Equals(parameters[i].ParameterType))
+                    {
+                        continue;
+                    }
+                }
+
+                return member;
+            }
+
+            return default(T);
         }
     }
 }

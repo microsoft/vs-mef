@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     p.ImportingMembers,
                     p.SharingBoundary,
                     p.OnImportsSatisfiedRef,
-                    p.ImportingConstructorRef,
+                    p.ImportingConstructorOrFactoryRef,
                     p.ImportingConstructorImports,
                     p.CreationPolicy,
                     p.IsSharingBoundaryInferred)),

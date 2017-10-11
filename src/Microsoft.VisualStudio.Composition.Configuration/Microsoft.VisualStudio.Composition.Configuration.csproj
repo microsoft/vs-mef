@@ -8,9 +8,6 @@
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" PrivateAssets="all" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj" />
   </ItemGroup>
 </Project>

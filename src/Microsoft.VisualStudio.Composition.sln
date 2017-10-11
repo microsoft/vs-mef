@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26421.1
+VisualStudioVersion = 15.0.26614.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition", "Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj", "{1CA6A92C-5DD9-4BE5-B5B7-EE4A1318B4C2}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -27,6 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Comp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{28B65BDB-4470-4946-BAC3-4EE840F40B37}"
 	ProjectSection(SolutionItems) = preProject
+		..\.appveyor.yml = ..\.appveyor.yml
 		Directory.Build.props = Directory.Build.props
 		nuget.config = nuget.config
 		version.json = version.json
@@ -37,6 +38,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.AppHost", "Microsoft.VisualStudio.Composition.AppHost\Microsoft.VisualStudio.Composition.AppHost.csproj", "{93C14982-BB95-4554-BE09-2D0A4C9ADA09}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.Composition.LocalizationShell", "Microsoft.VisualStudio.Composition.LocalizationShell\Microsoft.VisualStudio.Composition.LocalizationShell.csproj", "{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.TestEmbeddableTypes", "tests\Microsoft.VisualStudio.Composition.TestEmbeddableTypes\Microsoft.VisualStudio.Composition.TestEmbeddableTypes.csproj", "{E4BB6F4B-EAB5-4DF2-9FFA-08981105DF90}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "System.ComponentModel.Composition.AttributedModel", "tests\System.ComponentModel.Composition.AttributedModel\System.ComponentModel.Composition.AttributedModel.csproj", "{DFD69876-E482-4F1A-A772-7B5DA5D75724}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.ComponentModel.Composition.Runtime", "tests\System.ComponentModel.Composition.Runtime\System.ComponentModel.Composition.Runtime.csproj", "{79BFFA10-6D40-4E91-8C90-0D2AC9171A64}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -96,8 +103,23 @@ Global
 		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4BB6F4B-EAB5-4DF2-9FFA-08981105DF90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4BB6F4B-EAB5-4DF2-9FFA-08981105DF90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4BB6F4B-EAB5-4DF2-9FFA-08981105DF90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4BB6F4B-EAB5-4DF2-9FFA-08981105DF90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFD69876-E482-4F1A-A772-7B5DA5D75724}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFD69876-E482-4F1A-A772-7B5DA5D75724}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFD69876-E482-4F1A-A772-7B5DA5D75724}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFD69876-E482-4F1A-A772-7B5DA5D75724}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79BFFA10-6D40-4E91-8C90-0D2AC9171A64}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79BFFA10-6D40-4E91-8C90-0D2AC9171A64}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79BFFA10-6D40-4E91-8C90-0D2AC9171A64}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79BFFA10-6D40-4E91-8C90-0D2AC9171A64}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {595F7089-18B6-4D24-8F38-7FFCCE2F5F0E}
 	EndGlobalSection
 EndGlobal

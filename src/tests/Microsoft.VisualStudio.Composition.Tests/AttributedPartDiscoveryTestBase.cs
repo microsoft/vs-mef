@@ -43,9 +43,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public async Task AssemblyDiscoveryFindsTopLevelParts()
         {
-            var result = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).Assembly);
-            Assert.True(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(DiscoverablePart1))));
-            Assert.True(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(DiscoverablePart2))));
+            var result = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).GetTypeInfo().Assembly);
+            Assert.True(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(DiscoverablePart1))));
+            Assert.True(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(DiscoverablePart2))));
         }
 
         [Fact]
@@ -58,31 +58,31 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public async Task AssemblyDiscoveryOmitsNonDiscoverableParts()
         {
-            var result = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).Assembly);
-            Assert.False(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(NonPart))));
-            Assert.False(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(NonDiscoverablePart))));
+            var result = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).GetTypeInfo().Assembly);
+            Assert.False(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonPart))));
+            Assert.False(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonDiscoverablePart))));
         }
 
         [Fact]
         public async Task AssemblyDiscoveryOmitsNonDiscoverableParts_Combined()
         {
             var combined = PartDiscovery.Combine(this.DiscoveryService, new PartDiscoveryAllTypesMock());
-            var result = await combined.CreatePartsAsync(typeof(NonDiscoverablePart).Assembly);
+            var result = await combined.CreatePartsAsync(typeof(NonDiscoverablePart).GetTypeInfo().Assembly);
 
-            Assert.False(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(NonPart))));
-            Assert.False(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(NonDiscoverablePart))));
-            Assert.False(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(NonDiscoverablePartV1))));
-            Assert.False(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(NonDiscoverablePartV2))));
+            Assert.False(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonPart))));
+            Assert.False(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonDiscoverablePart))));
+            Assert.False(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonDiscoverablePartV1))));
+            Assert.False(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonDiscoverablePartV2))));
 
-            Assert.True(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(DiscoverablePart1))));
-            Assert.True(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(DiscoverablePart2))));
+            Assert.True(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(DiscoverablePart1))));
+            Assert.True(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(DiscoverablePart2))));
         }
 
         [Fact]
         public async Task AssemblyDiscoveryFindsNestedParts()
         {
-            var result = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).Assembly);
-            Assert.True(result.Parts.Any(p => p.Type.IsEquivalentTo(typeof(OuterClass.NestedPart))));
+            var result = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).GetTypeInfo().Assembly);
+            Assert.True(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(OuterClass.NestedPart))));
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             // If discovery is using the LoadFrom context, this will cause the assembly to be loaded twice
             // such that we won't be able to consume the result and GetExportedValue will throw.
             string alternateReadLocation = Path.GetTempFileName();
-            File.Copy(typeof(DiscoverablePart1).Assembly.Location, alternateReadLocation, true);
+            File.Copy(typeof(DiscoverablePart1).GetTypeInfo().Assembly.Location, alternateReadLocation, true);
 
             var parts = await this.DiscoveryService.CreatePartsAsync(new[] { alternateReadLocation });
             var catalog = TestUtilities.EmptyCatalog.AddParts(parts);
@@ -116,12 +116,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
             // is not building to the same directory as the test assemblies.
             try
             {
-                typeof(TypeWithMissingAttribute).GetCustomAttributes(false);
+                typeof(TypeWithMissingAttribute).GetTypeInfo().GetCustomAttributes(false);
                 Skip.If(true, "The missing assembly is present. Test cannot verify proper operation.");
             }
             catch (FileNotFoundException) { }
 
-            var result = await this.DiscoveryService.CreatePartsAsync(typeof(TypeWithMissingAttribute).Assembly);
+            var result = await this.DiscoveryService.CreatePartsAsync(typeof(TypeWithMissingAttribute).GetTypeInfo().Assembly);
 
             // Verify that we still found parts.
             Assert.NotEqual(0, result.Parts.Count);
@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             // is not building to the same directory as the test assemblies.
             try
             {
-                typeof(TypeWithMissingAttribute).GetCustomAttributes(false);
+                typeof(TypeWithMissingAttribute).GetTypeInfo().GetCustomAttributes(false);
                 Skip.If(true, "The missing assembly is present. Test cannot verify proper operation.");
             }
             catch (FileNotFoundException) { }
@@ -144,8 +144,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var result = await this.DiscoveryService.CreatePartsAsync(
                 new List<Assembly>
                 {
-                    typeof(TypeWithMissingAttribute).Assembly,
-                    typeof(GoodType).Assembly,
+                    typeof(TypeWithMissingAttribute).GetTypeInfo().Assembly,
+                    typeof(GoodType).GetTypeInfo().Assembly,
                 });
 
             // Verify that the ReflectionTypeLoadException is logged.

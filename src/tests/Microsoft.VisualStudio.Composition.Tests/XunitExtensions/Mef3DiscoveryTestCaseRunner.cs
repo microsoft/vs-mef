@@ -17,6 +17,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using Xunit.Abstractions;
     using Xunit.Sdk;
 
+// StyleCop.Analyzers 1.x doesn't support tuple literals
+#pragma warning disable SA1009 // Closing parenthesis must be spaced correctly
+
     public class Mef3DiscoveryTestCaseRunner : XunitTestCaseRunner
     {
         private readonly CompositionEngines compositionVersions;
@@ -37,7 +40,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             this.expectInvalidConfiguration = expectInvalidConfiguration;
         }
 
-        public IReadOnlyList<CompositionConfiguration> ResultingConfigurations { get; set; }
+        public IReadOnlyList<(CompositionConfiguration Configuration, string Description)> ResultingConfigurations { get; set; }
 
         public bool Passed { get; private set; }
 
@@ -57,7 +60,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
                     var resultingCatalogs = new List<ComposableCatalog>(v3DiscoveryModules.Count);
 
-                    var assemblies = this.assemblyNames.Select(Assembly.Load).ToList();
+                    var assemblies = this.assemblyNames.Select(an => Assembly.Load(new AssemblyName(an))).ToList();
                     foreach (var discoveryModule in v3DiscoveryModules)
                     {
                         var partsFromTypes = await discoveryModule.CreatePartsAsync(this.parts);
@@ -100,12 +103,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     }
 
                     // For each distinct catalog, create one configuration and verify it meets expectations.
-                    var configurations = new List<CompositionConfiguration>(uniqueCatalogs.Length);
+                    var configurations = new List<(CompositionConfiguration, string)>(2 * uniqueCatalogs.Length);
                     foreach (var uniqueCatalog in uniqueCatalogs)
                     {
                         var catalogWithSupport = uniqueCatalog
+#if DESKTOP
                             .WithCompositionService()
-                            .WithDesktopSupport();
+#endif
+                            ;
 
                         // Round-trip the catalog through serialization to verify that as well.
                         await RoundtripCatalogSerializationAsync(catalogWithSupport, output);
@@ -118,7 +123,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                         }
 
                         // Save the configuration in a property so that the engine test that follows can reuse the work we've done.
-                        configurations.Add(configuration);
+                        configurations.Add((configuration, string.Empty));
                     }
 
                     this.ResultingConfigurations = configurations;
@@ -211,8 +216,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var discovery = new List<PartDiscovery>();
             if (this.compositionVersions.HasFlag(CompositionEngines.V3EmulatingV1))
             {
+#if DESKTOP
                 discovery.Add(TestUtilities.V1Discovery);
                 titleAppends.Add("V1");
+#endif
             }
 
             var v2Discovery = this.compositionVersions.HasFlag(CompositionEngines.V3EmulatingV2WithNonPublic)
@@ -226,8 +233,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             if (this.compositionVersions.HasFlag(CompositionEngines.V3EmulatingV1AndV2AtOnce))
             {
+#if DESKTOP
                 discovery.Add(PartDiscovery.Combine(TestUtilities.V1Discovery, v2Discovery));
                 titleAppends.Add("V1+V2");
+#endif
             }
 
             this.DisplayName += " (" + string.Join(", ", titleAppends) + ")";

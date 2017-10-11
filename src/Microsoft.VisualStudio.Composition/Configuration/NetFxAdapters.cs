@@ -18,13 +18,11 @@ namespace Microsoft.VisualStudio.Composition
     public static class NetFxAdapters
     {
         private static readonly ComposablePartDefinition CompositionServicePart;
-        private static readonly ComposablePartDefinition MetadataViewImplProxyPart;
 
         static NetFxAdapters()
         {
             var discovery = new AttributedPartDiscoveryV1(Resolver.DefaultInstance);
             CompositionServicePart = discovery.CreatePart(typeof(CompositionService));
-            MetadataViewImplProxyPart = discovery.CreatePart(typeof(MetadataViewImplProxy));
         }
 
         /// <summary>
@@ -58,13 +56,11 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         /// <param name="catalog">The catalog to add desktop support to.</param>
         /// <returns>The catalog that includes desktop support.</returns>
+        [Obsolete("Desktop support is automatically included when run on the .NET Framework.")]
         public static ComposableCatalog WithDesktopSupport(this ComposableCatalog catalog)
         {
             Requires.NotNull(catalog, nameof(catalog));
-
-            return catalog
-                .AddPart(MetadataViewImplProxyPart)
-                .WithMetadataViewEmitProxySupport();
+            return catalog;
         }
 
         private class MefV1ExportProvider : MefV1.Hosting.ExportProvider
@@ -378,44 +374,6 @@ namespace Microsoft.VisualStudio.Composition
             public void Dispose()
             {
                 this.container.Dispose();
-            }
-        }
-
-        [MefV1.Export(typeof(IMetadataViewProvider))]
-        [MefV1.ExportMetadata("OrderPrecedence", 100)] // should take precedence over the transparent or emitted proxy providers
-        [MefV1.PartMetadata(CompositionConstants.DgmlCategoryPartMetadataName, new string[] { "VsMEFBuiltIn" })]
-        private class MetadataViewImplProxy : IMetadataViewProvider
-        {
-            public bool IsMetadataViewSupported(Type metadataType)
-            {
-                return FindImplClassConstructor(metadataType) != null;
-            }
-
-            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
-            {
-                var ctor = FindImplClassConstructor(metadataViewType);
-                return ctor.Invoke(new object[] { metadata });
-            }
-
-            private static ConstructorInfo FindImplClassConstructor(Type metadataType)
-            {
-                Requires.NotNull(metadataType, nameof(metadataType));
-                var attr = metadataType.GetFirstAttribute<MefV1.MetadataViewImplementationAttribute>();
-                if (attr != null)
-                {
-                    if (metadataType.IsAssignableFrom(attr.ImplementationType))
-                    {
-                        var ctors = from ctor in attr.ImplementationType.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
-                                    let parameters = ctor.GetParameters()
-                                    where parameters.Length == 1 && (
-                                        parameters[0].ParameterType.IsAssignableFrom(typeof(IDictionary<string, object>)) ||
-                                        parameters[0].ParameterType.IsAssignableFrom(typeof(IReadOnlyDictionary<string, object>)))
-                                    select ctor;
-                        return ctors.FirstOrDefault();
-                    }
-                }
-
-                return null;
             }
         }
     }
