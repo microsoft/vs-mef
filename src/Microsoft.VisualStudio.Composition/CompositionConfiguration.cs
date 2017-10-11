@@ -13,6 +13,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using System.Xml;
@@ -665,7 +666,7 @@ namespace Microsoft.VisualStudio.Composition
 
             public int GetHashCode(T obj)
             {
-                return obj.GetHashCode();
+                return RuntimeHelpers.GetHashCode(obj);
             }
         }
     }
