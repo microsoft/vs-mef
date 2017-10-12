@@ -81,6 +81,45 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal("V", export2.Metadata["K"]);
         }
 
+        [Fact]
+        public void AddPart_EquivalentPartsAddedTwice()
+        {
+            var part1a = TestUtilities.V2Discovery.CreatePart(typeof(Export1));
+            var part1b = TestUtilities.V2Discovery.CreatePart(typeof(Export1));
+
+            var catalog = TestUtilities.EmptyCatalog.AddPart(part1a);
+            Assert.Same(catalog, catalog.AddPart(part1a));
+
+            Assert.Same(catalog, catalog.AddPart(part1b));
+            Assert.Same(catalog, catalog.AddParts(new[] { part1a, part1b }));
+        }
+
+        [Fact]
+        public void AddPart_SameTypeAddedAsTwoUniqueParts()
+        {
+            var part1a = TestUtilities.V2Discovery.CreatePart(typeof(Export1));
+
+            // Contrive a slightly different part definition.
+            var part1b = new ComposablePartDefinition(
+                part1a.TypeRef,
+                part1a.Metadata,
+                part1a.ExportedTypes,
+                part1a.ExportingMembers,
+                part1a.ImportingMembers,
+                part1a.SharingBoundary,
+                part1a.OnImportsSatisfiedRef,
+                part1a.ImportingConstructorOrFactoryRef,
+                part1a.ImportingConstructorImports,
+                part1a.CreationPolicy == CreationPolicy.Any ? CreationPolicy.Shared : CreationPolicy.Any,
+                part1a.IsSharingBoundaryInferred);
+
+            var catalog = TestUtilities.EmptyCatalog.AddPart(part1a);
+
+            Assert.Throws<ArgumentException>(() => catalog.AddPart(part1b));
+            Assert.Throws<ArgumentException>(() => catalog.AddParts(new[] { part1b }));
+            Assert.Throws<ArgumentException>(() => TestUtilities.EmptyCatalog.AddParts(new[] { part1a, part1b }));
+        }
+
         [Export]
         public class Export1 { }
 

@@ -280,6 +280,12 @@
           <source>Wrong type.</source>
           <target state="translated">错误的类型。</target>
         </trans-unit>
+        <trans-unit id="TypeAlreadyInCatalogAsAnotherPart" translate="yes" xml:space="preserve">
+          <source>The type {0} already belongs to the catalog as a different ComposablePartDefinition.</source>
+          <target state="new">The type {0} already belongs to the catalog as a different ComposablePartDefinition.</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">ComposablePartDefinition is a type name and should not be localized.
+{0} is a fully-qualified type name.</note>
+        </trans-unit>
       </group>
     </body>
   </file>
