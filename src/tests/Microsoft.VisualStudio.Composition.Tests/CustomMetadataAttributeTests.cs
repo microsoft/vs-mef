@@ -157,6 +157,34 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Empty(catalog.DiscoveredParts.DiscoveryErrors);
         }
 
+        [MefFact(CompositionEngines.V2 | CompositionEngines.V3EmulatingV1AndV2AtOnce, typeof(PartWithStronglyTypedMetadata), typeof(PartContainingPartWithStronglyTypedMetadata))]
+        public void StronglyTypedMetadataOnType(IContainer container)
+        {
+            var part = container.GetExportedValue<PartContainingPartWithStronglyTypedMetadata>();
+            Assert.NotNull(part);
+            Assert.NotNull(part.InnerPart);
+            Assert.Equal("MetadataPropertyValue", part.InnerPart.Metadata.Property);
+        }
+
+        [Export]
+        public class PartContainingPartWithStronglyTypedMetadata
+        {
+            [Import]
+            public Lazy<PartWithStronglyTypedMetadata, StronglyTypedMetadata> InnerPart { get; set; }
+        }
+
+        [Export]
+        [StronglyTypedMetadata(Property = "MetadataPropertyValue")]
+        public class PartWithStronglyTypedMetadata
+        {
+        }
+
+        [MetadataAttribute]
+        public class StronglyTypedMetadata : Attribute
+        {
+            public string Property { get; set; }
+        }
+
         [MefV1.Export, Export]
         [DerivedMetadata("prop1", "prop2")]
         public class ExportWithDerivedExportMetadata
