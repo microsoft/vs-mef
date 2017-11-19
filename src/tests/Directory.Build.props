@@ -7,5 +7,10 @@
     <!-- VS2017 Test Explorer test navigation and callstack links don't work with portable PDBs yet. -->
     <DebugType>Full</DebugType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MicroBuild.NonShipping" Version="$(MicroBuildVersion)" PrivateAssets="all" />
+  </ItemGroup>
+
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., Directory.Build.props))\Directory.Build.props" Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory).., Directory.Build.props))' != '' " />
 </Project>
