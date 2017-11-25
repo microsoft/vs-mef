@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Empty(catalog.DiscoveredParts.DiscoveryErrors);
         }
 
-        [MefFact(CompositionEngines.V2 | CompositionEngines.V3EmulatingV1AndV2AtOnce, typeof(PartWithStronglyTypedMetadata), typeof(PartContainingPartWithStronglyTypedMetadata))]
+        [MefFact(CompositionEngines.V2Compat, typeof(PartWithStronglyTypedMetadata), typeof(PartContainingPartWithStronglyTypedMetadata))]
         public void StronglyTypedMetadataOnType(IContainer container)
         {
             var part = container.GetExportedValue<PartContainingPartWithStronglyTypedMetadata>();
