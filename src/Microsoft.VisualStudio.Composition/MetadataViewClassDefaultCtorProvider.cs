@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Composition
             TypeInfo typeInfo = metadataViewType.GetTypeInfo();
             var view = FindConstructor(typeInfo).Invoke(Type.EmptyTypes);
 
-            foreach (var propertyInfo in typeInfo.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+            foreach (var propertyInfo in metadataViewType.EnumProperties().WherePublicInstance())
             {
                 if ((metadata.TryGetValue(propertyInfo.Name, out object value) || defaultValues.TryGetValue(propertyInfo.Name, out value)) && propertyInfo.SetMethod != null)
                 {
