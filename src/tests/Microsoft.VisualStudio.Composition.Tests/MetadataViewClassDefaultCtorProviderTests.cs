@@ -15,10 +15,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         private const string DefaultPropertyExpectedValue = "Some default value";
 
-        /* Tests to add:
-         *   exceptions thrown from setter?
-         */
-
         [MefFact(CompositionEngines.V2Compat, typeof(MetadataDecoratedPart), typeof(DefaultMetadataViewImporter))]
         public void PublicCtorPublicProperty(IContainer container)
         {
@@ -73,6 +69,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var part = container.GetExportedValue<InternalMetadataViewImporter>();
             Assert.Equal(PublicPropertyExpectedValue, part.InnerPart.Metadata.PublicProperty);
+        }
+
+        [MefFact(CompositionEngines.V2, typeof(MetadataDecoratedPart), typeof(PropertySetterThrowsMetadataViewImporter))]
+        public void MetadataViewPropertySetterThrows_V2(IContainer container)
+        {
+            Assert.Throws<InvalidOperationException>(() => container.GetExportedValue<PropertySetterThrowsMetadataViewImporter>());
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(MetadataDecoratedPart), typeof(PropertySetterThrowsMetadataViewImporter))]
+        public void MetadataViewPropertySetterThrows_V3(IContainer container)
+        {
+            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<PropertySetterThrowsMetadataViewImporter>());
         }
 
         public class DefaultMetadataView
@@ -141,6 +149,22 @@ namespace Microsoft.VisualStudio.Composition.Tests
 #pragma warning disable SA1313 // Parameter names must begin with lower-case letter
                 public DerivedView(string PublicProperty) { }
 #pragma warning restore SA1313 // Parameter names must begin with lower-case letter
+            }
+        }
+
+        [Export]
+        public class PropertySetterThrowsMetadataViewImporter
+        {
+            [Import]
+            public Lazy<MetadataDecoratedPart, PropertySetterThrowingMetadataView> InnerPart { get; set; }
+
+            public class PropertySetterThrowingMetadataView
+            {
+                public string UnsettableProperty
+                {
+                    get => throw new NotImplementedException();
+                    set => throw new InvalidOperationException();
+                }
             }
         }
 
