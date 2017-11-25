@@ -50,11 +50,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Null(part.InnerPart.Metadata.InternalProperty);
         }
 
-        [MefFact(CompositionEngines.V3EmulatingV2, typeof(MetadataDecoratedPart), typeof(InternalCtorMetadataViewImporter))]
+        [MefFact(CompositionEngines.V2Compat, typeof(MetadataDecoratedPart), typeof(InternalCtorMetadataViewImporter), InvalidConfiguration = true)]
         public void InternalCtorPublicProperty(IContainer container)
         {
             var part = container.GetExportedValue<InternalCtorMetadataViewImporter>();
-            Assert.Equal(PublicPropertyExpectedValue, part.InnerPart.Metadata.PublicProperty);
         }
 
         [MefFact(CompositionEngines.V2Compat, typeof(MetadataDecoratedPart), typeof(NoDefaultCtorMetadataViewImporter), InvalidConfiguration = true)]

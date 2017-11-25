@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(metadataType, nameof(metadataType));
 
-            return metadataType.DeclaredConstructors.FirstOrDefault(ctor => ctor.GetParameters().Length == 0 && !ctor.IsPrivate);
+            return metadataType.DeclaredConstructors.FirstOrDefault(ctor => ctor.GetParameters().Length == 0 && ctor.IsPublic);
         }
     }
 }
