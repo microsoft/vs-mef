@@ -157,6 +157,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Empty(catalog.DiscoveredParts.DiscoveryErrors);
         }
 
+        /* Tests to add:
+         *   internal constructor on metadata view?
+         *   internal properties on metadata view?
+         *   metadata for which there is no matching properties?
+         *   defaultValues?
+         *   case sensitivity?
+         *   exceptions thrown from setter?
+         *   no default ctor, but has a constructor that takes some parameters.
+         *   test properties without setters.
+         */
+
         [MefFact(CompositionEngines.V2Compat, typeof(PartWithStronglyTypedMetadata), typeof(PartContainingPartWithStronglyTypedMetadata))]
         public void StronglyTypedMetadataOnType(IContainer container)
         {

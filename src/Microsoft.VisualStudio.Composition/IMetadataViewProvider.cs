@@ -24,8 +24,8 @@ namespace Microsoft.VisualStudio.Composition
         /// Creates a metadata view that acts as a strongly-typed accessor
         /// to a metadata dictionary.
         /// </summary>
-        /// <param name="metadata">The metadata dictionary.</param>
-        /// <param name="defaultValues">The metadata dictionary of defaults, to be used when <paramref name="metadata"/> is missing a key.</param>
+        /// <param name="metadata">The metadata dictionary. Never null.</param>
+        /// <param name="defaultValues">The metadata dictionary of defaults, to be used when <paramref name="metadata"/> is missing a key. Is never null.</param>
         /// <param name="metadataViewType">The type of metadata view to create.</param>
         /// <returns>The proxy instance.</returns>
         object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType);
