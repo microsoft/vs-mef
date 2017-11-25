@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.Composition
 
             foreach (var propertyInfo in typeInfo.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
-                if (metadata.TryGetValue(propertyInfo.Name, out object value) && propertyInfo.SetMethod != null)
+                if ((metadata.TryGetValue(propertyInfo.Name, out object value) || defaultValues.TryGetValue(propertyInfo.Name, out value)) && propertyInfo.SetMethod != null)
                 {
                     propertyInfo.SetValue(view, value);
                 }
