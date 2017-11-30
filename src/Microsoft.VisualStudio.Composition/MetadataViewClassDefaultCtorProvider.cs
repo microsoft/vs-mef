@@ -37,6 +37,7 @@ namespace Microsoft.VisualStudio.Composition
         public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
         {
             Requires.NotNull(metadata, nameof(metadata));
+            Requires.NotNull(defaultValues, nameof(defaultValues));
             Requires.NotNull(metadataViewType, nameof(metadataViewType));
 
             TypeInfo typeInfo = metadataViewType.GetTypeInfo();
