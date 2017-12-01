@@ -27,6 +27,7 @@ namespace Microsoft.VisualStudio.Composition
             ExportProvider.ExportProviderPartDefinition,
             PassthroughMetadataViewProvider.PartDefinition,
             MetadataViewClassProvider.PartDefinition,
+            MetadataViewClassDefaultCtorProvider.PartDefinition,
             ExportMetadataViewInterfaceEmitProxy.PartDefinition)
 #if NET45
             .Add(MetadataViewImplProxy.PartDefinition)

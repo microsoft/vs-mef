@@ -729,7 +729,7 @@ namespace Microsoft.VisualStudio.Composition
 
             if (result == null)
             {
-                if (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>)))
+                if (metadataView.GetTypeInfo().IsClass || (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>))))
                 {
                     var metadataBuilder = ImmutableDictionary.CreateBuilder<string, object>();
                     foreach (var property in metadataView.EnumProperties().WherePublicInstance())
