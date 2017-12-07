@@ -13,7 +13,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CannotDirectlyDisposeAnImport" xml:space="preserve">
-    <value>Questa istanza è un'importazione e non può essere eliminato direttamente.</value>
+    <value>Questa istanza è un'importazione e non può essere eliminata direttamente.</value>
   </data>
   <data name="ContainerDisposalEncounteredExceptions" xml:space="preserve">
     <value>Le parti di cui è stata creata un'istanza hanno generato eccezioni da IDisposable.Dispose().</value>
@@ -25,7 +25,7 @@
     <value>La composizione contiene errori.</value>
   </data>
   <data name="ErrorWhileSettingImport" xml:space="preserve">
-    <value>Non è possibile soddisfare l'importazione "{0}".</value>
+    <value>Non è stato possibile soddisfare l'importazione "{0}".</value>
   </data>
   <data name="ExceptionThrownByPartUnderInitialization" xml:space="preserve">
     <value>È stata generata un'eccezione durante l'inizializzazione della parte "{0}".</value>
@@ -40,7 +40,7 @@
     <value>Si è verificato un errore durante la ricerca del tipo "{0}".</value>
   </data>
   <data name="NoImportingConstructor" xml:space="preserve">
-    <value>Non sono stati trovati costruttori di importazione.</value>
+    <value>Non ci sono costruttori di importazione.</value>
   </data>
   <data name="PartBelongsToAnotherSharingBoundary" xml:space="preserve">
     <value>La richiesta di esportazione da una parte che appartiene a un altro limite di condivisione non è appropriata.</value>
@@ -52,7 +52,7 @@
     <value>Si è verificata l'eccezione ReflectionTypeLoadException durante l'enumerazione dei tipi nell'assembly "{0}". I risultati saranno incompleti.</value>
   </data>
   <data name="ScanningMEFAssemblies" xml:space="preserve">
-    <value>Ricerca degli assembly MEF in corso...</value>
+    <value>Ricerca degli assembly MEF...</value>
   </data>
   <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
     <value>Il tipo di visualizzazione metadati non è supportato.</value>
@@ -70,7 +70,7 @@
     <value>Non è possibile caricare l'assembly "{0}" per la ricerca.</value>
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
-    <value>Tipo di membro imprevisto.</value>
+    <value>Il tipo di membro {0} è imprevisto.</value>
     <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
@@ -104,7 +104,7 @@
     <value>Il costruttore di importazione contiene un tipo di parametro non supportato per un elemento [ImportMany]. Sono supportati solo T[] e IEnumerable&lt;T&gt;</value>
   </data>
   <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
-    <value>{0}: le importazioni che usano parametri di tipo generici non sono supportate.</value>
+    <value>{0}: le importazioni che usano parametri di tipo generico non sono supportate.</value>
   </data>
   <data name="InstanceEmpty" xml:space="preserve">
     <value>Questa istanza è vuota.</value>
@@ -128,7 +128,7 @@
     <value>Non è una forma chiusa dell'altro.</value>
   </data>
   <data name="NotGenericTypeDefinition" xml:space="preserve">
-    <value>Questa non è una definizione di tipo generica.</value>
+    <value>Questa non è una definizione di tipo generico.</value>
   </data>
   <data name="NotInitialized" xml:space="preserve">
     <value>Non inizializzato.</value>
