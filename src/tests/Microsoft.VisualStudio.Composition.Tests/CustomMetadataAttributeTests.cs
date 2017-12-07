@@ -406,6 +406,43 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
+        [MetadataAttribute]
+        [AttributeUsage(AttributeTargets.Class)]
+        internal abstract class AbstractCustomExportAttribute : ExportAttribute
+        {
+            protected AbstractCustomExportAttribute(Type contractType)
+                : base(contractType)
+            {
+            }
+
+            public abstract string CustomProperty { get; set; }
+        }
+
+        internal sealed class CustomExportWithBaseClassAttribute : AbstractCustomExportAttribute
+        {
+            public CustomExportWithBaseClassAttribute()
+                : base(default(Type))
+            {
+            }
+
+            /// <summary>
+            /// This silly override is needed for MEF2 to work correctly :-(
+            /// </summary>
+            public override string CustomProperty { get; set; }
+        }
+
+        [MetadataAttribute]
+        [AttributeUsage(AttributeTargets.Class)]
+        internal sealed class CustomExportAttribute : ExportAttribute
+        {
+            public CustomExportAttribute()
+                : base(default(Type))
+            {
+            }
+
+            public string CustomProperty { get; set; }
+        }
+
         #region CustomMetadataAttributeLotsOfTypesAndVisibilities test
 
         [MefFact(CompositionEngines.V1Compat, typeof(PartThatImportsLotsOfTypesAndVisibilitiesAttribute), typeof(PartWithLotsOfTypesAndVisibilitiesAttribute))]
