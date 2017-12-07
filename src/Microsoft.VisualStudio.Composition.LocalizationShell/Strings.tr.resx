@@ -70,7 +70,7 @@
     <value>Tarama için "{0}" bütünleştirilmiş kodu yüklenemiyor.</value>
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
-    <value>Beklenmeyen üye türü.</value>
+    <value>Beklenmeyen üye türü {0}.</value>
     <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
