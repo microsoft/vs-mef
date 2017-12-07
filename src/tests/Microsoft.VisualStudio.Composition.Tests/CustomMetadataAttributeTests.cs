@@ -22,6 +22,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal("4", part.ImportOfType.Metadata["Age"]);
         }
 
+        [MefFact(CompositionEngines.V2Compat, typeof(ImportingPartWithEnumerableOfImportingPartsWithCustomExportAttributes), typeof(ImportingPartWithCustomExportAttribute))]
+        public void CustomExportAttributeOnExportedType(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportingPartWithEnumerableOfImportingPartsWithCustomExportAttributes>();
+            Assert.NotNull(part);
+            var firstLazy = part.First;
+            Assert.NotNull(firstLazy);
+            Assert.Equal("Custom", firstLazy.Metadata.CustomProperty);
+            var firstValue = firstLazy.Value;
+            Assert.NotNull(firstValue);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(ExportedTypeWithDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata))]
         public void CustomMetadataOnDerivedMetadataAttributeOnExportedTypeV1(IContainer container)
         {
@@ -406,6 +418,26 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
+        [Export]
+        internal class ImportingPartWithEnumerableOfImportingPartsWithCustomExportAttributes
+        {
+            private IEnumerable<Lazy<ImportingPartWithCustomExportAttribute, CustomExportAttribute>> parts;
+
+            [ImportingConstructor]
+            public ImportingPartWithEnumerableOfImportingPartsWithCustomExportAttributes(
+                [ImportMany] IEnumerable<Lazy<ImportingPartWithCustomExportAttribute, CustomExportAttribute>> parts)
+            {
+                this.parts = parts;
+            }
+
+            internal Lazy<ImportingPartWithCustomExportAttribute, CustomExportAttribute> First => this.parts?.FirstOrDefault();
+        }
+
+
+        [CustomExport(CustomProperty = "Custom")]
+        public class ImportingPartWithCustomExportAttribute
+        {
+        }
         [MetadataAttribute]
         [AttributeUsage(AttributeTargets.Class)]
         internal abstract class AbstractCustomExportAttribute : ExportAttribute
