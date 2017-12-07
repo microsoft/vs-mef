@@ -34,6 +34,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(firstValue);
         }
 
+        [MefFact(CompositionEngines.V2Compat, typeof(ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes), typeof(ImportingPartWithCustomExportWithBaseClassAttribute))]
+        public void CustomExportWithBaseClassAttributeOnExportedType(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes>();
+            Assert.NotNull(part);
+            var firstLazy = part.First;
+            Assert.NotNull(firstLazy);
+            Assert.Equal("CustomWithBaseClass", firstLazy.Metadata.CustomProperty);
+            var firstValue = firstLazy.Value;
+            Assert.NotNull(firstValue);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(ExportedTypeWithDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata))]
         public void CustomMetadataOnDerivedMetadataAttributeOnExportedTypeV1(IContainer container)
         {
@@ -433,11 +445,31 @@ namespace Microsoft.VisualStudio.Composition.Tests
             internal Lazy<ImportingPartWithCustomExportAttribute, CustomExportAttribute> First => this.parts?.FirstOrDefault();
         }
 
+        [Export]
+        internal class ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes
+        {
+            private IEnumerable<Lazy<ImportingPartWithCustomExportWithBaseClassAttribute, CustomExportWithBaseClassAttribute>> parts;
+
+            [ImportingConstructor]
+            public ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes(
+                [ImportMany] IEnumerable<Lazy<ImportingPartWithCustomExportWithBaseClassAttribute, CustomExportWithBaseClassAttribute>> parts)
+            {
+                this.parts = parts;
+            }
+
+            internal Lazy<ImportingPartWithCustomExportWithBaseClassAttribute, CustomExportWithBaseClassAttribute> First => this.parts?.FirstOrDefault();
+        }
 
         [CustomExport(CustomProperty = "Custom")]
         public class ImportingPartWithCustomExportAttribute
         {
         }
+
+        [CustomExportWithBaseClass(CustomProperty = "CustomWithBaseClass")]
+        public class ImportingPartWithCustomExportWithBaseClassAttribute
+        {
+        }
+
         [MetadataAttribute]
         [AttributeUsage(AttributeTargets.Class)]
         internal abstract class AbstractCustomExportAttribute : ExportAttribute
