@@ -489,9 +489,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
             }
 
-            /// <summary>
-            /// This silly override is needed for MEF2 to work correctly :-(
-            /// </summary>
+            // This silly override is needed for MEF2 to work correctly :-(
             public override string CustomProperty { get; set; }
         }
 
