@@ -22,28 +22,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal("4", part.ImportOfType.Metadata["Age"]);
         }
 
-        [MefFact(CompositionEngines.V2Compat, typeof(ImportingPartWithEnumerableOfImportingPartsWithCustomExportAttributes), typeof(ImportingPartWithCustomExportAttribute))]
-        public void CustomExportAttributeOnExportedType(IContainer container)
-        {
-            var part = container.GetExportedValue<ImportingPartWithEnumerableOfImportingPartsWithCustomExportAttributes>();
-            Assert.NotNull(part);
-            var firstLazy = part.First;
-            Assert.NotNull(firstLazy);
-            Assert.Equal("Custom", firstLazy.Metadata.CustomProperty);
-            var firstValue = firstLazy.Value;
-            Assert.NotNull(firstValue);
-        }
-
-        [MefFact(CompositionEngines.V2Compat, typeof(ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes), typeof(ImportingPartWithCustomExportWithBaseClassAttribute))]
-        public void CustomExportWithBaseClassAttributeOnExportedType(IContainer container)
+        [MefFact(CompositionEngines.V2Compat, typeof(ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes), typeof(PartWithCustomMetadata))]
+        public void CustomMetadataBasePropertyWithOverride(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes>();
-            Assert.NotNull(part);
-            var firstLazy = part.First;
-            Assert.NotNull(firstLazy);
-            Assert.Equal("CustomWithBaseClass", firstLazy.Metadata.CustomProperty);
-            var firstValue = firstLazy.Value;
-            Assert.NotNull(firstValue);
+            Assert.Equal("B", part.Import.Metadata.BasePropertyWithOverride);
+        }
+
+        [MefFact(CompositionEngines.V2Compat, typeof(ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes), typeof(PartWithCustomMetadata))]
+        public void CustomMetadataDerivedTypeOnlyProperty(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes>();
+            Assert.Equal("C", part.Import.Metadata.DerivedTypeOnlyProperty);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExportedTypeWithDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata))]
@@ -430,79 +420,32 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
-        [Export]
-        internal class ImportingPartWithEnumerableOfImportingPartsWithCustomExportAttributes
+        [Export, MefV1.Export]
+        public class ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes
         {
-            private IEnumerable<Lazy<ImportingPartWithCustomExportAttribute, CustomExportAttribute>> parts;
-
-            [ImportingConstructor]
-            public ImportingPartWithEnumerableOfImportingPartsWithCustomExportAttributes(
-                [ImportMany] IEnumerable<Lazy<ImportingPartWithCustomExportAttribute, CustomExportAttribute>> parts)
-            {
-                this.parts = parts;
-            }
-
-            internal Lazy<ImportingPartWithCustomExportAttribute, CustomExportAttribute> First => this.parts?.FirstOrDefault();
+            [Import, MefV1.Import]
+            public Lazy<PartWithCustomMetadata, CustomMetadataAttributeWithBaseClassAttribute> Import { get; set; }
         }
 
-        [Export]
-        internal class ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes
-        {
-            private IEnumerable<Lazy<ImportingPartWithCustomExportWithBaseClassAttribute, CustomExportWithBaseClassAttribute>> parts;
-
-            [ImportingConstructor]
-            public ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes(
-                [ImportMany] IEnumerable<Lazy<ImportingPartWithCustomExportWithBaseClassAttribute, CustomExportWithBaseClassAttribute>> parts)
-            {
-                this.parts = parts;
-            }
-
-            internal Lazy<ImportingPartWithCustomExportWithBaseClassAttribute, CustomExportWithBaseClassAttribute> First => this.parts?.FirstOrDefault();
-        }
-
-        [CustomExport(CustomProperty = "Custom")]
-        public class ImportingPartWithCustomExportAttribute
+        [Export, MefV1.Export]
+        [CustomMetadataAttributeWithBaseClass(BasePropertyWithOverride = "B", DerivedTypeOnlyProperty = "C")]
+        public class PartWithCustomMetadata
         {
         }
 
-        [CustomExportWithBaseClass(CustomProperty = "CustomWithBaseClass")]
-        public class ImportingPartWithCustomExportWithBaseClassAttribute
-        {
-        }
-
-        [MetadataAttribute]
+        [MetadataAttribute, MefV1.MetadataAttribute]
         [AttributeUsage(AttributeTargets.Class)]
-        internal abstract class AbstractCustomExportAttribute : ExportAttribute
+        public abstract class AbstractCustomMetadataAttributeAttribute : Attribute
         {
-            protected AbstractCustomExportAttribute(Type contractType)
-                : base(contractType)
-            {
-            }
-
-            public abstract string CustomProperty { get; set; }
+            public abstract string BasePropertyWithOverride { get; set; }
         }
 
-        internal sealed class CustomExportWithBaseClassAttribute : AbstractCustomExportAttribute
+        public sealed class CustomMetadataAttributeWithBaseClassAttribute : AbstractCustomMetadataAttributeAttribute
         {
-            public CustomExportWithBaseClassAttribute()
-                : base(default(Type))
-            {
-            }
-
             // This silly override is needed for MEF2 to work correctly :-(
-            public override string CustomProperty { get; set; }
-        }
+            public override string BasePropertyWithOverride { get; set; }
 
-        [MetadataAttribute]
-        [AttributeUsage(AttributeTargets.Class)]
-        internal sealed class CustomExportAttribute : ExportAttribute
-        {
-            public CustomExportAttribute()
-                : base(default(Type))
-            {
-            }
-
-            public string CustomProperty { get; set; }
+            public string DerivedTypeOnlyProperty { get; set; }
         }
 
         #region CustomMetadataAttributeLotsOfTypesAndVisibilities test
