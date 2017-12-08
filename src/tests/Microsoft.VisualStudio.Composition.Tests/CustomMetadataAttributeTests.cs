@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal("Andrew", part.ImportingProperty.Metadata["Name"]);
         }
 
-        [MefFact(CompositionEngines.V2Compat, typeof(ExportedTypeWithDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata))]
+        [MefFact(CompositionEngines.V2, typeof(ExportedTypeWithDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata), NoCompatGoal = true)]
         public void CustomMetadataOnDerivedMetadataAttributeOnExportedTypeV2(IContainer container)
         {
             var part = container.GetExportedValue<PartThatImportsExportWithDerivedMetadata>();
@@ -135,15 +135,32 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(part.ImportingProperty.Value);
         }
 
-        [MefFact(CompositionEngines.V2Compat, typeof(ExportWithDerivedExportMetadata), typeof(ImportingPartForDerivedExportMetadata))]
+        [MefFact(CompositionEngines.V2, typeof(ExportWithDerivedExportMetadata), typeof(ImportingPartForDerivedExportMetadata), NoCompatGoal = true)]
         public void BasePropertiesAreIgnoredInMefV2(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPartForDerivedExportMetadata>();
 
             Assert.False(part.ImportingProperty.Metadata.ContainsKey("Property"));
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(ExportWithDerivedExportMetadata), typeof(ImportingPartForDerivedExportMetadata))]
+        public void BasePropertiesAreNotIgnoredWhenEmulatingV2(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportingPartForDerivedExportMetadata>();
+
+            object prop1 = part.ImportingProperty.Metadata["Property"];
+            Assert.Equal("prop1", prop1);
 
             object prop2 = part.ImportingProperty.Metadata["AnotherProperty"];
-            Assert.Equal("prop2", prop2.ToString());
+            Assert.Equal("prop2", prop2);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportWithDerivedExportMetadata), typeof(ImportingPartForDerivedExportMetadata), NoCompatGoal = true)]
+        public void DerivedPropertiesAreObservedOnAllMEF(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportingPartForDerivedExportMetadata>();
+
+            Assert.True(part.ImportingProperty.Metadata.ContainsKey("AnotherProperty"));
         }
 
 #if DESKTOP
