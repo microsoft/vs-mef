@@ -22,20 +22,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal("4", part.ImportOfType.Metadata["Age"]);
         }
 
-        [MefFact(CompositionEngines.V2Compat, typeof(ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes), typeof(PartWithCustomMetadata))]
-        public void CustomMetadataBasePropertyWithOverride(IContainer container)
-        {
-            var part = container.GetExportedValue<ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes>();
-            Assert.Equal("B", part.Import.Metadata.BasePropertyWithOverride);
-        }
-
-        [MefFact(CompositionEngines.V2Compat, typeof(ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes), typeof(PartWithCustomMetadata))]
-        public void CustomMetadataDerivedTypeOnlyProperty(IContainer container)
-        {
-            var part = container.GetExportedValue<ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes>();
-            Assert.Equal("C", part.Import.Metadata.DerivedTypeOnlyProperty);
-        }
-
         [MefFact(CompositionEngines.V1Compat, typeof(ExportedTypeWithDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata))]
         public void CustomMetadataOnDerivedMetadataAttributeOnExportedTypeV1(IContainer container)
         {
@@ -373,7 +359,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public string Property { get; }
         }
 
-        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true)]
         public class DerivedMetadataAttribute : BaseMetadataAttribute
         {
             public DerivedMetadataAttribute(string property, string anotherProperty)
@@ -416,34 +401,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 this.Property = property;
             }
-        }
-
-        [Export, MefV1.Export]
-        public class ImportingPartWithEnumerableOfImportingPartsWithCustomExportWithBaseClassAttributes
-        {
-            [Import, MefV1.Import]
-            public Lazy<PartWithCustomMetadata, CustomMetadataAttributeWithBaseClassAttribute> Import { get; set; }
-        }
-
-        [Export, MefV1.Export]
-        [CustomMetadataAttributeWithBaseClass(BasePropertyWithOverride = "B", DerivedTypeOnlyProperty = "C")]
-        public class PartWithCustomMetadata
-        {
-        }
-
-        [MetadataAttribute, MefV1.MetadataAttribute]
-        [AttributeUsage(AttributeTargets.Class)]
-        public abstract class AbstractCustomMetadataAttributeAttribute : Attribute
-        {
-            public abstract string BasePropertyWithOverride { get; set; }
-        }
-
-        public sealed class CustomMetadataAttributeWithBaseClassAttribute : AbstractCustomMetadataAttributeAttribute
-        {
-            // This silly override is needed for MEF2 to work correctly :-(
-            public override string BasePropertyWithOverride { get; set; }
-
-            public string DerivedTypeOnlyProperty { get; set; }
         }
 
         #region CustomMetadataAttributeLotsOfTypesAndVisibilities test
