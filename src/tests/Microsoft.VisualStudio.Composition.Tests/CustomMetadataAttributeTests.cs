@@ -139,8 +139,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(part.ImportingProperty.Value);
         }
 
-        // The MEF v2 behavior is that properties from a base class do not get included in the metadata. Currently, our MEF v2 discovery does include them. After fixing this, we can enable the test for MEF v2 compat.
-        [MefFact(CompositionEngines.V2, typeof(ExportWithDerivedExportMetadata), typeof(ImportingPartForDerivedExportMetadata))]
+        [MefFact(CompositionEngines.V2Compat, typeof(ExportWithDerivedExportMetadata), typeof(ImportingPartForDerivedExportMetadata))]
         public void BasePropertiesAreIgnoredInMefV2(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPartForDerivedExportMetadata>();
@@ -375,7 +374,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true)]
-        [MefV1.MetadataAttribute, MetadataAttribute]
         public class DerivedMetadataAttribute : BaseMetadataAttribute
         {
             public DerivedMetadataAttribute(string property, string anotherProperty)
