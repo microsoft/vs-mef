@@ -36,11 +36,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.False(part.ImportingProperty.Metadata.ContainsKey("Name"));
         }
 
-        // BUGBUG: MEFv2 throws NullReferenceException in this case.
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(ExportedTypeWithAllowMultipleDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportedTypeWithAllowMultipleDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata))]
         public void CustomMetadataOnAllowMultipleDerivedMetadataAttributeOnExportedType(IContainer container)
         {
             var part = container.GetExportedValue<PartThatImportsExportWithDerivedMetadata>();
+            Assert.IsType<string[]>(part.ImportingAllowMultiple.Metadata["Name"]);
+            var array = (string[])part.ImportingAllowMultiple.Metadata["Name"];
+            Assert.Equal(2, array.Length);
+            Assert.True(array.Contains("Andrew1"));
+            Assert.True(array.Contains("Andrew2"));
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportedTypeWithAllowMultipleMetadata), typeof(PartThatImportsExportWithMetadata))]
+        public void CustomMetadataOnAllowMultipleMetadataAttributeOnExportedType(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsExportWithMetadata>();
             Assert.IsType<string[]>(part.ImportingAllowMultiple.Metadata["Name"]);
             var array = (string[])part.ImportingAllowMultiple.Metadata["Name"];
             Assert.Equal(2, array.Length);
@@ -200,6 +210,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         [MefV1.Export]
         [Export]
+        [NameMultiple(Name = "Andrew1")]
+        [NameMultiple(Name = "Andrew2")]
+        public class ExportedTypeWithAllowMultipleMetadata { }
+
+        [MefV1.Export]
+        [Export]
         public class PartThatImportsExportWithDerivedMetadata
         {
             [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
@@ -207,6 +223,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
             public Lazy<ExportedTypeWithAllowMultipleDerivedMetadata, IDictionary<string, object>> ImportingAllowMultiple { get; set; }
+        }
+
+        [MefV1.Export]
+        [Export]
+        public class PartThatImportsExportWithMetadata
+        {
+            [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
+            public Lazy<ExportedTypeWithMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+
+            [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
+            public Lazy<ExportedTypeWithAllowMultipleMetadata, IDictionary<string, object>> ImportingAllowMultiple { get; set; }
         }
 
         [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -276,7 +303,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// An attribute that derives from AllowMultiple base class
         /// and intentionally does not have <see cref="AttributeUsageAttribute"/> attributes applied directly.
         /// </summary>
-        [MetadataAttribute] // only V2 needs this
         public class NameMultipleDerivedAttribute : NameMultipleAttribute
         {
             public string OtherProperty { get; set; }
