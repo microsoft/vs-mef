@@ -128,13 +128,9 @@ namespace Microsoft.VisualStudio.Composition
             /// <returns>The import definition that describes the created part, or <c>null</c> if the import definition isn't an ExportFactory.</returns>
             private static MefV1.Primitives.ImportDefinition GetExportFactoryProductImportDefinitionIfApplicable(MefV1.Primitives.ImportDefinition definition)
             {
-                var exportFactoryImportDefinition = definition as MefV1.Primitives.IExportFactoryImportDefinition;
-                if (exportFactoryImportDefinition != null)
-                {
-                    return exportFactoryImportDefinition.ProductImportDefinition;
-                }
-
-                return null;
+                return ReflectionModelServices.IsExportFactoryImportDefinition(definition)
+                    ? ReflectionModelServices.GetExportFactoryProductImportDefinition(definition)
+                    : null;
             }
 
             private static IDictionary<string, object> GetMefV1ExportDefinitionMetadataFromV3(IReadOnlyDictionary<string, object> exportDefinitionMetadata)
