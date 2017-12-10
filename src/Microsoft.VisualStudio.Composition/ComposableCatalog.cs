@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -18,68 +20,29 @@
         /// </summary>
         private ImmutableHashSet<ComposablePartDefinition> parts;
 
+        /// <summary>
+        /// The exports from parts in this catalog, indexed by contract name.
+        /// </summary>
         private ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract;
 
-        private ComposableCatalog(ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, DiscoveredParts discoveredParts)
+        /// <summary>
+        /// The types that are represented in this catalog.
+        /// </summary>
+        private ImmutableHashSet<TypeRef> typesBackingParts;
+
+        private ComposableCatalog(ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, ImmutableHashSet<TypeRef> typesBackingParts, DiscoveredParts discoveredParts, Resolver resolver)
         {
-            Requires.NotNull(parts, "parts");
-            Requires.NotNull(exportsByContract, "exportsByContract");
-            Requires.NotNull(discoveredParts, "discoveredParts");
+            Requires.NotNull(parts, nameof(parts));
+            Requires.NotNull(exportsByContract, nameof(exportsByContract));
+            Requires.NotNull(typesBackingParts, nameof(typesBackingParts));
+            Requires.NotNull(discoveredParts, nameof(discoveredParts));
+            Requires.NotNull(resolver, nameof(resolver));
 
             this.parts = parts;
             this.exportsByContract = exportsByContract;
+            this.typesBackingParts = typesBackingParts;
             this.DiscoveredParts = discoveredParts;
-        }
-
-        public IReadOnlyList<ExportDefinitionBinding> GetExports(ImportDefinition importDefinition)
-        {
-            Requires.NotNull(importDefinition, "importDefinition");
-
-            // We always want to consider exports with a matching contract name.
-            var exports = this.exportsByContract.GetValueOrDefault(importDefinition.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
-
-            // For those imports of generic types, we also want to consider exports that are based on open generic exports,
-            string genericTypeDefinitionContractName;
-            Type[] genericTypeArguments;
-            if (TryGetOpenGenericExport(importDefinition, out genericTypeDefinitionContractName, out genericTypeArguments))
-            {
-                var openGenericExports = this.exportsByContract.GetValueOrDefault(genericTypeDefinitionContractName, ImmutableList.Create<ExportDefinitionBinding>());
-
-                // We have to synthesize exports to match the required generic type arguments.
-                exports = exports.AddRange(
-                    from export in openGenericExports
-                    select export.CloseGenericExport(genericTypeArguments));
-            }
-
-            var filteredExports = from export in exports
-                                  where importDefinition.ExportConstraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
-                                  select export;
-
-            return ImmutableList.CreateRange(filteredExports);
-        }
-
-        internal static bool TryGetOpenGenericExport(ImportDefinition importDefinition, out string contractName, out Type[] typeArguments)
-        {
-            Requires.NotNull(importDefinition, "importDefinition");
-
-            // TODO: if the importer isn't using a customized contract name.
-            if (importDefinition.Metadata.TryGetValue(CompositionConstants.GenericContractMetadataName, out contractName) &&
-                importDefinition.Metadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out typeArguments))
-            {
-                return true;
-            }
-
-            contractName = null;
-            typeArguments = null;
-            return false;
-        }
-
-        /// <summary>
-        /// Gets the assemblies within which parts are defined.
-        /// </summary>
-        public IEnumerable<Assembly> Assemblies
-        {
-            get { return this.Parts.Select(p => p.Type.GetTypeInfo().Assembly).Distinct(); }
+            this.Resolver = resolver;
         }
 
         /// <summary>
@@ -95,35 +58,33 @@
         /// </summary>
         public DiscoveredParts DiscoveredParts { get; private set; }
 
-        public static ComposableCatalog Create()
+        internal Resolver Resolver { get; }
+
+        public static ComposableCatalog Create(Resolver resolver)
         {
             return new ComposableCatalog(
                 ImmutableHashSet.Create<ComposablePartDefinition>(),
                 ImmutableDictionary.Create<string, ImmutableList<ExportDefinitionBinding>>(),
-                DiscoveredParts.Empty);
+                ImmutableHashSet.Create<TypeRef>(),
+                DiscoveredParts.Empty,
+                resolver);
         }
 
-        public static ComposableCatalog Create(IEnumerable<ComposablePartDefinition> parts)
+        public ComposableCatalog AddPart(ComposablePartDefinition partDefinition)
         {
-            Requires.NotNull(parts, "parts");
-            return Create().WithParts(parts);
-        }
-
-        public static ComposableCatalog Create(DiscoveredParts parts)
-        {
-            Requires.NotNull(parts, "parts");
-            return Create().WithParts(parts);
-        }
-
-        public ComposableCatalog WithPart(ComposablePartDefinition partDefinition)
-        {
-            Requires.NotNull(partDefinition, "partDefinition");
+            Requires.NotNull(partDefinition, nameof(partDefinition));
 
             var parts = this.parts.Add(partDefinition);
             if (parts == this.parts)
             {
                 // This part is already in the catalog.
                 return this;
+            }
+
+            var typesBackingParts = this.typesBackingParts.Add(partDefinition.TypeRef);
+            if (typesBackingParts == this.typesBackingParts)
+            {
+                Requires.Argument(false, nameof(partDefinition), Strings.TypeAlreadyInCatalogAsAnotherPart, partDefinition.TypeRef.FullName);
             }
 
             var exportsByContract = this.exportsByContract;
@@ -144,25 +105,25 @@
                 }
             }
 
-            return new ComposableCatalog(parts, exportsByContract, this.DiscoveredParts);
+            return new ComposableCatalog(parts, exportsByContract, typesBackingParts, this.DiscoveredParts, this.Resolver);
         }
 
-        public ComposableCatalog WithParts(IEnumerable<ComposablePartDefinition> parts)
+        public ComposableCatalog AddParts(IEnumerable<ComposablePartDefinition> parts)
         {
-            Requires.NotNull(parts, "parts");
+            Requires.NotNull(parts, nameof(parts));
 
             // PERF: This has shown up on ETL traces as inefficient and expensive
             //       WithPart should call WithParts instead, and WithParts should
             //       execute a more efficient batch operation.
-            return parts.Aggregate(this, (catalog, part) => catalog.WithPart(part));
+            return parts.Aggregate(this, (catalog, part) => catalog.AddPart(part));
         }
 
-        public ComposableCatalog WithParts(DiscoveredParts parts)
+        public ComposableCatalog AddParts(DiscoveredParts parts)
         {
-            Requires.NotNull(parts, "parts");
+            Requires.NotNull(parts, nameof(parts));
 
-            var catalog = this.WithParts(parts.Parts);
-            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts));
+            var catalog = this.AddParts(parts.Parts);
+            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.typesBackingParts, catalog.DiscoveredParts.Merge(parts), catalog.Resolver);
         }
 
         /// <summary>
@@ -170,12 +131,12 @@
         /// </summary>
         /// <param name="catalogToMerge">The catalog to be merged with this one.</param>
         /// <returns>The merged version of the catalog.</returns>
-        public ComposableCatalog WithCatalog(ComposableCatalog catalogToMerge)
+        public ComposableCatalog AddCatalog(ComposableCatalog catalogToMerge)
         {
-            Requires.NotNull(catalogToMerge, "catalogToMerge");
+            Requires.NotNull(catalogToMerge, nameof(catalogToMerge));
 
-            var catalog = this.WithParts(catalogToMerge.Parts);
-            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(catalogToMerge.DiscoveredParts));
+            var catalog = this.AddParts(catalogToMerge.Parts);
+            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.typesBackingParts, catalog.DiscoveredParts.Merge(catalogToMerge.DiscoveredParts), catalog.Resolver);
         }
 
         /// <summary>
@@ -183,11 +144,11 @@
         /// </summary>
         /// <param name="catalogsToMerge">The catalogs to be merged with this one.</param>
         /// <returns>The merged version of the catalog.</returns>
-        public ComposableCatalog WithCatalogs(IEnumerable<ComposableCatalog> catalogsToMerge)
+        public ComposableCatalog AddCatalogs(IEnumerable<ComposableCatalog> catalogsToMerge)
         {
-            Requires.NotNull(catalogsToMerge, "catalogsToMerge");
+            Requires.NotNull(catalogsToMerge, nameof(catalogsToMerge));
 
-            return catalogsToMerge.Aggregate(this, (aggregate, mergeCatalog) => aggregate.WithCatalog(mergeCatalog));
+            return catalogsToMerge.Aggregate(this, (aggregate, mergeCatalog) => aggregate.AddCatalog(mergeCatalog));
         }
 
         public IReadOnlyCollection<AssemblyName> GetInputAssemblies()
@@ -239,6 +200,49 @@
                     }
                 }
             }
+        }
+
+        public IReadOnlyList<ExportDefinitionBinding> GetExports(ImportDefinition importDefinition)
+        {
+            Requires.NotNull(importDefinition, nameof(importDefinition));
+
+            // We always want to consider exports with a matching contract name.
+            var exports = this.exportsByContract.GetValueOrDefault(importDefinition.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
+
+            // For those imports of generic types, we also want to consider exports that are based on open generic exports,
+            string genericTypeDefinitionContractName;
+            Type[] genericTypeArguments;
+            if (TryGetOpenGenericExport(importDefinition, out genericTypeDefinitionContractName, out genericTypeArguments))
+            {
+                var openGenericExports = this.exportsByContract.GetValueOrDefault(genericTypeDefinitionContractName, ImmutableList.Create<ExportDefinitionBinding>());
+
+                // We have to synthesize exports to match the required generic type arguments.
+                exports = exports.AddRange(
+                    from export in openGenericExports
+                    select export.CloseGenericExport(genericTypeArguments));
+            }
+
+            var filteredExports = from export in exports
+                                  where importDefinition.ExportConstraints.All(c => c.IsSatisfiedBy(export.ExportDefinition))
+                                  select export;
+
+            return ImmutableList.CreateRange(filteredExports);
+        }
+
+        internal static bool TryGetOpenGenericExport(ImportDefinition importDefinition, out string contractName, out Type[] typeArguments)
+        {
+            Requires.NotNull(importDefinition, nameof(importDefinition));
+
+            // TODO: if the importer isn't using a customized contract name.
+            if (importDefinition.Metadata.TryGetValue(CompositionConstants.GenericContractMetadataName, out contractName) &&
+                importDefinition.Metadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out typeArguments))
+            {
+                return true;
+            }
+
+            contractName = null;
+            typeArguments = null;
+            return false;
         }
     }
 }

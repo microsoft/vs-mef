@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -22,8 +24,8 @@
 
         public ComposedPartDiagnostic(IEnumerable<ComposedPart> parts, string formattedMessage)
         {
-            Requires.NotNull(parts, "parts");
-            Requires.NotNullOrEmpty(formattedMessage, "formattedMessage");
+            Requires.NotNull(parts, nameof(parts));
+            Requires.NotNullOrEmpty(formattedMessage, nameof(formattedMessage));
 
             this.Parts = ImmutableList.CreateRange(parts);
             this.Message = formattedMessage;

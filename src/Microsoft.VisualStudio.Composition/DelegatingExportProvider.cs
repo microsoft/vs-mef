@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -19,13 +21,13 @@
         private readonly ExportProvider inner;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DelegatingExportProvider"/>.
+        /// Initializes a new instance of the <see cref="DelegatingExportProvider"/> class.
         /// </summary>
         /// <param name="inner">The instance to forward queries to.</param>
         protected DelegatingExportProvider(ExportProvider inner)
-            : base(null, null)
+            : base(inner.Resolver)
         {
-            Requires.NotNull(inner, "inner");
+            Requires.NotNull(inner, nameof(inner));
             this.inner = inner;
         }
 

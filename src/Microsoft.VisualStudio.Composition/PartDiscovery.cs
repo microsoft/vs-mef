@@ -1,9 +1,12 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.CompilerServices;
@@ -15,6 +18,15 @@
 
     public abstract class PartDiscovery
     {
+        protected PartDiscovery(Resolver resolver)
+        {
+            Requires.NotNull(resolver, nameof(resolver));
+
+            this.Resolver = resolver;
+        }
+
+        public Resolver Resolver { get; }
+
         /// <summary>
         /// Creates an aggregate <see cref="PartDiscovery"/> instance that delegates to a series of other part discovery extensions.
         /// </summary>
@@ -22,7 +34,7 @@
         /// <returns>The aggregate PartDiscovery instance.</returns>
         public static PartDiscovery Combine(params PartDiscovery[] discoveryMechanisms)
         {
-            Requires.NotNull(discoveryMechanisms, "discoveryMechanisms");
+            Requires.NotNull(discoveryMechanisms, nameof(discoveryMechanisms));
 
             if (discoveryMechanisms.Length == 1)
             {
@@ -50,7 +62,7 @@
 
         public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<Type> partTypes, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Requires.NotNull(partTypes, "partTypes");
+            Requires.NotNull(partTypes, nameof(partTypes));
 
             var tuple = this.CreateDiscoveryBlockChain(true, null, cancellationToken);
             foreach (Type type in partTypes)
@@ -71,7 +83,7 @@
         /// <returns>A set of generated parts.</returns>
         public Task<DiscoveredParts> CreatePartsAsync(Assembly assembly, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Requires.NotNull(assembly, "assembly");
+            Requires.NotNull(assembly, nameof(assembly));
 
             return this.CreatePartsAsync(new[] { assembly }, null, cancellationToken);
         }
@@ -87,7 +99,7 @@
         /// <returns>A set of generated parts.</returns>
         public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<Assembly> assemblies, IProgress<DiscoveryProgress> progress = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             var tuple = this.CreateAssemblyDiscoveryBlockChain(progress, cancellationToken);
             foreach (var assembly in assemblies)
@@ -109,7 +121,7 @@
         /// <returns>A set of generated parts.</returns>
         public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<string> assemblyPaths, IProgress<DiscoveryProgress> progress = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Requires.NotNull(assemblyPaths, "assemblyPaths");
+            Requires.NotNull(assemblyPaths, nameof(assemblyPaths));
 
             var exceptions = new List<PartDiscoveryException>();
             var tuple = this.CreateAssemblyDiscoveryBlockChain(progress, cancellationToken);
@@ -118,14 +130,19 @@
                 {
                     try
                     {
-                        var assembly = Assembly.Load(AssemblyName.GetAssemblyName(path));
-                        return new Assembly[] { assembly };
+#if NET45
+                        return new Assembly[] { Assembly.Load(AssemblyName.GetAssemblyName(path)) };
+#elif NETCOREAPP1_0
+                        return new Assembly[] { System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(path) };
+#else
+                        throw new NotSupportedException();
+#endif
                     }
                     catch (Exception ex)
                     {
                         lock (exceptions)
                         {
-                            exceptions.Add(new PartDiscoveryException("Unable to load assembly \"" + path + "\" for scanning.", ex) { AssemblyPath = path });
+                            exceptions.Add(new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.UnableToLoadAssembly, path), ex) { AssemblyPath = path });
                         }
 
                         return Enumerable.Empty<Assembly>();
@@ -147,6 +164,22 @@
             return result.Merge(new DiscoveredParts(Enumerable.Empty<ComposablePartDefinition>(), exceptions));
         }
 
+        internal static void GetAssemblyNamesFromMetadataAttributes<TMetadataAttribute>(MemberInfo member, ISet<AssemblyName> assemblyNames)
+            where TMetadataAttribute : class
+        {
+            Requires.NotNull(member, nameof(member));
+            Requires.NotNull(assemblyNames, nameof(assemblyNames));
+
+            foreach (var attribute in member.GetAttributes<Attribute>())
+            {
+                Type attrType = attribute.GetType();
+                if (attrType.GetTypeInfo().IsAttributeDefined<TMetadataAttribute>(inherit: true))
+                {
+                    assemblyNames.Add(attrType.GetTypeInfo().Assembly.GetName());
+                }
+            }
+        }
+
         protected internal static string GetContractName(Type type)
         {
             return ContractNameServices.GetTypeIdentity(type);
@@ -154,7 +187,7 @@
 
         protected internal static Type GetTypeIdentityFromImportingType(Type type, bool importMany)
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
 
             if (importMany)
             {
@@ -171,7 +204,7 @@
 
         protected internal static Type GetElementTypeFromMany(Type type)
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
 
             if (type.IsArray)
             {
@@ -192,10 +225,20 @@
             }
         }
 
+        protected static Type GetImportingSiteTypeWithoutCollection(ImportDefinition importDefinition, Type importingSiteType)
+        {
+            Requires.NotNull(importDefinition, nameof(importDefinition));
+            Requires.NotNull(importingSiteType, nameof(importingSiteType));
+
+            return importDefinition.Cardinality == ImportCardinality.ZeroOrMore
+                ? GetElementTypeFromMany(importingSiteType)
+                : importingSiteType;
+        }
+
         protected static ConstructorInfo GetImportingConstructor<TImportingConstructorAttribute>(Type type, bool publicOnly)
             where TImportingConstructorAttribute : Attribute
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
 
             var ctors = type.GetTypeInfo().DeclaredConstructors.Where(ctor => !ctor.IsStatic && (ctor.IsPublic || !publicOnly));
             var taggedCtor = ctors.SingleOrDefault(ctor => ctor.IsAttributeDefined<TImportingConstructorAttribute>());
@@ -204,9 +247,9 @@
             return importingCtor;
         }
 
-        protected static ImmutableHashSet<IImportSatisfiabilityConstraint> GetMetadataViewConstraints(Type receivingType, bool importMany)
+        protected ImmutableHashSet<IImportSatisfiabilityConstraint> GetMetadataViewConstraints(Type receivingType, bool importMany)
         {
-            Requires.NotNull(receivingType, "receivingType");
+            Requires.NotNull(receivingType, nameof(receivingType));
 
             var result = ImmutableHashSet.Create<IImportSatisfiabilityConstraint>();
 
@@ -214,7 +257,7 @@
             Type metadataType = GetMetadataType(elementType);
             if (metadataType != null)
             {
-                result = result.Add(ImportMetadataViewConstraint.GetConstraint(TypeRef.Get(metadataType)));
+                result = result.Add(ImportMetadataViewConstraint.GetConstraint(TypeRef.Get(metadataType, this.Resolver), this.Resolver));
             }
 
             return result;
@@ -222,7 +265,7 @@
 
         protected internal static ImmutableHashSet<IImportSatisfiabilityConstraint> GetExportTypeIdentityConstraints(Type contractType)
         {
-            Requires.NotNull(contractType, "contractType");
+            Requires.NotNull(contractType, nameof(contractType));
 
             var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty;
 
@@ -236,7 +279,7 @@
 
         protected internal static ImmutableDictionary<string, object> GetImportMetadataForGenericTypeImport(Type contractType)
         {
-            Requires.NotNull(contractType, "contractType");
+            Requires.NotNull(contractType, nameof(contractType));
             if (contractType.IsConstructedGenericType)
             {
                 return ImmutableDictionary.Create<string, object>()
@@ -298,7 +341,7 @@
         /// </summary>
         internal static bool IsImportManyCollectionTypeCreateable(ImportDefinitionBinding import)
         {
-            Requires.NotNull(import, "import");
+            Requires.NotNull(import, nameof(import));
             return IsImportManyCollectionTypeCreateable(import.ImportingSiteType, import.ImportingSiteTypeWithoutCollection);
         }
 
@@ -310,8 +353,8 @@
         /// <returns><c>true</c> if the collection is creatable; <c>false</c> otherwise.</returns>
         internal static bool IsImportManyCollectionTypeCreateable(Type collectionType, Type elementType)
         {
-            Requires.NotNull(collectionType, "collectionType");
-            Requires.NotNull(elementType, "elementType");
+            Requires.NotNull(collectionType, nameof(collectionType));
+            Requires.NotNull(elementType, nameof(elementType));
 
             var icollectionOfT = typeof(ICollection<>).MakeGenericType(elementType);
             var ienumerableOfT = typeof(IEnumerable<>).MakeGenericType(elementType);
@@ -322,7 +365,7 @@
                 return true;
             }
 
-            Verify.Operation(icollectionOfT.GetTypeInfo().IsAssignableFrom(collectionType.GetTypeInfo()), "Collection type must derive from ICollection<T>");
+            Verify.Operation(icollectionOfT.GetTypeInfo().IsAssignableFrom(collectionType.GetTypeInfo()), Strings.CollectionTypeMustDeriveFromICollectionOfT);
 
             var defaultCtor = collectionType.GetTypeInfo().DeclaredConstructors.FirstOrDefault(ctor => !ctor.IsStatic && ctor.GetParameters().Length == 0);
             if (defaultCtor != null && defaultCtor.IsPublic)
@@ -340,7 +383,7 @@
         /// <returns>The metadata view, <see cref="IDictionary{String, Object}"/>, or <c>null</c> if there is none.</returns>
         private static Type GetMetadataType(Type receivingType)
         {
-            Requires.NotNull(receivingType, "receivingType");
+            Requires.NotNull(receivingType, nameof(receivingType));
 
             if (receivingType.IsAnyLazyType() || receivingType.IsExportFactoryType())
             {
@@ -367,7 +410,7 @@
                     }
                     catch (Exception ex)
                     {
-                        return new PartDiscoveryException("Failure while scanning type \"" + type.FullName + "\".", ex) { AssemblyPath = type.Assembly.Location, ScannedType = type };
+                        return new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.FailureWhileScanningType, type.FullName), ex) { AssemblyPath = type.GetTypeInfo().Assembly.Location, ScannedType = type };
                     }
                 },
                 new ExecutionDataflowBlockOptions
@@ -432,7 +475,7 @@
                     }
                     catch (ReflectionTypeLoadException ex)
                     {
-                        var partDiscoveryException = new PartDiscoveryException("ReflectionTypeLoadException while enumerating types in assembly \"" + a.Location + "\". Results will be incomplete.", ex) { AssemblyPath = a.Location };
+                        var partDiscoveryException = new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.ReflectionTypeLoadExceptionWhileEnumeratingTypes, a.Location), ex) { AssemblyPath = a.Location };
                         lock (exceptions)
                         {
                             exceptions.Add(partDiscoveryException);
@@ -442,7 +485,7 @@
                     }
                     catch (Exception ex)
                     {
-                        var partDiscoveryException = new PartDiscoveryException("Unable to enumerate types in assembly \"" + a.Location + "\".", ex) { AssemblyPath = a.Location };
+                        var partDiscoveryException = new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.UnableToEnumerateTypes, a.Location), ex) { AssemblyPath = a.Location };
                         lock (exceptions)
                         {
                             exceptions.Add(partDiscoveryException);
@@ -527,14 +570,15 @@
             private readonly IReadOnlyList<PartDiscovery> discoveryMechanisms;
 
             internal CombinedPartDiscovery(IReadOnlyList<PartDiscovery> discoveryMechanisms)
+                : base(Resolver.DefaultInstance)
             {
-                Requires.NotNull(discoveryMechanisms, "discoveryMechanisms");
+                Requires.NotNull(discoveryMechanisms, nameof(discoveryMechanisms));
                 this.discoveryMechanisms = discoveryMechanisms;
             }
 
             protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
             {
-                Requires.NotNull(partType, "partType");
+                Requires.NotNull(partType, nameof(partType));
 
                 foreach (var discovery in this.discoveryMechanisms)
                 {
@@ -550,7 +594,7 @@
 
             public override bool IsExportFactoryType(Type type)
             {
-                Requires.NotNull(type, "type");
+                Requires.NotNull(type, nameof(type));
 
                 return this.discoveryMechanisms.Any(discovery => discovery.IsExportFactoryType(type));
             }

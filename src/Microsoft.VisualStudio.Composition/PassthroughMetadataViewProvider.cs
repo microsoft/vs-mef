@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -7,6 +9,7 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Reflection;
 
     /// <summary>
     /// Supports metadata views that are any type that <see cref="ImmutableDictionary{TKey, TValue}"/>
@@ -15,15 +18,17 @@
     internal class PassthroughMetadataViewProvider : IMetadataViewProvider
     {
         internal static readonly ComposablePartDefinition PartDefinition =
-            Utilities.GetMetadataViewProviderPartDefinition(typeof(PassthroughMetadataViewProvider), 1001000);
-
-        private PassthroughMetadataViewProvider() { }
+            Utilities.GetMetadataViewProviderPartDefinition(typeof(PassthroughMetadataViewProvider), 1001000, Resolver.DefaultInstance);
 
         internal static readonly IMetadataViewProvider Default = new PassthroughMetadataViewProvider();
 
+        private PassthroughMetadataViewProvider()
+        {
+        }
+
         public bool IsMetadataViewSupported(Type metadataType)
         {
-            Requires.NotNull(metadataType, "metadataType");
+            Requires.NotNull(metadataType, nameof(metadataType));
 
             return metadataType.GetTypeInfo().IsAssignableFrom(typeof(IReadOnlyDictionary<string, object>).GetTypeInfo())
                 || metadataType.GetTypeInfo().IsAssignableFrom(typeof(IDictionary<string, object>).GetTypeInfo());
@@ -31,7 +36,7 @@
 
         public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
         {
-            Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(metadata, nameof(metadata));
 
             // This cast should work because our IsMetadataViewSupported method filters to those that do.
             return metadata;

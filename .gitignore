@@ -7,13 +7,14 @@ EnlistmentInfo.xml
 *.suo
 *.user
 *.sln.docstates
+.vs/
+.cr/
 
 # Build results
 
 [Dd]ebug/
 [Rr]elease/
 x64/
-build/
 [Bb]in/
 [Oo]bj/
 
@@ -97,6 +98,9 @@ publish/
 
 # NuGet Packages Directory
 packages/
+project.lock.json
+*.nuget.props
+*.nuget.targets
 
 # Windows Azure Build Output
 csx
@@ -109,7 +113,6 @@ AppPackages/
 sql/
 *.Cache
 ClientBin/
-[Ss]tyle[Cc]op.*
 ~$*
 *~
 *.dbmdl

@@ -1,0 +1,221 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CannotDirectlyDisposeAnImport" xml:space="preserve">
+    <value>此实例是导入，不能直接释放。</value>
+  </data>
+  <data name="ContainerDisposalEncounteredExceptions" xml:space="preserve">
+    <value>实例化的部件从 IDisposable.Dispose() 中引发异常。</value>
+  </data>
+  <data name="ErrorsDuringDiscovery" xml:space="preserve">
+    <value>在搜索过程中出现错误。</value>
+  </data>
+  <data name="ErrorsInComposition" xml:space="preserve">
+    <value>撰写中存在错误。</value>
+  </data>
+  <data name="ErrorWhileSettingImport" xml:space="preserve">
+    <value>导入"{0}"不能满足。</value>
+  </data>
+  <data name="ExceptionThrownByPartUnderInitialization" xml:space="preserve">
+    <value>部分"{0}"在初始化时引发了异常。</value>
+  </data>
+  <data name="ExportedValueNotAssignableToImport" xml:space="preserve">
+    <value>从"{0}"的值不能分配导入站点"{1}"。</value>
+  </data>
+  <data name="FailStableComposition" xml:space="preserve">
+    <value>无法找到稳定的组合。</value>
+  </data>
+  <data name="FailureWhileScanningType" xml:space="preserve">
+    <value>扫描类型"{0}"时出错。</value>
+  </data>
+  <data name="NoImportingConstructor" xml:space="preserve">
+    <value>没有导入的构造函数。</value>
+  </data>
+  <data name="PartBelongsToAnotherSharingBoundary" xml:space="preserve">
+    <value>从属于另一共享边界的一部分出口的不良请求。</value>
+  </data>
+  <data name="PartIsNotInstantiable" xml:space="preserve">
+    <value>此部件 ({0}) 不能实例化。</value>
+  </data>
+  <data name="ReflectionTypeLoadExceptionWhileEnumeratingTypes" xml:space="preserve">
+    <value>枚举程序集"{0}"中的类型时的 ReflectionTypeLoadException。结果将是不完整的。</value>
+  </data>
+  <data name="ScanningMEFAssemblies" xml:space="preserve">
+    <value>正在扫描 MEF 组件...</value>
+  </data>
+  <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
+    <value>元数据视图类型不受支持。</value>
+  </data>
+  <data name="UnableToDeterminePrimarySharingBoundary" xml:space="preserve">
+    <value>无法确定 MEF 部件"{0}"的主共享边界。</value>
+  </data>
+  <data name="UnableToEnumerateTypes" xml:space="preserve">
+    <value>无法枚举程序集"{0}"的类型。</value>
+  </data>
+  <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
+    <value>无法实例化自定义导入集合类型。</value>
+  </data>
+  <data name="UnableToLoadAssembly" xml:space="preserve">
+    <value>无法加载程序集"{0}"进行扫描。</value>
+  </data>
+  <data name="UnexpectedMemberType" xml:space="preserve">
+    <value>意外的成员类型。</value>
+    <comment>Where {0} will be substituted with an enum value.</comment>
+  </data>
+  <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
+    <value>应用适当的约束后，预期的 {0} 输出合同名称"{1}"但找到的 {2}。</value>
+  </data>
+  <data name="UnexpectedSharedPartState" xml:space="preserve">
+    <value>此共享的部件状态 {0} 中，但必须为此操作状态 {1} 中。</value>
+  </data>
+  <data name="AllValuesMustBeNonNull" xml:space="preserve">
+    <value>所有值必须都为非空。</value>
+  </data>
+  <data name="CannotImportBecauseExportingPartCannotBeInstantiated" xml:space="preserve">
+    <value>{0}︰ 无法导入导出值从 {1} 由于导出的部件不能实例化。它缺少导入的构造函数？</value>
+  </data>
+  <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
+    <value>成员“{0}”包含具有相同属性名的元数据特性。属性名称:“&lt;T&gt;”。</value>
+  </data>
+  <data name="ExactlyOneEntryForEveryImport" xml:space="preserve">
+    <value>应为每个导入一个项。</value>
+  </data>
+  <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
+    <value>{0}︰ 预期的 {1}，但找到 {2} 正好只有一个出口。{3}</value>
+  </data>
+  <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
+    <value>{0}︰ 预期的 {1}，但找到 {2} 1 或 0 的导出。{3}</value>
+  </data>
+  <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
+    <value>{0}︰ 不允许导出的 ExportProvider。</value>
+  </data>
+  <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
+    <value>导入构造函数具有不受支持的 [ImportMany] 参数类型。仅支持 T[] 和 IEnumerable&lt;T&gt;。</value>
+  </data>
+  <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
+    <value>{0}︰ 不支持使用泛型类型参数的导入。</value>
+  </data>
+  <data name="InstanceEmpty" xml:space="preserve">
+    <value>此实例是空的。</value>
+  </data>
+  <data name="IsNotAssignableFromExportedMEFValue" xml:space="preserve">
+    <value>{0}︰ 不能从导出的 MEF 值 {1} 赋。</value>
+  </data>
+  <data name="LoopBetweenNonSharedParts" xml:space="preserve">
+    <value>非共享部件之间循环。</value>
+  </data>
+  <data name="LoopInvolvingImportingCtorArgumentAndAllNonLazyImports" xml:space="preserve">
+    <value>循环，涉及 ImportingConstructor 参数和所有非延迟导入。</value>
+  </data>
+  <data name="MetadataTypeNotSupported" xml:space="preserve">
+    <value>{0}: {1} 的元数据类型不受支持。</value>
+  </data>
+  <data name="NotATypeSpec" xml:space="preserve">
+    <value>不是一个类型规范。</value>
+  </data>
+  <data name="NotClosedFormOfOther" xml:space="preserve">
+    <value>不闭合的其他形式。</value>
+  </data>
+  <data name="NotGenericTypeDefinition" xml:space="preserve">
+    <value>这不是泛型类型定义。</value>
+  </data>
+  <data name="NotInitialized" xml:space="preserve">
+    <value>未初始化。</value>
+  </data>
+  <data name="PartIsNotShared" xml:space="preserve">
+    <value>无法共享部分。</value>
+  </data>
+  <data name="UnresolvableMetadataToken" xml:space="preserve">
+    <value>无法解析元数据标记。</value>
+  </data>
+  <data name="WrongLength" xml:space="preserve">
+    <value>长度不正确。</value>
+  </data>
+  <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
+    <value>无法构造 MEF 部件"{0}"由于无法解决递归构造请求。</value>
+  </data>
+  <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
+    <value>必须先设置程序集名称。</value>
+  </data>
+  <data name="CannotBeEmpty" xml:space="preserve">
+    <value>不能为空。</value>
+  </data>
+  <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
+    <value>集合必须是公共的公共构造函数用于 [ImportingConstructor] 时。</value>
+  </data>
+  <data name="CompilerErrorsOccurred" xml:space="preserve">
+    <value>将出现编译错误。</value>
+  </data>
+  <data name="CustomImportSourceNotSupported" xml:space="preserve">
+    <value>尚不支持自定义导入源。</value>
+  </data>
+  <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
+    <value>成员“{0}”包含具有相同属性名的元数据特性。属性名称:“{1}”。</value>
+    <comment>{0} = member (full name if possible) with invalid metadata attributes.
+{1} = the property's name.</comment>
+  </data>
+  <data name="ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" xml:space="preserve">
+    <value>在成员声明的类型是泛型方法时，不允许导出。</value>
+  </data>
+  <data name="FailedToGenerateEmbeddableTypes" xml:space="preserve">
+    <value>未能生成可嵌入的类型。</value>
+  </data>
+  <data name="ImportConstraintTypeNotSupported" xml:space="preserve">
+    <value>导入约束类型 {0} 不受支持。</value>
+  </data>
+  <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
+    <value>导入 ExportFactory&lt;T&gt; 时才需要 {0}。</value>
+  </data>
+  <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
+    <value>IsExportFactory 预期得令人难以置信。</value>
+  </data>
+  <data name="MemberContainsBothImportAndImportMany" xml:space="preserve">
+    <value>成员"{0}"包含 ImportAttribute 和 ImportManyAttribute。</value>
+  </data>
+  <data name="NoImportingConstructorFound" xml:space="preserve">
+    <value>未找到导入的构造函数。</value>
+  </data>
+  <data name="NoMemberToSatisfy" xml:space="preserve">
+    <value>为满足无成员。</value>
+  </data>
+  <data name="OnImportsSatisfiedTakeNoParameters" xml:space="preserve">
+    <value>OnImportsSatisfied 方法应该不带任何参数。</value>
+  </data>
+  <data name="OnlyOneOnImportsSatisfiedMethodIsSupported" xml:space="preserve">
+    <value>支持只有一个 OnImportsSatisfied 方法。</value>
+  </data>
+  <data name="OnlySupportedOnWriteOperations" xml:space="preserve">
+    <value>仅支持写入操作。</value>
+  </data>
+  <data name="ReadableStreamRequired" xml:space="preserve">
+    <value>所需的可读流。</value>
+    <comment>'stream' is in reference to System.IO.Stream</comment>
+  </data>
+  <data name="TypeMustDefineMemberInfoOrDerivedType" xml:space="preserve">
+    <value>类型必须定义它或派生的类型的一个。</value>
+  </data>
+  <data name="UnexpectedConstraintType" xml:space="preserve">
+    <value>意外的约束类型︰ {0}。</value>
+  </data>
+  <data name="UnsupportedFormat" xml:space="preserve">
+    <value>不支持的格式︰ {0}。</value>
+  </data>
+  <data name="WritableStreamRequired" xml:space="preserve">
+    <value>所需的可写流。</value>
+    <comment>'stream' is in reference to System.IO.Stream</comment>
+  </data>
+  <data name="WrongType" xml:space="preserve">
+    <value>错误的类型。</value>
+  </data>
+</root>

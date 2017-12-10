@@ -1,16 +1,32 @@
-﻿namespace Microsoft.VisualStudio.Composition.Reflection
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition.Reflection
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
 
+    [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
     public struct MemberRef : IEquatable<MemberRef>
     {
+        /// <summary>
+        /// Gets the string to display in the debugger watch window for this value.
+        /// </summary>
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        internal string DebuggerDisplay => this.IsEmpty ? "(empty)"
+            : this.IsConstructor ? this.Constructor.DebuggerDisplay
+            : this.IsField ? this.Field.DebuggerDisplay
+            : this.IsProperty ? this.Property.DebuggerDisplay
+            : this.IsMethod ? this.Method.DebuggerDisplay
+            : this.IsType ? this.Type.DebuggerDisplay
+            : "(unknown)";
+
         public MemberRef(ConstructorRef constructor)
             : this()
         {
@@ -41,29 +57,29 @@
             this.Type = type;
         }
 
-        public MemberRef(MemberInfo member)
+        public MemberRef(MemberInfo member, Resolver resolver)
             : this()
         {
-            Requires.NotNull(member, "member");
+            Requires.NotNull(member, nameof(member));
 
             switch (member.MemberType)
             {
                 case MemberTypes.Constructor:
-                    this.Constructor = new ConstructorRef((ConstructorInfo)member);
+                    this.Constructor = new ConstructorRef((ConstructorInfo)member, resolver);
                     break;
                 case MemberTypes.Field:
-                    this.Field = new FieldRef((FieldInfo)member);
+                    this.Field = new FieldRef((FieldInfo)member, resolver);
                     break;
                 case MemberTypes.Method:
-                    this.Method = new MethodRef((MethodInfo)member);
+                    this.Method = new MethodRef((MethodInfo)member, resolver);
                     break;
                 case MemberTypes.Property:
-                    this.Property = new PropertyRef((PropertyInfo)member);
+                    this.Property = new PropertyRef((PropertyInfo)member, resolver);
                     break;
                 default:
-                    if (member is Type)
+                    if (member is TypeInfo typeInfo)
                     {
-                        this.Type = TypeRef.Get((Type)member);
+                        this.Type = TypeRef.Get(typeInfo.AsType(), resolver);
                     }
                     else
                     {
@@ -115,6 +131,8 @@
             }
         }
 
+        public MemberInfo MemberInfo => this.Resolve();
+
         public bool IsEmpty
         {
             get { return this.Constructor.IsEmpty && this.Field.IsEmpty && this.Property.IsEmpty && this.Method.IsEmpty && this.Type == null; }
@@ -145,9 +163,11 @@
             get { return this.Type != null; }
         }
 
-        public static MemberRef Get(MemberInfo member)
+        internal Resolver Resolver => this.DeclaringType?.Resolver;
+
+        public static MemberRef Get(MemberInfo member, Resolver resolver)
         {
-            return member != null ? new MemberRef(member) : default(MemberRef);
+            return member != null ? new MemberRef(member, resolver) : default(MemberRef);
         }
 
         public bool Equals(MemberRef other)

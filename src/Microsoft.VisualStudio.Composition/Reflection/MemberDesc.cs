@@ -1,12 +1,10 @@
-﻿namespace Microsoft.VisualStudio.Composition.Reflection
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition.Reflection
 {
     using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
+    [Obsolete("Use " + nameof(MemberRef) + " instead.", error: true)]
     public abstract class MemberDesc
     {
         protected MemberDesc(string name, bool isStatic)
@@ -15,8 +13,8 @@ using System.Threading.Tasks;
             this.IsStatic = isStatic;
         }
 
-        public string Name { get; private set; }
+        public string Name { get; }
 
-        public bool IsStatic { get; private set; }
+        public bool IsStatic { get; }
     }
 }

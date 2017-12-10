@@ -1,11 +1,10 @@
-﻿namespace Microsoft.VisualStudio.Composition.Reflection
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition.Reflection
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
 
+    [Obsolete("Use " + nameof(TypeRef) + " instead.", error: true)]
     public class TypeDesc
     {
         public TypeDesc(TypeRef type, string fullName)
@@ -18,10 +17,12 @@
 
         public string FullName { get; private set; }
 
-        public static TypeDesc Get(Type type)
+        public static TypeDesc Get(Type type, Resolver resolver)
         {
-            Requires.NotNull(type, "type");
-            return new TypeDesc(TypeRef.Get(type), type.FullName);
+            Requires.NotNull(type, nameof(type));
+            Requires.NotNull(resolver, nameof(resolver));
+
+            return new TypeDesc(TypeRef.Get(type, resolver), type.FullName);
         }
     }
 }

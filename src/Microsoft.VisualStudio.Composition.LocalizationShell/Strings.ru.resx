@@ -1,0 +1,221 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CannotDirectlyDisposeAnImport" xml:space="preserve">
+    <value>Этот экземпляр является операцией импорта и не может быть раскрыт напрямую.</value>
+  </data>
+  <data name="ContainerDisposalEncounteredExceptions" xml:space="preserve">
+    <value>Возникли исключения в частях с созданными экземплярами из IDisposable.Dispose().</value>
+  </data>
+  <data name="ErrorsDuringDiscovery" xml:space="preserve">
+    <value>Произошли ошибки при обнаружении.</value>
+  </data>
+  <data name="ErrorsInComposition" xml:space="preserve">
+    <value>Произошли ошибки в композиции.</value>
+  </data>
+  <data name="ErrorWhileSettingImport" xml:space="preserve">
+    <value>Не удалось выполнить импорт "{0}".</value>
+  </data>
+  <data name="ExceptionThrownByPartUnderInitialization" xml:space="preserve">
+    <value>Возникло исключение при инициализации части "{0}".</value>
+  </data>
+  <data name="ExportedValueNotAssignableToImport" xml:space="preserve">
+    <value>Значение, экспортированное из "{0}", не может быть назначено для сайта импорта "{1}".</value>
+  </data>
+  <data name="FailStableComposition" xml:space="preserve">
+    <value>Не удалось найти стабильную композицию.</value>
+  </data>
+  <data name="FailureWhileScanningType" xml:space="preserve">
+    <value>Сбой сканирования типа "{0}".</value>
+  </data>
+  <data name="NoImportingConstructor" xml:space="preserve">
+    <value>Отсутствует конструктор импорта.</value>
+  </data>
+  <data name="PartBelongsToAnotherSharingBoundary" xml:space="preserve">
+    <value>Недопустимый запрос экспорта из части, которая принадлежит другой общей границе.</value>
+  </data>
+  <data name="PartIsNotInstantiable" xml:space="preserve">
+    <value>Невозможно создать экземпляры этой части ({0}).</value>
+  </data>
+  <data name="ReflectionTypeLoadExceptionWhileEnumeratingTypes" xml:space="preserve">
+    <value>Возникло исключение ReflectionTypeLoadException при перечислении типов в сборке "{0}". Результаты будут неполными.</value>
+  </data>
+  <data name="ScanningMEFAssemblies" xml:space="preserve">
+    <value>Идет сканирование сборок MEF...</value>
+  </data>
+  <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
+    <value>Тип представления метаданных не поддерживается.</value>
+  </data>
+  <data name="UnableToDeterminePrimarySharingBoundary" xml:space="preserve">
+    <value>Не удалось определить первичную общую границу для части MEF "{0}".</value>
+  </data>
+  <data name="UnableToEnumerateTypes" xml:space="preserve">
+    <value>Не удалось перечислить типы в сборке "{0}".</value>
+  </data>
+  <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
+    <value>Не удалось создать экземпляр типа коллекции пользовательского импорта.</value>
+  </data>
+  <data name="UnableToLoadAssembly" xml:space="preserve">
+    <value>Не удалось загрузить сборку "{0}" для сканирования.</value>
+  </data>
+  <data name="UnexpectedMemberType" xml:space="preserve">
+    <value>Неожиданный тип элемента.</value>
+    <comment>Where {0} will be substituted with an enum value.</comment>
+  </data>
+  <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
+    <value>Ожидаются операции экспорта ({0}) с названием контракта "{1}", но после применения соответствующих ограничений найдено {2}.</value>
+  </data>
+  <data name="UnexpectedSharedPartState" xml:space="preserve">
+    <value>Эта общая часть находится в состоянии {0}, но должна быть в состоянии {1} для данной операции.</value>
+  </data>
+  <data name="AllValuesMustBeNonNull" xml:space="preserve">
+    <value>Значения не должны быть равны NULL.</value>
+  </data>
+  <data name="CannotImportBecauseExportingPartCannotBeInstantiated" xml:space="preserve">
+    <value>{0}: невозможно импортировать экспортированное значение из {1}, так как не удается создать экземпляр экспортируемой части. Возможно, отсутствует импортирующий конструктор.</value>
+  </data>
+  <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
+    <value>Тип коллекции должен быть производным от ICollection&lt;T&gt;.</value>
+  </data>
+  <data name="ExactlyOneEntryForEveryImport" xml:space="preserve">
+    <value>Для каждого импорта требуется только одна запись.</value>
+  </data>
+  <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
+    <value>{0}: ожидается только 1 операция экспорта {1}, но найдено {2}.{3}</value>
+  </data>
+  <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
+    <value>{0}: ожидается 1 или 0 операций экспорта {1}, но найдено {2}.{3}</value>
+  </data>
+  <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
+    <value>{0}: экспорт ExportProvider запрещен.</value>
+  </data>
+  <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
+    <value>В импорте конструктора указан неподдерживаемый тип параметра для [ImportMany]. Поддерживаются только T[] и IEnumerable&lt;T&gt;.</value>
+  </data>
+  <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
+    <value>{0}: операции импорта, в которых используются параметры универсального типа, не поддерживаются.</value>
+  </data>
+  <data name="InstanceEmpty" xml:space="preserve">
+    <value>Экземпляр пуст.</value>
+  </data>
+  <data name="IsNotAssignableFromExportedMEFValue" xml:space="preserve">
+    <value>{0}: невозможно назначить из экспортированного значения MEF {1}.</value>
+  </data>
+  <data name="LoopBetweenNonSharedParts" xml:space="preserve">
+    <value>Цикл между частями, которые не являются общими.</value>
+  </data>
+  <data name="LoopInvolvingImportingCtorArgumentAndAllNonLazyImports" xml:space="preserve">
+    <value>Цикл, включающий аргумент ImportingConstructor и все не отложенные операции импорта.</value>
+  </data>
+  <data name="MetadataTypeNotSupported" xml:space="preserve">
+    <value>{0}: тип метаданных {1} не поддерживается.</value>
+  </data>
+  <data name="NotATypeSpec" xml:space="preserve">
+    <value>Не является спецификацией типа.</value>
+  </data>
+  <data name="NotClosedFormOfOther" xml:space="preserve">
+    <value>Не является закрытой формой другого элемента.</value>
+  </data>
+  <data name="NotGenericTypeDefinition" xml:space="preserve">
+    <value>Это не определение универсального типа.</value>
+  </data>
+  <data name="NotInitialized" xml:space="preserve">
+    <value>Не инициализировано.</value>
+  </data>
+  <data name="PartIsNotShared" xml:space="preserve">
+    <value>Часть не является общей.</value>
+  </data>
+  <data name="UnresolvableMetadataToken" xml:space="preserve">
+    <value>Неразрешимый токен метаданных.</value>
+  </data>
+  <data name="WrongLength" xml:space="preserve">
+    <value>Неправильная длина.</value>
+  </data>
+  <data name="RecursiveRequestForPartConstruction" xml:space="preserve">
+    <value>Не удалось создать часть MEF "{0}" из-за неразрешимого рекурсивного запроса на создание.</value>
+  </data>
+  <data name="AssemblyNameMustBeSetFirst" xml:space="preserve">
+    <value>Сначала необходимо задать AssemblyName.</value>
+  </data>
+  <data name="CannotBeEmpty" xml:space="preserve">
+    <value>Не может быть пустым.</value>
+  </data>
+  <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
+    <value>Коллекция должна быть общей, с общим конструктором, если он используется с атрибутом [ImportingConstructor].</value>
+  </data>
+  <data name="CompilerErrorsOccurred" xml:space="preserve">
+    <value>Произошли ошибки компиляции.</value>
+  </data>
+  <data name="CustomImportSourceNotSupported" xml:space="preserve">
+    <value>Пользовательские источники импорта еще не поддерживаются.</value>
+  </data>
+  <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
+    <value>Член "{0}" содержит атрибуты метаданных с идентичным именем свойства. Имя свойства: "{1}".</value>
+    <comment>{0} = member (full name if possible) with invalid metadata attributes.
+{1} = the property's name.</comment>
+  </data>
+  <data name="ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric" xml:space="preserve">
+    <value>Операции экспорта в элементах запрещены, если объявляющий тип является универсальным.</value>
+  </data>
+  <data name="FailedToGenerateEmbeddableTypes" xml:space="preserve">
+    <value>Не удалось создать встраиваемые типы.</value>
+  </data>
+  <data name="ImportConstraintTypeNotSupported" xml:space="preserve">
+    <value>Тип ограничения импорта {0} не поддерживается.</value>
+  </data>
+  <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
+    <value>{0} ожидается только при импорте ExportFactory&lt;T&gt;.</value>
+  </data>
+  <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
+    <value>Для IsExportFactory требуется значение true.</value>
+  </data>
+  <data name="MemberContainsBothImportAndImportMany" xml:space="preserve">
+    <value>Элемент "{0}" содержит атрибуты ImportAttribute и ImportManyAttribute.</value>
+  </data>
+  <data name="NoImportingConstructorFound" xml:space="preserve">
+    <value>Не удалось найти конструктор импорта.</value>
+  </data>
+  <data name="NoMemberToSatisfy" xml:space="preserve">
+    <value>Отсутствуют соответствующие элементы.</value>
+  </data>
+  <data name="OnImportsSatisfiedTakeNoParameters" xml:space="preserve">
+    <value>Метод OnImportsSatisfied не должен принимать параметры.</value>
+  </data>
+  <data name="OnlyOneOnImportsSatisfiedMethodIsSupported" xml:space="preserve">
+    <value>Поддерживается только метод OnImportsSatisfied.</value>
+  </data>
+  <data name="OnlySupportedOnWriteOperations" xml:space="preserve">
+    <value>Поддерживается только в операциях записи.</value>
+  </data>
+  <data name="ReadableStreamRequired" xml:space="preserve">
+    <value>Требуется поток, доступный для чтения.</value>
+    <comment>'stream' is in reference to System.IO.Stream</comment>
+  </data>
+  <data name="TypeMustDefineMemberInfoOrDerivedType" xml:space="preserve">
+    <value>Тип должен определять memberInfo или производный тип.</value>
+  </data>
+  <data name="UnexpectedConstraintType" xml:space="preserve">
+    <value>Неожиданный тип ограничения: {0}.</value>
+  </data>
+  <data name="UnsupportedFormat" xml:space="preserve">
+    <value>Неподдерживаемый формат: {0}.</value>
+  </data>
+  <data name="WritableStreamRequired" xml:space="preserve">
+    <value>Требуется поток, доступный для записи.</value>
+    <comment>'stream' is in reference to System.IO.Stream</comment>
+  </data>
+  <data name="WrongType" xml:space="preserve">
+    <value>Неправильный тип.</value>
+  </data>
+</root>

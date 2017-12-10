@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -13,13 +15,13 @@
     {
         public ExportTypeIdentityConstraint(Type typeIdentity)
         {
-            Requires.NotNull(typeIdentity, "typeIdentity");
+            Requires.NotNull(typeIdentity, nameof(typeIdentity));
             this.TypeIdentityName = ContractNameServices.GetTypeIdentity(typeIdentity);
         }
 
         public ExportTypeIdentityConstraint(string typeIdentityName)
         {
-            Requires.NotNullOrEmpty(typeIdentityName, "typeIdentityName");
+            Requires.NotNullOrEmpty(typeIdentityName, nameof(typeIdentityName));
             this.TypeIdentityName = typeIdentityName;
         }
 
@@ -27,21 +29,21 @@
 
         public static ImmutableDictionary<string, object> GetExportMetadata(Type type)
         {
-            Requires.NotNull(type, "type");
+            Requires.NotNull(type, nameof(type));
 
             return GetExportMetadata(ContractNameServices.GetTypeIdentity(type));
         }
 
         public static ImmutableDictionary<string, object> GetExportMetadata(string typeIdentity)
         {
-            Requires.NotNullOrEmpty(typeIdentity, "typeIdentity");
+            Requires.NotNullOrEmpty(typeIdentity, nameof(typeIdentity));
 
             return ImmutableDictionary<string, object>.Empty.Add(CompositionConstants.ExportTypeIdentityMetadataName, typeIdentity);
         }
 
         public bool IsSatisfiedBy(ExportDefinition exportDefinition)
         {
-            Requires.NotNull(exportDefinition, "exportDefinition");
+            Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
             string value;
             if (exportDefinition.Metadata.TryGetValue(CompositionConstants.ExportTypeIdentityMetadataName, out value))

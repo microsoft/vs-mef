@@ -1,19 +1,23 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     internal static class Utilities
     {
-        internal static ComposablePartDefinition GetMetadataViewProviderPartDefinition(Type providerType, int orderPrecedence)
+        internal static ComposablePartDefinition GetMetadataViewProviderPartDefinition(Type providerType, int orderPrecedence, Resolver resolver)
         {
-            Requires.NotNull(providerType, "providerType");
+            Requires.NotNull(providerType, nameof(providerType));
+            Requires.NotNull(resolver, nameof(resolver));
 
             var exportDefinition = new ExportDefinition(
                 ContractNameServices.GetTypeIdentity(typeof(IMetadataViewProvider)),
@@ -22,14 +26,14 @@
                     .SetItem("OrderPrecedence", orderPrecedence));
 
             var partDefinition = new ComposablePartDefinition(
-                TypeRef.Get(providerType),
+                TypeRef.Get(providerType, resolver),
                 ImmutableDictionary<string, object>.Empty.Add(CompositionConstants.DgmlCategoryPartMetadataName, new[] { "VsMEFBuiltIn" }),
                 new[] { exportDefinition },
                 ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
                 ImmutableList<ImportDefinitionBinding>.Empty,
                 string.Empty,
                 default(MethodRef),
-                ConstructorRef.Get(providerType.GetConstructor(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance, null, new Type[0], null)),
+                MethodRef.Get(providerType.GetTypeInfo().GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Single(c => c.GetParameters().Length == 0), resolver),
                 ImmutableList<ImportDefinitionBinding>.Empty,
                 CreationPolicy.Shared,
                 false);
@@ -50,8 +54,8 @@
 
         internal static bool EqualsByValue<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> expected, IReadOnlyDictionary<TKey, TValue> actual, IEqualityComparer<TValue> valueComparer = null)
         {
-            Requires.NotNull(expected, "expected");
-            Requires.NotNull(actual, "actual");
+            Requires.NotNull(expected, nameof(expected));
+            Requires.NotNull(actual, nameof(actual));
             valueComparer = valueComparer ?? EqualityComparer<TValue>.Default;
 
             if (expected.Count != actual.Count)
@@ -106,7 +110,7 @@
 
         internal static bool Contains<T>(this ImmutableStack<T> stack, T value)
         {
-            Requires.NotNull(stack, "stack");
+            Requires.NotNull(stack, nameof(stack));
 
             while (!stack.IsEmpty)
             {
@@ -142,8 +146,8 @@
 
         internal static void ToString(this IReadOnlyDictionary<string, object> metadata, IndentingTextWriter writer)
         {
-            Requires.NotNull(metadata, "metadata");
-            Requires.NotNull(writer, "writer");
+            Requires.NotNull(metadata, nameof(metadata));
+            Requires.NotNull(writer, nameof(writer));
 
             foreach (var item in metadata)
             {
@@ -153,8 +157,8 @@
 
         internal static void ToString(this object value, TextWriter writer)
         {
-            Requires.NotNull(value, "value");
-            Requires.NotNull(writer, "writer");
+            Requires.NotNull(value, nameof(value));
+            Requires.NotNull(writer, nameof(writer));
 
             var descriptiveValue = value as IDescriptiveToString;
             if (descriptiveValue != null)

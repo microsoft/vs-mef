@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -13,8 +15,8 @@
 
         public DiscoveredParts(IEnumerable<ComposablePartDefinition> parts, IEnumerable<PartDiscoveryException> discoveryErrors)
         {
-            Requires.NotNull(parts, "parts");
-            Requires.NotNull(discoveryErrors, "discoveryErrors");
+            Requires.NotNull(parts, nameof(parts));
+            Requires.NotNull(discoveryErrors, nameof(discoveryErrors));
 
             this.Parts = ImmutableHashSet.CreateRange(parts);
             this.DiscoveryErrors = ImmutableList.CreateRange(discoveryErrors);
@@ -39,12 +41,12 @@
                 return this;
             }
 
-            throw new CompositionFailedException("Errors occurred during discovery.", new AggregateException(this.DiscoveryErrors));
+            throw new CompositionFailedException(Strings.ErrorsDuringDiscovery, new AggregateException(this.DiscoveryErrors));
         }
 
         internal DiscoveredParts Merge(DiscoveredParts other)
         {
-            Requires.NotNull(other, "other");
+            Requires.NotNull(other, nameof(other));
 
             if (other.Parts.Count == 0 && other.DiscoveryErrors.Count == 0)
             {

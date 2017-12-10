@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -11,7 +13,7 @@
     {
         public ExportMetadataValueImportConstraint(string name, object value)
         {
-            Requires.NotNullOrEmpty(name, "name");
+            Requires.NotNullOrEmpty(name, nameof(name));
 
             this.Name = name;
             this.Value = value;
@@ -23,7 +25,7 @@
 
         public bool IsSatisfiedBy(ExportDefinition exportDefinition)
         {
-            Requires.NotNull(exportDefinition, "exportDefinition");
+            Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
             object exportMetadataValue;
             if (exportDefinition.Metadata.TryGetValue(this.Name, out exportMetadataValue))

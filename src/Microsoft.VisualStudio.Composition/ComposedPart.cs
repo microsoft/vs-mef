@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -9,20 +11,21 @@
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using Reflection;
 
-    [DebuggerDisplay("{Definition.Type.Name}")]
+    [DebuggerDisplay("{" + nameof(Definition) + "." + nameof(ComposablePartDefinition.Type) + ".Name}")]
     public class ComposedPart
     {
         public ComposedPart(ComposablePartDefinition definition, IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExports, IImmutableSet<string> requiredSharingBoundaries)
         {
-            Requires.NotNull(definition, "definition");
-            Requires.NotNull(satisfyingExports, "satisfyingExports");
-            Requires.NotNull(requiredSharingBoundaries, "requiredSharingBoundaries");
+            Requires.NotNull(definition, nameof(definition));
+            Requires.NotNull(satisfyingExports, nameof(satisfyingExports));
+            Requires.NotNull(requiredSharingBoundaries, nameof(requiredSharingBoundaries));
 
 #if DEBUG   // These checks are expensive. Don't do them in production.
             // Make sure we have entries for every import.
-            Requires.Argument(satisfyingExports.Count == definition.Imports.Count() && definition.Imports.All(d => satisfyingExports.ContainsKey(d)), "satisfyingExports", "There should be exactly one entry for every import.");
-            Requires.Argument(satisfyingExports.All(kv => kv.Value != null), "satisfyingExports", "All values must be non-null.");
+            Requires.Argument(satisfyingExports.Count == definition.Imports.Count() && definition.Imports.All(d => satisfyingExports.ContainsKey(d)), "satisfyingExports", Strings.ExactlyOneEntryForEveryImport);
+            Requires.Argument(satisfyingExports.All(kv => kv.Value != null), "satisfyingExports", Strings.AllValuesMustBeNonNull);
 #endif
 
             this.Definition = definition;
@@ -42,9 +45,11 @@
         /// </summary>
         public IImmutableSet<string> RequiredSharingBoundaries { get; private set; }
 
+        internal Resolver Resolver => this.Definition.TypeRef.Resolver;
+
         public IEnumerable<KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>> GetImportingConstructorImports()
         {
-            if (this.Definition.ImportingConstructorInfo != null)
+            if (!this.Definition.ImportingConstructorOrFactoryRef.IsEmpty)
             {
                 foreach (var import in this.Definition.ImportingConstructorImports)
                 {
@@ -56,21 +61,21 @@
 
         public IEnumerable<ComposedPartDiagnostic> Validate(IReadOnlyDictionary<Type, ExportDefinitionBinding> metadataViews)
         {
-            Requires.NotNull(metadataViews, "metadataViews");
+            Requires.NotNull(metadataViews, nameof(metadataViews));
 
             if (this.Definition.ExportDefinitions.Any(ed => CompositionConfiguration.ExportDefinitionPracticallyEqual.Default.Equals(ExportProvider.ExportProviderExportDefinition, ed.Value)) &&
                 !this.Definition.Equals(ExportProvider.ExportProviderPartDefinition))
             {
-                yield return new ComposedPartDiagnostic(this, "{0}: Export of ExportProvider is not allowed.", this.Definition.Type.FullName);
+                yield return new ComposedPartDiagnostic(this, Strings.ExportOfExportProviderNotAllowed, this.Definition.Type.FullName);
             }
 
             var importsWithGenericTypeParameters = this.Definition.Imports
-                .Where(import => import.ImportingSiteElementType.ContainsGenericParameters).ToList();
+                .Where(import => import.ImportingSiteElementType.GetTypeInfo().ContainsGenericParameters).ToList();
             foreach (var import in importsWithGenericTypeParameters)
             {
                 yield return new ComposedPartDiagnostic(
                     this,
-                    "{0}: imports that use generic type parameters are not supported.",
+                    Strings.ImportsThatUseGenericTypeParametersNotSupported,
                     GetDiagnosticLocation(import));
             }
 
@@ -84,7 +89,7 @@
                         {
                             yield return new ComposedPartDiagnostic(
                                 this,
-                                "{0}: expected exactly 1 export of {1} but found {2}.{3}",
+                                Strings.ExpectedExactlyOneExportButFound,
                                 GetDiagnosticLocation(pair.Key),
                                 pair.Key.ImportingSiteElementType,
                                 pair.Value.Count,
@@ -97,8 +102,9 @@
                         {
                             yield return new ComposedPartDiagnostic(
                                 this,
-                                "{0}: expected 1 or 0 exports but found {1}.{2}",
+                                Strings.ExpectedOneOrZeroExportsButFound,
                                 GetDiagnosticLocation(pair.Key),
+                                pair.Key.ImportingSiteElementType,
                                 pair.Value.Count,
                                 GetExportsList(pair.Value));
                         }
@@ -108,11 +114,11 @@
 
                 foreach (var export in pair.Value)
                 {
-                    if (!ReflectionHelpers.IsAssignableTo(pair.Key, export))
+                    if (ReflectionHelpers.IsAssignableTo(pair.Key, export) == ReflectionHelpers.Assignability.DefinitelyNot)
                     {
                         yield return new ComposedPartDiagnostic(
                             this,
-                            "{0}: is not assignable from exported MEF value {1}.",
+                            Strings.IsNotAssignableFromExportedMEFValue,
                             GetDiagnosticLocation(pair.Key),
                             GetDiagnosticLocation(export));
                     }
@@ -127,47 +133,46 @@
                         {
                             yield return new ComposedPartDiagnostic(
                                 this,
-                                "{0}: cannot import exported value from {1} because the exporting part cannot be instantiated. Is it missing an importing constructor?",
+                                Strings.CannotImportBecauseExportingPartCannotBeInstantiated,
                                 GetDiagnosticLocation(pair.Key),
                                 GetDiagnosticLocation(export));
                         }
                     }
                 }
 
-                if (pair.Key.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && pair.Key.ImportingParameter != null && !IsAllowedImportManyParameterType(pair.Key.ImportingParameter.ParameterType))
+                if (pair.Key.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && !pair.Key.ImportingParameterRef.IsEmpty && !IsAllowedImportManyParameterType(pair.Key.ImportingParameterRef.Resolve().ParameterType))
                 {
-                    yield return new ComposedPartDiagnostic(
-                        this,
-                        "Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable<T> are supported.");
+                    yield return new ComposedPartDiagnostic(this, Strings.ImportingCtorHasUnsupportedParameterTypeForImportMany);
                 }
 
-                if (pair.Key.MetadataType != null && !metadataViews.ContainsKey(pair.Key.MetadataType))
+                var metadataType = pair.Key.MetadataType;
+                if (metadataType != null && !metadataViews.ContainsKey(metadataType))
                 {
                     yield return new ComposedPartDiagnostic(
                         this,
-                        "{0}: metadata type {1} is not supported.",
+                        Strings.MetadataTypeNotSupported,
                         GetDiagnosticLocation(pair.Key),
-                        pair.Key.MetadataType.FullName);
+                        metadataType.FullName);
                 }
             }
         }
 
         private static string GetDiagnosticLocation(ImportDefinitionBinding import)
         {
-            Requires.NotNull(import, "import");
+            Requires.NotNull(import, nameof(import));
 
             return string.Format(
                 CultureInfo.CurrentCulture,
                 "{0}.{1}",
                 import.ComposablePartType.FullName,
-                import.ImportingMember == null ? ("ctor(" + import.ImportingParameter.Name + ")") : import.ImportingMember.Name);
+                import.ImportingMemberRef.IsEmpty ? ("ctor(" + import.ImportingParameter.Name + ")") : import.ImportingMember.Name);
         }
 
         private static string GetDiagnosticLocation(ExportDefinitionBinding export)
         {
-            Requires.NotNull(export, "export");
+            Requires.NotNull(export, nameof(export));
 
-            if (export.ExportingMember != null)
+            if (!export.ExportingMemberRef.IsEmpty)
             {
                 return string.Format(
                     CultureInfo.CurrentCulture,
@@ -183,7 +188,7 @@
 
         private static string GetExportsList(IEnumerable<ExportDefinitionBinding> exports)
         {
-            Requires.NotNull(exports, "exports");
+            Requires.NotNull(exports, nameof(exports));
 
             return exports.Any()
                 ? Environment.NewLine + string.Join(Environment.NewLine, exports.Select(export => "    " + GetDiagnosticLocation(export)))
@@ -192,7 +197,7 @@
 
         private static bool IsAllowedImportManyParameterType(Type importSiteType)
         {
-            Requires.NotNull(importSiteType, "importSiteType");
+            Requires.NotNull(importSiteType, nameof(importSiteType));
             if (importSiteType.IsArray)
             {
                 return true;

@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -9,14 +11,14 @@
 
     internal static class ArrayRental<T>
     {
-        private static readonly ThreadLocal<Dictionary<int, Stack<T[]>>> arrays = new ThreadLocal<Dictionary<int, Stack<T[]>>>(() => new Dictionary<int, Stack<T[]>>());
+        private static readonly ThreadLocal<Dictionary<int, Stack<T[]>>> Arrays = new ThreadLocal<Dictionary<int, Stack<T[]>>>(() => new Dictionary<int, Stack<T[]>>());
 
         internal static Rental<T[]> Get(int length)
         {
             Stack<T[]> stack;
-            if (!arrays.Value.TryGetValue(length, out stack))
+            if (!Arrays.Value.TryGetValue(length, out stack))
             {
-                arrays.Value.Add(length, stack = new Stack<T[]>());
+                Arrays.Value.Add(length, stack = new Stack<T[]>());
             }
 
             return new Rental<T[]>(stack, len => new T[len], array => Array.Clear(array, 0, array.Length), length);

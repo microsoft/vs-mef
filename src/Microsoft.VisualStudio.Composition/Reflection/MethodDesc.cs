@@ -1,12 +1,11 @@
-﻿namespace Microsoft.VisualStudio.Composition.Reflection
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition.Reflection
 {
     using System;
-    using System.Collections.Generic;
     using System.Collections.Immutable;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
 
+    [Obsolete("Use " + nameof(MethodRef) + " instead.", error: true)]
     public class MethodDesc : MemberDesc
     {
         public MethodDesc(MethodRef method, string name, bool isStatic, TypeRef returnType, ImmutableArray<TypeRef> parameters)

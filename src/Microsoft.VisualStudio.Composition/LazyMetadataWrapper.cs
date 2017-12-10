@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -12,8 +14,8 @@
     internal class LazyMetadataWrapper : ExportProvider.IMetadataDictionary
     {
         private static readonly HashSet<Assembly> AlwaysLoadedAssemblies = new HashSet<Assembly>(new[] {
-            typeof(CreationPolicy).Assembly,
-            typeof(string).Assembly,
+            typeof(CreationPolicy).GetTypeInfo().Assembly,
+            typeof(string).GetTypeInfo().Assembly,
         });
 
         /// <summary>
@@ -21,18 +23,22 @@
         /// </summary>
         private readonly Direction direction;
 
+        private readonly Resolver resolver;
+
         /// <summary>
         /// The underlying metadata, which may be partially translated since value translation may choose
         /// to persist the translated result.
         /// </summary>
         protected ImmutableDictionary<string, object> underlyingMetadata;
 
-        internal LazyMetadataWrapper(ImmutableDictionary<string, object> metadata, Direction direction)
+        internal LazyMetadataWrapper(ImmutableDictionary<string, object> metadata, Direction direction, Resolver resolver)
         {
-            Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(metadata, nameof(metadata));
+            Requires.NotNull(resolver, nameof(resolver));
 
             this.direction = direction;
             this.underlyingMetadata = metadata;
+            this.resolver = resolver;
         }
 
         internal enum Direction
@@ -48,14 +54,62 @@
             ToOriginalValue,
         }
 
-        public bool ContainsKey(string key)
+        internal interface ISubstitutedValue
         {
-            return this.underlyingMetadata.ContainsKey(key);
+            object ActualValue { get; }
         }
 
         public IEnumerable<string> Keys
         {
             get { return this.underlyingMetadata.Keys; }
+        }
+
+        ICollection<string> IDictionary<string, object>.Keys
+        {
+            get
+            {
+                IDictionary<string, object> metadata = this.underlyingMetadata;
+                return metadata.Keys;
+            }
+        }
+
+        public IEnumerable<object> Values
+        {
+            get
+            {
+                return from pair in this
+                       let value = this.SubstituteValueIfRequired(pair.Key, pair.Value)
+                       select value;
+            }
+        }
+
+        ICollection<object> IDictionary<string, object>.Values
+        {
+            get
+            {
+                return this.Values.ToImmutableArray();
+            }
+        }
+
+        public int Count
+        {
+            get { return this.underlyingMetadata.Count; }
+        }
+
+        public bool IsReadOnly
+        {
+            get { return true; }
+        }
+
+        public object this[string key]
+        {
+            get { return this.SubstituteValueIfRequired(key, this.underlyingMetadata[key]); }
+            set { throw new NotSupportedException(); }
+        }
+
+        public bool ContainsKey(string key)
+        {
+            return this.underlyingMetadata.ContainsKey(key);
         }
 
         public bool TryGetValue(string key, out object value)
@@ -71,32 +125,6 @@
                 value = null;
                 return false;
             }
-        }
-
-        public IEnumerable<object> Values
-        {
-            get
-            {
-                return from pair in this
-                       let value = this.SubstituteValueIfRequired(pair.Key, pair.Value)
-                       select value;
-            }
-        }
-
-        public object this[string key]
-        {
-            get { return this.SubstituteValueIfRequired(key, this.underlyingMetadata[key]); }
-            set { throw new NotSupportedException(); }
-        }
-
-        public int Count
-        {
-            get { return this.underlyingMetadata.Count; }
-        }
-
-        public bool IsReadOnly
-        {
-            get { return true; }
         }
 
         public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
@@ -116,26 +144,9 @@
             throw new NotSupportedException();
         }
 
-        ICollection<string> IDictionary<string, object>.Keys
-        {
-            get
-            {
-                IDictionary<string, object> metadata = this.underlyingMetadata;
-                return metadata.Keys;
-            }
-        }
-
         public bool Remove(string key)
         {
             throw new NotSupportedException();
-        }
-
-        ICollection<object> IDictionary<string, object>.Values
-        {
-            get
-            {
-                return this.Values.ToImmutableArray();
-            }
         }
 
         public void Add(KeyValuePair<string, object> item)
@@ -197,12 +208,12 @@
 
         protected virtual LazyMetadataWrapper Clone(LazyMetadataWrapper oldVersion, IReadOnlyDictionary<string, object> newMetadata)
         {
-            return new LazyMetadataWrapper(newMetadata.ToImmutableDictionary(), oldVersion.direction);
+            return new LazyMetadataWrapper(newMetadata.ToImmutableDictionary(), oldVersion.direction, this.resolver);
         }
 
         protected object SubstituteValueIfRequired(string key, object value)
         {
-            Requires.NotNull(key, "key");
+            Requires.NotNull(key, nameof(key));
 
             if (value == null)
             {
@@ -220,15 +231,15 @@
 
         protected virtual object SubstituteValueIfRequired(object value)
         {
-            Requires.NotNull(value, "value");
+            Requires.NotNull(value, nameof(value));
 
             ISubstitutedValue substitutedValue;
             switch (this.direction)
             {
                 case Direction.ToSubstitutedValue:
-                    if (Enum32Substitution.TrySubstituteValue(value, out substitutedValue) ||
-                        TypeSubstitution.TrySubstituteValue(value, out substitutedValue) ||
-                        TypeArraySubstitution.TrySubstituteValue(value, out substitutedValue))
+                    if (Enum32Substitution.TrySubstituteValue(value, this.resolver, out substitutedValue) ||
+                        TypeSubstitution.TrySubstituteValue(value, this.resolver, out substitutedValue) ||
+                        TypeArraySubstitution.TrySubstituteValue(value, this.resolver, out substitutedValue))
                     {
                         value = substitutedValue;
                     }
@@ -250,38 +261,19 @@
 
         private static bool IsTypeWorthDeferring(Type typeOfValue)
         {
-            Requires.NotNull(typeOfValue, "typeOfValue");
+            Requires.NotNull(typeOfValue, nameof(typeOfValue));
 
-            return !AlwaysLoadedAssemblies.Contains(typeOfValue.Assembly);
-        }
-
-        internal interface ISubstitutedValue
-        {
-            object ActualValue { get; }
+            return !AlwaysLoadedAssemblies.Contains(typeOfValue.GetTypeInfo().Assembly);
         }
 
         internal class Enum32Substitution : ISubstitutedValue, IEquatable<Enum32Substitution>
         {
             internal Enum32Substitution(TypeRef enumType, int rawValue)
             {
+                Requires.NotNull(enumType, nameof(enumType));
+
                 this.EnumType = enumType;
                 this.RawValue = rawValue;
-            }
-
-            internal static bool TrySubstituteValue(object value, out ISubstitutedValue substitutedValue)
-            {
-                if (value != null)
-                {
-                    Type valueType = value.GetType();
-                    if (valueType.IsEnum && Enum.GetUnderlyingType(valueType) == typeof(int) && IsTypeWorthDeferring(valueType))
-                    {
-                        substitutedValue = new Enum32Substitution(TypeRef.Get(valueType), (int)value);
-                        return true;
-                    }
-                }
-
-                substitutedValue = null;
-                return false;
             }
 
             public object ActualValue
@@ -292,6 +284,24 @@
             internal TypeRef EnumType { get; private set; }
 
             internal int RawValue { get; private set; }
+
+            internal static bool TrySubstituteValue(object value, Resolver resolver, out ISubstitutedValue substitutedValue)
+            {
+                Requires.NotNull(resolver, nameof(resolver));
+
+                if (value != null)
+                {
+                    Type valueType = value.GetType();
+                    if (valueType.GetTypeInfo().IsEnum && Enum.GetUnderlyingType(valueType) == typeof(int) && IsTypeWorthDeferring(valueType))
+                    {
+                        substitutedValue = new Enum32Substitution(TypeRef.Get(valueType, resolver), (int)value);
+                        return true;
+                    }
+                }
+
+                substitutedValue = null;
+                return false;
+            }
 
             public override bool Equals(object obj)
             {
@@ -306,7 +316,7 @@
                 }
 
                 ISubstitutedValue other;
-                if (TrySubstituteValue(obj, out other))
+                if (TrySubstituteValue(obj, this.EnumType.Resolver, out other))
                 {
                     return this.Equals((Enum32Substitution)other);
                 }
@@ -335,7 +345,7 @@
         {
             internal TypeSubstitution(TypeRef typeRef)
             {
-                Requires.NotNull(typeRef, "typeRef");
+                Requires.NotNull(typeRef, nameof(typeRef));
 
                 this.TypeRef = typeRef;
             }
@@ -347,11 +357,11 @@
                 get { return this.TypeRef.Resolve(); }
             }
 
-            internal static bool TrySubstituteValue(object value, out ISubstitutedValue substitutedValue)
+            internal static bool TrySubstituteValue(object value, Resolver resolver, out ISubstitutedValue substitutedValue)
             {
                 if (value is Type)
                 {
-                    substitutedValue = new TypeSubstitution(TypeRef.Get((Type)value));
+                    substitutedValue = new TypeSubstitution(TypeRef.Get((Type)value, resolver));
                     return true;
                 }
 
@@ -377,7 +387,7 @@
                 }
 
                 ISubstitutedValue other;
-                if (TrySubstituteValue(obj, out other))
+                if (TrySubstituteValue(obj, this.TypeRef.Resolver, out other))
                 {
                     return this.Equals((TypeSubstitution)other);
                 }
@@ -398,24 +408,29 @@
 
         internal class TypeArraySubstitution : ISubstitutedValue, IEquatable<TypeArraySubstitution>
         {
-            internal TypeArraySubstitution(IReadOnlyList<TypeRef> typeRefArray)
+            private readonly Resolver resolver;
+
+            internal TypeArraySubstitution(IReadOnlyList<TypeRef> typeRefArray, Resolver resolver)
             {
-                Requires.NotNull(typeRefArray, "typeRefArray");
+                Requires.NotNull(typeRefArray, nameof(typeRefArray));
+                Requires.NotNull(resolver, nameof(resolver));
+
                 this.TypeRefArray = typeRefArray;
+                this.resolver = resolver;
             }
 
             internal IReadOnlyList<TypeRef> TypeRefArray { get; private set; }
 
             public object ActualValue
             {
-                get { return this.TypeRefArray.Select(Resolver.Resolve).ToArray(); }
+                get { return this.TypeRefArray.Select(ResolverExtensions.Resolve).ToArray(); }
             }
 
-            internal static bool TrySubstituteValue(object value, out ISubstitutedValue substitutedValue)
+            internal static bool TrySubstituteValue(object value, Resolver resolver, out ISubstitutedValue substitutedValue)
             {
                 if (value is Type[])
                 {
-                    substitutedValue = new TypeArraySubstitution(((Type[])value).Select(TypeRef.Get).ToImmutableArray());
+                    substitutedValue = new TypeArraySubstitution(((Type[])value).Select(t => TypeRef.Get(t, resolver)).ToImmutableArray(), resolver);
                     return true;
                 }
 
@@ -441,7 +456,7 @@
                 }
 
                 ISubstitutedValue other;
-                if (TrySubstituteValue(obj, out other))
+                if (TrySubstituteValue(obj, this.resolver, out other))
                 {
                     return this.Equals((TypeArraySubstitution)other);
                 }

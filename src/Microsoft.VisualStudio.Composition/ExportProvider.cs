@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -23,14 +25,14 @@
             PartCreationPolicyConstraint.GetExportMetadata(CreationPolicy.Shared).AddRange(ExportTypeIdentityConstraint.GetExportMetadata(typeof(ExportProvider))));
 
         internal static readonly ComposablePartDefinition ExportProviderPartDefinition = new ComposablePartDefinition(
-            TypeRef.Get(typeof(ExportProviderAsExport)),
+            TypeRef.Get(typeof(ExportProviderAsExport), Resolver.DefaultInstance),
             ImmutableDictionary<string, object>.Empty.Add(CompositionConstants.DgmlCategoryPartMetadataName, new[] { "VsMEFBuiltIn" }),
             new[] { ExportProviderExportDefinition },
             ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
             ImmutableList<ImportDefinitionBinding>.Empty,
             string.Empty,
             default(MethodRef),
-            default(ConstructorRef),
+            default(MethodRef),
             null,
             CreationPolicy.Shared,
             true);
@@ -46,13 +48,11 @@
         /// </summary>
         protected static readonly ImmutableDictionary<string, object> EmptyMetadata = ImmutableDictionary.Create<string, object>();
 
-        /// <summary>
-        /// A cache for the <see cref="GetMetadataViewProvider"/> method which has shown up on perf traces.
-        /// </summary>
-        /// <remarks>
-        /// All access to this dictionary is guarded by a lock on this field.
-        /// </remarks>
-        private Dictionary<Type, IMetadataViewProvider> typeAndSelectedMetadataViewProviderCache = new Dictionary<Type, IMetadataViewProvider>();
+        private static readonly Dictionary<Type, IReadOnlyDictionary<string, object>> GetMetadataViewDefaultsCache = new Dictionary<Type, IReadOnlyDictionary<string, object>>();
+
+        private static readonly ImmutableDictionary<string, Dictionary<TypeRef, PartLifecycleTracker>> SharedInstantiatedPartsTemplate = ImmutableDictionary.Create<string, Dictionary<TypeRef, PartLifecycleTracker>>().Add(string.Empty, new Dictionary<TypeRef, PartLifecycleTracker>());
+
+        private static readonly ImmutableDictionary<string, HashSet<IDisposable>> DisposableInstantiatedSharedPartsTemplate = ImmutableDictionary.Create<string, HashSet<IDisposable>>().Add(string.Empty, new HashSet<IDisposable>());
 
         /// <summary>
         /// The metadata view providers available to this ExportProvider.
@@ -62,23 +62,21 @@
         /// </remarks>
         private readonly Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>> metadataViewProviders;
 
-        private readonly object syncObject = new object();
-
         /// <summary>
         /// A map of shared boundary names to their shared instances.
         /// The value is a dictionary of types to their lazily-constructed instances and state.
         /// </summary>
-        private readonly ImmutableDictionary<string, Dictionary<TypeRef, PartLifecycleTracker>> sharedInstantiatedParts = ImmutableDictionary.Create<string, Dictionary<TypeRef, PartLifecycleTracker>>();
+        private readonly ImmutableDictionary<string, Dictionary<TypeRef, PartLifecycleTracker>> sharedInstantiatedParts;
 
         /// <summary>
         /// A map of sharing boundary names to the ExportProvider that owns them.
         /// </summary>
-        private readonly ImmutableDictionary<string, ExportProvider> sharingBoundaryExportProviderOwners = ImmutableDictionary.Create<string, ExportProvider>();
+        private readonly ImmutableDictionary<string, ExportProvider> sharingBoundaryExportProviderOwners;
 
         /// <summary>
         /// The disposable objects whose lifetimes are shared and tied to a specific sharing boundary.
         /// </summary>
-        private readonly ImmutableDictionary<string, HashSet<IDisposable>> disposableInstantiatedSharedParts = ImmutableDictionary.Create<string, HashSet<IDisposable>>();
+        private readonly ImmutableDictionary<string, HashSet<IDisposable>> disposableInstantiatedSharedParts;
 
         /// <summary>
         /// The dispoable objects whose lifetimes are controlled by this instance.
@@ -93,31 +91,40 @@
         /// </summary>
         private readonly ImmutableHashSet<string> freshSharingBoundaries = ImmutableHashSet.Create<string>();
 
+        /// <summary>
+        /// A cache for the <see cref="GetMetadataViewProvider"/> method which has shown up on perf traces.
+        /// </summary>
+        /// <remarks>
+        /// All access to this dictionary is guarded by a lock on this field.
+        /// </remarks>
+        private Dictionary<Type, IMetadataViewProvider> typeAndSelectedMetadataViewProviderCache = new Dictionary<Type, IMetadataViewProvider>();
+
         private bool isDisposed;
 
-        protected ExportProvider(ExportProvider parent, IReadOnlyCollection<string> freshSharingBoundaries)
+        private ExportProvider(
+            Resolver resolver,
+            ImmutableDictionary<string, Dictionary<TypeRef, PartLifecycleTracker>> sharedInstantiatedParts,
+            ImmutableDictionary<string, HashSet<IDisposable>> disposableInstantiatedSharedParts,
+            ImmutableHashSet<string> freshSharingBoundaries,
+            ImmutableDictionary<string, ExportProvider> sharingBoundaryExportProviderOwners,
+            Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>> inheritedMetadataViewProviders)
         {
-            if (parent == null)
-            {
-                this.sharedInstantiatedParts = this.sharedInstantiatedParts.Add(string.Empty, new Dictionary<TypeRef, PartLifecycleTracker>());
-                this.disposableInstantiatedSharedParts = this.disposableInstantiatedSharedParts.Add(string.Empty, new HashSet<IDisposable>());
-                this.freshSharingBoundaries = this.freshSharingBoundaries.Add(string.Empty);
-            }
-            else
-            {
-                this.sharingBoundaryExportProviderOwners = parent.sharingBoundaryExportProviderOwners;
-                this.sharedInstantiatedParts = parent.sharedInstantiatedParts;
-                this.disposableInstantiatedSharedParts = parent.disposableInstantiatedSharedParts;
-            }
+            Requires.NotNull(resolver, nameof(resolver));
+            Requires.NotNull(sharedInstantiatedParts, nameof(sharedInstantiatedParts));
+            Requires.NotNull(disposableInstantiatedSharedParts, nameof(disposableInstantiatedSharedParts));
+            Requires.NotNull(freshSharingBoundaries, nameof(freshSharingBoundaries));
+            Requires.NotNull(sharingBoundaryExportProviderOwners, nameof(sharingBoundaryExportProviderOwners));
 
-            if (freshSharingBoundaries != null)
+            this.Resolver = resolver;
+            this.sharedInstantiatedParts = sharedInstantiatedParts;
+            this.disposableInstantiatedSharedParts = disposableInstantiatedSharedParts;
+            this.freshSharingBoundaries = freshSharingBoundaries;
+            this.sharingBoundaryExportProviderOwners = sharingBoundaryExportProviderOwners;
+
+            foreach (string freshSharingBoundary in freshSharingBoundaries)
             {
-                this.freshSharingBoundaries = this.freshSharingBoundaries.Union(freshSharingBoundaries);
-                foreach (string freshSharingBoundary in freshSharingBoundaries)
-                {
-                    this.sharedInstantiatedParts = this.sharedInstantiatedParts.SetItem(freshSharingBoundary, new Dictionary<TypeRef, PartLifecycleTracker>());
-                    this.disposableInstantiatedSharedParts = this.disposableInstantiatedSharedParts.SetItem(freshSharingBoundary, new HashSet<IDisposable>());
-                }
+                this.sharedInstantiatedParts = this.sharedInstantiatedParts.SetItem(freshSharingBoundary, new Dictionary<TypeRef, PartLifecycleTracker>());
+                this.disposableInstantiatedSharedParts = this.disposableInstantiatedSharedParts.SetItem(freshSharingBoundary, new HashSet<IDisposable>());
             }
 
             this.sharingBoundaryExportProviderOwners = this.sharingBoundaryExportProviderOwners.SetItems(
@@ -127,10 +134,87 @@
             this.NonDisposableWrapper = LazyServices.FromValue<object>(nonDisposableWrapper);
             this.NonDisposableWrapperExportAsListOfOne = ImmutableList.Create(
                 new Export(ExportProviderExportDefinition, this.NonDisposableWrapper));
-            this.metadataViewProviders = parent != null
-                ? parent.metadataViewProviders
-                : new Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>>(
+            this.metadataViewProviders = inheritedMetadataViewProviders
+                ?? new Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>>(
                     this.GetMetadataViewProviderExtensions);
+        }
+
+        protected ExportProvider(Resolver resolver)
+            : this(
+                resolver,
+                SharedInstantiatedPartsTemplate,
+                DisposableInstantiatedSharedPartsTemplate,
+                ImmutableHashSet.Create<string>().Add(string.Empty),
+                ImmutableDictionary.Create<string, ExportProvider>(),
+                null)
+        {
+        }
+
+        protected ExportProvider(ExportProvider parent, ImmutableHashSet<string> freshSharingBoundaries)
+            : this(
+                  Requires.NotNull(parent, nameof(parent)).Resolver,
+                  parent.sharedInstantiatedParts,
+                  parent.disposableInstantiatedSharedParts,
+                  freshSharingBoundaries,
+                  parent.sharingBoundaryExportProviderOwners,
+                  parent.metadataViewProviders)
+        {
+            this.Resolver = parent.Resolver;
+        }
+
+        /// <summary>
+        /// The several stages of initialization that each MEF part goes through.
+        /// </summary>
+        protected internal enum PartLifecycleState
+        {
+            /// <summary>
+            /// The MEF part has not yet been instantiated.
+            /// </summary>
+            NotCreated,
+
+            /// <summary>
+            /// The MEF part's importing constructor is being invoked.
+            /// </summary>
+            Creating,
+
+            /// <summary>
+            /// The MEF part has been instantiated.
+            /// </summary>
+            Created,
+
+            /// <summary>
+            /// The MEF part's importing members have been satisfied.
+            /// </summary>
+            ImmediateImportsSatisfied,
+
+            /// <summary>
+            /// All MEF parts reachable from this one (through non-lazy import paths) have been satisfied.
+            /// </summary>
+            ImmediateImportsSatisfiedTransitively,
+
+            /// <summary>
+            /// The MEF part's OnImportsSatisfied method is being invoked.
+            /// </summary>
+            OnImportsSatisfiedInProgress,
+
+            /// <summary>
+            /// The MEF part's OnImportsSatisfied method has been invoked (or would have if one was defined).
+            /// </summary>
+            OnImportsSatisfiedInvoked,
+
+            /// <summary>
+            /// The OnImportsSatisfied methods on this and all MEF parts reachable from this one (through non-lazy import paths) have been invoked.
+            /// </summary>
+            OnImportsSatisfiedInvokedTransitively,
+
+            /// <summary>
+            /// This part is ready for exposure to the user.
+            /// </summary>
+            Final,
+        }
+
+        protected internal interface IMetadataDictionary : IDictionary<string, object>, IReadOnlyDictionary<string, object>
+        {
         }
 
         bool IDisposableObservable.IsDisposed
@@ -144,6 +228,8 @@
         protected Lazy<object> NonDisposableWrapper { get; private set; }
 
         protected ImmutableList<Export> NonDisposableWrapperExportAsListOfOne { get; private set; }
+
+        protected internal Resolver Resolver { get; }
 
         public Lazy<T> GetExport<T>()
         {
@@ -207,7 +293,7 @@
 
         public virtual IEnumerable<Export> GetExports(ImportDefinition importDefinition)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(importDefinition, nameof(importDefinition));
 
             if (importDefinition.ContractName == ExportProviderExportDefinition.ContractName)
             {
@@ -257,7 +343,13 @@
             var exportsSnapshot = exports.ToArray(); // avoid repeating all the foregoing work each time this sequence is enumerated.
             if (importDefinition.Cardinality == ImportCardinality.ExactlyOne && exportsSnapshot.Length != 1)
             {
-                throw new CompositionFailedException();
+                throw new CompositionFailedException(
+                    string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.UnexpectedNumberOfExportsFound,
+                        1,
+                        importDefinition.ContractName,
+                        exportsSnapshot.Length));
             }
 
             return exportsSnapshot;
@@ -295,16 +387,36 @@
                     }
                 }
 
+                // Take care to give all disposal parts a chance to dispose
+                // even if some parts throw exceptions.
+                List<Exception> exceptions = null;
                 foreach (var item in disposableSnapshot)
                 {
-                    item.Dispose();
+                    try
+                    {
+                        item.Dispose();
+                    }
+                    catch (Exception ex)
+                    {
+                        if (exceptions == null)
+                        {
+                            exceptions = new List<Exception>();
+                        }
+
+                        exceptions.Add(ex);
+                    }
+                }
+
+                if (exceptions != null)
+                {
+                    throw new AggregateException(Strings.ContainerDisposalEncounteredExceptions, exceptions);
                 }
             }
         }
 
         protected static object CannotInstantiatePartWithNoImportingConstructor()
         {
-            throw new CompositionFailedException("No importing constructor");
+            throw new CompositionFailedException(Strings.NoImportingConstructor);
         }
 
         /// <summary>
@@ -321,21 +433,8 @@
         /// </returns>
         protected static bool IsFullyInitializedExportRequiredWhenSettingImport(PartLifecycleTracker importingPartTracker, bool isLazy, bool isImportingConstructorArgument)
         {
-            // We should fully prepare an exported value if it is a lazy property or a non-lazy importing constructor argument.
-            // Non-lazy properties can be initialized after being set, as can lazy importing constructor arguments (go figure!).
-            if (isLazy == !isImportingConstructorArgument)
-            {
-                return true;
-            }
-
-            if (isLazy && isImportingConstructorArgument && importingPartTracker != null && importingPartTracker.State >= PartLifecycleState.Created)
-            {
-                // This lazy was an importing constructor argument and that constructor has already finished executing.
-                // So we actually *do* need to fully initialize, even though within the importing constructor we would not have.
-                return true;
-            }
-
-            return false;
+            // Only non-lazy importing properties can receive exports that are only partially initialized.
+            return isLazy || isImportingConstructorArgument;
         }
 
         /// <summary>
@@ -349,10 +448,10 @@
 
         protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> exportMetadata, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
+            Requires.NotNull(importDefinition, nameof(importDefinition));
             Requires.NotNull(exportMetadata, "metadata");
-            Requires.NotNull(originalPartTypeRef, "originalPartTypeRef");
-            Requires.NotNull(constructedPartTypeRef, "constructedPartTypeRef");
+            Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
+            Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
 
             Func<object> memberValueFactory;
             if (exportingMember == null)
@@ -377,11 +476,11 @@
 
         protected object CreateExportFactory(Type importingSiteElementType, IReadOnlyCollection<string> sharingBoundaries, Func<KeyValuePair<object, IDisposable>> valueFactory, Type exportFactoryType, IReadOnlyDictionary<string, object> exportMetadata)
         {
-            Requires.NotNull(importingSiteElementType, "importingSiteElementType");
-            Requires.NotNull(sharingBoundaries, "sharingBoundaries");
-            Requires.NotNull(valueFactory, "valueFactory");
-            Requires.NotNull(exportFactoryType, "exportFactoryType");
-            Requires.NotNull(exportMetadata, "exportMetadata");
+            Requires.NotNull(importingSiteElementType, nameof(importingSiteElementType));
+            Requires.NotNull(sharingBoundaries, nameof(sharingBoundaries));
+            Requires.NotNull(valueFactory, nameof(valueFactory));
+            Requires.NotNull(exportFactoryType, nameof(exportFactoryType));
+            Requires.NotNull(exportMetadata, nameof(exportMetadata));
 
             // ExportFactory.ctor(Func<Tuple<T, Action>>[, TMetadata])
             Type tupleType;
@@ -412,14 +511,14 @@
                     ctorArgs.Value[1] = this.GetStrongTypedMetadata(exportMetadata, exportFactoryType.GenericTypeArguments[1]);
                 }
 
-                var ctor = exportFactoryType.GetConstructors()[0];
+                var ctor = exportFactoryType.GetTypeInfo().GetConstructors()[0];
                 return ctor.Invoke(ctorArgs.Value);
             }
         }
 
         private Export CreateExportFactoryExport(ExportInfo exportInfo, Type exportFactoryType)
         {
-            Requires.NotNull(exportFactoryType, "exportFactoryType");
+            Requires.NotNull(exportFactoryType, nameof(exportFactoryType));
 
             var exportFactoryCreator = (Func<object>)(() => this.CreateExportFactory(
                 typeof(object),
@@ -444,8 +543,8 @@
 
         protected object GetStrongTypedMetadata(IReadOnlyDictionary<string, object> metadata, Type metadataType)
         {
-            Requires.NotNull(metadata, "metadata");
-            Requires.NotNull(metadataType, "metadataType");
+            Requires.NotNull(metadata, nameof(metadata));
+            Requires.NotNull(metadataType, nameof(metadataType));
 
             var metadataViewProvider = this.GetMetadataViewProvider(metadataType);
             return metadataViewProvider.CreateProxy(
@@ -464,7 +563,7 @@
         /// <returns>The value of the member.</returns>
         protected static object GetValueFromMember(object exportingPart, MemberInfo exportingMember, Type importingSiteElementType = null, Type exportedValueType = null)
         {
-            Requires.NotNull(exportingMember, "exportingMember");
+            Requires.NotNull(exportingMember, nameof(exportingMember));
 
             if (exportingMember == null)
             {
@@ -518,8 +617,8 @@
 
         protected PartLifecycleTracker GetOrCreateShareableValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata)
         {
-            Requires.NotNull(originalPartTypeRef, "originalPartTypeRef");
-            Requires.NotNull(constructedPartTypeRef, "constructedPartTypeRef");
+            Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
+            Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
 
             PartLifecycleTracker existingLifecycle;
             if (this.TryGetSharedInstanceFactory(partSharingBoundary, constructedPartTypeRef, out existingLifecycle))
@@ -540,7 +639,7 @@
         {
             // Be careful to pass the export provider that owns the sharing boundary for this part into the value factory.
             // If we accidentally capture "this", then if this is a sub-scope ExportProvider and we're constructing
-            // a parent scope shared part, then we tie the lifetime of this child scope to the lifetime of the 
+            // a parent scope shared part, then we tie the lifetime of this child scope to the lifetime of the
             // parent scoped part's value factory. If it never evaluates, we never get released even after our own disposal.
             ExportProvider owningExportProvider = partSharingBoundary != null ? this.sharingBoundaryExportProviderOwners[partSharingBoundary] : this;
             var partLifecycle = owningExportProvider.CreatePartLifecycleTracker(originalPartTypeRef, importMetadata);
@@ -551,9 +650,9 @@
 
         private bool TryGetSharedInstanceFactory(string partSharingBoundary, TypeRef partTypeRef, out PartLifecycleTracker value)
         {
-            lock (this.syncObject)
+            var sharingBoundary = this.AcquireSharingBoundaryInstances(partSharingBoundary);
+            lock (sharingBoundary)
             {
-                var sharingBoundary = AcquireSharingBoundaryInstances(partSharingBoundary);
                 bool result = sharingBoundary.TryGetValue(partTypeRef, out value);
                 return result;
             }
@@ -561,12 +660,12 @@
 
         private PartLifecycleTracker GetOrAddSharedInstanceFactory(string partSharingBoundary, TypeRef partTypeRef, PartLifecycleTracker value)
         {
-            Requires.NotNull(partTypeRef, "partTypeRef");
-            Requires.NotNull(value, "value");
+            Requires.NotNull(partTypeRef, nameof(partTypeRef));
+            Requires.NotNull(value, nameof(value));
 
-            lock (this.syncObject)
+            var sharingBoundary = this.AcquireSharingBoundaryInstances(partSharingBoundary);
+            lock (sharingBoundary)
             {
-                var sharingBoundary = AcquireSharingBoundaryInstances(partSharingBoundary);
                 PartLifecycleTracker priorValue;
                 if (sharingBoundary.TryGetValue(partTypeRef, out priorValue))
                 {
@@ -588,7 +687,7 @@
         /// </param>
         protected void TrackDisposableValue(IDisposable instantiatedPart, string sharingBoundary)
         {
-            Requires.NotNull(instantiatedPart, "instantiatedPart");
+            Requires.NotNull(instantiatedPart, nameof(instantiatedPart));
 
             if (sharingBoundary == null)
             {
@@ -613,10 +712,6 @@
                 .Single(m => m.GetGenericArguments().Length == arity);
         }
 
-        protected internal interface IMetadataDictionary : IDictionary<string, object>, IReadOnlyDictionary<string, object> { }
-
-        private static readonly Dictionary<Type, IReadOnlyDictionary<string, object>> GetMetadataViewDefaultsCache = new Dictionary<Type, IReadOnlyDictionary<string, object>>();
-
         /// <summary>
         /// Gets a dictionary of metadata that describes all the default values supplied by a metadata view.
         /// </summary>
@@ -624,7 +719,7 @@
         /// <returns>A dictionary of default metadata values.</returns>
         protected static IReadOnlyDictionary<string, object> GetMetadataViewDefaults(Type metadataView)
         {
-            Requires.NotNull(metadataView, "metadataView");
+            Requires.NotNull(metadataView, nameof(metadataView));
 
             IReadOnlyDictionary<string, object> result;
             lock (GetMetadataViewDefaultsCache)
@@ -634,7 +729,7 @@
 
             if (result == null)
             {
-                if (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>)))
+                if (metadataView.GetTypeInfo().IsClass || (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>))))
                 {
                     var metadataBuilder = ImmutableDictionary.CreateBuilder<string, object>();
                     foreach (var property in metadataView.EnumProperties().WherePublicInstance())
@@ -667,7 +762,7 @@
 
         protected internal static int GetOrderMetadata(IReadOnlyDictionary<string, object> metadata)
         {
-            Requires.NotNull(metadata, "metadata");
+            Requires.NotNull(metadata, nameof(metadata));
 
             object value = metadata.GetValueOrDefault("OrderPrecedence");
             return value is int ? (int)value : 0;
@@ -675,7 +770,7 @@
 
         private static T CastValueTo<T>(object value)
         {
-            if (value is ExportedDelegate && typeof(Delegate).IsAssignableFrom(typeof(T)))
+            if (value is ExportedDelegate && typeof(Delegate).GetTypeInfo().IsAssignableFrom(typeof(T)))
             {
                 var exportedDelegate = (ExportedDelegate)value;
                 return (T)(object)exportedDelegate.CreateDelegate(typeof(T));
@@ -688,8 +783,8 @@
 
         private bool TryGetProvisionalSharedExport(IReadOnlyDictionary<TypeRef, object> provisionalSharedObjects, TypeRef partTypeRef, out object value)
         {
-            Requires.NotNull(provisionalSharedObjects, "provisionalSharedObjects");
-            Requires.NotNull(partTypeRef, "partTypeRef");
+            Requires.NotNull(provisionalSharedObjects, nameof(provisionalSharedObjects));
+            Requires.NotNull(partTypeRef, nameof(partTypeRef));
 
             lock (provisionalSharedObjects)
             {
@@ -701,14 +796,14 @@
         {
             Verify.NotDisposed(this);
             contractName = string.IsNullOrEmpty(contractName) ? ContractNameServices.GetTypeIdentity(typeof(T)) : contractName;
-            IMetadataViewProvider metadataViewProvider = GetMetadataViewProvider(typeof(TMetadataView));
+            IMetadataViewProvider metadataViewProvider = this.GetMetadataViewProvider(typeof(TMetadataView));
 
             var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty
                 .Union(PartDiscovery.GetExportTypeIdentityConstraints(typeof(T)));
 
             if (typeof(TMetadataView) != typeof(DefaultMetadataType))
             {
-                constraints = constraints.Add(ImportMetadataViewConstraint.GetConstraint(TypeRef.Get(typeof(TMetadataView))));
+                constraints = constraints.Add(ImportMetadataViewConstraint.GetConstraint(TypeRef.Get(typeof(TMetadataView), this.Resolver), this.Resolver));
             }
 
             var importMetadata = PartDiscovery.GetImportMetadataForGenericTypeImport(typeof(T));
@@ -746,7 +841,7 @@
         /// <exception cref="NotSupportedException">Thrown if no metadata view provider available is compatible with the type.</exception>
         internal virtual IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
         {
-            Requires.NotNull(metadataView, "metadataView");
+            Requires.NotNull(metadataView, nameof(metadataView));
 
             IMetadataViewProvider metadataViewProvider;
             lock (this.typeAndSelectedMetadataViewProviderCache)
@@ -767,7 +862,7 @@
 
                 if (metadataViewProvider == null)
                 {
-                    throw new NotSupportedException("Type of metadata view is unsupported.");
+                    throw new NotSupportedException(Strings.TypeOfMetadataViewUnsupported);
                 }
 
                 lock (this.typeAndSelectedMetadataViewProviderCache)
@@ -779,16 +874,22 @@
             return metadataViewProvider;
         }
 
+        /// <summary>
+        /// Gets the shared parts dictionary with a given sharing boundary name.
+        /// </summary>
+        /// <param name="sharingBoundaryName">The name of the sharing boundary.</param>
+        /// <returns>The dictionary containing parts and instances. Never null.</returns>
+        /// <exception cref="CompositionFailedException">Thrown if the dictionary for the given sharing boundary isn't found.</exception>
         private Dictionary<TypeRef, PartLifecycleTracker> AcquireSharingBoundaryInstances(string sharingBoundaryName)
         {
-            Requires.NotNull(sharingBoundaryName, "sharingBoundaryName");
+            Requires.NotNull(sharingBoundaryName, nameof(sharingBoundaryName));
 
             var sharingBoundary = this.sharedInstantiatedParts.GetValueOrDefault(sharingBoundaryName);
             if (sharingBoundary == null)
             {
                 // This means someone is trying to create a part
                 // that belongs to a sharing boundary that has not yet been created.
-                throw new CompositionFailedException("Inappropriate request for export from part that belongs to another sharing boundary.");
+                throw new CompositionFailedException(Strings.PartBelongsToAnotherSharingBoundary);
             }
 
             return sharingBoundary;
@@ -804,8 +905,8 @@
             public ExportInfo(ExportDefinition exportDefinition, Func<object> exportedValueGetter)
                 : this()
             {
-                Requires.NotNull(exportDefinition, "exportDefinition");
-                Requires.NotNull(exportedValueGetter, "exportedValueGetter");
+                Requires.NotNull(exportDefinition, nameof(exportDefinition));
+                Requires.NotNull(exportedValueGetter, nameof(exportedValueGetter));
 
                 this.Definition = exportDefinition;
                 this.ExportedValueGetter = exportedValueGetter;
@@ -817,7 +918,7 @@
 
             internal ExportInfo CloseGenericExport(Type[] genericTypeArguments)
             {
-                Requires.NotNull(genericTypeArguments, "genericTypeArguments");
+                Requires.NotNull(genericTypeArguments, nameof(genericTypeArguments));
 
                 string openGenericExportTypeIdentity = (string)this.Definition.Metadata[CompositionConstants.ExportTypeIdentityMetadataName];
                 string genericTypeDefinitionIdentityPattern = openGenericExportTypeIdentity;
@@ -874,7 +975,7 @@
             private HashSet<PartLifecycleTracker> deferredInitializationParts;
 
             /// <summary>
-            /// The thread that is currently executing a particular step.
+            /// The managed thread ID of the thread that is currently executing a particular step.
             /// </summary>
             /// <remarks>
             /// This is used to avoid deadlocking when we're executing a particular step
@@ -884,7 +985,7 @@
             /// deadlock by trying to wait for a fully initialized one.
             /// This matches MEFv1 and MEFv2 behavior.
             /// </remarks>
-            private Thread threadExecutingStep;
+            private int? executingStepThreadId;
 
             /// <summary>
             /// Stores any exception captured during initialization.
@@ -898,7 +999,7 @@
             /// <param name="sharingBoundary">The sharing boundary the part belongs to.</param>
             public PartLifecycleTracker(ExportProvider owningExportProvider, string sharingBoundary)
             {
-                Requires.NotNull(owningExportProvider, "owningExportProvider");
+                Requires.NotNull(owningExportProvider, nameof(owningExportProvider));
 
                 this.OwningExportProvider = owningExportProvider;
                 this.sharingBoundary = sharingBoundary;
@@ -907,7 +1008,7 @@
             }
 
             /// <summary>
-            /// Gets the instantiated part, if applicable and after it has been created. Otherwise <c>null</c>.
+            /// Gets or sets the instantiated part, if applicable and after it has been created. Otherwise <c>null</c>.
             /// </summary>
             public object Value
             {
@@ -934,6 +1035,11 @@
             protected ExportProvider OwningExportProvider { get; private set; }
 
             /// <summary>
+            /// Gets the type behind the part.
+            /// </summary>
+            protected abstract Type PartType { get; }
+
+            /// <summary>
             /// Gets the instance of the part after fully initializing it.
             /// </summary>
             /// <remarks>
@@ -947,7 +1053,7 @@
                 // If this very thread is already executing a step on this part, then we have some
                 // form of reentrancy going on. In which case, the general policy seems to be that
                 // we return an incompletely initialized part.
-                if (this.threadExecutingStep != Thread.CurrentThread)
+                if (this.executingStepThreadId != Environment.CurrentManagedThreadId)
                 {
                     this.MoveToState(PartLifecycleState.Final);
                 }
@@ -1004,11 +1110,6 @@
             protected abstract void InvokeOnImportsSatisfied();
 
             /// <summary>
-            /// Gets the type behind the part.
-            /// </summary>
-            protected abstract Type PartType { get; }
-
-            /// <summary>
             /// Indicates that a MEF import was satisfied with a value that was not completely initialized
             /// so that it can be initialized later (before this MEF part is allowed to be observed by the MEF client).
             /// </summary>
@@ -1055,7 +1156,7 @@
                 {
                     try
                     {
-                        this.threadExecutingStep = Thread.CurrentThread;
+                        this.executingStepThreadId = Environment.CurrentManagedThreadId;
                         object value = this.CreateValue();
 
                         lock (this.syncObject)
@@ -1091,7 +1192,7 @@
                     {
                         try
                         {
-                            this.threadExecutingStep = Thread.CurrentThread;
+                            this.executingStepThreadId = Environment.CurrentManagedThreadId;
                             this.SatisfyImports();
                             this.UpdateState(PartLifecycleState.ImmediateImportsSatisfied);
                         }
@@ -1127,7 +1228,7 @@
                     if (shouldInvoke)
                     {
                         Assumes.False(Monitor.IsEntered(this.syncObject)); // avoid holding locks while invoking others' code.
-                        this.threadExecutingStep = Thread.CurrentThread;
+                        this.executingStepThreadId = Environment.CurrentManagedThreadId;
                         this.InvokeOnImportsSatisfied();
 
                         Assumes.True(this.UpdateState(PartLifecycleState.OnImportsSatisfiedInvoked));
@@ -1143,14 +1244,18 @@
             /// <summary>
             /// Executes the next step in this part's initialization.
             /// </summary>
-            private void MoveNext()
+            /// <param name="nextState">The state to transition to. It must be no more than one state beyond the current one.</param>
+            private void MoveNext(PartLifecycleState nextState)
             {
-                switch (this.State + 1)
+                Assumes.True(nextState <= this.State + 1, "MoveNext should not be asked to skip a state.");
+                switch (nextState)
                 {
                     case PartLifecycleState.Creating:
                         this.Create();
                         break;
                     case PartLifecycleState.Created:
+                        Verify.Operation(this.executingStepThreadId != Environment.CurrentManagedThreadId, Strings.RecursiveRequestForPartConstruction, this.PartType);
+
                         // Another thread put this in the Creating state. Just wait for that thread to finish.
                         this.WaitForState(PartLifecycleState.Created);
                         break;
@@ -1178,7 +1283,7 @@
                         this.deferredInitializationParts = null;
                         break;
                     default:
-                        throw Verify.FailOperation("MEF part already in final state.");
+                        throw Assumes.NotReachable();
                 }
             }
 
@@ -1224,9 +1329,10 @@
             {
                 this.ThrowIfFaulted();
 
-                while (this.State < requiredState)
+                PartLifecycleState state;
+                while ((state = this.State) < requiredState)
                 {
-                    this.MoveNext();
+                    this.MoveNext(state + 1);
                     this.ThrowIfFaulted();
                 }
             }
@@ -1310,7 +1416,7 @@
                     if (this.State < newState)
                     {
                         this.State = newState;
-                        this.threadExecutingStep = null;
+                        this.executingStepThreadId = null;
 
                         // Alert any other threads waiting for this (see the WaitForState method).
                         Monitor.PulseAll(this.syncObject);
@@ -1389,57 +1495,6 @@
             }
         }
 
-        /// <summary>
-        /// The several stages of initialization that each MEF part goes through.
-        /// </summary>
-        protected internal enum PartLifecycleState
-        {
-            /// <summary>
-            /// The MEF part has not yet been instantiated.
-            /// </summary>
-            NotCreated,
-
-            /// <summary>
-            /// The MEF part's importing constructor is being invoked.
-            /// </summary>
-            Creating,
-
-            /// <summary>
-            /// The MEF part has been instantiated.
-            /// </summary>
-            Created,
-
-            /// <summary>
-            /// The MEF part's importing members have been satisfied.
-            /// </summary>
-            ImmediateImportsSatisfied,
-
-            /// <summary>
-            /// All MEF parts reachable from this one (through non-lazy import paths) have been satisfied.
-            /// </summary>
-            ImmediateImportsSatisfiedTransitively,
-
-            /// <summary>
-            /// The MEF part's OnImportsSatisfied method is being invoked.
-            /// </summary>
-            OnImportsSatisfiedInProgress,
-
-            /// <summary>
-            /// The MEF part's OnImportsSatisfied method has been invoked (or would have if one was defined).
-            /// </summary>
-            OnImportsSatisfiedInvoked,
-
-            /// <summary>
-            /// The OnImportsSatisfied methods on this and all MEF parts reachable from this one (through non-lazy import paths) have been invoked.
-            /// </summary>
-            OnImportsSatisfiedInvokedTransitively,
-
-            /// <summary>
-            /// This part is ready for exposure to the user.
-            /// </summary>
-            Final,
-        }
-
         private class ExportProviderAsExport : DelegatingExportProvider
         {
             internal ExportProviderAsExport(ExportProvider inner)
@@ -1449,7 +1504,7 @@
 
             protected override void Dispose(bool disposing)
             {
-                throw new InvalidOperationException("This instance is an import and cannot be directly disposed.");
+                throw new InvalidOperationException(Strings.CannotDirectlyDisposeAnImport);
             }
         }
     }

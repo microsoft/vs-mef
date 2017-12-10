@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.CodeDom;
@@ -11,6 +13,7 @@
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using System.Xml;
@@ -23,17 +26,23 @@
         private static readonly ImmutableHashSet<ComposablePartDefinition> AlwaysBundledParts = ImmutableHashSet.Create(
             ExportProvider.ExportProviderPartDefinition,
             PassthroughMetadataViewProvider.PartDefinition,
-            MetadataViewClassProvider.PartDefinition);
+            MetadataViewClassProvider.PartDefinition,
+            MetadataViewClassDefaultCtorProvider.PartDefinition,
+            ExportMetadataViewInterfaceEmitProxy.PartDefinition)
+#if NET45
+            .Add(MetadataViewImplProxy.PartDefinition)
+#endif
+            ;
 
         private ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides;
 
         private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposedPart> parts, IReadOnlyDictionary<Type, ExportDefinitionBinding> metadataViewsAndProviders, IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> compositionErrors, ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides)
         {
-            Requires.NotNull(catalog, "catalog");
-            Requires.NotNull(parts, "parts");
-            Requires.NotNull(metadataViewsAndProviders, "metadataViewsAndProviders");
-            Requires.NotNull(compositionErrors, "compositionErrors");
-            Requires.NotNull(effectiveSharingBoundaryOverrides, "effectiveSharingBoundaryOverrides");
+            Requires.NotNull(catalog, nameof(catalog));
+            Requires.NotNull(parts, nameof(parts));
+            Requires.NotNull(metadataViewsAndProviders, nameof(metadataViewsAndProviders));
+            Requires.NotNull(compositionErrors, nameof(compositionErrors));
+            Requires.NotNull(effectiveSharingBoundaryOverrides, nameof(effectiveSharingBoundaryOverrides));
 
             this.Catalog = catalog;
             this.Parts = parts;
@@ -43,14 +52,14 @@
         }
 
         /// <summary>
-        /// The catalog that backs this configuration.
+        /// Gets the catalog that backs this configuration.
         /// This may be a smaller catalog than the one passed in to create this configuration
         /// if invalid parts were removed.
         /// </summary>
         public ComposableCatalog Catalog { get; private set; }
 
         /// <summary>
-        /// The composed parts, with exports satisfied, that make up this configuration.
+        /// Gets the composed parts, with exports satisfied, that make up this configuration.
         /// </summary>
         public ISet<ComposedPart> Parts { get; private set; }
 
@@ -71,13 +80,15 @@
         /// </remarks>
         public IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> CompositionErrors { get; private set; }
 
+        internal Resolver Resolver => this.Catalog.Resolver;
+
         public static CompositionConfiguration Create(ComposableCatalog catalog)
         {
-            Requires.NotNull(catalog, "catalog");
+            Requires.NotNull(catalog, nameof(catalog));
 
             // We consider all the parts in the catalog, plus the specially synthesized ones
             // that should always be applied.
-            var customizedCatalog = catalog.WithParts(AlwaysBundledParts);
+            var customizedCatalog = catalog.AddParts(AlwaysBundledParts);
 
             // Construct our part builders, initialized with all their imports satisfied.
             // We explicitly use reference equality because ComposablePartDefinition.Equals is too slow, and unnecessary for this.
@@ -147,11 +158,11 @@
                 if (invalidParts.IsEmpty)
                 {
                     // If we can't identify the faulty parts but we still have errors, we have to just throw.
-                    throw new CompositionFailedException("Failed to find a stable composition.", ImmutableStack.Create<IReadOnlyCollection<ComposedPartDiagnostic>>(errors));
+                    throw new CompositionFailedException(Strings.FailStableComposition, ImmutableStack.Create<IReadOnlyCollection<ComposedPartDiagnostic>>(errors));
                 }
 
                 var salvagedParts = catalog.Parts.Except(invalidParts);
-                var salvagedCatalog = ComposableCatalog.Create(salvagedParts);
+                var salvagedCatalog = ComposableCatalog.Create(catalog.Resolver).AddParts(salvagedParts);
                 var configuration = Create(salvagedCatalog);
                 return configuration.WithErrors(errors);
             }
@@ -166,7 +177,7 @@
 
         private static ImmutableDictionary<Type, ExportDefinitionBinding> GetMetadataViewProvidersMap(ComposableCatalog customizedCatalog)
         {
-            Requires.NotNull(customizedCatalog, "customizedCatalog");
+            Requires.NotNull(customizedCatalog, nameof(customizedCatalog));
 
             var providers = (
                 from part in customizedCatalog.Parts
@@ -174,7 +185,7 @@
                 where export.Value.ContractName == ContractNameServices.GetTypeIdentity(typeof(IMetadataViewProvider))
                 orderby ExportProvider.GetOrderMetadata(export.Value.Metadata) descending
                 let exportDefinitionBinding = new ExportDefinitionBinding(export.Value, part, default(MemberRef))
-                let provider = (IMetadataViewProvider)part.ImportingConstructorInfo.Invoke(Type.EmptyTypes)
+                let provider = (IMetadataViewProvider)part.ImportingConstructorOrFactory.Instantiate(Type.EmptyTypes)
                 select Tuple.Create(provider, exportDefinitionBinding)).ToList();
 
             var metadataTypes = new HashSet<Type>(
@@ -203,26 +214,16 @@
             return metadataViewsAndProviders.ToImmutable();
         }
 
-        public static CompositionConfiguration Create(IEnumerable<ComposablePartDefinition> parts)
-        {
-            return Create(ComposableCatalog.Create(parts));
-        }
-
-        public static CompositionConfiguration Create(DiscoveredParts parts)
-        {
-            return Create(ComposableCatalog.Create(parts));
-        }
-
         public IExportProviderFactory CreateExportProviderFactory()
         {
             var composition = RuntimeComposition.CreateRuntimeComposition(this);
-            return new RuntimeExportProviderFactory(composition);
+            return composition.CreateExportProviderFactory();
         }
 
         public string GetEffectiveSharingBoundary(ComposablePartDefinition partDefinition)
         {
-            Requires.NotNull(partDefinition, "partDefinition");
-            Requires.Argument(partDefinition.IsShared, "partDefinition", "Part is not shared.");
+            Requires.NotNull(partDefinition, nameof(partDefinition));
+            Requires.Argument(partDefinition.IsShared, "partDefinition", Strings.PartIsNotShared);
 
             return this.effectiveSharingBoundaryOverrides.GetValueOrDefault(partDefinition) ?? partDefinition.SharingBoundary;
         }
@@ -244,12 +245,12 @@
                 return this;
             }
 
-            throw new CompositionFailedException("Errors exist in the composition.", this.CompositionErrors);
+            throw new CompositionFailedException(Strings.ErrorsInComposition, this.CompositionErrors);
         }
 
         internal CompositionConfiguration WithErrors(IReadOnlyCollection<ComposedPartDiagnostic> errors)
         {
-            Requires.NotNull(errors, "errors");
+            Requires.NotNull(errors, nameof(errors));
 
             return new CompositionConfiguration(this.Catalog, this.Parts, this.MetadataViewsAndProviders, this.CompositionErrors.Push(errors), this.effectiveSharingBoundaryOverrides);
         }
@@ -269,10 +270,10 @@
         /// </returns>
         private static ImmutableStack<T> PathExistsBetween<T>(T origin, T target, Func<T, IEnumerable<T>> getDirectLinks, HashSet<T> visited)
         {
-            Requires.NotNullAllowStructs(origin, "origin");
-            Requires.NotNullAllowStructs(target, "target");
-            Requires.NotNull(getDirectLinks, "getDirectLinks");
-            Requires.NotNull(visited, "visited");
+            Requires.NotNullAllowStructs(origin, nameof(origin));
+            Requires.NotNullAllowStructs(target, nameof(target));
+            Requires.NotNull(getDirectLinks, nameof(getDirectLinks));
+            Requires.NotNull(visited, nameof(visited));
 
             if (visited.Add(origin))
             {
@@ -298,7 +299,7 @@
 
         private static IEnumerable<ComposedPartDiagnostic> FindLoops(IEnumerable<ComposedPart> parts)
         {
-            Requires.NotNull(parts, "parts");
+            Requires.NotNull(parts, nameof(parts));
 
             var partByPartDefinition = parts.ToDictionary(p => p.Definition);
             var partByPartType = parts.ToDictionary(p => p.Definition.TypeRef);
@@ -333,7 +334,7 @@
                 {
                     path = path.Push(part);
                     nonSharedPartsInLoops.UnionWith(path);
-                    yield return new ComposedPartDiagnostic(path, "Loop between non-shared parts.");
+                    yield return new ComposedPartDiagnostic(path, Strings.LoopBetweenNonSharedParts);
                 }
             }
 
@@ -353,7 +354,7 @@
                         if (!path.IsEmpty)
                         {
                             path = path.Push(satisfyingPart).Push(partByPartType[importDefinitionBinding.ComposablePartTypeRef]);
-                            yield return new ComposedPartDiagnostic(path, "Loop involving ImportingConstructor argument and all non-lazy imports.");
+                            yield return new ComposedPartDiagnostic(path, Strings.LoopInvolvingImportingCtorArgumentAndAllNonLazyImports);
                         }
                     }
                 }
@@ -367,6 +368,8 @@
         /// <returns>A map of those parts with inferred boundaries where the key is the part and the value is its designated sharing boundary.</returns>
         private static ImmutableDictionary<ComposablePartDefinition, string> ComputeInferredSharingBoundaries(IEnumerable<PartBuilder> partBuilders)
         {
+            Requires.NotNull(partBuilders, nameof(partBuilders));
+
             var sharingBoundariesAndMetadata = ComputeSharingBoundaryMetadata(partBuilders);
 
             var sharingBoundaryOverrides = ImmutableDictionary.CreateBuilder<ComposablePartDefinition, string>();
@@ -374,9 +377,9 @@
             {
                 if (partBuilder.PartDefinition.IsSharingBoundaryInferred)
                 {
-                    // ALGORITHM selects: the ONE sharing boundary that 
-                    //  * FILTER 1: does not create ANY of the others
-                    //  * FILTER 2: can reach ALL the others by following UP the sharing boundary export factory chains.
+                    // ALGORITHM selects: the ONE sharing boundary that
+                    // * FILTER 1: does not create ANY of the others
+                    // * FILTER 2: can reach ALL the others by following UP the sharing boundary export factory chains.
                     var filter = from boundary in partBuilder.RequiredSharingBoundaries
                                  let others = partBuilder.RequiredSharingBoundaries.ToImmutableHashSet().Remove(boundary)
                                  where !others.Any(other => sharingBoundariesAndMetadata[other].ParentBoundariesUnion.Contains(boundary)) // filter 1
@@ -393,7 +396,7 @@
                         throw new CompositionFailedException(
                             string.Format(
                                 CultureInfo.CurrentCulture,
-                                "Unable to determine the primary sharing boundary for MEF part \"{0}\".",
+                                Strings.UnableToDeterminePrimarySharingBoundary,
                                 ReflectionHelpers.GetTypeName(partBuilder.PartDefinition.Type, false, true, null, null)));
                     }
                 }
@@ -409,7 +412,7 @@
         /// <returns>A map where the key is the name of a sharing boundary and the value is its metadata.</returns>
         private static ImmutableDictionary<string, SharingBoundaryMetadata> ComputeSharingBoundaryMetadata(IEnumerable<PartBuilder> partBuilders)
         {
-            Requires.NotNull(partBuilders, "partBuilders");
+            Requires.NotNull(partBuilders, nameof(partBuilders));
 
             // First build up a dictionary of all sharing boundaries and the parent boundaries that consistently exist.
             var sharingBoundaryExportFactories = from partBuilder in partBuilders
@@ -442,7 +445,7 @@
 
         private static XDocument CreateDgml(ISet<ComposedPart> parts)
         {
-            Requires.NotNull(parts, "parts");
+            Requires.NotNull(parts, nameof(parts));
 
             XElement nodes, links;
             var dgml = Dgml.Create(out nodes, out links, direction: "RightToLeft")
@@ -487,7 +490,7 @@
                 {
                     foreach (ExportDefinitionBinding export in part.SatisfyingExports[import])
                     {
-                        string linkLabel = !export.ExportedValueType.Equals(export.PartDefinition.Type)
+                        string linkLabel = !export.ExportedValueTypeRef.Equals(export.PartDefinition.TypeRef)
                             ? export.ExportedValueType.ToString()
                             : null;
                         var link = Dgml.Link(export.PartDefinition.Id, part.Definition.Id, linkLabel);
@@ -504,13 +507,13 @@
             return dgml;
         }
 
-        [DebuggerDisplay("{PartDefinition.Type.Name}")]
+        [DebuggerDisplay("{" + nameof(PartDefinition) + "." + nameof(ComposablePartDefinition.Type) + ".Name}")]
         private class PartBuilder
         {
             internal PartBuilder(ComposablePartDefinition partDefinition, IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> importedParts)
             {
-                Requires.NotNull(partDefinition, "partDefinition");
-                Requires.NotNull(importedParts, "importedParts");
+                Requires.NotNull(partDefinition, nameof(partDefinition));
+                Requires.NotNull(importedParts, nameof(importedParts));
 
                 this.PartDefinition = partDefinition;
                 this.RequiredSharingBoundaries = ImmutableHashSet.CreateBuilder<string>();
@@ -519,7 +522,7 @@
             }
 
             /// <summary>
-            /// Gets the part definition tracked by this instance.
+            /// Gets or sets the part definition tracked by this instance.
             /// </summary>
             public ComposablePartDefinition PartDefinition { get; set; }
 
@@ -527,7 +530,7 @@
             /// Gets the sharing boundaries required to instantiate this part.
             /// </summary>
             /// <remarks>
-            /// This is the union of the part's own explicitly declared sharing boundary 
+            /// This is the union of the part's own explicitly declared sharing boundary
             /// and the boundaries of all parts it imports (transitively).
             /// </remarks>
             public ISet<string> RequiredSharingBoundaries { get; private set; }
@@ -573,8 +576,8 @@
         {
             public SharingBoundaryTree(string name, ImmutableHashSet<SharingBoundaryTree> children)
             {
-                Requires.NotNull(name, "name");
-                Requires.NotNull(children, "children");
+                Requires.NotNull(name, nameof(name));
+                Requires.NotNull(children, nameof(children));
 
                 this.Name = name;
                 this.Children = children;
@@ -590,7 +593,7 @@
         {
             private SharingBoundaryMetadata(ISet<string> initialParentBoundaries)
             {
-                Requires.NotNull(initialParentBoundaries, "initialParentBoundaries");
+                Requires.NotNull(initialParentBoundaries, nameof(initialParentBoundaries));
 
                 this.ParentBoundariesUnion = initialParentBoundaries.ToImmutableHashSet();
                 this.ParentBoundariesIntersection = this.ParentBoundariesUnion;
@@ -598,8 +601,8 @@
 
             private SharingBoundaryMetadata(ImmutableHashSet<string> parentBoundariesUnion, ImmutableHashSet<string> parentBoundariesIntersection)
             {
-                Requires.NotNull(parentBoundariesUnion, "parentBoundariesUnion");
-                Requires.NotNull(parentBoundariesIntersection, "parentBoundariesIntersection");
+                Requires.NotNull(parentBoundariesUnion, nameof(parentBoundariesUnion));
+                Requires.NotNull(parentBoundariesIntersection, nameof(parentBoundariesIntersection));
 
                 this.ParentBoundariesUnion = parentBoundariesUnion;
                 this.ParentBoundariesIntersection = parentBoundariesIntersection;
@@ -630,9 +633,11 @@
 
         internal class ExportDefinitionPracticallyEqual : IEqualityComparer<ExportDefinition>
         {
-            private ExportDefinitionPracticallyEqual() { }
-
             internal static ExportDefinitionPracticallyEqual Default = new ExportDefinitionPracticallyEqual();
+
+            private ExportDefinitionPracticallyEqual()
+            {
+            }
 
             public bool Equals(ExportDefinition x, ExportDefinition y)
             {
@@ -662,7 +667,7 @@
 
             public int GetHashCode(T obj)
             {
-                return obj.GetHashCode();
+                return RuntimeHelpers.GetHashCode(obj);
             }
         }
     }

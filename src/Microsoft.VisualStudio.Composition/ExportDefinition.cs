@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -10,13 +12,13 @@
     using System.Text;
     using System.Threading.Tasks;
 
-    [DebuggerDisplay("{ContractName,nq}")]
+    [DebuggerDisplay("{" + nameof(ContractName) + ",nq}")]
     public class ExportDefinition : IEquatable<ExportDefinition>
     {
         public ExportDefinition(string contractName, IReadOnlyDictionary<string, object> metadata)
         {
-            Requires.NotNullOrEmpty(contractName, "contractName");
-            Requires.NotNull(metadata, "metadata");
+            Requires.NotNullOrEmpty(contractName, nameof(contractName));
+            Requires.NotNull(metadata, nameof(metadata));
 
             this.ContractName = contractName;
 
@@ -68,7 +70,7 @@
 
         internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata);
         }

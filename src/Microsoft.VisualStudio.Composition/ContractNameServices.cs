@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -7,22 +9,24 @@
     using System.Text;
     using System.Threading.Tasks;
 
+#pragma warning disable SA1120 // Comments must contain text
+
     internal static class ContractNameServices
     {
-        const char NamespaceSeparator = '.';
-        const char ArrayOpeningBracket = '[';
-        const char ArrayClosingBracket = ']';
-        const char ArraySeparator = ',';
-        const char PointerSymbol = '*';
-        const char ReferenceSymbol = '&';
-        const char GenericArityBackQuote = '`';
-        const char NestedClassSeparator = '+';
-        const char ContractNameGenericOpeningBracket = '(';
-        const char ContractNameGenericClosingBracket = ')';
-        const char ContractNameGenericArgumentSeparator = ',';
-        const char CustomModifiersSeparator = ' ';
-        const char GenericFormatOpeningBracket = '{';
-        const char GenericFormatClosingBracket = '}';
+        private const char NamespaceSeparator = '.';
+        private const char ArrayOpeningBracket = '[';
+        private const char ArrayClosingBracket = ']';
+        private const char ArraySeparator = ',';
+        private const char PointerSymbol = '*';
+        private const char ReferenceSymbol = '&';
+        private const char GenericArityBackQuote = '`';
+        private const char NestedClassSeparator = '+';
+        private const char ContractNameGenericOpeningBracket = '(';
+        private const char ContractNameGenericClosingBracket = ')';
+        private const char ContractNameGenericArgumentSeparator = ',';
+        private const char CustomModifiersSeparator = ' ';
+        private const char GenericFormatOpeningBracket = '{';
+        private const char GenericFormatClosingBracket = '}';
 
         [ThreadStatic]
         private static Dictionary<Type, string> typeIdentityCache;
@@ -80,7 +84,7 @@
 
         internal static string GetTypeIdentityFromMethod(MethodInfo method, bool formatGenericName)
         {
-            Requires.NotNull(method, "method");
+            Requires.NotNull(method, nameof(method));
 
             StringBuilder methodNameStringBuilder = new StringBuilder();
 
@@ -99,6 +103,7 @@
 
                 WriteTypeWithNamespace(methodNameStringBuilder, parameters[i].ParameterType, formatGenericName);
             }
+
             methodNameStringBuilder.Append(")");
 
             return methodNameStringBuilder.ToString();
@@ -112,6 +117,7 @@
                 typeName.Append(type.Namespace);
                 typeName.Append(NamespaceSeparator);
             }
+
             WriteType(typeName, type, formatGenericName);
         }
 
@@ -144,6 +150,7 @@
                 WriteType(typeName, type.DeclaringType, formatGenericName);
                 typeName.Append(NestedClassSeparator);
             }
+
             if (type.IsArray)
             {
                 WriteArrayType(typeName, type, formatGenericName);
@@ -209,6 +216,7 @@
             {
                 typeName.Append(ArraySeparator);
             }
+
             typeName.Append(ArrayClosingBracket);
         }
 
@@ -229,8 +237,10 @@
                 {
                     WriteNonGenericType(typeName, type.DeclaringType, formatGenericName);
                 }
+
                 typeName.Append(NestedClassSeparator);
             }
+
             WriteGenericTypeName(typeName, type, isDefinition, genericTypeArguments, formatGenericName);
         }
 
@@ -255,6 +265,7 @@
             {
                 return;
             }
+
             typeName.Append(ContractNameGenericOpeningBracket);
             for (int i = 0; i < argumentsCount; i++)
             {
@@ -262,6 +273,7 @@
                 Type genericTypeArgument = genericTypeArguments.Dequeue();
                 WriteTypeArgument(typeName, isDefinition, genericTypeArgument, formatGenericName);
             }
+
             typeName.Remove(typeName.Length - 1, 1);
             typeName.Append(ContractNameGenericClosingBracket);
         }
@@ -279,20 +291,8 @@
                 typeName.Append(genericTypeArgument.GenericParameterPosition);
                 typeName.Append(GenericFormatClosingBracket);
             }
-            typeName.Append(ContractNameGenericArgumentSeparator);
-        }
 
-        //internal for testability
-        internal static void WriteCustomModifiers(StringBuilder typeName, string customKeyword, Type[] types, bool formatGenericName)
-        {
-            //
-            // Writes custom modifiers in the format: customKeyword(<contract_name>,<contract_name>,...)
-            //
-            typeName.Append(CustomModifiersSeparator);
-            typeName.Append(customKeyword);
-            Queue<Type> typeArguments = new Queue<Type>(types);
-            WriteTypeArgumentsString(typeName, types.Length, false, typeArguments, formatGenericName);
-            Assumes.True(typeArguments.Count == 0, "Expecting genericTypeArguments queue to be empty.");
+            typeName.Append(ContractNameGenericArgumentSeparator);
         }
 
         private static Type FindArrayElementType(Type type)
@@ -301,7 +301,10 @@
             // Gets array element type by calling GetElementType() until the element is not an array
             //
             Type elementType = type;
-            while ((elementType = elementType.GetElementType()) != null && elementType.IsArray) { }
+            while ((elementType = elementType.GetElementType()) != null && elementType.IsArray)
+            {
+            }
+
             return elementType;
         }
 
@@ -317,6 +320,7 @@
             {
                 genericName = genericName.Substring(0, indexOfBackQuote);
             }
+
             return genericName;
         }
 
@@ -329,7 +333,6 @@
 
             // The generic arity is equal to the difference in the number of generic arguments
             // from the type and the declaring type.
-
             int delclaringTypeGenericArguments = type.DeclaringType.GetGenericArguments().Length;
             int typeGenericArguments = type.GetGenericArguments().Length;
 

@@ -1,10 +1,13 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Collections.ObjectModel;
     using System.Diagnostics;
+    using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -18,15 +21,17 @@
         private readonly IReadOnlyDictionary<string, IReadOnlyCollection<RuntimeExport>> exportsByContractName;
         private readonly IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders;
 
-        private RuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders)
+        private RuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders, Resolver resolver)
         {
-            Requires.NotNull(parts, "parts");
-            Requires.NotNull(metadataViewsAndProviders, "metadataViewsAndProviders");
+            Requires.NotNull(parts, nameof(parts));
+            Requires.NotNull(metadataViewsAndProviders, nameof(metadataViewsAndProviders));
+            Requires.NotNull(resolver, nameof(resolver));
 
             this.parts = ImmutableHashSet.CreateRange(parts);
             this.metadataViewsAndProviders = metadataViewsAndProviders;
+            this.Resolver = resolver;
 
-            this.partsByType = this.parts.ToDictionary(p => p.Type, this.parts.Count);
+            this.partsByType = this.parts.ToDictionary(p => p.TypeRef, this.parts.Count);
 
             var exports =
                 from part in this.parts
@@ -48,23 +53,25 @@
             get { return this.metadataViewsAndProviders; }
         }
 
+        internal Resolver Resolver { get; }
+
         public static RuntimeComposition CreateRuntimeComposition(CompositionConfiguration configuration)
         {
-            Requires.NotNull(configuration, "configuration");
+            Requires.NotNull(configuration, nameof(configuration));
 
             // PERF/memory tip: We could create all RuntimeExports first, and then reuse them at each import site.
             var parts = configuration.Parts.Select(part => CreateRuntimePart(part, configuration));
             var metadataViewsAndProviders = ImmutableDictionary.CreateRange(
                 from viewAndProvider in configuration.MetadataViewsAndProviders
-                let viewTypeRef = TypeRef.Get(viewAndProvider.Key)
-                let runtimeExport = CreateRuntimeExport(viewAndProvider.Value)
+                let viewTypeRef = TypeRef.Get(viewAndProvider.Key, configuration.Resolver)
+                let runtimeExport = CreateRuntimeExport(viewAndProvider.Value, configuration.Resolver)
                 select new KeyValuePair<TypeRef, RuntimeExport>(viewTypeRef, runtimeExport));
-            return new RuntimeComposition(parts, metadataViewsAndProviders);
+            return new RuntimeComposition(parts, metadataViewsAndProviders, configuration.Resolver);
         }
 
-        public static RuntimeComposition CreateRuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders)
+        public static RuntimeComposition CreateRuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders, Resolver resolver)
         {
-            return new RuntimeComposition(parts, metadataViewsAndProviders);
+            return new RuntimeComposition(parts, metadataViewsAndProviders, resolver);
         }
 
         public IExportProviderFactory CreateExportProviderFactory()
@@ -85,14 +92,14 @@
 
         public RuntimePart GetPart(RuntimeExport export)
         {
-            Requires.NotNull(export, "export");
+            Requires.NotNull(export, nameof(export));
 
-            return this.partsByType[export.DeclaringType];
+            return this.partsByType[export.DeclaringTypeRef];
         }
 
         public RuntimePart GetPart(TypeRef partType)
         {
-            Requires.NotNull(partType, "partType");
+            Requires.NotNull(partType, nameof(partType));
 
             return this.partsByType[partType];
         }
@@ -124,31 +131,60 @@
                 && ByValueEquality.Dictionary<TypeRef, RuntimeExport>().Equals(this.metadataViewsAndProviders, other.metadataViewsAndProviders);
         }
 
+        internal static string GetDiagnosticLocation(RuntimeImport import)
+        {
+            Requires.NotNull(import, nameof(import));
+
+            return string.Format(
+                CultureInfo.CurrentCulture,
+                "{0}.{1}",
+                import.DeclaringTypeRef.Resolve().FullName,
+                import.ImportingMember == null ? ("ctor(" + import.ImportingParameter.Name + ")") : import.ImportingMember.Name);
+        }
+
+        internal static string GetDiagnosticLocation(RuntimeExport export)
+        {
+            Requires.NotNull(export, nameof(export));
+
+            if (export.Member != null)
+            {
+                return string.Format(
+                    CultureInfo.CurrentCulture,
+                    "{0}.{1}",
+                    export.DeclaringTypeRef.Resolve().FullName,
+                    export.Member.Name);
+            }
+            else
+            {
+                return export.DeclaringTypeRef.Resolve().FullName;
+            }
+        }
+
         private static RuntimePart CreateRuntimePart(ComposedPart part, CompositionConfiguration configuration)
         {
-            Requires.NotNull(part, "part");
+            Requires.NotNull(part, nameof(part));
 
             var runtimePart = new RuntimePart(
-                TypeRef.Get(part.Definition.Type),
-                part.Definition.ImportingConstructorInfo != null ? new ConstructorRef(part.Definition.ImportingConstructorInfo) : default(ConstructorRef),
-                part.GetImportingConstructorImports().Select(kvp => CreateRuntimeImport(kvp.Key, kvp.Value)).ToImmutableArray(),
-                part.Definition.ImportingMembers.Select(idb => CreateRuntimeImport(idb, part.SatisfyingExports[idb])).ToImmutableArray(),
-                part.Definition.ExportDefinitions.Select(ed => CreateRuntimeExport(ed.Value, part.Definition.Type, ed.Key)).ToImmutableArray(),
-                part.Definition.OnImportsSatisfied != null ? new MethodRef(part.Definition.OnImportsSatisfied) : new MethodRef(),
+                part.Definition.TypeRef,
+                part.Definition.ImportingConstructorOrFactoryRef,
+                part.GetImportingConstructorImports().Select(kvp => CreateRuntimeImport(kvp.Key, kvp.Value, part.Resolver)).ToImmutableArray(),
+                part.Definition.ImportingMembers.Select(idb => CreateRuntimeImport(idb, part.SatisfyingExports[idb], part.Resolver)).ToImmutableArray(),
+                part.Definition.ExportDefinitions.Select(ed => CreateRuntimeExport(ed.Value, part.Definition.Type, ed.Key, part.Resolver)).ToImmutableArray(),
+                part.Definition.OnImportsSatisfiedRef,
                 part.Definition.IsShared ? configuration.GetEffectiveSharingBoundary(part.Definition) : null);
             return runtimePart;
         }
 
-        private static RuntimeImport CreateRuntimeImport(ImportDefinitionBinding importDefinitionBinding, IReadOnlyList<ExportDefinitionBinding> satisfyingExports)
+        private static RuntimeImport CreateRuntimeImport(ImportDefinitionBinding importDefinitionBinding, IReadOnlyList<ExportDefinitionBinding> satisfyingExports, Resolver resolver)
         {
-            Requires.NotNull(importDefinitionBinding, "importDefinitionBinding");
-            Requires.NotNull(satisfyingExports, "satisfyingExports");
+            Requires.NotNull(importDefinitionBinding, nameof(importDefinitionBinding));
+            Requires.NotNull(satisfyingExports, nameof(satisfyingExports));
 
-            var runtimeExports = satisfyingExports.Select(export => CreateRuntimeExport(export)).ToImmutableArray();
-            if (importDefinitionBinding.ImportingMember != null)
+            var runtimeExports = satisfyingExports.Select(export => CreateRuntimeExport(export, resolver)).ToImmutableArray();
+            if (!importDefinitionBinding.ImportingMemberRef.IsEmpty)
             {
                 return new RuntimeImport(
-                    new MemberRef(importDefinitionBinding.ImportingMember),
+                    importDefinitionBinding.ImportingMemberRef,
                     importDefinitionBinding.ImportingSiteTypeRef,
                     importDefinitionBinding.ImportDefinition.Cardinality,
                     runtimeExports,
@@ -160,7 +196,7 @@
             else
             {
                 return new RuntimeImport(
-                    new ParameterRef(importDefinitionBinding.ImportingParameter),
+                    importDefinitionBinding.ImportingParameterRef,
                     importDefinitionBinding.ImportingSiteTypeRef,
                     importDefinitionBinding.ImportDefinition.Cardinality,
                     runtimeExports,
@@ -171,33 +207,36 @@
             }
         }
 
-        private static RuntimeExport CreateRuntimeExport(ExportDefinition exportDefinition, Type partType, MemberRef exportingMember)
+        private static RuntimeExport CreateRuntimeExport(ExportDefinition exportDefinition, Type partType, MemberRef exportingMemberRef, Resolver resolver)
         {
-            Requires.NotNull(exportDefinition, "exportDefinition");
+            Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
+            var exportingMember = exportingMemberRef.MemberInfo;
             return new RuntimeExport(
                 exportDefinition.ContractName,
-                TypeRef.Get(partType),
-                exportingMember,
-                TypeRef.Get(ReflectionHelpers.GetExportedValueType(partType, exportingMember.Resolve())),
+                TypeRef.Get(partType, resolver),
+                exportingMemberRef,
+                TypeRef.Get(ReflectionHelpers.GetExportedValueType(partType, exportingMember), resolver),
                 exportDefinition.Metadata);
         }
 
-        private static RuntimeExport CreateRuntimeExport(ExportDefinitionBinding exportDefinitionBinding)
+        private static RuntimeExport CreateRuntimeExport(ExportDefinitionBinding exportDefinitionBinding, Resolver resolver)
         {
-            Requires.NotNull(exportDefinitionBinding, "exportDefinitionBinding");
+            Requires.NotNull(exportDefinitionBinding, nameof(exportDefinitionBinding));
+            Requires.NotNull(resolver, nameof(resolver));
+
+            var partDefinitionType = exportDefinitionBinding.PartDefinition.TypeRef.Resolve();
             return CreateRuntimeExport(
                 exportDefinitionBinding.ExportDefinition,
-                exportDefinitionBinding.PartDefinition.Type,
-                exportDefinitionBinding.ExportingMemberRef);
+                partDefinitionType,
+                exportDefinitionBinding.ExportingMemberRef,
+                resolver);
         }
 
-        [DebuggerDisplay("{Type.ResolvedType.FullName,nq}")]
+        [DebuggerDisplay("{" + nameof(RuntimePart.TypeRef) + "." + nameof(Reflection.TypeRef.ResolvedType) + ".FullName,nq}")]
         public class RuntimePart : IEquatable<RuntimePart>
         {
-            private ConstructorInfo importingConstructor;
-            private MethodInfo onImportsSatisfied;
-
+            [Obsolete]
             public RuntimePart(
                 TypeRef type,
                 ConstructorRef importingConstructor,
@@ -206,9 +245,28 @@
                 IReadOnlyList<RuntimeExport> exports,
                 MethodRef onImportsSatisfied,
                 string sharingBoundary)
+                : this(
+                    type,
+                    new MethodRef(importingConstructor),
+                    importingConstructorArguments,
+                    importingMembers,
+                    exports,
+                    onImportsSatisfied,
+                    sharingBoundary)
             {
-                this.Type = type;
-                this.ImportingConstructorRef = importingConstructor;
+            }
+
+            public RuntimePart(
+                TypeRef type,
+                MethodRef importingConstructor,
+                IReadOnlyList<RuntimeImport> importingConstructorArguments,
+                IReadOnlyList<RuntimeImport> importingMembers,
+                IReadOnlyList<RuntimeExport> exports,
+                MethodRef onImportsSatisfied,
+                string sharingBoundary)
+            {
+                this.TypeRef = type;
+                this.ImportingConstructorOrFactoryMethodRef = importingConstructor;
                 this.ImportingConstructorArguments = importingConstructorArguments;
                 this.ImportingMembers = importingMembers;
                 this.Exports = exports;
@@ -216,9 +274,20 @@
                 this.SharingBoundary = sharingBoundary;
             }
 
-            public TypeRef Type { get; private set; }
+            public TypeRef TypeRef { get; private set; }
 
-            public ConstructorRef ImportingConstructorRef { get; private set; }
+            [Obsolete("Use " + nameof(ImportingConstructorOrFactoryMethodRef) + " instead.")]
+            public ConstructorRef ImportingConstructorRef
+            {
+                get
+                {
+                    return new ConstructorRef(this.ImportingConstructorOrFactoryMethodRef.DeclaringType, this.ImportingConstructorOrFactoryMethodRef.MetadataToken, this.ImportingConstructorOrFactoryMethod.GetParameterTypes(this.TypeRef.Resolver));
+                }
+            }
+
+            public MethodRef ImportingConstructorOrFactoryMethodRef { get; private set; }
+
+            public MethodBase ImportingConstructorOrFactoryMethod => this.ImportingConstructorOrFactoryMethodRef.MethodBase;
 
             public IReadOnlyList<RuntimeImport> ImportingConstructorArguments { get; private set; }
 
@@ -237,19 +306,15 @@
 
             public bool IsInstantiable
             {
-                get { return !this.ImportingConstructorRef.IsEmpty; }
+                get { return !this.ImportingConstructorOrFactoryMethodRef.IsEmpty; }
             }
 
+            [Obsolete("Use " + nameof(ImportingConstructorOrFactoryMethod) + " instead.")]
             public ConstructorInfo ImportingConstructor
             {
                 get
                 {
-                    if (this.importingConstructor == null)
-                    {
-                        this.importingConstructor = this.ImportingConstructorRef.Resolve();
-                    }
-
-                    return this.importingConstructor;
+                    return (ConstructorInfo)this.ImportingConstructorOrFactoryMethod;
                 }
             }
 
@@ -257,12 +322,7 @@
             {
                 get
                 {
-                    if (this.onImportsSatisfied == null)
-                    {
-                        this.onImportsSatisfied = this.OnImportsSatisfiedRef.Resolve();
-                    }
-
-                    return this.onImportsSatisfied;
+                    return (MethodInfo)this.OnImportsSatisfiedRef.MethodBase;
                 }
             }
 
@@ -273,7 +333,7 @@
 
             public override int GetHashCode()
             {
-                return this.Type.GetHashCode();
+                return this.TypeRef.GetHashCode();
             }
 
             public bool Equals(RuntimePart other)
@@ -283,8 +343,8 @@
                     return false;
                 }
 
-                bool result = this.Type.Equals(other.Type)
-                    && this.ImportingConstructorRef.Equals(other.ImportingConstructorRef)
+                bool result = this.TypeRef.Equals(other.TypeRef)
+                    && this.ImportingConstructorOrFactoryMethodRef.Equals(other.ImportingConstructorOrFactoryMethodRef)
                     && this.ImportingConstructorArguments.SequenceEqual(other.ImportingConstructorArguments)
                     && ByValueEquality.EquivalentIgnoreOrder<RuntimeImport>().Equals(this.ImportingMembers, other.ImportingMembers)
                     && ByValueEquality.EquivalentIgnoreOrder<RuntimeExport>().Equals(this.Exports, other.Exports)
@@ -294,10 +354,10 @@
             }
         }
 
+        [DebuggerDisplay("{" + nameof(ImportingSiteElementType) + "}")]
         public class RuntimeImport : IEquatable<RuntimeImport>
         {
             private bool? isLazy;
-            private Type importingSiteType;
             private Type importingSiteTypeWithoutCollection;
             private Type importingSiteElementType;
             private Func<Func<object>, object, object> lazyFactory;
@@ -308,8 +368,8 @@
 
             private RuntimeImport(TypeRef importingSiteTypeRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
             {
-                Requires.NotNull(importingSiteTypeRef, "importingSiteTypeRef");
-                Requires.NotNull(satisfyingExports, "satisfyingExports");
+                Requires.NotNull(importingSiteTypeRef, nameof(importingSiteTypeRef));
+                Requires.NotNull(satisfyingExports, nameof(satisfyingExports));
 
                 this.Cardinality = cardinality;
                 this.SatisfyingExports = satisfyingExports;
@@ -320,16 +380,16 @@
                 this.ExportFactorySharingBoundaries = exportFactorySharingBoundaries;
             }
 
-            public RuntimeImport(MemberRef importingMember, TypeRef importingSiteTypeRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
+            public RuntimeImport(MemberRef importingMemberRef, TypeRef importingSiteTypeRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
                 : this(importingSiteTypeRef, cardinality, satisfyingExports, isNonSharedInstanceRequired, isExportFactory, metadata, exportFactorySharingBoundaries)
             {
-                this.ImportingMemberRef = importingMember;
+                this.ImportingMemberRef = importingMemberRef;
             }
 
-            public RuntimeImport(ParameterRef importingParameter, TypeRef importingSiteTypeRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
+            public RuntimeImport(ParameterRef importingParameterRef, TypeRef importingSiteTypeRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
                 : this(importingSiteTypeRef, cardinality, satisfyingExports, isNonSharedInstanceRequired, isExportFactory, metadata, exportFactorySharingBoundaries)
             {
-                this.ImportingParameterRef = importingParameter;
+                this.ImportingParameterRef = importingParameterRef;
             }
 
             /// <summary>
@@ -375,7 +435,7 @@
                 {
                     if (this.importingMember == null)
                     {
-                        this.importingMember = this.ImportingMemberRef.Resolve();
+                        this.importingMember = this.ImportingMemberRef.MemberInfo;
                     }
 
                     return this.importingMember;
@@ -408,18 +468,7 @@
                 }
             }
 
-            public Type ImportingSiteType
-            {
-                get
-                {
-                    if (this.importingSiteType == null)
-                    {
-                        this.importingSiteType = this.ImportingSiteTypeRef.Resolve();
-                    }
-
-                    return this.importingSiteType;
-                }
-            }
+            public Type ImportingSiteType => this.ImportingSiteTypeRef?.ResolvedType;
 
             public Type ImportingSiteTypeWithoutCollection
             {
@@ -468,7 +517,7 @@
                 }
             }
 
-            public TypeRef DeclaringType
+            public TypeRef DeclaringTypeRef
             {
                 get
                 {
@@ -525,25 +574,25 @@
         {
             private MemberInfo member;
 
-            public RuntimeExport(string contractName, TypeRef declaringType, MemberRef memberRef, TypeRef exportedValueType, IReadOnlyDictionary<string, object> metadata)
+            public RuntimeExport(string contractName, TypeRef declaringTypeRef, MemberRef memberRef, TypeRef exportedValueTypeRef, IReadOnlyDictionary<string, object> metadata)
             {
-                Requires.NotNull(metadata, "metadata");
-                Requires.NotNullOrEmpty(contractName, "contractName");
+                Requires.NotNull(metadata, nameof(metadata));
+                Requires.NotNullOrEmpty(contractName, nameof(contractName));
 
                 this.ContractName = contractName;
-                this.DeclaringType = declaringType;
+                this.DeclaringTypeRef = declaringTypeRef;
                 this.MemberRef = memberRef;
-                this.ExportedValueType = exportedValueType;
+                this.ExportedValueTypeRef = exportedValueTypeRef;
                 this.Metadata = metadata;
             }
 
             public string ContractName { get; private set; }
 
-            public TypeRef DeclaringType { get; private set; }
+            public TypeRef DeclaringTypeRef { get; private set; }
 
             public MemberRef MemberRef { get; private set; }
 
-            public TypeRef ExportedValueType { get; private set; }
+            public TypeRef ExportedValueTypeRef { get; private set; }
 
             public IReadOnlyDictionary<string, object> Metadata { get; private set; }
 
@@ -553,7 +602,7 @@
                 {
                     if (this.member == null)
                     {
-                        this.member = this.MemberRef.Resolve();
+                        this.member = this.MemberRef.MemberInfo;
                     }
 
                     return this.member;
@@ -562,7 +611,7 @@
 
             public override int GetHashCode()
             {
-                return this.ContractName.GetHashCode() + this.DeclaringType.GetHashCode();
+                return this.ContractName.GetHashCode() + this.DeclaringTypeRef.GetHashCode();
             }
 
             public override bool Equals(object obj)
@@ -578,9 +627,9 @@
                 }
 
                 bool result = this.ContractName == other.ContractName
-                    && EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType)
+                    && EqualityComparer<TypeRef>.Default.Equals(this.DeclaringTypeRef, other.DeclaringTypeRef)
                     && EqualityComparer<MemberRef>.Default.Equals(this.MemberRef, other.MemberRef)
-                    && EqualityComparer<TypeRef>.Default.Equals(this.ExportedValueType, other.ExportedValueType)
+                    && EqualityComparer<TypeRef>.Default.Equals(this.ExportedValueTypeRef, other.ExportedValueTypeRef)
                     && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata);
                 return result;
             }

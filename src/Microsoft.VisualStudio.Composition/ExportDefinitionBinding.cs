@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -14,8 +16,8 @@
     {
         public ExportDefinitionBinding(ExportDefinition exportDefinition, ComposablePartDefinition partDefinition, MemberRef exportingMemberRef)
         {
-            Requires.NotNull(exportDefinition, "exportDefinition");
-            Requires.NotNull(partDefinition, "partDefinition");
+            Requires.NotNull(exportDefinition, nameof(exportDefinition));
+            Requires.NotNull(partDefinition, nameof(partDefinition));
 
             this.ExportDefinition = exportDefinition;
             this.PartDefinition = partDefinition;
@@ -35,11 +37,11 @@
         /// </summary>
         public MemberInfo ExportingMember
         {
-            get { return this.ExportingMemberRef.Resolve(); }
+            get { return this.ExportingMemberRef.MemberInfo; }
         }
 
         /// <summary>
-        /// Gets the member with the ExportAttribute applied. The return value's <see cref="MemberRef.IsEmpty"/> 
+        /// Gets the member with the ExportAttribute applied. The return value's <see cref="MemberRef.IsEmpty"/>
         /// is <c>true</c> when the export is on the type itself.
         /// </summary>
         public MemberRef ExportingMemberRef { get; private set; }
@@ -52,6 +54,11 @@
             get { return this.ExportingMember.IsStatic(); }
         }
 
+        public TypeRef ExportedValueTypeRef
+        {
+            get { return TypeRef.Get(this.ExportedValueType, this.PartDefinition.TypeRef.Resolver); }
+        }
+
         public Type ExportedValueType
         {
             get { return ReflectionHelpers.GetExportedValueType(this.PartDefinition.Type, this.ExportingMember); }
@@ -59,7 +66,7 @@
 
         internal ExportDefinitionBinding CloseGenericExport(Type[] genericTypeArguments)
         {
-            Requires.NotNull(genericTypeArguments, "genericTypeArguments");
+            Requires.NotNull(genericTypeArguments, nameof(genericTypeArguments));
 
             string exportTypeIdentity = string.Format(
                 CultureInfo.InvariantCulture,
@@ -80,7 +87,7 @@
 
         public override int GetHashCode()
         {
-            int hashCode = this.PartDefinition.Type.GetHashCode();
+            int hashCode = this.PartDefinition.TypeRef.GetHashCode();
             if (!this.ExportingMemberRef.IsEmpty)
             {
                 hashCode += this.ExportingMemberRef.GetHashCode();
@@ -91,7 +98,7 @@
 
         public bool Equals(ExportDefinitionBinding other)
         {
-            bool result = this.PartDefinition.Type == other.PartDefinition.Type
+            bool result = this.PartDefinition.TypeRef.Equals(other.PartDefinition.TypeRef)
                 && this.ExportDefinition.Equals(other.ExportDefinition)
                 && this.ExportingMemberRef.Equals(other.ExportingMemberRef);
             return result;

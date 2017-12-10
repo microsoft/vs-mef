@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -9,9 +11,11 @@
 
     internal class UniquePropertyNameComparer : IEqualityComparer<PropertyInfo>
     {
-        private UniquePropertyNameComparer() { }
+        internal static readonly IEqualityComparer<PropertyInfo> Default = new UniquePropertyNameComparer();
 
-        internal readonly static IEqualityComparer<PropertyInfo> Default = new UniquePropertyNameComparer();
+        private UniquePropertyNameComparer()
+        {
+        }
 
         public bool Equals(PropertyInfo x, PropertyInfo y)
         {

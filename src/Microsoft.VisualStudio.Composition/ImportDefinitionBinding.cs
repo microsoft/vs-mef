@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -13,51 +15,82 @@
     {
         private bool? isLazy;
 
-        private Type importingSiteTypeWithoutCollection;
-
         private Type importingSiteElementType;
-
-        private TypeRef importingSiteTypeRef;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
         /// to represent an importing member.
         /// </summary>
+        [Obsolete]
         public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef composablePartType, MemberRef importingMember)
+            : this(
+                  importDefinition,
+                  composablePartType,
+                  importingMember,
+                  TypeRef.Get(ReflectionHelpers.GetMemberType(importingMember.MemberInfo), importingMember.Resolver),
+                  TypeRef.Get(importDefinition.Cardinality == ImportCardinality.ZeroOrMore ? PartDiscovery.GetElementTypeFromMany(ReflectionHelpers.GetMemberType(importingMember.MemberInfo)) : ReflectionHelpers.GetMemberType(importingMember.MemberInfo), importingMember.Resolver))
         {
-            Requires.NotNull(importDefinition, "importDefinition");
-            Requires.NotNull(composablePartType, "composablePartType");
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
+        /// to represent an importing member.
+        /// </summary>
+        public ImportDefinitionBinding(
+            ImportDefinition importDefinition,
+            TypeRef composablePartType,
+            MemberRef importingMember,
+            TypeRef importingSiteTypeRef,
+            TypeRef importingSiteTypeWithoutCollectionRef)
+        {
+            Requires.NotNull(importDefinition, nameof(importDefinition));
+            Requires.NotNull(composablePartType, nameof(composablePartType));
+            Requires.NotNull(importingSiteTypeRef, nameof(importingSiteTypeRef));
+            Requires.NotNull(importingSiteTypeWithoutCollectionRef, nameof(importingSiteTypeWithoutCollectionRef));
 
             this.ImportDefinition = importDefinition;
             this.ComposablePartTypeRef = composablePartType;
             this.ImportingMemberRef = importingMember;
+            this.ImportingSiteTypeRef = importingSiteTypeRef;
+            this.ImportingSiteTypeWithoutCollectionRef = importingSiteTypeWithoutCollectionRef;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
         /// to represent a parameter in an importing constructor.
         /// </summary>
+        [Obsolete]
         public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef composablePartType, ParameterRef importingConstructorParameter)
+            : this(
+                  importDefinition,
+                  composablePartType,
+                  importingConstructorParameter,
+                  TypeRef.Get(importingConstructorParameter.Resolve().ParameterType, importingConstructorParameter.Resolver),
+                  TypeRef.Get(importDefinition.Cardinality == ImportCardinality.ZeroOrMore ? PartDiscovery.GetElementTypeFromMany(importingConstructorParameter.Resolve().ParameterType) : importingConstructorParameter.Resolve().ParameterType, importingConstructorParameter.Resolver))
         {
-            Requires.NotNull(importDefinition, "importDefinition");
-            Requires.NotNull(composablePartType, "composablePartType");
-
-            this.ImportDefinition = importDefinition;
-            this.ComposablePartTypeRef = composablePartType;
-            this.ImportingParameterRef = importingConstructorParameter;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
-        /// to represent an imperative query into the container (no importing part).
+        /// to represent a parameter in an importing constructor.
         /// </summary>
-        public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef contractType)
+        public ImportDefinitionBinding(
+            ImportDefinition importDefinition,
+            TypeRef composablePartType,
+            ParameterRef importingConstructorParameter,
+            TypeRef importingSiteTypeRef,
+            TypeRef importingSiteTypeWithoutCollectionRef)
         {
-            Requires.NotNull(importDefinition, "importDefinition");
-            Requires.NotNull(contractType, "contractType");
+            Requires.NotNull(importDefinition, nameof(importDefinition));
+            Requires.NotNull(composablePartType, nameof(composablePartType));
+            Requires.NotNull(importingSiteTypeRef, nameof(importingSiteTypeRef));
+            Requires.NotNull(importingSiteTypeWithoutCollectionRef, nameof(importingSiteTypeWithoutCollectionRef));
 
             this.ImportDefinition = importDefinition;
-            this.importingSiteTypeRef = TypeRef.Get(typeof(IEnumerable<>).MakeGenericType(typeof(Lazy<>).MakeGenericType(contractType.Resolve())));
+            this.ComposablePartTypeRef = composablePartType;
+            this.ImportingParameterRef = importingConstructorParameter;
+            this.ImportingSiteTypeRef = importingSiteTypeRef;
+            this.ImportingSiteTypeWithoutCollectionRef = importingSiteTypeWithoutCollectionRef;
         }
 
         /// <summary>
@@ -70,7 +103,7 @@
         /// </summary>
         public MemberInfo ImportingMember
         {
-            get { return this.ImportingMemberRef.Resolve(); }
+            get { return this.ImportingMemberRef.MemberInfo; }
         }
 
         /// <summary>
@@ -107,42 +140,15 @@
         /// This includes any Lazy, ExportFactory or collection wrappers.
         /// </summary>
         /// <value>Never null.</value>
-        public TypeRef ImportingSiteTypeRef
-        {
-            get
-            {
-                if (this.importingSiteTypeRef == null)
-                {
-                    if (!this.ImportingMemberRef.IsEmpty)
-                    {
-                        this.importingSiteTypeRef = TypeRef.Get(ReflectionHelpers.GetMemberType(this.ImportingMemberRef.Resolve()));
-                    }
-                    else if (!this.ImportingParameterRef.IsEmpty)
-                    {
-                        this.importingSiteTypeRef = TypeRef.Get(this.ImportingParameterRef.Resolve().ParameterType);
-                    }
-                    else
-                    {
-                        throw Assumes.NotReachable();
-                    }
-                }
+        public TypeRef ImportingSiteTypeRef { get; }
 
-                return this.importingSiteTypeRef;
-            }
-        }
+        public TypeRef ImportingSiteTypeWithoutCollectionRef { get; }
 
         public Type ImportingSiteTypeWithoutCollection
         {
             get
             {
-                if (this.importingSiteTypeWithoutCollection == null)
-                {
-                    this.importingSiteTypeWithoutCollection = this.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore
-                        ? PartDiscovery.GetElementTypeFromMany(this.ImportingSiteType)
-                        : this.ImportingSiteType;
-                }
-
-                return this.importingSiteTypeWithoutCollection;
+                return this.ImportingSiteTypeWithoutCollectionRef?.ResolvedType;
             }
         }
 
@@ -194,7 +200,7 @@
 
         public bool IsExportFactory
         {
-            get { return this.ImportingSiteTypeWithoutCollection.IsExportFactoryType(); }
+            get { return this.ImportingSiteTypeWithoutCollectionRef.IsExportFactoryType(); }
         }
 
         public Type ExportFactoryType
@@ -245,7 +251,7 @@
 
         internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
         {
-            Requires.NotNull(assemblies, "assemblies");
+            Requires.NotNull(assemblies, nameof(assemblies));
 
             this.ImportDefinition.GetInputAssemblies(assemblies);
             this.ComposablePartTypeRef.GetInputAssemblies(assemblies);

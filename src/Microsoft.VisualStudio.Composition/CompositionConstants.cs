@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -17,10 +19,10 @@
 
         internal const string IsOpenGenericExport = MefV3CompositionNamespace + ".IsOpenGenericExport";
 
-
         // ExportFactory<T> support (V3-specific)
         internal const string ExportFactoryProductImportDefinition = MefV3CompositionNamespace + ".ProductImportDefinition";
         internal const string ExportFactoryTypeMetadataName = MefV3CompositionNamespace + ".ExportFactoryType";
+
         // ExportFactory<T> support (copied from V1)
         internal const string ProductDefinitionMetadataName = "ProductDefinition";
         internal const string PartCreatorContractName = MefV1CompositionNamespace + ".Contracts.ExportFactory";

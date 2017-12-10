@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -13,8 +15,8 @@
     /// </summary>
     internal static class LazyServices
     {
-        private static readonly MethodInfo createStronglyTypedLazyOfTM = typeof(LazyServices).GetMethod("CreateStronglyTypedLazyOfTM", BindingFlags.NonPublic | BindingFlags.Static);
-        private static readonly MethodInfo createStronglyTypedLazyOfT = typeof(LazyServices).GetMethod("CreateStronglyTypedLazyOfT", BindingFlags.NonPublic | BindingFlags.Static);
+        private static readonly MethodInfo CreateStronglyTypedLazyOfTMValue = typeof(LazyServices).GetTypeInfo().GetMethod("CreateStronglyTypedLazyOfTM", BindingFlags.NonPublic | BindingFlags.Static);
+        private static readonly MethodInfo CreateStronglyTypedLazyOfTValue = typeof(LazyServices).GetTypeInfo().GetMethod("CreateStronglyTypedLazyOfT", BindingFlags.NonPublic | BindingFlags.Static);
 
         internal static readonly Type DefaultMetadataViewType = typeof(IDictionary<string, object>);
         internal static readonly Type DefaultExportedValueType = typeof(object);
@@ -26,7 +28,7 @@
         /// <returns><c>true</c> if <paramref name="type"/> is some Lazy type.</returns>
         internal static bool IsAnyLazyType(this Type type)
         {
-            if (type.IsGenericType)
+            if (type.GetTypeInfo().IsGenericType)
             {
                 Type genericTypeDefinition = type.GetGenericTypeDefinition();
                 if (genericTypeDefinition == typeof(Lazy<>) || genericTypeDefinition == typeof(Lazy<,>))
@@ -56,19 +58,19 @@
             MethodInfo genericMethod;
             if (metadataViewType != null)
             {
-                genericMethod = createStronglyTypedLazyOfTM.MakeGenericMethod(exportType ?? DefaultExportedValueType, metadataViewType);
+                genericMethod = CreateStronglyTypedLazyOfTMValue.MakeGenericMethod(exportType ?? DefaultExportedValueType, metadataViewType);
             }
             else
             {
-                genericMethod = createStronglyTypedLazyOfT.MakeGenericMethod(exportType ?? DefaultExportedValueType);
+                genericMethod = CreateStronglyTypedLazyOfTValue.MakeGenericMethod(exportType ?? DefaultExportedValueType);
             }
 
-            return (Func<Func<object>, object, object>)Delegate.CreateDelegate(typeof(Func<Func<object>, object, object>), genericMethod);
+            return (Func<Func<object>, object, object>)genericMethod.CreateDelegate(typeof(Func<Func<object>, object, object>));
         }
 
         internal static Func<T> AsFunc<T>(this Lazy<T> lazy)
         {
-            Requires.NotNull(lazy, "lazy");
+            Requires.NotNull(lazy, nameof(lazy));
 
             // Theoretically, this is the most efficient approach. It only allocates a delegate (no closure).
             // But it unfortunately results in a slow path within the CLR (clr!COMDelegate::DelegateConstruct)
@@ -86,15 +88,15 @@
 
         private static Lazy<T> CreateStronglyTypedLazyOfT<T>(Func<object> funcOfObject, object metadata)
         {
-            Requires.NotNull(funcOfObject, "funcOfObject");
+            Requires.NotNull(funcOfObject, nameof(funcOfObject));
 
             return new Lazy<T>(funcOfObject.As<T>());
         }
 
         private static Lazy<T, TMetadata> CreateStronglyTypedLazyOfTM<T, TMetadata>(Func<object> funcOfObject, object metadata)
         {
-            Requires.NotNull(funcOfObject, "funcOfObject");
-            Requires.NotNullAllowStructs(metadata, "metadata");
+            Requires.NotNull(funcOfObject, nameof(funcOfObject));
+            Requires.NotNullAllowStructs(metadata, nameof(metadata));
 
             return new Lazy<T, TMetadata>(funcOfObject.As<T>(), (TMetadata)metadata);
         }

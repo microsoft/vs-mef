@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -20,7 +22,7 @@
     /// constructed for different parameterized values while only incurring the cost of the Func{T} delegate itself
     /// and no closure.
     /// In most cases this is an insignificant difference. But if you're counting allocations for GC pressure,
-    /// this might be just what you need. 
+    /// this might be just what you need.
     /// </remarks>
     internal static class DelegateServices
     {
@@ -30,6 +32,7 @@
         /// Creates a Func{T} from a delegate that takes one parameter
         /// (for the cost of a delegate, but without incurring the cost of a closure).
         /// </summary>
+        /// <typeparam name="T">The type of value to return from the function.</typeparam>
         /// <param name="value">The value to return from the lazy.</param>
         /// <returns>The lazy instance.</returns>
         internal static Func<T> FromValue<T>(T value)

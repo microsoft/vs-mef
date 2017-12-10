@@ -1,4 +1,6 @@
-﻿namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft. All rights reserved.
+
+namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
@@ -9,16 +11,11 @@
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal static class ByValueEquality
+    internal static partial class ByValueEquality
     {
         internal static IEqualityComparer<IReadOnlyDictionary<string, object>> Metadata
         {
             get { return MetadataDictionaryEqualityComparer.Default; }
-        }
-
-        internal static IEqualityComparer<byte[]> Buffer
-        {
-            get { return BufferComparer.Default; }
         }
 
         internal static IEqualityComparer<IReadOnlyDictionary<TKey, TValue>> Dictionary<TKey, TValue>(IEqualityComparer<TValue> valueComparer = null)
@@ -36,57 +33,13 @@
             return CollectionIgnoreOrder<T>.Default;
         }
 
-        internal static IEqualityComparer<AssemblyName> AssemblyName
-        {
-            get { return AssemblyNameComparer.Default; }
-        }
-
-        private class BufferComparer : IEqualityComparer<byte[]>
-        {
-            internal static readonly BufferComparer Default = new BufferComparer();
-
-            private BufferComparer() { }
-
-            public bool Equals(byte[] x, byte[] y)
-            {
-                if (x == y)
-                {
-                    return true;
-                }
-
-                if (x == null ^ y == null)
-                {
-                    return false;
-                }
-
-                if (x.Length != y.Length)
-                {
-                    return false;
-                }
-
-                for (int i = 0; i < x.Length; i++)
-                {
-                    if (x[i] != y[i])
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-
-            public int GetHashCode(byte[] obj)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-
         private class CollectionIgnoreOrder<T> : IEqualityComparer<IReadOnlyCollection<T>>
         {
             internal static readonly CollectionIgnoreOrder<T> Default = new CollectionIgnoreOrder<T>();
 
-            private CollectionIgnoreOrder() { }
+            private CollectionIgnoreOrder()
+            {
+            }
 
             protected virtual IEqualityComparer<T> ValueComparer
             {
@@ -100,7 +53,7 @@
                     return true;
                 }
 
-                    if (x == null ^ y == null)
+                if (x == null ^ y == null)
                 {
                     return false;
                 }
@@ -219,10 +172,12 @@
 
         private class MetadataDictionaryEqualityComparer : DictionaryEqualityComparer<string, object>
         {
-            new internal static readonly MetadataDictionaryEqualityComparer Default = new MetadataDictionaryEqualityComparer();
+            internal static new readonly MetadataDictionaryEqualityComparer Default = new MetadataDictionaryEqualityComparer();
 
             protected MetadataDictionaryEqualityComparer()
-                : base(MetadataValueComparer.Default) { }
+                : base(MetadataValueComparer.Default)
+            {
+            }
 
             public override int GetHashCode(IReadOnlyDictionary<string, object> obj)
             {
@@ -253,7 +208,9 @@
             {
                 internal static readonly MetadataValueComparer Default = new MetadataValueComparer();
 
-                private MetadataValueComparer() { }
+                private MetadataValueComparer()
+                {
+                }
 
                 public new bool Equals(object x, object y)
                 {
@@ -280,8 +237,8 @@
                     {
                         // Whitelist Type[] and RuntimeType[] arrays as equivalent.
                         if (!(x.GetType().IsArray && y.GetType().IsArray &&
-                            typeof(Type).IsAssignableFrom(x.GetType().GetElementType()) &&
-                            typeof(Type).IsAssignableFrom(y.GetType().GetElementType())))
+                            typeof(Type).GetTypeInfo().IsAssignableFrom(x.GetType().GetElementType()) &&
+                            typeof(Type).GetTypeInfo().IsAssignableFrom(y.GetType().GetElementType())))
                         {
                             return false;
                         }
@@ -324,16 +281,20 @@
 
         private class DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue> : DictionaryEqualityComparer<TKey, ImmutableHashSet<TValue>>
         {
-            new internal static readonly DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue> Default = new DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue>();
+            internal static new readonly DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue> Default = new DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue>();
 
             protected DictionaryOfImmutableHashSetEqualityComparer()
-                : base(SetEqualityComparer.Default) { }
+                : base(SetEqualityComparer.Default)
+            {
+            }
 
             private class SetEqualityComparer : IEqualityComparer<ImmutableHashSet<TValue>>
             {
                 internal static readonly SetEqualityComparer Default = new SetEqualityComparer();
 
-                private SetEqualityComparer() { }
+                private SetEqualityComparer()
+                {
+                }
 
                 public bool Equals(ImmutableHashSet<TValue> x, ImmutableHashSet<TValue> y)
                 {
@@ -354,44 +315,6 @@
                 {
                     return obj.Count;
                 }
-            }
-        }
-
-        private class AssemblyNameComparer : IEqualityComparer<AssemblyName>
-        {
-            internal static readonly AssemblyNameComparer Default = new AssemblyNameComparer();
-
-            internal AssemblyNameComparer() { }
-
-            public bool Equals(AssemblyName x, AssemblyName y)
-            {
-                if (x == null ^ y == null)
-                {
-                    return false;
-                }
-
-                if (x == null)
-                {
-                    return true;
-                }
-
-                // fast path
-                if (x.CodeBase == y.CodeBase)
-                {
-                    return true;
-                }
-
-                // Testing on FullName is horrifically slow.
-                // So test directly on its components instead.
-                return x.Name == y.Name
-                    && x.Version.Equals(y.Version)
-                    && x.CultureName.Equals(y.CultureName)
-                    && ByValueEquality.Buffer.Equals(x.GetPublicKey(), y.GetPublicKey());
-            }
-
-            public int GetHashCode(AssemblyName obj)
-            {
-                return obj.Name.GetHashCode();
             }
         }
     }
