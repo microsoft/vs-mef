@@ -8,7 +8,8 @@
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>CS1591;CS1701</NoWarn>
-    <DefineConstants Condition=" '$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net452' ">$(DefineConstants);DESKTOP;RuntimeHandles</DefineConstants>
+    <DefineConstants Condition=" '$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net452' or '$(TargetFramework)' == 'net46' ">$(DefineConstants);DESKTOP;RuntimeHandles</DefineConstants>
+    <TargetsDesktop Condition=" '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net46' ">true</TargetsDesktop>
 
     <NerdbankGitVersioningVersion>1.6.35</NerdbankGitVersioningVersion>
     <MicroBuildVersion>2.0.44</MicroBuildVersion>

@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.parameterIndex = parameterIndex;
         }
 
-#if NET45
+#if DESKTOP
         [Obsolete]
         public ParameterRef(TypeRef declaringType, int methodMetadataToken, int parameterIndex)
         {

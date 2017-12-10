@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-#if NET45
+#if DESKTOP
 
 namespace Microsoft.VisualStudio.Composition
 {

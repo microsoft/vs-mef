@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     try
                     {
-#if NET45
+#if DESKTOP
                         return new Assembly[] { Assembly.Load(AssemblyName.GetAssemblyName(path)) };
 #elif NETCOREAPP1_0
                         return new Assembly[] { System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(path) };

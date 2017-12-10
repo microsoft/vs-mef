@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.GenericMethodArguments = genericMethodArguments;
         }
 
-#if NET45
+#if DESKTOP
         [Obsolete]
         public MethodRef(TypeRef declaringType, int metadataToken, ImmutableArray<TypeRef> genericMethodArguments)
             : this(
