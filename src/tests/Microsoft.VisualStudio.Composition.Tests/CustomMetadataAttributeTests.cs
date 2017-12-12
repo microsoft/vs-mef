@@ -29,18 +29,28 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal("Andrew", part.ImportingProperty.Metadata["Name"]);
         }
 
-        [MefFact(CompositionEngines.V2Compat, typeof(ExportedTypeWithDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata))]
+        [MefFact(CompositionEngines.V2, typeof(ExportedTypeWithDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata), NoCompatGoal = true)]
         public void CustomMetadataOnDerivedMetadataAttributeOnExportedTypeV2(IContainer container)
         {
             var part = container.GetExportedValue<PartThatImportsExportWithDerivedMetadata>();
             Assert.False(part.ImportingProperty.Metadata.ContainsKey("Name"));
         }
 
-        // BUGBUG: MEFv2 throws NullReferenceException in this case.
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(ExportedTypeWithAllowMultipleDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata))]
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportedTypeWithAllowMultipleDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata))]
         public void CustomMetadataOnAllowMultipleDerivedMetadataAttributeOnExportedType(IContainer container)
         {
             var part = container.GetExportedValue<PartThatImportsExportWithDerivedMetadata>();
+            Assert.IsType<string[]>(part.ImportingAllowMultiple.Metadata["Name"]);
+            var array = (string[])part.ImportingAllowMultiple.Metadata["Name"];
+            Assert.Equal(2, array.Length);
+            Assert.True(array.Contains("Andrew1"));
+            Assert.True(array.Contains("Andrew2"));
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportedTypeWithAllowMultipleMetadata), typeof(PartThatImportsExportWithMetadata))]
+        public void CustomMetadataOnAllowMultipleMetadataAttributeOnExportedType(IContainer container)
+        {
+            var part = container.GetExportedValue<PartThatImportsExportWithMetadata>();
             Assert.IsType<string[]>(part.ImportingAllowMultiple.Metadata["Name"]);
             var array = (string[])part.ImportingAllowMultiple.Metadata["Name"];
             Assert.Equal(2, array.Length);
@@ -125,16 +135,32 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(part.ImportingProperty.Value);
         }
 
-        // The MEF v2 behavior is that properties from a base class do not get included in the metadata. Currently, our MEF v2 discovery does include them. After fixing this, we can enable the test for MEF v2 compat.
-        [MefFact(CompositionEngines.V2, typeof(ExportWithDerivedExportMetadata), typeof(ImportingPartForDerivedExportMetadata))]
+        [MefFact(CompositionEngines.V2, typeof(ExportWithDerivedExportMetadata), typeof(ImportingPartForDerivedExportMetadata), NoCompatGoal = true)]
         public void BasePropertiesAreIgnoredInMefV2(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPartForDerivedExportMetadata>();
 
             Assert.False(part.ImportingProperty.Metadata.ContainsKey("Property"));
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(ExportWithDerivedExportMetadata), typeof(ImportingPartForDerivedExportMetadata))]
+        public void BasePropertiesAreNotIgnoredWhenEmulatingV2(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportingPartForDerivedExportMetadata>();
+
+            object prop1 = part.ImportingProperty.Metadata["Property"];
+            Assert.Equal("prop1", prop1);
 
             object prop2 = part.ImportingProperty.Metadata["AnotherProperty"];
-            Assert.Equal("prop2", prop2.ToString());
+            Assert.Equal("prop2", prop2);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportWithDerivedExportMetadata), typeof(ImportingPartForDerivedExportMetadata), NoCompatGoal = true)]
+        public void DerivedPropertiesAreObservedOnAllMEF(IContainer container)
+        {
+            var part = container.GetExportedValue<ImportingPartForDerivedExportMetadata>();
+
+            Assert.True(part.ImportingProperty.Metadata.ContainsKey("AnotherProperty"));
         }
 
 #if DESKTOP
@@ -201,6 +227,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         [MefV1.Export]
         [Export]
+        [NameMultiple(Name = "Andrew1")]
+        [NameMultiple(Name = "Andrew2")]
+        public class ExportedTypeWithAllowMultipleMetadata { }
+
+        [MefV1.Export]
+        [Export]
         public class PartThatImportsExportWithDerivedMetadata
         {
             [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
@@ -208,6 +240,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
             public Lazy<ExportedTypeWithAllowMultipleDerivedMetadata, IDictionary<string, object>> ImportingAllowMultiple { get; set; }
+        }
+
+        [MefV1.Export]
+        [Export]
+        public class PartThatImportsExportWithMetadata
+        {
+            [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
+            public Lazy<ExportedTypeWithMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+
+            [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
+            public Lazy<ExportedTypeWithAllowMultipleMetadata, IDictionary<string, object>> ImportingAllowMultiple { get; set; }
         }
 
         [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -277,7 +320,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// An attribute that derives from AllowMultiple base class
         /// and intentionally does not have <see cref="AttributeUsageAttribute"/> attributes applied directly.
         /// </summary>
-        [MetadataAttribute] // only V2 needs this
         public class NameMultipleDerivedAttribute : NameMultipleAttribute
         {
             public string OtherProperty { get; set; }
@@ -360,8 +402,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public string Property { get; }
         }
 
-        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true)]
-        [MefV1.MetadataAttribute, MetadataAttribute]
         public class DerivedMetadataAttribute : BaseMetadataAttribute
         {
             public DerivedMetadataAttribute(string property, string anotherProperty)
