@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net452;netcoreapp1.0</TargetFrameworks>
+    <TargetFrameworks>net452;net46;netcoreapp1.0</TargetFrameworks>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.Tests.ruleset</CodeAnalysisRuleSet>
     <NoWarn>$(NoWarn);CS1762</NoWarn>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -10,7 +10,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System.ComponentModel.Composition" Condition=" '$(TargetFramework)' == 'net452' " />
+    <Reference Include="System.ComponentModel.Composition" Condition=" '$(TargetsDesktop)' == 'true' " />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />

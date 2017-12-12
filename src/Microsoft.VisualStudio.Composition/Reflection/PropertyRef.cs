@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.Name = name;
         }
 
-#if NET45
+#if DESKTOP
         [Obsolete]
         public PropertyRef(TypeRef declaringType, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken)
             : this(

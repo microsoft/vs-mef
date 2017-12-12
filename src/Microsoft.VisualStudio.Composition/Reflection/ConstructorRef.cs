@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.ParameterTypes = parameterTypes;
         }
 
-#if NET45
+#if DESKTOP
         [Obsolete]
         public ConstructorRef(TypeRef declaringType, int metadataToken)
             : this(

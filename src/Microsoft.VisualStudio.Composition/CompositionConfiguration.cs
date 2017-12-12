@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Composition
             MetadataViewClassProvider.PartDefinition,
             MetadataViewClassDefaultCtorProvider.PartDefinition,
             ExportMetadataViewInterfaceEmitProxy.PartDefinition)
-#if NET45
+#if DESKTOP
             .Add(MetadataViewImplProxy.PartDefinition)
 #endif
             ;
