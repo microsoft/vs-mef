@@ -70,7 +70,7 @@
     <value>無法載入組件"{0}"進行掃描。</value>
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
-    <value>未預期的成員型別。</value>
+    <value>未預期的成員類型 {0}。</value>
     <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
