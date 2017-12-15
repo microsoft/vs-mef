@@ -70,7 +70,7 @@
     <value>Não é possível carregar o assembly "{0}" para verificação.</value>
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
-    <value>Tipo de membro inesperado.</value>
+    <value>Tipo de membro inesperado {0}.</value>
     <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">

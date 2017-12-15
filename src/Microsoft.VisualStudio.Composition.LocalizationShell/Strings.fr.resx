@@ -70,7 +70,7 @@
     <value>Impossible de charger l'assembly "{0}" pour l'analyse.</value>
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
-    <value>Type de membre inattendu.</value>
+    <value>Type de membre inattendu {0}.</value>
     <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">

@@ -70,7 +70,7 @@
     <value>No se pudo cargar el ensamblado "{0}" para su análisis.</value>
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
-    <value>Tipo de miembro no esperado.</value>
+    <value>Tipo de miembro '{0}' inesperado.</value>
     <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
