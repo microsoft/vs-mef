@@ -20,17 +20,27 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         private ImmutableHashSet<ComposablePartDefinition> parts;
 
+        /// <summary>
+        /// The exports from parts in this catalog, indexed by contract name.
+        /// </summary>
         private ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract;
 
-        private ComposableCatalog(ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, DiscoveredParts discoveredParts, Resolver resolver)
+        /// <summary>
+        /// The types that are represented in this catalog.
+        /// </summary>
+        private ImmutableHashSet<TypeRef> typesBackingParts;
+
+        private ComposableCatalog(ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, ImmutableHashSet<TypeRef> typesBackingParts, DiscoveredParts discoveredParts, Resolver resolver)
         {
             Requires.NotNull(parts, nameof(parts));
             Requires.NotNull(exportsByContract, nameof(exportsByContract));
+            Requires.NotNull(typesBackingParts, nameof(typesBackingParts));
             Requires.NotNull(discoveredParts, nameof(discoveredParts));
             Requires.NotNull(resolver, nameof(resolver));
 
             this.parts = parts;
             this.exportsByContract = exportsByContract;
+            this.typesBackingParts = typesBackingParts;
             this.DiscoveredParts = discoveredParts;
             this.Resolver = resolver;
         }
@@ -55,6 +65,7 @@ namespace Microsoft.VisualStudio.Composition
             return new ComposableCatalog(
                 ImmutableHashSet.Create<ComposablePartDefinition>(),
                 ImmutableDictionary.Create<string, ImmutableList<ExportDefinitionBinding>>(),
+                ImmutableHashSet.Create<TypeRef>(),
                 DiscoveredParts.Empty,
                 resolver);
         }
@@ -68,6 +79,12 @@ namespace Microsoft.VisualStudio.Composition
             {
                 // This part is already in the catalog.
                 return this;
+            }
+
+            var typesBackingParts = this.typesBackingParts.Add(partDefinition.TypeRef);
+            if (typesBackingParts == this.typesBackingParts)
+            {
+                Requires.Argument(false, nameof(partDefinition), Strings.TypeAlreadyInCatalogAsAnotherPart, partDefinition.TypeRef.FullName);
             }
 
             var exportsByContract = this.exportsByContract;
@@ -88,7 +105,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            return new ComposableCatalog(parts, exportsByContract, this.DiscoveredParts, this.Resolver);
+            return new ComposableCatalog(parts, exportsByContract, typesBackingParts, this.DiscoveredParts, this.Resolver);
         }
 
         public ComposableCatalog AddParts(IEnumerable<ComposablePartDefinition> parts)
@@ -106,7 +123,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(parts, nameof(parts));
 
             var catalog = this.AddParts(parts.Parts);
-            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(parts), catalog.Resolver);
+            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.typesBackingParts, catalog.DiscoveredParts.Merge(parts), catalog.Resolver);
         }
 
         /// <summary>
@@ -119,7 +136,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(catalogToMerge, nameof(catalogToMerge));
 
             var catalog = this.AddParts(catalogToMerge.Parts);
-            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.DiscoveredParts.Merge(catalogToMerge.DiscoveredParts), catalog.Resolver);
+            return new ComposableCatalog(catalog.parts, catalog.exportsByContract, catalog.typesBackingParts, catalog.DiscoveredParts.Merge(catalogToMerge.DiscoveredParts), catalog.Resolver);
         }
 
         /// <summary>

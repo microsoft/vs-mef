@@ -84,8 +84,7 @@
         </trans-unit>
         <trans-unit id="UnexpectedMemberType" translate="yes" xml:space="preserve">
           <source>Unexpected member type {0}.</source>
-          <target state="needs-review-translation">Tipo de membro inesperado.</target>
-          <note from="MultilingualUpdate" annotates="source" priority="2">Please verify the translation’s accuracy as the source string was updated after it was translated.</note>
+          <target state="translated">Tipo de membro inesperado {0}.</target>
           <note from="MultilingualBuild" annotates="source" priority="2">Where {0} will be substituted with an enum value.</note>
         </trans-unit>
         <trans-unit id="UnexpectedNumberOfExportsFound" translate="yes" xml:space="preserve">
@@ -279,6 +278,12 @@
         <trans-unit id="WrongType" translate="yes" xml:space="preserve">
           <source>Wrong type.</source>
           <target state="translated">Tipo incorreto.</target>
+        </trans-unit>
+        <trans-unit id="TypeAlreadyInCatalogAsAnotherPart" translate="yes" xml:space="preserve">
+          <source>The type {0} already belongs to the catalog as a different ComposablePartDefinition.</source>
+          <target state="new">The type {0} already belongs to the catalog as a different ComposablePartDefinition.</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">ComposablePartDefinition is a type name and should not be localized.
+{0} is a fully-qualified type name.</note>
         </trans-unit>
       </group>
     </body>

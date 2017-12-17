@@ -8,7 +8,7 @@
       <group id="MICROSOFT.VISUALSTUDIO.COMPOSITION.LOCALIZATIONSHELL/STRINGS.RESX" datatype="resx">
         <trans-unit id="CannotDirectlyDisposeAnImport" translate="yes" xml:space="preserve">
           <source>This instance is an import and cannot be directly disposed.</source>
-          <target state="translated">Questa istanza è un'importazione e non può essere eliminato direttamente.</target>
+          <target state="translated">Questa istanza è un'importazione e non può essere eliminata direttamente.</target>
         </trans-unit>
         <trans-unit id="ContainerDisposalEncounteredExceptions" translate="yes" xml:space="preserve">
           <source>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</source>
@@ -24,7 +24,7 @@
         </trans-unit>
         <trans-unit id="ErrorWhileSettingImport" translate="yes" xml:space="preserve">
           <source>Import "{0}" could not be satisfied.</source>
-          <target state="translated">Non è possibile soddisfare l'importazione "{0}".</target>
+          <target state="translated">Non è stato possibile soddisfare l'importazione "{0}".</target>
         </trans-unit>
         <trans-unit id="ExceptionThrownByPartUnderInitialization" translate="yes" xml:space="preserve">
           <source>An exception was thrown while initializing part "{0}".</source>
@@ -44,7 +44,7 @@
         </trans-unit>
         <trans-unit id="NoImportingConstructor" translate="yes" xml:space="preserve">
           <source>No importing constructor.</source>
-          <target state="translated">Non sono stati trovati costruttori di importazione.</target>
+          <target state="translated">Non ci sono costruttori di importazione.</target>
         </trans-unit>
         <trans-unit id="PartBelongsToAnotherSharingBoundary" translate="yes" xml:space="preserve">
           <source>Inappropriate request for export from part that belongs to another sharing boundary.</source>
@@ -60,7 +60,7 @@
         </trans-unit>
         <trans-unit id="ScanningMEFAssemblies" translate="yes" xml:space="preserve">
           <source>Scanning MEF assemblies...</source>
-          <target state="translated">Ricerca degli assembly MEF in corso...</target>
+          <target state="translated">Ricerca degli assembly MEF...</target>
         </trans-unit>
         <trans-unit id="TypeOfMetadataViewUnsupported" translate="yes" xml:space="preserve">
           <source>Type of metadata view is unsupported.</source>
@@ -84,8 +84,7 @@
         </trans-unit>
         <trans-unit id="UnexpectedMemberType" translate="yes" xml:space="preserve">
           <source>Unexpected member type {0}.</source>
-          <target state="needs-review-translation">Tipo di membro imprevisto.</target>
-          <note from="MultilingualUpdate" annotates="source" priority="2">Please verify the translation’s accuracy as the source string was updated after it was translated.</note>
+          <target state="translated">Il tipo di membro {0} è imprevisto.</target>
           <note from="MultilingualBuild" annotates="source" priority="2">Where {0} will be substituted with an enum value.</note>
         </trans-unit>
         <trans-unit id="UnexpectedNumberOfExportsFound" translate="yes" xml:space="preserve">
@@ -130,7 +129,7 @@
         </trans-unit>
         <trans-unit id="ImportsThatUseGenericTypeParametersNotSupported" translate="yes" xml:space="preserve">
           <source>{0}: imports that use generic type parameters are not supported.</source>
-          <target state="translated">{0}: le importazioni che usano parametri di tipo generici non sono supportate.</target>
+          <target state="translated">{0}: le importazioni che usano parametri di tipo generico non sono supportate.</target>
         </trans-unit>
         <trans-unit id="InstanceEmpty" translate="yes" xml:space="preserve">
           <source>This instance is empty.</source>
@@ -162,7 +161,7 @@
         </trans-unit>
         <trans-unit id="NotGenericTypeDefinition" translate="yes" xml:space="preserve">
           <source>This is not a generic type definition.</source>
-          <target state="translated">Questa non è una definizione di tipo generica.</target>
+          <target state="translated">Questa non è una definizione di tipo generico.</target>
         </trans-unit>
         <trans-unit id="NotInitialized" translate="yes" xml:space="preserve">
           <source>Not initialized.</source>
@@ -279,6 +278,12 @@
         <trans-unit id="WrongType" translate="yes" xml:space="preserve">
           <source>Wrong type.</source>
           <target state="translated">Tipo errato.</target>
+        </trans-unit>
+        <trans-unit id="TypeAlreadyInCatalogAsAnotherPart" translate="yes" xml:space="preserve">
+          <source>The type {0} already belongs to the catalog as a different ComposablePartDefinition.</source>
+          <target state="new">The type {0} already belongs to the catalog as a different ComposablePartDefinition.</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">ComposablePartDefinition is a type name and should not be localized.
+{0} is a fully-qualified type name.</note>
         </trans-unit>
       </group>
     </body>

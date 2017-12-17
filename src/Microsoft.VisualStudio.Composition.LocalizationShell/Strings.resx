@@ -323,4 +323,9 @@
   <data name="WrongType" xml:space="preserve">
     <value>Wrong type.</value>
   </data>
+  <data name="TypeAlreadyInCatalogAsAnotherPart" xml:space="preserve">
+    <value>The type {0} already belongs to the catalog as a different ComposablePartDefinition.</value>
+    <comment>ComposablePartDefinition is a type name and should not be localized.
+{0} is a fully-qualified type name.</comment>
+  </data>
 </root>

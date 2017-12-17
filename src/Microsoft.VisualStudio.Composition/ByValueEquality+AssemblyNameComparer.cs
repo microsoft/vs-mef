@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.Composition
                     return true;
                 }
 
-#if NET45
+#if DESKTOP
                 // If fast check is enabled, we can compare the code bases
                 if (this.fastCheck && x.CodeBase == y.CodeBase)
                 {

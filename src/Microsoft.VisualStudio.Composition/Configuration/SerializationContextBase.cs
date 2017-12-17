@@ -457,7 +457,7 @@ namespace Microsoft.VisualStudio.Composition
                 if (this.TryPrepareSerializeReusableObject(assemblyName))
                 {
                     this.Write(assemblyName.FullName);
-#if NET45
+#if DESKTOP
                     this.Write(assemblyName.CodeBase);
 #else
                     this.Write((string)null); // keep the binary format consistent even if we can't write this.
@@ -477,7 +477,7 @@ namespace Microsoft.VisualStudio.Composition
                     string fullName = this.ReadString();
                     string codeBase = this.ReadString();
                     value = new AssemblyName(fullName);
-#if NET45
+#if DESKTOP
                     value.CodeBase = codeBase;
 #endif
                     this.OnDeserializedReusableObject(id, value);
@@ -939,7 +939,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
                     else
                     {
-#if NET45
+#if DESKTOP
                         Debug.WriteLine("Falling back to binary formatter for value of type: {0}", valueType);
                         this.Write(ObjectType.BinaryFormattedObject);
                         var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
@@ -1012,7 +1012,7 @@ namespace Microsoft.VisualStudio.Composition
                         IReadOnlyList<TypeRef> typeRefArray = this.ReadList(this.reader, this.ReadTypeRef);
                         return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray, this.Resolver);
                     case ObjectType.BinaryFormattedObject:
-#if NET45
+#if DESKTOP
                         var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                         return formatter.Deserialize(this.reader.BaseStream);
 #else

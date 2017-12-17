@@ -14,11 +14,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using Xunit.Abstractions;
     using MEFv1 = System.ComponentModel.Composition;
 
-    public class CompositionCatalogTests
+    public class ComposableCatalogTests2
     {
         private readonly ITestOutputHelper logger;
 
-        public CompositionCatalogTests(ITestOutputHelper logger)
+        public ComposableCatalogTests2(ITestOutputHelper logger)
         {
             this.logger = logger;
         }

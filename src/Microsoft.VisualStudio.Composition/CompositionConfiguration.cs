@@ -13,6 +13,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using System.Xml;
@@ -26,8 +27,9 @@ namespace Microsoft.VisualStudio.Composition
             ExportProvider.ExportProviderPartDefinition,
             PassthroughMetadataViewProvider.PartDefinition,
             MetadataViewClassProvider.PartDefinition,
+            MetadataViewClassDefaultCtorProvider.PartDefinition,
             ExportMetadataViewInterfaceEmitProxy.PartDefinition)
-#if NET45
+#if DESKTOP
             .Add(MetadataViewImplProxy.PartDefinition)
 #endif
             ;
@@ -665,7 +667,7 @@ namespace Microsoft.VisualStudio.Composition
 
             public int GetHashCode(T obj)
             {
-                return obj.GetHashCode();
+                return RuntimeHelpers.GetHashCode(obj);
             }
         }
     }

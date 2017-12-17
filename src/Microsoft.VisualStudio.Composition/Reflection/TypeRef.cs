@@ -246,7 +246,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return result;
         }
 
-#if NET45
+#if DESKTOP
         [Obsolete]
         public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
@@ -346,7 +346,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             Requires.NotNull(assemblyName, nameof(assemblyName));
 
             AssemblyName normalizedAssemblyName = assemblyName;
-#if NET45
+#if DESKTOP
             if (assemblyName.CodeBase.IndexOf('~') >= 0)
             {
                 // Using ToString() rather than AbsoluteUri here to match the CLR's AssemblyName.CodeBase convention of paths without %20 space characters.

@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         // Consider: do we want MEFv3 to follow V1's lead or V2's lead?
         // We could follow V2's lead by recognizing when we need to instantiate the attribute
         // at runtime in order to construct the metadata value.
-        [MefFact(CompositionEngines.V1, InvalidConfiguration = true)]
+        [MefFact(CompositionEngines.V1, typeof(ImportingPart), typeof(ExportWithCustomMetadata), InvalidConfiguration = true)]
         public void CustomMetadataValueV1(IContainer container)
         {
             var importer = container.GetExportedValue<ImportingPart>();
@@ -33,10 +33,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// <remarks>
         /// When it comes time to support this in V3, <see cref="ReflectionHelpers.Instantiate(CustomAttributeData)"/>
         /// is expected to come in useful. We can cache that CustomAttributeData the same way we cache other reflection
-        /// data, and use it to reconsistute the value at runtime.
+        /// data, and use it to reconstitute the value at runtime.
         /// </remarks>
 #pragma warning restore CS1574
-        [MefFact(CompositionEngines.V2)]
+        [MefFact(CompositionEngines.V2, NoCompatGoal = true)]
         public void CustomMetadataValueV2(IContainer container)
         {
             var importer = container.GetExportedValue<ImportingPart>();

@@ -11,8 +11,8 @@
 namespace Microsoft.VisualStudio.Composition {
     using System;
     using System.Reflection;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -526,6 +526,15 @@ namespace Microsoft.VisualStudio.Composition {
         internal static string ScanningMEFAssemblies {
             get {
                 return ResourceManager.GetString("ScanningMEFAssemblies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type {0} already belongs to the catalog as a different ComposablePartDefinition..
+        /// </summary>
+        internal static string TypeAlreadyInCatalogAsAnotherPart {
+            get {
+                return ResourceManager.GetString("TypeAlreadyInCatalogAsAnotherPart", resourceCulture);
             }
         }
         

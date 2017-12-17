@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.Name = name;
         }
 
-#if NET45
+#if DESKTOP
         [Obsolete]
         public FieldRef(TypeRef declaringType, int metadataToken)
             : this(
