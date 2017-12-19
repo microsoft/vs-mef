@@ -35,6 +35,8 @@ namespace Microsoft.VisualStudio.Composition
 
         private readonly ImmutableDictionary<string, object>.Builder metadataBuilder = ImmutableDictionary.CreateBuilder<string, object>();
 
+        private readonly byte[] guidBuffer = new byte[128 / 8];
+
         private long objectTableCapacityStreamPosition = -1; // -1 indicates the stream isn't capable of seeking.
 
         internal SerializationContextBase(BinaryReader reader, Resolver resolver)
@@ -411,7 +413,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (this.TryPrepareSerializeReusableObject(typeRef))
                 {
-                    this.Write(typeRef.AssemblyName);
+                    this.Write(typeRef.AssemblyId);
                     this.WriteCompressedMetadataToken(typeRef.MetadataToken, MetadataTokenType.Type);
                     this.Write(typeRef.FullName);
 
@@ -433,13 +435,13 @@ namespace Microsoft.VisualStudio.Composition
                 TypeRef value;
                 if (this.TryPrepareDeserializeReusableObject(out id, out value))
                 {
-                    var assemblyName = this.ReadAssemblyName();
+                    var assemblyId = this.ReadStrongAssemblyIdentity();
                     var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Type);
                     var fullName = this.ReadString();
                     var flags = (TypeRefFlags)this.reader.ReadByte();
                     int genericTypeParameterCount = (int)this.ReadCompressedUInt();
                     var genericTypeArguments = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
-                    value = TypeRef.Get(this.Resolver, assemblyName, metadataToken, fullName, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments);
+                    value = TypeRef.Get(this.Resolver, assemblyId, metadataToken, fullName, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments);
 
                     this.OnDeserializedReusableObject(id, value);
                 }
@@ -482,6 +484,70 @@ namespace Microsoft.VisualStudio.Composition
                 }
 
                 return value;
+            }
+        }
+
+        protected void Write(StrongAssemblyIdentity assemblyMetadata)
+        {
+            using (this.Trace(nameof(StrongAssemblyIdentity)))
+            {
+                if (this.TryPrepareSerializeReusableObject(assemblyMetadata))
+                {
+                    this.Write(assemblyMetadata.Name);
+                    this.Write(assemblyMetadata.LastWriteTimeUtc);
+                    this.Write(assemblyMetadata.Mvid);
+                }
+            }
+        }
+
+        protected StrongAssemblyIdentity ReadStrongAssemblyIdentity()
+        {
+            using (this.Trace(nameof(StrongAssemblyIdentity)))
+            {
+                if (this.TryPrepareDeserializeReusableObject(out uint id, out StrongAssemblyIdentity value))
+                {
+                    AssemblyName name = this.ReadAssemblyName();
+                    DateTime lastWriteTimeUtc = this.ReadDateTime();
+                    Guid mvid = this.ReadGuid();
+                    value = new StrongAssemblyIdentity(name, lastWriteTimeUtc, mvid);
+
+                    this.OnDeserializedReusableObject(id, value);
+                }
+
+                return value;
+            }
+        }
+
+        protected void Write(DateTime value)
+        {
+            using (this.Trace(nameof(DateTime)))
+            {
+                this.writer.Write(value.Ticks);
+            }
+        }
+
+        protected DateTime ReadDateTime()
+        {
+            using (this.Trace(nameof(DateTime)))
+            {
+                return new DateTime(this.reader.ReadInt64());
+            }
+        }
+
+        protected void Write(Guid value)
+        {
+            using (this.Trace(nameof(Guid)))
+            {
+                this.writer.Write(value.ToByteArray());
+            }
+        }
+
+        protected Guid ReadGuid()
+        {
+            using (this.Trace(nameof(Guid)))
+            {
+                this.ReadBuffer(this.guidBuffer, 0, this.guidBuffer.Length);
+                return new Guid(this.guidBuffer);
             }
         }
 
@@ -595,6 +661,31 @@ namespace Microsoft.VisualStudio.Composition
                 }
 
                 return list;
+            }
+        }
+
+        /// <summary>
+        /// Reads the specified number of bytes into a buffer.
+        /// This method will not return till exactly the requested number of bytes are read.
+        /// </summary>
+        /// <param name="buffer">The buffer to write to.</param>
+        /// <param name="start">The starting position in the buffer to write to.</param>
+        /// <param name="count">The number of bytes to read.</param>
+        protected void ReadBuffer(byte[] buffer, int start, int count)
+        {
+            // Streams and BinaryReader reserve the right to read fewer bytes than requested.
+            // So we will keep asking until it reaches the end of the stream or we get what we need.
+            while (count > 0)
+            {
+                int bytesRead = this.reader.Read(buffer, start, count);
+                if (bytesRead == 0)
+                {
+                    // Premature end of stream.
+                    throw new NotSupportedException();
+                }
+
+                start += bytesRead;
+                count -= bytesRead;
             }
         }
 
@@ -810,7 +901,7 @@ namespace Microsoft.VisualStudio.Composition
                     else if (valueType == typeof(Guid))
                     {
                         this.Write(ObjectType.Guid);
-                        this.writer.Write(((Guid)value).ToByteArray());
+                        this.Write((Guid)value);
                     }
                     else if (valueType == typeof(CreationPolicy)) // TODO: how do we handle arbitrary value types?
                     {
@@ -903,7 +994,7 @@ namespace Microsoft.VisualStudio.Composition
                     case ObjectType.Char:
                         return this.reader.ReadChar();
                     case ObjectType.Guid:
-                        return new Guid(this.reader.ReadBytes(16));
+                        return this.ReadGuid();
                     case ObjectType.CreationPolicy:
                         return (CreationPolicy)this.reader.ReadByte();
                     case ObjectType.Type:

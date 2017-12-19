@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 }
             }
 
-            if (this.metadataToken.HasValue && other.metadataToken.HasValue)
+            if (this.metadataToken.HasValue && other.metadataToken.HasValue && this.DeclaringType.AssemblyId.Equals(other.DeclaringType.AssemblyId))
             {
                 if (this.metadataToken.Value != other.metadataToken.Value)
                 {

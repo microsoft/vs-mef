@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 }
 #endif
 
-                return this.methodBase.MetadataToken;
+                return this.methodBase?.MetadataToken ?? 0;
             }
         }
 
@@ -155,7 +155,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 return false;
             }
 
-            if (this.metadataToken.HasValue && other.metadataToken.HasValue)
+            if (this.metadataToken.HasValue && other.metadataToken.HasValue && this.DeclaringType.AssemblyId.Equals(other.DeclaringType.AssemblyId))
             {
                 if (this.metadataToken.Value != other.metadataToken.Value)
                 {
