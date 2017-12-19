@@ -18,13 +18,11 @@
         /// Initializes a new instance of the <see cref="StrongAssemblyIdentity"/> class.
         /// </summary>
         /// <param name="name">The assembly name. Cannot be null.</param>
-        /// <param name="lastWriteTimeUtc">The LastWriteTimeUtc of the assembly manifest file.</param>
         /// <param name="mvid">The MVID of the ManifestModule of the assembly.</param>
-        public StrongAssemblyIdentity(AssemblyName name, DateTime lastWriteTimeUtc, Guid mvid)
+        public StrongAssemblyIdentity(AssemblyName name, Guid mvid)
         {
             Requires.NotNull(name, nameof(name));
             this.Name = name;
-            this.LastWriteTimeUtc = lastWriteTimeUtc;
             this.Mvid = mvid;
         }
 
@@ -32,11 +30,6 @@
         /// Gets the assembly's full name.
         /// </summary>
         public AssemblyName Name { get; }
-
-        /// <summary>
-        /// Gets the LastWriteTimeUtc for the assembly manifest file.
-        /// </summary>
-        public DateTime LastWriteTimeUtc { get; }
 
         /// <summary>
         /// Gets the MVID for the assembly's manifest module. This is a unique identifier that represents individual
@@ -64,10 +57,9 @@
 #endif
             }
 
-            DateTime timestamp = File.GetLastWriteTimeUtc(assemblyFile);
             Guid mvid = GetMvid(assemblyFile);
 
-            return new StrongAssemblyIdentity(assemblyName, timestamp, mvid);
+            return new StrongAssemblyIdentity(assemblyName, mvid);
         }
 
         /// <summary>
@@ -85,8 +77,7 @@
                 assemblyName = assembly.GetName();
             }
 
-            DateTime timestamp = assembly.IsDynamic ? DateTime.MaxValue : File.GetLastWriteTimeUtc(assembly.Location);
-            return new StrongAssemblyIdentity(assemblyName, timestamp, assembly.ManifestModule.ModuleVersionId);
+            return new StrongAssemblyIdentity(assemblyName, assembly.ManifestModule.ModuleVersionId);
         }
 
         /// <inheritdoc/>
@@ -97,7 +88,6 @@
         {
             return other != null
                 && ByValueEquality.AssemblyNameNoFastCheck.Equals(this.Name, other.Name)
-                && this.LastWriteTimeUtc == other.LastWriteTimeUtc
                 && this.Mvid == other.Mvid;
         }
 
