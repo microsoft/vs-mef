@@ -130,7 +130,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 scrambled = new StrongAssemblyIdentity(
                     assemblyId.Name,
-                    assemblyId.LastWriteTimeUtc,
                     Guid.NewGuid());
 
                 this.scrambledAssemblyIds.Add(assemblyId, scrambled);

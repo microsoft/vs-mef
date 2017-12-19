@@ -31,10 +31,9 @@ Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimePart.ImportingConst
 Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimePart.RuntimePart(Microsoft.VisualStudio.Composition.Reflection.TypeRef type, Microsoft.VisualStudio.Composition.Reflection.MethodRef importingConstructor, System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimeImport> importingConstructorArguments, System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimeImport> importingMembers, System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimeExport> exports, Microsoft.VisualStudio.Composition.Reflection.MethodRef onImportsSatisfied, string sharingBoundary) -> void
 Microsoft.VisualStudio.Composition.StrongAssemblyIdentity
 Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.Equals(Microsoft.VisualStudio.Composition.StrongAssemblyIdentity other) -> bool
-Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.LastWriteTimeUtc.get -> System.DateTime
 Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.Mvid.get -> System.Guid
 Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.Name.get -> System.Reflection.AssemblyName
-Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.StrongAssemblyIdentity(System.Reflection.AssemblyName name, System.DateTime lastWriteTimeUtc, System.Guid mvid) -> void
+Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.StrongAssemblyIdentity(System.Reflection.AssemblyName name, System.Guid mvid) -> void
 override Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.Equals(object obj) -> bool
 override Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.GetHashCode() -> int
 static Microsoft.VisualStudio.Composition.PartDiscovery.GetImportingSiteTypeWithoutCollection(Microsoft.VisualStudio.Composition.ImportDefinition importDefinition, System.Type importingSiteType) -> System.Type

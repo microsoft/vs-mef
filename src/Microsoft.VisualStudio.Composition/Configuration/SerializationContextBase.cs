@@ -494,7 +494,6 @@ namespace Microsoft.VisualStudio.Composition
                 if (this.TryPrepareSerializeReusableObject(assemblyMetadata))
                 {
                     this.Write(assemblyMetadata.Name);
-                    this.Write(assemblyMetadata.LastWriteTimeUtc);
                     this.Write(assemblyMetadata.Mvid);
                 }
             }
@@ -507,9 +506,8 @@ namespace Microsoft.VisualStudio.Composition
                 if (this.TryPrepareDeserializeReusableObject(out uint id, out StrongAssemblyIdentity value))
                 {
                     AssemblyName name = this.ReadAssemblyName();
-                    DateTime lastWriteTimeUtc = this.ReadDateTime();
                     Guid mvid = this.ReadGuid();
-                    value = new StrongAssemblyIdentity(name, lastWriteTimeUtc, mvid);
+                    value = new StrongAssemblyIdentity(name, mvid);
 
                     this.OnDeserializedReusableObject(id, value);
                 }
