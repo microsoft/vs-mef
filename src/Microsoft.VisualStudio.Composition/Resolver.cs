@@ -80,18 +80,15 @@ namespace Microsoft.VisualStudio.Composition
                 assemblyName = assembly.GetName();
             }
 
-            lock (this.loadedAssemblyStrongIdentities)
+            if (this.TryGetAssemblyId(assemblyName, out StrongAssemblyIdentity result))
             {
-                if (this.loadedAssemblyStrongIdentities.TryGetValue(assemblyName, out var result))
-                {
-                    return result;
-                }
+                return result;
             }
 
             var assemblyId = StrongAssemblyIdentity.CreateFrom(assembly, assemblyName);
             lock (this.loadedAssemblyStrongIdentities)
             {
-                if (!this.loadedAssemblyStrongIdentities.TryGetValue(assemblyName, out var result))
+                if (!this.loadedAssemblyStrongIdentities.TryGetValue(assemblyName, out result))
                 {
                     this.loadedAssemblyStrongIdentities.Add(assemblyName, assemblyId);
                     result = assemblyId;
