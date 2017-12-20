@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             if (memberRef.IsType)
             {
-                return memberRef.Type.Resolve().GetTypeInfo();
+                return memberRef.Type.ResolvedType.GetTypeInfo();
             }
 
             throw new NotSupportedException();
