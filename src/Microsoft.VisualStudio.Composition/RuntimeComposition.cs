@@ -299,42 +299,18 @@ namespace Microsoft.VisualStudio.Composition
 
             public string SharingBoundary { get; private set; }
 
-            public bool IsShared
-            {
-                get { return this.SharingBoundary != null; }
-            }
+            public bool IsShared => this.SharingBoundary != null;
 
-            public bool IsInstantiable
-            {
-                get { return !this.ImportingConstructorOrFactoryMethodRef.IsEmpty; }
-            }
+            public bool IsInstantiable => !this.ImportingConstructorOrFactoryMethodRef.IsEmpty;
 
             [Obsolete("Use " + nameof(ImportingConstructorOrFactoryMethod) + " instead.")]
-            public ConstructorInfo ImportingConstructor
-            {
-                get
-                {
-                    return (ConstructorInfo)this.ImportingConstructorOrFactoryMethod;
-                }
-            }
+            public ConstructorInfo ImportingConstructor => (ConstructorInfo)this.ImportingConstructorOrFactoryMethod;
 
-            public MethodInfo OnImportsSatisfied
-            {
-                get
-                {
-                    return (MethodInfo)this.OnImportsSatisfiedRef.MethodBase;
-                }
-            }
+            public MethodInfo OnImportsSatisfied => (MethodInfo)this.OnImportsSatisfiedRef.MethodBase;
 
-            public override bool Equals(object obj)
-            {
-                return this.Equals(obj as RuntimePart);
-            }
+            public override bool Equals(object obj) => this.Equals(obj as RuntimePart);
 
-            public override int GetHashCode()
-            {
-                return this.TypeRef.GetHashCode();
-            }
+            public override int GetHashCode() => this.TypeRef.GetHashCode();
 
             public bool Equals(RuntimePart other)
             {
@@ -541,15 +517,9 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            public override int GetHashCode()
-            {
-                return this.ImportingMemberRef.GetHashCode();
-            }
+            public override int GetHashCode() => this.ImportingMemberRef.GetHashCode();
 
-            public override bool Equals(object obj)
-            {
-                return this.Equals(obj as RuntimeImport);
-            }
+            public override bool Equals(object obj) => this.Equals(obj as RuntimeImport);
 
             public bool Equals(RuntimeImport other)
             {
@@ -609,15 +579,9 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            public override int GetHashCode()
-            {
-                return this.ContractName.GetHashCode() + this.DeclaringTypeRef.GetHashCode();
-            }
+            public override int GetHashCode() => this.ContractName.GetHashCode() + this.DeclaringTypeRef.GetHashCode();
 
-            public override bool Equals(object obj)
-            {
-                return this.Equals(obj as RuntimeExport);
-            }
+            public override bool Equals(object obj) => this.Equals(obj as RuntimeExport);
 
             public bool Equals(RuntimeExport other)
             {
