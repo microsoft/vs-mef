@@ -9,6 +9,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.VisualStudio.Composition.Reflection;
 
     /// <summary>
     /// Static factory methods for creating .NET Lazy{T} instances.
@@ -17,6 +18,8 @@ namespace Microsoft.VisualStudio.Composition
     {
         private static readonly MethodInfo CreateStronglyTypedLazyOfTMValue = typeof(LazyServices).GetTypeInfo().GetMethod("CreateStronglyTypedLazyOfTM", BindingFlags.NonPublic | BindingFlags.Static);
         private static readonly MethodInfo CreateStronglyTypedLazyOfTValue = typeof(LazyServices).GetTypeInfo().GetMethod("CreateStronglyTypedLazyOfT", BindingFlags.NonPublic | BindingFlags.Static);
+        private static readonly string Lazy1FullName = typeof(Lazy<>).FullName;
+        private static readonly string Lazy2FullName = typeof(Lazy<,>).FullName;
 
         internal static readonly Type DefaultMetadataViewType = typeof(IDictionary<string, object>);
         internal static readonly Type DefaultExportedValueType = typeof(object);
@@ -28,10 +31,28 @@ namespace Microsoft.VisualStudio.Composition
         /// <returns><c>true</c> if <paramref name="type"/> is some Lazy type.</returns>
         internal static bool IsAnyLazyType(this Type type)
         {
-            if (type.GetTypeInfo().IsGenericType)
+            if (type?.GetTypeInfo().IsGenericType ?? false)
             {
                 Type genericTypeDefinition = type.GetGenericTypeDefinition();
                 if (genericTypeDefinition == typeof(Lazy<>) || genericTypeDefinition == typeof(Lazy<,>))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether a type is a Lazy`1 or Lazy`2 type.
+        /// </summary>
+        /// <param name="typeRef">The type to be tested.</param>
+        /// <returns><c>true</c> if <paramref name="typeRef"/> is some Lazy type.</returns>
+        internal static bool IsAnyLazyType(this TypeRef typeRef)
+        {
+            if (typeRef?.IsGenericType ?? false)
+            {
+                if (typeRef.FullName == Lazy1FullName || typeRef.FullName == Lazy2FullName)
                 {
                     return true;
                 }
