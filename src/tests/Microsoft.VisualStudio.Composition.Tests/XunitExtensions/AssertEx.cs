@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Runtime.CompilerServices;
 
     /// <summary>
@@ -58,6 +59,15 @@
             {
                 var message = $"Assert failed. Expected: {expected} actual: {actual} at {filePath}, {memberName} line {lineNumber}";
                 throw new AssertFailedException(message);
+            }
+        }
+
+        internal static void Empty<T>(IEnumerable<T> enumerable)
+        {
+            var collection = enumerable.ToList();
+            if (collection.Count > 0)
+            {
+                throw new AssertFailedException($"Expected empty enumerable but found: [{string.Join(", ", collection)}]");
             }
         }
     }
