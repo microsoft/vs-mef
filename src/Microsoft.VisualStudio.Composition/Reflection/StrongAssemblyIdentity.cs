@@ -50,7 +50,7 @@
 
             if (assemblyName == null)
             {
-#if NET45
+#if DESKTOP
                 assemblyName = AssemblyName.GetAssemblyName(assemblyFile);
 #else
                 throw new NotSupportedException($"{nameof(assemblyName)} must be specified on this platform.");
