@@ -26,6 +26,7 @@ namespace Microsoft.VisualStudio.Composition
             private static readonly RuntimeComposition.RuntimeImport MetadataViewProviderImport = new RuntimeComposition.RuntimeImport(
                 default(MemberRef),
                 TypeRef.Get(typeof(IMetadataViewProvider), Resolver.DefaultInstance),
+                TypeRef.Get(typeof(IMetadataViewProvider), Resolver.DefaultInstance),
                 ImportCardinality.ExactlyOne,
                 ImmutableList<RuntimeComposition.RuntimeExport>.Empty,
                 isNonSharedInstanceRequired: false,
