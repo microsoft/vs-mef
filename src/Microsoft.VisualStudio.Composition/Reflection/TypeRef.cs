@@ -107,6 +107,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         [Obsolete]
         public int GenericParameterDeclaringMemberIndex => 0;
 
+        public bool IsGenericType => this.GenericTypeParameterCount > 0 || this.GenericTypeArguments.Length > 0;
+
         public bool IsGenericTypeDefinition
         {
             get { return this.GenericTypeParameterCount > 0 && this.GenericTypeArguments.Length == 0; }
