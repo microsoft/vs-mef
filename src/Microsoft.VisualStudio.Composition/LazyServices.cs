@@ -25,10 +25,11 @@ namespace Microsoft.VisualStudio.Composition
         internal static readonly Type DefaultExportedValueType = typeof(object);
 
         /// <summary>
-        /// Gets a value indicating whether a type is a Lazy`1 or Lazy`2 type.
+        /// Gets a value indicating whether a type represents either a <see cref="Lazy{T}"/>
+        /// or a <see cref="Lazy{T, TMetadata}"/> (as opposed to not a Lazy type at all).
         /// </summary>
         /// <param name="type">The type to be tested.</param>
-        /// <returns><c>true</c> if <paramref name="type"/> is some Lazy type.</returns>
+        /// <returns><c>true</c> if <paramref name="type"/> is some Lazy type; <c>false</c> otherwise.</returns>
         internal static bool IsAnyLazyType(this Type type)
         {
             if (type?.GetTypeInfo().IsGenericType ?? false)
@@ -44,10 +45,11 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         /// <summary>
-        /// Gets a value indicating whether a type is a Lazy`1 or Lazy`2 type.
+        /// Gets a value indicating whether a type represents either a <see cref="Lazy{T}"/>
+        /// or a <see cref="Lazy{T, TMetadata}"/> (as opposed to not a Lazy type at all).
         /// </summary>
         /// <param name="typeRef">The type to be tested.</param>
-        /// <returns><c>true</c> if <paramref name="typeRef"/> is some Lazy type.</returns>
+        /// <returns><c>true</c> if <paramref name="typeRef"/> is some Lazy type; <c>false</c> otherwise.</returns>
         internal static bool IsAnyLazyType(this TypeRef typeRef)
         {
             if (typeRef?.IsGenericType ?? false)
