@@ -278,9 +278,6 @@ Microsoft.VisualStudio.Composition.PartDiscoveryException.PartDiscoveryException
 Microsoft.VisualStudio.Composition.PartDiscoveryException.PartDiscoveryException(string message, System.Exception inner) -> void
 Microsoft.VisualStudio.Composition.PartDiscoveryException.ScannedType.get -> System.Type
 Microsoft.VisualStudio.Composition.PartDiscoveryException.ScannedType.set -> void
-Microsoft.VisualStudio.Composition.Reflection.ConstructorDesc
-Microsoft.VisualStudio.Composition.Reflection.ConstructorDesc.Constructor.get -> Microsoft.VisualStudio.Composition.Reflection.ConstructorRef
-Microsoft.VisualStudio.Composition.Reflection.ConstructorDesc.ConstructorDesc(Microsoft.VisualStudio.Composition.Reflection.ConstructorRef constructor, string name, bool isStatic) -> void
 Microsoft.VisualStudio.Composition.Reflection.ConstructorRef
 Microsoft.VisualStudio.Composition.Reflection.ConstructorRef.ConstructorRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef declaringType, int metadataToken) -> void
 Microsoft.VisualStudio.Composition.Reflection.ConstructorRef.ConstructorRef(System.Reflection.ConstructorInfo constructor, Microsoft.VisualStudio.Composition.Resolver resolver) -> void
@@ -288,10 +285,6 @@ Microsoft.VisualStudio.Composition.Reflection.ConstructorRef.DeclaringType.get -
 Microsoft.VisualStudio.Composition.Reflection.ConstructorRef.Equals(Microsoft.VisualStudio.Composition.Reflection.ConstructorRef other) -> bool
 Microsoft.VisualStudio.Composition.Reflection.ConstructorRef.IsEmpty.get -> bool
 Microsoft.VisualStudio.Composition.Reflection.ConstructorRef.MetadataToken.get -> int
-Microsoft.VisualStudio.Composition.Reflection.FieldDesc
-Microsoft.VisualStudio.Composition.Reflection.FieldDesc.Field.get -> Microsoft.VisualStudio.Composition.Reflection.FieldRef
-Microsoft.VisualStudio.Composition.Reflection.FieldDesc.FieldDesc(Microsoft.VisualStudio.Composition.Reflection.FieldRef fieldRef, Microsoft.VisualStudio.Composition.Reflection.TypeDesc fieldType, string name, bool isStatic) -> void
-Microsoft.VisualStudio.Composition.Reflection.FieldDesc.FieldType.get -> Microsoft.VisualStudio.Composition.Reflection.TypeDesc
 Microsoft.VisualStudio.Composition.Reflection.FieldRef
 Microsoft.VisualStudio.Composition.Reflection.FieldRef.AssemblyName.get -> System.Reflection.AssemblyName
 Microsoft.VisualStudio.Composition.Reflection.FieldRef.DeclaringType.get -> Microsoft.VisualStudio.Composition.Reflection.TypeRef
@@ -300,10 +293,6 @@ Microsoft.VisualStudio.Composition.Reflection.FieldRef.FieldRef(Microsoft.Visual
 Microsoft.VisualStudio.Composition.Reflection.FieldRef.FieldRef(System.Reflection.FieldInfo field, Microsoft.VisualStudio.Composition.Resolver resolver) -> void
 Microsoft.VisualStudio.Composition.Reflection.FieldRef.IsEmpty.get -> bool
 Microsoft.VisualStudio.Composition.Reflection.FieldRef.MetadataToken.get -> int
-Microsoft.VisualStudio.Composition.Reflection.MemberDesc
-Microsoft.VisualStudio.Composition.Reflection.MemberDesc.IsStatic.get -> bool
-Microsoft.VisualStudio.Composition.Reflection.MemberDesc.MemberDesc(string name, bool isStatic) -> void
-Microsoft.VisualStudio.Composition.Reflection.MemberDesc.Name.get -> string
 Microsoft.VisualStudio.Composition.Reflection.MemberRef
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.Constructor.get -> Microsoft.VisualStudio.Composition.Reflection.ConstructorRef
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.DeclaringType.get -> Microsoft.VisualStudio.Composition.Reflection.TypeRef
@@ -324,11 +313,6 @@ Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberRef(System.Reflect
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.Method.get -> Microsoft.VisualStudio.Composition.Reflection.MethodRef
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.Property.get -> Microsoft.VisualStudio.Composition.Reflection.PropertyRef
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.Type.get -> Microsoft.VisualStudio.Composition.Reflection.TypeRef
-Microsoft.VisualStudio.Composition.Reflection.MethodDesc
-Microsoft.VisualStudio.Composition.Reflection.MethodDesc.Method.get -> Microsoft.VisualStudio.Composition.Reflection.MethodRef
-Microsoft.VisualStudio.Composition.Reflection.MethodDesc.MethodDesc(Microsoft.VisualStudio.Composition.Reflection.MethodRef method, string name, bool isStatic, Microsoft.VisualStudio.Composition.Reflection.TypeRef returnType, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> parameters) -> void
-Microsoft.VisualStudio.Composition.Reflection.MethodDesc.Parameters.get -> System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef>
-Microsoft.VisualStudio.Composition.Reflection.MethodDesc.ReturnType.get -> Microsoft.VisualStudio.Composition.Reflection.TypeRef
 Microsoft.VisualStudio.Composition.Reflection.MethodRef
 Microsoft.VisualStudio.Composition.Reflection.MethodRef.DeclaringType.get -> Microsoft.VisualStudio.Composition.Reflection.TypeRef
 Microsoft.VisualStudio.Composition.Reflection.MethodRef.Equals(Microsoft.VisualStudio.Composition.Reflection.MethodRef other) -> bool
@@ -348,10 +332,6 @@ Microsoft.VisualStudio.Composition.Reflection.ParameterRef.ParameterRef(Microsof
 Microsoft.VisualStudio.Composition.Reflection.ParameterRef.ParameterRef(Microsoft.VisualStudio.Composition.Reflection.MethodRef method, int parameterIndex) -> void
 Microsoft.VisualStudio.Composition.Reflection.ParameterRef.ParameterRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef declaringType, int methodMetadataToken, int parameterIndex) -> void
 Microsoft.VisualStudio.Composition.Reflection.ParameterRef.ParameterRef(System.Reflection.ParameterInfo parameter, Microsoft.VisualStudio.Composition.Resolver resolver) -> void
-Microsoft.VisualStudio.Composition.Reflection.PropertyDesc
-Microsoft.VisualStudio.Composition.Reflection.PropertyDesc.Property.get -> Microsoft.VisualStudio.Composition.Reflection.PropertyDesc
-Microsoft.VisualStudio.Composition.Reflection.PropertyDesc.PropertyDesc(Microsoft.VisualStudio.Composition.Reflection.PropertyDesc property, Microsoft.VisualStudio.Composition.Reflection.TypeDesc propertyType, string name, bool isStatic) -> void
-Microsoft.VisualStudio.Composition.Reflection.PropertyDesc.PropertyType.get -> Microsoft.VisualStudio.Composition.Reflection.TypeDesc
 Microsoft.VisualStudio.Composition.Reflection.PropertyRef
 Microsoft.VisualStudio.Composition.Reflection.PropertyRef.DeclaringType.get -> Microsoft.VisualStudio.Composition.Reflection.TypeRef
 Microsoft.VisualStudio.Composition.Reflection.PropertyRef.Equals(Microsoft.VisualStudio.Composition.Reflection.PropertyRef other) -> bool
@@ -362,10 +342,6 @@ Microsoft.VisualStudio.Composition.Reflection.PropertyRef.PropertyRef(Microsoft.
 Microsoft.VisualStudio.Composition.Reflection.PropertyRef.PropertyRef(System.Reflection.PropertyInfo propertyInfo, Microsoft.VisualStudio.Composition.Resolver resolver) -> void
 Microsoft.VisualStudio.Composition.Reflection.PropertyRef.SetMethodMetadataToken.get -> int?
 Microsoft.VisualStudio.Composition.Reflection.ResolverExtensions
-Microsoft.VisualStudio.Composition.Reflection.TypeDesc
-Microsoft.VisualStudio.Composition.Reflection.TypeDesc.FullName.get -> string
-Microsoft.VisualStudio.Composition.Reflection.TypeDesc.Type.get -> Microsoft.VisualStudio.Composition.Reflection.TypeRef
-Microsoft.VisualStudio.Composition.Reflection.TypeDesc.TypeDesc(Microsoft.VisualStudio.Composition.Reflection.TypeRef type, string fullName) -> void
 Microsoft.VisualStudio.Composition.Reflection.TypeRef
 Microsoft.VisualStudio.Composition.Reflection.TypeRef.AssemblyName.get -> System.Reflection.AssemblyName
 Microsoft.VisualStudio.Composition.Reflection.TypeRef.Equals(Microsoft.VisualStudio.Composition.Reflection.TypeRef other) -> bool
@@ -519,7 +495,6 @@ static Microsoft.VisualStudio.Composition.Reflection.MethodRef.Get(System.Reflec
 static Microsoft.VisualStudio.Composition.Reflection.ParameterRef.Get(System.Reflection.ParameterInfo parameter, Microsoft.VisualStudio.Composition.Resolver resolver) -> Microsoft.VisualStudio.Composition.Reflection.ParameterRef
 static Microsoft.VisualStudio.Composition.Reflection.ResolverExtensions.Resolve(this Microsoft.VisualStudio.Composition.Reflection.ConstructorRef constructorRef) -> System.Reflection.ConstructorInfo
 static Microsoft.VisualStudio.Composition.Reflection.ResolverExtensions.Resolve(this Microsoft.VisualStudio.Composition.Reflection.FieldRef fieldRef) -> System.Reflection.FieldInfo
-static Microsoft.VisualStudio.Composition.Reflection.ResolverExtensions.Resolve(this Microsoft.VisualStudio.Composition.Reflection.MemberDesc memberDesc) -> System.Reflection.MemberInfo
 static Microsoft.VisualStudio.Composition.Reflection.ResolverExtensions.Resolve(this Microsoft.VisualStudio.Composition.Reflection.MemberRef memberRef) -> System.Reflection.MemberInfo
 static Microsoft.VisualStudio.Composition.Reflection.ResolverExtensions.Resolve(this Microsoft.VisualStudio.Composition.Reflection.MethodRef methodRef) -> System.Reflection.MethodInfo
 static Microsoft.VisualStudio.Composition.Reflection.ResolverExtensions.Resolve(this Microsoft.VisualStudio.Composition.Reflection.ParameterRef parameterRef) -> System.Reflection.ParameterInfo
@@ -527,7 +502,6 @@ static Microsoft.VisualStudio.Composition.Reflection.ResolverExtensions.Resolve(
 static Microsoft.VisualStudio.Composition.Reflection.ResolverExtensions.Resolve(this Microsoft.VisualStudio.Composition.Reflection.TypeRef typeRef) -> System.Type
 static Microsoft.VisualStudio.Composition.Reflection.ResolverExtensions.ResolveGetter(this Microsoft.VisualStudio.Composition.Reflection.PropertyRef propertyRef) -> System.Reflection.MethodInfo
 static Microsoft.VisualStudio.Composition.Reflection.ResolverExtensions.ResolveSetter(this Microsoft.VisualStudio.Composition.Reflection.PropertyRef propertyRef) -> System.Reflection.MethodInfo
-static Microsoft.VisualStudio.Composition.Reflection.TypeDesc.Get(System.Type type, Microsoft.VisualStudio.Composition.Resolver resolver) -> Microsoft.VisualStudio.Composition.Reflection.TypeDesc
 static Microsoft.VisualStudio.Composition.Reflection.TypeRef.Get(Microsoft.VisualStudio.Composition.Resolver resolver, System.Reflection.AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> genericTypeArguments) -> Microsoft.VisualStudio.Composition.Reflection.TypeRef
 static Microsoft.VisualStudio.Composition.Reflection.TypeRef.Get(Microsoft.VisualStudio.Composition.Resolver resolver, System.Reflection.AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> genericTypeArguments, Microsoft.VisualStudio.Composition.Reflection.MemberRef declaringMember, int declaringMethodParameterIndex = 0) -> Microsoft.VisualStudio.Composition.Reflection.TypeRef
 static Microsoft.VisualStudio.Composition.Reflection.TypeRef.Get(System.Type type, Microsoft.VisualStudio.Composition.Resolver resolver) -> Microsoft.VisualStudio.Composition.Reflection.TypeRef

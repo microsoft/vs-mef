@@ -210,12 +210,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             throw new NotSupportedException();
         }
 
-        [Obsolete("Use " + nameof(MemberRef) + " instead.", error: true)]
-        public static MemberInfo Resolve(this MemberDesc memberDesc)
-        {
-            throw new NotSupportedException();
-        }
-
         internal static void GetInputAssemblies(this TypeRef typeRef, ISet<AssemblyName> assemblies)
         {
             Requires.NotNull(assemblies, nameof(assemblies));
