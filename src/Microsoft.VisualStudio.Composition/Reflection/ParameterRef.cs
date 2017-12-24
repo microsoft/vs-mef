@@ -5,104 +5,47 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
     using System.Reflection;
-    using System.Runtime.InteropServices;
-    using System.Text;
-    using System.Threading.Tasks;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-    [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
-    public struct ParameterRef : IEquatable<ParameterRef>
+    public class ParameterRef : IEquatable<ParameterRef>
     {
         /// <summary>
         /// Gets the string to display in the debugger watch window for this value.
         /// </summary>
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        internal string DebuggerDisplay => this.IsEmpty ? "(empty)" : $"{this.DeclaringType.FullName}.{(this.Method.IsEmpty ? this.Constructor.DebuggerDisplay : this.Method.DebuggerDisplay)}(p-index: {this.ParameterIndex})";
+        private string DebuggerDisplay => $"{this.DeclaringType.FullName}.{this.Method.DebuggerDisplay}(p-index: {this.ParameterIndex})";
 
         /// <summary>
-        /// A 0-based index describing which parameter in the method this references.
+        /// A cache behind the <see cref="ParameterInfo"/> property.
         /// </summary>
-        private readonly int parameterIndex;
+        private ParameterInfo cachedParameterInfo;
 
         public ParameterRef(MethodRef method, int parameterIndex)
-            : this()
         {
+            Requires.NotNull(method, nameof(method));
+            Requires.Range(parameterIndex >= 0, nameof(parameterIndex));
+
             this.Method = method;
-            this.parameterIndex = parameterIndex;
+            this.ParameterIndex = parameterIndex;
         }
 
-#if DESKTOP
-        [Obsolete]
-        public ParameterRef(TypeRef declaringType, int methodMetadataToken, int parameterIndex)
-        {
-            var methodBase = declaringType.Resolve().Assembly.ManifestModule.ResolveMethod(methodMetadataToken);
-            if (methodBase is ConstructorInfo ctor)
-            {
-                this.Constructor = new ConstructorRef(ctor, declaringType.Resolver);
-                this.Method = default(MethodRef);
-            }
-            else
-            {
-                this.Method = new MethodRef((MethodInfo)methodBase, declaringType.Resolver);
-                this.Constructor = default(ConstructorRef);
-            }
+        public MethodRef Method { get; }
 
-            this.parameterIndex = parameterIndex;
-        }
+        public ParameterInfo ParameterInfo => this.cachedParameterInfo ?? (this.cachedParameterInfo = this.Resolve());
 
-        [Obsolete]
-        public ParameterRef(ParameterInfo parameter, Resolver resolver)
-        {
-            var memberInfo = parameter.Member;
-            var declaringType = memberInfo.DeclaringType;
-            if (memberInfo is ConstructorInfo ctor)
-            {
-                this.Constructor = new ConstructorRef(ctor, resolver);
-                this.Method = default(MethodRef);
-            }
-            else
-            {
-                this.Method = new MethodRef((MethodInfo)memberInfo, resolver);
-                this.Constructor = default(ConstructorRef);
-            }
+        public TypeRef DeclaringType => this.Method.DeclaringType;
 
-            this.parameterIndex = parameter.Position;
-        }
-#endif
+        public int MethodMetadataToken => this.Method.MetadataToken;
 
-        public ParameterRef(ConstructorRef ctor, int parameterIndex)
-            : this()
-        {
-            this.Constructor = ctor;
-            this.parameterIndex = parameterIndex;
-        }
+        /// <summary>
+        /// Gets a 0-based index describing which parameter in the method this references.
+        /// </summary>
+        public int ParameterIndex { get; }
 
-        public MethodRef Method { get; private set; }
+        public AssemblyName AssemblyName => this.DeclaringType.AssemblyName;
 
-        public ConstructorRef Constructor { get; private set; }
-
-        public TypeRef DeclaringType => this.Constructor.DeclaringType ?? this.Method.DeclaringType;
-
-        public int MethodMetadataToken => this.Constructor.IsEmpty ? this.Method.MetadataToken : this.Constructor.MetadataToken;
-
-        public int ParameterIndex
-        {
-            get { return this.parameterIndex; }
-        }
-
-        public AssemblyName AssemblyName
-        {
-            get { return this.DeclaringType.AssemblyName; }
-        }
-
-        public bool IsEmpty
-        {
-            get { return this.Method.IsEmpty && this.Constructor.IsEmpty; }
-        }
-
-        internal Resolver Resolver => this.DeclaringType?.Resolver;
+        internal Resolver Resolver => this.DeclaringType.Resolver;
 
         public static ParameterRef Get(ParameterInfo parameter, Resolver resolver)
         {
@@ -127,19 +70,19 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public bool Equals(ParameterRef other)
         {
-            return this.Constructor.Equals(other.Constructor)
-                && this.Method.Equals(other.Method)
+            return this.Method.Equals(other.Method)
                 && this.ParameterIndex == other.ParameterIndex;
         }
 
-        public override int GetHashCode()
-        {
-            return unchecked(this.Method.MetadataToken + this.Constructor.MetadataToken + this.parameterIndex);
-        }
+        public override int GetHashCode() => unchecked(this.Method.MetadataToken + this.ParameterIndex);
 
-        public override bool Equals(object obj)
+        public override bool Equals(object obj) => obj is ParameterRef parameter && this.Equals(parameter);
+
+        internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
         {
-            return obj is ParameterRef parameter && this.Equals(parameter);
+            Requires.NotNull(assemblies, nameof(assemblies));
+
+            this.DeclaringType.GetInputAssemblies(assemblies);
         }
     }
 }

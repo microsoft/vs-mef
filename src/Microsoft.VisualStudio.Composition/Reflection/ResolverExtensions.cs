@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public static ConstructorInfo Resolve(this ConstructorRef constructorRef)
         {
-            if (constructorRef.IsEmpty)
+            if (constructorRef == null)
             {
                 return null;
             }
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public static MethodBase Resolve2(this MethodRef methodRef)
         {
-            if (methodRef.IsEmpty)
+            if (methodRef == null)
             {
                 return null;
             }
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public static PropertyInfo Resolve(this PropertyRef propertyRef)
         {
-            if (propertyRef.IsEmpty)
+            if (propertyRef == null)
             {
                 return null;
             }
@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public static FieldInfo Resolve(this FieldRef fieldRef)
         {
-            if (fieldRef.IsEmpty)
+            if (fieldRef == null)
             {
                 return null;
             }
@@ -155,7 +155,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public static ParameterInfo Resolve(this ParameterRef parameterRef)
         {
-            if (parameterRef.IsEmpty)
+            if (parameterRef == null)
             {
                 return null;
             }
@@ -164,50 +164,15 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 #if RuntimeHandles
             if (TryUseFastReflection(parameterRef.DeclaringType, out Module manifest))
             {
-                method = manifest.ResolveMethod(parameterRef.Constructor.IsEmpty ? parameterRef.Method.MetadataToken : parameterRef.Constructor.MetadataToken);
+                method = manifest.ResolveMethod(parameterRef.Method.MetadataToken);
             }
             else
 #endif
             {
-                method = parameterRef.Constructor.ConstructorInfo ?? parameterRef.Method.MethodBase;
+                method = parameterRef.Method.MethodBase;
             }
 
             return method.GetParameters()[parameterRef.ParameterIndex];
-        }
-
-        public static MemberInfo Resolve(this MemberRef memberRef)
-        {
-            if (memberRef.IsEmpty)
-            {
-                return null;
-            }
-
-            if (memberRef.IsField)
-            {
-                return memberRef.Field.FieldInfo;
-            }
-
-            if (memberRef.IsProperty)
-            {
-                return memberRef.Property.PropertyInfo;
-            }
-
-            if (memberRef.IsMethod)
-            {
-                return memberRef.Method.MethodBase;
-            }
-
-            if (memberRef.IsConstructor)
-            {
-                return memberRef.Constructor.ConstructorInfo;
-            }
-
-            if (memberRef.IsType)
-            {
-                return memberRef.Type.ResolvedType.GetTypeInfo();
-            }
-
-            throw new NotSupportedException();
         }
 
         internal static void GetInputAssemblies(this TypeRef typeRef, ISet<AssemblyName> assemblies)
@@ -236,82 +201,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 {
                     assemblies.Add(iface.GetTypeInfo().Assembly.GetName());
                 }
-            }
-        }
-
-        internal static void GetInputAssemblies(this MemberRef memberRef, ISet<AssemblyName> assemblies)
-        {
-            Requires.NotNull(assemblies, nameof(assemblies));
-
-            if (memberRef.IsConstructor)
-            {
-                GetInputAssemblies(memberRef.Constructor, assemblies);
-            }
-            else if (memberRef.IsField)
-            {
-                GetInputAssemblies(memberRef.Field, assemblies);
-            }
-            else if (memberRef.IsMethod)
-            {
-                GetInputAssemblies(memberRef.Method, assemblies);
-            }
-            else if (memberRef.IsProperty)
-            {
-                GetInputAssemblies(memberRef.Property, assemblies);
-            }
-        }
-
-        internal static void GetInputAssemblies(this MethodRef methodRef, ISet<AssemblyName> assemblies)
-        {
-            Requires.NotNull(assemblies, nameof(assemblies));
-
-            if (!methodRef.IsEmpty)
-            {
-                assemblies.Add(methodRef.DeclaringType.AssemblyName);
-                foreach (var typeArg in methodRef.GenericMethodArguments)
-                {
-                    GetInputAssemblies(typeArg, assemblies);
-                }
-            }
-        }
-
-        internal static void GetInputAssemblies(this PropertyRef propertyRef, ISet<AssemblyName> assemblies)
-        {
-            Requires.NotNull(assemblies, nameof(assemblies));
-
-            if (!propertyRef.IsEmpty)
-            {
-                propertyRef.DeclaringType.GetInputAssemblies(assemblies);
-            }
-        }
-
-        internal static void GetInputAssemblies(this FieldRef fieldRef, ISet<AssemblyName> assemblies)
-        {
-            Requires.NotNull(assemblies, nameof(assemblies));
-
-            if (!fieldRef.IsEmpty)
-            {
-                fieldRef.DeclaringType.GetInputAssemblies(assemblies);
-            }
-        }
-
-        internal static void GetInputAssemblies(this ConstructorRef constructorRef, ISet<AssemblyName> assemblies)
-        {
-            Requires.NotNull(assemblies, nameof(assemblies));
-
-            if (!constructorRef.IsEmpty)
-            {
-                constructorRef.DeclaringType.GetInputAssemblies(assemblies);
-            }
-        }
-
-        internal static void GetInputAssemblies(this ParameterRef parameterRef, ISet<AssemblyName> assemblies)
-        {
-            Requires.NotNull(assemblies, nameof(assemblies));
-
-            if (!parameterRef.IsEmpty)
-            {
-                parameterRef.DeclaringType.GetInputAssemblies(assemblies);
             }
         }
 

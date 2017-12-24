@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(satisfyingExports, nameof(satisfyingExports));
 
             var runtimeExports = satisfyingExports.Select(export => CreateRuntimeExport(export, resolver)).ToImmutableArray();
-            if (!importDefinitionBinding.ImportingMemberRef.IsEmpty)
+            if (importDefinitionBinding.ImportingMemberRef != null)
             {
                 return new RuntimeImport(
                     importDefinitionBinding.ImportingMemberRef,
@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
-            var exportingMember = exportingMemberRef.MemberInfo;
+            var exportingMember = exportingMemberRef?.MemberInfo;
             return new RuntimeExport(
                 exportDefinition.ContractName,
                 TypeRef.Get(partType, resolver),
@@ -238,26 +238,6 @@ namespace Microsoft.VisualStudio.Composition
         [DebuggerDisplay("{" + nameof(RuntimePart.TypeRef) + "." + nameof(Reflection.TypeRef.ResolvedType) + ".FullName,nq}")]
         public class RuntimePart : IEquatable<RuntimePart>
         {
-            [Obsolete]
-            public RuntimePart(
-                TypeRef type,
-                ConstructorRef importingConstructor,
-                IReadOnlyList<RuntimeImport> importingConstructorArguments,
-                IReadOnlyList<RuntimeImport> importingMembers,
-                IReadOnlyList<RuntimeExport> exports,
-                MethodRef onImportsSatisfied,
-                string sharingBoundary)
-                : this(
-                    type,
-                    new MethodRef(importingConstructor),
-                    importingConstructorArguments,
-                    importingMembers,
-                    exports,
-                    onImportsSatisfied,
-                    sharingBoundary)
-            {
-            }
-
             public RuntimePart(
                 TypeRef type,
                 MethodRef importingConstructor,
@@ -303,7 +283,7 @@ namespace Microsoft.VisualStudio.Composition
 
             public bool IsShared => this.SharingBoundary != null;
 
-            public bool IsInstantiable => !this.ImportingConstructorOrFactoryMethodRef.IsEmpty;
+            public bool IsInstantiable => this.ImportingConstructorOrFactoryMethodRef != null;
 
             [Obsolete("Use " + nameof(ImportingConstructorOrFactoryMethod) + " instead.")]
             public ConstructorInfo ImportingConstructor => (ConstructorInfo)this.ImportingConstructorOrFactoryMethod;
@@ -438,31 +418,9 @@ namespace Microsoft.VisualStudio.Composition
             /// </summary>
             public IReadOnlyCollection<string> ExportFactorySharingBoundaries { get; private set; }
 
-            public MemberInfo ImportingMember
-            {
-                get
-                {
-                    if (this.importingMember == null)
-                    {
-                        this.importingMember = this.ImportingMemberRef.MemberInfo;
-                    }
+            public MemberInfo ImportingMember => this.importingMember ?? (this.importingMember = this.ImportingMemberRef?.MemberInfo);
 
-                    return this.importingMember;
-                }
-            }
-
-            public ParameterInfo ImportingParameter
-            {
-                get
-                {
-                    if (this.importingParameter == null)
-                    {
-                        this.importingParameter = this.ImportingParameterRef.Resolve();
-                    }
-
-                    return this.importingParameter;
-                }
-            }
+            public ParameterInfo ImportingParameter => this.importingParameter ?? (this.importingParameter = this.ImportingParameterRef.ParameterInfo);
 
             public bool IsLazy
             {
@@ -519,9 +477,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 get
                 {
-                    return
-                        this.ImportingParameterRef.IsEmpty ? this.ImportingMemberRef.DeclaringType :
-                        this.ImportingParameterRef.DeclaringType;
+                    return this.ImportingMemberRef?.DeclaringType ?? this.ImportingParameterRef?.DeclaringType;
                 }
             }
 

@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             using (this.Trace("MethodRef"))
             {
-                if (methodRef.IsEmpty)
+                if (methodRef == null)
                 {
                     this.writer.Write((byte)0);
                 }
@@ -200,29 +200,27 @@ namespace Microsoft.VisualStudio.Composition
         {
             using (this.Trace("MemberRef"))
             {
-                if (memberRef.IsConstructor)
+                switch (memberRef)
                 {
-                    this.writer.Write((byte)1);
-                    this.Write(memberRef.Constructor);
-                }
-                else if (memberRef.IsField)
-                {
-                    this.writer.Write((byte)2);
-                    this.Write(memberRef.Field);
-                }
-                else if (memberRef.IsProperty)
-                {
-                    this.writer.Write((byte)3);
-                    this.Write(memberRef.Property);
-                }
-                else if (memberRef.IsMethod)
-                {
-                    this.writer.Write((byte)4);
-                    this.Write(memberRef.Method);
-                }
-                else
-                {
-                    this.writer.Write((byte)0);
+                    case ConstructorRef constructorRef:
+                        this.writer.Write((byte)1);
+                        this.Write(constructorRef);
+                        break;
+                    case FieldRef fieldRef:
+                        this.writer.Write((byte)2);
+                        this.Write(fieldRef);
+                        break;
+                    case PropertyRef propertyRef:
+                        this.writer.Write((byte)3);
+                        this.Write(propertyRef);
+                        break;
+                    case MethodRef methodRef:
+                        this.writer.Write((byte)4);
+                        this.Write(methodRef);
+                        break;
+                    default:
+                        this.writer.Write((byte)0);
+                        break;
                 }
             }
         }
@@ -237,13 +235,13 @@ namespace Microsoft.VisualStudio.Composition
                     case 0:
                         return default(MemberRef);
                     case 1:
-                        return new MemberRef(this.ReadConstructorRef());
+                        return this.ReadConstructorRef();
                     case 2:
-                        return new MemberRef(this.ReadFieldRef());
+                        return this.ReadFieldRef();
                     case 3:
-                        return new MemberRef(this.ReadPropertyRef());
+                        return this.ReadPropertyRef();
                     case 4:
-                        return new MemberRef(this.ReadMethodRef());
+                        return this.ReadMethodRef();
                     default:
                         throw new NotSupportedException();
                 }
@@ -254,23 +252,26 @@ namespace Microsoft.VisualStudio.Composition
         {
             using (this.Trace("PropertyRef"))
             {
-                this.Write(propertyRef.DeclaringType);
-                this.WriteCompressedMetadataToken(propertyRef.MetadataToken, MetadataTokenType.Property);
-                this.Write(propertyRef.Name);
-
-                byte flags = 0;
-                flags |= propertyRef.GetMethodMetadataToken.HasValue ? (byte)0x1 : (byte)0x0;
-                flags |= propertyRef.SetMethodMetadataToken.HasValue ? (byte)0x2 : (byte)0x0;
-                this.writer.Write(flags);
-
-                if (propertyRef.GetMethodMetadataToken.HasValue)
+                if (this.TryPrepareSerializeReusableObject(propertyRef))
                 {
-                    this.WriteCompressedMetadataToken(propertyRef.GetMethodMetadataToken.Value, MetadataTokenType.Method);
-                }
+                    this.Write(propertyRef.DeclaringType);
+                    this.WriteCompressedMetadataToken(propertyRef.MetadataToken, MetadataTokenType.Property);
+                    this.Write(propertyRef.Name);
 
-                if (propertyRef.SetMethodMetadataToken.HasValue)
-                {
-                    this.WriteCompressedMetadataToken(propertyRef.SetMethodMetadataToken.Value, MetadataTokenType.Method);
+                    byte flags = 0;
+                    flags |= propertyRef.GetMethodMetadataToken.HasValue ? (byte)0x1 : (byte)0x0;
+                    flags |= propertyRef.SetMethodMetadataToken.HasValue ? (byte)0x2 : (byte)0x0;
+                    this.writer.Write(flags);
+
+                    if (propertyRef.GetMethodMetadataToken.HasValue)
+                    {
+                        this.WriteCompressedMetadataToken(propertyRef.GetMethodMetadataToken.Value, MetadataTokenType.Method);
+                    }
+
+                    if (propertyRef.SetMethodMetadataToken.HasValue)
+                    {
+                        this.WriteCompressedMetadataToken(propertyRef.SetMethodMetadataToken.Value, MetadataTokenType.Method);
+                    }
                 }
             }
         }
@@ -279,28 +280,35 @@ namespace Microsoft.VisualStudio.Composition
         {
             using (this.Trace("PropertyRef"))
             {
-                var declaringType = this.ReadTypeRef();
-                var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Property);
-                var name = this.ReadString();
-
-                byte flags = this.reader.ReadByte();
-                int? getter = null, setter = null;
-                if ((flags & 0x1) != 0)
+                if (this.TryPrepareDeserializeReusableObject(out uint id, out PropertyRef value))
                 {
-                    getter = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
+                    var declaringType = this.ReadTypeRef();
+                    var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Property);
+                    var name = this.ReadString();
+
+                    byte flags = this.reader.ReadByte();
+                    int? getter = null, setter = null;
+                    if ((flags & 0x1) != 0)
+                    {
+                        getter = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
+                    }
+
+                    if ((flags & 0x2) != 0)
+                    {
+                        setter = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
+                    }
+
+                    value = new PropertyRef(
+                        declaringType,
+                        metadataToken,
+                        getter,
+                        setter,
+                        name);
+
+                    this.OnDeserializedReusableObject(id, value);
                 }
 
-                if ((flags & 0x2) != 0)
-                {
-                    setter = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
-                }
-
-                return new PropertyRef(
-                    declaringType,
-                    metadataToken,
-                    getter,
-                    setter,
-                    name);
+                return value;
             }
         }
 
@@ -308,8 +316,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             using (this.Trace("FieldRef"))
             {
-                this.writer.Write(!fieldRef.IsEmpty);
-                if (!fieldRef.IsEmpty)
+                if (this.TryPrepareSerializeReusableObject(fieldRef))
                 {
                     this.Write(fieldRef.DeclaringType);
                     this.WriteCompressedMetadataToken(fieldRef.MetadataToken, MetadataTokenType.Field);
@@ -322,17 +329,17 @@ namespace Microsoft.VisualStudio.Composition
         {
             using (this.Trace("FieldRef"))
             {
-                if (this.reader.ReadBoolean())
+                if (this.TryPrepareDeserializeReusableObject(out uint id, out FieldRef value))
                 {
                     var declaringType = this.ReadTypeRef();
                     int metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Field);
                     var name = this.ReadString();
-                    return new FieldRef(declaringType, metadataToken, name);
+                    value = new FieldRef(declaringType, metadataToken, name);
+
+                    this.OnDeserializedReusableObject(id, value);
                 }
-                else
-                {
-                    return default(FieldRef);
-                }
+
+                return value;
             }
         }
 
@@ -340,10 +347,8 @@ namespace Microsoft.VisualStudio.Composition
         {
             using (this.Trace("ParameterRef"))
             {
-                this.writer.Write(!parameterRef.IsEmpty);
-                if (!parameterRef.IsEmpty)
+                if (this.TryPrepareSerializeReusableObject(parameterRef))
                 {
-                    this.Write(parameterRef.Constructor);
                     this.Write(parameterRef.Method);
                     this.writer.Write((byte)parameterRef.ParameterIndex);
                 }
@@ -354,17 +359,16 @@ namespace Microsoft.VisualStudio.Composition
         {
             using (this.Trace("ParameterRef"))
             {
-                if (this.reader.ReadBoolean())
+                if (this.TryPrepareDeserializeReusableObject(out uint id, out ParameterRef value))
                 {
-                    var ctor = this.ReadConstructorRef();
                     var method = this.ReadMethodRef();
                     var parameterIndex = this.reader.ReadByte();
-                    return ctor.IsEmpty ? new ParameterRef(method, parameterIndex) : new ParameterRef(ctor, parameterIndex);
+                    value = new ParameterRef(method, parameterIndex);
+
+                    this.OnDeserializedReusableObject(id, value);
                 }
-                else
-                {
-                    return default(ParameterRef);
-                }
+
+                return value;
             }
         }
 
@@ -383,12 +387,15 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(ConstructorRef constructorRef)
         {
-            Requires.Argument(!constructorRef.IsEmpty, "constructorRef", Strings.CannotBeEmpty);
+            Requires.NotNull(constructorRef, nameof(constructorRef));
             using (this.Trace("ConstructorRef"))
             {
-                this.Write(constructorRef.DeclaringType);
-                this.WriteCompressedMetadataToken(constructorRef.MetadataToken, MetadataTokenType.Method);
-                this.Write(constructorRef.ParameterTypes, this.Write);
+                if (this.TryPrepareSerializeReusableObject(constructorRef))
+                {
+                    this.Write(constructorRef.DeclaringType);
+                    this.WriteCompressedMetadataToken(constructorRef.MetadataToken, MetadataTokenType.Method);
+                    this.Write(constructorRef.ParameterTypes, this.Write);
+                }
             }
         }
 
@@ -396,14 +403,21 @@ namespace Microsoft.VisualStudio.Composition
         {
             using (this.Trace("ConstructorRef"))
             {
-                var declaringType = this.ReadTypeRef();
-                var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
-                var argumentTypes = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
+                if (this.TryPrepareDeserializeReusableObject(out uint id, out ConstructorRef value))
+                {
+                    var declaringType = this.ReadTypeRef();
+                    var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
+                    var argumentTypes = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
 
-                return new ConstructorRef(
-                    declaringType,
-                    metadataToken,
-                    argumentTypes);
+                    value = new ConstructorRef(
+                        declaringType,
+                        metadataToken,
+                        argumentTypes);
+
+                    this.OnDeserializedReusableObject(id, value);
+                }
+
+                return value;
             }
         }
 

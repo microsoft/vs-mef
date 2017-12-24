@@ -11,183 +11,129 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Text;
     using System.Threading.Tasks;
 
-    [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-    [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
-    public struct MemberRef : IEquatable<MemberRef>
+    public abstract class MemberRef : IEquatable<MemberRef>
     {
         /// <summary>
-        /// Gets the string to display in the debugger watch window for this value.
+        /// The metadata token for this member if read from a persisted assembly.
+        /// We do not store metadata tokens for members in dynamic assemblies because they can change till the Type is closed.
         /// </summary>
-        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        internal string DebuggerDisplay => this.IsEmpty ? "(empty)"
-            : this.IsConstructor ? this.Constructor.DebuggerDisplay
-            : this.IsField ? this.Field.DebuggerDisplay
-            : this.IsProperty ? this.Property.DebuggerDisplay
-            : this.IsMethod ? this.Method.DebuggerDisplay
-            : this.IsType ? this.Type.DebuggerDisplay
-            : "(unknown)";
+        private readonly int? metadataToken;
 
-        public MemberRef(ConstructorRef constructor)
-            : this()
+        /// <summary>
+        /// The <see cref="MemberInfo"/> that this value was instantiated with,
+        /// or cached later when a metadata token was resolved.
+        /// </summary>
+        private MemberInfo cachedMemberInfo;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MemberRef"/> class.
+        /// </summary>
+        protected MemberRef(TypeRef declaringType, int metadataToken)
         {
-            this.Constructor = constructor;
+            Requires.NotNull(declaringType, nameof(declaringType));
+            this.DeclaringType = declaringType;
+            this.metadataToken = metadataToken;
         }
 
-        public MemberRef(FieldRef field)
-            : this()
+        protected MemberRef(TypeRef declaringType, MemberInfo memberInfo)
         {
-            this.Field = field;
+            Requires.NotNull(declaringType, nameof(declaringType));
+            Requires.NotNull(memberInfo, nameof(memberInfo));
+
+            this.DeclaringType = declaringType;
+            this.cachedMemberInfo = memberInfo;
         }
 
-        public MemberRef(PropertyRef property)
-            : this()
+        protected MemberRef(MemberInfo memberInfo, Resolver resolver)
+            : this(
+                 TypeRef.Get(Requires.NotNull(memberInfo, nameof(memberInfo)).DeclaringType, resolver),
+                 memberInfo)
         {
-            this.Property = property;
         }
 
-        public MemberRef(MethodRef method)
-            : this()
-        {
-            this.Method = method;
-        }
+        public TypeRef DeclaringType { get; }
 
-        public MemberRef(TypeRef type)
-            : this()
-        {
-            this.Type = type;
-        }
+        public AssemblyName AssemblyName => this.DeclaringType.AssemblyName;
 
-        public MemberRef(MemberInfo member, Resolver resolver)
-            : this()
+        public int MetadataToken => this.metadataToken ?? this.cachedMemberInfo?.GetMetadataTokenSafe() ?? 0;
+
+        public MemberInfo MemberInfo => this.cachedMemberInfo ?? (this.cachedMemberInfo = this.Resolve());
+
+        internal MemberInfo MemberInfoNoResolve => this.cachedMemberInfo;
+
+        internal Resolver Resolver => this.DeclaringType.Resolver;
+
+        public static MemberRef Get(MemberInfo member, Resolver resolver)
         {
-            Requires.NotNull(member, nameof(member));
+            if (member == null)
+            {
+                return null;
+            }
 
             switch (member.MemberType)
             {
                 case MemberTypes.Constructor:
-                    this.Constructor = new ConstructorRef((ConstructorInfo)member, resolver);
-                    break;
+                    return new ConstructorRef((ConstructorInfo)member, resolver);
                 case MemberTypes.Field:
-                    this.Field = new FieldRef((FieldInfo)member, resolver);
-                    break;
+                    return new FieldRef((FieldInfo)member, resolver);
                 case MemberTypes.Method:
-                    this.Method = new MethodRef((MethodInfo)member, resolver);
-                    break;
+                    return new MethodRef((MethodInfo)member, resolver);
                 case MemberTypes.Property:
-                    this.Property = new PropertyRef((PropertyInfo)member, resolver);
-                    break;
+                    return new PropertyRef((PropertyInfo)member, resolver);
                 default:
-                    if (member is TypeInfo typeInfo)
-                    {
-                        this.Type = TypeRef.Get(typeInfo.AsType(), resolver);
-                    }
-                    else
-                    {
-                        throw new NotSupportedException();
-                    }
-
-                    break;
-            }
-        }
-
-        public ConstructorRef Constructor { get; private set; }
-
-        public FieldRef Field { get; private set; }
-
-        public PropertyRef Property { get; private set; }
-
-        public MethodRef Method { get; private set; }
-
-        public TypeRef Type { get; private set; }
-
-        public TypeRef DeclaringType
-        {
-            get
-            {
-                if (this.IsProperty)
-                {
-                    return this.Property.DeclaringType;
-                }
-                else if (this.IsField)
-                {
-                    return this.Field.DeclaringType;
-                }
-                else if (this.IsConstructor)
-                {
-                    return this.Constructor.DeclaringType;
-                }
-                else if (this.IsMethod)
-                {
-                    return this.Method.DeclaringType;
-                }
-                else if (this.IsType)
-                {
                     throw new NotSupportedException();
-                }
-                else
-                {
-                    return null;
-                }
             }
         }
 
-        public MemberInfo MemberInfo => this.Resolve();
-
-        public bool IsEmpty
+        public virtual bool Equals(MemberRef other)
         {
-            get { return this.Constructor.IsEmpty && this.Field.IsEmpty && this.Property.IsEmpty && this.Method.IsEmpty && this.Type == null; }
+            if (other == null || !this.GetType().IsEquivalentTo(other.GetType()))
+            {
+                return false;
+            }
+
+            if (this.cachedMemberInfo != null && other.cachedMemberInfo != null)
+            {
+                if (this.cachedMemberInfo == other.cachedMemberInfo)
+                {
+                    return true;
+                }
+            }
+
+            if (this.metadataToken.HasValue && other.metadataToken.HasValue && this.DeclaringType.AssemblyId.Equals(other.DeclaringType.AssemblyId))
+            {
+                if (this.metadataToken.Value != other.metadataToken.Value)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if (!this.EqualsByTypeLocalMetadata(other))
+                {
+                    return false;
+                }
+            }
+
+            return EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType);
         }
 
-        public bool IsConstructor
-        {
-            get { return !this.Constructor.IsEmpty; }
-        }
+        /// <summary>
+        /// Gets a value indicating whether this instance is equivalent to another one,
+        /// based only on metadata that describes this member, assuming the declaring types are equal.
+        /// </summary>
+        /// <param name="other">The instance to compare with. This may be assumed to always be an instance of the same type.</param>
+        /// <returns><c>true</c> if the local metadata on the member are equal; <c>false</c> otherwise.</returns>
+        protected abstract bool EqualsByTypeLocalMetadata(MemberRef other);
 
-        public bool IsField
-        {
-            get { return !this.Field.IsEmpty; }
-        }
+        protected abstract MemberInfo Resolve();
 
-        public bool IsProperty
-        {
-            get { return !this.Property.IsEmpty; }
-        }
-
-        public bool IsMethod
-        {
-            get { return !this.Method.IsEmpty; }
-        }
-
-        public bool IsType
-        {
-            get { return this.Type != null; }
-        }
-
-        internal Resolver Resolver => this.DeclaringType?.Resolver;
-
-        public static MemberRef Get(MemberInfo member, Resolver resolver)
-        {
-            return member != null ? new MemberRef(member, resolver) : default(MemberRef);
-        }
-
-        public bool Equals(MemberRef other)
-        {
-            return this.Constructor.Equals(other.Constructor)
-                && this.Field.Equals(other.Field)
-                && this.Property.Equals(other.Property)
-                && this.Method.Equals(other.Method)
-                && EqualityComparer<TypeRef>.Default.Equals(this.Type, other.Type);
-        }
+        internal abstract void GetInputAssemblies(ISet<AssemblyName> assemblies);
 
         public override int GetHashCode()
         {
-            return
-                this.IsField ? this.Field.GetHashCode() :
-                this.IsProperty ? this.Property.GetHashCode() :
-                this.IsMethod ? this.Method.GetHashCode() :
-                this.IsConstructor ? this.Constructor.GetHashCode() :
-                this.IsType ? this.Type.GetHashCode() :
-                0;
+            // Derived types must override this.
+            throw new NotImplementedException();
         }
 
         public override bool Equals(object obj)
