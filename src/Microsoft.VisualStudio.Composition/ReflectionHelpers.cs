@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
 
                 bool valueTypeKnownExactly =
-                    export.ExportingMemberRef.IsEmpty || // When [Export] appears on the type itself, we instantiate that exact type.
+                    export.ExportingMemberRef == null || // When [Export] appears on the type itself, we instantiate that exact type.
                     exportingType.GetTypeInfo().IsSealed;
                 if (valueTypeKnownExactly)
                 {
@@ -659,6 +659,21 @@ namespace Microsoft.VisualStudio.Composition
                     GetTypeAndBaseTypeAssemblies(assemblies, value.GetType());
                 }
             }
+        }
+
+        internal static int GetMetadataTokenSafe(this MemberInfo memberInfo)
+        {
+            Requires.NotNull(memberInfo, nameof(memberInfo));
+
+#if DESKTOP
+            // Avoid calling MemberInfo.MetadataToken on MethodBuilders because they throw exceptions
+            if (memberInfo is System.Reflection.Emit.MethodBuilder mb)
+            {
+                return mb.GetToken().Token;
+            }
+#endif
+
+            return memberInfo.MetadataToken;
         }
 
         private static string FilterTypeNameForGenericTypeDefinition(Type type, bool fullName)

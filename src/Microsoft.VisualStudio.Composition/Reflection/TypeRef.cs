@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// Gets the string to display in the debugger watch window for this value.
         /// </summary>
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        internal string DebuggerDisplay => this.FullName;
+        private string DebuggerDisplay => this.FullName;
 
         private static readonly IEqualityComparer<AssemblyName> AssemblyNameComparer = ByValueEquality.AssemblyNameNoFastCheck;
 
@@ -200,7 +200,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         [Obsolete]
         public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = 0)
         {
-            if (!declaringMember.IsEmpty)
+            if (declaringMember != null)
             {
                 // We don't support generic type parameters as constructor parameters.
                 throw new NotSupportedException();
@@ -310,6 +310,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         {
             return this.Equals(TypeRef.Get(other, this.Resolver));
         }
+
+        internal void GetInputAssemblies(ISet<AssemblyName> assemblies) => ResolverExtensions.GetInputAssemblies(this, assemblies);
 
         private static Rental<Type[]> GetResolvedTypeArray(ImmutableArray<TypeRef> typeRefs)
         {

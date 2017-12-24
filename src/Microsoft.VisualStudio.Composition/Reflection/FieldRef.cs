@@ -5,128 +5,49 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Linq;
     using System.Reflection;
-    using System.Runtime.InteropServices;
-    using System.Text;
-    using System.Threading.Tasks;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-    [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
-    public struct FieldRef : IEquatable<FieldRef>
+    public class FieldRef : MemberRef, IEquatable<FieldRef>
     {
         /// <summary>
         /// Gets the string to display in the debugger watch window for this value.
         /// </summary>
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        internal string DebuggerDisplay => this.IsEmpty ? "(empty)" : $"{this.DeclaringType.FullName}.{this.Name}";
-
-        /// <summary>
-        /// The metadata token for this member if read from a persisted assembly.
-        /// We do not store metadata tokens for members in dynamic assemblies because they can change till the Type is closed.
-        /// </summary>
-        private readonly int? metadataToken;
-
-        /// <summary>
-        /// The <see cref="MemberInfo"/> that this value was instantiated with,
-        /// or cached later when a metadata token was resolved.
-        /// </summary>
-        private FieldInfo fieldInfo;
+        private string DebuggerDisplay => $"{this.DeclaringType.FullName}.{this.Name}";
 
         public FieldRef(TypeRef declaringType, int metadataToken, string name)
-            : this()
+            : base(declaringType, metadataToken)
         {
-            Requires.NotNull(declaringType, nameof(declaringType));
             Requires.NotNullOrEmpty(name, nameof(name));
-
-            this.DeclaringType = declaringType;
-            this.metadataToken = metadataToken;
             this.Name = name;
         }
 
-#if DESKTOP
-        [Obsolete]
-        public FieldRef(TypeRef declaringType, int metadataToken)
-            : this(
-                  declaringType,
-                  metadataToken,
-                  declaringType.Resolve().Assembly.ManifestModule.ResolveField(metadataToken).Name)
-        {
-        }
-#endif
-
         public FieldRef(FieldInfo field, Resolver resolver)
-            : this(TypeRef.Get(field.DeclaringType, resolver), field.MetadataToken, field.Name)
+            : base(field, resolver)
         {
-            this.fieldInfo = field;
+            this.Name = field.Name;
         }
 
-        public TypeRef DeclaringType { get; private set; }
-
-        public int MetadataToken => this.metadataToken ?? this.fieldInfo.MetadataToken;
-
-        public FieldInfo FieldInfo => this.fieldInfo ?? (this.fieldInfo = this.Resolve());
+        public FieldInfo FieldInfo => (FieldInfo)this.MemberInfo;
 
         public string Name { get; private set; }
 
-        public AssemblyName AssemblyName
+        internal override void GetInputAssemblies(ISet<AssemblyName> assemblies) => this.DeclaringType?.GetInputAssemblies(assemblies);
+
+        protected override bool EqualsByTypeLocalMetadata(MemberRef other)
         {
-            get { return this.IsEmpty ? null : this.DeclaringType.AssemblyName; }
+            var otherField = (FieldRef)other;
+            return this.Name == otherField.Name;
         }
 
-        public bool IsEmpty
-        {
-            get { return this.DeclaringType == null; }
-        }
-
-        internal Resolver Resolver => this.DeclaringType?.Resolver;
-
-        public bool Equals(FieldRef other)
-        {
-            if (this.IsEmpty ^ other.IsEmpty)
-            {
-                return false;
-            }
-
-            if (this.IsEmpty)
-            {
-                return true;
-            }
-
-            if (this.fieldInfo != null && other.fieldInfo != null)
-            {
-                if (this.fieldInfo == other.fieldInfo)
-                {
-                    return true;
-                }
-            }
-
-            if (this.metadataToken.HasValue && other.metadataToken.HasValue && this.DeclaringType.AssemblyId.Equals(other.DeclaringType.AssemblyId))
-            {
-                if (this.metadataToken.Value != other.metadataToken.Value)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                if (this.Name != other.Name)
-                {
-                    return false;
-                }
-            }
-
-            return EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType);
-        }
+        public bool Equals(FieldRef fieldRef) => this.Equals((MemberRef)fieldRef);
 
         public override int GetHashCode()
         {
             return this.DeclaringType.GetHashCode() + this.Name.GetHashCode();
         }
 
-        public override bool Equals(object obj)
-        {
-            return obj is FieldRef field && this.Equals(field);
-        }
+        protected override MemberInfo Resolve() => ResolverExtensions.Resolve(this);
     }
 }

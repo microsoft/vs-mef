@@ -309,13 +309,13 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     try
                     {
-                        bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(importingPartTracker, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
+                        bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(importingPartTracker, import.IsLazy, import.ImportingParameterRef != null);
                         if (!fullyInitializedValueIsRequired && importingPartTracker != null && !import.IsExportFactory)
                         {
                             importingPartTracker.ReportPartiallyInitializedImport(partLifecycle);
                         }
 
-                        if (!export.MemberRef.IsEmpty)
+                        if (export.MemberRef != null)
                         {
                             object part = export.Member.IsStatic()
                                 ? null

@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(satisfyingExports, nameof(satisfyingExports));
 
             var runtimeExports = satisfyingExports.Select(export => CreateRuntimeExport(export, resolver)).ToImmutableArray();
-            if (!importDefinitionBinding.ImportingMemberRef.IsEmpty)
+            if (importDefinitionBinding.ImportingMemberRef != null)
             {
                 return new RuntimeImport(
                     importDefinitionBinding.ImportingMemberRef,
@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
-            var exportingMember = exportingMemberRef.MemberInfo;
+            var exportingMember = exportingMemberRef?.MemberInfo;
             return new RuntimeExport(
                 exportDefinition.ContractName,
                 TypeRef.Get(partType, resolver),
@@ -238,26 +238,6 @@ namespace Microsoft.VisualStudio.Composition
         [DebuggerDisplay("{" + nameof(RuntimePart.TypeRef) + "." + nameof(Reflection.TypeRef.ResolvedType) + ".FullName,nq}")]
         public class RuntimePart : IEquatable<RuntimePart>
         {
-            [Obsolete]
-            public RuntimePart(
-                TypeRef type,
-                ConstructorRef importingConstructor,
-                IReadOnlyList<RuntimeImport> importingConstructorArguments,
-                IReadOnlyList<RuntimeImport> importingMembers,
-                IReadOnlyList<RuntimeExport> exports,
-                MethodRef onImportsSatisfied,
-                string sharingBoundary)
-                : this(
-                    type,
-                    new MethodRef(importingConstructor),
-                    importingConstructorArguments,
-                    importingMembers,
-                    exports,
-                    onImportsSatisfied,
-                    sharingBoundary)
-            {
-            }
-
             public RuntimePart(
                 TypeRef type,
                 MethodRef importingConstructor,
@@ -278,18 +258,9 @@ namespace Microsoft.VisualStudio.Composition
 
             public TypeRef TypeRef { get; private set; }
 
-            [Obsolete("Use " + nameof(ImportingConstructorOrFactoryMethodRef) + " instead.")]
-            public ConstructorRef ImportingConstructorRef
-            {
-                get
-                {
-                    return new ConstructorRef(this.ImportingConstructorOrFactoryMethodRef.DeclaringType, this.ImportingConstructorOrFactoryMethodRef.MetadataToken, this.ImportingConstructorOrFactoryMethod.GetParameterTypes(this.TypeRef.Resolver));
-                }
-            }
-
             public MethodRef ImportingConstructorOrFactoryMethodRef { get; private set; }
 
-            public MethodBase ImportingConstructorOrFactoryMethod => this.ImportingConstructorOrFactoryMethodRef.MethodBase;
+            public MethodBase ImportingConstructorOrFactoryMethod => this.ImportingConstructorOrFactoryMethodRef?.MethodBase;
 
             public IReadOnlyList<RuntimeImport> ImportingConstructorArguments { get; private set; }
 
@@ -303,12 +274,12 @@ namespace Microsoft.VisualStudio.Composition
 
             public bool IsShared => this.SharingBoundary != null;
 
-            public bool IsInstantiable => !this.ImportingConstructorOrFactoryMethodRef.IsEmpty;
+            public bool IsInstantiable => this.ImportingConstructorOrFactoryMethodRef != null;
 
             [Obsolete("Use " + nameof(ImportingConstructorOrFactoryMethod) + " instead.")]
             public ConstructorInfo ImportingConstructor => (ConstructorInfo)this.ImportingConstructorOrFactoryMethod;
 
-            public MethodInfo OnImportsSatisfied => (MethodInfo)this.OnImportsSatisfiedRef.MethodBase;
+            public MethodInfo OnImportsSatisfied => (MethodInfo)this.OnImportsSatisfiedRef?.MethodBase;
 
             public override bool Equals(object obj) => this.Equals(obj as RuntimePart);
 
@@ -321,12 +292,12 @@ namespace Microsoft.VisualStudio.Composition
                     return false;
                 }
 
-                bool result = this.TypeRef.Equals(other.TypeRef)
-                    && this.ImportingConstructorOrFactoryMethodRef.Equals(other.ImportingConstructorOrFactoryMethodRef)
+                bool result = EqualityComparer<TypeRef>.Default.Equals(this.TypeRef, other.TypeRef)
+                    && EqualityComparer<MethodRef>.Default.Equals(this.ImportingConstructorOrFactoryMethodRef, other.ImportingConstructorOrFactoryMethodRef)
                     && this.ImportingConstructorArguments.SequenceEqual(other.ImportingConstructorArguments)
                     && ByValueEquality.EquivalentIgnoreOrder<RuntimeImport>().Equals(this.ImportingMembers, other.ImportingMembers)
                     && ByValueEquality.EquivalentIgnoreOrder<RuntimeExport>().Equals(this.Exports, other.Exports)
-                    && this.OnImportsSatisfiedRef.Equals(other.OnImportsSatisfiedRef)
+                    && EqualityComparer<MethodRef>.Default.Equals(this.OnImportsSatisfiedRef, other.OnImportsSatisfiedRef)
                     && this.SharingBoundary == other.SharingBoundary;
                 return result;
             }
@@ -438,31 +409,9 @@ namespace Microsoft.VisualStudio.Composition
             /// </summary>
             public IReadOnlyCollection<string> ExportFactorySharingBoundaries { get; private set; }
 
-            public MemberInfo ImportingMember
-            {
-                get
-                {
-                    if (this.importingMember == null)
-                    {
-                        this.importingMember = this.ImportingMemberRef.MemberInfo;
-                    }
+            public MemberInfo ImportingMember => this.importingMember ?? (this.importingMember = this.ImportingMemberRef?.MemberInfo);
 
-                    return this.importingMember;
-                }
-            }
-
-            public ParameterInfo ImportingParameter
-            {
-                get
-                {
-                    if (this.importingParameter == null)
-                    {
-                        this.importingParameter = this.ImportingParameterRef.Resolve();
-                    }
-
-                    return this.importingParameter;
-                }
-            }
+            public ParameterInfo ImportingParameter => this.importingParameter ?? (this.importingParameter = this.ImportingParameterRef.ParameterInfo);
 
             public bool IsLazy
             {
@@ -519,9 +468,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 get
                 {
-                    return
-                        this.ImportingParameterRef.IsEmpty ? this.ImportingMemberRef.DeclaringType :
-                        this.ImportingParameterRef.DeclaringType;
+                    return this.ImportingMemberRef?.DeclaringType ?? this.ImportingParameterRef?.DeclaringType;
                 }
             }
 
@@ -556,8 +503,8 @@ namespace Microsoft.VisualStudio.Composition
                     && this.IsNonSharedInstanceRequired == other.IsNonSharedInstanceRequired
                     && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata)
                     && ByValueEquality.EquivalentIgnoreOrder<string>().Equals(this.ExportFactorySharingBoundaries, other.ExportFactorySharingBoundaries)
-                    && this.ImportingMemberRef.Equals(other.ImportingMemberRef)
-                    && this.ImportingParameterRef.Equals(other.ImportingParameterRef);
+                    && EqualityComparer<MemberRef>.Default.Equals(this.ImportingMemberRef, other.ImportingMemberRef)
+                    && EqualityComparer<ParameterRef>.Default.Equals(this.ImportingParameterRef, other.ImportingParameterRef);
                 return result;
             }
         }
@@ -588,18 +535,7 @@ namespace Microsoft.VisualStudio.Composition
 
             public IReadOnlyDictionary<string, object> Metadata { get; private set; }
 
-            public MemberInfo Member
-            {
-                get
-                {
-                    if (this.member == null)
-                    {
-                        this.member = this.MemberRef.MemberInfo;
-                    }
-
-                    return this.member;
-                }
-            }
+            public MemberInfo Member => this.member ?? (this.member = this.MemberRef?.MemberInfo);
 
             public override int GetHashCode() => this.ContractName.GetHashCode() + this.DeclaringTypeRef.GetHashCode();
 

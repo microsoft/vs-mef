@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.Composition
                     this.Write(partDefinition.ImportingMembers, this.Write);
                     this.Write(partDefinition.SharingBoundary);
                     this.Write(partDefinition.OnImportsSatisfiedRef);
-                    if (partDefinition.ImportingConstructorOrFactoryRef.IsEmpty)
+                    if (partDefinition.ImportingConstructorOrFactoryRef == null)
                     {
                         this.writer.Write(false);
                     }
@@ -236,7 +236,7 @@ namespace Microsoft.VisualStudio.Composition
                     this.Write(importDefinitionBinding.ImportingSiteTypeRef);
                     this.Write(importDefinitionBinding.ImportingSiteTypeWithoutCollectionRef);
 
-                    if (importDefinitionBinding.ImportingMemberRef.IsEmpty)
+                    if (importDefinitionBinding.ImportingMemberRef == null)
                     {
                         this.writer.Write(false);
                         this.Write(importDefinitionBinding.ImportingParameterRef);
