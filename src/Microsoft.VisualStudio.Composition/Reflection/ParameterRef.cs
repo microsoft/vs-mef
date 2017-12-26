@@ -30,6 +30,15 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.ParameterIndex = parameterIndex;
         }
 
+        public ParameterRef(ParameterInfo parameterInfo, Resolver resolver)
+        {
+            Requires.NotNull(parameterInfo, nameof(parameterInfo));
+            Requires.NotNull(resolver, nameof(resolver));
+
+            this.Method = new MethodRef((MethodBase)parameterInfo.Member, resolver);
+            this.ParameterIndex = parameterInfo.Position;
+        }
+
         public MethodRef Method { get; }
 
         public ParameterInfo ParameterInfo => this.cachedParameterInfo ?? (this.cachedParameterInfo = this.Resolve());
@@ -51,18 +60,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         {
             if (parameter != null)
             {
-                if (parameter.Member is ConstructorInfo ctor)
-                {
-                    return new ParameterRef(new ConstructorRef(ctor, resolver), parameter.Position);
-                }
-                else if (parameter.Member is MethodInfo methodInfo)
-                {
-                    return new ParameterRef(new MethodRef(methodInfo, resolver), parameter.Position);
-                }
-                else
-                {
-                    throw new NotSupportedException("Unsupported member type: " + parameter.Member.GetType().Name);
-                }
+                return new ParameterRef(parameter, resolver);
             }
 
             return default(ParameterRef);

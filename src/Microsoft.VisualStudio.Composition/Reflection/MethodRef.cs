@@ -66,7 +66,9 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public MethodBase MethodBase => (MethodBase)this.MemberInfo;
 
-        protected override MemberInfo Resolve() => this.Resolve2();
+        public MethodBase MethodBaseNoResolve => (MethodBase)this.MemberInfoNoResolve;
+
+        protected override MemberInfo Resolve() => ResolverExtensions.Resolve(this);
 
         public string Name { get; }
 
@@ -74,7 +76,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public ImmutableArray<TypeRef> GenericMethodArguments { get; }
 
-        public static MethodRef Get(MethodBase method, Resolver resolver) => method is MethodInfo ? new MethodRef(method, resolver) : method is ConstructorInfo ctor ? new ConstructorRef(ctor, resolver) : default(MethodRef);
+        public static MethodRef Get(MethodBase method, Resolver resolver) => method != null ? new MethodRef(method, resolver) : null;
 
         internal override void GetInputAssemblies(ISet<AssemblyName> assemblies)
         {

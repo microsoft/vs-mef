@@ -196,26 +196,30 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+        private enum MemberRefType
+        {
+            Other = 0,
+            Field,
+            Property,
+            Method,
+        }
+
         protected void Write(MemberRef memberRef)
         {
             using (this.Trace("MemberRef"))
             {
                 switch (memberRef)
                 {
-                    case ConstructorRef constructorRef:
-                        this.writer.Write((byte)1);
-                        this.Write(constructorRef);
-                        break;
                     case FieldRef fieldRef:
-                        this.writer.Write((byte)2);
+                        this.writer.Write((byte)MemberRefType.Field);
                         this.Write(fieldRef);
                         break;
                     case PropertyRef propertyRef:
-                        this.writer.Write((byte)3);
+                        this.writer.Write((byte)MemberRefType.Property);
                         this.Write(propertyRef);
                         break;
                     case MethodRef methodRef:
-                        this.writer.Write((byte)4);
+                        this.writer.Write((byte)MemberRefType.Method);
                         this.Write(methodRef);
                         break;
                     default:
@@ -230,17 +234,15 @@ namespace Microsoft.VisualStudio.Composition
             using (this.Trace("MemberRef"))
             {
                 int kind = this.reader.ReadByte();
-                switch (kind)
+                switch ((MemberRefType)kind)
                 {
-                    case 0:
+                    case MemberRefType.Other:
                         return default(MemberRef);
-                    case 1:
-                        return this.ReadConstructorRef();
-                    case 2:
+                    case MemberRefType.Field:
                         return this.ReadFieldRef();
-                    case 3:
+                    case MemberRefType.Property:
                         return this.ReadPropertyRef();
-                    case 4:
+                    case MemberRefType.Method:
                         return this.ReadMethodRef();
                     default:
                         throw new NotSupportedException();
@@ -383,42 +385,6 @@ namespace Microsoft.VisualStudio.Composition
         protected int ReadCompressedMetadataToken(MetadataTokenType type)
         {
             return (int)(this.ReadCompressedUInt() | (uint)type);
-        }
-
-        protected void Write(ConstructorRef constructorRef)
-        {
-            Requires.NotNull(constructorRef, nameof(constructorRef));
-            using (this.Trace("ConstructorRef"))
-            {
-                if (this.TryPrepareSerializeReusableObject(constructorRef))
-                {
-                    this.Write(constructorRef.DeclaringType);
-                    this.WriteCompressedMetadataToken(constructorRef.MetadataToken, MetadataTokenType.Method);
-                    this.Write(constructorRef.ParameterTypes, this.Write);
-                }
-            }
-        }
-
-        protected ConstructorRef ReadConstructorRef()
-        {
-            using (this.Trace("ConstructorRef"))
-            {
-                if (this.TryPrepareDeserializeReusableObject(out uint id, out ConstructorRef value))
-                {
-                    var declaringType = this.ReadTypeRef();
-                    var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
-                    var argumentTypes = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
-
-                    value = new ConstructorRef(
-                        declaringType,
-                        metadataToken,
-                        argumentTypes);
-
-                    this.OnDeserializedReusableObject(id, value);
-                }
-
-                return value;
-            }
         }
 
         protected void Write(TypeRef typeRef)

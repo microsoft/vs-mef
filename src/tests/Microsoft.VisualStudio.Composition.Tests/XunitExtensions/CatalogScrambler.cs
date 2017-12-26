@@ -61,29 +61,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 part.IsSharingBoundaryInferred);
         }
 
-        private ConstructorRef Scramble(ConstructorRef constructorRef)
-        {
-            if (constructorRef == null)
-            {
-                return default(ConstructorRef);
-            }
-
-            return new ConstructorRef(
-                this.Scramble(constructorRef.DeclaringType),
-                this.GetScrambledMetadataToken(constructorRef.MetadataToken),
-                constructorRef.ParameterTypes.Select(this.Scramble).ToImmutableArray());
-        }
-
         private MethodRef Scramble(MethodRef methodRef)
         {
             if (methodRef == null)
             {
                 return default(MethodRef);
-            }
-
-            if (methodRef is ConstructorRef constructorRef)
-            {
-                return this.Scramble(constructorRef);
             }
 
             return new MethodRef(
@@ -210,8 +192,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             switch (importingMemberRef)
             {
-                case ConstructorRef constructorRef:
-                    return this.Scramble(constructorRef);
                 case FieldRef fieldRef:
                     return this.Scramble(fieldRef);
                 case MethodRef methodRef:

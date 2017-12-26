@@ -21,32 +21,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return typeRef?.ResolvedType;
         }
 
-        public static ConstructorInfo Resolve(this ConstructorRef constructorRef)
-        {
-            if (constructorRef == null)
-            {
-                return null;
-            }
-
-#if RuntimeHandles
-            if (TryUseFastReflection(constructorRef.DeclaringType, out Module manifest))
-            {
-                return (ConstructorInfo)manifest.ResolveMethod(constructorRef.MetadataToken);
-            }
-            else
-#endif
-            {
-                return FindMethodByParameters(
-                    Resolve(constructorRef.DeclaringType).GetConstructors(AllMembers),
-                    ConstructorInfo.ConstructorName,
-                    constructorRef.ParameterTypes);
-            }
-        }
-
-        [Obsolete("Use Resolve2 instead.", error: true)]
-        public static MethodInfo Resolve(this MethodRef methodRef) => (MethodInfo)Resolve2(methodRef);
-
-        public static MethodBase Resolve2(this MethodRef methodRef)
+        public static MethodBase Resolve(this MethodRef methodRef)
         {
             if (methodRef == null)
             {

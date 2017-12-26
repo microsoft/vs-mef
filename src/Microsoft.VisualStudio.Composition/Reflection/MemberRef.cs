@@ -72,10 +72,9 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             switch (member.MemberType)
             {
-                case MemberTypes.Constructor:
-                    return new ConstructorRef((ConstructorInfo)member, resolver);
                 case MemberTypes.Field:
                     return new FieldRef((FieldInfo)member, resolver);
+                case MemberTypes.Constructor:
                 case MemberTypes.Method:
                     return new MethodRef((MethodInfo)member, resolver);
                 case MemberTypes.Property:

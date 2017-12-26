@@ -174,18 +174,9 @@ namespace Microsoft.VisualStudio.Composition
             get { return this.ImportingConstructorImports != null; }
         }
 
-        [Obsolete]
-        public ConstructorRef ImportingConstructorRef => new ConstructorRef(this.ImportingConstructorOrFactoryRef.DeclaringType, this.ImportingConstructorOrFactoryRef.MetadataToken, this.ImportingConstructorOrFactoryRef.ParameterTypes);
-
-        [Obsolete]
-        public ConstructorInfo ImportingConstructorInfo
-        {
-            get { return this.ImportingConstructorRef.ConstructorInfo; }
-        }
-
         public MethodRef ImportingConstructorOrFactoryRef { get; }
 
-        public MethodBase ImportingConstructorOrFactory => this.ImportingConstructorOrFactoryRef.MethodBase;
+        public MethodBase ImportingConstructorOrFactory => this.ImportingConstructorOrFactoryRef?.MethodBase;
 
         /// <summary>
         /// Gets a sequence of all imports found on this part (both members and importing constructor).
