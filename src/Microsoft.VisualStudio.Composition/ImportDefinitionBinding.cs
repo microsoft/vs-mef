@@ -21,21 +21,6 @@ namespace Microsoft.VisualStudio.Composition
         /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
         /// to represent an importing member.
         /// </summary>
-        [Obsolete]
-        public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef composablePartType, MemberRef importingMember)
-            : this(
-                  importDefinition,
-                  composablePartType,
-                  importingMember,
-                  TypeRef.Get(ReflectionHelpers.GetMemberType(importingMember.MemberInfo), importingMember.Resolver),
-                  TypeRef.Get(importDefinition.Cardinality == ImportCardinality.ZeroOrMore ? PartDiscovery.GetElementTypeFromMany(ReflectionHelpers.GetMemberType(importingMember.MemberInfo)) : ReflectionHelpers.GetMemberType(importingMember.MemberInfo), importingMember.Resolver))
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
-        /// to represent an importing member.
-        /// </summary>
         public ImportDefinitionBinding(
             ImportDefinition importDefinition,
             TypeRef composablePartType,
@@ -53,21 +38,6 @@ namespace Microsoft.VisualStudio.Composition
             this.ImportingMemberRef = importingMember;
             this.ImportingSiteTypeRef = importingSiteTypeRef;
             this.ImportingSiteTypeWithoutCollectionRef = importingSiteTypeWithoutCollectionRef;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
-        /// to represent a parameter in an importing constructor.
-        /// </summary>
-        [Obsolete]
-        public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef composablePartType, ParameterRef importingConstructorParameter)
-            : this(
-                  importDefinition,
-                  composablePartType,
-                  importingConstructorParameter,
-                  TypeRef.Get(importingConstructorParameter.Resolve().ParameterType, importingConstructorParameter.Resolver),
-                  TypeRef.Get(importDefinition.Cardinality == ImportCardinality.ZeroOrMore ? PartDiscovery.GetElementTypeFromMany(importingConstructorParameter.Resolve().ParameterType) : importingConstructorParameter.Resolve().ParameterType, importingConstructorParameter.Resolver))
-        {
         }
 
         /// <summary>

@@ -101,12 +101,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public ImmutableArray<TypeRef> GenericTypeArguments { get; private set; }
 
-        [Obsolete]
-        public MemberRef GenericParameterDeclaringMemberRef => default(MemberRef);
-
-        [Obsolete]
-        public int GenericParameterDeclaringMemberIndex => 0;
-
         public bool IsGenericType => this.GenericTypeParameterCount > 0 || this.GenericTypeArguments.Length > 0;
 
         public bool IsGenericTypeDefinition
@@ -197,18 +191,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return new TypeRef(resolver, assemblyId.Name, assemblyId, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments);
         }
 
-        [Obsolete]
-        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = 0)
-        {
-            if (declaringMember != null)
-            {
-                // We don't support generic type parameters as constructor parameters.
-                throw new NotSupportedException();
-            }
-
-            return new TypeRef(resolver, assemblyName, null, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments);
-        }
-
         /// <summary>
         /// Gets a TypeRef that represents a given Type instance.
         /// </summary>
@@ -247,22 +229,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             return result;
         }
-
-#if DESKTOP
-        [Obsolete]
-        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
-        {
-            Type type = resolver.AssemblyLoader.LoadAssembly(assemblyName).ManifestModule.ResolveType(metadataToken);
-            return Get(type, resolver);
-        }
-
-        [Obsolete]
-        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = 0)
-        {
-            Type type = resolver.AssemblyLoader.LoadAssembly(assemblyName).ManifestModule.ResolveType(metadataToken);
-            return Get(type, resolver);
-        }
-#endif
 
         public TypeRef MakeGenericTypeRef(ImmutableArray<TypeRef> genericTypeArguments)
         {

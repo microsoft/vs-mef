@@ -276,9 +276,6 @@ namespace Microsoft.VisualStudio.Composition
 
             public bool IsInstantiable => this.ImportingConstructorOrFactoryMethodRef != null;
 
-            [Obsolete("Use " + nameof(ImportingConstructorOrFactoryMethod) + " instead.")]
-            public ConstructorInfo ImportingConstructor => (ConstructorInfo)this.ImportingConstructorOrFactoryMethod;
-
             public MethodInfo OnImportsSatisfied => (MethodInfo)this.OnImportsSatisfiedRef?.MethodBase;
 
             public override bool Equals(object obj) => this.Equals(obj as RuntimePart);
@@ -330,40 +327,10 @@ namespace Microsoft.VisualStudio.Composition
                 this.ExportFactorySharingBoundaries = exportFactorySharingBoundaries;
             }
 
-            [Obsolete]
-            public RuntimeImport(MemberRef importingMemberRef, TypeRef importingSiteTypeRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
-                : this(
-                      importingMemberRef,
-                      importingSiteTypeRef,
-                      TypeRef.Get(cardinality == ImportCardinality.ZeroOrMore ? PartDiscovery.GetElementTypeFromMany(importingSiteTypeRef.ResolvedType) : importingSiteTypeRef.ResolvedType, importingSiteTypeRef.Resolver),
-                      cardinality,
-                      satisfyingExports,
-                      isNonSharedInstanceRequired,
-                      isExportFactory,
-                      metadata,
-                      exportFactorySharingBoundaries)
-            {
-            }
-
             public RuntimeImport(MemberRef importingMemberRef, TypeRef importingSiteTypeRef, TypeRef importingSiteTypeWithoutCollectionRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
                 : this(importingSiteTypeRef, importingSiteTypeWithoutCollectionRef, cardinality, satisfyingExports, isNonSharedInstanceRequired, isExportFactory, metadata, exportFactorySharingBoundaries)
             {
                 this.ImportingMemberRef = importingMemberRef;
-            }
-
-            [Obsolete]
-            public RuntimeImport(ParameterRef importingParameterRef, TypeRef importingSiteTypeRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
-                : this(
-                      importingParameterRef,
-                      importingSiteTypeRef,
-                      TypeRef.Get(cardinality == ImportCardinality.ZeroOrMore ? PartDiscovery.GetElementTypeFromMany(importingSiteTypeRef.ResolvedType) : importingSiteTypeRef.ResolvedType, importingSiteTypeRef.Resolver),
-                      cardinality,
-                      satisfyingExports,
-                      isNonSharedInstanceRequired,
-                      isExportFactory,
-                      metadata,
-                      exportFactorySharingBoundaries)
-            {
             }
 
             public RuntimeImport(ParameterRef importingParameterRef, TypeRef importingSiteTypeRef, TypeRef importingSiteTypeWithoutCollectionRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
