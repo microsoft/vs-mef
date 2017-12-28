@@ -29,6 +29,54 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(1, part.ImportsSatisfiedInvocationCount);
         }
 
+        /// <summary>
+        /// Documents that MEF v1 tended to call OnImportsSatisfied in the order of its dependency stack.
+        /// </summary>
+        /// <remarks>
+        /// This would break down for Lazy imports and circular dependencies but in the simplest case it seems reliable,
+        /// so we document the simple case, but we will not strive to emulate it because it's a very limited case,
+        /// undocumented behavior, and would be difficult to emulate while maintaining our own support for circular dependencies
+        /// which is broader than .NET MEF's.
+        /// </remarks>
+        [MefFact(CompositionEngines.V1, typeof(OuterPart), typeof(InnerPart), NoCompatGoal = true)]
+        public void OnImportsSatisfiedInDependencyOrder(IContainer container)
+        {
+            var part = container.GetExportedValue<OuterPart>();
+            Assert.True(part.OnImportsSatisfiedCalled);
+            Assert.True(part.InnerPart.OnImportsSatisfiedCalled);
+            Assert.True(part.OnImportsSatisfiedCalledOnInnerPart);  // Verify that the OnImportSatisfied() was called on the inner part first
+        }
+
+        [MefV1.Export, Export]
+        public class OuterPart : MefV1.IPartImportsSatisfiedNotification
+        {
+            public bool OnImportsSatisfiedCalled { get; private set; }
+
+            public bool OnImportsSatisfiedCalledOnInnerPart { get; private set; }
+
+            [MefV1.Import, Import]
+            public InnerPart InnerPart { get; set; }
+
+            [OnImportsSatisfied]
+            public void OnImportsSatisfied()
+            {
+                this.OnImportsSatisfiedCalled = true;
+                this.OnImportsSatisfiedCalledOnInnerPart = this.InnerPart.OnImportsSatisfiedCalled;
+            }
+        }
+
+        [MefV1.Export, Export]
+        public class InnerPart : MefV1.IPartImportsSatisfiedNotification
+        {
+            public bool OnImportsSatisfiedCalled { get; private set; }
+
+            [OnImportsSatisfied]
+            public void OnImportsSatisfied()
+            {
+                this.OnImportsSatisfiedCalled = true;
+            }
+        }
+
         [MefV1.Export, Export]
         public class SpecialPart : MefV1.IPartImportsSatisfiedNotification
         {
