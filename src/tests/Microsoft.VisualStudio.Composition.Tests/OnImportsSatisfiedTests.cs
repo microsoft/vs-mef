@@ -29,6 +29,45 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(1, part.ImportsSatisfiedInvocationCount);
         }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(OuterPart), typeof(InnerPart))]
+        public void OnImportsSatisfiedInCorrectOrder(IContainer container)
+        {
+            var part = container.GetExportedValue<OuterPart>();
+            Assert.True(part.OnImportsSatisfiedCalled);
+            Assert.True(part.InnerPart.OnImportsSatisfiedCalled);
+            Assert.True(part.OnImportsSatisfiedCalledOnInnerPart);  // Verify that the OnImportSatisfied() was called on the inner part first
+        }
+
+        [MefV1.Export, Export]
+        public class OuterPart : MefV1.IPartImportsSatisfiedNotification
+        {
+            public bool OnImportsSatisfiedCalled { get; private set; }
+
+            public bool OnImportsSatisfiedCalledOnInnerPart { get; private set; }
+
+            [MefV1.Import, Import]
+            public InnerPart InnerPart { get; set; }
+
+            [OnImportsSatisfied]
+            public void OnImportsSatisfied()
+            {
+                this.OnImportsSatisfiedCalled = true;
+                this.OnImportsSatisfiedCalledOnInnerPart = this.InnerPart.OnImportsSatisfiedCalled;
+            }
+        }
+
+        [MefV1.Export, Export]
+        public class InnerPart : MefV1.IPartImportsSatisfiedNotification
+        {
+            public bool OnImportsSatisfiedCalled { get; private set; }
+
+            [OnImportsSatisfied]
+            public void OnImportsSatisfied()
+            {
+                this.OnImportsSatisfiedCalled = true;
+            }
+        }
+
         [MefV1.Export, Export]
         public class SpecialPart : MefV1.IPartImportsSatisfiedNotification
         {
