@@ -29,8 +29,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(1, part.ImportsSatisfiedInvocationCount);
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(OuterPart), typeof(InnerPart))]
-        public void OnImportsSatisfiedInCorrectOrder(IContainer container)
+        /// <summary>
+        /// Documents that MEF v1 tended to call OnImportsSatisfied in the order of its dependency stack.
+        /// </summary>
+        /// <remarks>
+        /// This would break down for Lazy imports and circular dependencies but in the simplest case it seems reliable,
+        /// so we document the simple case, but we will not strive to emulate it because it's a very limited case,
+        /// undocumented behavior, and would be difficult to emulate while maintaining our own support for circular dependencies
+        /// which is broader than .NET MEF's.
+        /// </remarks>
+        [MefFact(CompositionEngines.V1, typeof(OuterPart), typeof(InnerPart), NoCompatGoal = true)]
+        public void OnImportsSatisfiedInDependencyOrder(IContainer container)
         {
             var part = container.GetExportedValue<OuterPart>();
             Assert.True(part.OnImportsSatisfiedCalled);
