@@ -207,8 +207,8 @@ namespace Microsoft.VisualStudio.Composition
 
             this.ImportDefinition.GetInputAssemblies(assemblies);
             this.ComposablePartTypeRef.GetInputAssemblies(assemblies);
-            this.ImportingMemberRef.GetInputAssemblies(assemblies);
-            this.ImportingParameterRef.GetInputAssemblies(assemblies);
+            this.ImportingMemberRef?.GetInputAssemblies(assemblies);
+            this.ImportingParameterRef?.GetInputAssemblies(assemblies);
             this.ImportingSiteTypeRef.GetInputAssemblies(assemblies);
             this.ComposablePartTypeRef.GetInputAssemblies(assemblies);
         }
