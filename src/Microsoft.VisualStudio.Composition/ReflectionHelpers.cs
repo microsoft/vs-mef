@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.Composition
 
         internal static IEnumerable<PropertyInfo> WherePublicInstance(this IEnumerable<PropertyInfo> infos)
         {
-            return infos.Where(p => p.GetMethod.IsPublicInstance() || p.SetMethod.IsPublicInstance());
+            return infos.Where(p => (p.GetMethod?.IsPublicInstance() ?? false) || (p.SetMethod?.IsPublicInstance() ?? false));
         }
 
         internal static bool IsStatic(this MemberInfo exportingMember)
@@ -238,6 +238,7 @@ namespace Microsoft.VisualStudio.Composition
 
         internal static bool IsPublicInstance(this MethodInfo methodInfo)
         {
+            Requires.NotNull(methodInfo, nameof(methodInfo));
             return methodInfo.IsPublic && !methodInfo.IsStatic;
         }
 

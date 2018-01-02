@@ -94,6 +94,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
             internal string InternalProperty { get; set; }
 
             public string PropertyWithPrivateSetter { get; private set; }
+
+            public string UngettableProperty { set { } }
+
+            internal string InternalGetterAndNoSetter => throw new NotImplementedException();
         }
 
         [Export]
