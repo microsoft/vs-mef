@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
     using Microsoft.Build.Utilities;
     using Reflection;
 
-    public class CreateComposition : Nerdbank.MSBuildExtension.ContextIsolatedTask
+    public class CreateComposition : AppDomainIsolatedTask, ICancelableTask
     {
         private static readonly string[] AssembliesToResolve = new string[]
         {
@@ -25,6 +25,15 @@ namespace Microsoft.VisualStudio.Composition.AppHost
             "System.Collections.Immutable",
         };
 
+        /// <summary>
+        /// The source of the <see cref="CancellationToken" /> that is canceled when
+        /// <see cref="ICancelableTask.Cancel" /> is invoked.
+        /// </summary>
+        private readonly CancellationTokenSource cts = new CancellationTokenSource();
+
+        /// <summary>Gets a token that is canceled when MSBuild is requesting that we abort.</summary>
+        public CancellationToken CancellationToken => this.cts.Token;
+
         public ITaskItem[] CatalogAssemblies { get; set; }
 
         [Required]
@@ -32,7 +41,10 @@ namespace Microsoft.VisualStudio.Composition.AppHost
 
         public string DgmlOutputPath { get; set; }
 
-        protected override bool ExecuteIsolated()
+        /// <inheritdoc />
+        public void Cancel() => this.cts.Cancel();
+
+        public override bool Execute()
         {
             var resolver = Resolver.DefaultInstance;
             var discovery = PartDiscovery.Combine(new AttributedPartDiscoveryV1(resolver), new AttributedPartDiscovery(resolver, isNonPublicSupported: true));
