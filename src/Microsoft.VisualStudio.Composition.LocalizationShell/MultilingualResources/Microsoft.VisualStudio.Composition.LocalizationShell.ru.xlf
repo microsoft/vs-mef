@@ -84,8 +84,7 @@
         </trans-unit>
         <trans-unit id="UnexpectedMemberType" translate="yes" xml:space="preserve">
           <source>Unexpected member type {0}.</source>
-          <target state="needs-review-translation">Неожиданный тип элемента.</target>
-          <note from="MultilingualUpdate" annotates="source" priority="2">Please verify the translation’s accuracy as the source string was updated after it was translated.</note>
+          <target state="translated">Неожиданный тип элемента {0}.</target>
           <note from="MultilingualBuild" annotates="source" priority="2">Where {0} will be substituted with an enum value.</note>
         </trans-unit>
         <trans-unit id="UnexpectedNumberOfExportsFound" translate="yes" xml:space="preserve">
