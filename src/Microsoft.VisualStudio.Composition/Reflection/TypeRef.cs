@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// Gets the string to display in the debugger watch window for this value.
         /// </summary>
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        internal string DebuggerDisplay => this.FullName;
+        private string DebuggerDisplay => this.FullName;
 
         private static readonly IEqualityComparer<AssemblyName> AssemblyNameComparer = ByValueEquality.AssemblyNameNoFastCheck;
 
@@ -100,12 +100,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         public int GenericTypeParameterCount { get; private set; }
 
         public ImmutableArray<TypeRef> GenericTypeArguments { get; private set; }
-
-        [Obsolete]
-        public MemberRef GenericParameterDeclaringMemberRef => default(MemberRef);
-
-        [Obsolete]
-        public int GenericParameterDeclaringMemberIndex => 0;
 
         public bool IsGenericType => this.GenericTypeParameterCount > 0 || this.GenericTypeArguments.Length > 0;
 
@@ -197,18 +191,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return new TypeRef(resolver, assemblyId.Name, assemblyId, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments);
         }
 
-        [Obsolete]
-        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = 0)
-        {
-            if (!declaringMember.IsEmpty)
-            {
-                // We don't support generic type parameters as constructor parameters.
-                throw new NotSupportedException();
-            }
-
-            return new TypeRef(resolver, assemblyName, null, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments);
-        }
-
         /// <summary>
         /// Gets a TypeRef that represents a given Type instance.
         /// </summary>
@@ -247,22 +229,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             return result;
         }
-
-#if DESKTOP
-        [Obsolete]
-        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
-        {
-            Type type = resolver.AssemblyLoader.LoadAssembly(assemblyName).ManifestModule.ResolveType(metadataToken);
-            return Get(type, resolver);
-        }
-
-        [Obsolete]
-        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, MemberRef declaringMember, int declaringMethodParameterIndex = 0)
-        {
-            Type type = resolver.AssemblyLoader.LoadAssembly(assemblyName).ManifestModule.ResolveType(metadataToken);
-            return Get(type, resolver);
-        }
-#endif
 
         public TypeRef MakeGenericTypeRef(ImmutableArray<TypeRef> genericTypeArguments)
         {
@@ -310,6 +276,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         {
             return this.Equals(TypeRef.Get(other, this.Resolver));
         }
+
+        internal void GetInputAssemblies(ISet<AssemblyName> assemblies) => ResolverExtensions.GetInputAssemblies(this, assemblies);
 
         private static Rental<Type[]> GetResolvedTypeArray(ImmutableArray<TypeRef> typeRefs)
         {

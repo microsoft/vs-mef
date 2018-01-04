@@ -21,21 +21,6 @@ namespace Microsoft.VisualStudio.Composition
         /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
         /// to represent an importing member.
         /// </summary>
-        [Obsolete]
-        public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef composablePartType, MemberRef importingMember)
-            : this(
-                  importDefinition,
-                  composablePartType,
-                  importingMember,
-                  TypeRef.Get(ReflectionHelpers.GetMemberType(importingMember.MemberInfo), importingMember.Resolver),
-                  TypeRef.Get(importDefinition.Cardinality == ImportCardinality.ZeroOrMore ? PartDiscovery.GetElementTypeFromMany(ReflectionHelpers.GetMemberType(importingMember.MemberInfo)) : ReflectionHelpers.GetMemberType(importingMember.MemberInfo), importingMember.Resolver))
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
-        /// to represent an importing member.
-        /// </summary>
         public ImportDefinitionBinding(
             ImportDefinition importDefinition,
             TypeRef composablePartType,
@@ -53,21 +38,6 @@ namespace Microsoft.VisualStudio.Composition
             this.ImportingMemberRef = importingMember;
             this.ImportingSiteTypeRef = importingSiteTypeRef;
             this.ImportingSiteTypeWithoutCollectionRef = importingSiteTypeWithoutCollectionRef;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
-        /// to represent a parameter in an importing constructor.
-        /// </summary>
-        [Obsolete]
-        public ImportDefinitionBinding(ImportDefinition importDefinition, TypeRef composablePartType, ParameterRef importingConstructorParameter)
-            : this(
-                  importDefinition,
-                  composablePartType,
-                  importingConstructorParameter,
-                  TypeRef.Get(importingConstructorParameter.Resolve().ParameterType, importingConstructorParameter.Resolver),
-                  TypeRef.Get(importDefinition.Cardinality == ImportCardinality.ZeroOrMore ? PartDiscovery.GetElementTypeFromMany(importingConstructorParameter.Resolve().ParameterType) : importingConstructorParameter.Resolve().ParameterType, importingConstructorParameter.Resolver))
-        {
         }
 
         /// <summary>
@@ -101,27 +71,18 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets the member this import is found on. Null for importing constructors.
         /// </summary>
-        public MemberInfo ImportingMember
-        {
-            get { return this.ImportingMemberRef.MemberInfo; }
-        }
+        public MemberInfo ImportingMember => this.ImportingMemberRef?.MemberInfo;
 
         /// <summary>
         /// Gets the member this import is found on. Null for importing constructors.
         /// </summary>
         public MemberRef ImportingMemberRef { get; private set; }
 
-        public ParameterInfo ImportingParameter
-        {
-            get { return this.ImportingParameterRef.Resolve(); }
-        }
+        public ParameterInfo ImportingParameter => this.ImportingParameterRef?.ParameterInfo;
 
         public ParameterRef ImportingParameterRef { get; private set; }
 
-        public Type ComposablePartType
-        {
-            get { return this.ComposablePartTypeRef.Resolve(); }
-        }
+        public Type ComposablePartType => this.ComposablePartTypeRef?.ResolvedType;
 
         public TypeRef ComposablePartTypeRef { get; private set; }
 
@@ -130,10 +91,7 @@ namespace Microsoft.VisualStudio.Composition
         /// This includes any Lazy, ExportFactory or collection wrappers.
         /// </summary>
         /// <value>Never null.</value>
-        public Type ImportingSiteType
-        {
-            get { return this.ImportingSiteTypeRef.Resolve(); }
-        }
+        public Type ImportingSiteType => this.ImportingSiteTypeRef?.Resolve();
 
         /// <summary>
         /// Gets the actual type of the variable or member that will be assigned the result.
@@ -249,8 +207,8 @@ namespace Microsoft.VisualStudio.Composition
 
             this.ImportDefinition.GetInputAssemblies(assemblies);
             this.ComposablePartTypeRef.GetInputAssemblies(assemblies);
-            this.ImportingMemberRef.GetInputAssemblies(assemblies);
-            this.ImportingParameterRef.GetInputAssemblies(assemblies);
+            this.ImportingMemberRef?.GetInputAssemblies(assemblies);
+            this.ImportingParameterRef?.GetInputAssemblies(assemblies);
             this.ImportingSiteTypeRef.GetInputAssemblies(assemblies);
             this.ComposablePartTypeRef.GetInputAssemblies(assemblies);
         }

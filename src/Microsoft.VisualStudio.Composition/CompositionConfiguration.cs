@@ -347,7 +347,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     var importDefinitionBinding = import.Key;
                     var satisfyingPart = import.Value;
-                    if (!importDefinitionBinding.ImportingParameterRef.IsEmpty && importingConstructorFilter(import))
+                    if (importDefinitionBinding.ImportingParameterRef != null && importingConstructorFilter(import))
                     {
                         visited.Clear();
                         var path = PathExistsBetween(satisfyingPart, importingPart, getDirectLinksWithFilter(importingConstructorFilter), visited);

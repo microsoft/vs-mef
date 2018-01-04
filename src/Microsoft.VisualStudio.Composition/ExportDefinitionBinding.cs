@@ -37,12 +37,12 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public MemberInfo ExportingMember
         {
-            get { return this.ExportingMemberRef.MemberInfo; }
+            get { return this.ExportingMemberRef?.MemberInfo; }
         }
 
         /// <summary>
-        /// Gets the member with the ExportAttribute applied. The return value's <see cref="MemberRef.IsEmpty"/>
-        /// is <c>true</c> when the export is on the type itself.
+        /// Gets the member with the ExportAttribute applied. The return value is <c>null</c>
+        /// when the export is on the type itself.
         /// </summary>
         public MemberRef ExportingMemberRef { get; private set; }
 
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.Composition
         public override int GetHashCode()
         {
             int hashCode = this.PartDefinition.TypeRef.GetHashCode();
-            if (!this.ExportingMemberRef.IsEmpty)
+            if (this.ExportingMemberRef != null)
             {
                 hashCode += this.ExportingMemberRef.GetHashCode();
             }

@@ -61,22 +61,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 part.IsSharingBoundaryInferred);
         }
 
-        private ConstructorRef Scramble(ConstructorRef constructorRef)
-        {
-            if (constructorRef.IsEmpty)
-            {
-                return default(ConstructorRef);
-            }
-
-            return new ConstructorRef(
-                this.Scramble(constructorRef.DeclaringType),
-                this.GetScrambledMetadataToken(constructorRef.MetadataToken),
-                constructorRef.ParameterTypes.Select(this.Scramble).ToImmutableArray());
-        }
-
         private MethodRef Scramble(MethodRef methodRef)
         {
-            if (methodRef.IsEmpty)
+            if (methodRef == null)
             {
                 return default(MethodRef);
             }
@@ -140,7 +127,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         private ImportDefinitionBinding Scramble(ImportDefinitionBinding importDefinitionBinding)
         {
-            if (importDefinitionBinding.ImportingMemberRef.IsEmpty)
+            if (importDefinitionBinding.ImportingMemberRef == null)
             {
                 // It's an importing parameter
                 return new ImportDefinitionBinding(
@@ -163,28 +150,19 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         private ParameterRef Scramble(ParameterRef importingParameterRef)
         {
-            if (importingParameterRef.IsEmpty)
+            if (importingParameterRef == null)
             {
                 return default(ParameterRef);
             }
 
-            if (importingParameterRef.Constructor.IsEmpty)
-            {
-                return new ParameterRef(
-                    this.Scramble(importingParameterRef.Method),
-                    importingParameterRef.ParameterIndex);
-            }
-            else
-            {
-                return new ParameterRef(
-                    this.Scramble(importingParameterRef.Constructor),
-                    importingParameterRef.ParameterIndex);
-            }
+            return new ParameterRef(
+                this.Scramble(importingParameterRef.Method),
+                importingParameterRef.ParameterIndex);
         }
 
         private FieldRef Scramble(FieldRef fieldRef)
         {
-            if (fieldRef.IsEmpty)
+            if (fieldRef == null)
             {
                 return default(FieldRef);
             }
@@ -197,7 +175,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         private PropertyRef Scramble(PropertyRef propertyRef)
         {
-            if (propertyRef.IsEmpty)
+            if (propertyRef == null)
             {
                 return default(PropertyRef);
             }
@@ -212,33 +190,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         private MemberRef Scramble(MemberRef importingMemberRef)
         {
-            if (importingMemberRef.IsConstructor)
+            switch (importingMemberRef)
             {
-                return new MemberRef(this.Scramble(importingMemberRef.Constructor));
-            }
-            else if (importingMemberRef.IsField)
-            {
-                return new MemberRef(this.Scramble(importingMemberRef.Field));
-            }
-            else if (importingMemberRef.IsMethod)
-            {
-                return new MemberRef(this.Scramble(importingMemberRef.Method));
-            }
-            else if (importingMemberRef.IsProperty)
-            {
-                return new MemberRef(this.Scramble(importingMemberRef.Property));
-            }
-            else if (importingMemberRef.IsType)
-            {
-                return new MemberRef(this.Scramble(importingMemberRef.Type));
-            }
-            else if (importingMemberRef.IsEmpty)
-            {
-                return default(MemberRef);
-            }
-            else
-            {
-                throw new NotImplementedException();
+                case FieldRef fieldRef:
+                    return this.Scramble(fieldRef);
+                case MethodRef methodRef:
+                    return this.Scramble(methodRef);
+                case PropertyRef propertyRef:
+                    return this.Scramble(propertyRef);
+                case null:
+                    return null;
+                default:
+                    throw new NotImplementedException();
             }
         }
 
