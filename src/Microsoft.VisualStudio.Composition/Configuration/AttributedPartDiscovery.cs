@@ -85,6 +85,11 @@ namespace Microsoft.VisualStudio.Composition
                 return null;
             }
 
+            foreach (var exportingMember in exportsByMember)
+            {
+                this.ThrowOnInvalidExportingMember(exportingMember.Key);
+            }
+
             TypeRef partTypeRef = TypeRef.Get(partType, this.Resolver);
             Type partTypeAsGenericTypeDefinition = partTypeInfo.IsGenericType ? partType.GetGenericTypeDefinition() : null;
 
@@ -299,6 +304,8 @@ namespace Microsoft.VisualStudio.Composition
 
             if (importAttribute != null)
             {
+                this.ThrowOnInvalidImportingMemberOrParameter(member);
+
                 Type contractType = GetTypeIdentityFromImportingType(importingType, importMany: false);
                 if (contractType.IsAnyLazyType() || contractType.IsExportFactoryTypeV2())
                 {
@@ -318,6 +325,8 @@ namespace Microsoft.VisualStudio.Composition
             }
             else if (importManyAttribute != null)
             {
+                this.ThrowOnInvalidImportingMemberOrParameter(member);
+
                 Type contractType = GetTypeIdentityFromImportingType(importingType, importMany: true);
                 importConstraints = importConstraints
                     .Union(this.GetMetadataViewConstraints(importingType, importMany: true))

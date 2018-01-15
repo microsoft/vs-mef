@@ -263,6 +263,32 @@ namespace Microsoft.VisualStudio.Composition
             return result;
         }
 
+        /// <summary>
+        /// Throws an exception if certain basic rules for an importing member or parameter are violated.
+        /// </summary>
+        /// <param name="member">The importing member or importing parameter.</param>
+        protected virtual void ThrowOnInvalidImportingMemberOrParameter(ICustomAttributeProvider member)
+        {
+            Requires.NotNull(member, nameof(member));
+            if (member is PropertyInfo importingMember && importingMember.SetMethod == null)
+            {
+                throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ImportingPropertyHasNoSetter, importingMember.Name, importingMember.DeclaringType.FullName));
+            }
+        }
+
+        /// <summary>
+        /// Throws an exception if certain basic rules for an exporting member are violated.
+        /// </summary>
+        /// <param name="member">The exporting member (or type).</param>
+        protected virtual void ThrowOnInvalidExportingMember(ICustomAttributeProvider member)
+        {
+            Requires.NotNull(member, nameof(member));
+            if (member is PropertyInfo exportingProperty && exportingProperty.GetMethod == null)
+            {
+                throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ExportingPropertyHasNoGetter, exportingProperty.Name, exportingProperty.DeclaringType.FullName));
+            }
+        }
+
         protected internal static ImmutableHashSet<IImportSatisfiabilityConstraint> GetExportTypeIdentityConstraints(Type contractType)
         {
             Requires.NotNull(contractType, nameof(contractType));
