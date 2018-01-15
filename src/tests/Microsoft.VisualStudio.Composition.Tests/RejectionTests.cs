@@ -92,33 +92,33 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(0, exports.Count);
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors, typeof(PartWithImportPropertyAndNoSetter), typeof(ValidExportingPart), InvalidConfiguration = true)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3AllowConfigurationWithErrors, typeof(PartWithImportPropertyAndNoSetter), typeof(ValidExportingPart), InvalidConfiguration = true)]
         public void ImportPropertyHasNoSetter(IContainer container)
         {
             Assert.Empty(container.GetExportedValues<PartWithImportPropertyAndNoSetter>());
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors, typeof(PartWithImportManyPropertyAndNoSetter), typeof(ValidExportingPart), InvalidConfiguration = true)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3AllowConfigurationWithErrors, typeof(PartWithImportManyPropertyAndNoSetter), typeof(ValidExportingPart), InvalidConfiguration = true)]
         public void ImportManyPropertyHasNoSetter(IContainer container)
         {
             Assert.Empty(container.GetExportedValues<PartWithImportManyPropertyAndNoSetter>());
         }
 
-        [MefFact(CompositionEngines.V2, typeof(PartWithImportPropertyAndNoSetter), typeof(ValidExportingPart), NoCompatGoal = true)]
+        [MefFact(CompositionEngines.V2Compat, typeof(PartWithImportPropertyAndNoSetter), typeof(ValidExportingPart))]
         public void ImportPropertyHasNoSetterV2(IContainer container)
         {
             var part = container.GetExportedValue<PartWithImportPropertyAndNoSetter>();
             Assert.Null(part.ImportingProperty); // MEFv2 quietly does not set the import
         }
 
-        [MefFact(CompositionEngines.V2, typeof(PartWithImportManyPropertyAndNoSetter), typeof(ValidExportingPart), NoCompatGoal = true)]
+        [MefFact(CompositionEngines.V2Compat, typeof(PartWithImportManyPropertyAndNoSetter), typeof(ValidExportingPart))]
         public void ImportManyPropertyHasNoSetterV2(IContainer container)
         {
             var part = container.GetExportedValue<PartWithImportManyPropertyAndNoSetter>();
             Assert.Null(part.ImportingProperty); // MEFv2 quietly does not set the import
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2 | CompositionEngines.V3AllowConfigurationWithErrors, typeof(PartWithExportingPropertyAndNoGetter), typeof(ValidExportingPart), InvalidConfiguration = true)]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3AllowConfigurationWithErrors, typeof(PartWithExportingPropertyAndNoGetter), typeof(ValidExportingPart), InvalidConfiguration = true)]
         public void ExportingPropertyHasNoGetter(IContainer container)
         {
             // Both the defective export and its containing type are rejected.
@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Empty(container.GetExportedValues<PartWithExportingPropertyAndNoGetter>());
         }
 
-        [MefFact(CompositionEngines.V2, typeof(PartWithExportingPropertyAndNoGetter), typeof(ValidExportingPart), NoCompatGoal = true)]
+        [MefFact(CompositionEngines.V2Compat, typeof(PartWithExportingPropertyAndNoGetter), typeof(ValidExportingPart))]
         public void ExportingPropertyHasNoGetterV2(IContainer container)
         {
             // V2 quietly silences the exporter

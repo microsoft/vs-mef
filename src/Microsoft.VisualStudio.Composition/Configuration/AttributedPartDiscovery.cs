@@ -63,6 +63,7 @@ namespace Microsoft.VisualStudio.Composition
             var declaredProperties = partTypeInfo.GetProperties(BindingFlags.Instance | this.PublicVsNonPublicFlags);
             var exportingProperties = from member in declaredProperties
                                       from export in member.GetAttributes<ExportAttribute>()
+                                      where member.GetMethod != null // MEFv2 quietly omits exporting properties with no getter
                                       select new KeyValuePair<MemberInfo, ExportAttribute>(member, export);
             var exportedTypes = from export in partTypeInfo.GetAttributes<ExportAttribute>()
                                 select new KeyValuePair<MemberInfo, ExportAttribute>(partTypeInfo, export);
@@ -300,6 +301,13 @@ namespace Microsoft.VisualStudio.Composition
             {
                 Verify.Operation(importingType.IsExportFactoryTypeV2(), Strings.IsExpectedOnlyOnImportsOfExportFactoryOfT, typeof(SharingBoundaryAttribute).Name);
                 sharingBoundaries = sharingBoundaries.Union(sharingBoundaryAttribute.SharingBoundaryNames);
+            }
+
+            if (member is PropertyInfo importingMember && importingMember.SetMethod == null)
+            {
+                // MEFv2 quietly ignores such importing members.
+                importDefinition = null;
+                return false;
             }
 
             if (importAttribute != null)
