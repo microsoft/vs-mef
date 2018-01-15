@@ -12,20 +12,13 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Threading.Tasks;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-    [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
-    public struct PropertyRef : IEquatable<PropertyRef>
+    public class PropertyRef : MemberRef, IEquatable<PropertyRef>
     {
         /// <summary>
         /// Gets the string to display in the debugger watch window for this value.
         /// </summary>
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        internal string DebuggerDisplay => this.IsEmpty ? "(empty)" : $"{this.DeclaringType.FullName}.{this.Name}";
-
-        /// <summary>
-        /// The metadata token for this member if read from a persisted assembly.
-        /// We do not store metadata tokens for members in dynamic assemblies because they can change till the Type is closed.
-        /// </summary>
-        private readonly int? metadataToken;
+        private string DebuggerDisplay => $"{this.DeclaringType.FullName}.{this.Name}";
 
         /// <summary>
         /// The metadata token for this member if read from a persisted assembly.
@@ -39,99 +32,40 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// </summary>
         private readonly int? setMethodMetadataToken;
 
-        /// <summary>
-        /// The <see cref="MemberInfo"/> that this value was instantiated with,
-        /// or cached later when a metadata token was resolved.
-        /// </summary>
-        private PropertyInfo propertyInfo;
-
         public PropertyRef(TypeRef declaringType, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken, string name)
-            : this()
+            : base(declaringType, metadataToken)
         {
-            this.DeclaringType = declaringType;
-            this.metadataToken = metadataToken;
             this.getMethodMetadataToken = getMethodMetadataToken;
             this.setMethodMetadataToken = setMethodMetadataToken;
             this.Name = name;
         }
 
-#if NET45
-        [Obsolete]
-        public PropertyRef(TypeRef declaringType, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken)
-            : this(
-                  declaringType,
-                  metadataToken,
-                  getMethodMetadataToken,
-                  setMethodMetadataToken,
-                  declaringType.Resolve().Assembly.ManifestModule.ResolveMember(metadataToken).Name)
-        {
-        }
-#endif
-
         public PropertyRef(PropertyInfo propertyInfo, Resolver resolver)
-            : this()
+            : base(propertyInfo, resolver)
         {
-            this.DeclaringType = TypeRef.Get(propertyInfo.DeclaringType, resolver);
-            this.metadataToken = propertyInfo.MetadataToken;
-            this.propertyInfo = propertyInfo;
             this.Name = propertyInfo.Name;
         }
 
-        public TypeRef DeclaringType { get; private set; }
+        public PropertyInfo PropertyInfo => (PropertyInfo)this.MemberInfo;
 
-        public int MetadataToken => this.metadataToken ?? this.propertyInfo.MetadataToken;
+        public int? GetMethodMetadataToken => this.getMethodMetadataToken ?? this.PropertyInfo?.GetMethod?.MetadataToken;
 
-        public PropertyInfo PropertyInfo => this.propertyInfo ?? (this.propertyInfo = this.Resolve());
-
-        public int? GetMethodMetadataToken => this.getMethodMetadataToken ?? this.propertyInfo?.GetMethod?.MetadataToken;
-
-        public int? SetMethodMetadataToken => this.setMethodMetadataToken ?? this.propertyInfo?.SetMethod?.MetadataToken;
+        public int? SetMethodMetadataToken => this.setMethodMetadataToken ?? this.PropertyInfo?.SetMethod?.MetadataToken;
 
         public string Name { get; private set; }
 
-        public bool IsEmpty
+        internal override void GetInputAssemblies(ISet<AssemblyName> assemblies) => this.DeclaringType?.GetInputAssemblies(assemblies);
+
+        protected override bool EqualsByTypeLocalMetadata(MemberRef other)
         {
-            get { return this.DeclaringType == null; }
+            var otherProperty = (PropertyRef)other;
+            return this.Name == otherProperty.Name;
         }
 
-        internal Resolver Resolver => this.DeclaringType?.Resolver;
+        protected override MemberInfo Resolve() => ResolverExtensions.Resolve(this);
 
-        public bool Equals(PropertyRef other)
-        {
-            if (this.IsEmpty ^ other.IsEmpty)
-            {
-                return false;
-            }
+        public override int GetHashCode() => this.DeclaringType.GetHashCode() + this.Name.GetHashCode();
 
-            if (this.IsEmpty)
-            {
-                return true;
-            }
-
-            if (this.propertyInfo != null && other.propertyInfo != null)
-            {
-                if (this.propertyInfo == other.propertyInfo)
-                {
-                    return true;
-                }
-            }
-
-            if (this.Name != other.Name)
-            {
-                return false;
-            }
-
-            return EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType);
-        }
-
-        public override int GetHashCode()
-        {
-            return this.DeclaringType.GetHashCode() + this.Name.GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is PropertyRef prop && this.Equals(prop);
-        }
+        public bool Equals(PropertyRef other) => this.Equals((MemberRef)other);
     }
 }

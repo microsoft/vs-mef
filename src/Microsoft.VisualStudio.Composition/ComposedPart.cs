@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public IEnumerable<KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>> GetImportingConstructorImports()
         {
-            if (!this.Definition.ImportingConstructorOrFactoryRef.IsEmpty)
+            if (this.Definition.ImportingConstructorOrFactoryRef != null)
             {
                 foreach (var import in this.Definition.ImportingConstructorImports)
                 {
@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
                 }
 
-                if (pair.Key.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && !pair.Key.ImportingParameterRef.IsEmpty && !IsAllowedImportManyParameterType(pair.Key.ImportingParameterRef.Resolve().ParameterType))
+                if (pair.Key.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore && pair.Key.ImportingParameterRef != null && !IsAllowedImportManyParameterType(pair.Key.ImportingParameterRef.Resolve().ParameterType))
                 {
                     yield return new ComposedPartDiagnostic(this, Strings.ImportingCtorHasUnsupportedParameterTypeForImportMany);
                 }
@@ -165,14 +165,14 @@ namespace Microsoft.VisualStudio.Composition
                 CultureInfo.CurrentCulture,
                 "{0}.{1}",
                 import.ComposablePartType.FullName,
-                import.ImportingMemberRef.IsEmpty ? ("ctor(" + import.ImportingParameter.Name + ")") : import.ImportingMember.Name);
+                import.ImportingMemberRef == null ? ("ctor(" + import.ImportingParameter.Name + ")") : import.ImportingMember.Name);
         }
 
         private static string GetDiagnosticLocation(ExportDefinitionBinding export)
         {
             Requires.NotNull(export, nameof(export));
 
-            if (!export.ExportingMemberRef.IsEmpty)
+            if (export.ExportingMemberRef != null)
             {
                 return string.Format(
                     CultureInfo.CurrentCulture,
