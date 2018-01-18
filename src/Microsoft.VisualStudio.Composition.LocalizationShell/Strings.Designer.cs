@@ -11,8 +11,8 @@
 namespace Microsoft.VisualStudio.Composition {
     using System;
     using System.Reflection;
-
-
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -233,6 +233,15 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Exporting property &quot;{0}&quot; on part &quot;{1}&quot; has no getter..
+        /// </summary>
+        internal static string ExportingPropertyHasNoGetter {
+            get {
+                return ResourceManager.GetString("ExportingPropertyHasNoGetter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0}: Export of ExportProvider is not allowed..
         /// </summary>
         internal static string ExportOfExportProviderNotAllowed {
@@ -292,6 +301,15 @@ namespace Microsoft.VisualStudio.Composition {
         internal static string ImportingCtorHasUnsupportedParameterTypeForImportMany {
             get {
                 return ResourceManager.GetString("ImportingCtorHasUnsupportedParameterTypeForImportMany", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Importing property &quot;{0}&quot; on part &quot;{1}&quot; has no setter..
+        /// </summary>
+        internal static string ImportingPropertyHasNoSetter {
+            get {
+                return ResourceManager.GetString("ImportingPropertyHasNoSetter", resourceCulture);
             }
         }
         

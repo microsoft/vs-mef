@@ -328,4 +328,12 @@
     <comment>ComposablePartDefinition is a type name and should not be localized.
 {0} is a fully-qualified type name.</comment>
   </data>
+  <data name="ImportingPropertyHasNoSetter" xml:space="preserve">
+    <value>Importing property "{0}" on part "{1}" has no setter.</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ExportingPropertyHasNoGetter" xml:space="preserve">
+    <value>Exporting property "{0}" on part "{1}" has no getter.</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
 </root>
