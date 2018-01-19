@@ -5,6 +5,10 @@
 
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\System.ComponentModel.Composition.AttributedModel\System.ComponentModel.Composition.AttributedModel.csproj" />
+    <ProjectReference Include="..\System.ComponentModel.Composition.Runtime\System.ComponentModel.Composition.Runtime.csproj" />
+  </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
     <Reference Include="System.ComponentModel.Composition" />
     <PackageReference Include="System.Collections.Immutable" Version="1.1.36" />
