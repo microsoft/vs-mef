@@ -55,6 +55,15 @@ namespace System.ComponentModel.Composition
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ImportAttribute"/> class,
+        /// importing the export with the specified contract name and type.
+        /// </summary>
+        /// <param name="contractName">
+        ///      A <see cref="string"/> containing the contract name of the export to import, or
+        ///      <see langword="null"/> or an empty string ("") to use the default contract name.
+        /// </param>
+        /// <param name="contractType">The type of the export to import.</param>
         public ImportAttribute(string contractName, Type contractType)
         {
             this.ContractName = contractName;

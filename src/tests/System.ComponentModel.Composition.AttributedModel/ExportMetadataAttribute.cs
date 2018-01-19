@@ -56,6 +56,11 @@ namespace System.ComponentModel.Composition
         /// </value>
         public object Value { get; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether this item is marked with this attribute
+        /// more than once.
+        /// </summary>
+        /// <value>true if the item is marked more than once; otherwise, false.</value>
         public bool IsMultiple { get; set; }
     }
 }
