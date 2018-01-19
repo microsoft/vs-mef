@@ -17,8 +17,7 @@ namespace System.ComponentModel.Composition
     ///     Specifies metadata for a type, property, field, or method marked with the
     ///     <see cref="ExportAttribute"/>.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Property | AttributeTargets.Method | AttributeTargets.Field,
-                    AllowMultiple = true, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Property | AttributeTargets.Method | AttributeTargets.Field, AllowMultiple = true, Inherited = false)]
     public sealed class ExportMetadataAttribute : Attribute
     {
         /// <summary>

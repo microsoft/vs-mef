@@ -12,7 +12,14 @@ using System.Runtime.CompilerServices;
 namespace System.ComponentModel.Composition
 {
     using System;
+    using System.Diagnostics;
 
+    /// <summary>
+    /// Represents the exception that is thrown when one or more errors occur during
+    /// composition in a System.ComponentModel.Composition.Hosting.CompositionContainer
+    /// object.
+    /// </summary>
+    [DebuggerDisplay("{Message}")]
     public class CompositionException : Exception
     {
     }
