@@ -28,10 +28,7 @@ namespace Microsoft.VisualStudio.Composition
             PassthroughMetadataViewProvider.PartDefinition,
             MetadataViewClassProvider.PartDefinition,
             ExportMetadataViewInterfaceEmitProxy.PartDefinition)
-#if NET45
-            .Add(MetadataViewImplProxy.PartDefinition)
-#endif
-            ;
+            .Add(MetadataViewImplProxy.PartDefinition);
 
         private ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides;
 
