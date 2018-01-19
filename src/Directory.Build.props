@@ -6,6 +6,10 @@
     <BaseOutputPath Condition=" '$(BaseOutputPath)' == '' ">$(RepoBinPath)$(MSBuildProjectName)\</BaseOutputPath>
     <PackageOutputPath>$(RepoBinPath)$(Configuration)\Packages\</PackageOutputPath>
 
+    <!-- VS2017 Test Explorer test navigation and callstack links don't work with portable PDBs yet. -->
+    <DebugType Condition=" '$(Configuration)' == 'Release' ">pdbonly</DebugType>
+    <DebugType Condition=" '$(Configuration)' == 'Debug' ">Full</DebugType>
+
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>CS1591;CS1701</NoWarn>
     <DefineConstants Condition=" '$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net452' ">$(DefineConstants);DESKTOP;RuntimeHandles</DefineConstants>

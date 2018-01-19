@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFrameworks>net45</TargetFrameworks>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.AppHost.ruleset</CodeAnalysisRuleSet>
-    <DebugType>full</DebugType>
 
     <Description>Adds a VS MEF system with a pre-computed, cached MEF graph.</Description>
     <PackageReleaseNotes>This is a proof of concept and is not vetted for use in shipping applications.</PackageReleaseNotes>

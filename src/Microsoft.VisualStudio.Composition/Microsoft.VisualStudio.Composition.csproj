@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.5;net45;netcoreapp1.0</TargetFrameworks>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.ruleset</CodeAnalysisRuleSet>
-    <DebugType>full</DebugType>
 
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
   </PropertyGroup>

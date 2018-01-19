@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFramework>net45</TargetFramework>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.Configuration.ruleset</CodeAnalysisRuleSet>
-    <DebugType>full</DebugType>
     <RootNamespace>Microsoft.VisualStudio.Composition</RootNamespace>
 
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
