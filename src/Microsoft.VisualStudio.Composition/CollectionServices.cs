@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.Composition
 #if RuntimeHandles
                 var ctor = (ConstructorInfo)MethodBase.GetMethodFromHandle(CollectionOfObjectCtor.MethodHandle, collectionType.TypeHandle);
 #else
-                var ctor = typeof(CollectionOfObject<>).MakeGenericType(collectionType).GetConstructor(CollectionOfObjectCtorArgTypes);
+                var ctor = collectionType.GetConstructor(CollectionOfObjectCtorArgTypes);
 #endif
 
                 factory = collection =>
