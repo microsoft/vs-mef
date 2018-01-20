@@ -52,9 +52,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         internal static ComposableCatalog EmptyCatalog = ComposableCatalog.Create(Resolver);
 
-#if DESKTOP
         internal static PartDiscovery V1Discovery = new AttributedPartDiscoveryV1(Resolver);
-#endif
 
         internal static AttributedPartDiscovery V2Discovery = new AttributedPartDiscovery(Resolver);
 
@@ -177,9 +175,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var discovery = new List<PartDiscovery>(2);
             if (attributesDiscovery.HasFlag(CompositionEngines.V1))
             {
-#if DESKTOP
                 discovery.Add(V1Discovery);
-#endif
             }
 
             if (attributesDiscovery.HasFlag(CompositionEngines.V2))

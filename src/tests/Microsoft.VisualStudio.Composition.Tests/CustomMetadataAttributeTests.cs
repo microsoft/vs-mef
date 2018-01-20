@@ -137,7 +137,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal("prop2", prop2.ToString());
         }
 
-#if DESKTOP
         [Fact]
         public async Task PartWithAttributesDefiningSamePropertyContainsDiscoveryErrorsForV1()
         {
@@ -147,7 +146,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             PartDiscoveryException exception = catalog.DiscoveredParts.DiscoveryErrors.First();
             Assert.IsType<NotSupportedException>(exception.InnerException);
         }
-#endif
 
         [Fact]
         public async Task PartWithAttributesDefiningSamePropertyDoesNotContainDiscoveryErrorsForV2()
