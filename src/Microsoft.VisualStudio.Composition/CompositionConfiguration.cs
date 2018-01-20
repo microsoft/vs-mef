@@ -27,6 +27,7 @@ namespace Microsoft.VisualStudio.Composition
             ExportProvider.ExportProviderPartDefinition,
             PassthroughMetadataViewProvider.PartDefinition,
             MetadataViewClassProvider.PartDefinition,
+            MetadataViewClassDefaultCtorProvider.PartDefinition,
             ExportMetadataViewInterfaceEmitProxy.PartDefinition)
             .Add(MetadataViewImplProxy.PartDefinition);
 
@@ -343,7 +344,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     var importDefinitionBinding = import.Key;
                     var satisfyingPart = import.Value;
-                    if (!importDefinitionBinding.ImportingParameterRef.IsEmpty && importingConstructorFilter(import))
+                    if (importDefinitionBinding.ImportingParameterRef != null && importingConstructorFilter(import))
                     {
                         visited.Clear();
                         var path = PathExistsBetween(satisfyingPart, importingPart, getDirectLinksWithFilter(importingConstructorFilter), visited);

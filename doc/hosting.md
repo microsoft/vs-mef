@@ -77,11 +77,6 @@ rejected in the cascade.
 
 ## Hosting MEF in a closed (non-extensible) application
 
-**WARNING:** This scenario is a proof of concept and not vetted for shipping applications.
-The cache it builds is good only for the local machine and can become invalid when
-.NET Framework assemblies are serviced by Windows Update. With that warning aside,
-the following describes the proof of concept...
-
 The easiest way to do it, and get a MEF cache for faster startup to boot, just
 install the [Microsoft.VisualStudio.Composition.AppHost][AppHostPkg] NuGet package:
 

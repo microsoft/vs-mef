@@ -13,55 +13,31 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Threading.Tasks;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-    [StructLayout(LayoutKind.Auto)] // Workaround multi-core JIT deadlock (DevDiv.1043199)
-    public struct MethodRef : IEquatable<MethodRef>
+    public class MethodRef : MemberRef, IEquatable<MethodRef>
     {
         /// <summary>
         /// Gets the string to display in the debugger watch window for this value.
         /// </summary>
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        internal string DebuggerDisplay => this.IsEmpty ? "(empty)" : $"{this.DeclaringType.FullName}.{this.Name}({string.Join(", ", this.ParameterTypes.Select(p => p.FullName))})";
-
-        /// <summary>
-        /// The metadata token for this member if read from a persisted assembly.
-        /// We do not store metadata tokens for members in dynamic assemblies because they can change till the Type is closed.
-        /// </summary>
-        private readonly int? metadataToken;
-
-        /// <summary>
-        /// The <see cref="MemberInfo"/> that this value was instantiated with,
-        /// or cached later when a metadata token was resolved.
-        /// </summary>
-        private MethodBase methodBase;
+        internal virtual string DebuggerDisplay => $"{this.DeclaringType.FullName}.{this.Name}({string.Join(", ", this.ParameterTypes.Select(p => p.FullName))})";
 
         public MethodRef(TypeRef declaringType, int metadataToken, string name, ImmutableArray<TypeRef> parameterTypes, ImmutableArray<TypeRef> genericMethodArguments)
-               : this()
+            : base(declaringType, metadataToken)
         {
             Requires.NotNullOrEmpty(name, nameof(name));
+            if (parameterTypes.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(parameterTypes));
+            }
 
-            this.DeclaringType = declaringType;
-            this.metadataToken = metadataToken;
+            if (genericMethodArguments.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(parameterTypes));
+            }
+
             this.ParameterTypes = parameterTypes;
             this.Name = name;
             this.GenericMethodArguments = genericMethodArguments;
-        }
-
-#if NET45
-        [Obsolete]
-        public MethodRef(TypeRef declaringType, int metadataToken, ImmutableArray<TypeRef> genericMethodArguments)
-            : this(
-                  declaringType,
-                  metadataToken,
-                  declaringType.Resolve().Assembly.ManifestModule.ResolveMethod(metadataToken).Name,
-                  declaringType.Resolve().Assembly.ManifestModule.ResolveMethod(metadataToken).GetParameterTypes(declaringType.Resolver),
-                  genericMethodArguments)
-        {
-        }
-#endif
-
-        public MethodRef(MethodInfo method, Resolver resolver)
-            : this((MethodBase)method, resolver)
-        {
         }
 
         public MethodRef(MethodBase method, Resolver resolver)
@@ -70,117 +46,60 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         }
 
         public MethodRef(MethodBase method, Resolver resolver, ImmutableArray<TypeRef> parameterTypes)
-            : this()
+            : base(method, resolver)
         {
             Requires.NotNull(method, nameof(method));
             Requires.NotNull(resolver, nameof(resolver));
 
-            this.DeclaringType = TypeRef.Get(method.DeclaringType, resolver);
             this.ParameterTypes = parameterTypes;
             this.Name = method.Name;
             this.GenericMethodArguments = method.GetGenericTypeArguments(resolver);
-            this.methodBase = method;
         }
 
-        public MethodRef(ConstructorRef constructor)
-            : this(constructor.DeclaringType, constructor.MetadataToken, ConstructorInfo.ConstructorName, constructor.ParameterTypes, ImmutableArray<TypeRef>.Empty)
+        protected MethodRef(ConstructorInfo constructor, Resolver resolver)
+            : base(constructor, resolver)
         {
-            this.methodBase = constructor.ConstructorInfoNoResolve;
+            this.ParameterTypes = constructor.GetParameterTypes(resolver);
+            this.Name = ConstructorInfo.ConstructorName;
+            this.GenericMethodArguments = ImmutableArray<TypeRef>.Empty;
         }
 
-        public TypeRef DeclaringType { get; private set; }
+        public MethodBase MethodBase => (MethodBase)this.MemberInfo;
 
-        public int MetadataToken
+        public MethodBase MethodBaseNoResolve => (MethodBase)this.MemberInfoNoResolve;
+
+        protected override MemberInfo Resolve() => ResolverExtensions.Resolve(this);
+
+        public string Name { get; }
+
+        public ImmutableArray<TypeRef> ParameterTypes { get; }
+
+        public ImmutableArray<TypeRef> GenericMethodArguments { get; }
+
+        public static MethodRef Get(MethodBase method, Resolver resolver) => method != null ? new MethodRef(method, resolver) : null;
+
+        internal override void GetInputAssemblies(ISet<AssemblyName> assemblies)
         {
-            get
+            Requires.NotNull(assemblies, nameof(assemblies));
+
+            assemblies.Add(this.DeclaringType.AssemblyName);
+            foreach (var typeArg in this.GenericMethodArguments)
             {
-                if (this.metadataToken.HasValue)
-                {
-                    return this.metadataToken.Value;
-                }
-
-#if DESKTOP
-                // Avoid calling MemberInfo.MetadataToken on MethodBuilders because they throw exceptions
-                if (this.methodBase is System.Reflection.Emit.MethodBuilder mb)
-                {
-                    return mb.GetToken().Token;
-                }
-#endif
-
-                return this.methodBase.MetadataToken;
+                typeArg.GetInputAssemblies(assemblies);
             }
         }
 
-        public MethodBase MethodBase => this.methodBase ?? (this.methodBase = this.Resolve2());
-
-        public string Name { get; private set; }
-
-        public ImmutableArray<TypeRef> ParameterTypes { get; private set; }
-
-        public ImmutableArray<TypeRef> GenericMethodArguments { get; private set; }
-
-        public bool IsEmpty
+        protected override bool EqualsByTypeLocalMetadata(MemberRef other)
         {
-            get { return this.DeclaringType == null; }
+            var otherMethod = (MethodRef)other;
+
+            return this.Name == otherMethod.Name
+                && this.ParameterTypes.EqualsByValue(otherMethod.ParameterTypes)
+                && this.GenericMethodArguments.EqualsByValue(otherMethod.GenericMethodArguments);
         }
 
-        internal Resolver Resolver => this.DeclaringType?.Resolver;
+        public override int GetHashCode() => this.DeclaringType.GetHashCode() + this.Name.GetHashCode();
 
-        public static MethodRef Get(MethodInfo method, Resolver resolver) => Get((MethodBase)method, resolver);
-
-        public static MethodRef Get(MethodBase method, Resolver resolver) => method != null ? new MethodRef(method, resolver) : default(MethodRef);
-
-        public bool Equals(MethodRef other)
-        {
-            if (this.IsEmpty ^ other.IsEmpty)
-            {
-                return false;
-            }
-
-            if (this.IsEmpty)
-            {
-                return true;
-            }
-
-            if (this.methodBase != null && other.methodBase != null)
-            {
-                if (this.methodBase == other.methodBase)
-                {
-                    return true;
-                }
-            }
-
-            if (!EqualityComparer<TypeRef>.Default.Equals(this.DeclaringType, other.DeclaringType))
-            {
-                return false;
-            }
-
-            if (this.metadataToken.HasValue && other.metadataToken.HasValue)
-            {
-                if (this.metadataToken.Value != other.metadataToken.Value)
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                if (this.Name != other.Name || !this.ParameterTypes.EqualsByValue(other.ParameterTypes))
-                {
-                    return false;
-                }
-            }
-
-            return this.GenericMethodArguments.EqualsByValue(other.GenericMethodArguments);
-        }
-
-        public override int GetHashCode()
-        {
-            return this.DeclaringType.GetHashCode() + this.Name.GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is MethodRef method && this.Equals(method);
-        }
+        public bool Equals(MethodRef other) => this.Equals((MemberRef)other);
     }
 }

@@ -302,6 +302,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         [Theory]
         [MemberData(nameof(DiscoveryEnginesTheoryData))]
+        public async Task GetAssemblyInputs_WithImports(PartDiscovery discovery)
+        {
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await discovery.CreatePartsAsync(
+                    typeof(ExportingType),
+                    typeof(ImportingType)));
+            catalog.GetInputAssemblies();
+        }
+
+        [Theory]
+        [MemberData(nameof(DiscoveryEnginesTheoryData))]
         public async Task GetAssemblyInputs_RecursesThroughInterfaceTreeInMetadata(PartDiscovery discovery)
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
@@ -337,6 +348,16 @@ namespace Microsoft.VisualStudio.Composition.Tests
             this.logger.WriteLine("Actual:");
             this.logger.WriteLine(string.Join(Environment.NewLine, actual.OrderBy(async => async.FullName)));
             Assert.True(expectedSubset.IsSubsetOf(actual)); // Allow for extra assemblies, since V2 discovery adds MS.VS.Composition itself for Shared/NonShared part metadata
+        }
+
+        [Export, MEFv1.Export]
+        public class ImportingType
+        {
+            [ImportingConstructor, MEFv1.ImportingConstructor]
+            public ImportingType(ExportingType importingParameter) { }
+
+            [Import, MEFv1.Import]
+            public ExportingType ImportingProperty { get; set; }
         }
 
         public class NonExportingType { }
