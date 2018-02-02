@@ -218,4 +218,17 @@
   <data name="WrongType" xml:space="preserve">
     <value>錯誤的型別。</value>
   </data>
+  <data name="TypeAlreadyInCatalogAsAnotherPart" xml:space="preserve">
+    <value>類型 {0} 已經屬於不同 ComposablePartDefinition 的目錄。</value>
+    <comment>ComposablePartDefinition is a type name and should not be localized.
+{0} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportingPropertyHasNoSetter" xml:space="preserve">
+    <value>在組件 "{1}" 上匯入屬性 "{0}" 不會有 setter。</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ExportingPropertyHasNoGetter" xml:space="preserve">
+    <value>在組件 "{1}" 上匯出屬性 "{0}" 不會有 getter。</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
 </root>

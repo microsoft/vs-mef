@@ -218,4 +218,17 @@
   <data name="WrongType" xml:space="preserve">
     <value>Неправильный тип.</value>
   </data>
+  <data name="TypeAlreadyInCatalogAsAnotherPart" xml:space="preserve">
+    <value>Тип {0} уже принадлежит каталогу в качестве другого элемента ComposablePartDefinition.</value>
+    <comment>ComposablePartDefinition is a type name and should not be localized.
+{0} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportingPropertyHasNoSetter" xml:space="preserve">
+    <value>При импорте свойства "{0}" в части "{1}" не указан метод задания.</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ExportingPropertyHasNoGetter" xml:space="preserve">
+    <value>При экспорте свойства "{0}" в части "{1}" не указан метод получения.</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
 </root>

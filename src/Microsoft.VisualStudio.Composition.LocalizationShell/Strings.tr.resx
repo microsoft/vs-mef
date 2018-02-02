@@ -218,4 +218,17 @@
   <data name="WrongType" xml:space="preserve">
     <value>Yanlış tür.</value>
   </data>
+  <data name="TypeAlreadyInCatalogAsAnotherPart" xml:space="preserve">
+    <value>{0} türü zaten farklı bir ComposablePartDefinition olarak kataloğa ait.</value>
+    <comment>ComposablePartDefinition is a type name and should not be localized.
+{0} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportingPropertyHasNoSetter" xml:space="preserve">
+    <value>"{1}" bölümü üzerinde "{0}" özelliğini içeri aktarma işlemi bir ayarlayıcıya sahip değil.</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ExportingPropertyHasNoGetter" xml:space="preserve">
+    <value>"{1}" bölümü üzerinde "{0}" özelliğini dışarı aktarma işlemi bir alıcıya sahip değil.</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
 </root>

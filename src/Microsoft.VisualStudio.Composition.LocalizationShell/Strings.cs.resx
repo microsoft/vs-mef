@@ -218,4 +218,17 @@
   <data name="WrongType" xml:space="preserve">
     <value>Nesprávný typ</value>
   </data>
+  <data name="TypeAlreadyInCatalogAsAnotherPart" xml:space="preserve">
+    <value>Typ {0} už patří do katalogu jako jiný objekt ComposablePartDefinition.</value>
+    <comment>ComposablePartDefinition is a type name and should not be localized.
+{0} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportingPropertyHasNoSetter" xml:space="preserve">
+    <value>Vlastnost importování {0} v části {1} nemá žádnou metodu setter.</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ExportingPropertyHasNoGetter" xml:space="preserve">
+    <value>Vlastnost exportování {0} v části {1} nemá žádnou metodu getter.</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
 </root>
