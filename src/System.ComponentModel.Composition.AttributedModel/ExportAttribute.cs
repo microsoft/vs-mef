@@ -16,8 +16,7 @@ namespace System.ComponentModel.Composition
     /// <summary>
     ///     Specifies that a type, property, field, or method provides a particular export.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method,
-                    AllowMultiple = true, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
     public class ExportAttribute : Attribute
     {
         /// <summary>

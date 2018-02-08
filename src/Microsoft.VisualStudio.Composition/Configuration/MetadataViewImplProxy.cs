@@ -1,18 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-#if DESKTOP
-
 namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
-    using System.Collections.Immutable;
-    using System.ComponentModel.Composition.ReflectionModel;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
-    using Reflection;
     using MefV1 = System.ComponentModel.Composition;
 
     internal class MetadataViewImplProxy : IMetadataViewProvider
@@ -34,7 +27,7 @@ namespace Microsoft.VisualStudio.Composition
         private static ConstructorInfo FindImplClassConstructor(Type metadataType)
         {
             Requires.NotNull(metadataType, nameof(metadataType));
-            var attr = metadataType.GetFirstAttribute<MefV1.MetadataViewImplementationAttribute>();
+            var attr = metadataType.GetTypeInfo().GetFirstAttribute<MefV1.MetadataViewImplementationAttribute>();
             if (attr != null)
             {
                 if (metadataType.IsAssignableFrom(attr.ImplementationType))
@@ -53,5 +46,3 @@ namespace Microsoft.VisualStudio.Composition
         }
     }
 }
-
-#endif

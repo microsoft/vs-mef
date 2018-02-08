@@ -163,7 +163,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.True(part.ImportingProperty.Metadata.ContainsKey("AnotherProperty"));
         }
 
-#if DESKTOP
         [Fact]
         public async Task PartWithAttributesDefiningSamePropertyContainsDiscoveryErrorsForV1()
         {
@@ -173,7 +172,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             PartDiscoveryException exception = catalog.DiscoveredParts.DiscoveryErrors.First();
             Assert.IsType<NotSupportedException>(exception.InnerException);
         }
-#endif
 
         [Fact]
         public async Task PartWithAttributesDefiningSamePropertyDoesNotContainDiscoveryErrorsForV2()

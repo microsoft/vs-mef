@@ -55,8 +55,8 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.BrokenAssemblyTests\Microsoft.VisualStudio.Composition.BrokenAssemblyTests.csproj" />
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver\Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver.csproj" />
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver\Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver.csproj" />
-    <ProjectReference Include="..\System.ComponentModel.Composition.AttributedModel\System.ComponentModel.Composition.AttributedModel.csproj" />
-    <ProjectReference Include="..\System.ComponentModel.Composition.Runtime\System.ComponentModel.Composition.Runtime.csproj" />
+    <ProjectReference Include="..\..\System.ComponentModel.Composition.AttributedModel\System.ComponentModel.Composition.AttributedModel.csproj" />
+    <ProjectReference Include="..\..\System.ComponentModel.Composition.Runtime\System.ComponentModel.Composition.Runtime.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

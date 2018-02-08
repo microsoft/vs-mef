@@ -104,13 +104,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     this.parts = GetNestedTypesRecursively(this.TestMethod.TestClass.Class.ToRuntimeType()).Where(t => (!t.GetTypeInfo().IsAbstract || t.GetTypeInfo().IsSealed) && !t.GetTypeInfo().IsInterface).ToArray();
                 }
 
-#if DESKTOP
                 if (this.compositionVersions.HasFlag(CompositionEngines.V1))
                 {
                     var runner = new LegacyMefTestCaseRunner(this, "V1", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, CompositionEngines.V1, this.parts, this.assemblies, this.invalidConfiguration);
                     runSummary.Aggregate(await runner.RunAsync());
                 }
-#endif
 
                 if (this.compositionVersions.HasFlag(CompositionEngines.V2))
                 {

@@ -2,10 +2,13 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.5;net45;net46;netcoreapp1.0</TargetFrameworks>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.ruleset</CodeAnalysisRuleSet>
-    <DebugType>full</DebugType>
 
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\System.ComponentModel.Composition.AttributedModel\System.ComponentModel.Composition.AttributedModel.csproj" />
+    <ProjectReference Include="..\System.ComponentModel.Composition.Runtime\System.ComponentModel.Composition.Runtime.csproj" />
+  </ItemGroup>
   <ItemGroup Condition=" '$(TargetsDesktop)' == 'true' ">
     <Reference Include="System.ComponentModel.Composition" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.5.24" />

@@ -17,8 +17,7 @@ namespace System.ComponentModel.Composition
     ///     Specifies metadata for a type, property, field, or method marked with the
     ///     <see cref="ExportAttribute"/>.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Property | AttributeTargets.Method | AttributeTargets.Field,
-                    AllowMultiple = true, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Property | AttributeTargets.Method | AttributeTargets.Field, AllowMultiple = true, Inherited = false)]
     public sealed class ExportMetadataAttribute : Attribute
     {
         /// <summary>
@@ -56,6 +55,11 @@ namespace System.ComponentModel.Composition
         /// </value>
         public object Value { get; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether this item is marked with this attribute
+        /// more than once.
+        /// </summary>
+        /// <value>true if the item is marked more than once; otherwise, false.</value>
         public bool IsMultiple { get; set; }
     }
 }

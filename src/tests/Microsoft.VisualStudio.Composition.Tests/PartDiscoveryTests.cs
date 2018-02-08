@@ -49,7 +49,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(1, parts.Parts.Count);
         }
 
-#if DESKTOP
         [Fact]
         public async Task Combined_CreatePartsAsync_AssemblyPathEnumerable()
         {
@@ -94,7 +93,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.True(lastReceivedUpdate.Completion > 0);
             Assert.True(progressUpdateCount > 2);
         }
-#endif
 
         [Fact]
         public async Task CatalogAssemblyLoadFailure()

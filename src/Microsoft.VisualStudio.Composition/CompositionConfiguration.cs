@@ -29,10 +29,7 @@ namespace Microsoft.VisualStudio.Composition
             MetadataViewClassProvider.PartDefinition,
             MetadataViewClassDefaultCtorProvider.PartDefinition,
             ExportMetadataViewInterfaceEmitProxy.PartDefinition)
-#if DESKTOP
-            .Add(MetadataViewImplProxy.PartDefinition)
-#endif
-            ;
+            .Add(MetadataViewImplProxy.PartDefinition);
 
         private ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides;
 

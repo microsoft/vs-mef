@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.0;net40;net45</TargetFrameworks>
     <RootNamespace>System.ComponentModel.Composition</RootNamespace>
+    <Description>The MEF runtime classes in the .NET Managed Extensibility Framework (MEF) that are used for imports and exports, and exception types, in a .NET Standard compliant NuGet package form.</Description>
   </PropertyGroup>
 
   <ItemGroup>
