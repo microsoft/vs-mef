@@ -7,6 +7,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Composition;
     using System.Composition.Hosting;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
@@ -124,23 +125,33 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Trait(Traits.SkipOnMono, "WeakReference")]
         public void DisposeExportReleasesContainer(IContainer container)
         {
-            var root = container.GetExportedValue<RootPart>();
-            var boundaryExport = root.Factory.CreateExport();
-            var subcontainerPart = boundaryExport.Value.BoundaryScopedSharedParts.OfType<SharedPartThatImportsBoundaryPart>().Single();
+            WeakReference boundaryExportWeak = new WeakReference(null);
+            WeakReference subcontainerPartWeak = new WeakReference(null);
+            WeakReference sharedSubScopePart = new WeakReference(null);
 
-            WeakReference boundaryExportWeak = new WeakReference(boundaryExport.Value);
-            WeakReference subcontainerPartWeak = new WeakReference(subcontainerPart);
-            WeakReference sharedSubScopePart = new WeakReference(boundaryExport.Value.BoundaryScopedSharedParts[0]);
-
-            boundaryExport.Dispose();
-            boundaryExport = null;
-            subcontainerPart = null;
+            DisposeExportReleasesContainerHelper(container, boundaryExportWeak, subcontainerPartWeak, sharedSubScopePart);
 
             GC.Collect();
 
             Assert.False(boundaryExportWeak.IsAlive);
             Assert.False(subcontainerPartWeak.IsAlive);
             Assert.False(sharedSubScopePart.IsAlive);
+        }
+
+        /// <summary>
+        /// A helper method that will not inline to its caller to ensure JIT-preserved locals don't interfere with weak reference tests.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void DisposeExportReleasesContainerHelper(IContainer container, WeakReference boundaryExportWeak, WeakReference subcontainerPartWeak, WeakReference sharedSubScopePart)
+        {
+            var root = container.GetExportedValue<RootPart>();
+            var boundaryExport = root.Factory.CreateExport();
+            var subcontainerPart = boundaryExport.Value.BoundaryScopedSharedParts.OfType<SharedPartThatImportsBoundaryPart>().Single();
+            boundaryExportWeak.Target = boundaryExport.Value;
+            subcontainerPartWeak.Target = subcontainerPart;
+            sharedSubScopePart.Target = boundaryExport.Value.BoundaryScopedSharedParts[0];
+
+            boundaryExport.Dispose();
         }
 
         [Export]

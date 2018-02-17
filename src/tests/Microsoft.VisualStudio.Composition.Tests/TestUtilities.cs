@@ -261,7 +261,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             get
             {
-#if NETCOREAPP1_0
+#if NETCOREAPP1_0 || NETCOREAPP2_0
                 return true;
 #else
                 return false;
