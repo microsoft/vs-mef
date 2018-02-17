@@ -7,6 +7,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Composition;
     using System.Composition.Hosting;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
@@ -22,21 +23,31 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Trait(Traits.SkipOnMono, "WeakReference")]
         public void DisposeExportReleasesContainer(IContainer container)
         {
-            var rootPart = container.GetExportedValue<RootPart>();
-            var boundaryPartExport = rootPart.Factory.CreateExport();
-            var factoryPart = boundaryPartExport.Value.NonSharedPartFactory;
+            var boundaryPartWeak = new WeakReference(null);
+            var factoryPartWeak = new WeakReference(null);
 
-            var boundaryPartWeak = new WeakReference(boundaryPartExport.Value);
-            var factoryPartWeak = new WeakReference(factoryPart);
-
-            boundaryPartExport.Dispose();
-            boundaryPartExport = null;
-            factoryPart = null;
+            DisposeExportReleasesContainerHelper(container, boundaryPartWeak, factoryPartWeak);
 
             GC.Collect();
 
             Assert.False(boundaryPartWeak.IsAlive);
             Assert.False(factoryPartWeak.IsAlive);
+        }
+
+        /// <summary>
+        /// A helper method that will not inline to its caller to ensure JIT-preserved locals don't interfere with weak reference tests.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void DisposeExportReleasesContainerHelper(IContainer container, WeakReference boundaryPartWeak, WeakReference factoryPartWeak)
+        {
+            var rootPart = container.GetExportedValue<RootPart>();
+            var boundaryPartExport = rootPart.Factory.CreateExport();
+            var factoryPart = boundaryPartExport.Value.NonSharedPartFactory;
+
+            boundaryPartWeak.Target = boundaryPartExport.Value;
+            factoryPartWeak.Target = factoryPart;
+
+            boundaryPartExport.Dispose();
         }
 
         [MefFact(CompositionEngines.V3EmulatingV1AndV2AtOnce)]
