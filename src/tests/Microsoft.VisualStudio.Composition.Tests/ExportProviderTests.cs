@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(1, Foo2.ActivationCounter);
         }
 
-#if DESKTOP
+#if MEFv1Engine
         /// <summary>
         /// Verifies that V3 emulates V1 correctly when using the V1 ExportProvider shim.
         /// </summary>

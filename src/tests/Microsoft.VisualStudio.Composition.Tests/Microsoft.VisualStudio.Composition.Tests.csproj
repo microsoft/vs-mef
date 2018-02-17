@@ -10,9 +10,6 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="System.ComponentModel.Composition" Condition=" '$(TargetsDesktop)' == 'true' " />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
     <PackageReference Include="DiffPlex" Version="1.4.1" />
     <PackageReference Include="Xunit" Version="2.2.0" />
@@ -22,6 +19,7 @@
     <PackageReference Include="Xunit.SkippableFact" Version="1.3.1" />
     <PackageReference Include="OpenCover" Version="4.6.519" />
     <PackageReference Include="System.ValueTuple" Version="4.3.0" />
+    <PackageReference Include="System.ComponentModel.Composition" Version="4.5.0-preview2-26216-03" Condition=" '$(MEFv1EngineAvailable)' == 'true' " />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Microsoft.VisualStudio.Composition\ArrayRental`1.cs">

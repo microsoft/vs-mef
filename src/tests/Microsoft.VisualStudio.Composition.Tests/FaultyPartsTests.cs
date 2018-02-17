@@ -166,7 +166,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 var mefv1Exception = ex as MefV1.CompositionException;
                 if (mefv1Exception != null)
                 {
-#if DESKTOP
+#if MEFv1Engine
                     foreach (var error in mefv1Exception.Errors)
                     {
                         if (IsSomeInnerException<T>(error.Exception))

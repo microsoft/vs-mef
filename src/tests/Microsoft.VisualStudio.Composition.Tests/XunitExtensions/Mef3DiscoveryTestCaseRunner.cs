@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     foreach (var uniqueCatalog in uniqueCatalogs)
                     {
                         var catalogWithSupport = uniqueCatalog
-#if DESKTOP
+#if MEFv1Engine
                             .WithCompositionService()
 #endif
                             ;
