@@ -86,6 +86,7 @@ steps:
     Contents: |
       bin\$(BuildConfiguration)\Packages\Microsoft.VisualStudio.Composition.15.*
       bin\$(BuildConfiguration)\Packages\Microsoft.VisualStudio.Composition.AppHost.15.*
+      bin\$(BuildConfiguration)\Packages\System.ComponentModel.Composition.*
     TargetFolder: $(Build.ArtifactStagingDirectory)/deployables
     flattenFolders: true
   displayName: Collecting deployables
