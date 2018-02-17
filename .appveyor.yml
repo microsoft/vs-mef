@@ -62,9 +62,9 @@ test_script:
 
     cd src\tests\Microsoft.VisualStudio.Composition.Tests
 
-    dotnet test -f netcoreapp1.0 --no-build
+    dotnet test -f netcoreapp1.0 --no-build --no-restore
 
-    dotnet test -f netcoreapp2.0 --no-build
+    dotnet test -f netcoreapp2.0 --no-build --no-restore
 artifacts:
 - path: bin\%configuration%\Packages\Microsoft.VisualStudio.Composition.15.*.nupkg
   name: NuGet Package
