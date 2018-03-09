@@ -70,5 +70,5 @@ artifacts:
   name: NuGet Package
 - path: bin\%configuration%\Packages\Microsoft.VisualStudio.Composition.AppHost.15.*.nupkg
   name: NuGet Package
-- path: bin\%configuration%\Packages\System.ComponentModel.Composition.*.nupkg
+- path: bin\%configuration%\Packages\Microsoft.VisualStudio.Composition.NetFxAttributes.*.nupkg
   name: NuGet Package
