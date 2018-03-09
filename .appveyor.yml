@@ -23,7 +23,7 @@ before_build:
   msbuild src\Microsoft.VisualStudio.Composition.sln /nologo /m /v:quiet /t:restore > nul
   msbuild src\Microsoft.VisualStudio.Composition.sln /nologo /m /v:quiet /t:restore
 build_script:
-- ps: msbuild src\Microsoft.VisualStudio.Composition.sln /nologo /m /v:minimal /t:build,pack
+- ps: msbuild src\Microsoft.VisualStudio.Composition.sln /nologo /m /v:minimal /t:build,pack /bl:"bin\$env:configuration\build_logs\msbuild.binlog"
 test_script:
 - cmd: >-
     SET PATH=C:\Python34;C:\Python34\Scripts;%PATH%
@@ -72,3 +72,5 @@ artifacts:
   name: NuGet Package
 - path: bin\%configuration%\Packages\Microsoft.VisualStudio.Composition.NetFxAttributes.*.nupkg
   name: NuGet Package
+- path: bin\%configuration%\build_logs\msbuild.binlog
+  name: Build log

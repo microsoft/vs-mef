@@ -49,12 +49,20 @@ steps:
 - task: VSBuild@1
   inputs:
     vsVersion: 15.0
-    msbuildArgs: /t:build,pack
+    msbuildArgs: /t:build,pack /m /v:minimal /bl:"$(Build.ArtifactStagingDirectory)\build_logs\$(BuildConfiguration)\msbuild.binlog"
     platform: $(BuildPlatform)
     configuration: $(BuildConfiguration)
   displayName: Build Visual Studio solution
 
 - task: MicroBuildCleanup@1
+  condition: succeededOrFailed()
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: $(Build.ArtifactStagingDirectory)\build_logs\$(BuildConfiguration)
+    ArtifactName: build_logs
+    ArtifactType: Container
+  displayName: 'Publish Artifact: build logs'
   condition: succeededOrFailed()
 
 ## The rest of these steps are for deployment and skipped for PR builds
