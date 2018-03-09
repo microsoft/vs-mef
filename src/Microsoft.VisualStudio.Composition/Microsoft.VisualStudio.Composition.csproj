@@ -6,8 +6,7 @@
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\System.ComponentModel.Composition.AttributedModel\System.ComponentModel.Composition.AttributedModel.csproj" />
-    <ProjectReference Include="..\System.ComponentModel.Composition.Runtime\System.ComponentModel.Composition.Runtime.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.NetFxAttributes\Microsoft.VisualStudio.Composition.NetFxAttributes.csproj" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetsDesktop)' == 'true' ">
     <Reference Include="System.ComponentModel.Composition" />

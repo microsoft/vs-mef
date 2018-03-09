@@ -12,6 +12,6 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.TestEmbeddableTypes\Microsoft.VisualStudio.Composition.TestEmbeddableTypes.csproj">
       <EmbedInteropTypes>false</EmbedInteropTypes>
     </ProjectReference>
-    <ProjectReference Include="..\..\System.ComponentModel.Composition.AttributedModel\System.ComponentModel.Composition.AttributedModel.csproj" />
+    <ProjectReference Include="..\..\Microsoft.VisualStudio.Composition.NetFxAttributes\Microsoft.VisualStudio.Composition.NetFxAttributes.csproj" />
   </ItemGroup>
 </Project>
