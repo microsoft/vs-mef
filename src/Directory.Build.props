@@ -15,7 +15,7 @@
     <DefineConstants Condition=" '$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net452' or '$(TargetFramework)' == 'net46' ">$(DefineConstants);DESKTOP;RuntimeHandles</DefineConstants>
     <TargetsDesktop Condition=" '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net46' ">true</TargetsDesktop>
 
-    <NerdbankGitVersioningVersion>1.6.35</NerdbankGitVersioningVersion>
+    <NerdbankGitVersioningVersion>2.1.23</NerdbankGitVersioningVersion>
     <MicroBuildVersion>2.0.44</MicroBuildVersion>
     <MicroBuild_LocalizeOutputAssembly>false</MicroBuild_LocalizeOutputAssembly>
 
