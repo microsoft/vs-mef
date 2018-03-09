@@ -10,7 +10,7 @@
     <NoWarn>CS1591;CS1701</NoWarn>
     <DefineConstants Condition=" '$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net452' ">$(DefineConstants);DESKTOP;RuntimeHandles</DefineConstants>
 
-    <NerdbankGitVersioningVersion>1.6.35</NerdbankGitVersioningVersion>
+    <NerdbankGitVersioningVersion>2.1.23</NerdbankGitVersioningVersion>
     <MicroBuildVersion>2.0.44</MicroBuildVersion>
     <MicroBuild_LocalizeOutputAssembly>false</MicroBuild_LocalizeOutputAssembly>
 
