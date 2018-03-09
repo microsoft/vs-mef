@@ -71,7 +71,7 @@ steps:
     SourceFolder: bin
     Contents: |
       **/$(BuildConfiguration)/**/Microsoft.VisualStudio.Composition?(.Configuration)@(.pdb|.dll)
-      System.ComponentModel.Composition.*/$(BuildConfiguration)/**/*@(.pdb|.dll)
+      Microsoft.VisualStudio.Composition.NetFxAttributes.*/$(BuildConfiguration)/**/*@(.pdb|.dll)
       !Tests/**
     TargetFolder: $(Build.ArtifactStagingDirectory)/symbols
   displayName: Collecting symbols artifacts
@@ -89,7 +89,7 @@ steps:
     Contents: |
       bin\$(BuildConfiguration)\Packages\Microsoft.VisualStudio.Composition.15.*
       bin\$(BuildConfiguration)\Packages\Microsoft.VisualStudio.Composition.AppHost.15.*
-      bin\$(BuildConfiguration)\Packages\System.ComponentModel.Composition.*
+      bin\$(BuildConfiguration)\Packages\Microsoft.VisualStudio.Composition.NetFxAttributes.*
     TargetFolder: $(Build.ArtifactStagingDirectory)/deployables
     flattenFolders: true
   displayName: Collecting deployables
