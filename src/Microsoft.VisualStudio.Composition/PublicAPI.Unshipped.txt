@@ -8,7 +8,6 @@ Microsoft.VisualStudio.Composition.ImportDefinitionBinding.ImportingSiteTypeWith
 Microsoft.VisualStudio.Composition.Reflection.FieldRef.Equals(Microsoft.VisualStudio.Composition.Reflection.FieldRef fieldRef) -> bool
 Microsoft.VisualStudio.Composition.Reflection.FieldRef.FieldInfo.get -> System.Reflection.FieldInfo
 Microsoft.VisualStudio.Composition.Reflection.FieldRef.FieldRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef declaringType, int metadataToken, string name) -> void
-Microsoft.VisualStudio.Composition.Reflection.FieldRef.Name.get -> string
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.AssemblyName.get -> System.Reflection.AssemblyName
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberInfo.get -> System.Reflection.MemberInfo
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef declaringType, System.Reflection.MemberInfo memberInfo) -> void
@@ -22,7 +21,6 @@ Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodRef(Microsoft.Visu
 Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodRef(System.Reflection.ConstructorInfo constructor, Microsoft.VisualStudio.Composition.Resolver resolver) -> void
 Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodRef(System.Reflection.MethodBase method, Microsoft.VisualStudio.Composition.Resolver resolver) -> void
 Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodRef(System.Reflection.MethodBase method, Microsoft.VisualStudio.Composition.Resolver resolver, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> parameterTypes) -> void
-Microsoft.VisualStudio.Composition.Reflection.MethodRef.Name.get -> string
 Microsoft.VisualStudio.Composition.Reflection.MethodRef.ParameterTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef>
 Microsoft.VisualStudio.Composition.Reflection.ParameterRef.Equals(Microsoft.VisualStudio.Composition.Reflection.ParameterRef other) -> bool
 Microsoft.VisualStudio.Composition.Reflection.ParameterRef.Method.get -> Microsoft.VisualStudio.Composition.Reflection.MethodRef
@@ -30,7 +28,6 @@ Microsoft.VisualStudio.Composition.Reflection.ParameterRef.ParameterInfo.get -> 
 Microsoft.VisualStudio.Composition.Reflection.ParameterRef.ParameterRef(Microsoft.VisualStudio.Composition.Reflection.MethodRef method, int parameterIndex) -> void
 Microsoft.VisualStudio.Composition.Reflection.ParameterRef.ParameterRef(System.Reflection.ParameterInfo parameterInfo, Microsoft.VisualStudio.Composition.Resolver resolver) -> void
 Microsoft.VisualStudio.Composition.Reflection.PropertyRef.Equals(Microsoft.VisualStudio.Composition.Reflection.PropertyRef other) -> bool
-Microsoft.VisualStudio.Composition.Reflection.PropertyRef.Name.get -> string
 Microsoft.VisualStudio.Composition.Reflection.PropertyRef.PropertyInfo.get -> System.Reflection.PropertyInfo
 Microsoft.VisualStudio.Composition.Reflection.PropertyRef.PropertyRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef declaringType, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken, string name) -> void
 Microsoft.VisualStudio.Composition.Reflection.TypeRef.AssemblyId.get -> Microsoft.VisualStudio.Composition.StrongAssemblyIdentity
@@ -48,12 +45,16 @@ Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.Mvid.get -> System.Gui
 Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.Name.get -> System.Reflection.AssemblyName
 Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.StrongAssemblyIdentity(System.Reflection.AssemblyName name, System.Guid mvid) -> void
 abstract Microsoft.VisualStudio.Composition.Reflection.MemberRef.EqualsByTypeLocalMetadata(Microsoft.VisualStudio.Composition.Reflection.MemberRef other) -> bool
+abstract Microsoft.VisualStudio.Composition.Reflection.MemberRef.Name.get -> string
 abstract Microsoft.VisualStudio.Composition.Reflection.MemberRef.Resolve() -> System.Reflection.MemberInfo
 override Microsoft.VisualStudio.Composition.Reflection.FieldRef.EqualsByTypeLocalMetadata(Microsoft.VisualStudio.Composition.Reflection.MemberRef other) -> bool
+override Microsoft.VisualStudio.Composition.Reflection.FieldRef.Name.get -> string
 override Microsoft.VisualStudio.Composition.Reflection.FieldRef.Resolve() -> System.Reflection.MemberInfo
 override Microsoft.VisualStudio.Composition.Reflection.MethodRef.EqualsByTypeLocalMetadata(Microsoft.VisualStudio.Composition.Reflection.MemberRef other) -> bool
+override Microsoft.VisualStudio.Composition.Reflection.MethodRef.Name.get -> string
 override Microsoft.VisualStudio.Composition.Reflection.MethodRef.Resolve() -> System.Reflection.MemberInfo
 override Microsoft.VisualStudio.Composition.Reflection.PropertyRef.EqualsByTypeLocalMetadata(Microsoft.VisualStudio.Composition.Reflection.MemberRef other) -> bool
+override Microsoft.VisualStudio.Composition.Reflection.PropertyRef.Name.get -> string
 override Microsoft.VisualStudio.Composition.Reflection.PropertyRef.Resolve() -> System.Reflection.MemberInfo
 override Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.Equals(object obj) -> bool
 override Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.GetHashCode() -> int
