@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Collection must be public with a public constructor when used with an [ImportingConstructor]..
+        ///   Looks up a localized string similar to Collection must be public with a public default constructor when used with an [ImportingConstructor]..
         /// </summary>
         internal static string CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor {
             get {
@@ -595,7 +595,7 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to instantiate custom import collection type..
+        ///   Looks up a localized string similar to Unable to instantiate custom import collection type {0}. Try initializing {1} with a new instance of this type in your importing constructor..
         /// </summary>
         internal static string UnableToInstantiateCustomImportCollectionType {
             get {

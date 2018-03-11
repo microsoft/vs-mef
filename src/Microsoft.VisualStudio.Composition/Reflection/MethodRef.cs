@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         protected override MemberInfo Resolve() => ResolverExtensions.Resolve(this);
 
-        public string Name { get; }
+        public override string Name { get; }
 
         public ImmutableArray<TypeRef> ParameterTypes { get; }
 

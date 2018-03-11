@@ -75,8 +75,9 @@
           <target state="translated">アセンブリ "{0}" 内の型を列挙できません。</target>
         </trans-unit>
         <trans-unit id="UnableToInstantiateCustomImportCollectionType" translate="yes" xml:space="preserve">
-          <source>Unable to instantiate custom import collection type.</source>
-          <target state="translated">カスタム インポート コレクション型をインスタンス化できません。</target>
+          <source>Unable to instantiate custom import collection type {0}. Try initializing {1} with a new instance of this type in your importing constructor.</source>
+          <target state="needs-review-translation">カスタム インポート コレクション型をインスタンス化できません。</target>
+          <note from="MultilingualUpdate" annotates="source" priority="2">Please verify the translation’s accuracy as the source string was updated after it was translated.</note>
         </trans-unit>
         <trans-unit id="UnableToLoadAssembly" translate="yes" xml:space="preserve">
           <source>Unable to load assembly "{0}" for scanning.</source>
@@ -196,8 +197,9 @@
           <target state="translated">空にすることはできません。</target>
         </trans-unit>
         <trans-unit id="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" translate="yes" xml:space="preserve">
-          <source>Collection must be public with a public constructor when used with an [ImportingConstructor].</source>
-          <target state="translated">コレクションは、[ImportingConstructor] で使用する場合には、パブリック コンストラクターと共に一般公開されている必要があります。</target>
+          <source>Collection must be public with a public default constructor when used with an [ImportingConstructor].</source>
+          <target state="needs-review-translation">コレクションは、[ImportingConstructor] で使用する場合には、パブリック コンストラクターと共に一般公開されている必要があります。</target>
+          <note from="MultilingualUpdate" annotates="source" priority="2">Please verify the translation’s accuracy as the source string was updated after it was translated.</note>
         </trans-unit>
         <trans-unit id="CompilerErrorsOccurred" translate="yes" xml:space="preserve">
           <source>Compilation errors occurred.</source>

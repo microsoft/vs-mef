@@ -55,6 +55,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public AssemblyName AssemblyName => this.DeclaringType.AssemblyName;
 
+        public abstract string Name { get; }
+
         public int MetadataToken => this.metadataToken ?? this.cachedMemberInfo?.GetMetadataTokenSafe() ?? 0;
 
         public MemberInfo MemberInfo => this.cachedMemberInfo ?? (this.cachedMemberInfo = this.Resolve());

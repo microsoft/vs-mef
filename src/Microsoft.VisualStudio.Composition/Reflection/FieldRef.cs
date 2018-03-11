@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public FieldInfo FieldInfo => (FieldInfo)this.MemberInfo;
 
-        public string Name { get; private set; }
+        public override string Name { get; }
 
         internal override void GetInputAssemblies(ISet<AssemblyName> assemblies) => this.DeclaringType?.GetInputAssemblies(assemblies);
 

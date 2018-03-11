@@ -75,8 +75,9 @@
           <target state="translated">Non è possibile enumerare i tipi nell'assembly "{0}".</target>
         </trans-unit>
         <trans-unit id="UnableToInstantiateCustomImportCollectionType" translate="yes" xml:space="preserve">
-          <source>Unable to instantiate custom import collection type.</source>
-          <target state="translated">Non è possibile creare l'istanza del tipo di raccolta di importazione personalizzato.</target>
+          <source>Unable to instantiate custom import collection type {0}. Try initializing {1} with a new instance of this type in your importing constructor.</source>
+          <target state="needs-review-translation">Non è possibile creare l'istanza del tipo di raccolta di importazione personalizzato.</target>
+          <note from="MultilingualUpdate" annotates="source" priority="2">Please verify the translation’s accuracy as the source string was updated after it was translated.</note>
         </trans-unit>
         <trans-unit id="UnableToLoadAssembly" translate="yes" xml:space="preserve">
           <source>Unable to load assembly "{0}" for scanning.</source>
@@ -196,8 +197,9 @@
           <target state="translated">Non può essere vuoto.</target>
         </trans-unit>
         <trans-unit id="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" translate="yes" xml:space="preserve">
-          <source>Collection must be public with a public constructor when used with an [ImportingConstructor].</source>
-          <target state="translated">La raccolta deve essere pubblica con un costruttore pubblico se viene usata con un elemento [ImportingConstructor].</target>
+          <source>Collection must be public with a public default constructor when used with an [ImportingConstructor].</source>
+          <target state="needs-review-translation">La raccolta deve essere pubblica con un costruttore pubblico se viene usata con un elemento [ImportingConstructor].</target>
+          <note from="MultilingualUpdate" annotates="source" priority="2">Please verify the translation’s accuracy as the source string was updated after it was translated.</note>
         </trans-unit>
         <trans-unit id="CompilerErrorsOccurred" translate="yes" xml:space="preserve">
           <source>Compilation errors occurred.</source>

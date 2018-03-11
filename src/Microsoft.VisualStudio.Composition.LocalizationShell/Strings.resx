@@ -169,7 +169,7 @@
     <value>Unable to enumerate types in assembly "{0}".</value>
   </data>
   <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
-    <value>Unable to instantiate custom import collection type.</value>
+    <value>Unable to instantiate custom import collection type {0}. Try initializing {1} with a new instance of this type in your importing constructor.</value>
   </data>
   <data name="UnableToLoadAssembly" xml:space="preserve">
     <value>Unable to load assembly "{0}" for scanning.</value>
@@ -259,7 +259,7 @@
     <value>Cannot be empty.</value>
   </data>
   <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
-    <value>Collection must be public with a public constructor when used with an [ImportingConstructor].</value>
+    <value>Collection must be public with a public default constructor when used with an [ImportingConstructor].</value>
   </data>
   <data name="CompilerErrorsOccurred" xml:space="preserve">
     <value>Compilation errors occurred.</value>

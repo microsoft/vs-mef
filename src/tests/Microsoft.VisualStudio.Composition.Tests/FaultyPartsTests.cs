@@ -243,6 +243,42 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public IFormatProvider ExportingProperty2 { get; }
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(CustomCollectionUninitializedPartViaParameter), InvalidConfiguration = true)]
+        public void UninitializedCustomCollectionViaParameter(IContainer container)
+        {
+            container.GetExportedValue<CustomCollectionUninitializedPartViaParameter>();
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(CustomCollectionUninitializedPartViaProperty))]
+        public void UninitializedCustomCollectionViaProperty(IContainer container)
+        {
+            var ex = Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<CustomCollectionUninitializedPartViaProperty>());
+            this.Logger.WriteLine(ex.ToString());
+            Assert.Contains(nameof(CustomCollectionUninitializedPartViaProperty.Exports), ex.Message);
+            Assert.Contains(nameof(CustomCollection<int>), ex.Message);
+        }
+
+        [MefV1.Export]
+        public class CustomCollectionUninitializedPartViaParameter
+        {
+            [MefV1.ImportingConstructor]
+            public CustomCollectionUninitializedPartViaParameter([MefV1.ImportMany] CustomCollection<IServiceProvider> exports)
+            {
+            }
+        }
+
+        [MefV1.Export]
+        public class CustomCollectionUninitializedPartViaProperty
+        {
+            [MefV1.ImportMany]
+            public CustomCollection<IServiceProvider> Exports { get; set; }
+        }
+
+        public class CustomCollection<T> : List<T>
+        {
+            public CustomCollection(IFormatProvider specialArgument) { }
+        }
+
         private static void AssertPartThrowsV1<T>(IContainer container)
         {
             AssertThrowsV1(() => container.GetExportedValue<T>());
