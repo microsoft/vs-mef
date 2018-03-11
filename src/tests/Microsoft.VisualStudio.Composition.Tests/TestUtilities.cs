@@ -170,6 +170,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return await CreateContainerV3Async(catalog, attributesDiscovery, output);
         }
 
+        internal static async Task<CompositionConfiguration> CreateConfigurationAsync(CompositionEngines attributesDiscovery, params Type[] parts)
+        {
+            PartDiscovery discovery = GetDiscoveryService(attributesDiscovery);
+            var assemblyParts = await discovery.CreatePartsAsync(parts);
+            var catalog = EmptyCatalog.AddParts(assemblyParts);
+            return CompositionConfiguration.Create(catalog);
+        }
+
         private static PartDiscovery GetDiscoveryService(CompositionEngines attributesDiscovery)
         {
             var discovery = new List<PartDiscovery>(2);

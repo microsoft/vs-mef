@@ -9,6 +9,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
+    using Xunit.Abstractions;
     using MefV1 = System.ComponentModel.Composition;
 
     /// <summary>
@@ -16,6 +17,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
     /// </summary>
     public class FaultyPartsTests
     {
+        private const string CustomContractName = "SomeContractName";
+
+        public FaultyPartsTests(ITestOutputHelper logger)
+        {
+            this.Logger = logger;
+        }
+
+        public ITestOutputHelper Logger { get; }
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(ImportingConstructorThrowsPart))]
         public void GetExportedValue_ImportingConstructorThrowsV1(IContainer container)
         {
@@ -78,6 +88,54 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Throws<MyException>(() => lazyImporter.Import.Value);
         }
 
+        [Fact]
+        public async Task MissingExportErrorMessageDescribesImportIdentity()
+        {
+            var configuration = await TestUtilities.CreateConfigurationAsync(CompositionEngines.V1, typeof(PartThatImportsMissingExportWithSpecialTypeIdentity));
+            var level1 = configuration.CompositionErrors.Peek();
+            var error = level1.Single();
+            this.Logger.WriteLine(error.Message);
+            Assert.Contains(typeof(IServiceProvider).FullName, error.Message);
+        }
+
+        [Fact]
+        public async Task MissingExportErrorMessageDescribesImportIdentityAndContractName()
+        {
+            var configuration = await TestUtilities.CreateConfigurationAsync(CompositionEngines.V1, typeof(PartThatImportsMissingExportWithSpecialTypeIdentityAndContractName));
+            var level1 = configuration.CompositionErrors.Peek();
+            var error = level1.Single();
+            this.Logger.WriteLine(error.Message);
+            Assert.Contains(typeof(IServiceProvider).FullName, error.Message);
+            Assert.Contains(CustomContractName, error.Message);
+        }
+
+        [Fact]
+        public async Task TooManyExportsErrorMessageDescribesImportIdentity()
+        {
+            var configuration = await TestUtilities.CreateConfigurationAsync(
+                CompositionEngines.V1,
+                typeof(PartThatConditionallyImportsMissingExportWithSpecialTypeIdentity),
+                typeof(MultipleServiceProviderExports));
+            var level1 = configuration.CompositionErrors.Peek();
+            var error = level1.Single();
+            this.Logger.WriteLine(error.Message);
+            Assert.Contains(typeof(IServiceProvider).FullName, error.Message);
+        }
+
+        [Fact]
+        public async Task TooManyExportsErrorMessageDescribesImportIdentityAndContractName()
+        {
+            var configuration = await TestUtilities.CreateConfigurationAsync(
+                CompositionEngines.V1,
+                typeof(PartThatConditionallyImportsMissingExportWithSpecialTypeIdentityAndContractName),
+                typeof(MultipleServiceProviderExportsWithCustomContractName));
+            var level1 = configuration.CompositionErrors.Peek();
+            var error = level1.Single();
+            this.Logger.WriteLine(error.Message);
+            Assert.Contains(typeof(IServiceProvider).FullName, error.Message);
+            Assert.Contains(CustomContractName, error.Message);
+        }
+
         [Export, Shared]
         [MefV1.Export]
         public class ImportingConstructorThrowsPart
@@ -130,6 +188,60 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Export, Shared]
         [MefV1.Export]
         public class OrdinaryPart { }
+
+        [MefV1.Export]
+        public class PartThatImportsMissingExportWithSpecialTypeIdentity
+        {
+            [MefV1.ImportingConstructor]
+            public PartThatImportsMissingExportWithSpecialTypeIdentity([MefV1.Import(typeof(IServiceProvider))] IFormatProvider projectGuidService)
+            {
+            }
+        }
+
+        [MefV1.Export]
+        public class PartThatImportsMissingExportWithSpecialTypeIdentityAndContractName
+        {
+            [MefV1.ImportingConstructor]
+            public PartThatImportsMissingExportWithSpecialTypeIdentityAndContractName([MefV1.Import(CustomContractName, typeof(IServiceProvider))] IFormatProvider projectGuidService)
+            {
+            }
+        }
+
+        [MefV1.Export]
+        public class PartThatConditionallyImportsMissingExportWithSpecialTypeIdentity
+        {
+            [MefV1.ImportingConstructor]
+            public PartThatConditionallyImportsMissingExportWithSpecialTypeIdentity([MefV1.Import(typeof(IServiceProvider), AllowDefault = true)] IFormatProvider projectGuidService)
+            {
+            }
+        }
+
+        [MefV1.Export]
+        public class PartThatConditionallyImportsMissingExportWithSpecialTypeIdentityAndContractName
+        {
+            [MefV1.ImportingConstructor]
+            public PartThatConditionallyImportsMissingExportWithSpecialTypeIdentityAndContractName([MefV1.Import(CustomContractName, typeof(IServiceProvider), AllowDefault = true)] IFormatProvider projectGuidService)
+            {
+            }
+        }
+
+        public class MultipleServiceProviderExports
+        {
+            [MefV1.Export(typeof(IServiceProvider))]
+            public IFormatProvider ExportingProperty { get; }
+
+            [MefV1.Export(typeof(IServiceProvider))]
+            public IFormatProvider ExportingProperty2 { get; }
+        }
+
+        public class MultipleServiceProviderExportsWithCustomContractName
+        {
+            [MefV1.Export(CustomContractName, typeof(IServiceProvider))]
+            public IFormatProvider ExportingProperty { get; }
+
+            [MefV1.Export(CustomContractName, typeof(IServiceProvider))]
+            public IFormatProvider ExportingProperty2 { get; }
+        }
 
         private static void AssertPartThrowsV1<T>(IContainer container)
         {

@@ -206,7 +206,8 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0}: expected exactly 1 export of {1} but found {2}.{3}.
+        ///   Looks up a localized string similar to {0}: expected exactly 1 export matching constraints:
+        ///{1}but found {2}.{3}.
         /// </summary>
         internal static string ExpectedExactlyOneExportButFound {
             get {
@@ -215,7 +216,8 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0}: expected 1 or 0 exports of {1} but found {2}.{3}.
+        ///   Looks up a localized string similar to {0}: expected 1 or 0 exports matching constraints:
+        ///{1}but found {2}.{3}.
         /// </summary>
         internal static string ExpectedOneOrZeroExportsButFound {
             get {

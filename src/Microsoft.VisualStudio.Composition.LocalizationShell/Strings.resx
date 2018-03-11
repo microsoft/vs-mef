@@ -197,10 +197,12 @@
     <value>There should be exactly one entry for every import.</value>
   </data>
   <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
-    <value>{0}: expected exactly 1 export of {1} but found {2}.{3}</value>
+    <value>{0}: expected exactly 1 export matching constraints:
+{1}but found {2}.{3}</value>
   </data>
   <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
-    <value>{0}: expected 1 or 0 exports of {1} but found {2}.{3}</value>
+    <value>{0}: expected 1 or 0 exports matching constraints:
+{1}but found {2}.{3}</value>
   </data>
   <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
     <value>{0}: Export of ExportProvider is not allowed.</value>
