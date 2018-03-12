@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public int? SetMethodMetadataToken => this.setMethodMetadataToken ?? this.PropertyInfo?.SetMethod?.MetadataToken;
 
-        public string Name { get; private set; }
+        public override string Name { get; }
 
         internal override void GetInputAssemblies(ISet<AssemblyName> assemblies) => this.DeclaringType?.GetInputAssemblies(assemblies);
 

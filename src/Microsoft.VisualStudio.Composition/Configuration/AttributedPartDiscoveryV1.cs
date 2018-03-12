@@ -229,16 +229,28 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (!member.IsStatic())
                 {
-                    if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, out ImportDefinition importDefinition))
+                    try
                     {
-                        Type importingSiteType = ReflectionHelpers.GetMemberType(member);
-                        var importDefinitionBinding = new ImportDefinitionBinding(
-                            importDefinition,
-                            partTypeRef,
-                            MemberRef.Get(member, this.Resolver),
-                            TypeRef.Get(importingSiteType, this.Resolver),
-                            TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, importingSiteType), this.Resolver));
-                        imports.Add(importDefinitionBinding);
+                        if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, out ImportDefinition importDefinition))
+                        {
+                            Type importingSiteType = ReflectionHelpers.GetMemberType(member);
+                            var importDefinitionBinding = new ImportDefinitionBinding(
+                                importDefinition,
+                                partTypeRef,
+                                MemberRef.Get(member, this.Resolver),
+                                TypeRef.Get(importingSiteType, this.Resolver),
+                                TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, importingSiteType), this.Resolver));
+                            imports.Add(importDefinitionBinding);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new PartDiscoveryException(
+                            string.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.PartDiscoveryFailedAtMember,
+                                member.Name),
+                            ex);
                     }
                 }
             }

@@ -220,7 +220,8 @@ namespace Microsoft.VisualStudio.Composition
                     let genericTypeDef = ifaceInfo.GetGenericTypeDefinition()
                     where genericTypeDef.Equals(typeof(ICollection<>)) || genericTypeDef.Equals(typeof(IEnumerable<>)) || genericTypeDef.Equals(typeof(IList<>))
                     select ifaceInfo;
-                var icollectionType = icollectionTypes.First();
+                var icollectionType = icollectionTypes.FirstOrDefault();
+                Requires.Argument(icollectionType != null, nameof(type), Strings.ImportManyOnNonCollectionType, type.FullName);
                 return icollectionType.GenericTypeArguments[0]; // IEnumerable<T> -> T
             }
         }

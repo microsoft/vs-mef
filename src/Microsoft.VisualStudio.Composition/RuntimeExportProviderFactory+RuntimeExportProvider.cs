@@ -170,7 +170,12 @@ namespace Microsoft.VisualStudio.Composition
                             }
                             else
                             {
-                                throw new CompositionFailedException(Strings.UnableToInstantiateCustomImportCollectionType);
+                                throw new CompositionFailedException(
+                                    string.Format(
+                                        CultureInfo.CurrentCulture,
+                                        Strings.UnableToInstantiateCustomImportCollectionType,
+                                        import.ImportingSiteType.FullName,
+                                        $"{import.DeclaringTypeRef.FullName}.{import.ImportingMemberRef?.Name}"));
                             }
                         }
 

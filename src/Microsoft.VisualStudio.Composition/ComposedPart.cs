@@ -7,6 +7,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Globalization;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -91,7 +92,7 @@ namespace Microsoft.VisualStudio.Composition
                                 this,
                                 Strings.ExpectedExactlyOneExportButFound,
                                 GetDiagnosticLocation(pair.Key),
-                                pair.Key.ImportingSiteElementType,
+                                GetImportConstraints(pair.Key.ImportDefinition),
                                 pair.Value.Count,
                                 GetExportsList(pair.Value));
                         }
@@ -104,7 +105,7 @@ namespace Microsoft.VisualStudio.Composition
                                 this,
                                 Strings.ExpectedOneOrZeroExportsButFound,
                                 GetDiagnosticLocation(pair.Key),
-                                pair.Key.ImportingSiteElementType,
+                                GetImportConstraints(pair.Key.ImportDefinition),
                                 pair.Value.Count,
                                 GetExportsList(pair.Value));
                         }
@@ -155,6 +156,24 @@ namespace Microsoft.VisualStudio.Composition
                         metadataType.FullName);
                 }
             }
+        }
+
+        private static string GetImportConstraints(ImportDefinition importDefinition)
+        {
+            Requires.NotNull(importDefinition, nameof(importDefinition));
+
+            var stringWriter = new StringWriter();
+            var indentingWriter = IndentingTextWriter.Get(stringWriter);
+            using (indentingWriter.Indent())
+            {
+                indentingWriter.WriteLine("Contract name: {0}", importDefinition.ContractName);
+                foreach (var exportConstraint in importDefinition.ExportConstraints.OfType<IDescriptiveToString>())
+                {
+                    exportConstraint.ToString(indentingWriter);
+                }
+            }
+
+            return stringWriter.ToString();
         }
 
         private static string GetDiagnosticLocation(ImportDefinitionBinding import)

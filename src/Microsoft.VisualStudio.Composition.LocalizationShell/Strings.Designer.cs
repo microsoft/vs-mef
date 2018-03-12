@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Collection must be public with a public constructor when used with an [ImportingConstructor]..
+        ///   Looks up a localized string similar to Collection must be public with a public default constructor when used with an [ImportingConstructor]..
         /// </summary>
         internal static string CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor {
             get {
@@ -206,7 +206,8 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0}: expected exactly 1 export of {1} but found {2}.{3}.
+        ///   Looks up a localized string similar to {0}: expected exactly 1 export matching constraints:
+        ///{1}but found {2}.{3}.
         /// </summary>
         internal static string ExpectedExactlyOneExportButFound {
             get {
@@ -215,7 +216,8 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0}: expected 1 or 0 exports of {1} but found {2}.{3}.
+        ///   Looks up a localized string similar to {0}: expected 1 or 0 exports matching constraints:
+        ///{1}but found {2}.{3}.
         /// </summary>
         internal static string ExpectedOneOrZeroExportsButFound {
             get {
@@ -310,6 +312,15 @@ namespace Microsoft.VisualStudio.Composition {
         internal static string ImportingPropertyHasNoSetter {
             get {
                 return ResourceManager.GetString("ImportingPropertyHasNoSetter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type {0} does not appear to be a collection as required for ImportManyAttribute..
+        /// </summary>
+        internal static string ImportManyOnNonCollectionType {
+            get {
+                return ResourceManager.GetString("ImportManyOnNonCollectionType", resourceCulture);
             }
         }
         
@@ -494,6 +505,15 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Part discovery failed at member {0}..
+        /// </summary>
+        internal static string PartDiscoveryFailedAtMember {
+            get {
+                return ResourceManager.GetString("PartDiscoveryFailedAtMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This part ({0}) cannot be instantiated..
         /// </summary>
         internal static string PartIsNotInstantiable {
@@ -593,7 +613,7 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to instantiate custom import collection type..
+        ///   Looks up a localized string similar to Unable to instantiate custom import collection type {0}. Try initializing {1} with a new instance of this type in your importing constructor..
         /// </summary>
         internal static string UnableToInstantiateCustomImportCollectionType {
             get {
