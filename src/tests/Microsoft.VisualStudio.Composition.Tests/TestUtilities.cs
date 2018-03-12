@@ -178,6 +178,16 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return CompositionConfiguration.Create(catalog);
         }
 
+        internal static Exception GetInnermostException(Exception ex)
+        {
+            while (ex?.InnerException != null)
+            {
+                ex = ex.InnerException;
+            }
+
+            return ex;
+        }
+
         private static PartDiscovery GetDiscoveryService(CompositionEngines attributesDiscovery)
         {
             var discovery = new List<PartDiscovery>(2);

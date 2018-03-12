@@ -136,6 +136,26 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Contains(CustomContractName, error.Message);
         }
 
+        [Fact]
+        public async Task ImportManyOnNonCollectionMember()
+        {
+            var composition = await TestUtilities.CreateConfigurationAsync(CompositionEngines.V1, typeof(PartWithImportManyOnNonCollection));
+            var error = composition.Catalog.DiscoveredParts.DiscoveryErrors.Single();
+            this.Logger.WriteLine(error.ToString());
+            var rootCause = TestUtilities.GetInnermostException(error);
+            Assert.Contains(typeof(IServiceProvider).FullName, rootCause.Message);
+            Assert.Contains(typeof(ImportManyAttribute).Name, rootCause.Message);
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class PartWithImportManyOnNonCollection
+        {
+            [ImportMany]
+            [MefV1.ImportMany]
+            public IServiceProvider SP { get; set; }
+        }
+
         [Export, Shared]
         [MefV1.Export]
         public class ImportingConstructorThrowsPart

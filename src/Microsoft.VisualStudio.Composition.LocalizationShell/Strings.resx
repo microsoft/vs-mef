@@ -338,4 +338,11 @@
     <value>Exporting property "{0}" on part "{1}" has no getter.</value>
     <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
   </data>
+  <data name="ImportManyOnNonCollectionType" xml:space="preserve">
+    <value>The type {0} does not appear to be a collection as required for ImportManyAttribute.</value>
+    <comment>ImportManyAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="PartDiscoveryFailedAtMember" xml:space="preserve">
+    <value>Part discovery failed at member {0}.</value>
+  </data>
 </root>

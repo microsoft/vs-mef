@@ -316,6 +316,15 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The type {0} does not appear to be a collection as required for ImportManyAttribute..
+        /// </summary>
+        internal static string ImportManyOnNonCollectionType {
+            get {
+                return ResourceManager.GetString("ImportManyOnNonCollectionType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0}: imports that use generic type parameters are not supported..
         /// </summary>
         internal static string ImportsThatUseGenericTypeParametersNotSupported {
@@ -492,6 +501,15 @@ namespace Microsoft.VisualStudio.Composition {
         internal static string PartBelongsToAnotherSharingBoundary {
             get {
                 return ResourceManager.GetString("PartBelongsToAnotherSharingBoundary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Part discovery failed at member {0}..
+        /// </summary>
+        internal static string PartDiscoveryFailedAtMember {
+            get {
+                return ResourceManager.GetString("PartDiscoveryFailedAtMember", resourceCulture);
             }
         }
         

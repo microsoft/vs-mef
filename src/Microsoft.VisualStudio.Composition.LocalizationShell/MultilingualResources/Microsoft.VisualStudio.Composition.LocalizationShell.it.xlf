@@ -301,6 +301,15 @@
           <target state="translated">Non esiste alcun getter per l'esportazione della proprietà "{0}" nella parte "{1}".</target>
           <note from="MultilingualBuild" annotates="source" priority="2">{0} is a property name. {1} is a fully-qualified type name.</note>
         </trans-unit>
+        <trans-unit id="ImportManyOnNonCollectionType" translate="yes" xml:space="preserve">
+          <source>The type {0} does not appear to be a collection as required for ImportManyAttribute.</source>
+          <target state="new">The type {0} does not appear to be a collection as required for ImportManyAttribute.</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">ImportManyAttribute is a type name and should not be translated.</note>
+        </trans-unit>
+        <trans-unit id="PartDiscoveryFailedAtMember" translate="yes" xml:space="preserve">
+          <source>Part discovery failed at member {0}.</source>
+          <target state="new">Part discovery failed at member {0}.</target>
+        </trans-unit>
       </group>
     </body>
   </file>
