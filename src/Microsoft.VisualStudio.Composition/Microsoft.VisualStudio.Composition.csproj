@@ -26,7 +26,6 @@
     <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Metadata" Version="1.3.0" />
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="1.2.0-beta2" PrivateAssets="all" />
-    <PackageReference Include="System.ComponentModel.Composition" Version="4.5.0-preview2-26216-03" Condition=" '$(MEFv1EngineAvailable)' == 'true' " />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetsDesktop)' == 'true' ">
     <AdditionalFiles Include="PublicAPI.Shipped.txt" />

@@ -19,7 +19,6 @@
     <PackageReference Include="Xunit.SkippableFact" Version="1.3.1" />
     <PackageReference Include="OpenCover" Version="4.6.519" />
     <PackageReference Include="System.ValueTuple" Version="4.3.0" />
-    <PackageReference Include="System.ComponentModel.Composition" Version="4.5.0-preview2-26216-03" Condition=" '$(MEFv1EngineAvailable)' == 'true' " />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Microsoft.VisualStudio.Composition\ArrayRental`1.cs">
