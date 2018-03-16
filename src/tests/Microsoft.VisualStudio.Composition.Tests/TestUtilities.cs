@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return configuration;
         }
 
-#if DESKTOP
+#if MEFv1Engine
         internal static IContainer CreateContainerV1(params Type[] parts)
         {
             Requires.NotNull(parts, nameof(parts));
@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Requires.NotNull(output, nameof(output));
 
             var catalogWithCompositionService = catalog
-#if DESKTOP
+#if MEFv1Engine
                 .WithCompositionService()
 #endif
                 ;
@@ -239,7 +239,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var totalSummary = new RunSummary();
             if (attributesVersion.HasFlag(CompositionEngines.V1))
             {
-#if DESKTOP
+#if MEFv1Engine
                 totalSummary.Aggregate(await test(CreateContainerV1(parts)));
 #endif
             }
@@ -295,7 +295,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Skip.If(IsOnMono, "Test marked as skipped on Mono runtime due to feature: " + unsupportedFeature);
         }
 
-#if DESKTOP
+#if MEFv1Engine
         internal class DebuggableCompositionContainer : MefV1.Hosting.CompositionContainer
         {
             protected override IEnumerable<MefV1.Primitives.Export> GetExportsCore(MefV1.Primitives.ImportDefinition definition, MefV1.Hosting.AtomicComposition atomicComposition)

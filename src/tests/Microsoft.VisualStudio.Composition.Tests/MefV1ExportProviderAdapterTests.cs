@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-#if DESKTOP
+#if MEFv1Engine
 
 namespace Microsoft.VisualStudio.Composition.Tests
 {
@@ -230,7 +230,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Throws<MefV1.ImportCardinalityMismatchException>(() => childContainer.GetExport<Tree>());
         }
 
-        #region SatisfyImportsOnce
+#region SatisfyImportsOnce
 
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Apple))]
         public void SatisfyImportsOnceWithRequiredCreationPolicy(IContainer container)
@@ -417,7 +417,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public List<MefV1.ExportFactory<Tree<Orange>>> OrangeTreeFactories { get; set; }
         }
 
-        #endregion
+#endregion
 
         [Export, Export("SomeContract")]
         [MefV1.Export, MefV1.Export("SomeContract"), MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]

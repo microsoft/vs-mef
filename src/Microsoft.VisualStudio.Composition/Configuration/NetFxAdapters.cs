@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-#if DESKTOP
+#if MEFv1Engine
 
 namespace Microsoft.VisualStudio.Composition
 {

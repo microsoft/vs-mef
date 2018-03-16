@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-#if NET40 || NET45
+#if NET40 || NET45 || NETSTANDARD2_0
 
 using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;

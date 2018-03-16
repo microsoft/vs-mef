@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
     public class CompositionFailedExceptionTests
     {
-#if DESKTOP
+#if Serializable
         [Fact(Skip = "Not yet implemented.")]
         public void ExceptionIsSerializable()
         {

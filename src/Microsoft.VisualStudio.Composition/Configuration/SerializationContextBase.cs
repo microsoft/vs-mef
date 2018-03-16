@@ -917,7 +917,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
                     else
                     {
-#if DESKTOP
+#if Serializable
                         Debug.WriteLine("Falling back to binary formatter for value of type: {0}", valueType);
                         this.Write(ObjectType.BinaryFormattedObject);
                         var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
@@ -990,7 +990,7 @@ namespace Microsoft.VisualStudio.Composition
                         IReadOnlyList<TypeRef> typeRefArray = this.ReadList(this.reader, this.ReadTypeRef);
                         return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray, this.Resolver);
                     case ObjectType.BinaryFormattedObject:
-#if DESKTOP
+#if Serializable
                         var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                         return formatter.Deserialize(this.reader.BaseStream);
 #else

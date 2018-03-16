@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.5;net45;net46;netcoreapp1.0</TargetFrameworks>
+    <TargetFrameworks>netstandard1.5;net45;net46;netcoreapp1.0;netstandard2.0;netcoreapp2.0</TargetFrameworks>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.ruleset</CodeAnalysisRuleSet>
 
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>

@@ -3,7 +3,7 @@
     using System;
     using System.Runtime.Serialization;
 
-#if DESKTOP
+#if Serializable
     [Serializable]
 #endif
     internal class AssertFailedException : Exception
@@ -22,7 +22,7 @@
         {
         }
 
-#if DESKTOP
+#if Serializable
         protected AssertFailedException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
