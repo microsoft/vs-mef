@@ -1,26 +1,6 @@
-queue: VSEng-MicroBuildVS2017
-
 steps:
-- task: CmdLine@2
-  inputs:
-    script: |
-      del /s /q "%userprofile%\.nuget\packages"
-      del /s /q "%LocalAppData%\NuGet\Cache"
-      del /s /q "%AppData%\tsd-cache"
-  displayName: Purge package caches
-
-- task: MicroBuildIBCMergePlugin@0
-  inputs:
-    branch: lab/vsuvscore
-
-- task: MicroBuildSigningPlugin@1
-  inputs:
-    signType: $(SignType)
-    esrpSigning: true
-    zipSources: false
-
 - task: PowerShell@2
-  displayName: Set package upload feed
+  displayName: Set VSTS variables
   inputs:
     targetType: inline
     script: |
@@ -32,19 +12,37 @@ steps:
 
       Write-Host "##vso[task.setvariable variable=feedGuid]$feedGuid"
 
-- task: NuGetCommand@2
+      if ($env:ComputerName.StartsWith('factoryvm', [StringComparison]::OrdinalIgnoreCase)) {
+        Write-Host "Running on hosted queue"
+        Write-Host "##vso[task.setvariable variable=Hosted]true"
+      }
+
+- task: CmdLine@2
   inputs:
-    restoreSolution: '**\*.sln'
-    feedsToUse: config
-    nugetConfigPath: src/nuget.config
-  displayName: Nuget restore packages
+    script: |
+      del /s /q "%userprofile%\.nuget\packages"
+      del /s /q "%LocalAppData%\NuGet\Cache"
+      del /s /q "%AppData%\tsd-cache"
+  displayName: Purge package caches
+  condition: and(succeeded(), ne(variables['Hosted'], 'true'))
+
+- task: MicroBuildIBCMergePlugin@0
+  inputs:
+    branch: lab/vsuvscore
+  condition: and(succeeded(), ne(variables['Hosted'], 'true'))
+
+- task: MicroBuildSigningPlugin@1
+  inputs:
+    signType: $(SignType)
+    esrpSigning: true
+    zipSources: false
 
 - task: NuGetCommand@2
   inputs:
     restoreSolution: '**\*.sln'
     feedsToUse: config
     nugetConfigPath: src/nuget.config
-  displayName: Nuget restore packages (again, to workaround Nuget bug)
+  displayName: Nuget restore packages
 
 - task: VSBuild@1
   inputs:
@@ -110,12 +108,12 @@ steps:
     ArtifactType: Container
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
-- task: ms-vscs-artifact.build-tasks.artifactSymbolTask-1.artifactSymbolTask@0
+- task: PublishSymbols@2
   inputs:
-    symbolServiceURI: "https://microsoft.artifacts.visualstudio.com/DefaultCollection"
-    requestName: "CollectionId/$(System.CollectionId)/ProjectId/$(System.TeamProjectId)/BuildId/$(Build.BuildId)"
-    sourcePath: "$(Build.ArtifactStagingDirectory)/symbols"
-    usePat: "false"
+    SymbolsFolder: $(Build.ArtifactStagingDirectory)/symbols
+    SearchPattern: '**/*.pdb'
+    IndexSources: false
+    SymbolServerType: TeamServices
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
 - task: NuGetCommand@2

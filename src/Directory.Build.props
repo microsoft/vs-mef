@@ -19,7 +19,7 @@
     <DefineConstants Condition=" '$(TargetsDesktop)' == 'true' or '$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netcoreapp2.0' ">$(DefineConstants);Serializable</DefineConstants>
 
     <NerdbankGitVersioningVersion>2.1.23</NerdbankGitVersioningVersion>
-    <MicroBuildVersion>2.0.44</MicroBuildVersion>
+    <MicroBuildVersion>2.0.54</MicroBuildVersion>
     <MicroBuild_LocalizeOutputAssembly>false</MicroBuild_LocalizeOutputAssembly>
 
     <PackageTags>Mef Composition Extensibility</PackageTags>
@@ -41,16 +41,6 @@
       <Link>stylecop.json</Link>
     </AdditionalFiles>
   </ItemGroup>
-
-  <!-- Workaround https://github.com/AArnott/Nerdbank.GitVersioning/issues/113#issuecomment-285903085 -->
-  <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' == 'true' ">
-    <Import Project="$(UserProfile)\.nuget\packages\nerdbank.gitversioning\$(NerdbankGitVersioningVersion)\buildCrossTargeting\Nerdbank.GitVersioning.targets"
-            Condition="Exists('$(UserProfile)\.nuget\packages\nerdbank.gitversioning\$(NerdbankGitVersioningVersion)\buildCrossTargeting\Nerdbank.GitVersioning.targets')" />
-  </ImportGroup>
-  <Target Name="FixUpVersion"
-      BeforeTargets="_GenerateRestoreProjectSpec"
-      DependsOnTargets="GetBuildVersion"
-      Condition=" '$(NerdbankGitVersioningTasksPath)' != '' " />
 
   <Target Name="SetNuSpecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
     <PropertyGroup>
