@@ -195,9 +195,10 @@ namespace Microsoft.VisualStudio.Composition
             {
                 return string.Format(
                     CultureInfo.CurrentCulture,
-                    "{0}.{1}",
+                    "{0}.{1} (in {2})",
                     export.PartDefinition.Type.FullName,
-                    export.ExportingMember.Name);
+                    export.ExportingMember.Name,
+                    export.PartDefinition.Type.GetTypeInfo().Assembly.GetName().Name);
             }
             else
             {
