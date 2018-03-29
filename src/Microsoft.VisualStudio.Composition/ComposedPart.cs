@@ -198,7 +198,7 @@ namespace Microsoft.VisualStudio.Composition
                     Strings.TypeNameWithAssemblyLocation,
                     export.PartDefinition.Type.FullName,
                     export.ExportingMember.Name,
-                    export.PartDefinition.Type.GetTypeInfo().Assembly.GetName().Name);
+                    export.PartDefinition.Type.GetTypeInfo().Assembly.FullName);
             }
             else
             {
