@@ -310,6 +310,11 @@
           <source>Part discovery failed at member {0}.</source>
           <target state="new">Part discovery failed at member {0}.</target>
         </trans-unit>
+        <trans-unit id="TypeNameWithAssemblyLocation" translate="yes" xml:space="preserve">
+          <source>{0}.{1} (in {2})</source>
+          <target state="new">{0}.{1} (in {2})</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</note>
+        </trans-unit>
       </group>
     </body>
   </file>

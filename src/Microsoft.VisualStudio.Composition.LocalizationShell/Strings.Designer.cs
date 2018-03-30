@@ -586,6 +586,15 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0}.{1} (in {2}).
+        /// </summary>
+        internal static string TypeNameWithAssemblyLocation {
+            get {
+                return ResourceManager.GetString("TypeNameWithAssemblyLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type of metadata view is unsupported..
         /// </summary>
         internal static string TypeOfMetadataViewUnsupported {
