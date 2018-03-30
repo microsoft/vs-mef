@@ -1,6 +1,8 @@
 language: csharp
 mono: none
 dotnet: 2.1.4
+mono: 5.10.0
+
 branches:
   only:
   - master
@@ -15,8 +17,10 @@ git:
   depth: false
 
 install:
-- dotnet restore src/Microsoft.VisualStudio.Composition.sln
+- nuget install xunit.runner.console -Version 2.2.0 -OutputDirectory testrunner
+- msbuild src/Microsoft.VisualStudio.Composition.sln /nologo /m /v:quiet /t:restore
 
 script:
-- dotnet build -f netcoreapp2.0 src/Microsoft.VisualStudio.Composition/
-- dotnet test -f netcoreapp2.0 --no-restore src/tests/Microsoft.VisualStudio.Composition.Tests/
+- msbuild src/Microsoft.VisualStudio.Composition.sln /nologo /m /v:quiet /t:build
+- mono ./testrunner/xunit.runner.console.2.2.0/tools/xunit.console.exe bin/Tests/Debug/net452/Microsoft.VisualStudio.Composition.Tests.dll
+- dotnet test -f netcoreapp2.0 --no-build --no-restore src/tests/Microsoft.VisualStudio.Composition.Tests/
