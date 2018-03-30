@@ -31,9 +31,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
             this.cacheManager = new CachedComposition();
         }
 
-        [Fact]
+        [SkippableFact]
         public void CacheStaleFromRecompiledAssembly()
         {
+            TestUtilities.SkipOnMono("Appdomain issues on mono");
+
             // These are our two nearly-identical assemblies, but which are expected to have non-equivalent metadata tables,
             // which simulates the scenario of a cache being created with one assembly, then the cache is reused later after
             // that assembly has been re-compiled (possibly with source changes) such that its metadata table has changed,
