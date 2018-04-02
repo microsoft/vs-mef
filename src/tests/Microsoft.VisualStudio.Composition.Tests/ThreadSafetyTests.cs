@@ -19,6 +19,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     {
         private static ITestOutputHelper outputForNestedParts;
         private readonly ITestOutputHelper output;
+        private static readonly object lockObject = new object();
 
         public ThreadSafetyTests(ITestOutputHelper output)
         {
@@ -130,14 +131,20 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefFact(CompositionEngines.V1, typeof(NonSharedPart), typeof(PartThatImportsNonSharedPart))]
         public void LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreadsV1(IContainer container)
         {
-            this.LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(container, permitMultipleInstancesOfNonSharedPart: false);
+            lock (lockObject)
+            {
+                this.LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(container, permitMultipleInstancesOfNonSharedPart: false);
+            }
         }
 
         // TODO: V3 should emulate V1 behavior -- not V2!
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V2Compat, typeof(NonSharedPart), typeof(PartThatImportsNonSharedPart))]
         public void LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreadsV2(IContainer container)
         {
-            this.LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(container, permitMultipleInstancesOfNonSharedPart: true);
+            lock (lockObject)
+            {
+                this.LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(container, permitMultipleInstancesOfNonSharedPart: true);
+            }
         }
 
         private void LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(IContainer container, bool permitMultipleInstancesOfNonSharedPart)
@@ -179,6 +186,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 // Pri-2: verify that the constructor was only invoked once.
                 if (!permitMultipleInstancesOfNonSharedPart)
                 {
+                    t1.Wait();
+                    t2.Wait();
                     Assert.Equal(1, NonSharedPart.CtorInvocationCounter);
                 }
             });
