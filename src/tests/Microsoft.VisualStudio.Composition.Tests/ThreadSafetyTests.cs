@@ -131,70 +131,67 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefFact(CompositionEngines.V1, typeof(NonSharedPart), typeof(PartThatImportsNonSharedPart))]
         public void LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreadsV1(IContainer container)
         {
-            lock (LockObject)
-            {
-                this.LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(container, permitMultipleInstancesOfNonSharedPart: false);
-            }
+            this.LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(container, permitMultipleInstancesOfNonSharedPart: false);
         }
 
         // TODO: V3 should emulate V1 behavior -- not V2!
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V2Compat, typeof(NonSharedPart), typeof(PartThatImportsNonSharedPart))]
         public void LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreadsV2(IContainer container)
         {
-            lock (LockObject)
-            {
-                this.LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(container, permitMultipleInstancesOfNonSharedPart: true);
-            }
+            this.LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(container, permitMultipleInstancesOfNonSharedPart: true);
         }
 
         private void LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(IContainer container, bool permitMultipleInstancesOfNonSharedPart)
         {
-            NonSharedPart.CtorInvocationCounter = 0;
-            NonSharedPart.UnblockCtor.Reset();
-
-            var root = container.GetExportedValue<PartThatImportsNonSharedPart>();
-
-            // We carefully orchestrate the scheduling here to make sure we have threads ready to go
-            // (not just queued to the threadpool) to maximize concurrent execution.
-            var ready = new CountdownEvent(2);
-            var go = new ManualResetEventSlim();
-
-            var t1 = Task.Run(delegate
+            lock (LockObject)
             {
-                ready.Signal();
-                ready.Wait();
-                return root.NonSharedPart.Value;
-            });
+                NonSharedPart.CtorInvocationCounter = 0;
+                NonSharedPart.UnblockCtor.Reset();
 
-            var t2 = Task.Run(delegate
-            {
-                ready.Signal();
-                ready.Wait();
-                return root.NonSharedPart.Value;
-            });
+                var root = container.GetExportedValue<PartThatImportsNonSharedPart>();
 
-            var unblockingTask = Task.Run(async delegate
-            {
-                // We artificially block the constructor of the non-shared part
-                // to maximize the window that can result in multiple instances being created.
-                ready.Wait();
-                await Task.Delay(TestUtilities.ExpectedTimeout);
+                // We carefully orchestrate the scheduling here to make sure we have threads ready to go
+                // (not just queued to the threadpool) to maximize concurrent execution.
+                var ready = new CountdownEvent(2);
+                var go = new ManualResetEventSlim();
 
-                // Now unblock the other threads.
-                NonSharedPart.UnblockCtor.Set();
-
-                // Pri-2: verify that the constructor was only invoked once.
-                if (!permitMultipleInstancesOfNonSharedPart)
+                var t1 = Task.Run(delegate
                 {
-                    t1.Wait();
-                    t2.Wait();
-                    Assert.Equal(1, NonSharedPart.CtorInvocationCounter);
-                }
-            });
+                    ready.Signal();
+                    ready.Wait();
+                    return root.NonSharedPart.Value;
+                });
 
-            // Pri-1: Verify that only one instance is ever publicly observable.
-            Assert.Same(t1.Result, t2.Result);
-            unblockingTask.Wait();
+                var t2 = Task.Run(delegate
+                {
+                    ready.Signal();
+                    ready.Wait();
+                    return root.NonSharedPart.Value;
+                });
+
+                var unblockingTask = Task.Run(async delegate
+                {
+                    // We artificially block the constructor of the non-shared part
+                    // to maximize the window that can result in multiple instances being created.
+                    ready.Wait();
+                    await Task.Delay(TestUtilities.ExpectedTimeout);
+
+                    // Now unblock the other threads.
+                    NonSharedPart.UnblockCtor.Set();
+
+                    // Pri-2: verify that the constructor was only invoked once.
+                    if (!permitMultipleInstancesOfNonSharedPart)
+                    {
+                        t1.Wait();
+                        t2.Wait();
+                        Assert.Equal(1, NonSharedPart.CtorInvocationCounter);
+                    }
+                });
+
+                // Pri-1: Verify that only one instance is ever publicly observable.
+                Assert.Same(t1.Result, t2.Result);
+                unblockingTask.Wait();
+            }
         }
 
         [Export]
