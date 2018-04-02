@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     {
         private static ITestOutputHelper outputForNestedParts;
         private readonly ITestOutputHelper output;
-        private static readonly object lockObject = new object();
+        private static readonly object LockObject = new object();
 
         public ThreadSafetyTests(ITestOutputHelper output)
         {
@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefFact(CompositionEngines.V1, typeof(NonSharedPart), typeof(PartThatImportsNonSharedPart))]
         public void LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreadsV1(IContainer container)
         {
-            lock (lockObject)
+            lock (LockObject)
             {
                 this.LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(container, permitMultipleInstancesOfNonSharedPart: false);
             }
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V2Compat, typeof(NonSharedPart), typeof(PartThatImportsNonSharedPart))]
         public void LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreadsV2(IContainer container)
         {
-            lock (lockObject)
+            lock (LockObject)
             {
                 this.LazyOfNonSharedPartConstructsOnlyOneInstanceAcrossThreads(container, permitMultipleInstancesOfNonSharedPart: true);
             }
