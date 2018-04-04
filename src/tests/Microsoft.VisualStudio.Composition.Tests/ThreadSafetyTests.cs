@@ -179,6 +179,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 // Pri-2: verify that the constructor was only invoked once.
                 if (!permitMultipleInstancesOfNonSharedPart)
                 {
+                    t1.Wait();
+                    t2.Wait();
                     Assert.Equal(1, NonSharedPart.CtorInvocationCounter);
                 }
             });
