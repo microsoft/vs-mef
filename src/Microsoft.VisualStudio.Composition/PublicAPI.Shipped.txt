@@ -239,7 +239,6 @@ Microsoft.VisualStudio.Composition.ImportDefinitionBinding.MetadataType.get -> S
 Microsoft.VisualStudio.Composition.ImportDefinitionBinding.ToString(System.IO.TextWriter writer) -> void
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.Equals(Microsoft.VisualStudio.Composition.IImportSatisfiabilityConstraint obj) -> bool
-Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.ImportMetadataViewConstraint(System.Collections.Generic.IReadOnlyDictionary<string, Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement> metadataNamesAndTypes) -> void
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.IsSatisfiedBy(Microsoft.VisualStudio.Composition.ExportDefinition exportDefinition) -> bool
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement
 Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement.IsMetadataumValueRequired.get -> bool
