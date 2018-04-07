@@ -74,13 +74,6 @@ namespace Microsoft.VisualStudio.Composition
             this.writer.Write(estimatedObjectCount);
         }
 
-        [Flags]
-        private enum TypeRefFlags : byte
-        {
-            None = 0x0,
-            IsArray = 0x1,
-        }
-
         protected enum ObjectType : byte
         {
             Null,
@@ -396,11 +389,7 @@ namespace Microsoft.VisualStudio.Composition
                     this.Write(typeRef.AssemblyId);
                     this.WriteCompressedMetadataToken(typeRef.MetadataToken, MetadataTokenType.Type);
                     this.Write(typeRef.FullName);
-
-                    var flags = TypeRefFlags.None;
-                    flags |= typeRef.IsArray ? TypeRefFlags.IsArray : TypeRefFlags.None;
-                    this.writer.Write((byte)flags);
-
+                    this.writer.Write((byte)typeRef.TypeFlags);
                     this.WriteCompressedUInt((uint)typeRef.GenericTypeParameterCount);
                     this.Write(typeRef.GenericTypeArguments, this.Write);
                 }
@@ -421,7 +410,7 @@ namespace Microsoft.VisualStudio.Composition
                     var flags = (TypeRefFlags)this.reader.ReadByte();
                     int genericTypeParameterCount = (int)this.ReadCompressedUInt();
                     var genericTypeArguments = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
-                    value = TypeRef.Get(this.Resolver, assemblyId, metadataToken, fullName, flags.HasFlag(TypeRefFlags.IsArray), genericTypeParameterCount, genericTypeArguments);
+                    value = TypeRef.Get(this.Resolver, assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments);
 
                     this.OnDeserializedReusableObject(id, value);
                 }

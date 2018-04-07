@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     this.Scramble(typeRef.AssemblyId),
                     typeRef.MetadataToken,
                     typeRef.FullName,
-                    typeRef.IsArray,
+                    typeRef.TypeFlags,
                     typeRef.GenericTypeParameterCount,
                     typeRef.GenericTypeArguments.Select(this.Scramble).ToImmutableArray());
                 this.scrambledTypeRefs.Add(typeRef, scrambled);

@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             StrongAssemblyIdentity assemblyId,
             int metadataToken,
             string fullName,
-            bool isArray,
+            TypeRefFlags typeFlags,
             int genericTypeParameterCount,
             ImmutableArray<TypeRef> genericTypeArguments)
         {
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.assemblyId = assemblyId;
             this.MetadataToken = metadataToken;
             this.FullName = fullName;
-            this.IsArray = isArray;
+            this.TypeFlags = typeFlags;
             this.GenericTypeParameterCount = genericTypeParameterCount;
             this.GenericTypeArguments = genericTypeArguments;
         }
@@ -73,7 +73,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.resolvedType = type;
             this.AssemblyName = GetNormalizedAssemblyName(type.GetTypeInfo().Assembly.GetName());
             this.assemblyId = resolver.GetStrongAssemblyIdentity(type.GetTypeInfo().Assembly, this.AssemblyName);
-            this.IsArray = type.IsArray;
+            this.TypeFlags |= type.IsArray ? TypeRefFlags.Array : TypeRefFlags.None;
+            this.TypeFlags |= type.GetTypeInfo().IsValueType ? TypeRefFlags.IsValueType : TypeRefFlags.None;
 
             Type elementType = this.ElementType;
             Requires.Argument(!elementType.IsGenericParameter, nameof(type), "Generic parameters are not supported.");
@@ -95,7 +96,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// </summary>
         public string FullName { get; private set; }
 
-        public bool IsArray { get; private set; }
+        public TypeRefFlags TypeFlags { get; }
+
+        public bool IsArray => (this.TypeFlags & TypeRefFlags.Array) == TypeRefFlags.Array;
+
+        public bool IsValueType => (this.TypeFlags & TypeRefFlags.IsValueType) == TypeRefFlags.IsValueType;
 
         public int GenericTypeParameterCount { get; private set; }
 
@@ -180,15 +185,15 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         private Type ElementType => this.IsArray ? this.ResolvedType.GetElementType() : this.ResolvedType;
 
-        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
+        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, TypeRefFlags typeFlags, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
             Requires.NotNull(resolver, nameof(resolver));
-            return new TypeRef(resolver, assemblyName, null, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments);
+            return new TypeRef(resolver, assemblyName, null, metadataToken, fullName, typeFlags, genericTypeParameterCount, genericTypeArguments);
         }
 
-        public static TypeRef Get(Resolver resolver, StrongAssemblyIdentity assemblyId, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
+        public static TypeRef Get(Resolver resolver, StrongAssemblyIdentity assemblyId, int metadataToken, string fullName, TypeRefFlags typeFlags, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
         {
-            return new TypeRef(resolver, assemblyId.Name, assemblyId, metadataToken, fullName, isArray, genericTypeParameterCount, genericTypeArguments);
+            return new TypeRef(resolver, assemblyId.Name, assemblyId, metadataToken, fullName, typeFlags, genericTypeParameterCount, genericTypeArguments);
         }
 
         /// <summary>
@@ -237,7 +242,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             // We use the resolver parameter instead of the field here because this TypeRef instance
             // might have been constructed by TypeRef.Get(Type) and thus not have a resolver.
-            return new TypeRef(this.Resolver, this.AssemblyName, this.assemblyId, this.MetadataToken, this.FullName, this.IsArray, this.GenericTypeParameterCount, genericTypeArguments);
+            return new TypeRef(this.Resolver, this.AssemblyName, this.assemblyId, this.MetadataToken, this.FullName, this.TypeFlags, this.GenericTypeParameterCount, genericTypeArguments);
         }
 
         public override int GetHashCode()
