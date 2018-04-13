@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 var compositionRuntime = RuntimeComposition.CreateRuntimeComposition(configuration);
 
-                await this.SaveAsync(compositionRuntime, cacheStream, cancellationToken);
+                await this.SaveAsync(compositionRuntime, cacheStream, cancellationToken).ConfigureAwait(false);
             });
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, resolver, cancellationToken);
+            var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, resolver, cancellationToken).ConfigureAwait(false);
             return runtimeComposition.CreateExportProviderFactory();
         }
 
