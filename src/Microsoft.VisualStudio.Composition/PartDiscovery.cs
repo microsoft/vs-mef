@@ -67,11 +67,11 @@ namespace Microsoft.VisualStudio.Composition
             var tuple = this.CreateDiscoveryBlockChain(true, null, cancellationToken);
             foreach (Type type in partTypes)
             {
-                await tuple.Item1.SendAsync(type);
+                await tuple.Item1.SendAsync(type).ConfigureAwait(false);
             }
 
             tuple.Item1.Complete();
-            var parts = await tuple.Item2;
+            var parts = await tuple.Item2.ConfigureAwait(false);
             return parts;
         }
 
@@ -104,11 +104,11 @@ namespace Microsoft.VisualStudio.Composition
             var tuple = this.CreateAssemblyDiscoveryBlockChain(progress, cancellationToken);
             foreach (var assembly in assemblies)
             {
-                await tuple.Item1.SendAsync(assembly);
+                await tuple.Item1.SendAsync(assembly).ConfigureAwait(false);
             }
 
             tuple.Item1.Complete();
-            var result = await tuple.Item2;
+            var result = await tuple.Item2.ConfigureAwait(false);
             return result;
         }
 
@@ -156,11 +156,11 @@ namespace Microsoft.VisualStudio.Composition
             assemblyLoader.LinkTo(tuple.Item1, new DataflowLinkOptions { PropagateCompletion = true });
             foreach (var assemblyPath in assemblyPaths)
             {
-                await assemblyLoader.SendAsync(assemblyPath);
+                await assemblyLoader.SendAsync(assemblyPath).ConfigureAwait(false);
             }
 
             assemblyLoader.Complete();
-            var result = await tuple.Item2;
+            var result = await tuple.Item2.ConfigureAwait(false);
             return result.Merge(new DiscoveredParts(Enumerable.Empty<ComposablePartDefinition>(), exceptions));
         }
 
@@ -472,7 +472,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 try
                 {
-                    await aggregatingBlock.Completion;
+                    await aggregatingBlock.Completion.ConfigureAwait(false);
                     tcs.SetResult(new DiscoveredParts(parts.ToImmutable(), errors.ToImmutable()));
                 }
                 catch (Exception ex)
@@ -536,7 +536,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 try
                 {
-                    var parts = await tuple.Item2;
+                    var parts = await tuple.Item2.ConfigureAwait(false);
                     tcs.SetResult(parts.Merge(new DiscoveredParts(Enumerable.Empty<ComposablePartDefinition>(), exceptions)));
                 }
                 catch (Exception ex)

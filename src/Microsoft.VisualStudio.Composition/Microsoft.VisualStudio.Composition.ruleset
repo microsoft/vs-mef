@@ -103,4 +103,7 @@
   <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers" RuleNamespace="Roslyn.Diagnostics.Analyzers">
     <Rule Id="RS0026" Action="Info" />
   </Rules>
+  <Rules AnalyzerId="AsyncUsageAnalyzers" RuleNamespace="AsyncUsageAnalyzers">
+    <Rule Id="UseConfigureAwait" Action="Error" />
+  </Rules>
 </RuleSet>
