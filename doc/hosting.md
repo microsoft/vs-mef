@@ -36,8 +36,7 @@ var discovery = PartDiscovery.Combine(
 
 // Build up a catalog of MEF parts
 var catalog = ComposableCatalog.Create(Resolver.DefaultInstance)
-    .AddParts(discovery.CreatePartsAsync(Assembly.GetExecutingAssembly()).Result)
-    .WithDesktopSupport() // Adds desktop-only features such as metadata view interface support
+    .AddParts(await discovery.CreatePartsAsync(Assembly.GetExecutingAssembly()))
     .WithCompositionService(); // Makes an ICompositionService export available to MEF parts to import
 
 // Assemble the parts into a valid graph.
