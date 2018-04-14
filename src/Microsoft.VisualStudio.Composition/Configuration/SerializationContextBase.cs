@@ -149,7 +149,7 @@ namespace Microsoft.VisualStudio.Composition
             // each time you get it, the writer is flushed. Since we use the stream
             // for its Position, flushing is actually important. But it's very slow,
             // so don't do it in production.
-            stream = reader != null ? reader.BaseStream : writer.BaseStream;
+            stream = this.reader != null ? this.reader.BaseStream : this.writer.BaseStream;
 #endif
 
             return new SerializationTrace(this, elementName, isArray, stream);
