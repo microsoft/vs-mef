@@ -569,7 +569,7 @@ namespace Microsoft.VisualStudio.Composition
         protected void Write<T>(IReadOnlyCollection<T> list, Action<T> itemWriter)
         {
             Requires.NotNull(list, nameof(list));
-            using (this.Trace("List<" + typeof(T).Name + ">"))
+            using (this.Trace(typeof(T).Name, isArray: true))
             {
                 this.WriteCompressedUInt((uint)list.Count);
                 foreach (var item in list)
@@ -582,7 +582,7 @@ namespace Microsoft.VisualStudio.Composition
         protected void Write(Array list, Action<object> itemWriter)
         {
             Requires.NotNull(list, nameof(list));
-            using (this.Trace((list != null ? list.GetType().GetElementType().Name : "null") + "[]"))
+            using (this.Trace(list?.GetType().GetElementType().Name ?? "null", isArray: true))
             {
                 this.WriteCompressedUInt((uint)list.Length);
                 foreach (var item in list)
