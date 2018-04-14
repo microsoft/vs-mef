@@ -157,7 +157,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(MethodRef methodRef)
         {
-            using (this.Trace("MethodRef"))
+            using (this.Trace(nameof(MethodRef)))
             {
                 if (methodRef == null)
                 {
@@ -177,7 +177,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected MethodRef ReadMethodRef()
         {
-            using (this.Trace("MethodRef"))
+            using (this.Trace(nameof(MethodRef)))
             {
                 byte nullCheck = this.reader.ReadByte();
                 if (nullCheck == 1)
@@ -206,7 +206,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(MemberRef memberRef)
         {
-            using (this.Trace("MemberRef"))
+            using (this.Trace(nameof(MemberRef)))
             {
                 switch (memberRef)
                 {
@@ -231,7 +231,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected MemberRef ReadMemberRef()
         {
-            using (this.Trace("MemberRef"))
+            using (this.Trace(nameof(MemberRef)))
             {
                 int kind = this.reader.ReadByte();
                 switch ((MemberRefType)kind)
@@ -252,7 +252,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(PropertyRef propertyRef)
         {
-            using (this.Trace("PropertyRef"))
+            using (this.Trace(nameof(PropertyRef)))
             {
                 if (this.TryPrepareSerializeReusableObject(propertyRef))
                 {
@@ -280,7 +280,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected PropertyRef ReadPropertyRef()
         {
-            using (this.Trace("PropertyRef"))
+            using (this.Trace(nameof(PropertyRef)))
             {
                 if (this.TryPrepareDeserializeReusableObject(out uint id, out PropertyRef value))
                 {
@@ -316,7 +316,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(FieldRef fieldRef)
         {
-            using (this.Trace("FieldRef"))
+            using (this.Trace(nameof(FieldRef)))
             {
                 if (this.TryPrepareSerializeReusableObject(fieldRef))
                 {
@@ -329,7 +329,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected FieldRef ReadFieldRef()
         {
-            using (this.Trace("FieldRef"))
+            using (this.Trace(nameof(FieldRef)))
             {
                 if (this.TryPrepareDeserializeReusableObject(out uint id, out FieldRef value))
                 {
@@ -347,7 +347,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(ParameterRef parameterRef)
         {
-            using (this.Trace("ParameterRef"))
+            using (this.Trace(nameof(ParameterRef)))
             {
                 if (this.TryPrepareSerializeReusableObject(parameterRef))
                 {
@@ -359,7 +359,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected ParameterRef ReadParameterRef()
         {
-            using (this.Trace("ParameterRef"))
+            using (this.Trace(nameof(ParameterRef)))
             {
                 if (this.TryPrepareDeserializeReusableObject(out uint id, out ParameterRef value))
                 {
@@ -389,7 +389,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(TypeRef typeRef)
         {
-            using (this.Trace("TypeRef"))
+            using (this.Trace(nameof(TypeRef)))
             {
                 if (this.TryPrepareSerializeReusableObject(typeRef))
                 {
@@ -409,7 +409,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected TypeRef ReadTypeRef()
         {
-            using (this.Trace("TypeRef"))
+            using (this.Trace(nameof(TypeRef)))
             {
                 uint id;
                 TypeRef value;
@@ -432,7 +432,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(AssemblyName assemblyName)
         {
-            using (this.Trace("AssemblyName"))
+            using (this.Trace(nameof(AssemblyName)))
             {
                 if (this.TryPrepareSerializeReusableObject(assemblyName))
                 {
@@ -448,7 +448,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected AssemblyName ReadAssemblyName()
         {
-            using (this.Trace("AssemblyName"))
+            using (this.Trace(nameof(AssemblyName)))
             {
                 uint id;
                 AssemblyName value;
@@ -531,7 +531,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(string value)
         {
-            using (this.Trace("String"))
+            using (this.Trace(nameof(String)))
             {
                 if (this.TryPrepareSerializeReusableObject(value))
                 {
@@ -542,7 +542,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected string ReadString()
         {
-            using (this.Trace("String"))
+            using (this.Trace(nameof(String)))
             {
                 uint id;
                 string value;
@@ -719,7 +719,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void Write(ImportCardinality cardinality)
         {
-            using (this.Trace("ImportCardinality"))
+            using (this.Trace(nameof(ImportCardinality)))
             {
                 this.writer.Write((byte)cardinality);
             }
@@ -727,7 +727,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected ImportCardinality ReadImportCardinality()
         {
-            using (this.Trace("ImportCardinality"))
+            using (this.Trace(nameof(ImportCardinality)))
             {
                 return (ImportCardinality)this.reader.ReadByte();
             }
@@ -933,7 +933,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected object ReadObject()
         {
-            using (this.Trace("Object"))
+            using (this.Trace(nameof(Object)))
             {
                 ObjectType objectType = this.ReadObjectType();
                 switch (objectType)
