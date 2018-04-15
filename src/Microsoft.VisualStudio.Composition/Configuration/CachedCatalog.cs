@@ -26,9 +26,11 @@ namespace Microsoft.VisualStudio.Composition
             {
                 using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
                 {
-                    var context = new SerializationContext(writer, catalog.Parts.Count * 4, catalog.Resolver);
-                    context.Write(catalog);
-                    context.FinalizeObjectTableCapacity();
+                    using (var context = new SerializationContext(writer, catalog.Parts.Count * 4, catalog.Resolver))
+                    {
+                        context.Write(catalog);
+                        context.FinalizeObjectTableCapacity();
+                    }
                 }
             });
         }
@@ -42,9 +44,11 @@ namespace Microsoft.VisualStudio.Composition
             {
                 using (var reader = new BinaryReader(cacheStream, TextEncoding, leaveOpen: true))
                 {
-                    var context = new SerializationContext(reader, resolver);
-                    var catalog = context.ReadComposableCatalog();
-                    return catalog;
+                    using (var context = new SerializationContext(reader, resolver))
+                    {
+                        var catalog = context.ReadComposableCatalog();
+                        return catalog;
+                    }
                 }
             });
         }

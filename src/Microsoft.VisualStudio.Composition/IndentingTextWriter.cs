@@ -48,13 +48,23 @@ namespace Microsoft.VisualStudio.Composition
             this.inner.Write(value);
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                this.inner.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
+
         internal CancelIndent Indent()
         {
             this.indentationStack.Push(Indentation);
             return new CancelIndent(this);
         }
 
-        private void Unindent()
+        internal void Unindent()
         {
             this.indentationStack.Pop();
         }

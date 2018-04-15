@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal abstract class SerializationContextBase
+    internal abstract class SerializationContextBase : IDisposable
     {
         protected BinaryReader reader;
 
@@ -27,7 +27,9 @@ namespace Microsoft.VisualStudio.Composition
 
         protected Dictionary<uint, object> deserializingObjectTable;
 
-        protected int indentationLevel;
+#if TRACESERIALIZATION || TRACESTATS
+        protected readonly IndentingTextWriter trace;
+#endif
 
 #if TRACESTATS
         protected Dictionary<string, int> sizeStats;
@@ -52,6 +54,9 @@ namespace Microsoft.VisualStudio.Composition
             int objectTableCapacity = reader.ReadInt32();
             int objectTableSafeCapacity = Math.Min(objectTableCapacity, 1000000); // protect against OOM in case of data corruption.
             this.deserializingObjectTable = new Dictionary<uint, object>(objectTableSafeCapacity);
+#if TRACESERIALIZATION || TRACESTATS
+            this.trace = new IndentingTextWriter(new StreamWriter(File.OpenWrite(Environment.ExpandEnvironmentVariables(@"%TEMP%\VS-MEF.read.log"))));
+#endif
         }
 
         internal SerializationContextBase(BinaryWriter writer, int estimatedObjectCount, Resolver resolver)
@@ -64,6 +69,9 @@ namespace Microsoft.VisualStudio.Composition
             this.Resolver = resolver;
 #if TRACESTATS
             this.sizeStats = new Dictionary<string, int>();
+#endif
+#if TRACESERIALIZATION || TRACESTATS
+            this.trace = new IndentingTextWriter(new StreamWriter(File.OpenWrite(Environment.ExpandEnvironmentVariables(@"%TEMP%\VS-MEF.write.log"))));
 #endif
 
             // Don't use compressed uint here. It must be a fixed size because we *may*
@@ -114,6 +122,12 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         protected Resolver Resolver { get; }
 
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         protected internal void FinalizeObjectTableCapacity()
         {
             Verify.Operation(this.writer != null, Strings.OnlySupportedOnWriteOperations);
@@ -138,6 +152,16 @@ namespace Microsoft.VisualStudio.Composition
                 // Reposition the stream back to the end of our own serialization.
                 this.writer.Flush();
                 writerStream.Position = tailPosition;
+            }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+#if TRACESERIALIZATION || TRACESTATS
+                this.trace.Dispose();
+#endif
             }
         }
 
@@ -758,6 +782,12 @@ namespace Microsoft.VisualStudio.Composition
                 result = true;
             }
 
+#if TRACESERIALIZATION
+            if (id != 0)
+            {
+                this.trace.WriteLine((result ? "Start" : "Reuse") + $" object {id}.");
+            }
+#endif
             this.WriteCompressedUInt(id);
             return result;
         }
@@ -782,6 +812,11 @@ namespace Microsoft.VisualStudio.Composition
             object valueObject;
             bool result = !this.deserializingObjectTable.TryGetValue(id, out valueObject);
             value = (T)valueObject;
+
+#if TRACESERIALIZATION
+            this.trace.WriteLine((result ? "Start" : "Reuse") + $" object {id}.");
+#endif
+
             return result;
         }
 
@@ -794,7 +829,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             if (value == null)
             {
-                using (this.Trace("Object (null)"))
+                using (this.Trace("Object"))
                 {
                     this.Write(ObjectType.Null);
                 }
@@ -802,7 +837,7 @@ namespace Microsoft.VisualStudio.Composition
             else
             {
                 Type valueType = value.GetType();
-                using (this.Trace("Object (" + valueType.Name + ")"))
+                using (this.Trace("Object"))
                 {
                     if (valueType.IsArray)
                     {
@@ -1021,7 +1056,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 foreach (var item in this.sizeStats.OrderByDescending(kv => kv.Value))
                 {
-                    Debug.WriteLine("{0,7} {1}", item.Value, item.Key);
+                    this.trace.WriteLine("{0,7} {1}", item.Value, item.Key);
                 }
             }
 #endif
@@ -1043,22 +1078,21 @@ namespace Microsoft.VisualStudio.Composition
                 this.isArray = isArray;
                 this.stream = stream;
 
-                this.context.indentationLevel++;
+#if TRACESERIALIZATION || TRACESTATS
+                this.context.trace.Indent();
+#endif
                 this.startStreamPosition = stream != null ? (int)stream.Position : 0;
 
 #if DEBUG && TRACESERIALIZATION
-                    for (int i = 0; i < this.context.indentationLevel; i++)
-                    {
-                        Debug.Write(Indent);
-                    }
-
-                    Debug.WriteLine("Serialization: {2,7} {0}{1}", elementName, isArray ? "[]" : string.Empty, stream.Position);
+                this.context.trace.WriteLine("Serialization: {2,7} {0}{1}", elementName, isArray ? "[]" : string.Empty, stream.Position);
 #endif
             }
 
             public void Dispose()
             {
-                this.context.indentationLevel--;
+#if TRACESERIALIZATION || TRACESTATS
+                this.context.trace.Unindent();
+#endif
 
                 if (this.stream != null)
                 {
