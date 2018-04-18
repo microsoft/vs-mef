@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     /// Flags that describe a type.
     /// </summary>
     [Flags]
-    public enum TypeRefFlags : byte
+    public enum TypeRefFlags
     {
         /// <summary>
         /// No flags.
