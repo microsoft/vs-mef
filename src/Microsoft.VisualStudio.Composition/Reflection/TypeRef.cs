@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// Gets the string to display in the debugger watch window for this value.
         /// </summary>
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        private string DebuggerDisplay => this.FullName;
+        private string DebuggerDisplay => this.FullName + (this.IsArray ? "[]" : string.Empty);
 
         private static readonly IEqualityComparer<AssemblyName> AssemblyNameComparer = ByValueEquality.AssemblyNameNoFastCheck;
 
