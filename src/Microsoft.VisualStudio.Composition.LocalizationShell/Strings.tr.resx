@@ -64,7 +64,7 @@
     <value>"{0}" bütünleştirilmiş kodundaki türler numaralandırılamadı.</value>
   </data>
   <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
-    <value>Özel içeri aktarma koleksiyonu türünün örneği oluşturulamıyor.</value>
+    <value>{0} özel içeri aktarma koleksiyonu türünün örneği oluşturulamıyor. İçeri aktarma oluşturucunuzda bu türün yeni bir örneğiyle {1} başlatmayı deneyin.</value>
   </data>
   <data name="UnableToLoadAssembly" xml:space="preserve">
     <value>Tarama için "{0}" bütünleştirilmiş kodu yüklenemiyor.</value>
@@ -92,10 +92,12 @@
     <value>Her içeri aktarma için tam olarak bir giriş olmalıdır.</value>
   </data>
   <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
-    <value>{0}: {1} öğesinden tam olarak 1 dışarı aktarma bekleniyordu, ancak bulunan: {2}.{3}</value>
+    <value>{0}: Kısıtlamaları eşleşen {1} öğesinden tam olarak 1 dışarı aktarma bekleniyordu:
+ancak bulunan: {2}.{3}</value>
   </data>
   <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
-    <value>{0}: {1} öğesinden 1 veya 0 dışarı aktarma bekleniyordu, ancak bulunan: {2}.{3}</value>
+    <value>{0}: Kısıtlamaları eşleşen {1} öğesinden 1 veya 0 dışarı aktarma bekleniyordu:
+ancak bulunan: {2}.{3}</value>
   </data>
   <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
     <value>{0}: ExportProvider'ın dışarı aktarılmasına izin verilmiyor.</value>
@@ -152,7 +154,7 @@
     <value>Boş olamaz.</value>
   </data>
   <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
-    <value>Bir [ImportingConstructor] ile birlikte kullanıldığında, koleksiyon genel bir oluşturucu içermeli ve genel olmalıdır.</value>
+    <value>Bir [ImportingConstructor] ile birlikte kullanıldığında, koleksiyon genel bir varsayılan oluşturucu içermeli ve genel olmalıdır.</value>
   </data>
   <data name="CompilerErrorsOccurred" xml:space="preserve">
     <value>Derleme hataları oluştu.</value>
@@ -230,5 +232,16 @@
   <data name="ExportingPropertyHasNoGetter" xml:space="preserve">
     <value>"{1}" bölümü üzerinde "{0}" özelliğini dışarı aktarma işlemi bir alıcıya sahip değil.</value>
     <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportManyOnNonCollectionType" xml:space="preserve">
+    <value>{0} türü, ImportManyAttribute için gerekli olan bir koleksiyon gibi görünmüyor.</value>
+    <comment>ImportManyAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="PartDiscoveryFailedAtMember" xml:space="preserve">
+    <value>Parça keşfi, {0} üyesinde başarısız oldu.</value>
+  </data>
+  <data name="TypeNameWithAssemblyLocation" xml:space="preserve">
+    <value>{0}.{1} ({2} içinde)</value>
+    <comment>{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</comment>
   </data>
 </root>

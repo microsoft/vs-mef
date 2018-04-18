@@ -64,7 +64,7 @@
     <value>No se pudieron enumerar los tipos en el ensamblado "{0}".</value>
   </data>
   <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
-    <value>No se pudieron crear instancias para el tipo de colección de importación personalizado.</value>
+    <value>No se pudieron crear instancias para el tipo de colección de importación personalizado {0}. Pruebe a inicializar {1} con una nueva instancia de este tipo en su constructor de importación.</value>
   </data>
   <data name="UnableToLoadAssembly" xml:space="preserve">
     <value>No se pudo cargar el ensamblado "{0}" para su análisis.</value>
@@ -92,16 +92,18 @@
     <value>Debe haber una entrada para cada importación.</value>
   </data>
   <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
-    <value>{0}: se esperaba exactamente 1 exportación de {1}, pero se encontraron {2}.{3}</value>
+    <value>{0}: se esperaba exactamente 1 exportación que coincidiera con las restricciones:
+{1} pero se encontró {2}.{3}</value>
   </data>
   <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
-    <value>{0}: se esperaba 1 o 0 exportaciones de {1}, pero se encontraron {2}.{3}</value>
+    <value>{0}: se esperaba 1 o 0 exportaciones que coincidieran con las restricciones:
+{1} pero se encontró {2}.{3}</value>
   </data>
   <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
     <value>{0}: no está permitida la exportación de ExportProvider.</value>
   </data>
   <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
-    <value>El constructor de importación tiene un tipo de parámetro no compatible para [ImportMany]. Solo son compatibles T[] y IEnumerable&lt;T&gt;.</value>
+    <value>La importación del constructor tiene un tipo de parámetro no compatible para [ImportMany]. Solo se admiten T[] y IEnumerable&lt;T&gt;.</value>
   </data>
   <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
     <value>{0}: las importaciones que usan los parámetros de tipo genérico no son compatibles.</value>
@@ -152,7 +154,7 @@
     <value>No puede estar vacío.</value>
   </data>
   <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
-    <value>La colección debe ser pública con un constructor público cuando se usa con un [ImportingConstructor].</value>
+    <value>La colección debe ser pública con un constructor público predeterminado cuando se usa con un [ImportingConstructor].</value>
   </data>
   <data name="CompilerErrorsOccurred" xml:space="preserve">
     <value>Se produjeron errores de compilación.</value>
@@ -230,5 +232,16 @@
   <data name="ExportingPropertyHasNoGetter" xml:space="preserve">
     <value>La exportación de la propiedad "{0}" en la parte "{1}" no tiene captador.</value>
     <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportManyOnNonCollectionType" xml:space="preserve">
+    <value>El tipo {0} no parece ser una colección según se requiere para ImportManyAttribute.</value>
+    <comment>ImportManyAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="PartDiscoveryFailedAtMember" xml:space="preserve">
+    <value>Error en la detección de partes en el miembro {0}.</value>
+  </data>
+  <data name="TypeNameWithAssemblyLocation" xml:space="preserve">
+    <value>{0}.{1} (en {2})</value>
+    <comment>{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</comment>
   </data>
 </root>

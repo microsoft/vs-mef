@@ -64,7 +64,7 @@
     <value>"{0}" 어셈블리에서 형식을 열거할 수 없습니다.</value>
   </data>
   <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
-    <value>사용자 지정 가져오기 수집 형식을 인스턴스화할 수 없습니다.</value>
+    <value>사용자 지정 가져오기 컬렉션 형식 {0}을(를) 인스턴스화할 수 없습니다. 가져오기 생성자에서 이 형식의 새 인스턴스를 사용하여 {1}을(를) 초기화해 보세요.</value>
   </data>
   <data name="UnableToLoadAssembly" xml:space="preserve">
     <value>검색할 "{0}" 어셈블리를 로드할 수 없습니다.</value>
@@ -83,8 +83,7 @@
     <value>모든 값은 null이 아니어야 합니다.</value>
   </data>
   <data name="CannotImportBecauseExportingPartCannotBeInstantiated" xml:space="preserve">
-    <value>{0}: 내보내기 파트를 인스턴스화할 수 없어서 {1}에서 내보낸 값을 가져올 수 없습니다. 가져오기 생성자가 없나요?
-</value>
+    <value>{0}: 내보내기 파트를 인스턴스화할 수 없어서 {1}에서 내보낸 값을 가져올 수 없습니다. 가져오기 생성자가 없나요?</value>
   </data>
   <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
     <value>수집 형식은 ICollection에서 파생되어야 합니다&lt;T&gt;.</value>
@@ -93,10 +92,12 @@
     <value>모든 가져오기에 대한 항목은 하나만 있어야 합니다.</value>
   </data>
   <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
-    <value>{0}: {1} 내보내기 1 또는 0개가 필요한 데 {2}개를 찾았습니다.{3}</value>
+    <value>{0}: 정확하게 1개의 내보내기 일치 제약 조건이 있어야 합니다.
+{1}하지만 {2}을(를) 찾았습니다.{3}</value>
   </data>
   <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
-    <value>{0}: {1} 내보내기 1 또는 0개가 필요한 데 {2}개를 찾았습니다.{3}</value>
+    <value>{0}: 1개 또는 0개의 내보내기 일치 제약 조건이 있어야 합니다.
+{1}하지만 {2}을(를) 찾았습니다.{3}</value>
   </data>
   <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
     <value>{0}: ExportProvider를 내보낼 수 없습니다.</value>
@@ -153,7 +154,7 @@
     <value>비워 둘 수 없습니다.</value>
   </data>
   <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
-    <value>수집이 [ImportingConstructor]에서 사용되는 경우 공용 생성자와 함께 public이어야 합니다.</value>
+    <value>컬렉션이 [ImportingConstructor]에서 사용되는 경우 공용 기본 생성자와 함께 public이어야 합니다.</value>
   </data>
   <data name="CompilerErrorsOccurred" xml:space="preserve">
     <value>컴파일 오류가 발생했습니다.</value>
@@ -162,7 +163,7 @@
     <value>사용자 지정 가져오기 원본은 아직 지원되지 않습니다.</value>
   </data>
   <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
-    <value>"{0}" 멤버에 속성 이름이 동일한 메타데이터 특성이 포함되어 있습니다. 속성 이름: "{1}".</value>
+    <value>"{0}" 멤버에 속성 이름이 동일한 메타데이터 특성이 포함되어 있습니다. 속성 이름: "{1}"</value>
     <comment>{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</comment>
   </data>
@@ -231,5 +232,16 @@
   <data name="ExportingPropertyHasNoGetter" xml:space="preserve">
     <value>"{1}" 파트의 "{0}" 속성 내보내기에 getter가 없습니다.</value>
     <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportManyOnNonCollectionType" xml:space="preserve">
+    <value>{0} 형식이 ImportManyAttribute에 대해 필요한 컬렉션이 아닌 것 같습니다.</value>
+    <comment>ImportManyAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="PartDiscoveryFailedAtMember" xml:space="preserve">
+    <value>멤버 {0}에서 부분 검색에 실패했습니다.</value>
+  </data>
+  <data name="TypeNameWithAssemblyLocation" xml:space="preserve">
+    <value>{0}.{1}({2})</value>
+    <comment>{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</comment>
   </data>
 </root>

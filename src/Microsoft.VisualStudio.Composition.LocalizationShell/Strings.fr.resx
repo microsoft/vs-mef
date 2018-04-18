@@ -64,7 +64,7 @@
     <value>Impossible d'énumérer les types dans l'assembly "{0}".</value>
   </data>
   <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
-    <value>Impossible d'instancier le type de collection d'importation personnalisée.</value>
+    <value>Impossible d'instancier le type de collection d'importation personnalisée {0}. Essayez d'initialiser {1} avec une nouvelle instance de ce type dans votre constructeur d'importation.</value>
   </data>
   <data name="UnableToLoadAssembly" xml:space="preserve">
     <value>Impossible de charger l'assembly "{0}" pour l'analyse.</value>
@@ -92,10 +92,12 @@
     <value>Il ne doit y avoir qu'une seule entrée pour chaque importation.</value>
   </data>
   <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
-    <value>{0} : une seule exportation de {1} attendue, mais détection de {2}.{3}</value>
+    <value>{0} : Exactement 1 exportation correspondant aux contraintes est attendue :
+{1} mais {2} trouvée(s).{3}</value>
   </data>
   <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
-    <value>{0} : une seule ou aucune exportation de {1} attendue, mais détection de {2}.{3}</value>
+    <value>{0} : 1 ou 0 exportation correspondant aux contraintes est attendue :
+{1} mais {2} trouvée(s).{3}</value>
   </data>
   <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
     <value>{0} : l'exportation de ExportProvider n'est pas autorisée.</value>
@@ -152,7 +154,7 @@
     <value>Ne peut pas être vide.</value>
   </data>
   <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
-    <value>La collection doit être publique avec un constructeur public quand elle est utilisée avec [ImportingConstructor].</value>
+    <value>La collection doit être publique avec un constructeur par défaut public quand elle est utilisée avec [ImportingConstructor].</value>
   </data>
   <data name="CompilerErrorsOccurred" xml:space="preserve">
     <value>Des erreurs de compilation se sont produites.</value>
@@ -161,7 +163,7 @@
     <value>Les sources d'importation personnalisées ne sont pas encore prises en charge.</value>
   </data>
   <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
-    <value>Le membre "{0}" contient des attributs de métadonnées avec un nom de propriété identique. Nom de la propriété : "{1}".</value>
+    <value>Le membre "{0}" contient des attributs de métadonnées avec un nom de propriété identique. Nom de la propriété : "{1}".</value>
     <comment>{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</comment>
   </data>
@@ -230,5 +232,16 @@
   <data name="ExportingPropertyHasNoGetter" xml:space="preserve">
     <value>L'exportation de la propriété "{0}" sur la partie "{1}" n'a aucune méthode getter.</value>
     <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportManyOnNonCollectionType" xml:space="preserve">
+    <value>Le type {0} ne semble pas être une collection comme ImportManyAttribute l’exige.</value>
+    <comment>ImportManyAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="PartDiscoveryFailedAtMember" xml:space="preserve">
+    <value>La découverte de composant a échoué sur le membre {0}.</value>
+  </data>
+  <data name="TypeNameWithAssemblyLocation" xml:space="preserve">
+    <value>{0}.{1} (dans {2})</value>
+    <comment>{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</comment>
   </data>
 </root>

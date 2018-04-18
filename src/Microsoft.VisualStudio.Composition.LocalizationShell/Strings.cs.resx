@@ -49,7 +49,7 @@
     <value>Pro tuto část ({0}) se nedají vytvořit instance.</value>
   </data>
   <data name="ReflectionTypeLoadExceptionWhileEnumeratingTypes" xml:space="preserve">
-    <value>Při vytváření výčtů typů v sestavení {0} se vrátila výjimka ReflectionTypeLoadException. Výsledky nebudou úplné.</value>
+    <value>Při vytváření výčtů typů v sestavení {0} došlo k výjimce ReflectionTypeLoadException. Výsledky nebudou úplné.</value>
   </data>
   <data name="ScanningMEFAssemblies" xml:space="preserve">
     <value>Skenují se sestavení rozhraní MEF...</value>
@@ -64,7 +64,7 @@
     <value>Nedá se vytvořit výčet typů v sestavení {0}.</value>
   </data>
   <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
-    <value>Nedají se vytvořit instance vlastního typu kolekce importu.</value>
+    <value>Nedají se vytvořit instance vlastního typu kolekce importu {0}. Zkuste inicializovat {1} pomocí nové instance tohoto typu v importujícím konstruktoru.</value>
   </data>
   <data name="UnableToLoadAssembly" xml:space="preserve">
     <value>Nedá se načíst sestavení {0} ke skenování.</value>
@@ -83,7 +83,7 @@
     <value>Žádná hodnota nesmí být null.</value>
   </data>
   <data name="CannotImportBecauseExportingPartCannotBeInstantiated" xml:space="preserve">
-    <value>{0}: exportovaná hodnota se nedá importovat z {1}, protože pro exportující část nejdou vytvořit instance. Chybí importující konstruktor?</value>
+    <value>{0}: Exportovaná hodnota se nedá importovat z {1}, protože pro exportující část nejdou vytvořit instance. Chybí importující konstruktor?</value>
   </data>
   <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
     <value>Typ kolekce musí být odvozený z rozhraní ICollection&lt;T&gt;.</value>
@@ -92,10 +92,12 @@
     <value>Ke každému importu musí být právě jedna položka.</value>
   </data>
   <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
-    <value>{0}: očekával se právě 1 export {1}, ale počet nalezených exportů je: {2}.{3}</value>
+    <value>{0}: Očekával se právě 1 export odpovídající omezením:
+{1}, ale našel se tento počet: {2}.{3}</value>
   </data>
   <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
-    <value>{0}: očekával se 1 nebo 0 exportů {1}, ale počet nalezených exportů je: {2}.{3}</value>
+    <value>{0}: Očekávalo se 1 nebo 0 exportů odpovídajících omezením:
+{1}, ale našel se tento počet: {2}.{3}</value>
   </data>
   <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
     <value>{0}: Export objektu ExportProvider není povolený.</value>
@@ -152,7 +154,7 @@
     <value>Nemůže být prázdný.</value>
   </data>
   <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
-    <value>Při použití s [ImportingConstructor] musí být kolekce veřejná s veřejným konstruktorem.</value>
+    <value>Při použití s [ImportingConstructor] musí být kolekce veřejná s veřejným výchozím konstruktorem.</value>
   </data>
   <data name="CompilerErrorsOccurred" xml:space="preserve">
     <value>Došlo k chybám kompilace.</value>
@@ -161,7 +163,7 @@
     <value>Vlastní zdroje pro import ještě nejsou podporované.</value>
   </data>
   <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
-    <value>Člen {0} obsahuje atributy metadat se stejným názvem vlastnosti. Název vlastnosti: "{1}".</value>
+    <value>Člen {0} obsahuje atributy metadat se stejným názvem vlastnosti. Název vlastnosti: {1}.</value>
     <comment>{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</comment>
   </data>
@@ -230,5 +232,16 @@
   <data name="ExportingPropertyHasNoGetter" xml:space="preserve">
     <value>Vlastnost exportování {0} v části {1} nemá žádnou metodu getter.</value>
     <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportManyOnNonCollectionType" xml:space="preserve">
+    <value>Typ {0} zřejmě není kolekce, kterou třída ImportManyAttribute vyžaduje.</value>
+    <comment>ImportManyAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="PartDiscoveryFailedAtMember" xml:space="preserve">
+    <value>Zjišťování částí selhalo u člena {0}.</value>
+  </data>
+  <data name="TypeNameWithAssemblyLocation" xml:space="preserve">
+    <value>{0}.{1} (v sestavení {2})</value>
+    <comment>{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</comment>
   </data>
 </root>

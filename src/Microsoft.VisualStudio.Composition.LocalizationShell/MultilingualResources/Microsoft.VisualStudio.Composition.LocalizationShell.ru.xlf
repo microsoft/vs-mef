@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en-US" target-language="ru" original="MICROSOFT.VISUALSTUDIO.COMPOSITION.LOCALIZATIONSHELL/STRINGS.RESX" tool-id="MultilingualAppToolkit" product-name="n/a" product-version="n/a" build-num="n/a">
     <header>
@@ -76,8 +76,7 @@
         </trans-unit>
         <trans-unit id="UnableToInstantiateCustomImportCollectionType" translate="yes" xml:space="preserve">
           <source>Unable to instantiate custom import collection type {0}. Try initializing {1} with a new instance of this type in your importing constructor.</source>
-          <target state="needs-review-translation">Не удалось создать экземпляр типа коллекции пользовательского импорта.</target>
-          <note from="MultilingualUpdate" annotates="source" priority="2">Please verify the translation’s accuracy as the source string was updated after it was translated.</note>
+          <target state="translated">Не удается создать экземпляр пользовательской коллекции импорта типа {0}. Попробуйте инициализировать {1} с новым экземпляром этого типа в конструкторе импорта.</target>
         </trans-unit>
         <trans-unit id="UnableToLoadAssembly" translate="yes" xml:space="preserve">
           <source>Unable to load assembly "{0}" for scanning.</source>
@@ -102,7 +101,7 @@
         </trans-unit>
         <trans-unit id="CannotImportBecauseExportingPartCannotBeInstantiated" translate="yes" xml:space="preserve">
           <source>{0}: cannot import exported value from {1} because the exporting part cannot be instantiated. Is it missing an importing constructor?</source>
-          <target state="translated">{0}: невозможно импортировать экспортированное значение из {1}, так как не удается создать экземпляр экспортируемой части. Возможно, отсутствует импортирующий конструктор.</target>
+          <target state="translated">{0}: невозможно импортировать экспортированное значение из {1}, так как невозможно создать экземпляр экспортируемой части. Возможно, отсутствует конструктор импорта.</target>
         </trans-unit>
         <trans-unit id="CollectionTypeMustDeriveFromICollectionOfT" translate="yes" xml:space="preserve">
           <source>Collection type must derive from ICollection<it id="1" pos="open">&lt;T&gt;</it>.</source>
@@ -115,14 +114,14 @@
         <trans-unit id="ExpectedExactlyOneExportButFound" translate="yes" xml:space="preserve">
           <source>{0}: expected exactly 1 export matching constraints:
 {1}but found {2}.{3}</source>
-          <target state="needs-review-translation">{0}: ожидается только 1 операция экспорта {1}, но найдено {2}.{3}</target>
-          <note from="MultilingualUpdate" annotates="source" priority="2">Please verify the translation’s accuracy as the source string was updated after it was translated.</note>
+          <target state="translated">{0}: ожидался ровно 1 экспорт, соответствующий условиям
+{1}, но получено: {2}.{3}</target>
         </trans-unit>
         <trans-unit id="ExpectedOneOrZeroExportsButFound" translate="yes" xml:space="preserve">
           <source>{0}: expected 1 or 0 exports matching constraints:
 {1}but found {2}.{3}</source>
-          <target state="needs-review-translation">{0}: ожидается 1 или 0 операций экспорта {1}, но найдено {2}.{3}</target>
-          <note from="MultilingualUpdate" annotates="source" priority="2">Please verify the translation’s accuracy as the source string was updated after it was translated.</note>
+          <target state="translated">{0}: ожидалось не более 1 экспорта, соответствующего условиям
+{1}, но получено: {2}.{3}</target>
         </trans-unit>
         <trans-unit id="ExportOfExportProviderNotAllowed" translate="yes" xml:space="preserve">
           <source>{0}: Export of ExportProvider is not allowed.</source>
@@ -130,7 +129,7 @@
         </trans-unit>
         <trans-unit id="ImportingCtorHasUnsupportedParameterTypeForImportMany" translate="yes" xml:space="preserve">
           <source>Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable<it id="1" pos="open">&lt;T&gt;</it> are supported.</source>
-          <target state="translated">В импорте конструктора указан неподдерживаемый тип параметра для [ImportMany]. Поддерживаются только T[] и IEnumerable<it id="1" pos="open">&lt;T&gt;</it>.</target>
+          <target state="translated">Конструктор импорта имеет недопустимый тип параметра для [ImportMany]. Поддерживаются только T[] и IEnumerable<it id="1" pos="open">&lt;T&gt;</it>.</target>
         </trans-unit>
         <trans-unit id="ImportsThatUseGenericTypeParametersNotSupported" translate="yes" xml:space="preserve">
           <source>{0}: imports that use generic type parameters are not supported.</source>
@@ -198,8 +197,7 @@
         </trans-unit>
         <trans-unit id="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" translate="yes" xml:space="preserve">
           <source>Collection must be public with a public default constructor when used with an [ImportingConstructor].</source>
-          <target state="needs-review-translation">Коллекция должна быть общей, с общим конструктором, если он используется с атрибутом [ImportingConstructor].</target>
-          <note from="MultilingualUpdate" annotates="source" priority="2">Please verify the translation’s accuracy as the source string was updated after it was translated.</note>
+          <target state="translated">Когда [ImportingConstructor] используется с коллекцией, коллекция должна быть открытой и иметь открытый конструктор по умолчанию.</target>
         </trans-unit>
         <trans-unit id="CompilerErrorsOccurred" translate="yes" xml:space="preserve">
           <source>Compilation errors occurred.</source>
@@ -211,7 +209,7 @@
         </trans-unit>
         <trans-unit id="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" translate="yes" xml:space="preserve">
           <source>Member "{0}" contains metadata attributes with an identical property name. Property name: "{1}".</source>
-          <target state="translated">Член "{0}" содержит атрибуты метаданных с идентичным именем свойства. Имя свойства: "{1}".</target>
+          <target state="translated">Элемент "{0}" содержит атрибуты метаданных с одинаковым именем свойства. Имя свойства: "{1}".</target>
           <note from="MultilingualBuild" annotates="source" priority="2">{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</note>
         </trans-unit>
@@ -303,16 +301,16 @@
         </trans-unit>
         <trans-unit id="ImportManyOnNonCollectionType" translate="yes" xml:space="preserve">
           <source>The type {0} does not appear to be a collection as required for ImportManyAttribute.</source>
-          <target state="new">The type {0} does not appear to be a collection as required for ImportManyAttribute.</target>
+          <target state="translated">Похоже, тип {0} не является коллекцией, необходимой для атрибута ImportManyAttribute.</target>
           <note from="MultilingualBuild" annotates="source" priority="2">ImportManyAttribute is a type name and should not be translated.</note>
         </trans-unit>
         <trans-unit id="PartDiscoveryFailedAtMember" translate="yes" xml:space="preserve">
           <source>Part discovery failed at member {0}.</source>
-          <target state="new">Part discovery failed at member {0}.</target>
+          <target state="translated">Обнаружение частей завершилось ошибкой на элементе {0}.</target>
         </trans-unit>
         <trans-unit id="TypeNameWithAssemblyLocation" translate="yes" xml:space="preserve">
           <source>{0}.{1} (in {2})</source>
-          <target state="new">{0}.{1} (in {2})</target>
+          <target state="translated">{0}.{1} (в {2})</target>
           <note from="MultilingualBuild" annotates="source" priority="2">{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</note>
         </trans-unit>
       </group>
