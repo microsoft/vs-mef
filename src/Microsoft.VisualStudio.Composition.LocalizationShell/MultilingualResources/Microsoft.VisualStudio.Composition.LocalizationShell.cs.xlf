@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en-US" target-language="cs" original="MICROSOFT.VISUALSTUDIO.COMPOSITION.LOCALIZATIONSHELL/STRINGS.RESX" tool-id="MultilingualAppToolkit" product-name="n/a" product-version="n/a" build-num="n/a">
     <header>
@@ -56,7 +56,7 @@
         </trans-unit>
         <trans-unit id="ReflectionTypeLoadExceptionWhileEnumeratingTypes" translate="yes" xml:space="preserve">
           <source>ReflectionTypeLoadException while enumerating types in assembly "{0}". Results will be incomplete.</source>
-          <target state="translated">Při vytváření výčtů typů v sestavení {0} se vrátila výjimka ReflectionTypeLoadException. Výsledky nebudou úplné.</target>
+          <target state="translated">Při vytváření výčtů typů v sestavení {0} došlo k výjimce ReflectionTypeLoadException. Výsledky nebudou úplné.</target>
         </trans-unit>
         <trans-unit id="ScanningMEFAssemblies" translate="yes" xml:space="preserve">
           <source>Scanning MEF assemblies...</source>
@@ -75,8 +75,8 @@
           <target state="translated">Nedá se vytvořit výčet typů v sestavení {0}.</target>
         </trans-unit>
         <trans-unit id="UnableToInstantiateCustomImportCollectionType" translate="yes" xml:space="preserve">
-          <source>Unable to instantiate custom import collection type.</source>
-          <target state="translated">Nedají se vytvořit instance vlastního typu kolekce importu.</target>
+          <source>Unable to instantiate custom import collection type {0}. Try initializing {1} with a new instance of this type in your importing constructor.</source>
+          <target state="translated">Nedají se vytvořit instance vlastního typu kolekce importu {0}. Zkuste inicializovat {1} pomocí nové instance tohoto typu v importujícím konstruktoru.</target>
         </trans-unit>
         <trans-unit id="UnableToLoadAssembly" translate="yes" xml:space="preserve">
           <source>Unable to load assembly "{0}" for scanning.</source>
@@ -84,8 +84,7 @@
         </trans-unit>
         <trans-unit id="UnexpectedMemberType" translate="yes" xml:space="preserve">
           <source>Unexpected member type {0}.</source>
-          <target state="needs-review-translation">Neočekávaný typ člena</target>
-          <note from="MultilingualUpdate" annotates="source" priority="2">Please verify the translation’s accuracy as the source string was updated after it was translated.</note>
+          <target state="translated">Neočekávaný typ člena {0}</target>
           <note from="MultilingualBuild" annotates="source" priority="2">Where {0} will be substituted with an enum value.</note>
         </trans-unit>
         <trans-unit id="UnexpectedNumberOfExportsFound" translate="yes" xml:space="preserve">
@@ -102,7 +101,7 @@
         </trans-unit>
         <trans-unit id="CannotImportBecauseExportingPartCannotBeInstantiated" translate="yes" xml:space="preserve">
           <source>{0}: cannot import exported value from {1} because the exporting part cannot be instantiated. Is it missing an importing constructor?</source>
-          <target state="translated">{0}: exportovaná hodnota se nedá importovat z {1}, protože pro exportující část nejdou vytvořit instance. Chybí importující konstruktor?</target>
+          <target state="translated">{0}: Exportovaná hodnota se nedá importovat z {1}, protože pro exportující část nejdou vytvořit instance. Chybí importující konstruktor?</target>
         </trans-unit>
         <trans-unit id="CollectionTypeMustDeriveFromICollectionOfT" translate="yes" xml:space="preserve">
           <source>Collection type must derive from ICollection<it id="1" pos="open">&lt;T&gt;</it>.</source>
@@ -113,12 +112,16 @@
           <target state="translated">Ke každému importu musí být právě jedna položka.</target>
         </trans-unit>
         <trans-unit id="ExpectedExactlyOneExportButFound" translate="yes" xml:space="preserve">
-          <source>{0}: expected exactly 1 export of {1} but found {2}.{3}</source>
-          <target state="translated">{0}: očekával se právě 1 export {1}, ale počet nalezených exportů je: {2}.{3}</target>
+          <source>{0}: expected exactly 1 export matching constraints:
+{1}but found {2}.{3}</source>
+          <target state="translated">{0}: Očekával se právě 1 export odpovídající omezením:
+{1}, ale našel se tento počet: {2}.{3}</target>
         </trans-unit>
         <trans-unit id="ExpectedOneOrZeroExportsButFound" translate="yes" xml:space="preserve">
-          <source>{0}: expected 1 or 0 exports of {1} but found {2}.{3}</source>
-          <target state="translated">{0}: očekával se 1 nebo 0 exportů {1}, ale počet nalezených exportů je: {2}.{3}</target>
+          <source>{0}: expected 1 or 0 exports matching constraints:
+{1}but found {2}.{3}</source>
+          <target state="translated">{0}: Očekávalo se 1 nebo 0 exportů odpovídajících omezením:
+{1}, ale našel se tento počet: {2}.{3}</target>
         </trans-unit>
         <trans-unit id="ExportOfExportProviderNotAllowed" translate="yes" xml:space="preserve">
           <source>{0}: Export of ExportProvider is not allowed.</source>
@@ -193,8 +196,8 @@
           <target state="translated">Nemůže být prázdný.</target>
         </trans-unit>
         <trans-unit id="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" translate="yes" xml:space="preserve">
-          <source>Collection must be public with a public constructor when used with an [ImportingConstructor].</source>
-          <target state="translated">Při použití s [ImportingConstructor] musí být kolekce veřejná s veřejným konstruktorem.</target>
+          <source>Collection must be public with a public default constructor when used with an [ImportingConstructor].</source>
+          <target state="translated">Při použití s [ImportingConstructor] musí být kolekce veřejná s veřejným výchozím konstruktorem.</target>
         </trans-unit>
         <trans-unit id="CompilerErrorsOccurred" translate="yes" xml:space="preserve">
           <source>Compilation errors occurred.</source>
@@ -206,7 +209,7 @@
         </trans-unit>
         <trans-unit id="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" translate="yes" xml:space="preserve">
           <source>Member "{0}" contains metadata attributes with an identical property name. Property name: "{1}".</source>
-          <target state="translated">Člen {0} obsahuje atributy metadat se stejným názvem vlastnosti. Název vlastnosti: "{1}".</target>
+          <target state="translated">Člen {0} obsahuje atributy metadat se stejným názvem vlastnosti. Název vlastnosti: {1}.</target>
           <note from="MultilingualBuild" annotates="source" priority="2">{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</note>
         </trans-unit>
@@ -282,9 +285,33 @@
         </trans-unit>
         <trans-unit id="TypeAlreadyInCatalogAsAnotherPart" translate="yes" xml:space="preserve">
           <source>The type {0} already belongs to the catalog as a different ComposablePartDefinition.</source>
-          <target state="new">The type {0} already belongs to the catalog as a different ComposablePartDefinition.</target>
+          <target state="translated">Typ {0} už patří do katalogu jako jiný objekt ComposablePartDefinition.</target>
           <note from="MultilingualBuild" annotates="source" priority="2">ComposablePartDefinition is a type name and should not be localized.
 {0} is a fully-qualified type name.</note>
+        </trans-unit>
+        <trans-unit id="ImportingPropertyHasNoSetter" translate="yes" xml:space="preserve">
+          <source>Importing property "{0}" on part "{1}" has no setter.</source>
+          <target state="translated">Vlastnost importování {0} v části {1} nemá žádnou metodu setter.</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">{0} is a property name. {1} is a fully-qualified type name.</note>
+        </trans-unit>
+        <trans-unit id="ExportingPropertyHasNoGetter" translate="yes" xml:space="preserve">
+          <source>Exporting property "{0}" on part "{1}" has no getter.</source>
+          <target state="translated">Vlastnost exportování {0} v části {1} nemá žádnou metodu getter.</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">{0} is a property name. {1} is a fully-qualified type name.</note>
+        </trans-unit>
+        <trans-unit id="ImportManyOnNonCollectionType" translate="yes" xml:space="preserve">
+          <source>The type {0} does not appear to be a collection as required for ImportManyAttribute.</source>
+          <target state="translated">Typ {0} zřejmě není kolekce, kterou třída ImportManyAttribute vyžaduje.</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">ImportManyAttribute is a type name and should not be translated.</note>
+        </trans-unit>
+        <trans-unit id="PartDiscoveryFailedAtMember" translate="yes" xml:space="preserve">
+          <source>Part discovery failed at member {0}.</source>
+          <target state="translated">Zjišťování částí selhalo u člena {0}.</target>
+        </trans-unit>
+        <trans-unit id="TypeNameWithAssemblyLocation" translate="yes" xml:space="preserve">
+          <source>{0}.{1} (in {2})</source>
+          <target state="translated">{0}.{1} (v sestavení {2})</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</note>
         </trans-unit>
       </group>
     </body>

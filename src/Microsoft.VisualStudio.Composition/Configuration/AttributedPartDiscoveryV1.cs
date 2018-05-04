@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-#if NET45
-
 namespace Microsoft.VisualStudio.Composition
 {
     using System;
@@ -30,10 +28,12 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(partType, nameof(partType));
 
+            var partTypeInfo = partType.GetTypeInfo();
+
             // We want to ignore abstract classes, but we want to consider static classes.
             // Static classes claim to be both abstract and sealed. So to ignore just abstract
             // ones, we check that they are not sealed.
-            if (partType.IsAbstract && !partType.IsSealed)
+            if (partTypeInfo.IsAbstract && !partTypeInfo.IsSealed)
             {
                 return null;
             }
@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.Composition
 
             // If the type is abstract only find local static exports
             var exportBindingFlags = everythingLocal;
-            if (partType.IsAbstract)
+            if (partTypeInfo.IsAbstract)
             {
                 exportBindingFlags &= ~BindingFlags.Instance;
             }
@@ -56,12 +56,12 @@ namespace Microsoft.VisualStudio.Composition
             var exportingMembers = from member in allLocalMembers
                                    from export in member.GetAttributes<ExportAttribute>()
                                    select new KeyValuePair<MemberInfo, ExportAttribute>(member, export);
-            var exportedTypes = from export in partType.GetAttributes<ExportAttribute>()
-                                select new KeyValuePair<MemberInfo, ExportAttribute>(partType, export);
+            var exportedTypes = from export in partTypeInfo.GetAttributes<ExportAttribute>()
+                                select new KeyValuePair<MemberInfo, ExportAttribute>(partTypeInfo, export);
             var inheritedExportedTypes = from baseTypeOrInterface in partType.GetInterfaces().Concat(partType.EnumTypeAndBaseTypes().Skip(1))
                                          where baseTypeOrInterface != typeof(object)
-                                         from export in baseTypeOrInterface.GetAttributes<InheritedExportAttribute>()
-                                         select new KeyValuePair<MemberInfo, ExportAttribute>(baseTypeOrInterface, export);
+                                         from export in baseTypeOrInterface.GetTypeInfo().GetAttributes<InheritedExportAttribute>()
+                                         select new KeyValuePair<MemberInfo, ExportAttribute>(baseTypeOrInterface.GetTypeInfo(), export);
 
             var exportsByMember = (from export in exportingMembers.Concat(exportedTypes).Concat(inheritedExportedTypes)
                                    group export.Value by export.Key into exportsByType
@@ -77,26 +77,31 @@ namespace Microsoft.VisualStudio.Composition
             // part anyway. Checking for the PartNotDiscoverableAttribute first, which is rarely defined,
             // doesn't usually pay for itself in terms of short-circuiting. But it does add an extra
             // attribute to look for that we don't need to find for all the types that have no export attributes either.
-            if (!typeExplicitlyRequested && partType.IsAttributeDefined<PartNotDiscoverableAttribute>())
+            if (!typeExplicitlyRequested && partTypeInfo.IsAttributeDefined<PartNotDiscoverableAttribute>())
             {
                 return null;
             }
 
+            foreach (var exportingMember in exportsByMember)
+            {
+                this.ThrowOnInvalidExportingMember(exportingMember.Key);
+            }
+
             TypeRef partTypeRef = TypeRef.Get(partType, this.Resolver);
-            Type partTypeAsGenericTypeDefinition = partType.IsGenericType ? partType.GetGenericTypeDefinition() : null;
+            Type partTypeAsGenericTypeDefinition = partTypeInfo.IsGenericType ? partType.GetGenericTypeDefinition() : null;
 
             // Collect information for all imports.
             var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
             this.AddImportsFromMembers(declaredProperties, declaredFields, partTypeRef, imports);
-            Type baseType = partType.BaseType;
+            Type baseType = partTypeInfo.BaseType;
             while (baseType != null && baseType != typeof(object))
             {
                 this.AddImportsFromMembers(baseType.GetProperties(instanceLocal), baseType.GetFields(instanceLocal), partTypeRef, imports);
-                baseType = baseType.BaseType;
+                baseType = baseType.GetTypeInfo().BaseType;
             }
 
             var partCreationPolicy = CreationPolicy.Any;
-            var partCreationPolicyAttribute = partType.GetFirstAttribute<PartCreationPolicyAttribute>();
+            var partCreationPolicyAttribute = partTypeInfo.GetFirstAttribute<PartCreationPolicyAttribute>();
             if (partCreationPolicyAttribute != null)
             {
                 partCreationPolicy = (CreationPolicy)partCreationPolicyAttribute.CreationPolicy;
@@ -129,13 +134,13 @@ namespace Microsoft.VisualStudio.Composition
                 else
                 {
                     MemberInfo exportingTypeOrPropertyOrField = export.Key;
-                    Verify.Operation(export.Key is Type || !partType.IsGenericTypeDefinition, Strings.ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric);
+                    Verify.Operation(export.Key is TypeInfo || !partTypeInfo.IsGenericTypeDefinition, Strings.ExportsOnMembersNotAllowedWhenDeclaringTypeGeneric);
                     Type exportSiteType = ReflectionHelpers.GetMemberType(exportingTypeOrPropertyOrField);
                     foreach (var exportAttribute in export.Value)
                     {
                         Type exportedType = exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? exportSiteType;
                         string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
-                        if (export.Key is Type && exportAttribute is InheritedExportAttribute)
+                        if (export.Key is TypeInfo && exportAttribute is InheritedExportAttribute)
                         {
                             if (inheritedExportContractNamesFromNonInterfaces.Contains(contractName))
                             {
@@ -144,7 +149,7 @@ namespace Microsoft.VisualStudio.Composition
                                 continue;
                             }
 
-                            if (!((Type)export.Key).IsInterface)
+                            if (!((TypeInfo)export.Key).IsInterface)
                             {
                                 inheritedExportContractNamesFromNonInterfaces.Add(contractName);
                             }
@@ -181,14 +186,14 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             var partMetadata = ImmutableDictionary.CreateBuilder<string, object>();
-            foreach (var partMetadataAttribute in partType.GetAttributes<PartMetadataAttribute>())
+            foreach (var partMetadataAttribute in partTypeInfo.GetAttributes<PartMetadataAttribute>())
             {
                 partMetadata[partMetadataAttribute.Name] = partMetadataAttribute.Value;
             }
 
-            var exportsOnType = exportDefinitions.Where(kv => kv.Key is Type).Select(kv => kv.Value).ToArray();
+            var exportsOnType = exportDefinitions.Where(kv => kv.Key is TypeInfo).Select(kv => kv.Value).ToArray();
             var exportsOnMembers = (from kv in exportDefinitions
-                                    where !(kv.Key is Type)
+                                    where !(kv.Key is TypeInfo)
                                     group kv.Value by kv.Key into byMember
                                     select byMember).ToDictionary(g => MemberRef.Get(g.Key, this.Resolver), g => (IReadOnlyCollection<ExportDefinition>)g.ToArray());
 
@@ -224,16 +229,28 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (!member.IsStatic())
                 {
-                    if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, out ImportDefinition importDefinition))
+                    try
                     {
-                        Type importingSiteType = ReflectionHelpers.GetMemberType(member);
-                        var importDefinitionBinding = new ImportDefinitionBinding(
-                            importDefinition,
-                            partTypeRef,
-                            MemberRef.Get(member, this.Resolver),
-                            TypeRef.Get(importingSiteType, this.Resolver),
-                            TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, importingSiteType), this.Resolver));
-                        imports.Add(importDefinitionBinding);
+                        if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, out ImportDefinition importDefinition))
+                        {
+                            Type importingSiteType = ReflectionHelpers.GetMemberType(member);
+                            var importDefinitionBinding = new ImportDefinitionBinding(
+                                importDefinition,
+                                partTypeRef,
+                                MemberRef.Get(member, this.Resolver),
+                                TypeRef.Get(importingSiteType, this.Resolver),
+                                TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, importingSiteType), this.Resolver));
+                            imports.Add(importDefinitionBinding);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new PartDiscoveryException(
+                            string.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.PartDiscoveryFailedAtMember,
+                                member.Name),
+                            ex);
                     }
                 }
             }
@@ -276,6 +293,8 @@ namespace Microsoft.VisualStudio.Composition
 
             if (importAttribute != null)
             {
+                this.ThrowOnInvalidImportingMemberOrParameter(member);
+
                 if (importAttribute.Source != ImportSource.Any)
                 {
                     throw new NotSupportedException(Strings.CustomImportSourceNotSupported);
@@ -298,6 +317,8 @@ namespace Microsoft.VisualStudio.Composition
             }
             else if (importManyAttribute != null)
             {
+                this.ThrowOnInvalidImportingMemberOrParameter(member);
+
                 if (importManyAttribute.Source != ImportSource.Any)
                 {
                     throw new NotSupportedException(Strings.CustomImportSourceNotSupported);
@@ -360,9 +381,9 @@ namespace Microsoft.VisualStudio.Composition
                     Type attrType = attribute.GetType();
 
                     // Perf optimization, relies on short circuit evaluation, often a property attribute is an ExportAttribute
-                    if (attrType != typeof(ExportAttribute) && attrType.IsAttributeDefined<MetadataAttributeAttribute>(true))
+                    if (attrType != typeof(ExportAttribute) && attrType.GetTypeInfo().IsAttributeDefined<MetadataAttributeAttribute>(true))
                     {
-                        var usage = attrType.GetFirstAttribute<AttributeUsageAttribute>(true);
+                        var usage = attrType.GetTypeInfo().GetFirstAttribute<AttributeUsageAttribute>(true);
                         var properties = attribute.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
                         foreach (var property in properties.Where(p => p.DeclaringType != typeof(Attribute) && p.DeclaringType != typeof(ExportAttribute)))
@@ -376,7 +397,7 @@ namespace Microsoft.VisualStudio.Composition
                                 if (result.ContainsKey(property.Name))
                                 {
                                     string memberName = member.MemberType.HasFlag(MemberTypes.TypeInfo) || member.MemberType.HasFlag(MemberTypes.NestedType)
-                                        ? ((Type)member).FullName
+                                        ? ((TypeInfo)member).FullName
                                         : $"{member.DeclaringType.FullName}.{member.Name}";
 
                                     throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.DiscoveredIdenticalPropertiesInMetadataAttributesForPart, memberName, property.Name));
@@ -393,5 +414,3 @@ namespace Microsoft.VisualStudio.Composition
         }
     }
 }
-
-#endif

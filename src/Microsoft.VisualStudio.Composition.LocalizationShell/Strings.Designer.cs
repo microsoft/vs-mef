@@ -11,8 +11,8 @@
 namespace Microsoft.VisualStudio.Composition {
     using System;
     using System.Reflection;
-
-
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Collection must be public with a public constructor when used with an [ImportingConstructor]..
+        ///   Looks up a localized string similar to Collection must be public with a public default constructor when used with an [ImportingConstructor]..
         /// </summary>
         internal static string CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor {
             get {
@@ -206,7 +206,8 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0}: expected exactly 1 export of {1} but found {2}.{3}.
+        ///   Looks up a localized string similar to {0}: expected exactly 1 export matching constraints:
+        ///{1}but found {2}.{3}.
         /// </summary>
         internal static string ExpectedExactlyOneExportButFound {
             get {
@@ -215,7 +216,8 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0}: expected 1 or 0 exports of {1} but found {2}.{3}.
+        ///   Looks up a localized string similar to {0}: expected 1 or 0 exports matching constraints:
+        ///{1}but found {2}.{3}.
         /// </summary>
         internal static string ExpectedOneOrZeroExportsButFound {
             get {
@@ -229,6 +231,15 @@ namespace Microsoft.VisualStudio.Composition {
         internal static string ExportedValueNotAssignableToImport {
             get {
                 return ResourceManager.GetString("ExportedValueNotAssignableToImport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exporting property &quot;{0}&quot; on part &quot;{1}&quot; has no getter..
+        /// </summary>
+        internal static string ExportingPropertyHasNoGetter {
+            get {
+                return ResourceManager.GetString("ExportingPropertyHasNoGetter", resourceCulture);
             }
         }
         
@@ -292,6 +303,24 @@ namespace Microsoft.VisualStudio.Composition {
         internal static string ImportingCtorHasUnsupportedParameterTypeForImportMany {
             get {
                 return ResourceManager.GetString("ImportingCtorHasUnsupportedParameterTypeForImportMany", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Importing property &quot;{0}&quot; on part &quot;{1}&quot; has no setter..
+        /// </summary>
+        internal static string ImportingPropertyHasNoSetter {
+            get {
+                return ResourceManager.GetString("ImportingPropertyHasNoSetter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type {0} does not appear to be a collection as required for ImportManyAttribute..
+        /// </summary>
+        internal static string ImportManyOnNonCollectionType {
+            get {
+                return ResourceManager.GetString("ImportManyOnNonCollectionType", resourceCulture);
             }
         }
         
@@ -476,6 +505,15 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Part discovery failed at member {0}..
+        /// </summary>
+        internal static string PartDiscoveryFailedAtMember {
+            get {
+                return ResourceManager.GetString("PartDiscoveryFailedAtMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This part ({0}) cannot be instantiated..
         /// </summary>
         internal static string PartIsNotInstantiable {
@@ -548,6 +586,15 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0}.{1} (in {2}).
+        /// </summary>
+        internal static string TypeNameWithAssemblyLocation {
+            get {
+                return ResourceManager.GetString("TypeNameWithAssemblyLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type of metadata view is unsupported..
         /// </summary>
         internal static string TypeOfMetadataViewUnsupported {
@@ -575,7 +622,7 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to instantiate custom import collection type..
+        ///   Looks up a localized string similar to Unable to instantiate custom import collection type {0}. Try initializing {1} with a new instance of this type in your importing constructor..
         /// </summary>
         internal static string UnableToInstantiateCustomImportCollectionType {
             get {

@@ -30,10 +30,23 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var output = new TestOutputHelper();
             output.Initialize(this.MessageBus, new XunitTest(this.TestCase, this.DisplayName));
-            var exportProvider = await TestUtilities.CreateContainerAsync(this.configuration, output);
-            var containerWrapper = new TestUtilities.V3ContainerWrapper(exportProvider, this.configuration);
-            this.TestMethodArguments = new object[] { containerWrapper };
-            return await base.RunTestAsync();
+            try
+            {
+                var exportProvider = await TestUtilities.CreateContainerAsync(this.configuration, output);
+                var containerWrapper = new TestUtilities.V3ContainerWrapper(exportProvider, this.configuration);
+                this.TestMethodArguments = new object[] { containerWrapper };
+                return await base.RunTestAsync();
+            }
+            catch (Exception ex)
+            {
+                var t = new XunitTest(this.TestCase, this.DisplayName);
+                if (!this.MessageBus.QueueMessage(new TestFailed(t, 0, output.Output, ex)))
+                {
+                    this.CancellationTokenSource.Cancel();
+                }
+
+                return new RunSummary { Total = 1, Failed = 1 };
+            }
         }
     }
 }

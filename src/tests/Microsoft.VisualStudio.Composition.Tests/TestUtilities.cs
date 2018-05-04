@@ -52,9 +52,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         internal static ComposableCatalog EmptyCatalog = ComposableCatalog.Create(Resolver);
 
-#if DESKTOP
         internal static PartDiscovery V1Discovery = new AttributedPartDiscoveryV1(Resolver);
-#endif
 
         internal static AttributedPartDiscovery V2Discovery = new AttributedPartDiscovery(Resolver);
 
@@ -92,7 +90,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return configuration;
         }
 
-#if DESKTOP
+#if MEFv1Engine
         internal static IContainer CreateContainerV1(params Type[] parts)
         {
             Requires.NotNull(parts, nameof(parts));
@@ -172,14 +170,30 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return await CreateContainerV3Async(catalog, attributesDiscovery, output);
         }
 
+        internal static async Task<CompositionConfiguration> CreateConfigurationAsync(CompositionEngines attributesDiscovery, params Type[] parts)
+        {
+            PartDiscovery discovery = GetDiscoveryService(attributesDiscovery);
+            var assemblyParts = await discovery.CreatePartsAsync(parts);
+            var catalog = EmptyCatalog.AddParts(assemblyParts);
+            return CompositionConfiguration.Create(catalog);
+        }
+
+        internal static Exception GetInnermostException(Exception ex)
+        {
+            while (ex?.InnerException != null)
+            {
+                ex = ex.InnerException;
+            }
+
+            return ex;
+        }
+
         private static PartDiscovery GetDiscoveryService(CompositionEngines attributesDiscovery)
         {
             var discovery = new List<PartDiscovery>(2);
             if (attributesDiscovery.HasFlag(CompositionEngines.V1))
             {
-#if DESKTOP
                 discovery.Add(V1Discovery);
-#endif
             }
 
             if (attributesDiscovery.HasFlag(CompositionEngines.V2))
@@ -199,7 +213,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Requires.NotNull(output, nameof(output));
 
             var catalogWithCompositionService = catalog
-#if DESKTOP
+#if MEFv1Engine
                 .WithCompositionService()
 #endif
                 ;
@@ -225,7 +239,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var totalSummary = new RunSummary();
             if (attributesVersion.HasFlag(CompositionEngines.V1))
             {
-#if DESKTOP
+#if MEFv1Engine
                 totalSummary.Aggregate(await test(CreateContainerV1(parts)));
 #endif
             }
@@ -265,7 +279,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             get
             {
-#if NETCOREAPP1_0
+#if NETCOREAPP1_0 || NETCOREAPP2_0
                 return true;
 #else
                 return false;
@@ -281,7 +295,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Skip.If(IsOnMono, "Test marked as skipped on Mono runtime due to feature: " + unsupportedFeature);
         }
 
-#if DESKTOP
+#if MEFv1Engine
         internal class DebuggableCompositionContainer : MefV1.Hosting.CompositionContainer
         {
             protected override IEnumerable<MefV1.Primitives.Export> GetExportsCore(MefV1.Primitives.ImportDefinition definition, MefV1.Hosting.AtomicComposition atomicComposition)

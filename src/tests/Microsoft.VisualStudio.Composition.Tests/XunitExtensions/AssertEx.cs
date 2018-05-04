@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Runtime.CompilerServices;
 
     /// <summary>
@@ -41,13 +42,32 @@
             }
         }
 
+        internal static void NotEqual<T>(T expected, T actual, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
+            where T : IEquatable<T>
+        {
+            if (EqualityComparer<T>.Default.Equals(expected, actual))
+            {
+                var message = $"Assert failed. Not expected: {expected} actual: {actual} at {filePath}, {memberName} line {lineNumber}";
+                throw new AssertFailedException(message);
+            }
+        }
+
         internal static void Equal<T>(T expected, T actual, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
             where T : IEquatable<T>
         {
             if (!EqualityComparer<T>.Default.Equals(expected, actual))
             {
-                var message = $"Assert failed: expected: {expected} actual: {actual} at {filePath}, {memberName} line {lineNumber}";
+                var message = $"Assert failed. Expected: {expected} actual: {actual} at {filePath}, {memberName} line {lineNumber}";
                 throw new AssertFailedException(message);
+            }
+        }
+
+        internal static void Empty<T>(IEnumerable<T> enumerable)
+        {
+            var collection = enumerable.ToList();
+            if (collection.Count > 0)
+            {
+                throw new AssertFailedException($"Expected empty enumerable but found: [{string.Join(", ", collection)}]");
             }
         }
     }

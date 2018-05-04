@@ -64,13 +64,13 @@
     <value>Nie można wyliczyć typów w zestawie „{0}”.</value>
   </data>
   <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
-    <value>Nie można utworzyć wystąpienia niestandardowego typu kolekcji importu.</value>
+    <value>Nie można utworzyć wystąpienia niestandardowego typu kolekcji importu {0}. Spróbuj zainicjować element {1} przy użyciu nowego wystąpienia tego typu w konstruktorze importującym.</value>
   </data>
   <data name="UnableToLoadAssembly" xml:space="preserve">
     <value>Nie można załadować zestawu „{0}” do przeskanowania.</value>
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
-    <value>Nieoczekiwany typ elementu członkowskiego.</value>
+    <value>Nieoczekiwany typ elementu członkowskiego {0}.</value>
     <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
@@ -92,10 +92,12 @@
     <value>Dla każdego importu powinien istnieć dokładnie jeden wpis.</value>
   </data>
   <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
-    <value>{0}: oczekiwano dokładnie 1 eksportu elementu {1}, ale znaleziono {2}.{3}</value>
+    <value>{0}: oczekiwano dokładne 1 eksportu zgodnego z ograniczeniami:
+{1}ale znaleziono {2}.{3}</value>
   </data>
   <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
-    <value>{0}: oczekiwano 1 eksportu elementu {1} lub nie oczekiwano eksportu, ale znaleziono {2}.{3}</value>
+    <value>{0}: oczekiwano 0 lub 1 eksportu zgodnego z ograniczeniami:
+{1}ale znaleziono {2}.{3}</value>
   </data>
   <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
     <value>{0}: Eksport elementu ExportProvider jest niedozwolony.</value>
@@ -152,7 +154,7 @@
     <value>Pusta wartość jest niedozwolona.</value>
   </data>
   <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
-    <value>Kolekcja używana z konstruktorem importującym [ImportingConstructor] musi być publiczna z konstruktorem publicznym.</value>
+    <value>Kolekcja używana z konstruktorem importującym [ImportingConstructor] musi być publiczna z domyślnym konstruktorem publicznym.</value>
   </data>
   <data name="CompilerErrorsOccurred" xml:space="preserve">
     <value>Wystąpiły błędy kompilacji.</value>
@@ -161,7 +163,7 @@
     <value>Niestandardowe źródła importu nie są jeszcze obsługiwane.</value>
   </data>
   <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
-    <value>Element członkowski „{0}” zawiera atrybuty metadanych z identyczną nazwą właściwości. Nazwa właściwości: „{1}”.</value>
+    <value>Składowa „{0}” zawiera atrybuty metadanych z identyczną nazwą właściwości. Nazwa właściwości: „{1}”.</value>
     <comment>{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</comment>
   </data>
@@ -217,5 +219,29 @@
   </data>
   <data name="WrongType" xml:space="preserve">
     <value>Błędny typ.</value>
+  </data>
+  <data name="TypeAlreadyInCatalogAsAnotherPart" xml:space="preserve">
+    <value>Typ {0} należy już do wykazu jako inny element ComposablePartDefinition.</value>
+    <comment>ComposablePartDefinition is a type name and should not be localized.
+{0} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportingPropertyHasNoSetter" xml:space="preserve">
+    <value>Właściwość importowania „{0}” w części „{1}” nie ma metody ustawiającej.</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ExportingPropertyHasNoGetter" xml:space="preserve">
+    <value>Właściwość eksportowania „{0}” w części „{1}” nie ma metody pobierającej.</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportManyOnNonCollectionType" xml:space="preserve">
+    <value>Typ {0} nie wygląda na kolekcję, co jest wymagane przez element ImportManyAttribute.</value>
+    <comment>ImportManyAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="PartDiscoveryFailedAtMember" xml:space="preserve">
+    <value>Częściowe odnajdywanie nie powiodło się dla składowej {0}.</value>
+  </data>
+  <data name="TypeNameWithAssemblyLocation" xml:space="preserve">
+    <value>{0}.{1} (w {2})</value>
+    <comment>{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</comment>
   </data>
 </root>

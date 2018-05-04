@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en-US" target-language="es" original="MICROSOFT.VISUALSTUDIO.COMPOSITION.LOCALIZATIONSHELL/STRINGS.RESX" tool-id="MultilingualAppToolkit" product-name="n/a" product-version="n/a" build-num="n/a">
     <header>
@@ -75,8 +75,8 @@
           <target state="translated">No se pudieron enumerar los tipos en el ensamblado "{0}".</target>
         </trans-unit>
         <trans-unit id="UnableToInstantiateCustomImportCollectionType" translate="yes" xml:space="preserve">
-          <source>Unable to instantiate custom import collection type.</source>
-          <target state="translated">No se pudieron crear instancias para el tipo de colección de importación personalizado.</target>
+          <source>Unable to instantiate custom import collection type {0}. Try initializing {1} with a new instance of this type in your importing constructor.</source>
+          <target state="translated">No se pudieron crear instancias para el tipo de colección de importación personalizado {0}. Pruebe a inicializar {1} con una nueva instancia de este tipo en su constructor de importación.</target>
         </trans-unit>
         <trans-unit id="UnableToLoadAssembly" translate="yes" xml:space="preserve">
           <source>Unable to load assembly "{0}" for scanning.</source>
@@ -84,8 +84,7 @@
         </trans-unit>
         <trans-unit id="UnexpectedMemberType" translate="yes" xml:space="preserve">
           <source>Unexpected member type {0}.</source>
-          <target state="needs-review-translation">Tipo de miembro no esperado.</target>
-          <note from="MultilingualUpdate" annotates="source" priority="2">Please verify the translation’s accuracy as the source string was updated after it was translated.</note>
+          <target state="translated">Tipo de miembro '{0}' inesperado.</target>
           <note from="MultilingualBuild" annotates="source" priority="2">Where {0} will be substituted with an enum value.</note>
         </trans-unit>
         <trans-unit id="UnexpectedNumberOfExportsFound" translate="yes" xml:space="preserve">
@@ -113,12 +112,16 @@
           <target state="translated">Debe haber una entrada para cada importación.</target>
         </trans-unit>
         <trans-unit id="ExpectedExactlyOneExportButFound" translate="yes" xml:space="preserve">
-          <source>{0}: expected exactly 1 export of {1} but found {2}.{3}</source>
-          <target state="translated">{0}: se esperaba exactamente 1 exportación de {1}, pero se encontraron {2}.{3}</target>
+          <source>{0}: expected exactly 1 export matching constraints:
+{1}but found {2}.{3}</source>
+          <target state="translated">{0}: se esperaba exactamente 1 exportación que coincidiera con las restricciones:
+{1} pero se encontró {2}.{3}</target>
         </trans-unit>
         <trans-unit id="ExpectedOneOrZeroExportsButFound" translate="yes" xml:space="preserve">
-          <source>{0}: expected 1 or 0 exports of {1} but found {2}.{3}</source>
-          <target state="translated">{0}: se esperaba 1 o 0 exportaciones de {1}, pero se encontraron {2}.{3}</target>
+          <source>{0}: expected 1 or 0 exports matching constraints:
+{1}but found {2}.{3}</source>
+          <target state="translated">{0}: se esperaba 1 o 0 exportaciones que coincidieran con las restricciones:
+{1} pero se encontró {2}.{3}</target>
         </trans-unit>
         <trans-unit id="ExportOfExportProviderNotAllowed" translate="yes" xml:space="preserve">
           <source>{0}: Export of ExportProvider is not allowed.</source>
@@ -126,7 +129,7 @@
         </trans-unit>
         <trans-unit id="ImportingCtorHasUnsupportedParameterTypeForImportMany" translate="yes" xml:space="preserve">
           <source>Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable<it id="1" pos="open">&lt;T&gt;</it> are supported.</source>
-          <target state="translated">El constructor de importación tiene un tipo de parámetro no compatible para [ImportMany]. Solo son compatibles T[] y IEnumerable<it id="1" pos="open">&lt;T&gt;</it>.</target>
+          <target state="translated">La importación del constructor tiene un tipo de parámetro no compatible para [ImportMany]. Solo se admiten T[] y IEnumerable<it id="1" pos="open">&lt;T&gt;</it>.</target>
         </trans-unit>
         <trans-unit id="ImportsThatUseGenericTypeParametersNotSupported" translate="yes" xml:space="preserve">
           <source>{0}: imports that use generic type parameters are not supported.</source>
@@ -193,8 +196,8 @@
           <target state="translated">No puede estar vacío.</target>
         </trans-unit>
         <trans-unit id="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" translate="yes" xml:space="preserve">
-          <source>Collection must be public with a public constructor when used with an [ImportingConstructor].</source>
-          <target state="translated">La colección debe ser pública con un constructor público cuando se usa con un [ImportingConstructor].</target>
+          <source>Collection must be public with a public default constructor when used with an [ImportingConstructor].</source>
+          <target state="translated">La colección debe ser pública con un constructor público predeterminado cuando se usa con un [ImportingConstructor].</target>
         </trans-unit>
         <trans-unit id="CompilerErrorsOccurred" translate="yes" xml:space="preserve">
           <source>Compilation errors occurred.</source>
@@ -282,9 +285,33 @@
         </trans-unit>
         <trans-unit id="TypeAlreadyInCatalogAsAnotherPart" translate="yes" xml:space="preserve">
           <source>The type {0} already belongs to the catalog as a different ComposablePartDefinition.</source>
-          <target state="new">The type {0} already belongs to the catalog as a different ComposablePartDefinition.</target>
+          <target state="translated">El tipo {0} ya pertenece al catálogo como ComposablePartDefinition diferente.</target>
           <note from="MultilingualBuild" annotates="source" priority="2">ComposablePartDefinition is a type name and should not be localized.
 {0} is a fully-qualified type name.</note>
+        </trans-unit>
+        <trans-unit id="ImportingPropertyHasNoSetter" translate="yes" xml:space="preserve">
+          <source>Importing property "{0}" on part "{1}" has no setter.</source>
+          <target state="translated">La importación de la propiedad "{0}" en la parte "{1}" no tiene establecedor.</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">{0} is a property name. {1} is a fully-qualified type name.</note>
+        </trans-unit>
+        <trans-unit id="ExportingPropertyHasNoGetter" translate="yes" xml:space="preserve">
+          <source>Exporting property "{0}" on part "{1}" has no getter.</source>
+          <target state="translated">La exportación de la propiedad "{0}" en la parte "{1}" no tiene captador.</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">{0} is a property name. {1} is a fully-qualified type name.</note>
+        </trans-unit>
+        <trans-unit id="ImportManyOnNonCollectionType" translate="yes" xml:space="preserve">
+          <source>The type {0} does not appear to be a collection as required for ImportManyAttribute.</source>
+          <target state="translated">El tipo {0} no parece ser una colección según se requiere para ImportManyAttribute.</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">ImportManyAttribute is a type name and should not be translated.</note>
+        </trans-unit>
+        <trans-unit id="PartDiscoveryFailedAtMember" translate="yes" xml:space="preserve">
+          <source>Part discovery failed at member {0}.</source>
+          <target state="translated">Error en la detección de partes en el miembro {0}.</target>
+        </trans-unit>
+        <trans-unit id="TypeNameWithAssemblyLocation" translate="yes" xml:space="preserve">
+          <source>{0}.{1} (in {2})</source>
+          <target state="translated">{0}.{1} (en {2})</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</note>
         </trans-unit>
       </group>
     </body>

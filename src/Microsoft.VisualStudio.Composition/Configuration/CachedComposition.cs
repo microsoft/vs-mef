@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 var compositionRuntime = RuntimeComposition.CreateRuntimeComposition(configuration);
 
-                await this.SaveAsync(compositionRuntime, cacheStream, cancellationToken);
+                await this.SaveAsync(compositionRuntime, cacheStream, cancellationToken).ConfigureAwait(false);
             });
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, resolver, cancellationToken);
+            var runtimeComposition = await this.LoadRuntimeCompositionAsync(cacheStream, resolver, cancellationToken).ConfigureAwait(false);
             return runtimeComposition.CreateExportProviderFactory();
         }
 
@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     this.Write(part.TypeRef);
                     this.Write(part.Exports, this.Write);
-                    if (part.ImportingConstructorOrFactoryMethodRef.IsEmpty)
+                    if (part.ImportingConstructorOrFactoryMethodRef == null)
                     {
                         this.writer.Write(false);
                     }
@@ -228,7 +228,7 @@ namespace Microsoft.VisualStudio.Composition
                 using (this.Trace("RuntimeImport"))
                 {
                     RuntimeImportFlags flags = RuntimeImportFlags.None;
-                    flags |= import.ImportingMemberRef.IsEmpty ? RuntimeImportFlags.IsParameter : 0;
+                    flags |= import.ImportingMemberRef == null ? RuntimeImportFlags.IsParameter : 0;
                     flags |= import.IsNonSharedInstanceRequired ? RuntimeImportFlags.IsNonSharedInstanceRequired : 0;
                     flags |= import.IsExportFactory ? RuntimeImportFlags.IsExportFactory : 0;
                     flags |=
@@ -236,7 +236,7 @@ namespace Microsoft.VisualStudio.Composition
                         import.Cardinality == ImportCardinality.OneOrZero ? RuntimeImportFlags.CardinalityOneOrZero : 0;
                     this.writer.Write((byte)flags);
 
-                    if (import.ImportingMemberRef.IsEmpty)
+                    if (import.ImportingMemberRef == null)
                     {
                         this.Write(import.ImportingParameterRef);
                     }
@@ -246,6 +246,18 @@ namespace Microsoft.VisualStudio.Composition
                     }
 
                     this.Write(import.ImportingSiteTypeRef);
+                    if (import.Cardinality == ImportCardinality.ZeroOrMore)
+                    {
+                        this.Write(import.ImportingSiteTypeWithoutCollectionRef);
+                    }
+                    else
+                    {
+                        if (import.ImportingSiteTypeWithoutCollectionRef != import.ImportingSiteTypeRef)
+                        {
+                            throw new ArgumentException($"{nameof(import.ImportingSiteTypeWithoutCollectionRef)} and {nameof(import.ImportingSiteTypeRef)} must be equal when {nameof(import.Cardinality)} is not {nameof(ImportCardinality.ZeroOrMore)}.", nameof(import));
+                        }
+                    }
+
                     this.Write(import.SatisfyingExports, this.Write);
                     this.Write(import.Metadata);
                     if (import.IsExportFactory)
@@ -278,16 +290,19 @@ namespace Microsoft.VisualStudio.Composition
                     }
 
                     var importingSiteTypeRef = this.ReadTypeRef();
+                    TypeRef importingSiteTypeWithoutCollectionRef =
+                        cardinality == ImportCardinality.ZeroOrMore ? this.ReadTypeRef() : importingSiteTypeRef;
                     var satisfyingExports = this.ReadList(this.reader, this.ReadRuntimeExport);
                     var metadata = this.ReadMetadata();
                     IReadOnlyList<string> exportFactorySharingBoundaries = isExportFactory
                         ? this.ReadList(this.reader, this.ReadString)
                         : ImmutableList<string>.Empty;
 
-                    return importingMember.IsEmpty
+                    return importingMember == null
                         ? new RuntimeComposition.RuntimeImport(
                             importingParameter,
                             importingSiteTypeRef,
+                            importingSiteTypeWithoutCollectionRef,
                             cardinality,
                             satisfyingExports,
                             flags.HasFlag(RuntimeImportFlags.IsNonSharedInstanceRequired),
@@ -297,6 +312,7 @@ namespace Microsoft.VisualStudio.Composition
                         : new RuntimeComposition.RuntimeImport(
                             importingMember,
                             importingSiteTypeRef,
+                            importingSiteTypeWithoutCollectionRef,
                             cardinality,
                             satisfyingExports,
                             flags.HasFlag(RuntimeImportFlags.IsNonSharedInstanceRequired),

@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-#if NET40 || NET45
+#if NET40 || NET45 || NETSTANDARD2_0
 
 using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;
@@ -16,8 +16,7 @@ namespace System.ComponentModel.Composition
     /// <summary>
     ///     Specifies that a type, property, field, or method provides a particular export.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method,
-                    AllowMultiple = true, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method, AllowMultiple = true, Inherited = false)]
     public class ExportAttribute : Attribute
     {
         /// <summary>

@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-#if NET40 || NET45
+#if NET40 || NET45 || NETSTANDARD2_0
 
 using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;
@@ -11,10 +11,14 @@ using System.Runtime.CompilerServices;
 
 namespace System.ComponentModel.Composition
 {
-    using System;
-
+    /// <summary>
+    /// Notifies a part when its imports have been satisfied.
+    /// </summary>
     public interface IPartImportsSatisfiedNotification
     {
+        /// <summary>
+        /// Called when a part's imports have been satisfied and it is safe to use.
+        /// </summary>
         void OnImportsSatisfied();
     }
 }

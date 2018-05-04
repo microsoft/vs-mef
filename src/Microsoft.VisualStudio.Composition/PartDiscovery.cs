@@ -67,11 +67,11 @@ namespace Microsoft.VisualStudio.Composition
             var tuple = this.CreateDiscoveryBlockChain(true, null, cancellationToken);
             foreach (Type type in partTypes)
             {
-                await tuple.Item1.SendAsync(type);
+                await tuple.Item1.SendAsync(type).ConfigureAwait(false);
             }
 
             tuple.Item1.Complete();
-            var parts = await tuple.Item2;
+            var parts = await tuple.Item2.ConfigureAwait(false);
             return parts;
         }
 
@@ -104,11 +104,11 @@ namespace Microsoft.VisualStudio.Composition
             var tuple = this.CreateAssemblyDiscoveryBlockChain(progress, cancellationToken);
             foreach (var assembly in assemblies)
             {
-                await tuple.Item1.SendAsync(assembly);
+                await tuple.Item1.SendAsync(assembly).ConfigureAwait(false);
             }
 
             tuple.Item1.Complete();
-            var result = await tuple.Item2;
+            var result = await tuple.Item2.ConfigureAwait(false);
             return result;
         }
 
@@ -130,9 +130,9 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     try
                     {
-#if NET45
+#if DESKTOP
                         return new Assembly[] { Assembly.Load(AssemblyName.GetAssemblyName(path)) };
-#elif NETCOREAPP1_0
+#elif NETCOREAPP1_0 || NETCOREAPP2_0
                         return new Assembly[] { System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(path) };
 #else
                         throw new NotSupportedException();
@@ -156,11 +156,11 @@ namespace Microsoft.VisualStudio.Composition
             assemblyLoader.LinkTo(tuple.Item1, new DataflowLinkOptions { PropagateCompletion = true });
             foreach (var assemblyPath in assemblyPaths)
             {
-                await assemblyLoader.SendAsync(assemblyPath);
+                await assemblyLoader.SendAsync(assemblyPath).ConfigureAwait(false);
             }
 
             assemblyLoader.Complete();
-            var result = await tuple.Item2;
+            var result = await tuple.Item2.ConfigureAwait(false);
             return result.Merge(new DiscoveredParts(Enumerable.Empty<ComposablePartDefinition>(), exceptions));
         }
 
@@ -220,7 +220,8 @@ namespace Microsoft.VisualStudio.Composition
                     let genericTypeDef = ifaceInfo.GetGenericTypeDefinition()
                     where genericTypeDef.Equals(typeof(ICollection<>)) || genericTypeDef.Equals(typeof(IEnumerable<>)) || genericTypeDef.Equals(typeof(IList<>))
                     select ifaceInfo;
-                var icollectionType = icollectionTypes.First();
+                var icollectionType = icollectionTypes.FirstOrDefault();
+                Requires.Argument(icollectionType != null, nameof(type), Strings.ImportManyOnNonCollectionType, type.FullName);
                 return icollectionType.GenericTypeArguments[0]; // IEnumerable<T> -> T
             }
         }
@@ -261,6 +262,32 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Throws an exception if certain basic rules for an importing member or parameter are violated.
+        /// </summary>
+        /// <param name="member">The importing member or importing parameter.</param>
+        protected virtual void ThrowOnInvalidImportingMemberOrParameter(ICustomAttributeProvider member)
+        {
+            Requires.NotNull(member, nameof(member));
+            if (member is PropertyInfo importingMember && importingMember.SetMethod == null)
+            {
+                throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ImportingPropertyHasNoSetter, importingMember.Name, importingMember.DeclaringType.FullName));
+            }
+        }
+
+        /// <summary>
+        /// Throws an exception if certain basic rules for an exporting member are violated.
+        /// </summary>
+        /// <param name="member">The exporting member (or type).</param>
+        protected virtual void ThrowOnInvalidExportingMember(ICustomAttributeProvider member)
+        {
+            Requires.NotNull(member, nameof(member));
+            if (member is PropertyInfo exportingProperty && exportingProperty.GetMethod == null)
+            {
+                throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ExportingPropertyHasNoGetter, exportingProperty.Name, exportingProperty.DeclaringType.FullName));
+            }
         }
 
         protected internal static ImmutableHashSet<IImportSatisfiabilityConstraint> GetExportTypeIdentityConstraints(Type contractType)
@@ -445,7 +472,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 try
                 {
-                    await aggregatingBlock.Completion;
+                    await aggregatingBlock.Completion.ConfigureAwait(false);
                     tcs.SetResult(new DiscoveredParts(parts.ToImmutable(), errors.ToImmutable()));
                 }
                 catch (Exception ex)
@@ -509,7 +536,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 try
                 {
-                    var parts = await tuple.Item2;
+                    var parts = await tuple.Item2.ConfigureAwait(false);
                     tcs.SetResult(parts.Merge(new DiscoveredParts(Enumerable.Empty<ComposablePartDefinition>(), exceptions)));
                 }
                 catch (Exception ex)

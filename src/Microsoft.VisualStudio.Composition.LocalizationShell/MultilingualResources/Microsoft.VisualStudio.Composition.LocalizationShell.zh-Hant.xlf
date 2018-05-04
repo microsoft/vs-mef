@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en-US" target-language="zh-Hant" original="MICROSOFT.VISUALSTUDIO.COMPOSITION.LOCALIZATIONSHELL/STRINGS.RESX" tool-id="MultilingualAppToolkit" product-name="n/a" product-version="n/a" build-num="n/a">
     <header>
@@ -48,7 +48,7 @@
         </trans-unit>
         <trans-unit id="PartBelongsToAnotherSharingBoundary" translate="yes" xml:space="preserve">
           <source>Inappropriate request for export from part that belongs to another sharing boundary.</source>
-          <target state="translated">不適當的要求，使其能從另一個共用的邊界所屬的組件的匯出。</target>
+          <target state="translated">從隸屬於另一個共用邊界之組件匯出的要求不適當。</target>
         </trans-unit>
         <trans-unit id="PartIsNotInstantiable" translate="yes" xml:space="preserve">
           <source>This part ({0}) cannot be instantiated.</source>
@@ -56,7 +56,7 @@
         </trans-unit>
         <trans-unit id="ReflectionTypeLoadExceptionWhileEnumeratingTypes" translate="yes" xml:space="preserve">
           <source>ReflectionTypeLoadException while enumerating types in assembly "{0}". Results will be incomplete.</source>
-          <target state="translated">列舉型別在組件"{0}"中的 ReflectionTypeLoadException。結果會不完整。</target>
+          <target state="translated">列舉組件 "{0}" 中的類型時，發生 ReflectionTypeLoadException。結果將不完整。</target>
         </trans-unit>
         <trans-unit id="ScanningMEFAssemblies" translate="yes" xml:space="preserve">
           <source>Scanning MEF assemblies...</source>
@@ -75,8 +75,8 @@
           <target state="translated">無法列舉組件"{0}"中的型別。</target>
         </trans-unit>
         <trans-unit id="UnableToInstantiateCustomImportCollectionType" translate="yes" xml:space="preserve">
-          <source>Unable to instantiate custom import collection type.</source>
-          <target state="translated">無法具現化自訂的匯入集合型別。</target>
+          <source>Unable to instantiate custom import collection type {0}. Try initializing {1} with a new instance of this type in your importing constructor.</source>
+          <target state="translated">無法具現化自訂匯入集合類型 {0}。嘗試初始化匯入建構函式中，此類型之新執行個體的 {1}。</target>
         </trans-unit>
         <trans-unit id="UnableToLoadAssembly" translate="yes" xml:space="preserve">
           <source>Unable to load assembly "{0}" for scanning.</source>
@@ -84,8 +84,7 @@
         </trans-unit>
         <trans-unit id="UnexpectedMemberType" translate="yes" xml:space="preserve">
           <source>Unexpected member type {0}.</source>
-          <target state="needs-review-translation">未預期的成員型別。</target>
-          <note from="MultilingualUpdate" annotates="source" priority="2">Please verify the translation’s accuracy as the source string was updated after it was translated.</note>
+          <target state="translated">未預期的成員類型 {0}。</target>
           <note from="MultilingualBuild" annotates="source" priority="2">Where {0} will be substituted with an enum value.</note>
         </trans-unit>
         <trans-unit id="UnexpectedNumberOfExportsFound" translate="yes" xml:space="preserve">
@@ -102,7 +101,7 @@
         </trans-unit>
         <trans-unit id="CannotImportBecauseExportingPartCannotBeInstantiated" translate="yes" xml:space="preserve">
           <source>{0}: cannot import exported value from {1} because the exporting part cannot be instantiated. Is it missing an importing constructor?</source>
-          <target state="translated">{0}︰ 無法匯入匯出值從 {1} 因為匯出的組件無法具現化。它是否有遺漏匯入的建構函式？</target>
+          <target state="translated">{0}: 因為無法具現化匯出的組件，所以無法匯入從 {1} 匯出的值。是否缺少了匯入建構函式?</target>
         </trans-unit>
         <trans-unit id="CollectionTypeMustDeriveFromICollectionOfT" translate="yes" xml:space="preserve">
           <source>Collection type must derive from ICollection<it id="1" pos="open">&lt;T&gt;</it>.</source>
@@ -113,12 +112,16 @@
           <target state="translated">應該只有一個項目，每個匯入。</target>
         </trans-unit>
         <trans-unit id="ExpectedExactlyOneExportButFound" translate="yes" xml:space="preserve">
-          <source>{0}: expected exactly 1 export of {1} but found {2}.{3}</source>
-          <target state="translated">{0}: 必須是 1 個匯出的 {1}，但找到 {2}。{3}</target>
+          <source>{0}: expected exactly 1 export matching constraints:
+{1}but found {2}.{3}</source>
+          <target state="translated">{0}: 只需要 1 個匯出符合限制式:
+{1}但找到了 {2}.{3}</target>
         </trans-unit>
         <trans-unit id="ExpectedOneOrZeroExportsButFound" translate="yes" xml:space="preserve">
-          <source>{0}: expected 1 or 0 exports of {1} but found {2}.{3}</source>
-          <target state="translated">{0}: 必須是 1 或 0 的 {1}，但找到 {2} 的匯出。{3}</target>
+          <source>{0}: expected 1 or 0 exports matching constraints:
+{1}but found {2}.{3}</source>
+          <target state="translated">{0}: 需要 1 個或 0 個匯出符合限制式:
+{1}但找到了 {2}.{3}</target>
         </trans-unit>
         <trans-unit id="ExportOfExportProviderNotAllowed" translate="yes" xml:space="preserve">
           <source>{0}: Export of ExportProvider is not allowed.</source>
@@ -126,7 +129,7 @@
         </trans-unit>
         <trans-unit id="ImportingCtorHasUnsupportedParameterTypeForImportMany" translate="yes" xml:space="preserve">
           <source>Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable<it id="1" pos="open">&lt;T&gt;</it> are supported.</source>
-          <target state="translated">匯入建構函式包含 [ImportMany] 不支援的參數類型。目前只支援 T[] 及 IEnumerable<it id="1" pos="open">&lt;T&gt;</it>。</target>
+          <target state="translated">匯入建構函式的 [ImportMany] 使用了不受支援的參數類型。僅支援 T[] 及 IEnumerable<it id="1" pos="open">&lt;T&gt;</it>。</target>
         </trans-unit>
         <trans-unit id="ImportsThatUseGenericTypeParametersNotSupported" translate="yes" xml:space="preserve">
           <source>{0}: imports that use generic type parameters are not supported.</source>
@@ -193,8 +196,8 @@
           <target state="translated">不可為空白。</target>
         </trans-unit>
         <trans-unit id="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" translate="yes" xml:space="preserve">
-          <source>Collection must be public with a public constructor when used with an [ImportingConstructor].</source>
-          <target state="translated">集合必須具有公用建構函式與 [ImportingConstructor] 搭配使用時。</target>
+          <source>Collection must be public with a public default constructor when used with an [ImportingConstructor].</source>
+          <target state="translated">當集合與 [ImportingConstructor] 並用時，集合必須是公用，而且必須包含公用預設建構函式。</target>
         </trans-unit>
         <trans-unit id="CompilerErrorsOccurred" translate="yes" xml:space="preserve">
           <source>Compilation errors occurred.</source>
@@ -282,9 +285,33 @@
         </trans-unit>
         <trans-unit id="TypeAlreadyInCatalogAsAnotherPart" translate="yes" xml:space="preserve">
           <source>The type {0} already belongs to the catalog as a different ComposablePartDefinition.</source>
-          <target state="new">The type {0} already belongs to the catalog as a different ComposablePartDefinition.</target>
+          <target state="translated">類型 {0} 已經屬於不同 ComposablePartDefinition 的目錄。</target>
           <note from="MultilingualBuild" annotates="source" priority="2">ComposablePartDefinition is a type name and should not be localized.
 {0} is a fully-qualified type name.</note>
+        </trans-unit>
+        <trans-unit id="ImportingPropertyHasNoSetter" translate="yes" xml:space="preserve">
+          <source>Importing property "{0}" on part "{1}" has no setter.</source>
+          <target state="translated">在組件 "{1}" 上匯入屬性 "{0}" 不會有 setter。</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">{0} is a property name. {1} is a fully-qualified type name.</note>
+        </trans-unit>
+        <trans-unit id="ExportingPropertyHasNoGetter" translate="yes" xml:space="preserve">
+          <source>Exporting property "{0}" on part "{1}" has no getter.</source>
+          <target state="translated">在組件 "{1}" 上匯出屬性 "{0}" 不會有 getter。</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">{0} is a property name. {1} is a fully-qualified type name.</note>
+        </trans-unit>
+        <trans-unit id="ImportManyOnNonCollectionType" translate="yes" xml:space="preserve">
+          <source>The type {0} does not appear to be a collection as required for ImportManyAttribute.</source>
+          <target state="translated">類型 {0} 不是 ImportManyAttribute 所需的集合。</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">ImportManyAttribute is a type name and should not be translated.</note>
+        </trans-unit>
+        <trans-unit id="PartDiscoveryFailedAtMember" translate="yes" xml:space="preserve">
+          <source>Part discovery failed at member {0}.</source>
+          <target state="translated">成員 {0} 的組件探索失敗。</target>
+        </trans-unit>
+        <trans-unit id="TypeNameWithAssemblyLocation" translate="yes" xml:space="preserve">
+          <source>{0}.{1} (in {2})</source>
+          <target state="translated">{0}.{1} (位於 {2})</target>
+          <note from="MultilingualBuild" annotates="source" priority="2">{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</note>
         </trans-unit>
       </group>
     </body>

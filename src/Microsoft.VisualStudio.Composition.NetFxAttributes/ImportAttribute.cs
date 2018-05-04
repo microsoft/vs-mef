@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-#if NET40 || NET45
+#if NET40 || NET45 || NETSTANDARD2_0
 
 using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;
@@ -16,8 +16,7 @@ namespace System.ComponentModel.Composition
     /// <summary>
     ///     Specifies that a property, field, or parameter imports a particular export.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter,
-                    AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false, Inherited = false)]
     public class ImportAttribute : Attribute
     {
         /// <summary>
@@ -55,6 +54,15 @@ namespace System.ComponentModel.Composition
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ImportAttribute"/> class,
+        /// importing the export with the specified contract name and type.
+        /// </summary>
+        /// <param name="contractName">
+        ///      A <see cref="string"/> containing the contract name of the export to import, or
+        ///      <see langword="null"/> or an empty string ("") to use the default contract name.
+        /// </param>
+        /// <param name="contractType">The type of the export to import.</param>
         public ImportAttribute(string contractName, Type contractType)
         {
             this.ContractName = contractName;

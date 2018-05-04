@@ -64,13 +64,13 @@
     <value>无法枚举程序集"{0}"的类型。</value>
   </data>
   <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
-    <value>无法实例化自定义导入集合类型。</value>
+    <value>无法实例化自定义导入集合类型 {0}。尝试在导入构造函数中使用此类型的新实例来初始化 {1}。</value>
   </data>
   <data name="UnableToLoadAssembly" xml:space="preserve">
     <value>无法加载程序集"{0}"进行扫描。</value>
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
-    <value>意外的成员类型。</value>
+    <value>意外的成员类型 {0}。</value>
     <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
@@ -83,7 +83,7 @@
     <value>所有值必须都为非空。</value>
   </data>
   <data name="CannotImportBecauseExportingPartCannotBeInstantiated" xml:space="preserve">
-    <value>{0}︰ 无法导入导出值从 {1} 由于导出的部件不能实例化。它缺少导入的构造函数？</value>
+    <value>{0}: 无法从 {1} 导入导出值，因为导出的部件不能实例化。是否缺少导入的构造函数?</value>
   </data>
   <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
     <value>成员“{0}”包含具有相同属性名的元数据特性。属性名称:“&lt;T&gt;”。</value>
@@ -92,10 +92,12 @@
     <value>应为每个导入一个项。</value>
   </data>
   <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
-    <value>{0}︰ 预期的 {1}，但找到 {2} 正好只有一个出口。{3}</value>
+    <value>{0}: 应为 1 个导出匹配约束:
+{1}但找到了 {2}.{3}</value>
   </data>
   <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
-    <value>{0}︰ 预期的 {1}，但找到 {2} 1 或 0 的导出。{3}</value>
+    <value>{0}: 应为 1 或 0 个导出匹配约束:
+{1}但找到了 {2}.{3}</value>
   </data>
   <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
     <value>{0}︰ 不允许导出的 ExportProvider。</value>
@@ -152,7 +154,7 @@
     <value>不能为空。</value>
   </data>
   <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
-    <value>集合必须是公共的公共构造函数用于 [ImportingConstructor] 时。</value>
+    <value>当用于 [ImportingConstructor] 时，集合必须是公开的，且具有公共的默认构造函数。</value>
   </data>
   <data name="CompilerErrorsOccurred" xml:space="preserve">
     <value>将出现编译错误。</value>
@@ -217,5 +219,29 @@
   </data>
   <data name="WrongType" xml:space="preserve">
     <value>错误的类型。</value>
+  </data>
+  <data name="TypeAlreadyInCatalogAsAnotherPart" xml:space="preserve">
+    <value>类型 {0} 已属于该目录，作为另一种 ComposablePartDefinition。</value>
+    <comment>ComposablePartDefinition is a type name and should not be localized.
+{0} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportingPropertyHasNoSetter" xml:space="preserve">
+    <value>“{1}”部分上的导入属性“{0}”没有 setter。</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ExportingPropertyHasNoGetter" xml:space="preserve">
+    <value>“{1}”部分上的导出属性“{0}”没有 getter。</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportManyOnNonCollectionType" xml:space="preserve">
+    <value>类型 {0} 似乎不是 ImportManyAttribute 要求的集合。</value>
+    <comment>ImportManyAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="PartDiscoveryFailedAtMember" xml:space="preserve">
+    <value>部件发现在成员 {0} 处失败。</value>
+  </data>
+  <data name="TypeNameWithAssemblyLocation" xml:space="preserve">
+    <value>{0}.{1} ({2} 中)</value>
+    <comment>{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</comment>
   </data>
 </root>

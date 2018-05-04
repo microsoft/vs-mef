@@ -26,6 +26,7 @@ namespace Microsoft.VisualStudio.Composition
             private static readonly RuntimeComposition.RuntimeImport MetadataViewProviderImport = new RuntimeComposition.RuntimeImport(
                 default(MemberRef),
                 TypeRef.Get(typeof(IMetadataViewProvider), Resolver.DefaultInstance),
+                TypeRef.Get(typeof(IMetadataViewProvider), Resolver.DefaultInstance),
                 ImportCardinality.ExactlyOne,
                 ImmutableList<RuntimeComposition.RuntimeExport>.Empty,
                 isNonSharedInstanceRequired: false,
@@ -169,7 +170,12 @@ namespace Microsoft.VisualStudio.Composition
                             }
                             else
                             {
-                                throw new CompositionFailedException(Strings.UnableToInstantiateCustomImportCollectionType);
+                                throw new CompositionFailedException(
+                                    string.Format(
+                                        CultureInfo.CurrentCulture,
+                                        Strings.UnableToInstantiateCustomImportCollectionType,
+                                        import.ImportingSiteType.FullName,
+                                        $"{import.DeclaringTypeRef.FullName}.{import.ImportingMemberRef?.Name}"));
                             }
                         }
 
@@ -308,13 +314,13 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     try
                     {
-                        bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(importingPartTracker, import.IsLazy, !import.ImportingParameterRef.IsEmpty);
+                        bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(importingPartTracker, import.IsLazy, import.ImportingParameterRef != null);
                         if (!fullyInitializedValueIsRequired && importingPartTracker != null && !import.IsExportFactory)
                         {
                             importingPartTracker.ReportPartiallyInitializedImport(partLifecycle);
                         }
 
-                        if (!export.MemberRef.IsEmpty)
+                        if (export.MemberRef != null)
                         {
                             object part = export.Member.IsStatic()
                                 ? null
@@ -378,16 +384,23 @@ namespace Microsoft.VisualStudio.Composition
                         .GetMember(member.Name, MemberTypes.Property | MemberTypes.Field, DeclaredOnlyLookup)[0];
                 }
 
-                switch (member)
+                try
                 {
-                    case PropertyInfo property:
-                        property.SetValue(part, value);
-                        break;
-                    case FieldInfo field:
-                        field.SetValue(part, value);
-                        break;
-                    default:
-                        throw new NotSupportedException();
+                    switch (member)
+                    {
+                        case PropertyInfo property:
+                            property.SetValue(part, value);
+                            break;
+                        case FieldInfo field:
+                            field.SetValue(part, value);
+                            break;
+                        default:
+                            throw new NotSupportedException();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw new TargetInvocationException(string.Format(CultureInfo.CurrentCulture, Strings.ExceptionThrownByPartUnderInitialization, part.GetType().FullName), ex);
                 }
             }
 
@@ -396,16 +409,23 @@ namespace Microsoft.VisualStudio.Composition
                 Requires.NotNull(part, nameof(part));
                 Requires.NotNull(member, nameof(member));
 
-                var property = member as PropertyInfo;
-                if (property != null)
+                try
                 {
-                    return property.GetValue(part);
-                }
+                    var property = member as PropertyInfo;
+                    if (property != null)
+                    {
+                        return property.GetValue(part);
+                    }
 
-                var field = member as FieldInfo;
-                if (field != null)
+                    var field = member as FieldInfo;
+                    if (field != null)
+                    {
+                        return field.GetValue(part);
+                    }
+                }
+                catch (Exception ex)
                 {
-                    return field.GetValue(part);
+                    throw new TargetInvocationException(string.Format(CultureInfo.CurrentCulture, Strings.ExceptionThrownByPartUnderInitialization, part.GetType().FullName), ex);
                 }
 
                 throw new NotSupportedException();

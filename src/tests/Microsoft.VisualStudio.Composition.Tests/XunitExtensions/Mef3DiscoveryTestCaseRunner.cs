@@ -104,10 +104,23 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
                     // For each distinct catalog, create one configuration and verify it meets expectations.
                     var configurations = new List<(CompositionConfiguration, string)>(2 * uniqueCatalogs.Length);
+                    void AddConfiguration(ComposableCatalog cat, string configurationName)
+                    {
+                        var configuration = CompositionConfiguration.Create(cat);
+
+                        if (!this.compositionVersions.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors))
+                        {
+                            Assert.Equal(this.expectInvalidConfiguration, !configuration.CompositionErrors.IsEmpty || !cat.DiscoveredParts.DiscoveryErrors.IsEmpty);
+                        }
+
+                        // Save the configuration in a property so that the engine test that follows can reuse the work we've done.
+                        configurations.Add((configuration, configurationName));
+                    }
+
                     foreach (var uniqueCatalog in uniqueCatalogs)
                     {
                         var catalogWithSupport = uniqueCatalog
-#if DESKTOP
+#if MEFv1Engine
                             .WithCompositionService()
 #endif
                             ;
@@ -115,15 +128,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                         // Round-trip the catalog through serialization to verify that as well.
                         await RoundtripCatalogSerializationAsync(catalogWithSupport, output);
 
-                        var configuration = CompositionConfiguration.Create(catalogWithSupport);
-
-                        if (!this.compositionVersions.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors))
-                        {
-                            Assert.Equal(this.expectInvalidConfiguration, !configuration.CompositionErrors.IsEmpty || !catalogWithSupport.DiscoveredParts.DiscoveryErrors.IsEmpty);
-                        }
-
-                        // Save the configuration in a property so that the engine test that follows can reuse the work we've done.
-                        configurations.Add((configuration, string.Empty));
+                        AddConfiguration(catalogWithSupport, string.Empty);
+                        AddConfiguration(CatalogScrambler.SimulateRecompiledAssembly(catalogWithSupport), "Slow reflection");
                     }
 
                     this.ResultingConfigurations = configurations;
@@ -216,10 +222,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var discovery = new List<PartDiscovery>();
             if (this.compositionVersions.HasFlag(CompositionEngines.V3EmulatingV1))
             {
-#if DESKTOP
                 discovery.Add(TestUtilities.V1Discovery);
                 titleAppends.Add("V1");
-#endif
             }
 
             var v2Discovery = this.compositionVersions.HasFlag(CompositionEngines.V3EmulatingV2WithNonPublic)
@@ -233,10 +237,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             if (this.compositionVersions.HasFlag(CompositionEngines.V3EmulatingV1AndV2AtOnce))
             {
-#if DESKTOP
                 discovery.Add(PartDiscovery.Combine(TestUtilities.V1Discovery, v2Discovery));
                 titleAppends.Add("V1+V2");
-#endif
             }
 
             this.DisplayName += " (" + string.Join(", ", titleAppends) + ")";

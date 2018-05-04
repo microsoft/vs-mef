@@ -5,31 +5,66 @@ Microsoft.VisualStudio.Composition.ComposablePartDefinition.ImportingConstructor
 Microsoft.VisualStudio.Composition.ImportDefinitionBinding.ImportDefinitionBinding(Microsoft.VisualStudio.Composition.ImportDefinition importDefinition, Microsoft.VisualStudio.Composition.Reflection.TypeRef composablePartType, Microsoft.VisualStudio.Composition.Reflection.MemberRef importingMember, Microsoft.VisualStudio.Composition.Reflection.TypeRef importingSiteTypeRef, Microsoft.VisualStudio.Composition.Reflection.TypeRef importingSiteTypeWithoutCollectionRef) -> void
 Microsoft.VisualStudio.Composition.ImportDefinitionBinding.ImportDefinitionBinding(Microsoft.VisualStudio.Composition.ImportDefinition importDefinition, Microsoft.VisualStudio.Composition.Reflection.TypeRef composablePartType, Microsoft.VisualStudio.Composition.Reflection.ParameterRef importingConstructorParameter, Microsoft.VisualStudio.Composition.Reflection.TypeRef importingSiteTypeRef, Microsoft.VisualStudio.Composition.Reflection.TypeRef importingSiteTypeWithoutCollectionRef) -> void
 Microsoft.VisualStudio.Composition.ImportDefinitionBinding.ImportingSiteTypeWithoutCollectionRef.get -> Microsoft.VisualStudio.Composition.Reflection.TypeRef
-Microsoft.VisualStudio.Composition.Reflection.ConstructorRef.ConstructorInfo.get -> System.Reflection.ConstructorInfo
-Microsoft.VisualStudio.Composition.Reflection.ConstructorRef.ConstructorRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef declaringType, int metadataToken, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> parameterTypes) -> void
-Microsoft.VisualStudio.Composition.Reflection.ConstructorRef.ParameterTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef>
+Microsoft.VisualStudio.Composition.Reflection.FieldRef.Equals(Microsoft.VisualStudio.Composition.Reflection.FieldRef fieldRef) -> bool
 Microsoft.VisualStudio.Composition.Reflection.FieldRef.FieldInfo.get -> System.Reflection.FieldInfo
 Microsoft.VisualStudio.Composition.Reflection.FieldRef.FieldRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef declaringType, int metadataToken, string name) -> void
-Microsoft.VisualStudio.Composition.Reflection.FieldRef.Name.get -> string
+Microsoft.VisualStudio.Composition.Reflection.MemberRef.AssemblyName.get -> System.Reflection.AssemblyName
 Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberInfo.get -> System.Reflection.MemberInfo
+Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef declaringType, System.Reflection.MemberInfo memberInfo) -> void
+Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef declaringType, int metadataToken) -> void
+Microsoft.VisualStudio.Composition.Reflection.MemberRef.MemberRef(System.Reflection.MemberInfo memberInfo, Microsoft.VisualStudio.Composition.Resolver resolver) -> void
+Microsoft.VisualStudio.Composition.Reflection.MemberRef.MetadataToken.get -> int
+Microsoft.VisualStudio.Composition.Reflection.MethodRef.Equals(Microsoft.VisualStudio.Composition.Reflection.MethodRef other) -> bool
 Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodBase.get -> System.Reflection.MethodBase
-Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodRef(Microsoft.VisualStudio.Composition.Reflection.ConstructorRef constructor) -> void
+Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodBaseNoResolve.get -> System.Reflection.MethodBase
 Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef declaringType, int metadataToken, string name, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> parameterTypes, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> genericMethodArguments) -> void
+Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodRef(System.Reflection.ConstructorInfo constructor, Microsoft.VisualStudio.Composition.Resolver resolver) -> void
 Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodRef(System.Reflection.MethodBase method, Microsoft.VisualStudio.Composition.Resolver resolver) -> void
 Microsoft.VisualStudio.Composition.Reflection.MethodRef.MethodRef(System.Reflection.MethodBase method, Microsoft.VisualStudio.Composition.Resolver resolver, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> parameterTypes) -> void
-Microsoft.VisualStudio.Composition.Reflection.MethodRef.Name.get -> string
 Microsoft.VisualStudio.Composition.Reflection.MethodRef.ParameterTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef>
-Microsoft.VisualStudio.Composition.Reflection.ParameterRef.Constructor.get -> Microsoft.VisualStudio.Composition.Reflection.ConstructorRef
+Microsoft.VisualStudio.Composition.Reflection.ParameterRef.Equals(Microsoft.VisualStudio.Composition.Reflection.ParameterRef other) -> bool
 Microsoft.VisualStudio.Composition.Reflection.ParameterRef.Method.get -> Microsoft.VisualStudio.Composition.Reflection.MethodRef
-Microsoft.VisualStudio.Composition.Reflection.PropertyRef.Name.get -> string
+Microsoft.VisualStudio.Composition.Reflection.ParameterRef.ParameterInfo.get -> System.Reflection.ParameterInfo
+Microsoft.VisualStudio.Composition.Reflection.ParameterRef.ParameterRef(Microsoft.VisualStudio.Composition.Reflection.MethodRef method, int parameterIndex) -> void
+Microsoft.VisualStudio.Composition.Reflection.ParameterRef.ParameterRef(System.Reflection.ParameterInfo parameterInfo, Microsoft.VisualStudio.Composition.Resolver resolver) -> void
+Microsoft.VisualStudio.Composition.Reflection.PropertyRef.Equals(Microsoft.VisualStudio.Composition.Reflection.PropertyRef other) -> bool
 Microsoft.VisualStudio.Composition.Reflection.PropertyRef.PropertyInfo.get -> System.Reflection.PropertyInfo
 Microsoft.VisualStudio.Composition.Reflection.PropertyRef.PropertyRef(Microsoft.VisualStudio.Composition.Reflection.TypeRef declaringType, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken, string name) -> void
+Microsoft.VisualStudio.Composition.Reflection.TypeRef.AssemblyId.get -> Microsoft.VisualStudio.Composition.StrongAssemblyIdentity
 Microsoft.VisualStudio.Composition.Reflection.TypeRef.FullName.get -> string
+Microsoft.VisualStudio.Composition.Reflection.TypeRef.IsGenericType.get -> bool
+Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimeImport.ImportingSiteTypeWithoutCollectionRef.get -> Microsoft.VisualStudio.Composition.Reflection.TypeRef
+Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimeImport.RuntimeImport(Microsoft.VisualStudio.Composition.Reflection.MemberRef importingMemberRef, Microsoft.VisualStudio.Composition.Reflection.TypeRef importingSiteTypeRef, Microsoft.VisualStudio.Composition.Reflection.TypeRef importingSiteTypeWithoutCollectionRef, Microsoft.VisualStudio.Composition.ImportCardinality cardinality, System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, System.Collections.Generic.IReadOnlyDictionary<string, object> metadata, System.Collections.Generic.IReadOnlyCollection<string> exportFactorySharingBoundaries) -> void
+Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimeImport.RuntimeImport(Microsoft.VisualStudio.Composition.Reflection.ParameterRef importingParameterRef, Microsoft.VisualStudio.Composition.Reflection.TypeRef importingSiteTypeRef, Microsoft.VisualStudio.Composition.Reflection.TypeRef importingSiteTypeWithoutCollectionRef, Microsoft.VisualStudio.Composition.ImportCardinality cardinality, System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, System.Collections.Generic.IReadOnlyDictionary<string, object> metadata, System.Collections.Generic.IReadOnlyCollection<string> exportFactorySharingBoundaries) -> void
 Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimePart.ImportingConstructorOrFactoryMethod.get -> System.Reflection.MethodBase
 Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimePart.ImportingConstructorOrFactoryMethodRef.get -> Microsoft.VisualStudio.Composition.Reflection.MethodRef
 Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimePart.RuntimePart(Microsoft.VisualStudio.Composition.Reflection.TypeRef type, Microsoft.VisualStudio.Composition.Reflection.MethodRef importingConstructor, System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimeImport> importingConstructorArguments, System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimeImport> importingMembers, System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimeExport> exports, Microsoft.VisualStudio.Composition.Reflection.MethodRef onImportsSatisfied, string sharingBoundary) -> void
+Microsoft.VisualStudio.Composition.StrongAssemblyIdentity
+Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.Equals(Microsoft.VisualStudio.Composition.StrongAssemblyIdentity other) -> bool
+Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.Mvid.get -> System.Guid
+Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.Name.get -> System.Reflection.AssemblyName
+Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.StrongAssemblyIdentity(System.Reflection.AssemblyName name, System.Guid mvid) -> void
+abstract Microsoft.VisualStudio.Composition.Reflection.MemberRef.EqualsByTypeLocalMetadata(Microsoft.VisualStudio.Composition.Reflection.MemberRef other) -> bool
+abstract Microsoft.VisualStudio.Composition.Reflection.MemberRef.Name.get -> string
+abstract Microsoft.VisualStudio.Composition.Reflection.MemberRef.Resolve() -> System.Reflection.MemberInfo
+override Microsoft.VisualStudio.Composition.Reflection.FieldRef.EqualsByTypeLocalMetadata(Microsoft.VisualStudio.Composition.Reflection.MemberRef other) -> bool
+override Microsoft.VisualStudio.Composition.Reflection.FieldRef.Name.get -> string
+override Microsoft.VisualStudio.Composition.Reflection.FieldRef.Resolve() -> System.Reflection.MemberInfo
+override Microsoft.VisualStudio.Composition.Reflection.MethodRef.EqualsByTypeLocalMetadata(Microsoft.VisualStudio.Composition.Reflection.MemberRef other) -> bool
+override Microsoft.VisualStudio.Composition.Reflection.MethodRef.Name.get -> string
+override Microsoft.VisualStudio.Composition.Reflection.MethodRef.Resolve() -> System.Reflection.MemberInfo
+override Microsoft.VisualStudio.Composition.Reflection.PropertyRef.EqualsByTypeLocalMetadata(Microsoft.VisualStudio.Composition.Reflection.MemberRef other) -> bool
+override Microsoft.VisualStudio.Composition.Reflection.PropertyRef.Name.get -> string
+override Microsoft.VisualStudio.Composition.Reflection.PropertyRef.Resolve() -> System.Reflection.MemberInfo
+override Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.Equals(object obj) -> bool
+override Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.GetHashCode() -> int
 static Microsoft.VisualStudio.Composition.PartDiscovery.GetImportingSiteTypeWithoutCollection(Microsoft.VisualStudio.Composition.ImportDefinition importDefinition, System.Type importingSiteType) -> System.Type
 static Microsoft.VisualStudio.Composition.Reflection.MethodRef.Get(System.Reflection.MethodBase method, Microsoft.VisualStudio.Composition.Resolver resolver) -> Microsoft.VisualStudio.Composition.Reflection.MethodRef
-static Microsoft.VisualStudio.Composition.Reflection.ResolverExtensions.Resolve2(this Microsoft.VisualStudio.Composition.Reflection.MethodRef methodRef) -> System.Reflection.MethodBase
+static Microsoft.VisualStudio.Composition.Reflection.ResolverExtensions.Resolve(this Microsoft.VisualStudio.Composition.Reflection.MethodRef methodRef) -> System.Reflection.MethodBase
+static Microsoft.VisualStudio.Composition.Reflection.TypeRef.Get(Microsoft.VisualStudio.Composition.Resolver resolver, Microsoft.VisualStudio.Composition.StrongAssemblyIdentity assemblyId, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> genericTypeArguments) -> Microsoft.VisualStudio.Composition.Reflection.TypeRef
 static Microsoft.VisualStudio.Composition.Reflection.TypeRef.Get(Microsoft.VisualStudio.Composition.Resolver resolver, System.Reflection.AssemblyName assemblyName, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> genericTypeArguments) -> Microsoft.VisualStudio.Composition.Reflection.TypeRef
-static Microsoft.VisualStudio.Composition.Reflection.TypeRef.Get(Microsoft.VisualStudio.Composition.Resolver resolver, System.Reflection.AssemblyName assemblyName, int metadataToken, string fullName, bool isArray, int genericTypeParameterCount, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef> genericTypeArguments, Microsoft.VisualStudio.Composition.Reflection.MemberRef declaringMember, int declaringMethodParameterIndex = 0) -> Microsoft.VisualStudio.Composition.Reflection.TypeRef
+static Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.CreateFrom(System.Reflection.Assembly assembly, System.Reflection.AssemblyName assemblyName) -> Microsoft.VisualStudio.Composition.StrongAssemblyIdentity
+static Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.CreateFrom(string assemblyFile, System.Reflection.AssemblyName assemblyName) -> Microsoft.VisualStudio.Composition.StrongAssemblyIdentity
+virtual Microsoft.VisualStudio.Composition.PartDiscovery.ThrowOnInvalidExportingMember(System.Reflection.ICustomAttributeProvider member) -> void
+virtual Microsoft.VisualStudio.Composition.PartDiscovery.ThrowOnInvalidImportingMemberOrParameter(System.Reflection.ICustomAttributeProvider member) -> void
+virtual Microsoft.VisualStudio.Composition.Reflection.MemberRef.Equals(Microsoft.VisualStudio.Composition.Reflection.MemberRef other) -> bool

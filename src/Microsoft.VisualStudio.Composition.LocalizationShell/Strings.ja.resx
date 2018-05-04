@@ -64,13 +64,13 @@
     <value>アセンブリ "{0}" 内の型を列挙できません。</value>
   </data>
   <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
-    <value>カスタム インポート コレクション型をインスタンス化できません。</value>
+    <value>カスタム インポート コレクション型 {0} をインスタンス化できません。インポート コンストラクターでこの型の新しいインスタンスを使用して {1} の初期化を試してください。</value>
   </data>
   <data name="UnableToLoadAssembly" xml:space="preserve">
     <value>スキャン用にアセンブリ "{0}" を読み込めません。</value>
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
-    <value>予期しないメンバー型です。</value>
+    <value>予期しないメンバー型 {0} です。</value>
     <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
@@ -92,10 +92,12 @@
     <value>インポートごとに 1 つのエントリが必要です。</value>
   </data>
   <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
-    <value>{0}: {1} のエクスポートは 1 と予想されましたが、見つかったのは {2} です。{3}</value>
+    <value>{0}: 一致する制約:
+{1} のエクスポートは 1 と予想されましたが、見つかったのは {2} です。{3}</value>
   </data>
   <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
-    <value>{0}: {1} のエクスポートは 1 または 0 と予想されましたが、見つかったのは {2} です。{3}</value>
+    <value>{0}: 一致する制約:
+{1} のエクスポートは 0 または 1 と予想されましたが、見つかったのは {2} です。{3}</value>
   </data>
   <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
     <value>{0}: ExportProvider のエクスポートは許可されていません。</value>
@@ -152,7 +154,7 @@
     <value>空にすることはできません。</value>
   </data>
   <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
-    <value>コレクションは、[ImportingConstructor] で使用する場合には、パブリック コンストラクターと共に一般公開されている必要があります。</value>
+    <value>コレクションは、[ImportingConstructor] で使用する場合には、パブリック既定コンストラクターと共に一般公開されている必要があります。</value>
   </data>
   <data name="CompilerErrorsOccurred" xml:space="preserve">
     <value>コンパイル エラーが発生しました。</value>
@@ -217,5 +219,29 @@
   </data>
   <data name="WrongType" xml:space="preserve">
     <value>型が正しくありません。</value>
+  </data>
+  <data name="TypeAlreadyInCatalogAsAnotherPart" xml:space="preserve">
+    <value>型 {0} は、異なる ComposablePartDefinition として既にカタログに属しています。</value>
+    <comment>ComposablePartDefinition is a type name and should not be localized.
+{0} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportingPropertyHasNoSetter" xml:space="preserve">
+    <value>パート "{1}" でのプロパティ "{0}" のインポートでセッターがありません。</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ExportingPropertyHasNoGetter" xml:space="preserve">
+    <value>パート "{1}" でのプロパティ "{0}" のエクスポートでゲッターがありません。</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportManyOnNonCollectionType" xml:space="preserve">
+    <value>型 {0} が、ImportManyAttribute に必要なコレクションではない可能性があります。</value>
+    <comment>ImportManyAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="PartDiscoveryFailedAtMember" xml:space="preserve">
+    <value>パーツの検出がメンバー {0} で失敗しました。</value>
+  </data>
+  <data name="TypeNameWithAssemblyLocation" xml:space="preserve">
+    <value>{0}。{1} ({2} 内)</value>
+    <comment>{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</comment>
   </data>
 </root>

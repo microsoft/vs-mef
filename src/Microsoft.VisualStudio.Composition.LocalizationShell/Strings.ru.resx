@@ -64,13 +64,13 @@
     <value>Не удалось перечислить типы в сборке "{0}".</value>
   </data>
   <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
-    <value>Не удалось создать экземпляр типа коллекции пользовательского импорта.</value>
+    <value>Не удается создать экземпляр пользовательской коллекции импорта типа {0}. Попробуйте инициализировать {1} с новым экземпляром этого типа в конструкторе импорта.</value>
   </data>
   <data name="UnableToLoadAssembly" xml:space="preserve">
     <value>Не удалось загрузить сборку "{0}" для сканирования.</value>
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
-    <value>Неожиданный тип элемента.</value>
+    <value>Неожиданный тип элемента {0}.</value>
     <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
@@ -83,7 +83,7 @@
     <value>Значения не должны быть равны NULL.</value>
   </data>
   <data name="CannotImportBecauseExportingPartCannotBeInstantiated" xml:space="preserve">
-    <value>{0}: невозможно импортировать экспортированное значение из {1}, так как не удается создать экземпляр экспортируемой части. Возможно, отсутствует импортирующий конструктор.</value>
+    <value>{0}: невозможно импортировать экспортированное значение из {1}, так как невозможно создать экземпляр экспортируемой части. Возможно, отсутствует конструктор импорта.</value>
   </data>
   <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
     <value>Тип коллекции должен быть производным от ICollection&lt;T&gt;.</value>
@@ -92,16 +92,18 @@
     <value>Для каждого импорта требуется только одна запись.</value>
   </data>
   <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
-    <value>{0}: ожидается только 1 операция экспорта {1}, но найдено {2}.{3}</value>
+    <value>{0}: ожидался ровно 1 экспорт, соответствующий условиям
+{1}, но получено: {2}.{3}</value>
   </data>
   <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
-    <value>{0}: ожидается 1 или 0 операций экспорта {1}, но найдено {2}.{3}</value>
+    <value>{0}: ожидалось не более 1 экспорта, соответствующего условиям
+{1}, но получено: {2}.{3}</value>
   </data>
   <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
     <value>{0}: экспорт ExportProvider запрещен.</value>
   </data>
   <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
-    <value>В импорте конструктора указан неподдерживаемый тип параметра для [ImportMany]. Поддерживаются только T[] и IEnumerable&lt;T&gt;.</value>
+    <value>Конструктор импорта имеет недопустимый тип параметра для [ImportMany]. Поддерживаются только T[] и IEnumerable&lt;T&gt;.</value>
   </data>
   <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
     <value>{0}: операции импорта, в которых используются параметры универсального типа, не поддерживаются.</value>
@@ -152,7 +154,7 @@
     <value>Не может быть пустым.</value>
   </data>
   <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
-    <value>Коллекция должна быть общей, с общим конструктором, если он используется с атрибутом [ImportingConstructor].</value>
+    <value>Когда [ImportingConstructor] используется с коллекцией, коллекция должна быть открытой и иметь открытый конструктор по умолчанию.</value>
   </data>
   <data name="CompilerErrorsOccurred" xml:space="preserve">
     <value>Произошли ошибки компиляции.</value>
@@ -161,7 +163,7 @@
     <value>Пользовательские источники импорта еще не поддерживаются.</value>
   </data>
   <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
-    <value>Член "{0}" содержит атрибуты метаданных с идентичным именем свойства. Имя свойства: "{1}".</value>
+    <value>Элемент "{0}" содержит атрибуты метаданных с одинаковым именем свойства. Имя свойства: "{1}".</value>
     <comment>{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</comment>
   </data>
@@ -217,5 +219,29 @@
   </data>
   <data name="WrongType" xml:space="preserve">
     <value>Неправильный тип.</value>
+  </data>
+  <data name="TypeAlreadyInCatalogAsAnotherPart" xml:space="preserve">
+    <value>Тип {0} уже принадлежит каталогу в качестве другого элемента ComposablePartDefinition.</value>
+    <comment>ComposablePartDefinition is a type name and should not be localized.
+{0} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportingPropertyHasNoSetter" xml:space="preserve">
+    <value>При импорте свойства "{0}" в части "{1}" не указан метод задания.</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ExportingPropertyHasNoGetter" xml:space="preserve">
+    <value>При экспорте свойства "{0}" в части "{1}" не указан метод получения.</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportManyOnNonCollectionType" xml:space="preserve">
+    <value>Похоже, тип {0} не является коллекцией, необходимой для атрибута ImportManyAttribute.</value>
+    <comment>ImportManyAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="PartDiscoveryFailedAtMember" xml:space="preserve">
+    <value>Обнаружение частей завершилось ошибкой на элементе {0}.</value>
+  </data>
+  <data name="TypeNameWithAssemblyLocation" xml:space="preserve">
+    <value>{0}.{1} (в {2})</value>
+    <comment>{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</comment>
   </data>
 </root>

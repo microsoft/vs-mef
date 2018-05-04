@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.0;net40;net45;netstandard2.0</TargetFrameworks>
+    <RootNamespace>System.ComponentModel.Composition</RootNamespace>
+    <Description>The MEF attributes and runtime classes in the .NET Managed Extensibility Framework (MEF) that are used for imports and exports, and exception types, in a .NET Standard compliant NuGet package form, as found in the System.ComponentModel.Composition namespace.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.ComponentModel.Composition" Condition=" '$(TargetFramework)' == 'net40' " />
+    <PackageReference Include="System.ComponentModel.Composition" Version="4.5.0-preview1-26216-02" Condition=" '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'netstandard2.0' " />
+  </ItemGroup>
+</Project>

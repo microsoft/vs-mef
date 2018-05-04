@@ -49,7 +49,7 @@
     <value>Não é possível criar uma instância desta parte ({0}).</value>
   </data>
   <data name="ReflectionTypeLoadExceptionWhileEnumeratingTypes" xml:space="preserve">
-    <value>ExceçãoDeCargaTipoReflexão ao enumerar tipos em assembly "{0}". Os resultados serão incompletos.</value>
+    <value>ReflectionTypeLoadException ao enumerar tipos no assembly "{0}". Os resultados estarão incompletos.</value>
   </data>
   <data name="ScanningMEFAssemblies" xml:space="preserve">
     <value>Verificando assemblies de MEF...</value>
@@ -64,13 +64,13 @@
     <value>Não é possível enumerar os tipos no assembly "{0}".</value>
   </data>
   <data name="UnableToInstantiateCustomImportCollectionType" xml:space="preserve">
-    <value>Não é possível criar uma instância do tipo de coleção de importação personalizada.</value>
+    <value>Não é possível criar uma instância do tipo de coleção de importação personalizado {0}. Tente inicializar {1} com uma nova instância deste tipo em seu construtor de importação.</value>
   </data>
   <data name="UnableToLoadAssembly" xml:space="preserve">
     <value>Não é possível carregar o assembly "{0}" para verificação.</value>
   </data>
   <data name="UnexpectedMemberType" xml:space="preserve">
-    <value>Tipo de membro inesperado.</value>
+    <value>Tipo de membro inesperado {0}.</value>
     <comment>Where {0} will be substituted with an enum value.</comment>
   </data>
   <data name="UnexpectedNumberOfExportsFound" xml:space="preserve">
@@ -83,7 +83,7 @@
     <value>Todos os valores devem ser não nulos.</value>
   </data>
   <data name="CannotImportBecauseExportingPartCannotBeInstantiated" xml:space="preserve">
-    <value>{0}: não é possível importar o valor exportado de {1} porque não é possível criar uma instância da parte de exportação. Um construtor de importação está ausente?</value>
+    <value>{0}: não é possível importar o valor exportado de {1} porque não é possível criar uma instância da parte exportadora. Um construtor de importação está ausente nele?</value>
   </data>
   <data name="CollectionTypeMustDeriveFromICollectionOfT" xml:space="preserve">
     <value>O tipo de coleção deve derivar de ICollection&lt;T&gt;.</value>
@@ -92,16 +92,18 @@
     <value>Deve haver exatamente uma entrada para cada importação.</value>
   </data>
   <data name="ExpectedExactlyOneExportButFound" xml:space="preserve">
-    <value>{0}: esperava-se exatamente 1 exportação de {1}, mas foram encontradas {2}.{3}</value>
+    <value>{0}: esperava-se exatamente 1 exportação correspondente às restrições:
+{1}mas foram encontradas {2}.{3}</value>
   </data>
   <data name="ExpectedOneOrZeroExportsButFound" xml:space="preserve">
-    <value>{0}: esperava-se 1 ou 0 exportação de {1}, mas foram encontradas {2}.{3}</value>
+    <value>{0}: esperava-se 1 ou 0 exportação correspondente às restrições:
+{1}mas foram encontradas {2}.{3}</value>
   </data>
   <data name="ExportOfExportProviderNotAllowed" xml:space="preserve">
     <value>{0}: Não é permitida exportação do ProvedorDeExportação.</value>
   </data>
   <data name="ImportingCtorHasUnsupportedParameterTypeForImportMany" xml:space="preserve">
-    <value>O construtor de importação possui um tipo de parâmetro sem suporte para um [ImportarMuitos]. Somente T[] e IEnumerable&lt;T&gt; têm suporte.</value>
+    <value>O construtor de importação tem um tipo de parâmetro sem suporte para um [ImportMany]. Somente T[] e IEnumerable&lt;T&gt; são compatíveis.</value>
   </data>
   <data name="ImportsThatUseGenericTypeParametersNotSupported" xml:space="preserve">
     <value>{0}: importações que usam parâmetros de tipo genérico não têm suporte.</value>
@@ -152,7 +154,7 @@
     <value>Não pode ficar em branco.</value>
   </data>
   <data name="CollectionMustBePublicAndPublicCtorWhenUsingImportingCtor" xml:space="preserve">
-    <value>A coleção deve ser pública, com um construtor público quando usado com um [ConstrutorDeImportação].</value>
+    <value>A coleção precisa ser pública com um construtor público padrão quando usada com um [ImportingConstructor].</value>
   </data>
   <data name="CompilerErrorsOccurred" xml:space="preserve">
     <value>Ocorreram erros de compilação.</value>
@@ -161,7 +163,7 @@
     <value>Ainda não há suporte para fontes de importação personalizadas.</value>
   </data>
   <data name="DiscoveredIdenticalPropertiesInMetadataAttributesForPart" xml:space="preserve">
-    <value>O membro "{0}" contém atributos de metadados com um nome de propriedade idêntico. Nome da propriedade: "{1}".</value>
+    <value>O membro "{0}" contém atributos de metadados com um nome da propriedade idêntico. Nome da propriedade: "{1}".</value>
     <comment>{0} = member (full name if possible) with invalid metadata attributes.
 {1} = the property's name.</comment>
   </data>
@@ -217,5 +219,29 @@
   </data>
   <data name="WrongType" xml:space="preserve">
     <value>Tipo incorreto.</value>
+  </data>
+  <data name="TypeAlreadyInCatalogAsAnotherPart" xml:space="preserve">
+    <value>O tipo {0} já pertence ao catálogo como uma ComposablePartDefinition diferente.</value>
+    <comment>ComposablePartDefinition is a type name and should not be localized.
+{0} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportingPropertyHasNoSetter" xml:space="preserve">
+    <value>A propriedade de importação "{0}" na parte "{1}" não tem nenhum setter.</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ExportingPropertyHasNoGetter" xml:space="preserve">
+    <value>A propriedade de exportação "{0}" na parte "{1}" não tem nenhum getter.</value>
+    <comment>{0} is a property name. {1} is a fully-qualified type name.</comment>
+  </data>
+  <data name="ImportManyOnNonCollectionType" xml:space="preserve">
+    <value>O tipo {0} não parece ser uma coleção de acordo com a exigência de ImportManyAttribute.</value>
+    <comment>ImportManyAttribute is a type name and should not be translated.</comment>
+  </data>
+  <data name="PartDiscoveryFailedAtMember" xml:space="preserve">
+    <value>Falha da descoberta de parte no membro {0}.</value>
+  </data>
+  <data name="TypeNameWithAssemblyLocation" xml:space="preserve">
+    <value>{0}.{1} (em {2})</value>
+    <comment>{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</comment>
   </data>
 </root>
