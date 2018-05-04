@@ -26,9 +26,11 @@ namespace Microsoft.VisualStudio.Composition
             {
                 using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
                 {
-                    var context = new SerializationContext(writer, catalog.Parts.Count * 4, catalog.Resolver);
-                    context.Write(catalog);
-                    context.FinalizeObjectTableCapacity();
+                    using (var context = new SerializationContext(writer, catalog.Parts.Count * 4, catalog.Resolver))
+                    {
+                        context.Write(catalog);
+                        context.FinalizeObjectTableCapacity();
+                    }
                 }
             });
         }
@@ -42,9 +44,11 @@ namespace Microsoft.VisualStudio.Composition
             {
                 using (var reader = new BinaryReader(cacheStream, TextEncoding, leaveOpen: true))
                 {
-                    var context = new SerializationContext(reader, resolver);
-                    var catalog = context.ReadComposableCatalog();
-                    return catalog;
+                    using (var context = new SerializationContext(reader, resolver))
+                    {
+                        var catalog = context.ReadComposableCatalog();
+                        return catalog;
+                    }
                 }
             });
         }
@@ -71,7 +75,7 @@ namespace Microsoft.VisualStudio.Composition
 
             internal void Write(ComposableCatalog catalog)
             {
-                using (this.Trace("Catalog"))
+                using (this.Trace(nameof(ComposableCatalog)))
                 {
                     this.Write(catalog.Parts, this.Write);
                 }
@@ -79,7 +83,7 @@ namespace Microsoft.VisualStudio.Composition
 
             internal ComposableCatalog ReadComposableCatalog()
             {
-                using (this.Trace("Catalog"))
+                using (this.Trace(nameof(ComposableCatalog)))
                 {
                     var parts = this.ReadList(this.ReadComposablePartDefinition);
                     return ComposableCatalog.Create(this.Resolver).AddParts(parts);
@@ -88,7 +92,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private void Write(ComposablePartDefinition partDefinition)
             {
-                using (this.Trace("ComposablePartDefinition"))
+                using (this.Trace(nameof(ComposablePartDefinition)))
                 {
                     this.Write(partDefinition.TypeRef);
                     this.Write(partDefinition.Metadata);
@@ -122,7 +126,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private ComposablePartDefinition ReadComposablePartDefinition()
             {
-                using (this.Trace("ComposablePartDefinition"))
+                using (this.Trace(nameof(ComposablePartDefinition)))
                 {
                     var partType = this.ReadTypeRef();
                     var partMetadata = this.ReadMetadata();
@@ -169,7 +173,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private void Write(CreationPolicy creationPolicy)
             {
-                using (this.Trace("CreationPolicy"))
+                using (this.Trace(nameof(CreationPolicy)))
                 {
                     this.writer.Write((byte)creationPolicy);
                 }
@@ -177,7 +181,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private CreationPolicy ReadCreationPolicy()
             {
-                using (this.Trace("CreationPolicy"))
+                using (this.Trace(nameof(CreationPolicy)))
                 {
                     return (CreationPolicy)this.reader.ReadByte();
                 }
@@ -185,7 +189,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private void Write(ExportDefinition exportDefinition)
             {
-                using (this.Trace("ExportDefinition"))
+                using (this.Trace(nameof(ExportDefinition)))
                 {
                     this.Write(exportDefinition.ContractName);
                     this.Write(exportDefinition.Metadata);
@@ -194,7 +198,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private ExportDefinition ReadExportDefinition()
             {
-                using (this.Trace("ExportDefinition"))
+                using (this.Trace(nameof(ExportDefinition)))
                 {
                     var contractName = this.ReadString();
                     var metadata = this.ReadMetadata();
@@ -204,7 +208,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private void Write(ImportDefinition importDefinition)
             {
-                using (this.Trace("ImportDefinition"))
+                using (this.Trace(nameof(ImportDefinition)))
                 {
                     this.Write(importDefinition.ContractName);
                     this.Write(importDefinition.Cardinality);
@@ -216,7 +220,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private ImportDefinition ReadImportDefinition()
             {
-                using (this.Trace("ImportDefinition"))
+                using (this.Trace(nameof(ImportDefinition)))
                 {
                     var contractName = this.ReadString();
                     var cardinality = this.ReadImportCardinality();
@@ -229,7 +233,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private void Write(ImportDefinitionBinding importDefinitionBinding)
             {
-                using (this.Trace("ImportDefinitionBinding"))
+                using (this.Trace(nameof(ImportDefinitionBinding)))
                 {
                     this.Write(importDefinitionBinding.ImportDefinition);
                     this.Write(importDefinitionBinding.ComposablePartTypeRef);
@@ -251,7 +255,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private ImportDefinitionBinding ReadImportDefinitionBinding()
             {
-                using (this.Trace("ImportDefinitionBinding"))
+                using (this.Trace(nameof(ImportDefinitionBinding)))
                 {
                     var importDefinition = this.ReadImportDefinition();
                     var part = this.ReadTypeRef();
@@ -276,7 +280,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private void Write(IImportSatisfiabilityConstraint importConstraint)
             {
-                using (this.Trace("IImportSatisfiabilityConstraint"))
+                using (this.Trace(nameof(IImportSatisfiabilityConstraint)))
                 {
                     ConstraintTypes type;
                     if (importConstraint is ImportMetadataViewConstraint)
@@ -335,7 +339,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private IImportSatisfiabilityConstraint ReadIImportSatisfiabilityConstraint()
             {
-                using (this.Trace("IImportSatisfiabilityConstraint"))
+                using (this.Trace(nameof(IImportSatisfiabilityConstraint)))
                 {
                     var type = (ConstraintTypes)this.reader.ReadByte();
                     switch (type)
