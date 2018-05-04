@@ -15,16 +15,32 @@ namespace Microsoft.VisualStudio.Composition
 
     public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
-        private static readonly ImportMetadataViewConstraint EmptyInstance = new ImportMetadataViewConstraint(ImmutableDictionary<string, MetadatumRequirement>.Empty);
+        private static readonly ImportMetadataViewConstraint EmptyInstance = new ImportMetadataViewConstraint(ImmutableDictionary<string, MetadatumRequirement>.Empty, resolver: null);
 
-        public ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> metadataNamesAndTypes)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ImportMetadataViewConstraint"/> class.
+        /// </summary>
+        /// <param name="metadataNamesAndTypes">The metadata names and requirements.</param>
+        /// <param name="resolver">A resolver to use when handling <see cref="TypeRef"/> objects. Must not be null unless <paramref name="metadataNamesAndTypes"/> is empty.</param>
+        public ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> metadataNamesAndTypes, Resolver resolver)
         {
             Requires.NotNull(metadataNamesAndTypes, nameof(metadataNamesAndTypes));
+            if (metadataNamesAndTypes.Count > 0)
+            {
+                Requires.NotNull(resolver, nameof(resolver));
+            }
 
             this.Requirements = ImmutableDictionary.CreateRange(metadataNamesAndTypes);
+            this.Resolver = resolver;
         }
 
         public ImmutableDictionary<string, MetadatumRequirement> Requirements { get; private set; }
+
+        /// <summary>
+        /// Gets the <see cref="Composition.Resolver"/> to use.
+        /// May be <c>null</c> if <see cref="Requirements"/> is empty.
+        /// </summary>
+        public Resolver Resolver { get; }
 
         /// <summary>
         /// Creates a constraint for the specified metadata type.
@@ -45,7 +61,7 @@ namespace Microsoft.VisualStudio.Composition
                 return EmptyInstance;
             }
 
-            return new ImportMetadataViewConstraint(requirements);
+            return new ImportMetadataViewConstraint(requirements, resolver);
         }
 
         public bool IsSatisfiedBy(ExportDefinition exportDefinition)

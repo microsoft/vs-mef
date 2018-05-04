@@ -351,7 +351,7 @@ namespace Microsoft.VisualStudio.Composition
                                 requirements.Add(name, new ImportMetadataViewConstraint.MetadatumRequirement(valueTypeRef, isRequired));
                             }
 
-                            return new ImportMetadataViewConstraint(requirements.ToImmutable());
+                            return new ImportMetadataViewConstraint(requirements.ToImmutable(), this.Resolver);
                         case ConstraintTypes.ExportTypeIdentityConstraint:
                             string exportTypeIdentity = this.ReadString();
                             return new ExportTypeIdentityConstraint(exportTypeIdentity);
