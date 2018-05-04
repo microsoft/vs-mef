@@ -25,6 +25,16 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Value);
         }
 
+        [MefFact(CompositionEngines.V2Compat | CompositionEngines.V1Compat, typeof(ImportingPartWithMetadataConcreteDictionary), typeof(PartWithExportMetadata))]
+        public void ImportWithMetadataConcreteDictionary(IContainer container)
+        {
+            var importingPart = container.GetExportedValue<ImportingPartWithMetadataConcreteDictionary>();
+            Assert.NotNull(importingPart.ImportingProperty);
+            Assert.Equal("b", importingPart.ImportingProperty.Metadata["a"]);
+            Assert.False(importingPart.ImportingProperty.IsValueCreated);
+            Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Value);
+        }
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ImportingPartWithMetadataDictionary), typeof(PartWithExportMetadata))]
         [Trait("Efficiency", "InstanceReuse")]
         public void MetadataDictionaryInstanceSharedAcrossImports(IContainer container)
@@ -577,6 +587,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import, MefV1.Import]
             public Lazy<PartWithExportMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        [Export]
+        public class ImportingPartWithMetadataConcreteDictionary
+        {
+            [Import, MefV1.Import]
+            public Lazy<PartWithExportMetadata, Dictionary<string, object>> ImportingProperty { get; set; }
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]

@@ -14,7 +14,7 @@ namespace System.ComponentModel.Composition
     using System;
 
     /// <summary>
-    ///     Specifies that a type, property, field, or method provides a particular export.
+    ///     Specifies the type used to implement a metadata view.
     /// </summary>
     [AttributeUsage(AttributeTargets.Interface, AllowMultiple = false, Inherited = false)]
     public sealed class MetadataViewImplementationAttribute : Attribute
@@ -29,7 +29,7 @@ namespace System.ComponentModel.Composition
         /// <remarks>
         ///     <para>
         ///         By default MetadataViews are generated using reflection emit.  This attribute
-        ///         allows the developer to specify the ttype that implements the view rather than
+        ///         allows the developer to specify the type that implements the view rather than
         ///         using a generated type.
         ///     </para>
         /// </remarks>

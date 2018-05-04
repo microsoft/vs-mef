@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Composition
     internal class MetadataViewClassDefaultCtorProvider : IMetadataViewProvider
     {
         internal static readonly ComposablePartDefinition PartDefinition =
-            Utilities.GetMetadataViewProviderPartDefinition(typeof(MetadataViewClassDefaultCtorProvider), 1100000, Resolver.DefaultInstance);
+            Utilities.GetMetadataViewProviderPartDefinition(typeof(MetadataViewClassDefaultCtorProvider), 900000, Resolver.DefaultInstance);
 
         internal static readonly IMetadataViewProvider Default = new MetadataViewClassDefaultCtorProvider();
 
