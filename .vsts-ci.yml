@@ -43,6 +43,11 @@ steps:
     esrpSigning: true
     zipSources: false
 
+- task: NuGetToolInstaller@0
+  inputs:
+    versionSpec: 4.6.2
+  displayName: Pin nuget.exe version
+
 - task: NuGetCommand@2
   inputs:
     restoreSolution: '**\*.sln'
@@ -61,9 +66,18 @@ steps:
 - task: MicroBuildCleanup@1
   condition: succeededOrFailed()
 
+- task: PowerShell@2
+  displayName: Collect logs
+  inputs:
+    targetType: inline
+    script: |
+      robocopy obj "$(Build.ArtifactStagingDirectory)\build_logs\obj" project.assets.json /s
+    ignoreLASTEXITCODE: true
+  condition: succeededOrFailed()
+
 - task: PublishBuildArtifacts@1
   inputs:
-    PathtoPublish: $(Build.ArtifactStagingDirectory)\build_logs\$(BuildConfiguration)
+    PathtoPublish: $(Build.ArtifactStagingDirectory)\build_logs
     ArtifactName: build_logs
     ArtifactType: Container
   displayName: 'Publish Artifact: build logs'
