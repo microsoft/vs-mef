@@ -10,6 +10,7 @@ namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
@@ -86,12 +87,41 @@ namespace Microsoft.VisualStudio.Composition
         private static readonly MethodInfo ObjectGetType = typeof(object).GetTypeInfo().GetMethod("GetType", Type.EmptyTypes);
         private static readonly ConstructorInfo ObjectCtor = typeof(object).GetTypeInfo().GetConstructor(Type.EmptyTypes);
 
+        private static readonly Dictionary<ImmutableHashSet<AssemblyName>, ModuleBuilder> TransparentProxyModuleBuilderByVisibilityCheck = new Dictionary<ImmutableHashSet<AssemblyName>, ModuleBuilder>(new ByContentEqualityComparer());
+
         public delegate object MetadataViewFactory(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata);
 
         private static AssemblyBuilder CreateProxyAssemblyBuilder(ConstructorInfo constructorInfo)
         {
             var proxyAssemblyName = new AssemblyName(string.Format(CultureInfo.InvariantCulture, "MetadataViewProxies_{0}", Guid.NewGuid()));
             return AssemblyBuilder.DefineDynamicAssembly(proxyAssemblyName, AssemblyBuilderAccess.Run);
+        }
+
+        /// <summary>
+        /// Gets the <see cref="ModuleBuilder"/> to use for generating a proxy for the given type.
+        /// </summary>
+        /// <param name="viewType">The type of the interface to generate a proxy for.</param>
+        /// <returns>The <see cref="ModuleBuilder"/> to use.</returns>
+        private static ModuleBuilder GetProxyModuleBuilder(TypeInfo viewType)
+        {
+            Requires.NotNull(viewType, nameof(viewType));
+            Assumes.True(Monitor.IsEntered(MetadataViewFactories));
+
+            // Dynamic assemblies are relatively expensive. We want to create as few as possible.
+            // For each unique set of skip visibility check assemblies, we need a new dynamic assembly
+            // because the CLR will not honor any additions to that set once the first generated type is closed.
+            // So maintain a dictionary to point at dynamic modules based on the set of skip visiblity check assemblies they were generated with.
+            var skipVisibilityCheckAssemblies = SkipClrVisibilityChecks.GetSkipVisibilityChecksRequirements(viewType);
+            if (!TransparentProxyModuleBuilderByVisibilityCheck.TryGetValue(skipVisibilityCheckAssemblies, out ModuleBuilder moduleBuilder))
+            {
+                var assemblyBuilder = CreateProxyAssemblyBuilder(typeof(SecurityTransparentAttribute).GetTypeInfo().GetConstructor(Type.EmptyTypes));
+                moduleBuilder = assemblyBuilder.DefineDynamicModule("MetadataViewProxiesModule");
+                var skipClrVisibilityChecks = new SkipClrVisibilityChecks(assemblyBuilder, moduleBuilder);
+                skipClrVisibilityChecks.SkipVisibilityChecksFor(skipVisibilityCheckAssemblies);
+                TransparentProxyModuleBuilderByVisibilityCheck.Add(skipVisibilityCheckAssemblies, moduleBuilder);
+            }
+
+            return moduleBuilder;
         }
 
         public static MetadataViewFactory GetMetadataViewFactory(Type viewType)
@@ -124,11 +154,7 @@ namespace Microsoft.VisualStudio.Composition
             TypeBuilder proxyTypeBuilder;
             Type[] interfaces = { viewType };
 
-            var assemblyBuilder = CreateProxyAssemblyBuilder(typeof(SecurityTransparentAttribute).GetTypeInfo().GetConstructor(Type.EmptyTypes));
-            var proxyModuleBuilder = assemblyBuilder.DefineDynamicModule("MetadataViewProxiesModule");
-            var skipClrVisibilityChecks = new SkipClrVisibilityChecks(assemblyBuilder, proxyModuleBuilder);
-            skipClrVisibilityChecks.SkipVisibilityChecksFor(viewType.GetTypeInfo());
-
+            var proxyModuleBuilder = GetProxyModuleBuilder(viewType.GetTypeInfo());
             proxyTypeBuilder = proxyModuleBuilder.DefineType(
                 string.Format(CultureInfo.InvariantCulture, "_proxy_{0}_{1}", viewType.FullName, Guid.NewGuid()),
                 TypeAttributes.Public,
@@ -253,6 +279,30 @@ namespace Microsoft.VisualStudio.Composition
         private static IEnumerable<PropertyInfo> GetAllProperties(this Type type)
         {
             return type.GetTypeInfo().GetInterfaces().Concat(new Type[] { type }).SelectMany(itf => itf.GetTypeInfo().GetProperties());
+        }
+
+        private class ByContentEqualityComparer : IEqualityComparer<ImmutableHashSet<AssemblyName>>
+        {
+            public bool Equals(ImmutableHashSet<AssemblyName> x, ImmutableHashSet<AssemblyName> y)
+            {
+                if (x.Count != y.Count)
+                {
+                    return false;
+                }
+
+                return !x.Except(y).Any();
+            }
+
+            public int GetHashCode(ImmutableHashSet<AssemblyName> obj)
+            {
+                int hashCode = 0;
+                foreach (var item in obj)
+                {
+                    hashCode += item.GetHashCode();
+                }
+
+                return hashCode;
+            }
         }
     }
 }
