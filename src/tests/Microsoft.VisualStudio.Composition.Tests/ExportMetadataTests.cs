@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// </summary>
         [Trait("Access", "NonPublic")]
         [MefFact(CompositionEngines.V3EmulatingV1, typeof(ImportManyPartWithInternalMetadataInterface), typeof(ImportManyPartWithInternalMetadataInterface2), typeof(PartWithExportMetadata))]
-        public void ThreadSafetyTestForInternalInterfaceProxyGeneration_1Then2(IContainer container)
+        public void InternalMetadataViewInterfacesAcrossMultipleAssemblies(IContainer container)
         {
             container.GetExportedValue<ImportManyPartWithInternalMetadataInterface>();
             container.GetExportedValue<ImportManyPartWithInternalMetadataInterface2>();
