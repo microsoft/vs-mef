@@ -268,10 +268,15 @@ namespace Microsoft.VisualStudio.Composition
         /// Throws an exception if certain basic rules for an importing member or parameter are violated.
         /// </summary>
         /// <param name="member">The importing member or importing parameter.</param>
-        protected virtual void ThrowOnInvalidImportingMemberOrParameter(ICustomAttributeProvider member)
+        /// <param name="isImportMany">A value indicating whether the import is an ImportMany.</param>
+        protected virtual void ThrowOnInvalidImportingMemberOrParameter(ICustomAttributeProvider member, bool isImportMany)
         {
             Requires.NotNull(member, nameof(member));
-            if (member is PropertyInfo importingMember && importingMember.SetMethod == null)
+
+            // Properties with [ImportMany] needn't have a setter (strictly speaking) if the importing constructor
+            // sets a non-null collection instance to that property. When the collection is pre-created, MEF will just
+            // add elements to the collection.
+            if (!isImportMany && member is PropertyInfo importingMember && importingMember.SetMethod == null)
             {
                 throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ImportingPropertyHasNoSetter, importingMember.Name, importingMember.DeclaringType.FullName));
             }
