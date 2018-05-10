@@ -98,10 +98,19 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Empty(container.GetExportedValues<PartWithImportPropertyAndNoSetter>());
         }
 
-        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3AllowConfigurationWithErrors, typeof(PartWithImportManyPropertyAndNoSetter), typeof(ValidExportingPart), InvalidConfiguration = true)]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithImportManyPropertyAndNoSetter), typeof(ValidExportingPart))]
         public void ImportManyPropertyHasNoSetter(IContainer container)
         {
-            Assert.Empty(container.GetExportedValues<PartWithImportManyPropertyAndNoSetter>());
+            var export = container.GetExportedValue<PartWithImportManyPropertyAndNoSetter>();
+            Assert.NotEmpty(export.ImportingProperty);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartWithImportManyPropertyAndNoSetterNoInit), typeof(ValidExportingPart))]
+        public void ImportManyPropertyHasNoSetterAndNoInit(IContainer container)
+        {
+            // In this case, the ImportMany property had no setter, but we wouldn't know till runtime that the property
+            // isn't initialized by the ImportingConstructor. So we have to fail as a last resort.
+            Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<PartWithImportManyPropertyAndNoSetterNoInit>());
         }
 
         [MefFact(CompositionEngines.V2Compat, typeof(PartWithImportPropertyAndNoSetter), typeof(ValidExportingPart))]
@@ -111,10 +120,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Null(part.ImportingProperty); // MEFv2 quietly does not set the import
         }
 
-        [MefFact(CompositionEngines.V2Compat, typeof(PartWithImportManyPropertyAndNoSetter), typeof(ValidExportingPart))]
+        [MefFact(CompositionEngines.V2Compat, typeof(PartWithImportManyPropertyAndNoSetterNoInit), typeof(ValidExportingPart))]
         public void ImportManyPropertyHasNoSetterV2(IContainer container)
         {
-            var part = container.GetExportedValue<PartWithImportManyPropertyAndNoSetter>();
+            var part = container.GetExportedValue<PartWithImportManyPropertyAndNoSetterNoInit>();
             Assert.Null(part.ImportingProperty); // MEFv2 quietly does not set the import
         }
 
@@ -170,6 +179,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         [MefV1.Export, Export]
         public class PartWithImportManyPropertyAndNoSetter
+        {
+            [MefV1.ImportMany, ImportMany]
+            public List<ValidExportingPart> ImportingProperty { get; } = new List<ValidExportingPart>();
+        }
+
+        [MefV1.Export, Export]
+        public class PartWithImportManyPropertyAndNoSetterNoInit
         {
             [MefV1.ImportMany, ImportMany]
             public List<ValidExportingPart> ImportingProperty { get; }

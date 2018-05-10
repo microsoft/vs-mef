@@ -74,5 +74,5 @@ static Microsoft.VisualStudio.Composition.Reflection.TypeRef.Get(Microsoft.Visua
 static Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.CreateFrom(System.Reflection.Assembly assembly, System.Reflection.AssemblyName assemblyName) -> Microsoft.VisualStudio.Composition.StrongAssemblyIdentity
 static Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.CreateFrom(string assemblyFile, System.Reflection.AssemblyName assemblyName) -> Microsoft.VisualStudio.Composition.StrongAssemblyIdentity
 virtual Microsoft.VisualStudio.Composition.PartDiscovery.ThrowOnInvalidExportingMember(System.Reflection.ICustomAttributeProvider member) -> void
-virtual Microsoft.VisualStudio.Composition.PartDiscovery.ThrowOnInvalidImportingMemberOrParameter(System.Reflection.ICustomAttributeProvider member) -> void
+virtual Microsoft.VisualStudio.Composition.PartDiscovery.ThrowOnInvalidImportingMemberOrParameter(System.Reflection.ICustomAttributeProvider member, bool isImportMany) -> void
 virtual Microsoft.VisualStudio.Composition.Reflection.MemberRef.Equals(Microsoft.VisualStudio.Composition.Reflection.MemberRef other) -> bool

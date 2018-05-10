@@ -312,7 +312,7 @@ namespace Microsoft.VisualStudio.Composition
 
             if (importAttribute != null)
             {
-                this.ThrowOnInvalidImportingMemberOrParameter(member);
+                this.ThrowOnInvalidImportingMemberOrParameter(member, isImportMany: false);
 
                 Type contractType = GetTypeIdentityFromImportingType(importingType, importMany: false);
                 if (contractType.IsAnyLazyType() || contractType.IsExportFactoryTypeV2())
@@ -333,7 +333,7 @@ namespace Microsoft.VisualStudio.Composition
             }
             else if (importManyAttribute != null)
             {
-                this.ThrowOnInvalidImportingMemberOrParameter(member);
+                this.ThrowOnInvalidImportingMemberOrParameter(member, isImportMany: true);
 
                 Type contractType = GetTypeIdentityFromImportingType(importingType, importMany: true);
                 importConstraints = importConstraints

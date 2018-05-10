@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.Composition
 
             if (importAttribute != null)
             {
-                this.ThrowOnInvalidImportingMemberOrParameter(member);
+                this.ThrowOnInvalidImportingMemberOrParameter(member, isImportMany: false);
 
                 if (importAttribute.Source != ImportSource.Any)
                 {
@@ -317,7 +317,7 @@ namespace Microsoft.VisualStudio.Composition
             }
             else if (importManyAttribute != null)
             {
-                this.ThrowOnInvalidImportingMemberOrParameter(member);
+                this.ThrowOnInvalidImportingMemberOrParameter(member, isImportMany: true);
 
                 if (importManyAttribute.Source != ImportSource.Any)
                 {
