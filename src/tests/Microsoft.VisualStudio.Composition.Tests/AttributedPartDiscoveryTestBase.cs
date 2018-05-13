@@ -107,6 +107,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var discoverablePart = exportProvider.GetExportedValue<DiscoverablePart1>();
         }
 
+#if !NETCOREAPP2_0 // .NET Core doesn't let us test with missing assemblies
         [Fact]
         public async Task AssemblyDiscoveryDropsTypesWithProblematicAttributes()
         {
@@ -122,7 +123,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotEqual(0, result.Parts.Count);
         }
 
-        [SkippableFact]
+        [Fact]
         public async Task AssemblyDiscoveryDropsProblematicTypesAndSalvagesOthersInSameAssembly()
         {
             // If this assert fails, it means that the assembly that is supposed to be undiscoverable
@@ -145,6 +146,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.True(result.Parts.Any(p => p.Type == typeof(GoodPartInAssemblyWithBadTypes)));
             Assert.True(result.Parts.Any(p => p.Type == typeof(DiscoverablePart1)));
         }
+#endif
 
         #region TypeDiscoveryOmitsNestedTypes test
 
