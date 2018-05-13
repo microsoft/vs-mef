@@ -107,19 +107,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var discoverablePart = exportProvider.GetExportedValue<DiscoverablePart1>();
         }
 
-        [SkippableFact]
+#if !NETCOREAPP2_0 // .NET Core doesn't let us test with missing assemblies
+        [Fact]
         public async Task AssemblyDiscoveryDropsTypesWithProblematicAttributes()
         {
             // If this assert fails, it means that the assembly that is supposed to be undiscoverable
             // by this unit test is actually discoverable. Check that CopyLocal=false for all references
             // to Microsoft.VisualStudio.Composition.MissingAssemblyTests and that the assembly
             // is not building to the same directory as the test assemblies.
-            try
-            {
-                typeof(TypeWithMissingAttribute).GetTypeInfo().GetCustomAttributes(false);
-                Skip.If(true, "The missing assembly is present. Test cannot verify proper operation.");
-            }
-            catch (FileNotFoundException) { }
+            Assert.Throws<FileNotFoundException>(() => typeof(TypeWithMissingAttribute).GetTypeInfo().GetCustomAttributes(false));
 
             var result = await this.DiscoveryService.CreatePartsAsync(typeof(TypeWithMissingAttribute).GetTypeInfo().Assembly);
 
@@ -127,19 +123,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotEqual(0, result.Parts.Count);
         }
 
-        [SkippableFact]
+        [Fact]
         public async Task AssemblyDiscoveryDropsProblematicTypesAndSalvagesOthersInSameAssembly()
         {
             // If this assert fails, it means that the assembly that is supposed to be undiscoverable
             // by this unit test is actually discoverable. Check that CopyLocal=false for all references
             // to Microsoft.VisualStudio.Composition.MissingAssemblyTests and that the assembly
             // is not building to the same directory as the test assemblies.
-            try
-            {
-                typeof(TypeWithMissingAttribute).GetTypeInfo().GetCustomAttributes(false);
-                Skip.If(true, "The missing assembly is present. Test cannot verify proper operation.");
-            }
-            catch (FileNotFoundException) { }
+            Assert.Throws<FileNotFoundException>(() => typeof(TypeWithMissingAttribute).GetTypeInfo().GetCustomAttributes(false));
 
             var result = await this.DiscoveryService.CreatePartsAsync(
                 new List<Assembly>
@@ -155,6 +146,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.True(result.Parts.Any(p => p.Type == typeof(GoodPartInAssemblyWithBadTypes)));
             Assert.True(result.Parts.Any(p => p.Type == typeof(DiscoverablePart1)));
         }
+#endif
 
         #region TypeDiscoveryOmitsNestedTypes test
 
