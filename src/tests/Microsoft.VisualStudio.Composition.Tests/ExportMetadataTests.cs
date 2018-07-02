@@ -130,6 +130,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Single().Value);
         }
 
+        /// <summary>
+        /// Verifies that we can skip visibility checks for more than one assembly.
+        /// </summary>
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(ImportManyPartWithInternalMetadataInterface), typeof(ImportManyPartWithInternalMetadataInterface2), typeof(PartWithExportMetadata))]
+        public void InternalMetadataViewInterfacesAcrossMultipleAssemblies(IContainer container)
+        {
+            container.GetExportedValue<ImportManyPartWithInternalMetadataInterface>();
+            container.GetExportedValue<ImportManyPartWithInternalMetadataInterface2>();
+        }
+
         [MefFact(CompositionEngines.Unspecified, typeof(ImportingPartWithMetadataInterface), typeof(PartWithExportMetadata))]
         [Trait("Efficiency", "InstanceReuse")]
         public void MetadataViewInterfaceInstanceSharedAcrossImports(IContainer container)
@@ -643,6 +654,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany, MefV1.ImportMany]
             internal IEnumerable<Lazy<PartWithExportMetadata, IMetadataInternal>> ImportingProperty { get; set; }
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        [Export]
+        public class ImportManyPartWithInternalMetadataInterface2
+        {
+            [ImportMany, MefV1.ImportMany]
+            internal IEnumerable<Lazy<PartWithExportMetadata, AssemblyDiscoveryTests.IInternalMetadataView>> ImportingProperty { get; set; }
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]

@@ -4,6 +4,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Linq;
     using System.Reflection;
     using System.Reflection.Emit;
@@ -64,33 +65,64 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         }
 
         /// <summary>
-        /// Ensures the CLR will skip visibility checks when accessing
-        /// the assembly that contains the specified member.
+        /// Gets the set of assemblies that a generated assembly must be granted the ability to skip visiblity checks for
+        /// in order to access the specified type.
         /// </summary>
-        /// <param name="memberInfo">The member that may not be publicly accessible.</param>
-        internal void SkipVisibilityChecksFor(MemberInfo memberInfo)
+        /// <param name="typeInfo">The type which may be internal.</param>
+        /// <returns>The set of names of assemblies to skip visibility checks for.</returns>
+        internal static ImmutableHashSet<AssemblyName> GetSkipVisibilityChecksRequirements(TypeInfo typeInfo)
         {
-            this.SkipVisibilityChecksFor(memberInfo.Module.Assembly);
+            Requires.NotNull(typeInfo, nameof(typeInfo));
+
+            if (ReflectionHelpers.IsPublic(typeInfo.AsType()))
+            {
+                return ImmutableHashSet<AssemblyName>.Empty;
+            }
+            else
+            {
+                var result = ImmutableHashSet<AssemblyName>.Empty
+                    .Add(typeInfo.Assembly.GetName());
+
+                // If this type has a base type defined in another assembly that is also internal
+                // (with InternalsVisibleTo to the assembly hosting the original type)
+                // then we'll need to add that.
+                // TODO: Learn we somehow we don't need to do this, even given our test defines an internal interface
+                //       that derives from another internal interface defined in another assembly.
+                ////if (typeInfo.BaseType != null)
+                ////{
+                ////    result = result.Union(GetSkipVisibilityChecksRequirements(typeInfo.BaseType.GetTypeInfo()));
+                ////}
+
+                ////foreach (var iface in typeInfo.GetInterfaces())
+                ////{
+                ////    result = result.Union(GetSkipVisibilityChecksRequirements(iface.GetTypeInfo()));
+                ////}
+
+                return result;
+            }
         }
 
         /// <summary>
-        /// Add an attribute to the dynamic assembly so that the CLR will skip visibility checks
-        /// for the specified assembly.
+        /// Add attributes to a dynamic assembly so that the CLR will skip visibility checks
+        /// for the assemblies with the specified names.
         /// </summary>
-        /// <param name="assembly">The assembly to skip visibility checks for.</param>
-        private void SkipVisibilityChecksFor(Assembly assembly)
+        /// <param name="assemblyNames">The names of the assemblies to skip visibility checks for.</param>
+        internal void SkipVisibilityChecksFor(IEnumerable<AssemblyName> assemblyNames)
         {
-            Requires.NotNull(assembly, nameof(assembly));
-            var assemblyName = assembly.GetName();
-            this.SkipVisibilityChecksFor(assemblyName);
+            Requires.NotNull(assemblyNames, nameof(assemblyNames));
+
+            foreach (var assemblyName in assemblyNames)
+            {
+                this.SkipVisibilityChecksFor(assemblyName);
+            }
         }
 
         /// <summary>
-        /// Add an attribute to the dynamic assembly so that the CLR will skip visibility checks
+        /// Add an attribute to a dynamic assembly so that the CLR will skip visibility checks
         /// for the assembly with the specified name.
         /// </summary>
         /// <param name="assemblyName">The name of the assembly to skip visibility checks for.</param>
-        private void SkipVisibilityChecksFor(AssemblyName assemblyName)
+        internal void SkipVisibilityChecksFor(AssemblyName assemblyName)
         {
             Requires.NotNull(assemblyName, nameof(assemblyName));
 
