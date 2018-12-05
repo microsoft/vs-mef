@@ -3,9 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 15.0.26614.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition", "Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj", "{1CA6A92C-5DD9-4BE5-B5B7-EE4A1318B4C2}"
-	ProjectSection(ProjectDependencies) = postProject
-		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC} = {6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.Tests", "tests\Microsoft.VisualStudio.Composition.Tests\Microsoft.VisualStudio.Composition.Tests.csproj", "{C92F90BA-CD5B-4847-832A-EE738F0FDB13}"
 EndProject
