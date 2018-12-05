@@ -119,7 +119,7 @@ steps:
 
     codecov -f "$testdir\code_coverage.xml"
   displayName: Run tests on .NET Framework (with code coverage)
-  enabled: false
+  condition: and(succeeded(), eq(variables['Hosted'], 'true')) # this fails on devdiv account
 
 - ${{ if eq(variables['system.collectionId'], '011b8bdf-6d56-4f87-be0d-0092136884d9') }}:
   - template: azure-pipeline.microbuild.after.yml
