@@ -12,6 +12,12 @@ steps:
   displayName: Push packages to VSTS feed
   condition: and(succeeded(), ne(variables['Build.Reason'], 'PullRequest'))
 
+# The Convert-PDB.ps1 script uses nuget.exe at the cmdline, so make sure it's on our PATH
+- task: NuGetToolInstaller@0
+  inputs:
+    versionSpec: 4.6.2
+  displayName: Pin nuget.exe version
+
 - powershell: |
     $DllPaths = @(
         ,"bin\Microsoft.VisualStudio.Composition.dll"
