@@ -6,10 +6,6 @@
     <BaseOutputPath Condition=" '$(BaseOutputPath)' == '' ">$(RepoBinPath)$(MSBuildProjectName)\</BaseOutputPath>
     <PackageOutputPath>$(RepoBinPath)$(Configuration)\Packages\</PackageOutputPath>
 
-    <!-- VS2017 Test Explorer test navigation and callstack links don't work with portable PDBs yet. -->
-    <DebugType Condition=" '$(Configuration)' == 'Release' ">pdbonly</DebugType>
-    <DebugType Condition=" '$(Configuration)' == 'Debug' ">Full</DebugType>
-
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>CS1591;CS1701</NoWarn>
     <TargetsDesktop Condition=" '$(TargetFramework)' == 'net40' or '$(TargetFramework)' == 'net45' or '$(TargetFramework)' == 'net452' or '$(TargetFramework)' == 'net46' ">true</TargetsDesktop>
@@ -18,9 +14,13 @@
     <DefineConstants Condition=" '$(MEFv1EngineAvailable)' == 'true' ">$(DefineConstants);MEFv1Engine</DefineConstants>
     <DefineConstants Condition=" '$(TargetsDesktop)' == 'true' or '$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netcoreapp2.0' ">$(DefineConstants);Serializable</DefineConstants>
 
-    <NerdbankGitVersioningVersion>2.1.23</NerdbankGitVersioningVersion>
+    <NerdbankGitVersioningVersion>2.2.33</NerdbankGitVersioningVersion>
     <MicroBuildVersion>2.0.54</MicroBuildVersion>
     <MicroBuild_LocalizeOutputAssembly>false</MicroBuild_LocalizeOutputAssembly>
+
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 
     <PackageTags>Mef Composition Extensibility</PackageTags>
     <Company>Microsoft</Company>
@@ -28,11 +28,13 @@
     <PackageIconUrl>https://aka.ms/VsExtensibilityIcon</PackageIconUrl>
     <Authors>Microsoft</Authors>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Nerdbank.GitVersioning" Version="$(NerdbankGitVersioningVersion)" PrivateAssets="all" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="all" />
     <PackageReference Include="MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,10 +43,4 @@
       <Link>stylecop.json</Link>
     </AdditionalFiles>
   </ItemGroup>
-
-  <Target Name="SetNuSpecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
-    <PropertyGroup>
-      <PackageLicenseUrl>https://raw.githubusercontent.com/Microsoft/vs-mef/$(GitCommitIdShort)/LICENSE</PackageLicenseUrl>
-    </PropertyGroup>
-  </Target>
 </Project>
