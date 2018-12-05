@@ -7,6 +7,10 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.NetFxAttributes\Microsoft.VisualStudio.Composition.NetFxAttributes.csproj" />
+    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.LocalizationShell\Microsoft.VisualStudio.Composition.LocalizationShell.csproj">
+      <!-- We need this to build before us in case the cultured .resx files are to be changed by this build, since we consume those. -->
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetsDesktop)' == 'true' ">
     <Reference Include="System.ComponentModel.Composition" />
