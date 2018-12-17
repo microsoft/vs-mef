@@ -446,7 +446,7 @@ namespace Microsoft.VisualStudio.Composition
         /// </remarks>
         protected abstract IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition);
 
-        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> exportMetadata, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, bool nonSharedInstanceRequired, MemberInfo exportingMember)
+        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> exportMetadata, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, bool nonSharedInstanceRequired, MemberRef exportingMemberRef)
         {
             Requires.NotNull(importDefinition, nameof(importDefinition));
             Requires.NotNull(exportMetadata, "metadata");
@@ -454,7 +454,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
 
             Func<object> memberValueFactory;
-            if (exportingMember == null)
+            if (exportingMemberRef == null)
             {
                 memberValueFactory = () =>
                 {
@@ -467,7 +467,7 @@ namespace Microsoft.VisualStudio.Composition
                 memberValueFactory = () =>
                 {
                     PartLifecycleTracker maybeSharedValueFactory = this.GetOrCreateValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importDefinition.Metadata, nonSharedInstanceRequired);
-                    return GetValueFromMember(maybeSharedValueFactory.GetValueReadyToRetrieveExportingMembers(), exportingMember);
+                    return GetValueFromMember(maybeSharedValueFactory.GetValueReadyToRetrieveExportingMembers(), exportingMemberRef.MemberInfo);
                 };
             }
 
