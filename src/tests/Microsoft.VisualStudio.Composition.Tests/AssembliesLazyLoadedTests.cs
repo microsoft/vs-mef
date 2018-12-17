@@ -46,24 +46,36 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task ComposableAssembliesLazyLoadedWhenQueried()
         {
             SkipOnMono();
-            var catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExternalExport), typeof(YetAnotherExport)));
+
+            var exportedTypes = new List<Type>
+            {
+                typeof(ExternalExport),
+                typeof(YetAnotherExport),
+                typeof(ExternalExportOnMember),
+            };
+
+            var catalog = TestUtilities.EmptyCatalog.AddParts(await TestUtilities.V2Discovery.CreatePartsAsync(exportedTypes));
             var catalogCache = await this.SaveCatalogAsync(catalog);
             var configuration = CompositionConfiguration.Create(catalog);
             var compositionCache = await this.SaveConfigurationAsync(configuration);
 
-            // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
-            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
-            try
+            foreach (var exportedType in exportedTypes)
             {
-                var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
-                driver.Initialize(this.cacheManager.GetType(), compositionCache, catalogCache);
-                driver.TestExternalExport(typeof(ExternalExport).Assembly.Location);
-                driver.TestYetAnotherExport(typeof(YetAnotherExport).Assembly.Location);
-            }
-            finally
-            {
-                AppDomain.Unload(appDomain);
+                catalogCache.Position = 0;
+                compositionCache.Position = 0;
+
+                // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
+                var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
+                try
+                {
+                    var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
+                    driver.Initialize(this.cacheManager.GetType(), compositionCache, catalogCache);
+                    driver.TestExternalExport(exportedType.Assembly.Location, exportedType.FullName);
+                }
+                finally
+                {
+                    AppDomain.Unload(appDomain);
+                }
             }
         }
 
@@ -287,17 +299,19 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
-            internal void TestExternalExport(string lazyLoadedAssemblyPath)
+            internal void TestExternalExport(string lazyLoadedAssemblyPath, string contractName)
             {
+                // Verify that before the test, we haven't loaded the assembly.
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
-                this.CauseLazyLoad1(this.container);
-                AssertEx.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
-            }
 
-            internal void TestYetAnotherExport(string lazyLoadedAssemblyPath)
-            {
+                // Now query for the export, but don't evaluate it yet. This shouldn't load the assembly.
+                var export = this.container.GetExport<object>(contractName);
+                AssertEx.NotNull(export);
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
-                this.CauseLazyLoad2(this.container);
+
+                // Now evaluate it, and confirm that it loads the assembly (to verify the validity of the test).
+                object value = export.Value;
+                AssertEx.NotNull(value);
                 AssertEx.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
@@ -374,24 +388,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 source.CopyTo(copy);
                 copy.Position = 0;
                 return copy;
-            }
-
-            [MethodImpl(MethodImplOptions.NoInlining)] // if this method is inlined, it defeats the point of it being a separate method in the test and causes test failure.
-            private void CauseLazyLoad1(ExportProvider container)
-            {
-                // Actually the lazy load happens before GetExport is actually called since this method
-                // references a type in that assembly.
-                var export = container.GetExportedValue<ExternalExport>();
-                AssertEx.NotNull(export);
-            }
-
-            [MethodImpl(MethodImplOptions.NoInlining)] // if this method is inlined, it defeats the point of it being a separate method in the test and causes test failure.
-            private void CauseLazyLoad2(ExportProvider container)
-            {
-                // Actually the lazy load happens before GetExport is actually called since this method
-                // references a type in that assembly.
-                var export = container.GetExportedValue<YetAnotherExport>();
-                AssertEx.NotNull(export);
             }
         }
     }

@@ -64,7 +64,6 @@ namespace Microsoft.VisualStudio.Composition
                 return
                     from export in exports
                     let part = this.composition.GetPart(export)
-                    let isValueFactoryRequired = export.Member == null || !export.Member.IsStatic()
                     select this.CreateExport(
                         importDefinition,
                         export.Metadata,
@@ -72,7 +71,7 @@ namespace Microsoft.VisualStudio.Composition
                         GetPartConstructedTypeRef(part, importDefinition.Metadata),
                         part.SharingBoundary,
                         !part.IsShared || PartCreationPolicyConstraint.IsNonSharedInstanceRequired(importDefinition),
-                        export.Member);
+                        export.MemberRef);
             }
 
             protected internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata)
