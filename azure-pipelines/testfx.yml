@@ -48,4 +48,4 @@ steps:
     ArtifactName: ${{ parameters.testlogartifactname }}
     ArtifactType: Container
   displayName: Publish testlogs artifacts
-  condition: and(succeededOrFailed(), ne(variables['system.pullrequest.isfork'], true))
+  condition: succeededOrFailed()
