@@ -7,6 +7,10 @@ namespace Microsoft.VisualStudio.Composition
     /// <summary>
     /// A nullable boolean value with atomic reads and writes.
     /// </summary>
+    /// <remarks>
+    /// The <see cref="Nullable{T}"/> type has two fields which prevent it being initialized or copied atomically as a single "word".
+    /// This type has just one field (which it can do since we specialize in storing <see cref="bool"/> values), so it is just one word and therefore atomic.
+    /// </remarks>
     internal struct NullableBool
     {
         /// <summary>
