@@ -303,7 +303,7 @@ namespace Microsoft.VisualStudio.Composition
         [DebuggerDisplay("{" + nameof(ImportingSiteElementType) + "}")]
         public class RuntimeImport : IEquatable<RuntimeImport>
         {
-            private bool? isLazy;
+            private NullableBool isLazy;
             private Type importingSiteElementType;
             private Func<Func<object>, object, object> lazyFactory;
             private ParameterInfo importingParameter;
