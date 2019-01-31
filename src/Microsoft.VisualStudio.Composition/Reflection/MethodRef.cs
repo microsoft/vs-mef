@@ -21,8 +21,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         internal virtual string DebuggerDisplay => $"{this.DeclaringType.FullName}.{this.Name}({string.Join(", ", this.ParameterTypes.Select(p => p.FullName))})";
 
-        public MethodRef(TypeRef declaringType, int metadataToken, string name, ImmutableArray<TypeRef> parameterTypes, ImmutableArray<TypeRef> genericMethodArguments)
-            : base(declaringType, metadataToken)
+        public MethodRef(TypeRef declaringType, int metadataToken, string name, bool isStatic, ImmutableArray<TypeRef> parameterTypes, ImmutableArray<TypeRef> genericMethodArguments)
+            : base(declaringType, metadataToken, isStatic)
         {
             Requires.NotNullOrEmpty(name, nameof(name));
             if (parameterTypes.IsDefault)

@@ -81,14 +81,19 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(import, nameof(import));
             Requires.NotNull(export, nameof(export));
 
-            var receivingType = import.ImportingSiteElementType;
-            var exportingType = export.ExportedValueType;
-            if (exportingType.GetTypeInfo().IsGenericTypeDefinition && receivingType.GetTypeInfo().IsGenericType)
+            var receivingTypeRef = import.ImportingSiteElementTypeRef;
+            var exportingTypeRef = export.ExportedValueTypeRef;
+            if (exportingTypeRef.IsGenericTypeDefinition && receivingTypeRef.IsGenericType)
             {
-                exportingType = exportingType.MakeGenericType(receivingType.GenericTypeArguments);
+                exportingTypeRef = exportingTypeRef.MakeGenericTypeRef(receivingTypeRef.GenericTypeArguments);
             }
 
-            if (typeof(Delegate).GetTypeInfo().IsAssignableFrom(receivingType.GetTypeInfo()) && typeof(Delegate).GetTypeInfo().IsAssignableFrom(exportingType.GetTypeInfo()))
+            // Quick assignability check to attempt to exit early if assignable, otherwise use the slower methods
+            if (receivingTypeRef.IsAssignableFrom(exportingTypeRef))
+            {
+                return Assignability.Definitely;
+            }
+            else if (typeof(Delegate).GetTypeInfo().IsAssignableFrom(exportingTypeRef.ResolvedType) && typeof(Delegate).GetTypeInfo().IsAssignableFrom(receivingTypeRef.ResolvedType))
             {
                 // Delegates of varying types may be assigned to each other.
                 // For example Action<object, EventArgs> can be assigned to EventHandler.
@@ -96,7 +101,7 @@ namespace Microsoft.VisualStudio.Composition
                 // http://stackoverflow.com/questions/23075298/how-to-detect-compatibility-between-delegate-types/23088194#23088194
                 try
                 {
-                    ((MethodInfo)export.ExportingMember).CreateDelegate(receivingType, null);
+                    ((MethodInfo)export.ExportingMember).CreateDelegate(receivingTypeRef.ResolvedType, null);
                     return Assignability.Definitely;
                 }
                 catch (ArgumentException)
@@ -106,22 +111,16 @@ namespace Microsoft.VisualStudio.Composition
             }
             else
             {
-                // Utilize the standard assignability checks for everything else.
-                if (receivingType.GetTypeInfo().IsAssignableFrom(exportingType.GetTypeInfo()))
-                {
-                    return Assignability.Definitely;
-                }
-
                 bool valueTypeKnownExactly =
                     export.ExportingMemberRef == null || // When [Export] appears on the type itself, we instantiate that exact type.
-                    exportingType.GetTypeInfo().IsSealed;
+                    exportingTypeRef.ResolvedType.GetTypeInfo().IsSealed;
                 if (valueTypeKnownExactly)
                 {
                     // There is no way that an exported value can implement the required types to make it assignable.
                     return Assignability.DefinitelyNot;
                 }
 
-                if (receivingType.GetTypeInfo().IsInterface || exportingType.GetTypeInfo().IsAssignableFrom(receivingType))
+                if (receivingTypeRef.ResolvedType.GetTypeInfo().IsInterface || exportingTypeRef.ResolvedType.GetTypeInfo().IsAssignableFrom(receivingTypeRef.ResolvedType))
                 {
                     // The actual exported value at runtime *may* be a derived type that *is* assignable to the import site.
                     return Assignability.Maybe;
@@ -186,6 +185,21 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+        internal static IEnumerable<Type> EnumTypeBaseTypesAndInterfaces(this Type type)
+        {
+            Requires.NotNull(type, nameof(type));
+
+            for (Type baseType = type; baseType != null; baseType = baseType.GetTypeInfo().BaseType)
+            {
+                yield return baseType;
+            }
+
+            foreach (var iface in type.GetTypeInfo().ImplementedInterfaces)
+            {
+                yield return iface;
+            }
+        }
+
         internal static IEnumerable<PropertyInfo> WherePublicInstance(this IEnumerable<PropertyInfo> infos)
         {
             return infos.Where(p => (p.GetMethod?.IsPublicInstance() ?? false) || (p.SetMethod?.IsPublicInstance() ?? false));
@@ -198,22 +212,52 @@ namespace Microsoft.VisualStudio.Composition
                 return false;
             }
 
-            var exportingField = exportingMember as FieldInfo;
+            if (exportingMember is FieldInfo exportingField)
+            {
+                return exportingField.IsStatic;
+            }
+
+            if (exportingMember is MethodInfo exportingMethod)
+            {
+                return exportingMethod.IsStatic;
+            }
+
+            if (exportingMember is PropertyInfo exportingProperty)
+            {
+                return (exportingProperty.GetMethod ?? exportingProperty.SetMethod).IsStatic;
+            }
+
+            if (exportingMember is MethodBase exportingMethodBase)
+            {
+                return exportingMethodBase.IsStatic;
+            }
+
+            throw new NotSupportedException();
+        }
+
+        internal static bool IsStatic(this MemberRef exportingMemberRef)
+        {
+            if (exportingMemberRef == null)
+            {
+                return false;
+            }
+
+            var exportingField = exportingMemberRef as FieldRef;
             if (exportingField != null)
             {
                 return exportingField.IsStatic;
             }
 
-            var exportingMethod = exportingMember as MethodInfo;
+            var exportingMethod = exportingMemberRef as MethodRef;
             if (exportingMethod != null)
             {
                 return exportingMethod.IsStatic;
             }
 
-            var exportingProperty = exportingMember as PropertyInfo;
+            var exportingProperty = exportingMemberRef as PropertyRef;
             if (exportingProperty != null)
             {
-                return (exportingProperty.GetMethod ?? exportingProperty.SetMethod).IsStatic;
+                return exportingProperty.IsStatic;
             }
 
             throw new NotSupportedException();
@@ -233,6 +277,21 @@ namespace Microsoft.VisualStudio.Composition
                     return field.FieldType;
                 default:
                     throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Strings.UnexpectedMemberType, fieldOrPropertyOrType.MemberType));
+            }
+        }
+
+        internal static TypeRef GetMemberTypeRef(MemberRef fieldOrPropertyOrTypeRef)
+        {
+            Requires.NotNull(fieldOrPropertyOrTypeRef, nameof(fieldOrPropertyOrTypeRef));
+
+            switch (fieldOrPropertyOrTypeRef)
+            {
+                case PropertyRef property:
+                    return property.PropertyTypeRef;
+                case FieldRef field:
+                    return field.FieldTypeRef;
+                default:
+                    throw new ArgumentException(string.Format(CultureInfo.CurrentCulture, Strings.UnexpectedMemberType, fieldOrPropertyOrTypeRef.MemberInfo.MemberType));
             }
         }
 
@@ -516,22 +575,21 @@ namespace Microsoft.VisualStudio.Composition
             return result;
         }
 
-        internal static Type GetExportedValueType(Type declaringType, MemberInfo exportingMember)
+        internal static TypeRef GetExportedValueTypeRef(TypeRef declaringTypeRef, MemberRef exportingMemberRef)
         {
-            if (exportingMember == null)
+            if (exportingMemberRef == null)
             {
-                return declaringType;
+                return declaringTypeRef;
             }
 
-            if (exportingMember is FieldInfo || exportingMember is PropertyInfo)
+            if (exportingMemberRef is FieldRef || exportingMemberRef is PropertyRef)
             {
-                return ReflectionHelpers.GetMemberType(exportingMember);
+                return ReflectionHelpers.GetMemberTypeRef(exportingMemberRef);
             }
 
-            var exportingMethod = exportingMember as MethodInfo;
-            if (exportingMethod != null)
+            if (exportingMemberRef.MemberInfo is MethodInfo exportingMethod)
             {
-                return GetContractTypeForDelegate(exportingMethod);
+                return TypeRef.Get(GetContractTypeForDelegate(exportingMethod), exportingMemberRef.Resolver);
             }
 
             throw new NotSupportedException();

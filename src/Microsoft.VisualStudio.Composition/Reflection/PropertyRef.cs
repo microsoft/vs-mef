@@ -32,25 +32,31 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// </summary>
         private readonly int? setMethodMetadataToken;
 
-        public PropertyRef(TypeRef declaringType, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken, string name)
-            : base(declaringType, metadataToken)
+        public PropertyRef(TypeRef declaringType, TypeRef propertyTypeRef, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken, string name, bool isStatic)
+            : base(declaringType, metadataToken, isStatic)
         {
             this.getMethodMetadataToken = getMethodMetadataToken;
             this.setMethodMetadataToken = setMethodMetadataToken;
             this.Name = name;
+            this.PropertyTypeRef = propertyTypeRef;
         }
 
         public PropertyRef(PropertyInfo propertyInfo, Resolver resolver)
             : base(propertyInfo, resolver)
         {
+            this.getMethodMetadataToken = propertyInfo?.GetMethod?.MetadataToken;
+            this.setMethodMetadataToken = propertyInfo?.SetMethod?.MetadataToken;
             this.Name = propertyInfo.Name;
+            this.PropertyTypeRef = TypeRef.Get(propertyInfo.PropertyType, resolver);
         }
 
         public PropertyInfo PropertyInfo => (PropertyInfo)this.MemberInfo;
 
-        public int? GetMethodMetadataToken => this.getMethodMetadataToken ?? this.PropertyInfo?.GetMethod?.MetadataToken;
+        public TypeRef PropertyTypeRef { get; }
 
-        public int? SetMethodMetadataToken => this.setMethodMetadataToken ?? this.PropertyInfo?.SetMethod?.MetadataToken;
+        public int? GetMethodMetadataToken => this.getMethodMetadataToken;
+
+        public int? SetMethodMetadataToken => this.setMethodMetadataToken;
 
         public override string Name { get; }
 

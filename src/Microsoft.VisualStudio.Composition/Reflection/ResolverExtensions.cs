@@ -162,19 +162,13 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                     GetInputAssemblies(typeArg, assemblies);
                 }
 
+                assemblies.Add(typeRef.AssemblyName);
+
                 // Base types may define [InheritedExport] attributes or otherwise influence MEF
                 // so we should include them as input assemblies.
-                // Resolving a TypeRef is a necessary cost in order to identify the transitive closure of base types.
-                var type = typeRef.Resolve();
-                foreach (var baseType in type.EnumTypeAndBaseTypes())
+                foreach (var baseType in typeRef.BaseTypes)
                 {
-                    assemblies.Add(baseType.GetTypeInfo().Assembly.GetName());
-                }
-
-                // Interfaces may also define [InheritedExport] attributes, metadata view filters, etc.
-                foreach (var iface in type.GetTypeInfo().GetInterfaces())
-                {
-                    assemblies.Add(iface.GetTypeInfo().Assembly.GetName());
+                    assemblies.Add(baseType.AssemblyName);
                 }
             }
         }

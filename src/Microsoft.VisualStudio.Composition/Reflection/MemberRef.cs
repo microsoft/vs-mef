@@ -28,11 +28,12 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// <summary>
         /// Initializes a new instance of the <see cref="MemberRef"/> class.
         /// </summary>
-        protected MemberRef(TypeRef declaringType, int metadataToken)
+        protected MemberRef(TypeRef declaringType, int metadataToken, bool isStatic)
         {
             Requires.NotNull(declaringType, nameof(declaringType));
             this.DeclaringType = declaringType;
             this.metadataToken = metadataToken;
+            this.IsStatic = isStatic;
         }
 
         protected MemberRef(TypeRef declaringType, MemberInfo memberInfo)
@@ -42,6 +43,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             this.DeclaringType = declaringType;
             this.cachedMemberInfo = memberInfo;
+            this.IsStatic = memberInfo.IsStatic();
         }
 
         protected MemberRef(MemberInfo memberInfo, Resolver resolver)
@@ -56,6 +58,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         public AssemblyName AssemblyName => this.DeclaringType.AssemblyName;
 
         public abstract string Name { get; }
+
+        public bool IsStatic { get; }
 
         public int MetadataToken => this.metadataToken ?? this.cachedMemberInfo?.GetMetadataTokenSafe() ?? 0;
 

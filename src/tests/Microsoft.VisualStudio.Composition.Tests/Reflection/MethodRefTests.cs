@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
         public void CtorInfo_FromMetadataToken()
         {
             ConstructorInfo ctor = this.GetType().GetTypeInfo().GetConstructor(Type.EmptyTypes);
-            var methodRef = new MethodRef(TypeRef.Get(this.GetType(), Resolver.DefaultInstance), ctor.MetadataToken, ConstructorInfo.ConstructorName, ImmutableArray<TypeRef>.Empty, ImmutableArray<TypeRef>.Empty);
+            var methodRef = new MethodRef(TypeRef.Get(this.GetType(), Resolver.DefaultInstance), ctor.MetadataToken, ConstructorInfo.ConstructorName, ctor.IsStatic, ImmutableArray<TypeRef>.Empty, ImmutableArray<TypeRef>.Empty);
             Assert.Same(ctor, methodRef.MethodBase);
         }
 
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
         public void MethodInfo_FromMetadataToken()
         {
             MethodInfo methodInfo = this.GetType().GetTypeInfo().GetMethod(nameof(this.MethodInfo_FromInstance));
-            var methodRef = new MethodRef(TypeRef.Get(this.GetType(), Resolver.DefaultInstance), methodInfo.MetadataToken, methodInfo.Name, ImmutableArray<TypeRef>.Empty, ImmutableArray<TypeRef>.Empty);
+            var methodRef = new MethodRef(TypeRef.Get(this.GetType(), Resolver.DefaultInstance), methodInfo.MetadataToken, methodInfo.Name, methodInfo.IsStatic, ImmutableArray<TypeRef>.Empty, ImmutableArray<TypeRef>.Empty);
             Assert.Same(methodInfo, methodRef.MethodBase);
         }
     }

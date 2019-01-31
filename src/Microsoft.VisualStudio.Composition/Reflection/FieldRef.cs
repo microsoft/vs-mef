@@ -16,20 +16,24 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay => $"{this.DeclaringType.FullName}.{this.Name}";
 
-        public FieldRef(TypeRef declaringType, int metadataToken, string name)
-            : base(declaringType, metadataToken)
+        public FieldRef(TypeRef declaringType, TypeRef fieldTypeRef, int metadataToken, string name, bool isStatic)
+            : base(declaringType, metadataToken, isStatic)
         {
             Requires.NotNullOrEmpty(name, nameof(name));
             this.Name = name;
+            this.FieldTypeRef = fieldTypeRef;
         }
 
         public FieldRef(FieldInfo field, Resolver resolver)
             : base(field, resolver)
         {
             this.Name = field.Name;
+            this.FieldTypeRef = TypeRef.Get(field.FieldType, resolver);
         }
 
         public FieldInfo FieldInfo => (FieldInfo)this.MemberInfo;
+
+        public TypeRef FieldTypeRef { get; }
 
         public override string Name { get; }
 
