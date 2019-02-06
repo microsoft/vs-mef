@@ -21,8 +21,6 @@ namespace Microsoft.VisualStudio.Composition
         private readonly IReadOnlyDictionary<string, IReadOnlyCollection<RuntimeExport>> exportsByContractName;
         private readonly IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders;
 
-        public const string InvalidCompositionException = nameof(InvalidCompositionException);
-
         private RuntimeComposition(IEnumerable<RuntimePart> parts, IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders, Resolver resolver)
         {
             Requires.NotNull(parts, nameof(parts));
@@ -32,7 +30,7 @@ namespace Microsoft.VisualStudio.Composition
             if (!parts.Any() || !metadataViewsAndProviders.Any())
             {
                 var exception = new ArgumentException("Invalid arguments passed to generate runtime composition.");
-                exception.Data.Add(InvalidCompositionException, true);
+                exception.Data.Add("InvalidCompositionException", true);
 
                 throw exception;
             }
