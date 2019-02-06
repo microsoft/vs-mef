@@ -862,7 +862,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 if (metadataViewProvider == null)
                 {
-                    throw new NotSupportedException(Strings.TypeOfMetadataViewUnsupported);
+                    throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.TypeOfMetadataViewUnsupported, metadataView.FullName));
                 }
 
                 lock (this.typeAndSelectedMetadataViewProviderCache)
