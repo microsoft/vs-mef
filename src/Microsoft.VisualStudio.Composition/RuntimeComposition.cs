@@ -27,10 +27,20 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(metadataViewsAndProviders, nameof(metadataViewsAndProviders));
             Requires.NotNull(resolver, nameof(resolver));
 
-            if (!parts.Any() || !metadataViewsAndProviders.Any())
+            var invalidArgExceptionMsg = "Invalid arguments passed to generate runtime composition.";
+            var invalidArgExceptionData = "InvalidCompositionException";
+            if (!parts.Any())
             {
-                var exception = new ArgumentException("Invalid arguments passed to generate runtime composition.");
-                exception.Data.Add("InvalidCompositionException", true);
+                var exception = new ArgumentException(invalidArgExceptionMsg, nameof(parts));
+                exception.Data.Add(invalidArgExceptionData, true);
+
+                throw exception;
+            }
+
+            if (!metadataViewsAndProviders.Any())
+            {
+                var exception = new ArgumentException(invalidArgExceptionMsg, nameof(metadataViewsAndProviders));
+                exception.Data.Add(invalidArgExceptionData, true);
 
                 throw exception;
             }
