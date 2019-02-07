@@ -10,8 +10,10 @@
         {
             var configuration = CompositionConfiguration.Create(TestUtilities.EmptyCatalog);
             var composition = RuntimeComposition.CreateRuntimeComposition(configuration);
-            var exports = composition.GetExports(typeof(IDisposable).ToString());
-            Assert.Equal(0, exports.Count);
+            var factory = composition.CreateExportProviderFactory();
+            var provider = factory.CreateExportProvider();
+            var exports = provider.GetExports<IDisposable>();
+            Assert.Empty(exports);
         }
     }
 }
