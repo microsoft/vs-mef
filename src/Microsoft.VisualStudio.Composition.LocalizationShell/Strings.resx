@@ -160,7 +160,8 @@
     <value>Scanning MEF assemblies...</value>
   </data>
   <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
-    <value>Type of metadata view is unsupported.</value>
+    <value>The type {0} is an unsupported type of metadata view.</value>
+    <comment>{0} is the metadata view type.</comment>
   </data>
   <data name="UnableToDeterminePrimarySharingBoundary" xml:space="preserve">
     <value>Unable to determine the primary sharing boundary for MEF part "{0}".</value>
