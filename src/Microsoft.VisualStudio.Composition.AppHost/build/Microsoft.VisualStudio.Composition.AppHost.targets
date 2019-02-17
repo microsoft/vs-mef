@@ -39,7 +39,7 @@
 
   <Target Name="GenerateMEFCompositionCache" AfterTargets="Build" DependsOnTargets="$(GenerateMEFCompositionCacheDependsOn)">
     <ItemGroup>
-      <MEFCatalogAssembly Include="$(TargetPath)" />
+      <MEFCatalogAssembly Include="@(IntermediateAssembly)" />
       <MEFCatalogAssembly Include="@(ReferencePath)" Condition=" '%(ReferencePath.MEFAssembly)'=='true' " />
       <FileWrites Include="$(OutputPath)$(CompositionConfigurationCacheName)" />
       <MEFCatalogAssemblySearchPath Include="$(TargetDir)" />
