@@ -4,11 +4,15 @@
     <MicrosoftVisualStudioCompositionAppHostToolsPath Condition=" '$(MicrosoftVisualStudioCompositionAppHostToolsPath)' == '' ">$(MicrosoftVisualStudioCompositionAppHostToolsRootPath)$(MicrosoftVisualStudioCompositionAppHostToolsSubPath)</MicrosoftVisualStudioCompositionAppHostToolsPath>
     <CompositionConfigurationBaseName>$(TargetName).Composition</CompositionConfigurationBaseName>
     <CompositionConfigurationCacheName>$(CompositionConfigurationBaseName).cache</CompositionConfigurationCacheName>
+    <MEFLogOutputPath Condition=" '$(LogOutputPath)' == '' ">$(IntermediateOutputPath)</MEFLogOutputPath>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
     <PrepareResourceNamesDependsOn>
       GenerateCompositionBootstrapSourceFile;
       $(PrepareResourceNamesDependsOn)
     </PrepareResourceNamesDependsOn>
+    <GenerateMEFCompositionCacheDependsOn>
+      ResolveReferences;
+    </GenerateMEFCompositionCacheDependsOn>
   </PropertyGroup>
 
   <UsingTask TaskName="CreateComposition" AssemblyFile="$(MicrosoftVisualStudioCompositionAppHostToolsPath)Microsoft.VisualStudio.Composition.AppHost.dll" />
@@ -29,15 +33,24 @@
       CompositionCacheFile="$(CompositionConfigurationCacheName)"/>
   </Target>
 
-  <Target Name="GenerateCompositionConfigurationAssembly" AfterTargets="Build" DependsOnTargets="ResolveReferences">
+  <Target Name="GenerateMEFCompositionCache" AfterTargets="Build" DependsOnTargets="$(GenerateMEFCompositionCacheDependsOn)">
     <ItemGroup>
-      <CompositionConfigurationAssembly Include="$(TargetPath)" />
-      <CompositionConfigurationAssembly Include="@(ReferencePath)" Condition=" '%(ReferencePath.MEFAssembly)'=='true' " />
+      <MEFCatalogAssembly Include="$(TargetPath)" />
+      <MEFCatalogAssembly Include="@(ReferencePath)" Condition=" '%(ReferencePath.MEFAssembly)'=='true' " />
+      <FileWrites Include="$(OutputPath)$(CompositionConfigurationCacheName)" />
+      <MEFCatalogAssemblySearchPath Include="$(TargetDir)" />
+      <MEFReferenceAssembly Include="@(ReferencePath)" />
     </ItemGroup>
 
     <CreateComposition
-      CatalogAssemblies="@(CompositionConfigurationAssembly)"
-      DgmlOutputPath="$(OutputPath)$(CompositionConfigurationBaseName).dgml"
-      CompositionCacheFile="$(OutputPath)$(CompositionConfigurationCacheName)" />
+      CatalogAssemblies="@(MEFCatalogAssembly)"
+      ReferenceAssemblies="@(MEFReferenceAssembly)"
+      ContinueOnDiscoveryErrors="$(ContinueOnMEFDiscoveryErrors)"
+      ContinueOnCompositionErrors="$(ContinueOnMEFCompositionErrors)"
+      DgmlOutputPath="$(MEFLogOutputPath)$(CompositionConfigurationBaseName).dgml"
+      CompositionCacheFile="$(OutputPath)$(CompositionConfigurationCacheName)"
+      CatalogAssemblySearchPath="@(MEFCatalogAssemblySearchPath)"
+      LogOutputPath="$(MEFLogOutputPath)"
+      NoWarn="$(NoWarn)" />
   </Target>
 </Project>
