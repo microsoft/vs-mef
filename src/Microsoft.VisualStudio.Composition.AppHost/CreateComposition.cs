@@ -9,6 +9,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
@@ -34,6 +35,8 @@ namespace Microsoft.VisualStudio.Composition.AppHost
         /// <see cref="ICancelableTask.Cancel" /> is invoked.
         /// </summary>
         private readonly CancellationTokenSource cts = new CancellationTokenSource();
+
+        private readonly List<string> writtenFiles = new List<string>();
 
         /// <summary>
         /// A copy of <see cref="CatalogAssemblies"/> but transformed to be full paths
@@ -87,11 +90,22 @@ namespace Microsoft.VisualStudio.Composition.AppHost
         [Required]
         public string LogOutputPath { get; set; }
 
+        /// <summary>
+        /// Gets or sets a list of files that were written during this task's execution.
+        /// </summary>
+        [Output]
+        public ITaskItem[] FileWrites { get; set; }
+
         /// <inheritdoc />
         public void Cancel() => this.cts.Cancel();
 
         public override bool Execute()
         {
+            if (Environment.GetEnvironmentVariable("CreateCompositionTaskDebug") == "1")
+            {
+                Debugger.Launch();
+            }
+
             this.catalogAssemblyPaths.AddRange(this.CatalogAssemblies.Select(this.GetMEFAssemblyFullPath));
 
             AppDomain.CurrentDomain.AssemblyResolve += this.CurrentDomain_AssemblyResolve;
@@ -108,7 +122,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
 
                 var parts = discovery.CreatePartsAsync(this.catalogAssemblyPaths).GetAwaiter().GetResult();
                 var catalog = ComposableCatalog.Create(resolver)
-                    .AddParts(parts.Parts);
+                    .AddParts(parts);
 
                 this.LogLines(this.GetLogFilePath("CatalogAssemblies"), this.GetCatalogAssembliesLines(catalog), this.CancellationToken);
 
@@ -145,6 +159,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
                 if (!string.IsNullOrEmpty(this.DgmlOutputPath))
                 {
                     configuration.CreateDgml().Save(this.DgmlOutputPath);
+                    this.writtenFiles.Add(this.DgmlOutputPath);
                 }
 
                 this.CancellationToken.ThrowIfCancellationRequested();
@@ -187,11 +202,14 @@ namespace Microsoft.VisualStudio.Composition.AppHost
                     runtimeCache.SaveAsync(runtime, cacheStream, this.CancellationToken).GetAwaiter().GetResult();
                 }
 
+                this.writtenFiles.Add(cachePath);
+
                 return !this.Log.HasLoggedErrors;
             }
             finally
             {
                 AppDomain.CurrentDomain.AssemblyResolve -= this.CurrentDomain_AssemblyResolve;
+                this.FileWrites = this.writtenFiles.Select(f => new TaskItem(f)).ToArray();
             }
         }
 
@@ -206,9 +224,9 @@ namespace Microsoft.VisualStudio.Composition.AppHost
             yield return string.Empty;
 
             yield return "Scanned assemblies with no discoverable parts:";
-            var noncontributors = catalog.Parts.Select(p => p.TypeRef.AssemblyName.Name).Distinct()
-                .Except(this.catalogAssemblyPaths.Select(Path.GetFileNameWithoutExtension))
-                .OrderBy(Path.GetFileNameWithoutExtension)
+            var noncontributors = this.catalogAssemblyPaths.Select(Path.GetFileNameWithoutExtension)
+                .Except(catalog.Parts.Select(p => p.TypeRef.AssemblyName.Name), StringComparer.OrdinalIgnoreCase)
+                .OrderBy(n => n)
                 .ToList();
             if (noncontributors.Any())
             {
@@ -400,6 +418,8 @@ namespace Microsoft.VisualStudio.Composition.AppHost
 
                 writer.Flush();
             }
+
+            this.writtenFiles.Add(filePath);
         }
 
         private string GetLogFilePath(string partialFileName)

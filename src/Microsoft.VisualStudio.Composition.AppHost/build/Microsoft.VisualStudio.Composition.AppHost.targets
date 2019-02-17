@@ -61,6 +61,8 @@
       CompositionCacheFile="$(OutputPath)$(CompositionConfigurationCacheName)"
       CatalogAssemblySearchPath="@(MEFCatalogAssemblySearchPath)"
       LogOutputPath="$(MEFLogOutputPath)"
-      NoWarn="$(NoWarn)" />
+      NoWarn="$(NoWarn)">
+      <Output TaskParameter="FileWrites" ItemName="FileWrites" />
+    </CreateComposition>
   </Target>
 </Project>
