@@ -41,11 +41,11 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
         private void TestAssemblyNameEqualityNotEqual(string assemblyNameV1String, string assemblyNameV2String, string codeBaseV1, string codeBaseV2)
         {
             AssemblyName assemblyNameV1 = new AssemblyName(assemblyNameV1String);
-#if DESKTOP
+#if !NETCOREAPP1_0
             assemblyNameV1.CodeBase = codeBaseV1;
 #endif
             AssemblyName assemblyNameV2 = new AssemblyName(assemblyNameV2String);
-#if DESKTOP
+#if !NETCOREAPP1_0
             assemblyNameV2.CodeBase = codeBaseV2;
 #endif
 
