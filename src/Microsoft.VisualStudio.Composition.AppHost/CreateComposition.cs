@@ -369,8 +369,17 @@ namespace Microsoft.VisualStudio.Composition.AppHost
 
                 if (name.Version >= minimumVersion)
                 {
-                    assembly = Assembly.Load(name);
-                    return true;
+                    try
+                    {
+                        assembly = Assembly.Load(name);
+                        return true;
+                    }
+                    catch (BadImageFormatException)
+                    {
+                        // This happens for some reference assemblies that can only be loaded in a reflection-only context.
+                        // But we're not allowed in an assembly resolve event to return reflection-only loaded assemblies.
+                        // So just return false to communicate the failure.
+                    }
                 }
             }
 
