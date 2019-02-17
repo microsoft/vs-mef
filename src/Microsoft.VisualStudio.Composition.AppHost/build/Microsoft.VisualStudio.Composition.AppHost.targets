@@ -13,6 +13,10 @@
     <GenerateMEFCompositionCacheDependsOn>
       ResolveReferences;
     </GenerateMEFCompositionCacheDependsOn>
+    <GetCopyToOutputDirectoryItemsDependsOn>
+      $(GetCopyToOutputDirectoryItemsDependsOn);
+      GenerateMEFCompositionCache;
+    </GetCopyToOutputDirectoryItemsDependsOn>
   </PropertyGroup>
 
   <UsingTask TaskName="CreateComposition" AssemblyFile="$(MicrosoftVisualStudioCompositionAppHostToolsPath)Microsoft.VisualStudio.Composition.AppHost.dll" />
@@ -40,6 +44,12 @@
       <FileWrites Include="$(OutputPath)$(CompositionConfigurationCacheName)" />
       <MEFCatalogAssemblySearchPath Include="$(TargetDir)" />
       <MEFReferenceAssembly Include="@(ReferencePath)" />
+      <!-- Register the cache as a content item so that if this project is just a library, the .exe will get the cache file. -->
+      <ContentWithTargetPath Include="$(OutputPath)$(CompositionConfigurationCacheName)">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <TargetPath>$(CompositionConfigurationCacheName)</TargetPath>
+        <Visible>false</Visible>
+      </ContentWithTargetPath>
     </ItemGroup>
 
     <CreateComposition
