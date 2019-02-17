@@ -61,7 +61,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNullOrEmpty(assemblyFullName, nameof(assemblyFullName));
 
             var assemblyName = new AssemblyName(assemblyFullName);
-#if DESKTOP
+#if !(NETSTANDARD1_5 || NETCOREAPP1_0)
             if (!string.IsNullOrEmpty(codeBasePath))
             {
                 assemblyName.CodeBase = codeBasePath;
