@@ -391,8 +391,17 @@ namespace Microsoft.VisualStudio.Composition.AppHost
         {
             foreach (var error in catalog.DiscoveredParts.DiscoveryErrors)
             {
-                yield return error.ToString();
-                yield return string.Empty;
+                yield return error.GetUserMessage();
+
+                if (error.InnerException is ReflectionTypeLoadException reflectionTypeLoadException)
+                {
+                    // The LoaderExceptions have a tendency to have a lot of redundancy.
+                    // So get just the unique set to report.
+                    foreach (string uniqueMessage in reflectionTypeLoadException.LoaderExceptions.Select(e => e.Message).Distinct())
+                    {
+                        yield return "\t" + uniqueMessage;
+                    }
+                }
             }
         }
 
@@ -417,18 +426,25 @@ namespace Microsoft.VisualStudio.Composition.AppHost
             Requires.NotNull(lines, nameof(lines));
 
             cancellationToken.ThrowIfCancellationRequested();
-            using (var writer = new StreamWriter(new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read)))
+            try
             {
-                foreach (string line in lines)
+                using (var writer = new StreamWriter(new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.Read)))
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    writer.WriteLine(line);
+                    foreach (string line in lines)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        writer.WriteLine(line);
+                    }
+
+                    writer.Flush();
                 }
 
-                writer.Flush();
+                this.writtenFiles.Add(filePath);
             }
-
-            this.writtenFiles.Add(filePath);
+            catch (IOException ex)
+            {
+                this.Log.LogWarning("Unable to write log file: \"{0}\". {1}", filePath, ex.Message);
+            }
         }
 
         private string GetLogFilePath(string partialFileName)
