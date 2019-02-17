@@ -93,7 +93,6 @@ namespace Microsoft.VisualStudio.Composition.AppHost
         public override bool Execute()
         {
             this.catalogAssemblyPaths.AddRange(this.CatalogAssemblies.Select(this.GetMEFAssemblyFullPath));
-            this.LogLines(this.GetLogFilePath("CatalogAssemblies"), this.catalogAssemblyPaths.Select(Path.GetFileNameWithoutExtension), this.CancellationToken);
 
             AppDomain.CurrentDomain.AssemblyResolve += this.CurrentDomain_AssemblyResolve;
             try
@@ -110,6 +109,9 @@ namespace Microsoft.VisualStudio.Composition.AppHost
                 var parts = discovery.CreatePartsAsync(this.catalogAssemblyPaths).GetAwaiter().GetResult();
                 var catalog = ComposableCatalog.Create(resolver)
                     .AddParts(parts.Parts);
+
+                this.LogLines(this.GetLogFilePath("CatalogAssemblies"), this.GetCatalogAssembliesLines(catalog), this.CancellationToken);
+
                 string catalogErrorFilePath = this.GetLogFilePath("CatalogErrors");
                 if (catalog.DiscoveredParts.DiscoveryErrors.IsEmpty)
                 {
@@ -191,6 +193,36 @@ namespace Microsoft.VisualStudio.Composition.AppHost
             {
                 AppDomain.CurrentDomain.AssemblyResolve -= this.CurrentDomain_AssemblyResolve;
             }
+        }
+
+        private IEnumerable<string> GetCatalogAssembliesLines(ComposableCatalog catalog)
+        {
+            yield return "Original assembly names:";
+            foreach (string path in this.catalogAssemblyPaths.OrderBy(Path.GetFileNameWithoutExtension, StringComparer.OrdinalIgnoreCase))
+            {
+                yield return $"\t{Path.GetFileNameWithoutExtension(path)} (\"{path}\")";
+            }
+
+            yield return string.Empty;
+
+            yield return "Scanned assemblies with no discoverable parts:";
+            var noncontributors = catalog.Parts.Select(p => p.TypeRef.AssemblyName.Name).Distinct()
+                .Except(this.catalogAssemblyPaths.Select(Path.GetFileNameWithoutExtension))
+                .OrderBy(Path.GetFileNameWithoutExtension)
+                .ToList();
+            if (noncontributors.Any())
+            {
+                foreach (string path in noncontributors)
+                {
+                    yield return '\t' + path;
+                }
+            }
+            else
+            {
+                yield return "\t- none -";
+            }
+
+            yield return string.Empty;
         }
 
         private void LogWarning(string code, string message)
