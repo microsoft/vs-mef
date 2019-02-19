@@ -72,11 +72,13 @@ namespace Microsoft.VisualStudio.Composition.AppHost
         /// <summary>
         /// Gets or sets a value indicating whether to continue when errors occur while scanning MEF assemblies.
         /// </summary>
+        /// <value>The default is <c>false</c>, causing build failure.</value>
         public bool ContinueOnDiscoveryErrors { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to continue when errors occur while composing the graph.
         /// </summary>
+        /// <value>The default is <c>false</c>, causing build failure.</value>
         public bool ContinueOnCompositionErrors { get; set; }
 
         [Required]
@@ -275,6 +277,12 @@ namespace Microsoft.VisualStudio.Composition.AppHost
                         {
                             return fullPath;
                         }
+
+                        fullPath = Path.Combine(Path.GetFullPath(searchDir.ItemSpec), assemblyName.Name + ".exe");
+                        if (File.Exists(fullPath))
+                        {
+                            return fullPath;
+                        }
                     }
                 }
                 catch (ArgumentException)
@@ -443,6 +451,9 @@ namespace Microsoft.VisualStudio.Composition.AppHost
             }
             catch (IOException ex)
             {
+                // Don't emit an error code. This should rarely happen, and when it does it should call attention to folks
+                // that they may have an overbuild / multiproc build problem.
+                // Adding an error code would make it suppressible.
                 this.Log.LogWarning("Unable to write log file: \"{0}\". {1}", filePath, ex.Message);
             }
         }
