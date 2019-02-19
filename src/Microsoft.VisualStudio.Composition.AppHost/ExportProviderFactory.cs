@@ -12,11 +12,12 @@ namespace $rootnamespace$
 {
     using System.IO;
     using System.Reflection;
+    using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition;
 
     internal static class ExportProviderFactory
     {
-        internal static IExportProviderFactory LoadDefault()
+        internal static async Task<IExportProviderFactory> LoadDefaultAsync()
         {
             var cacheManager = new CachedComposition();
             string cachePath = Path.Combine(
@@ -24,7 +25,7 @@ namespace $rootnamespace$
                 "$ConfigurationAssemblyName$");
             using (var cacheStream = File.OpenRead(cachePath))
             {
-                return cacheManager.LoadExportProviderFactoryAsync(cacheStream, Resolver.DefaultInstance).GetAwaiter().GetResult();
+                return await cacheManager.LoadExportProviderFactoryAsync(cacheStream, Resolver.DefaultInstance);
             }
         }
    }
