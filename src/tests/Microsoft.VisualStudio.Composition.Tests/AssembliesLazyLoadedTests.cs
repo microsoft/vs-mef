@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
-        [Fact(Skip = "We have to resolve the TypeRefs to traverse the hierarchy of types currently")]
+        [Fact]
         public async Task CatalogGetInputAssembliesDoesNotLoadLazyExports()
         {
             var catalog = TestUtilities.EmptyCatalog.AddParts(
@@ -123,6 +123,56 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
                 driver.Initialize(this.cacheManager.GetType(), compositionCache, catalogCache);
                 driver.TestExternalExportWithLazy(typeof(YetAnotherExport).Assembly.Location);
+            }
+            finally
+            {
+                AppDomain.Unload(appDomain);
+            }
+        }
+
+        /// <summary>
+        /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
+        /// </summary>
+        [SkippableFact]
+        public async Task ComposableAssembliesAssignabilityChecks()
+        {
+            SkipOnMono();
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartThatLazyImportsExportWithMetadataOfCustomType), typeof(ExportWithCustomMetadata)));
+            var catalogCache = await this.SaveCatalogAsync(catalog);
+
+            // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
+            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
+            try
+            {
+                var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
+                driver.Compose(catalogCache);
+                driver.AssertAssembliesNotLoaded(typeof(PartThatLazyImportsExportWithMetadataOfCustomType).Assembly.Location, typeof(ExportWithCustomMetadata).Assembly.Location);
+            }
+            finally
+            {
+                AppDomain.Unload(appDomain);
+            }
+        }
+
+        /// <summary>
+        /// Verifies that the assemblies that MEF parts belong to are only loaded when their parts are actually instantiated.
+        /// </summary>
+        [SkippableFact]
+        public async Task ComposableAssembliesMemberExportAssignabilityChecks()
+        {
+            SkipOnMono();
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartThatImportsExportedMember), typeof(ExportedMember)));
+            var catalogCache = await this.SaveCatalogAsync(catalog);
+
+            // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
+            var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
+            try
+            {
+                var driver = (AppDomainTestDriver)appDomain.CreateInstanceAndUnwrap(typeof(AppDomainTestDriver).Assembly.FullName, typeof(AppDomainTestDriver).FullName);
+                driver.Compose(catalogCache);
+                driver.AssertAssembliesNotLoaded(typeof(PartThatImportsExportedMember).Assembly.Location, typeof(ExportedMember).Assembly.Location);
             }
             finally
             {
@@ -292,6 +342,27 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 this.container = containerFactory.CreateExportProvider();
             }
 
+            internal void Compose(Stream cachedCatalog)
+            {
+                Requires.NotNull(cachedCatalog, nameof(cachedCatalog));
+
+                Stream cachedCatalogLocal = CopyStream(cachedCatalog);
+
+                // Deserialize the catalog to verify that it doesn't load any assemblies.
+                var catalogManager = new CachedCatalog();
+                this.catalog = catalogManager.LoadAsync(cachedCatalogLocal, TestUtilities.Resolver).Result;
+
+                var configuration = CompositionConfiguration.Create(this.catalog);
+
+                var cacheManager = new CachedComposition();
+                var ms = new MemoryStream();
+                cacheManager.SaveAsync(configuration, ms).GetAwaiter().GetResult();
+                ms.Position = 0;
+
+                var containerFactory = cacheManager.LoadExportProviderFactoryAsync(ms, TestUtilities.Resolver).GetAwaiter().GetResult();
+                this.container = containerFactory.CreateExportProvider();
+            }
+
             internal void TestGetInputAssembliesDoesNotLoadLazyExport(string lazyLoadedAssemblyPath)
             {
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
@@ -322,6 +393,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 Assert.NotNull(exportWithLazy.YetAnotherExport.Value);
                 AssertEx.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
+            }
+
+            internal void AssertAssembliesNotLoaded(params string[] assemblyPaths)
+            {
+                AssertEx.False(GetLoadedAssemblies().Select(a => a.Location).Intersect(assemblyPaths, StringComparer.OrdinalIgnoreCase).Any());
             }
 
             internal void TestPartThatImportsExportWithTypeMetadataViaDictionary(string lazyLoadedAssemblyPath)

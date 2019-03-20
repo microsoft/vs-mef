@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Composition
     {
         private bool? isLazy;
 
-        private Type importingSiteElementType;
+        private TypeRef importingSiteElementTypeRef;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
@@ -107,18 +107,23 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets the type of the member, with the ImportMany collection and Lazy/ExportFactory stripped off, when present.
         /// </summary>
-        public Type ImportingSiteElementType
+        public TypeRef ImportingSiteElementTypeRef
         {
             get
             {
-                if (this.importingSiteElementType == null)
+                if (this.importingSiteElementTypeRef == null)
                 {
-                    this.importingSiteElementType = PartDiscovery.GetTypeIdentityFromImportingType(this.ImportingSiteType, this.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore);
+                    this.importingSiteElementTypeRef = PartDiscovery.GetTypeIdentityFromImportingTypeRef(this.ImportingSiteTypeRef, this.ImportDefinition.Cardinality == ImportCardinality.ZeroOrMore);
                 }
 
-                return this.importingSiteElementType;
+                return this.importingSiteElementTypeRef;
             }
         }
+
+        /// <summary>
+        /// Gets the type of the member, with the ImportMany collection and Lazy/ExportFactory stripped off, when present.
+        /// </summary>
+        public Type ImportingSiteElementType => this.ImportingSiteElementTypeRef?.Resolve();
 
         public bool IsLazy
         {
@@ -139,10 +144,10 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (this.IsLazy || this.IsExportFactory)
                 {
-                    var args = this.ImportingSiteTypeWithoutCollection.GetTypeInfo().GenericTypeArguments;
+                    var args = this.ImportingSiteTypeWithoutCollectionRef.GenericTypeArguments;
                     if (args.Length == 2)
                     {
-                        return args[1];
+                        return args[1].ResolvedType;
                     }
                 }
 

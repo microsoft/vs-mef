@@ -186,6 +186,7 @@ namespace Microsoft.VisualStudio.Composition
                     this.Write(methodRef.DeclaringType);
                     this.WriteCompressedMetadataToken(methodRef.MetadataToken, MetadataTokenType.Method);
                     this.Write(methodRef.Name);
+                    this.WriteCompressedUInt((uint)(methodRef.IsStatic ? 1 : 0));
                     this.Write(methodRef.ParameterTypes, this.Write);
                     this.Write(methodRef.GenericMethodArguments, this.Write);
                 }
@@ -202,9 +203,10 @@ namespace Microsoft.VisualStudio.Composition
                     var declaringType = this.ReadTypeRef();
                     var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
                     var name = this.ReadString();
+                    var isStatic = this.ReadCompressedUInt() != 0;
                     var parameterTypes = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
                     var genericMethodArguments = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
-                    return new MethodRef(declaringType, metadataToken, name, parameterTypes, genericMethodArguments);
+                    return new MethodRef(declaringType, metadataToken, name, isStatic, parameterTypes, genericMethodArguments);
                 }
                 else
                 {
@@ -274,8 +276,10 @@ namespace Microsoft.VisualStudio.Composition
                 if (this.TryPrepareSerializeReusableObject(propertyRef))
                 {
                     this.Write(propertyRef.DeclaringType);
+                    this.Write(propertyRef.PropertyTypeRef);
                     this.WriteCompressedMetadataToken(propertyRef.MetadataToken, MetadataTokenType.Property);
                     this.Write(propertyRef.Name);
+                    this.WriteCompressedUInt((uint)(propertyRef.IsStatic ? 1 : 0));
 
                     byte flags = 0;
                     flags |= propertyRef.GetMethodMetadataToken.HasValue ? (byte)0x1 : (byte)0x0;
@@ -302,8 +306,10 @@ namespace Microsoft.VisualStudio.Composition
                 if (this.TryPrepareDeserializeReusableObject(out uint id, out PropertyRef value))
                 {
                     var declaringType = this.ReadTypeRef();
+                    var propertyType = this.ReadTypeRef();
                     var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Property);
                     var name = this.ReadString();
+                    var isStatic = this.ReadCompressedUInt() != 0;
 
                     byte flags = this.reader.ReadByte();
                     int? getter = null, setter = null;
@@ -319,10 +325,12 @@ namespace Microsoft.VisualStudio.Composition
 
                     value = new PropertyRef(
                         declaringType,
+                        propertyType,
                         metadataToken,
                         getter,
                         setter,
-                        name);
+                        name,
+                        isStatic);
 
                     this.OnDeserializedReusableObject(id, value);
                 }
@@ -338,8 +346,10 @@ namespace Microsoft.VisualStudio.Composition
                 if (this.TryPrepareSerializeReusableObject(fieldRef))
                 {
                     this.Write(fieldRef.DeclaringType);
+                    this.Write(fieldRef.FieldTypeRef);
                     this.WriteCompressedMetadataToken(fieldRef.MetadataToken, MetadataTokenType.Field);
                     this.Write(fieldRef.Name);
+                    this.WriteCompressedUInt((uint)(fieldRef.IsStatic ? 1 : 0));
                 }
             }
         }
@@ -351,9 +361,11 @@ namespace Microsoft.VisualStudio.Composition
                 if (this.TryPrepareDeserializeReusableObject(out uint id, out FieldRef value))
                 {
                     var declaringType = this.ReadTypeRef();
+                    var fieldType = this.ReadTypeRef();
                     int metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Field);
                     var name = this.ReadString();
-                    value = new FieldRef(declaringType, metadataToken, name);
+                    var isStatic = this.ReadCompressedUInt() != 0;
+                    value = new FieldRef(declaringType, fieldType, metadataToken, name, isStatic);
 
                     this.OnDeserializedReusableObject(id, value);
                 }
@@ -416,6 +428,18 @@ namespace Microsoft.VisualStudio.Composition
                     this.WriteCompressedUInt((uint)typeRef.TypeFlags);
                     this.WriteCompressedUInt((uint)typeRef.GenericTypeParameterCount);
                     this.Write(typeRef.GenericTypeArguments, this.Write);
+
+                    this.WriteCompressedUInt((uint)(typeRef.IsShallow ? 1 : 0));
+                    if (!typeRef.IsShallow)
+                    {
+                        this.Write(typeRef.BaseTypes, this.Write);
+                    }
+
+                    this.WriteCompressedUInt((uint)(typeRef.ElementTypeRef.Equals(typeRef) ? 0 : 1));
+                    if (!typeRef.ElementTypeRef.Equals(typeRef))
+                    {
+                        this.Write(typeRef.ElementTypeRef);
+                    }
                 }
             }
         }
@@ -434,7 +458,18 @@ namespace Microsoft.VisualStudio.Composition
                     var flags = (TypeRefFlags)this.ReadCompressedUInt();
                     int genericTypeParameterCount = (int)this.ReadCompressedUInt();
                     var genericTypeArguments = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
-                    value = TypeRef.Get(this.Resolver, assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments);
+
+                    var shallow = this.ReadCompressedUInt() != 0;
+                    var baseTypes = shallow
+                        ? ImmutableArray<TypeRef>.Empty
+                        : this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
+
+                    var hasElementType = this.ReadCompressedUInt() != 0;
+                    var elementType = hasElementType
+                        ? this.ReadTypeRef()
+                        : null;
+
+                    value = TypeRef.Get(this.Resolver, assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementType);
 
                     this.OnDeserializedReusableObject(id, value);
                 }
@@ -688,7 +723,14 @@ namespace Microsoft.VisualStudio.Composition
 
                 // Special case certain values to avoid defeating lazy load later.
                 // Check out the ReadMetadata below, how it wraps the return value.
-                var serializedMetadata = new LazyMetadataWrapper(metadata.ToImmutableDictionary(), LazyMetadataWrapper.Direction.ToSubstitutedValue, this.Resolver);
+                IReadOnlyDictionary<string, object> serializedMetadata;
+
+                // Unwrap the metadata if its an instance of LazyMetaDataWrapper, the wrapper may end up
+                // implicitly resolving TypeRefs to Types which is undesirable.
+                metadata = LazyMetadataWrapper.TryUnwrap(metadata);
+
+                serializedMetadata = new LazyMetadataWrapper(metadata.ToImmutableDictionary(), LazyMetadataWrapper.Direction.ToSubstitutedValue, this.Resolver);
+
                 foreach (var entry in serializedMetadata)
                 {
                     this.Write(entry.Key);

@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.Composition
             foreach (var entry in this.Requirements)
             {
                 object value;
-                if (!exportDefinition.Metadata.TryGetValue(entry.Key, out value))
+                if (!LazyMetadataWrapper.TryGetLoadSafeValueTypeRef(exportDefinition.Metadata, entry.Key, this.Resolver, out value))
                 {
                     if (entry.Value.IsMetadataumValueRequired)
                     {
@@ -90,10 +90,10 @@ namespace Microsoft.VisualStudio.Composition
                     }
                 }
 
-                Type metadatumValueType = entry.Value.MetadatumValueType;
+                TypeRef metadatumValueTypeRef = entry.Value.MetadatumValueTypeRef;
                 if (value == null)
                 {
-                    if (metadatumValueType.GetTypeInfo().IsValueType)
+                    if (metadatumValueTypeRef.IsValueType)
                     {
                         // A null reference for a value type is not a compatible match.
                         return false;
@@ -105,39 +105,40 @@ namespace Microsoft.VisualStudio.Composition
                     }
                 }
 
-                if (typeof(object[]).IsEquivalentTo(value.GetType()) && (entry.Value.MetadatumValueTypeRef.IsArray || (metadatumValueType.GetTypeInfo().IsGenericType && typeof(IEnumerable<>).GetTypeInfo().IsAssignableFrom(metadatumValueType.GetTypeInfo().GetGenericTypeDefinition().GetTypeInfo()))))
+                if (value is TypeRef valueTypeRef)
                 {
-                    // When ExportMetadata(IsMultiple=true), the value is an object[]. Check that each individual value is assignable.
-                    var receivingElementType = PartDiscovery.GetElementTypeFromMany(metadatumValueType).GetTypeInfo();
-                    foreach (object item in (object[])value)
+                    if (!metadatumValueTypeRef.ElementTypeRef.IsAssignableFrom(valueTypeRef.ElementTypeRef))
+                    {
+                        return false;
+                    }
+
+                    continue;
+                }
+
+                if (value is TypeRef[] valueTypeRefArray && metadatumValueTypeRef.ElementTypeRef != metadatumValueTypeRef)
+                {
+                    var receivingElementTypeRef = metadatumValueTypeRef.ElementTypeRef;
+                    foreach (var item in valueTypeRefArray)
                     {
                         if (item == null)
                         {
-                            if (receivingElementType.IsValueType)
+                            if (receivingElementTypeRef.IsValueType)
                             {
-                                // We cannot assign null to a struct type.
                                 return false;
                             }
                             else
                             {
-                                // Null can always be assigned to a reference type.
                                 continue;
                             }
                         }
 
-                        if (!receivingElementType.IsAssignableFrom(item.GetType().GetTypeInfo()))
+                        if (!receivingElementTypeRef.IsAssignableFrom(item))
                         {
                             return false;
                         }
                     }
 
-                    // We're fully validated now.
                     continue;
-                }
-
-                if (!metadatumValueType.GetTypeInfo().IsAssignableFrom(value.GetType().GetTypeInfo()))
-                {
-                    return false;
                 }
             }
 

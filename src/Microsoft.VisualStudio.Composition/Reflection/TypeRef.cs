@@ -38,6 +38,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// </summary>
         private StrongAssemblyIdentity assemblyId;
 
+        /// <summary>
+        /// Backing field for <see cref="BaseTypes"/>.
+        /// </summary>
+        private ImmutableArray<TypeRef> baseTypes;
+
         private TypeRef(
             Resolver resolver,
             AssemblyName assemblyName,
@@ -46,7 +51,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             string fullName,
             TypeRefFlags typeFlags,
             int genericTypeParameterCount,
-            ImmutableArray<TypeRef> genericTypeArguments)
+            ImmutableArray<TypeRef> genericTypeArguments,
+            bool shallow,
+            ImmutableArray<TypeRef> baseTypes,
+            TypeRef elementTypeRef)
         {
             Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(assemblyName, nameof(assemblyName));
@@ -62,9 +70,15 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.TypeFlags = typeFlags;
             this.GenericTypeParameterCount = genericTypeParameterCount;
             this.GenericTypeArguments = genericTypeArguments;
+            if (!shallow)
+            {
+                this.baseTypes = baseTypes;
+            }
+
+            this.ElementTypeRef = elementTypeRef ?? this;
         }
 
-        private TypeRef(Resolver resolver, Type type)
+        private TypeRef(Resolver resolver, Type type, bool shallow = false)
         {
             Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(type, nameof(type));
@@ -76,14 +90,23 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.TypeFlags |= type.IsArray ? TypeRefFlags.Array : TypeRefFlags.None;
             this.TypeFlags |= type.GetTypeInfo().IsValueType ? TypeRefFlags.IsValueType : TypeRefFlags.None;
 
-            Type elementType = this.ElementType;
-            Requires.Argument(!elementType.IsGenericParameter, nameof(type), "Generic parameters are not supported.");
-            this.MetadataToken = elementType.GetTypeInfo().MetadataToken;
-            this.FullName = (elementType.GetTypeInfo().IsGenericType ? elementType.GetGenericTypeDefinition() : elementType).FullName;
-            this.GenericTypeParameterCount = elementType.GetTypeInfo().GenericTypeParameters.Length;
-            this.GenericTypeArguments = elementType.GenericTypeArguments != null && elementType.GenericTypeArguments.Length > 0
-                ? elementType.GenericTypeArguments.Select(t => new TypeRef(resolver, t)).ToImmutableArray()
+            this.ElementTypeRef = PartDiscovery.TryGetElementTypeFromMany(type, out var elementType)
+                ? TypeRef.Get(elementType, resolver)
+                : this;
+
+            var arrayElementType = this.ArrayElementType;
+            Requires.Argument(!arrayElementType.IsGenericParameter, nameof(type), "Generic parameters are not supported.");
+            this.MetadataToken = arrayElementType.GetTypeInfo().MetadataToken;
+            this.FullName = (arrayElementType.GetTypeInfo().IsGenericType ? arrayElementType.GetGenericTypeDefinition() : arrayElementType).FullName;
+            this.GenericTypeParameterCount = arrayElementType.GetTypeInfo().GenericTypeParameters.Length;
+            this.GenericTypeArguments = arrayElementType.GenericTypeArguments != null && arrayElementType.GenericTypeArguments.Length > 0
+                ? arrayElementType.GenericTypeArguments.Where(t => !(shallow && t.IsGenericParameter)).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray()
                 : ImmutableArray<TypeRef>.Empty;
+
+            if (!shallow)
+            {
+                this.baseTypes = arrayElementType.EnumTypeBaseTypesAndInterfaces().Skip(1).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray();
+            }
         }
 
         public AssemblyName AssemblyName { get; }
@@ -105,6 +128,33 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         public int GenericTypeParameterCount { get; private set; }
 
         public ImmutableArray<TypeRef> GenericTypeArguments { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether or not this TypeRef is shallow. Shallow TypeRefs do not have a defined list of base types.
+        /// </summary>
+        public bool IsShallow => this.baseTypes.IsDefault;
+
+        /// <summary>
+        /// Gets the full list of base types and interfaces for this instance.
+        /// </summary>
+        /// <remarks>
+        /// This list will only be populated if this instance was created with shallow set to false.
+        /// The collection is ordered bottom-up for types with the implemented interfaces appended at the end.
+        /// </remarks>
+        public ImmutableArray<TypeRef> BaseTypes
+        {
+            get
+            {
+                if (this.IsShallow)
+                {
+                    throw new InvalidOperationException("Cannot retrieve base types on a shallow TypeRef.");
+                }
+
+                return this.baseTypes;
+            }
+        }
+
+        public TypeRef ElementTypeRef { get; private set; }
 
         public bool IsGenericType => this.GenericTypeParameterCount > 0 || this.GenericTypeArguments.Length > 0;
 
@@ -183,17 +233,17 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
         }
 
-        private Type ElementType => this.IsArray ? this.ResolvedType.GetElementType() : this.ResolvedType;
+        private Type ArrayElementType => this.IsArray ? this.ResolvedType.GetElementType() : this.ResolvedType;
 
-        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, TypeRefFlags typeFlags, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
+        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, TypeRefFlags typeFlags, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, bool shallow, ImmutableArray<TypeRef> baseTypes, TypeRef elementTypeRef)
         {
             Requires.NotNull(resolver, nameof(resolver));
-            return new TypeRef(resolver, assemblyName, null, metadataToken, fullName, typeFlags, genericTypeParameterCount, genericTypeArguments);
+            return new TypeRef(resolver, assemblyName, null, metadataToken, fullName, typeFlags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementTypeRef);
         }
 
-        public static TypeRef Get(Resolver resolver, StrongAssemblyIdentity assemblyId, int metadataToken, string fullName, TypeRefFlags typeFlags, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments)
+        public static TypeRef Get(Resolver resolver, StrongAssemblyIdentity assemblyId, int metadataToken, string fullName, TypeRefFlags typeFlags, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, bool shallow, ImmutableArray<TypeRef> baseTypes, TypeRef elementTypeRef)
         {
-            return new TypeRef(resolver, assemblyId.Name, assemblyId, metadataToken, fullName, typeFlags, genericTypeParameterCount, genericTypeArguments);
+            return new TypeRef(resolver, assemblyId.Name, assemblyId, metadataToken, fullName, typeFlags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementTypeRef);
         }
 
         /// <summary>
@@ -242,7 +292,40 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             // We use the resolver parameter instead of the field here because this TypeRef instance
             // might have been constructed by TypeRef.Get(Type) and thus not have a resolver.
-            return new TypeRef(this.Resolver, this.AssemblyName, this.assemblyId, this.MetadataToken, this.FullName, this.TypeFlags, this.GenericTypeParameterCount, genericTypeArguments);
+            return new TypeRef(this.Resolver, this.AssemblyName, this.assemblyId, this.MetadataToken, this.FullName, this.TypeFlags, this.GenericTypeParameterCount, genericTypeArguments, this.IsShallow, this.BaseTypes, this.ElementTypeRef);
+        }
+
+        /// <summary>
+        /// Checks if the type represented by the given TypeRef can be assigned to the type represented by this instance.
+        /// </summary>
+        /// <remarks>
+        /// The assignability check is done by traversing all the base types and interfaces of the given TypeRef to check
+        /// if any of them are equal to this instance. Should that fail, the CLR is asked to check for assignability
+        /// which will trigger an assembly load.
+        /// </remarks>
+        /// <param name="other">TypeRef to compare to</param>
+        /// <returns>true if the given TypeRef can be assigned to this instance, false otherwise.</returns>
+        public bool IsAssignableFrom(TypeRef other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            if (this.TypeRefEquals(other))
+            {
+                return true;
+            }
+
+            foreach (var baseType in other.BaseTypes)
+            {
+                if (this.TypeRefEquals(baseType))
+                {
+                    return true;
+                }
+            }
+
+            return this.ResolvedType.GetTypeInfo().IsAssignableFrom(other.ResolvedType.GetTypeInfo());
         }
 
         public override int GetHashCode()
@@ -253,6 +336,28 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
 
             return this.hashCode.Value;
+        }
+
+        /// <summary>
+        /// Compares for type equality, ignoring whether or not the TypeRef is shallow.
+        /// </summary>
+        /// <param name="other">TypeRef to compare to</param>
+        /// <returns>true if the TypeRefs represent the same type, false otherwise.</returns>
+        internal bool TypeRefEquals(TypeRef other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            // If we ever stop comparing metadata tokens,
+            // we would need to compare the other properties that describe this member.
+            bool result = this.MetadataToken == other.MetadataToken
+                && AssemblyNameComparer.Equals(this.AssemblyName, other.AssemblyName)
+                && this.IsArray == other.IsArray
+                && this.GenericTypeParameterCount == other.GenericTypeParameterCount
+                && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments);
+            return result;
         }
 
         public override bool Equals(object obj)
@@ -273,7 +378,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 && AssemblyNameComparer.Equals(this.AssemblyName, other.AssemblyName)
                 && this.IsArray == other.IsArray
                 && this.GenericTypeParameterCount == other.GenericTypeParameterCount
-                && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments);
+                && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments)
+                && this.IsShallow == other.IsShallow;
             return result;
         }
 

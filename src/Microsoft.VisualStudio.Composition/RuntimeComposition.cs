@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.Composition
                 part.Definition.ImportingConstructorOrFactoryRef,
                 part.GetImportingConstructorImports().Select(kvp => CreateRuntimeImport(kvp.Key, kvp.Value, part.Resolver)).ToImmutableArray(),
                 part.Definition.ImportingMembers.Select(idb => CreateRuntimeImport(idb, part.SatisfyingExports[idb], part.Resolver)).ToImmutableArray(),
-                part.Definition.ExportDefinitions.Select(ed => CreateRuntimeExport(ed.Value, part.Definition.Type, ed.Key, part.Resolver)).ToImmutableArray(),
+                part.Definition.ExportDefinitions.Select(ed => CreateRuntimeExport(ed.Value, part.Definition.TypeRef, ed.Key, part.Resolver)).ToImmutableArray(),
                 part.Definition.OnImportsSatisfiedRef,
                 part.Definition.IsShared ? configuration.GetEffectiveSharingBoundary(part.Definition) : null);
             return runtimePart;
@@ -227,16 +227,14 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private static RuntimeExport CreateRuntimeExport(ExportDefinition exportDefinition, Type partType, MemberRef exportingMemberRef, Resolver resolver)
+        private static RuntimeExport CreateRuntimeExport(ExportDefinition exportDefinition, TypeRef partTypeRef, MemberRef exportingMemberRef, Resolver resolver)
         {
             Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
-            var exportingMember = exportingMemberRef?.MemberInfo;
             return new RuntimeExport(
                 exportDefinition.ContractName,
-                TypeRef.Get(partType, resolver),
+                partTypeRef,
                 exportingMemberRef,
-                TypeRef.Get(ReflectionHelpers.GetExportedValueType(partType, exportingMember), resolver),
                 exportDefinition.Metadata);
         }
 
@@ -245,15 +243,15 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(exportDefinitionBinding, nameof(exportDefinitionBinding));
             Requires.NotNull(resolver, nameof(resolver));
 
-            var partDefinitionType = exportDefinitionBinding.PartDefinition.TypeRef.Resolve();
+            var partDefinitionTypeRef = exportDefinitionBinding.PartDefinition.TypeRef;
             return CreateRuntimeExport(
                 exportDefinitionBinding.ExportDefinition,
-                partDefinitionType,
+                partDefinitionTypeRef,
                 exportDefinitionBinding.ExportingMemberRef,
                 resolver);
         }
 
-        [DebuggerDisplay("{" + nameof(RuntimePart.TypeRef) + "." + nameof(Reflection.TypeRef.ResolvedType) + ".FullName,nq}")]
+        [DebuggerDisplay("{" + nameof(RuntimePart.TypeRef.FullName) + ",nq}")]
         public class RuntimePart : IEquatable<RuntimePart>
         {
             public RuntimePart(
@@ -497,6 +495,18 @@ namespace Microsoft.VisualStudio.Composition
         public class RuntimeExport : IEquatable<RuntimeExport>
         {
             private MemberInfo member;
+            private TypeRef exportedValueTypeRef;
+
+            public RuntimeExport(string contractName, TypeRef declaringTypeRef, MemberRef memberRef, IReadOnlyDictionary<string, object> metadata)
+            {
+                Requires.NotNull(metadata, nameof(metadata));
+                Requires.NotNullOrEmpty(contractName, nameof(contractName));
+
+                this.ContractName = contractName;
+                this.DeclaringTypeRef = declaringTypeRef;
+                this.MemberRef = memberRef;
+                this.Metadata = metadata;
+            }
 
             public RuntimeExport(string contractName, TypeRef declaringTypeRef, MemberRef memberRef, TypeRef exportedValueTypeRef, IReadOnlyDictionary<string, object> metadata)
             {
@@ -506,7 +516,7 @@ namespace Microsoft.VisualStudio.Composition
                 this.ContractName = contractName;
                 this.DeclaringTypeRef = declaringTypeRef;
                 this.MemberRef = memberRef;
-                this.ExportedValueTypeRef = exportedValueTypeRef;
+                this.exportedValueTypeRef = exportedValueTypeRef;
                 this.Metadata = metadata;
             }
 
@@ -516,7 +526,28 @@ namespace Microsoft.VisualStudio.Composition
 
             public MemberRef MemberRef { get; private set; }
 
-            public TypeRef ExportedValueTypeRef { get; private set; }
+            public TypeRef ExportedValueTypeRef
+            {
+                get
+                {
+                    if (this.MemberRef == null)
+                    {
+                        return this.DeclaringTypeRef;
+                    }
+
+                    if (this.exportedValueTypeRef == null)
+                    {
+                        this.exportedValueTypeRef = ReflectionHelpers.GetExportedValueTypeRef(this.DeclaringTypeRef, this.MemberRef);
+                    }
+
+                    return this.exportedValueTypeRef;
+                }
+            }
+
+            public Type ExportedValueType
+            {
+                get { return this.ExportedValueTypeRef.ResolvedType; }
+            }
 
             public IReadOnlyDictionary<string, object> Metadata { get; private set; }
 

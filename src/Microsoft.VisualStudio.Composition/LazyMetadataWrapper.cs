@@ -56,6 +56,8 @@ namespace Microsoft.VisualStudio.Composition
 
         internal interface ISubstitutedValue
         {
+            TypeRef SubstitutedValueTypeRef { get; }
+
             object ActualValue { get; }
         }
 
@@ -195,6 +197,45 @@ namespace Microsoft.VisualStudio.Composition
             return metadata;
         }
 
+        /// <summary>
+        /// Attempts to get the types of metadata values without loading the associated assemblies.
+        /// </summary>
+        /// <param name="metadata">Medatadata dictionary to retrieve values from.</param>
+        /// <param name="key">key for the metadata value.</param>
+        /// <param name="resolver">Type resolver to use.</param>
+        /// <param name="value">out param for the TypeRef associated with the given key.</param>
+        /// <returns>Either a TypeRef representing the type of the underlying value or a TypeRef[] if the underlying value was an array.</returns>
+        internal static bool TryGetLoadSafeValueTypeRef(IReadOnlyDictionary<string, object> metadata, string key, Resolver resolver, out object value)
+        {
+            Requires.NotNull(metadata, nameof(metadata));
+
+            if (metadata is LazyMetadataWrapper lazyMetadata && lazyMetadata.direction == Direction.ToOriginalValue)
+            {
+                metadata = lazyMetadata.underlyingMetadata;
+            }
+
+            if (!metadata.TryGetValue(key, out var innerValue))
+            {
+                value = null;
+                return false;
+            }
+
+            if (innerValue is ISubstitutedValue substitutedValue)
+            {
+                value = substitutedValue.SubstitutedValueTypeRef;
+            }
+            else if (innerValue != null && typeof(object[]).IsEquivalentTo(innerValue.GetType()))
+            {
+                value = ((object[])innerValue).Select(v => TypeRef.Get(v?.GetType(), resolver)).ToArray();
+            }
+            else
+            {
+                value = TypeRef.Get(innerValue?.GetType(), resolver);
+            }
+
+            return true;
+        }
+
         internal static IReadOnlyDictionary<string, object> Rewrap(IReadOnlyDictionary<string, object> originalWrapper, IReadOnlyDictionary<string, object> updatedMetadata)
         {
             var self = originalWrapper as LazyMetadataWrapper;
@@ -276,6 +317,8 @@ namespace Microsoft.VisualStudio.Composition
                 this.RawValue = rawValue;
             }
 
+            public TypeRef SubstitutedValueTypeRef => this.EnumType;
+
             public object ActualValue
             {
                 get { return Enum.ToObject(this.EnumType.Resolve(), this.RawValue); }
@@ -350,6 +393,8 @@ namespace Microsoft.VisualStudio.Composition
                 this.TypeRef = typeRef;
             }
 
+            public TypeRef SubstitutedValueTypeRef => TypeRef.Get(typeof(Type), this.TypeRef.Resolver);
+
             internal TypeRef TypeRef { get; private set; }
 
             public object ActualValue
@@ -418,6 +463,8 @@ namespace Microsoft.VisualStudio.Composition
                 this.TypeRefArray = typeRefArray;
                 this.resolver = resolver;
             }
+
+            public TypeRef SubstitutedValueTypeRef => TypeRef.Get(typeof(Type[]), this.resolver);
 
             internal IReadOnlyList<TypeRef> TypeRefArray { get; private set; }
 

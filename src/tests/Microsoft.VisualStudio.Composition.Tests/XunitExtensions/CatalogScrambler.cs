@@ -72,6 +72,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 this.Scramble(methodRef.DeclaringType),
                 this.GetScrambledMetadataToken(methodRef.MetadataToken),
                 methodRef.Name,
+                methodRef.IsStatic,
                 methodRef.ParameterTypes.Select(this.Scramble).ToImmutableArray(),
                 methodRef.GenericMethodArguments.Select(this.Scramble).ToImmutableArray());
         }
@@ -99,7 +100,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     typeRef.FullName,
                     typeRef.TypeFlags,
                     typeRef.GenericTypeParameterCount,
-                    typeRef.GenericTypeArguments.Select(this.Scramble).ToImmutableArray());
+                    typeRef.GenericTypeArguments.Select(this.Scramble).ToImmutableArray(),
+                    typeRef.IsShallow,
+                    typeRef.IsShallow ? ImmutableArray<TypeRef>.Empty : typeRef.BaseTypes.Select(this.Scramble).ToImmutableArray(),
+                    typeRef.ElementTypeRef);
                 this.scrambledTypeRefs.Add(typeRef, scrambled);
             }
 
@@ -169,8 +173,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             return new FieldRef(
                 this.Scramble(fieldRef.DeclaringType),
+                this.Scramble(fieldRef.FieldTypeRef),
                 this.GetScrambledMetadataToken(fieldRef.MetadataToken),
-                fieldRef.Name);
+                fieldRef.Name,
+                fieldRef.IsStatic);
         }
 
         private PropertyRef Scramble(PropertyRef propertyRef)
@@ -182,10 +188,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             return new PropertyRef(
                 this.Scramble(propertyRef.DeclaringType),
+                this.Scramble(propertyRef.PropertyTypeRef),
                 this.GetScrambledMetadataToken(propertyRef.MetadataToken),
                 this.GetScrambledMetadataToken(propertyRef.GetMethodMetadataToken),
                 this.GetScrambledMetadataToken(propertyRef.SetMethodMetadataToken),
-                propertyRef.Name);
+                propertyRef.Name,
+                propertyRef.IsStatic);
         }
 
         private MemberRef Scramble(MemberRef importingMemberRef)

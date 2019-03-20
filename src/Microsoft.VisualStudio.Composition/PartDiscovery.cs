@@ -202,13 +202,45 @@ namespace Microsoft.VisualStudio.Composition
             return type;
         }
 
+        protected internal static TypeRef GetTypeIdentityFromImportingTypeRef(TypeRef typeRef, bool importMany)
+        {
+            Requires.NotNull(typeRef, nameof(typeRef));
+
+            if (importMany)
+            {
+                typeRef = typeRef.ElementTypeRef;
+            }
+
+            if (typeRef.IsAnyLazyType() || typeRef.IsExportFactoryTypeV1() || typeRef.IsExportFactoryTypeV2())
+            {
+                return typeRef.GenericTypeArguments[0];
+            }
+
+            return typeRef;
+        }
+
         protected internal static Type GetElementTypeFromMany(Type type)
+        {
+            Requires.NotNull(type, nameof(type));
+
+            if (TryGetElementTypeFromMany(type, out var elementType))
+            {
+                return elementType;
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(Strings.ImportManyOnNonCollectionType, type.FullName), nameof(type));
+            }
+        }
+
+        internal static bool TryGetElementTypeFromMany(Type type, out Type elementType)
         {
             Requires.NotNull(type, nameof(type));
 
             if (type.IsArray)
             {
-                return type.GetElementType(); // T[] -> T
+                elementType = type.GetElementType(); // T[] -> T
+                return true;
             }
             else
             {
@@ -221,9 +253,16 @@ namespace Microsoft.VisualStudio.Composition
                     where genericTypeDef.Equals(typeof(ICollection<>)) || genericTypeDef.Equals(typeof(IEnumerable<>)) || genericTypeDef.Equals(typeof(IList<>))
                     select ifaceInfo;
                 var icollectionType = icollectionTypes.FirstOrDefault();
-                Requires.Argument(icollectionType != null, nameof(type), Strings.ImportManyOnNonCollectionType, type.FullName);
-                return icollectionType.GenericTypeArguments[0]; // IEnumerable<T> -> T
+
+                if (icollectionType != null)
+                {
+                    elementType = icollectionType.GenericTypeArguments[0];
+                    return true;
+                }
             }
+
+            elementType = null;
+            return false;
         }
 
         protected static Type GetImportingSiteTypeWithoutCollection(ImportDefinition importDefinition, Type importingSiteType)

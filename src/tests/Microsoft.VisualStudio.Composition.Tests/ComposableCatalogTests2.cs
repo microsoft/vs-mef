@@ -341,6 +341,16 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Contains(typeof(SomeMetadataAttributeFromAnotherAssemblyAttribute).GetTypeInfo().Assembly.GetName(), inputAssemblies, AssemblyNameComparer.Default);
         }
 
+        [Theory]
+        [MemberData(nameof(DiscoveryEnginesTheoryData))]
+        public async Task GetAssemblyInputs_SucceedesWithGenericType(PartDiscovery discovery)
+        {
+            var catalog = TestUtilities.EmptyCatalog.AddParts(
+                await discovery.CreatePartsAsync(typeof(ExportingWithGenerics<string>)));
+
+            catalog.GetInputAssemblies();
+        }
+
         private void AssertExpectedInputAssemblies(ISet<AssemblyName> expectedSubset, IEnumerable<AssemblyName> actual)
         {
             this.logger.WriteLine("Expected:");
@@ -451,6 +461,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
             [ExportMetadata("SomeInterface", typeof(AssemblyDiscoveryTests.ISomeInterface))]
             public object Export { get; set; }
         }
+
+        [Export, MEFv1.Export]
+        public class ExportingWithGenerics<T> { }
 
         [MetadataAttribute, MEFv1.MetadataAttribute]
         [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]

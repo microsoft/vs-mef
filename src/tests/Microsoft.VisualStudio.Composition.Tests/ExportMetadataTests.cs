@@ -382,6 +382,39 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         #endregion
 
+        [MefFact(CompositionEngines.V1Compat, typeof(PartImportingExportsWithSingleNullMetadata), typeof(PartWithSingleNullMetadata))]
+        public void SingleExportMetadataWithOnlyNullTyped(IContainer container)
+        {
+            var part = container.GetExportedValue<PartImportingExportsWithSingleNullMetadata>();
+            object dictionaryValue = part.ImportingPropertyWithDictionary.Metadata["Name"];
+            string interfaceValue = part.ImportingPropertyWithInterface.Metadata.Name;
+
+            Assert.Null(dictionaryValue);
+            Assert.Null(interfaceValue);
+        }
+
+        [Export, ExportMetadata("Name", null)]
+        [MefV1.Export, MefV1.ExportMetadata("Name", null, IsMultiple = false)]
+        public class PartWithSingleNullMetadata { }
+
+        public interface ISingleNameMetadata
+        {
+            string Name { get; }
+        }
+
+        [Export]
+        [MefV1.Export]
+        public class PartImportingExportsWithSingleNullMetadata
+        {
+            [Import]
+            [MefV1.Import]
+            public Lazy<PartWithSingleNullMetadata, ISingleNameMetadata> ImportingPropertyWithInterface { get; set; }
+
+            [Import]
+            [MefV1.Import]
+            public Lazy<PartWithSingleNullMetadata, IDictionary<string, object>> ImportingPropertyWithDictionary { get; set; }
+        }
+
         #region GetExports (plural) tests
 
         [MefFact(CompositionEngines.V1Compat, new Type[0])]

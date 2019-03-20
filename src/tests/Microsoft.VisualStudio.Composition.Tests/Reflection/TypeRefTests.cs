@@ -49,8 +49,8 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
             assemblyNameV2.CodeBase = codeBaseV2;
 #endif
 
-            TypeRef typeRefV1 = TypeRef.Get(TestUtilities.Resolver, assemblyNameV1, 0x02000001, "SomeType", TypeRefFlags.None, 0, ImmutableArray<TypeRef>.Empty);
-            TypeRef typeRefV2 = TypeRef.Get(TestUtilities.Resolver, assemblyNameV2, 0x02000001, "SomeType", TypeRefFlags.None, 0, ImmutableArray<TypeRef>.Empty);
+            TypeRef typeRefV1 = TypeRef.Get(TestUtilities.Resolver, assemblyNameV1, 0x02000001, "SomeType", TypeRefFlags.None, 0, ImmutableArray<TypeRef>.Empty, false, ImmutableArray<TypeRef>.Empty, null);
+            TypeRef typeRefV2 = TypeRef.Get(TestUtilities.Resolver, assemblyNameV2, 0x02000001, "SomeType", TypeRefFlags.None, 0, ImmutableArray<TypeRef>.Empty, false, ImmutableArray<TypeRef>.Empty, null);
 
             Assert.NotEqual(typeRefV1, typeRefV2);
         }

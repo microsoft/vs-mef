@@ -51,17 +51,27 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public bool IsStaticExport
         {
-            get { return this.ExportingMember.IsStatic(); }
+            get { return this.ExportingMemberRef.IsStatic(); }
         }
 
         public TypeRef ExportedValueTypeRef
         {
-            get { return TypeRef.Get(this.ExportedValueType, this.PartDefinition.TypeRef.Resolver); }
+            get
+            {
+                if (this.ExportingMemberRef == null)
+                {
+                    return this.PartDefinition.TypeRef;
+                }
+                else
+                {
+                    return ReflectionHelpers.GetExportedValueTypeRef(this.PartDefinition.TypeRef, this.ExportingMemberRef);
+                }
+            }
         }
 
         public Type ExportedValueType
         {
-            get { return ReflectionHelpers.GetExportedValueType(this.PartDefinition.Type, this.ExportingMember); }
+            get { return this.ExportedValueTypeRef.ResolvedType; }
         }
 
         internal ExportDefinitionBinding CloseGenericExport(Type[] genericTypeArguments)
