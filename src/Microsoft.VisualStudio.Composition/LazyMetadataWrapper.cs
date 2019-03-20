@@ -224,7 +224,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 value = substitutedValue.SubstitutedValueTypeRef;
             }
-            else if (typeof(object[]).IsEquivalentTo(innerValue.GetType()))
+            else if (innerValue != null && typeof(object[]).IsEquivalentTo(innerValue.GetType()))
             {
                 value = ((object[])innerValue).Select(v => TypeRef.Get(v?.GetType(), resolver)).ToArray();
             }

@@ -166,9 +166,12 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
                 // Base types may define [InheritedExport] attributes or otherwise influence MEF
                 // so we should include them as input assemblies.
-                foreach (var baseType in typeRef.BaseTypes)
+                if (!typeRef.IsShallow)
                 {
-                    assemblies.Add(baseType.AssemblyName);
+                    foreach (var baseType in typeRef.BaseTypes)
+                    {
+                        assemblies.Add(baseType.AssemblyName);
+                    }
                 }
             }
         }
