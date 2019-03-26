@@ -50,7 +50,7 @@
 
             if (assemblyName == null)
             {
-#if DESKTOP
+#if !(NETSTANDARD1_5 || NETCOREAPP1_0)
                 assemblyName = AssemblyName.GetAssemblyName(assemblyFile);
 #else
                 throw new NotSupportedException($"{nameof(assemblyName)} must be specified on this platform.");

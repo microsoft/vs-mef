@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-#if DESKTOP
+#if NETFRAMEWORK
 
 namespace Microsoft.VisualStudio.Composition.Tests
 {

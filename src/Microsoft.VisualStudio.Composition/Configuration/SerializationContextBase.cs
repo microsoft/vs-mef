@@ -450,7 +450,7 @@ namespace Microsoft.VisualStudio.Composition
                 if (this.TryPrepareSerializeReusableObject(assemblyName))
                 {
                     this.Write(assemblyName.FullName);
-#if DESKTOP
+#if !(NETSTANDARD1_5 || NETCOREAPP1_0)
                     this.Write(assemblyName.CodeBase);
 #else
                     this.Write((string)null); // keep the binary format consistent even if we can't write this.
@@ -470,7 +470,7 @@ namespace Microsoft.VisualStudio.Composition
                     string fullName = this.ReadString();
                     string codeBase = this.ReadString();
                     value = new AssemblyName(fullName);
-#if DESKTOP
+#if !(NETSTANDARD1_5 || NETCOREAPP1_0)
                     value.CodeBase = codeBase;
 #endif
                     this.OnDeserializedReusableObject(id, value);

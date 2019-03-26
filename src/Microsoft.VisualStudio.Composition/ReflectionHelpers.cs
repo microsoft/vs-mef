@@ -666,7 +666,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(memberInfo, nameof(memberInfo));
 
-#if DESKTOP
+#if NETFRAMEWORK
             // Avoid calling MemberInfo.MetadataToken on MethodBuilders because they throw exceptions
             if (memberInfo is System.Reflection.Emit.MethodBuilder mb)
             {
