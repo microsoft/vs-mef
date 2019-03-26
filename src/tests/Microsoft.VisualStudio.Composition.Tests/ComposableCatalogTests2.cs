@@ -482,7 +482,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     return true;
                 }
 
-#if DESKTOP
+#if !NETCOREAPP1_0
                 // fast path
                 if (x.CodeBase == y.CodeBase)
                 {

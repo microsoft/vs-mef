@@ -15,7 +15,7 @@
     <DefineConstants Condition=" '$(TargetsDesktop)' == 'true' or '$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netcoreapp2.0' ">$(DefineConstants);Serializable</DefineConstants>
 
     <NerdbankGitVersioningVersion>2.2.33</NerdbankGitVersioningVersion>
-    <MicroBuildVersion>2.0.54</MicroBuildVersion>
+    <MicroBuildVersion>2.0.55</MicroBuildVersion>
     <MicroBuild_LocalizeOutputAssembly>false</MicroBuild_LocalizeOutputAssembly>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
