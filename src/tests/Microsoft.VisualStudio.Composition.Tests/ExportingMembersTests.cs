@@ -163,6 +163,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Null(importer.FuncOf2WrongTypeArgs);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportingMembersDerivedClass))]
+        public void ExportedDerivedMember(IContainer container)
+        {
+            var actual = container.GetExportedValue<string>("Property");
+            Assert.Equal("Derived", actual);
+        }
+
         [MefV1.Export]
         public class ImportingClass
         {
@@ -171,6 +178,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             [MefV1.Import("Method", AllowDefault = true)]
             public Func<string, string, bool> FuncOf2WrongTypeArgs { get; set; }
+        }
+
+        public abstract class ExportingMembersBaseClass<T>
+        {
+            protected abstract T Property { get; }
+        }
+
+        public class ExportingMembersDerivedClass : ExportingMembersBaseClass<string>
+        {
+            [Export("Property")]
+            [MefV1.Export("Property")]
+            protected override string Property { get { return "Derived"; } }
         }
 
         public class ExportingMembersClass

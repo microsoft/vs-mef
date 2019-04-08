@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
     public static class ResolverExtensions
     {
-        private const BindingFlags AllInstanceMembers = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        private const BindingFlags AllInstanceMembers = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         private const BindingFlags AllMembers = AllInstanceMembers | BindingFlags.Static;
 
         public static Type Resolve(this TypeRef typeRef)
