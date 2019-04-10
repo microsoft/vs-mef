@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
             const string assemblyNameFormat = "MyAssembly, Version={0}, Culture=neutral, PublicKeyToken=abcdef1234567890, processorArchitecture=MSIL";
             string assemblyNameV1 = string.Format(assemblyNameFormat, "1.0.0.0");
             string assemblyNameV2 = string.Format(assemblyNameFormat, "2.0.0.0");
-            this.TestAssemblyNameEqualityNotEqual(assemblyNameV1, assemblyNameV2, @"C:\MyAssembly.dll", @"C:\MyAssembly.dll");
+            this.TestAssemblyNameEqualityNotEqual(assemblyNameV1, assemblyNameV2, @"C:\MyAssembly.dll", @"C:\MyAssembly.dll", Guid.Empty, Guid.Empty);
         }
 
         [Fact]
@@ -35,10 +35,19 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
             const string assemblyNameFormat = "MyAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken={0}, processorArchitecture=MSIL";
             string assemblyNameV1 = string.Format(assemblyNameFormat, "abcdef1234567890");
             string assemblyNameV2 = string.Format(assemblyNameFormat, "1234567890abcdef");
-            this.TestAssemblyNameEqualityNotEqual(assemblyNameV1, assemblyNameV2, @"C:\MyAssembly.dll", @"C:\MyAssembly.dll");
+            this.TestAssemblyNameEqualityNotEqual(assemblyNameV1, assemblyNameV2, @"C:\MyAssembly.dll", @"C:\MyAssembly.dll", Guid.Empty, Guid.Empty);
         }
 
-        private void TestAssemblyNameEqualityNotEqual(string assemblyNameV1String, string assemblyNameV2String, string codeBaseV1, string codeBaseV2)
+        [Fact]
+        public void EqualsChecksMvidEquality()
+        {
+            const string assemblyName = "MyAssembly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=abcdef1234567890, processorArchitecture=MSIL";
+            Guid guidV1 = new Guid("00000000-0000-0000-0000-000000000001");
+            Guid guidV2 = new Guid("00000000-0000-0000-0000-000000000002");
+            this.TestAssemblyNameEqualityNotEqual(assemblyName, assemblyName, @"C:\MyAssembly.dll", @"C:\MyAssembly.dll", guidV1, guidV2);
+        }
+
+        private void TestAssemblyNameEqualityNotEqual(string assemblyNameV1String, string assemblyNameV2String, string codeBaseV1, string codeBaseV2, Guid mvidV1, Guid mvidV2)
         {
             AssemblyName assemblyNameV1 = new AssemblyName(assemblyNameV1String);
 #if !NETCOREAPP1_0
@@ -49,8 +58,10 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
             assemblyNameV2.CodeBase = codeBaseV2;
 #endif
 
-            TypeRef typeRefV1 = TypeRef.Get(TestUtilities.Resolver, assemblyNameV1, 0x02000001, "SomeType", TypeRefFlags.None, 0, ImmutableArray<TypeRef>.Empty, false, ImmutableArray<TypeRef>.Empty, null);
-            TypeRef typeRefV2 = TypeRef.Get(TestUtilities.Resolver, assemblyNameV2, 0x02000001, "SomeType", TypeRefFlags.None, 0, ImmutableArray<TypeRef>.Empty, false, ImmutableArray<TypeRef>.Empty, null);
+            StrongAssemblyIdentity assemblyIdentityV1 = new StrongAssemblyIdentity(assemblyNameV1, mvidV1);
+            StrongAssemblyIdentity assemblyIdentityV2 = new StrongAssemblyIdentity(assemblyNameV2, mvidV2);
+            TypeRef typeRefV1 = TypeRef.Get(TestUtilities.Resolver, assemblyIdentityV1, 0x02000001, "SomeType", TypeRefFlags.None, 0, ImmutableArray<TypeRef>.Empty, false, ImmutableArray<TypeRef>.Empty, null);
+            TypeRef typeRefV2 = TypeRef.Get(TestUtilities.Resolver, assemblyIdentityV2, 0x02000001, "SomeType", TypeRefFlags.None, 0, ImmutableArray<TypeRef>.Empty, false, ImmutableArray<TypeRef>.Empty, null);
 
             Assert.NotEqual(typeRefV1, typeRefV2);
         }
