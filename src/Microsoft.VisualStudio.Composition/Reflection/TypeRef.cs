@@ -375,7 +375,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             // If we ever stop comparing metadata tokens,
             // we would need to compare the other properties that describe this member.
             bool result = this.MetadataToken == other.MetadataToken
-                && AssemblyNameComparer.Equals(this.AssemblyName, other.AssemblyName)
+                && this.AssemblyId.Equals(other.AssemblyId)
                 && this.IsArray == other.IsArray
                 && this.GenericTypeParameterCount == other.GenericTypeParameterCount
                 && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments)
