@@ -44,6 +44,16 @@ namespace Microsoft.VisualStudio.Composition.AppHost
         /// </summary>
         private readonly List<string> catalogAssemblyPaths = new List<string>();
 
+        /// <summary>
+        /// The assemblies that have been found and logged as to their locations already.
+        /// </summary>
+        private readonly HashSet<Assembly> loggedAssemblies = new HashSet<Assembly>();
+
+        /// <summary>
+        /// The names of assemblies that could not be found and have been logged.
+        /// </summary>
+        private readonly HashSet<string> loggedMissingAssemblyNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         public CreateComposition()
         {
             this.skipCodes = new Lazy<HashSet<string>>(() => new HashSet<string>(this.NoWarn, StringComparer.OrdinalIgnoreCase));
@@ -115,7 +125,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
             {
                 var loadableAssemblies = this.catalogAssemblyPaths
                     .Concat(this.ReferenceAssemblies.Select(i => i.GetMetadata("FullPath")) ?? Enumerable.Empty<string>());
-                var resolver = new Resolver(new AssemblyLoader(loadableAssemblies));
+                var resolver = new Resolver(new AssemblyLoader(this, loadableAssemblies));
                 var discovery = PartDiscovery.Combine(
                     new AttributedPartDiscoveryV1(resolver),
                     new AttributedPartDiscovery(resolver, isNonPublicSupported: true));
@@ -307,7 +317,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
             {
                 if (string.Equals(referenceName.Name, Path.GetFileNameWithoutExtension(candidate), StringComparison.OrdinalIgnoreCase))
                 {
-                    if (Probe(candidate, referenceName.Version, out assm))
+                    if (this.Probe(candidate, referenceName.Version, out assm))
                     {
                         return assm;
                     }
@@ -319,7 +329,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
             {
                 probingPath = Path.Combine(searchDir.GetMetadata("FullPath"), fileName);
                 Debug.WriteLine($"Considering {probingPath} based on catalog assembly search path");
-                if (Probe(probingPath, referenceName.Version, out assm))
+                if (this.Probe(probingPath, referenceName.Version, out assm))
                 {
                     return assm;
                 }
@@ -331,7 +341,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
             {
                 probingPath = Path.Combine(Path.GetDirectoryName(assemblyPath), fileName);
                 Debug.WriteLine($"Considering {probingPath} based on RequestingAssembly");
-                if (Probe(probingPath, referenceName.Version, out assm))
+                if (this.Probe(probingPath, referenceName.Version, out assm))
                 {
                     return assm;
                 }
@@ -344,7 +354,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
                 probingPath = Path.Combine(Path.GetDirectoryName(assemblyPath), fileName);
 
                 Debug.WriteLine($"Considering {probingPath} based on ExecutingAssembly");
-                if (Probe(probingPath, referenceName.Version, out assm))
+                if (this.Probe(probingPath, referenceName.Version, out assm))
                 {
                     return assm;
                 }
@@ -353,9 +363,20 @@ namespace Microsoft.VisualStudio.Composition.AppHost
             // look in AppDomain base directory
             probingPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
             Debug.WriteLine($"Considering {probingPath} based on BaseDirectory");
-            if (Probe(probingPath, referenceName.Version, out assm))
+            if (this.Probe(probingPath, referenceName.Version, out assm))
             {
                 return assm;
+            }
+
+            bool shouldLog;
+            lock (this.loggedMissingAssemblyNames)
+            {
+                shouldLog = this.loggedMissingAssemblyNames.Add(args.Name);
+            }
+
+            if (shouldLog)
+            {
+                this.Log.LogMessage("\"{0}\" could not be found.", args.Name);
             }
 
             return null;
@@ -369,7 +390,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
         /// <param name="minimumVersion">Minimum version to consider</param>
         /// <param name="assembly">loaded assembly</param>
         /// <returns>true if assembly was loaded</returns>
-        private static bool Probe(string filePath, Version minimumVersion, out Assembly assembly)
+        private bool Probe(string filePath, Version minimumVersion, out Assembly assembly)
         {
             if (File.Exists(filePath))
             {
@@ -380,13 +401,15 @@ namespace Microsoft.VisualStudio.Composition.AppHost
                     try
                     {
                         assembly = Assembly.Load(name);
+                        this.LogAssemblyLoad(assembly, filePath);
                         return true;
                     }
                     catch (BadImageFormatException)
                     {
                         // This happens for some reference assemblies that can only be loaded in a reflection-only context.
                         // But we're not allowed in an assembly resolve event to return reflection-only loaded assemblies.
-                        // So just return false to communicate the failure.
+                        // So just log it and return false to communicate the failure.
+                        this.Log.LogMessage(MessageImportance.Low, "\"{0}\" failed to load from \"{1}\".", name, filePath);
                     }
                 }
             }
@@ -463,13 +486,39 @@ namespace Microsoft.VisualStudio.Composition.AppHost
             return Path.Combine(this.LogOutputPath, $"Microsoft.VisualStudio.Composition.AppHost.{partialFileName}.log");
         }
 
+        private void LogAssemblyLoad(Assembly assembly, string expectedPath)
+        {
+            Requires.NotNull(assembly, nameof(assembly));
+
+            lock (this.loggedAssemblies)
+            {
+                if (!this.loggedAssemblies.Add(assembly))
+                {
+                    return;
+                }
+            }
+
+            if (string.Equals(expectedPath, assembly.Location, StringComparison.OrdinalIgnoreCase))
+            {
+                this.Log.LogMessage(MessageImportance.Low, "\"{0}\" loaded from \"{1}\"", assembly.FullName, assembly.Location);
+            }
+            else
+            {
+                this.Log.LogMessage(MessageImportance.Low, "\"{0}\" loaded from \"{1}\" after expecting it from \"{2}\"", assembly.FullName, assembly.Location, expectedPath);
+            }
+        }
+
         private class AssemblyLoader : IAssemblyLoader
         {
             private readonly Dictionary<string, string> assemblyNamesToPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            private readonly CreateComposition task;
 
-            internal AssemblyLoader(IEnumerable<string> assemblyPaths)
+            internal AssemblyLoader(CreateComposition task, IEnumerable<string> assemblyPaths)
             {
+                Requires.NotNull(task, nameof(task));
                 Requires.NotNull(assemblyPaths, nameof(assemblyPaths));
+
+                this.task = task;
 
                 foreach (string path in assemblyPaths)
                 {
@@ -503,7 +552,9 @@ namespace Microsoft.VisualStudio.Composition.AppHost
                     assemblyName.CodeBase = path;
                 }
 
-                return Assembly.Load(assemblyName);
+                var assembly = Assembly.Load(assemblyName);
+                this.task.LogAssemblyLoad(assembly, assembly.Location);
+                return assembly;
             }
         }
     }
