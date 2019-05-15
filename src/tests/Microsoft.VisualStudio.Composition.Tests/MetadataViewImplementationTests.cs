@@ -20,15 +20,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.IsType<MetadataViewClass>(export.Metadata);
             Assert.Equal("1", export.Metadata.A);
             Assert.Null(export.Metadata.B);
+            Assert.Equal(10, export.Metadata.PropertyWithMetadataThatDoesNotMatchType);
         }
 
-        [MefFact(CompositionEngines.V1)]
+        [MefFact(CompositionEngines.V1Compat)]
         public void MetadataViewImplementationViaImport(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPart>();
             Assert.IsType<MetadataViewClass>(importingPart.ImportingProperty.Metadata);
             Assert.Equal("1", importingPart.ImportingProperty.Metadata.A);
             Assert.Null(importingPart.ImportingProperty.Metadata.B);
+            Assert.Equal(10, importingPart.ImportingProperty.Metadata.PropertyWithMetadataThatDoesNotMatchType);
         }
 
         [MefV1.Export]
@@ -40,6 +42,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         [MefV1.Export]
         [MefV1.ExportMetadata("A", "1")]
+        [MefV1.ExportMetadata("PropertyWithMetadataThatDoesNotMatchType", "valueThatDoesNotMatchType")]
         public class ExportingPart { }
 
         [MefV1.MetadataViewImplementation(typeof(MetadataViewClass))]
@@ -49,6 +52,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             [DefaultValue("default")]
             string B { get; }
+
+            [DefaultValue("default")]
+            int PropertyWithMetadataThatDoesNotMatchType { get; }
         }
 
         public class MetadataViewClass : IMetadataView
@@ -57,11 +63,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 this.A = (string)(metadata.ContainsKey("A") ? metadata["A"] : null);
                 this.B = (string)(metadata.ContainsKey("B") ? metadata["B"] : null);
+                this.PropertyWithMetadataThatDoesNotMatchType = metadata.ContainsKey("PropertyWithMetadataThatDoesNotMatchType") ? 10 : 20;
             }
 
             public string A { get; set; }
 
             public string B { get; set; }
+
+            public int PropertyWithMetadataThatDoesNotMatchType { get; set; }
         }
     }
 }
