@@ -24,7 +24,7 @@ by a .NET MEF part, and vice versa.
 VS MEF utilizes a fully precomputed and validated composition graph for maximum throughput
 when constructing MEF exports. This also produces a complete list of compositional diagnostics
 that describe MEF parts that were rejected from the graph with root causes and cascading effects
-identified.
+identified. Learn more about this in our [Hosting][Hosting] doc.
 
 Both VS MEF's catalog and composition can be serialized after being created, and
 later deserialized in a subsequent instance of the application for very fast startup time
@@ -39,3 +39,4 @@ Learn more about [the differences between .NET MEF, NuGet MEF, and this library]
 
 [MEFv2Pkg]: https://www.nuget.org/packages/system.composition
 [Differences]: mef_library_differences.md
+[Hosting]: https://github.com/microsoft/vs-mef/blob/master/doc/hosting.md#hosting-mef-in-an-extensible-application
