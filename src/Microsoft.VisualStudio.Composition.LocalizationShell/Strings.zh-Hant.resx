@@ -56,6 +56,7 @@
   </data>
   <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
     <value>中繼資料檢視的型別不支援。</value>
+    <comment>{0} is the metadata view type.</comment>
   </data>
   <data name="UnableToDeterminePrimarySharingBoundary" xml:space="preserve">
     <value>無法判斷 MEF 組件"{0}"的主要共用界限。</value>

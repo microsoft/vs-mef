@@ -56,6 +56,7 @@
   </data>
   <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
     <value>La vista de tipo de metadatos no es compatible.</value>
+    <comment>{0} is the metadata view type.</comment>
   </data>
   <data name="UnableToDeterminePrimarySharingBoundary" xml:space="preserve">
     <value>No se pudo determinar el límite de uso compartido primario para el elemento MEF "{0}".</value>

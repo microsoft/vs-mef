@@ -56,6 +56,7 @@
   </data>
   <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
     <value>Não há suporte para o tipo de exibição de metadados.</value>
+    <comment>{0} is the metadata view type.</comment>
   </data>
   <data name="UnableToDeterminePrimarySharingBoundary" xml:space="preserve">
     <value>Não é possível determinar o limite de compartilhamento principal da parte de MEF "{0}".</value>
