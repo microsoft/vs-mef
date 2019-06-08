@@ -459,6 +459,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
             }
 
+            public IEnumerable<Lazy<object, object>> GetExports(Type type, Type metadataViewType, string contractName) => this.container.GetExports(type, metadataViewType, contractName);
+
             public T GetExportedValue<T>()
             {
                 try
@@ -522,6 +524,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     throw new CompositionFailedException(ex.Message, ex);
                 }
             }
+
+            public IEnumerable<object> GetExportedValues(Type type, string contractName) => throw new NotSupportedException();
 
             public void Dispose()
             {
@@ -640,6 +644,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 throw new NotSupportedException();
             }
 
+            public IEnumerable<Lazy<object, object>> GetExports(Type type, Type metadataViewType, string contractName) => throw new NotSupportedException();
+
             public IEnumerable<T> GetExportedValues<T>()
             {
                 try
@@ -663,6 +669,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     throw new CompositionFailedException(ex.Message, ex);
                 }
             }
+
+            public IEnumerable<object> GetExportedValues(Type type, string contractName) => this.container.GetExports(type, contractName);
 
             public void Dispose()
             {
@@ -740,6 +748,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 return this.container.GetExports<T, TMetadataView>(contractName);
             }
 
+            public IEnumerable<Lazy<object, object>> GetExports(Type type, Type metadataViewType, string contractName) => this.container.GetExports(type, metadataViewType, contractName);
+
             public IEnumerable<T> GetExportedValues<T>()
             {
                 return this.container.GetExportedValues<T>();
@@ -749,6 +759,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 return this.container.GetExportedValues<T>(contractName);
             }
+
+            public IEnumerable<object> GetExportedValues(Type type, string contractName) => this.container.GetExportedValues(type, contractName);
 
             public void Dispose()
             {

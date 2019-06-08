@@ -281,6 +281,19 @@ namespace Microsoft.VisualStudio.Composition
             return this.GetExports<T, TMetadataView>(contractName, ImportCardinality.ZeroOrMore);
         }
 
+        public IEnumerable<Lazy<object, object>> GetExports(Type type, Type metadataViewType, string contractName)
+        {
+            IEnumerable<Export> results = this.GetExports(contractName, ImportCardinality.ZeroOrMore, type, metadataViewType, out var metadataViewProvider);
+
+            return results.Select(result => new Lazy<object, object>(
+                () => result.Value,
+                metadataViewProvider.CreateProxy(
+                    result.Metadata,
+                    GetMetadataViewDefaults(metadataViewType),
+                    metadataViewType)))
+                .ToArray();
+        }
+
         public IEnumerable<T> GetExportedValues<T>()
         {
             return this.GetExports<T>().Select(l => l.Value);
@@ -289,6 +302,12 @@ namespace Microsoft.VisualStudio.Composition
         public IEnumerable<T> GetExportedValues<T>(string contractName)
         {
             return this.GetExports<T>(contractName).Select(l => l.Value);
+        }
+
+        public IEnumerable<object> GetExportedValues(Type type, string contractName)
+        {
+            IEnumerable<Export> results = this.GetExports(contractName, ImportCardinality.ZeroOrMore, type, typeof(DefaultMetadataType), out var metadataViewProvider);
+            return results.Select(result => result.Value);
         }
 
         public virtual IEnumerable<Export> GetExports(ImportDefinition importDefinition)
@@ -781,34 +800,9 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private bool TryGetProvisionalSharedExport(IReadOnlyDictionary<TypeRef, object> provisionalSharedObjects, TypeRef partTypeRef, out object value)
-        {
-            Requires.NotNull(provisionalSharedObjects, nameof(provisionalSharedObjects));
-            Requires.NotNull(partTypeRef, nameof(partTypeRef));
-
-            lock (provisionalSharedObjects)
-            {
-                return provisionalSharedObjects.TryGetValue(partTypeRef, out value);
-            }
-        }
-
         private IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName, ImportCardinality cardinality)
         {
-            Verify.NotDisposed(this);
-            contractName = string.IsNullOrEmpty(contractName) ? ContractNameServices.GetTypeIdentity(typeof(T)) : contractName;
-            IMetadataViewProvider metadataViewProvider = this.GetMetadataViewProvider(typeof(TMetadataView));
-
-            var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty
-                .Union(PartDiscovery.GetExportTypeIdentityConstraints(typeof(T)));
-
-            if (typeof(TMetadataView) != typeof(DefaultMetadataType))
-            {
-                constraints = constraints.Add(ImportMetadataViewConstraint.GetConstraint(TypeRef.Get(typeof(TMetadataView), this.Resolver), this.Resolver));
-            }
-
-            var importMetadata = PartDiscovery.GetImportMetadataForGenericTypeImport(typeof(T));
-            var importDefinition = new ImportDefinition(contractName, cardinality, importMetadata, constraints);
-            IEnumerable<Export> results = this.GetExports(importDefinition);
+            var results = this.GetExports(contractName, cardinality, typeof(T), typeof(TMetadataView), out var metadataViewProvider);
 
             return results.Select(result => new Lazy<T, TMetadataView>(
                 () => CastValueTo<T>(result.Value),
@@ -817,6 +811,27 @@ namespace Microsoft.VisualStudio.Composition
                     GetMetadataViewDefaults(typeof(TMetadataView)),
                     typeof(TMetadataView))))
                 .ToArray();
+        }
+
+        private IEnumerable<Export> GetExports(string contractName, ImportCardinality cardinality, Type type, Type metadataViewType, out IMetadataViewProvider metadataViewProvider)
+        {
+            Requires.NotNull(type, nameof(type));
+            Requires.NotNull(metadataViewType, nameof(metadataViewType));
+            Verify.NotDisposed(this);
+
+            contractName = string.IsNullOrEmpty(contractName) ? ContractNameServices.GetTypeIdentity(type) : contractName;
+            metadataViewProvider = this.GetMetadataViewProvider(metadataViewType);
+            var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty
+                .Union(PartDiscovery.GetExportTypeIdentityConstraints(type));
+
+            if (metadataViewType != typeof(DefaultMetadataType))
+            {
+                constraints = constraints.Add(ImportMetadataViewConstraint.GetConstraint(TypeRef.Get(metadataViewType, this.Resolver), this.Resolver));
+            }
+
+            var importMetadata = PartDiscovery.GetImportMetadataForGenericTypeImport(type);
+            var importDefinition = new ImportDefinition(contractName, cardinality, importMetadata, constraints);
+            return this.GetExports(importDefinition);
         }
 
         private ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>> GetMetadataViewProviderExtensions()

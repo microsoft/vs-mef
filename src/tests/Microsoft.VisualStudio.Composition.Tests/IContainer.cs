@@ -3,6 +3,7 @@
 namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
@@ -18,6 +19,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         IEnumerable<T> GetExportedValues<T>(string contractName);
 
+        IEnumerable<object> GetExportedValues(Type type, string contractName);
+
         Lazy<T> GetExport<T>();
 
         Lazy<T> GetExport<T>(string contractName);
@@ -29,6 +32,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         IEnumerable<Lazy<T>> GetExports<T>();
 
         IEnumerable<Lazy<T>> GetExports<T>(string contractName);
+
+        IEnumerable<Lazy<object, object>> GetExports(Type type, Type metadataViewType, string contractName);
 
         IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>();
 
