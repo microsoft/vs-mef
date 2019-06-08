@@ -56,6 +56,7 @@
   </data>
   <data name="TypeOfMetadataViewUnsupported" xml:space="preserve">
     <value>Typ zobrazení metadat není podporovaný.</value>
+    <comment>{0} is the metadata view type.</comment>
   </data>
   <data name="UnableToDeterminePrimarySharingBoundary" xml:space="preserve">
     <value>Nedá se určit primární hranice sdílení pro část rozhraní MEF {0}.</value>
