@@ -3,6 +3,7 @@
 namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Composition;
@@ -15,7 +16,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     public class ExportProviderTests
     {
         [MefFact(CompositionEngines.V3EmulatingV2 | CompositionEngines.V3EmulatingV1, typeof(PartThatImportsExportProvider), typeof(SomeOtherPart))]
-        public void GetExportsNonGeneric(IContainer container)
+        public void GetExportedValue_NonGeneric(IContainer container)
         {
             var importer = container.GetExportedValue<PartThatImportsExportProvider>();
             var exportProvider = importer.ExportProvider;
@@ -39,7 +40,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
-        public void GetExportWithMetadataDictionary(IContainer container)
+        public void GetExport_WithMetadataDictionary(IContainer container)
         {
             var export = container.GetExport<SomeOtherPart, IDictionary<string, object>>();
             Assert.Equal(1, export.Metadata["A"]);
@@ -47,41 +48,80 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
-        public void GetExportWithMetadataView(IContainer container)
+        public void GetExports_WithMetadataDictionary_NonGeneric(IContainer container)
+        {
+            var export = container.GetExports(typeof(SomeOtherPart), typeof(IDictionary<string, object>), null).Single();
+            Assert.Equal(1, ((IDictionary<string, object>)export.Metadata)["A"]);
+            Assert.NotNull(export.Value);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
+        public void GetExport_WithMetadataView(IContainer container)
         {
             var export = container.GetExport<SomeOtherPart, ISomeOtherPartMetadataView>();
             Assert.Equal(1, export.Metadata.A);
             Assert.NotNull(export.Value);
         }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
+        public void GetExports_WithMetadataView_NonGeneric(IContainer container)
+        {
+            var export = container.GetExports(typeof(SomeOtherPart), typeof(ISomeOtherPartMetadataView), null).Single();
+            Assert.Equal(1, ((ISomeOtherPartMetadataView)export.Metadata).A);
+            Assert.NotNull(export.Value);
+        }
+
         [Trait("Access", "NonPublic")]
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
-        public void GetExportWithInternalMetadataView(IContainer container)
+        public void GetExport_WithInternalMetadataView(IContainer container)
         {
             var export = container.GetExport<SomeOtherPart, ISomeOtherPartInternalMetadataView>();
             Assert.Equal(1, export.Metadata.A);
             Assert.NotNull(export.Value);
         }
 
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
+        public void GetExports_WithInternalMetadataView_NonGeneric(IContainer container)
+        {
+            var export = container.GetExports(typeof(SomeOtherPart), typeof(ISomeOtherPartInternalMetadataView), contractName: null).Single();
+            Assert.Equal(1, ((ISomeOtherPartInternalMetadataView)export.Metadata).A);
+            Assert.NotNull(export.Value);
+        }
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
-        public void GetExportWithFilteringMetadataView(IContainer container)
+        public void GetExports_WithFilteringMetadataView(IContainer container)
         {
             var exports = container.GetExports<SomeOtherPart, IMetadataViewWithBMember>();
             Assert.Equal(0, exports.Count());
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(Apple))]
-        public void GetExportOfTypeByObjectAndContractName(IContainer container)
+        public void GetExportedValue_OfTypeByObjectAndContractName(IContainer container)
         {
             var apple = container.GetExportedValue<object>("SomeContract");
             Assert.IsType(typeof(Apple), apple);
         }
 
+        [MefFact(CompositionEngines.V3EmulatingV1, typeof(Apple))]
+        public void GetExportedValues_OfTypeByObjectAndContractName_NonGeneric(IContainer container)
+        {
+            var apple = container.GetExportedValues(typeof(object), "SomeContract").Single();
+            Assert.IsType(typeof(Apple), apple);
+        }
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Apple))]
-        public void GetExportOfTypeByBaseTypeAndContractName(IContainer container)
+        public void GetExportedValues_OfTypeByBaseTypeAndContractName(IContainer container)
         {
             var apples = container.GetExportedValues<Fruit>("SomeContract");
-            Assert.Equal(0, apples.Count());
+            Assert.Empty(apples);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V2Compat, typeof(Apple))]
+        public void GetExportedValues_OfTypeByBaseTypeAndContractName_NonGeneric(IContainer container)
+        {
+            var apples = container.GetExportedValues(typeof(Fruit), "SomeContract");
+            Assert.Empty(apples);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(SomeOtherPart))]
@@ -92,19 +132,19 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Apple))]
-        public void GetExportedValueOfFuncOfExportedType_Throws(IContainer container)
+        public void GetExportedValue_OfFuncOfExportedType_Throws(IContainer container)
         {
             Assert.Throws<CompositionFailedException>(() => container.GetExportedValue<Func<Apple>>());
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(Apple))]
-        public void GetExportOfFuncOfExportedType_Throws(IContainer container)
+        public void GetExport_OfFuncOfExportedType_Throws(IContainer container)
         {
             Assert.Throws<CompositionFailedException>(() => container.GetExport<Func<Apple>>());
         }
 
         [MefFact(CompositionEngines.V2, typeof(Apple), NoCompatGoal = true)]
-        public void GetExportOfFuncOfExportedType_ThrowsV2(IContainer container)
+        public void GetExport_OfFuncOfExportedType_ThrowsV2(IContainer container)
         {
             var foo = container.GetExport<Func<Apple>>();
             Assert.Throws<CompositionFailedException>(() => foo.Value());
@@ -231,7 +271,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public static int ActivationCounter;
         }
 
-#endregion
+        #endregion
 
         #region NonShared parts activated once per query
 
