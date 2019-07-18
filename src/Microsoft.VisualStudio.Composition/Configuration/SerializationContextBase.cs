@@ -485,11 +485,7 @@ namespace Microsoft.VisualStudio.Composition
                 if (this.TryPrepareSerializeReusableObject(assemblyName))
                 {
                     this.Write(assemblyName.FullName);
-#if !(NETSTANDARD1_5 || NETCOREAPP1_0)
                     this.Write(assemblyName.CodeBase);
-#else
-                    this.Write((string)null); // keep the binary format consistent even if we can't write this.
-#endif
                 }
             }
         }
@@ -505,9 +501,7 @@ namespace Microsoft.VisualStudio.Composition
                     string fullName = this.ReadString();
                     string codeBase = this.ReadString();
                     value = new AssemblyName(fullName);
-#if !(NETSTANDARD1_5 || NETCOREAPP1_0)
                     value.CodeBase = codeBase;
-#endif
                     this.OnDeserializedReusableObject(id, value);
                 }
 
@@ -983,15 +977,11 @@ namespace Microsoft.VisualStudio.Composition
                     }
                     else
                     {
-#if Serializable
                         Debug.WriteLine("Falling back to binary formatter for value of type: {0}", valueType);
                         this.Write(ObjectType.BinaryFormattedObject);
                         var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                         this.writer.Flush();
                         formatter.Serialize(this.writer.BaseStream, value);
-#else
-                        throw new NotSupportedException("Object of type " + valueType + " cannot be serialized on this platform.");
-#endif
                     }
                 }
             }
@@ -1056,12 +1046,8 @@ namespace Microsoft.VisualStudio.Composition
                         IReadOnlyList<TypeRef> typeRefArray = this.ReadList(this.reader, this.ReadTypeRef);
                         return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray, this.Resolver);
                     case ObjectType.BinaryFormattedObject:
-#if Serializable
                         var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                         return formatter.Deserialize(this.reader.BaseStream);
-#else
-                        throw new NotSupportedException("BinaryFormatter object cannot be deserialized on this platform.");
-#endif
                     default:
                         throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.UnsupportedFormat, objectType));
                 }

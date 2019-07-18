@@ -29,13 +29,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
 
             MethodBase method = null;
-#if RuntimeHandles
             if (TryUseFastReflection(methodRef.DeclaringType, out Module manifest))
             {
                 method = manifest.ResolveMethod(methodRef.MetadataToken);
             }
             else
-#endif
             {
                 TypeInfo declaringType = methodRef.DeclaringType.ResolvedType.GetTypeInfo();
                 var candidates = methodRef.Name == ConstructorInfo.ConstructorName
@@ -75,13 +73,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         {
             if (propertyRef.GetMethodMetadataToken.HasValue)
             {
-#if RuntimeHandles
                 if (TryUseFastReflection(propertyRef.DeclaringType, out Module manifest))
                 {
                     return (MethodInfo)manifest.ResolveMethod(propertyRef.GetMethodMetadataToken.Value);
                 }
                 else
-#endif
                 {
                     return propertyRef.PropertyInfo.GetMethod;
                 }
@@ -94,13 +90,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         {
             if (propertyRef.SetMethodMetadataToken.HasValue)
             {
-#if RuntimeHandles
                 if (TryUseFastReflection(propertyRef.DeclaringType, out Module manifest))
                 {
                     return (MethodInfo)manifest.ResolveMethod(propertyRef.SetMethodMetadataToken.Value);
                 }
                 else
-#endif
                 {
                     return propertyRef.PropertyInfo.SetMethod;
                 }
@@ -116,13 +110,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 return null;
             }
 
-#if RuntimeHandles
             if (TryUseFastReflection(fieldRef.DeclaringType, out Module manifest))
             {
                 return manifest.ResolveField(fieldRef.MetadataToken);
             }
             else
-#endif
             {
                 return Resolve(fieldRef.DeclaringType).GetField(fieldRef.Name, AllMembers);
             }
@@ -136,13 +128,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
 
             MethodBase method;
-#if RuntimeHandles
             if (TryUseFastReflection(parameterRef.DeclaringType, out Module manifest))
             {
                 method = manifest.ResolveMethod(parameterRef.Method.MetadataToken);
             }
             else
-#endif
             {
                 method = parameterRef.Method.MethodBase;
             }
@@ -189,13 +179,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// <returns><c>true</c> if it is safe to use fast reflection; <c>false</c> otherwise.</returns>
         internal static bool TryUseFastReflection(TypeRef typeRef, out Module manifest)
         {
-#if RuntimeHandles
             manifest = typeRef.Resolver.GetManifest(typeRef.AssemblyName);
             return IsStrongAssemblyIdentityMatch(typeRef, manifest);
-#else
-            manifest = null;
-            return false;
-#endif
         }
 
         private static T FindMethodByParameters<T>(IEnumerable<T> members, string memberName, ImmutableArray<TypeRef> parameterTypes)

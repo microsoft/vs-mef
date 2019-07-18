@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net452;net46;netcoreapp1.0;netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>net472;netcoreapp2.1</TargetFrameworks>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.Tests.ruleset</CodeAnalysisRuleSet>
     <NoWarn>$(NoWarn);CS1762</NoWarn>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -56,7 +56,7 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <Target Name="SuppressCopyOfMissingAssembly" BeforeTargets="PrepareForRun;_CopyFilesMarkedCopyLocal;" Condition=" '$(TargetFramework)' != 'netcoreapp2.0' ">
+  <Target Name="SuppressCopyOfMissingAssembly" BeforeTargets="PrepareForRun;_CopyFilesMarkedCopyLocal;" Condition=" '$(TargetFramework)' != 'netcoreapp2.1' ">
     <ItemGroup>
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition=" '%(FileName)' == 'Microsoft.VisualStudio.Composition.MissingAssemblyTests' " />
     </ItemGroup>

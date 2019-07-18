@@ -90,7 +90,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return configuration;
         }
 
-#if MEFv1Engine
         internal static IContainer CreateContainerV1(params Type[] parts)
         {
             Requires.NotNull(parts, nameof(parts));
@@ -114,7 +113,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var container = new DebuggableCompositionContainer(catalog, MefV1.Hosting.CompositionOptions.ExportCompositionService | MefV1.Hosting.CompositionOptions.IsThreadSafe);
             return new V1ContainerWrapper(container);
         }
-#endif
 
         internal static IContainer CreateContainerV2(params Type[] parts)
         {
@@ -213,10 +211,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Requires.NotNull(output, nameof(output));
 
             var catalogWithCompositionService = catalog
-#if MEFv1Engine
-                .WithCompositionService()
-#endif
-                ;
+                .WithCompositionService();
             var configuration = CompositionConfiguration.Create(catalogWithCompositionService);
             if (!options.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors))
             {
@@ -239,9 +234,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var totalSummary = new RunSummary();
             if (attributesVersion.HasFlag(CompositionEngines.V1))
             {
-#if MEFv1Engine
                 totalSummary.Aggregate(await test(CreateContainerV1(parts)));
-#endif
             }
 
             if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1))
@@ -279,7 +272,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             get
             {
-#if NETCOREAPP1_0 || NETCOREAPP2_0
+#if NETCOREAPP
                 return true;
 #else
                 return false;
@@ -295,7 +288,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Skip.If(IsOnMono, "Test marked as skipped on Mono runtime due to feature: " + unsupportedFeature);
         }
 
-#if MEFv1Engine
         internal class DebuggableCompositionContainer : MefV1.Hosting.CompositionContainer
         {
             protected override IEnumerable<MefV1.Primitives.Export> GetExportsCore(MefV1.Primitives.ImportDefinition definition, MefV1.Hosting.AtomicComposition atomicComposition)
@@ -532,7 +524,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 this.container.Dispose();
             }
         }
-#endif
 
         private class V2ContainerWrapper : IContainer
         {

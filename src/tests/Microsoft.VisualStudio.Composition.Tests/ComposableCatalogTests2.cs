@@ -495,13 +495,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     return true;
                 }
 
-#if !NETCOREAPP1_0
                 // fast path
                 if (x.CodeBase == y.CodeBase)
                 {
                     return true;
                 }
-#endif
 
                 // Testing on FullName is horrifically slow.
                 // So test directly on its components instead.

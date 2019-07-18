@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var discoverablePart = exportProvider.GetExportedValue<DiscoverablePart1>();
         }
 
-#if !NETCOREAPP2_0 // .NET Core doesn't let us test with missing assemblies
+#if !NETCOREAPP // .NET Core doesn't let us test with missing assemblies
         [Fact]
         public async Task AssemblyDiscoveryDropsTypesWithProblematicAttributes()
         {

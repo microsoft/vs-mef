@@ -196,13 +196,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 {
                     Type type, resolvedType;
                     Module manifest;
-#if RuntimeHandles
                     if (ResolverExtensions.TryUseFastReflection(this, out manifest))
                     {
                         resolvedType = manifest.ResolveType(this.MetadataToken);
                     }
                     else
-#endif
                     {
                         manifest = this.Resolver.GetManifest(this.AssemblyName);
                         resolvedType = manifest.GetType(this.FullName);
@@ -427,7 +425,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             Requires.NotNull(assemblyName, nameof(assemblyName));
 
             AssemblyName normalizedAssemblyName = assemblyName;
-#if !(NETSTANDARD1_5 || NETCOREAPP1_0)
             if (assemblyName.CodeBase.IndexOf('~') >= 0)
             {
                 // Using ToString() rather than AbsoluteUri here to match the CLR's AssemblyName.CodeBase convention of paths without %20 space characters.
@@ -435,7 +432,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 normalizedAssemblyName = (AssemblyName)assemblyName.Clone();
                 normalizedAssemblyName.CodeBase = normalizedCodeBase;
             }
-#endif
 
             return normalizedAssemblyName;
         }

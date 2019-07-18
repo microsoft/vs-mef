@@ -130,13 +130,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     try
                     {
-#if NETFRAMEWORK
                         return new Assembly[] { Assembly.Load(AssemblyName.GetAssemblyName(path)) };
-#elif NETCOREAPP
-                        return new Assembly[] { System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(path) };
-#else
-                        throw new NotSupportedException();
-#endif
                     }
                     catch (Exception ex)
                     {

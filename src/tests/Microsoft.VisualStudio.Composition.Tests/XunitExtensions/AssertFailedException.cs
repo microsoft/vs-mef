@@ -3,9 +3,7 @@
     using System;
     using System.Runtime.Serialization;
 
-#if Serializable
     [Serializable]
-#endif
     internal class AssertFailedException : Exception
     {
         internal AssertFailedException()
@@ -22,11 +20,9 @@
         {
         }
 
-#if Serializable
         protected AssertFailedException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
-#endif
     }
 }

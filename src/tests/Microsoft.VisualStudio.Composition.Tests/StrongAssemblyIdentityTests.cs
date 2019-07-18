@@ -24,11 +24,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             this.assembly = typeof(StrongAssemblyIdentityTests).GetTypeInfo().Assembly;
             this.assemblyName = this.assembly.GetName();
-#if !NETCOREAPP1_0
             this.assemblyPath = new Uri(this.assemblyName.CodeBase).LocalPath;
-#else
-            this.assemblyPath = Path.Combine(AppContext.BaseDirectory, $"{this.assemblyName.Name}.dll");
-#endif
             this.mvid = Guid.NewGuid();
         }
 
@@ -44,14 +40,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public void CreateFrom_string_NullAssemblyName()
         {
-#if !NETCOREAPP1_0
             var id = StrongAssemblyIdentity.CreateFrom(this.assemblyPath, null);
             Assert.NotNull(id);
             Assert.Equal(this.assemblyName.FullName, id.Name.FullName);
             Assert.Equal(GetMvid(this.assemblyPath), id.Mvid);
-#else
-            Assert.Throws<NotSupportedException>(() => StrongAssemblyIdentity.CreateFrom(this.assemblyPath, null));
-#endif
         }
 
         [Fact]

@@ -11,21 +11,15 @@ variables:
   BuildPlatform: Any CPU
   codecov_token: bfce293b-9f33-43bb-be7f-c1a4ed2b518d
 
-resources:
-  containers:
-  - container: xenial
-    image: andrewarnott/linux-buildagent
-
 jobs:
 - job: Windows
-  pool: Hosted VS2017
+  pool: Hosted Windows 2019 with VS2019
   steps:
   - template: azure-pipelines/build.yml
 
 - job: Linux
   pool:
     vmImage: Ubuntu 16.04
-  container: xenial
   steps:
   - template: azure-pipelines/testfx.yml
     parameters:
