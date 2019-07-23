@@ -109,10 +109,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             AssemblyName assemblyName = new AssemblyName();
             assemblyName.Name = name;
             assemblyName.Version = version;
-#if DESKTOP
             assemblyName.CultureInfo = cultureInfo;
             assemblyName.CodeBase = codeBase;
-#endif
 
             if (publicKey != null)
             {

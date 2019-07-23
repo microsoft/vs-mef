@@ -40,8 +40,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             // which simulates the scenario of a cache being created with one assembly, then the cache is reused later after
             // that assembly has been re-compiled (possibly with source changes) such that its metadata table has changed,
             // making fast metadata token based reflection dangerous.
-            string pathA = Path.Combine(Environment.CurrentDirectory, @"..\net45\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests.dll");
-            string pathB = Path.Combine(Environment.CurrentDirectory, @"..\netstandard1.2\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests.dll");
+            string pathA = Path.Combine(Environment.CurrentDirectory, @"..\net472\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests.dll");
+            string pathB = Path.Combine(Environment.CurrentDirectory, @"..\netstandard2.0\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests.dll");
 
             var cacheStream = new MemoryStream();
             int originalMetadataToken;

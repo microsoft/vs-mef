@@ -31,19 +31,6 @@ namespace Microsoft.VisualStudio.Composition
 
             if (assembly == null)
             {
-#if NETCOREAPP1_0
-                // Clone the AssemblyName to undefine the CodeBase property in case it is set.
-                // Workaround for https://github.com/dotnet/coreclr/issues/10561
-                assemblyName = new AssemblyName
-                {
-                    Name = assemblyName.Name,
-                    ContentType = assemblyName.ContentType,
-                    CultureName = assemblyName.CultureName,
-                    Flags = assemblyName.Flags,
-                    ProcessorArchitecture = assemblyName.ProcessorArchitecture,
-                    Version = assemblyName.Version,
-                };
-#endif
                 assembly = Assembly.Load(assemblyName);
 
                 lock (this.loadedAssemblies)
@@ -61,12 +48,10 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNullOrEmpty(assemblyFullName, nameof(assemblyFullName));
 
             var assemblyName = new AssemblyName(assemblyFullName);
-#if !(NETSTANDARD1_5 || NETCOREAPP1_0)
             if (!string.IsNullOrEmpty(codeBasePath))
             {
                 assemblyName.CodeBase = codeBasePath;
             }
-#endif
 
             return this.LoadAssembly(assemblyName);
         }

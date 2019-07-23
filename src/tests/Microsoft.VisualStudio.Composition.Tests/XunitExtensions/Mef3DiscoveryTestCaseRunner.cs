@@ -120,10 +120,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     foreach (var uniqueCatalog in uniqueCatalogs)
                     {
                         var catalogWithSupport = uniqueCatalog
-#if MEFv1Engine
-                            .WithCompositionService()
-#endif
-                            ;
+                            .WithCompositionService();
 
                         // Round-trip the catalog through serialization to verify that as well.
                         await RoundtripCatalogSerializationAsync(catalogWithSupport, output);

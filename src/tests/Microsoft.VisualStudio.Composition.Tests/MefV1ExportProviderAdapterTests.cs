@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-#if MEFv1Engine
-
 namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
@@ -502,5 +500,3 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
     }
 }
-
-#endif

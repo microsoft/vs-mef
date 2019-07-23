@@ -1,10 +1,10 @@
-﻿#if NET45
+﻿#if NETFRAMEWORK // See comments below
 
 namespace Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests
 {
     /// <summary>
-    /// This class very particularly is only defined in NET45
-    /// and omitted from other frameworks.
+    /// This class very particularly is only defined in NETFRAMEWORK
+    /// and omitted from NETSTANDARD.
     /// It has a name that starts with "A" so that the compiler will
     /// tend to store its ctor metadata token early in the table,
     /// allowing us to test for metadata token changes between versions

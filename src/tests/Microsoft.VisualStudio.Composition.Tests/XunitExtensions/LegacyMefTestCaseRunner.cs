@@ -14,9 +14,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using Xunit.Abstractions;
     using Xunit.Sdk;
 
-#if Serializable
     [Serializable]
-#endif
     public class LegacyMefTestCaseRunner : XunitTestCaseRunner
     {
         private readonly CompositionEngines engineVersion;
@@ -64,11 +62,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
                 if (attributesVersion.HasFlag(CompositionEngines.V1))
                 {
-#if MEFv1Engine
                     return await test(TestUtilities.CreateContainerV1(loadedAssemblies, parts));
-#else
-                    return new RunSummary { Total = 0, Skipped = 0 }; // don't record a skip so the test can 'pass' in other configurations
-#endif
                 }
 
                 if (attributesVersion.HasFlag(CompositionEngines.V2))

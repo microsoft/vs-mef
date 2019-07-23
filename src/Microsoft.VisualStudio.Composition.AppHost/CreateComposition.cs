@@ -535,12 +535,10 @@ namespace Microsoft.VisualStudio.Composition.AppHost
                 Requires.NotNullOrEmpty(assemblyFullName, nameof(assemblyFullName));
 
                 var assemblyName = new AssemblyName(assemblyFullName);
-#if NETFRAMEWORK
                 if (!string.IsNullOrEmpty(codeBasePath))
                 {
                     assemblyName.CodeBase = codeBasePath;
                 }
-#endif
 
                 return this.LoadAssembly(assemblyName);
             }
