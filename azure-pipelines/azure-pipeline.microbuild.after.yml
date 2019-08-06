@@ -36,8 +36,8 @@ steps:
       Microsoft.VisualStudio.Composition/$(BuildConfiguration)/**/symstore/Microsoft.VisualStudio.Composition.pdb
       Microsoft.VisualStudio.Composition.Configuration/$(BuildConfiguration)/**/Microsoft.VisualStudio.Composition.Configuration.dll
       Microsoft.VisualStudio.Composition.Configuration/$(BuildConfiguration)/**/symstore/Microsoft.VisualStudio.Composition.Configuration.pdb
-      Microsoft.VisualStudio.Composition.NetFxAttributes.*/$(BuildConfiguration)/**/*.dll
-      Microsoft.VisualStudio.Composition.NetFxAttributes.*/$(BuildConfiguration)/**/symstore/*.pdb
+      Microsoft.VisualStudio.Composition.NetFxAttributes/$(BuildConfiguration)/**/*.dll
+      Microsoft.VisualStudio.Composition.NetFxAttributes/$(BuildConfiguration)/**/symstore/*.pdb
       !Tests/**
     TargetFolder: $(Build.ArtifactStagingDirectory)/symbols
   displayName: Collecting symbols artifacts
