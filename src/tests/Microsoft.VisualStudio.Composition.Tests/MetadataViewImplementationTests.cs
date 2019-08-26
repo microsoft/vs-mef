@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             [DefaultValue("default")]
             string B { get; }
 
-            [DefaultValue("default")]
+            [DefaultValue("default")] // The value is ignored by MEFv1 when MetadataViewImplementation is present.
             int PropertyWithMetadataThatDoesNotMatchType { get; }
         }
 
