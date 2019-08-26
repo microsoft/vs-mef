@@ -171,6 +171,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(resolver, nameof(resolver));
 
             var metadataView = metadataViewRef.Resolve();
+            bool hasMetadataViewImplementation = MetadataViewImplProxy.HasMetadataViewImplementation(metadataView);
             if (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>)) && !metadataView.Equals(typeof(IReadOnlyDictionary<string, object>)))
             {
                 var requiredMetadata = ImmutableDictionary.CreateBuilder<string, MetadatumRequirement>();
@@ -178,7 +179,12 @@ namespace Microsoft.VisualStudio.Composition
                 foreach (var property in metadataView.EnumProperties().WherePublicInstance())
                 {
                     bool required = !property.IsAttributeDefined<DefaultValueAttribute>();
-                    requiredMetadata.Add(property.Name, new MetadatumRequirement(TypeRef.Get(ReflectionHelpers.GetMemberType(property), resolver), required));
+
+                    // Ignore properties that have a default value and have a metadataview implementation.
+                    if (required || !hasMetadataViewImplementation)
+                    {
+                        requiredMetadata.Add(property.Name, new MetadatumRequirement(TypeRef.Get(ReflectionHelpers.GetMemberType(property), resolver), required));
+                    }
                 }
 
                 return requiredMetadata.ToImmutable();

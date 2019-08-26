@@ -15,13 +15,18 @@ namespace Microsoft.VisualStudio.Composition
 
         public bool IsMetadataViewSupported(Type metadataType)
         {
-            return FindImplClassConstructor(metadataType) != null;
+            return HasMetadataViewImplementation(metadataType);
         }
 
         public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
         {
             var ctor = FindImplClassConstructor(metadataViewType);
             return ctor.Invoke(new object[] { metadata });
+        }
+
+        internal static bool HasMetadataViewImplementation(Type metadataType)
+        {
+            return FindImplClassConstructor(metadataType) != null;
         }
 
         private static ConstructorInfo FindImplClassConstructor(Type metadataType)
