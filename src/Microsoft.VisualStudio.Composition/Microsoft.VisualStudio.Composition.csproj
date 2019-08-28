@@ -7,10 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.NetFxAttributes\Microsoft.VisualStudio.Composition.NetFxAttributes.csproj" />
-    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.LocalizationShell\Microsoft.VisualStudio.Composition.LocalizationShell.csproj">
-      <!-- We need this to build before us in case the cultured .resx files are to be changed by this build, since we consume those. -->
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.ComponentModel.Composition" Version="4.5.0" />
@@ -22,15 +18,10 @@
     <PackageReference Include="System.Reflection.Emit" Version="4.3.0" />
     <PackageReference Include="System.Reflection.Metadata" Version="1.3.0" />
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="1.2.0-beta2" PrivateAssets="all" />
+    <PackageReference Include="XliffTasks" Version="1.0.0-beta.19253.2" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include="PublicAPI.Shipped.txt" />
     <AdditionalFiles Include="PublicAPI.Unshipped.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\Microsoft.VisualStudio.Composition.LocalizationShell\Strings.Designer.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="..\Microsoft.VisualStudio.Composition.LocalizationShell\*.resx" />
   </ItemGroup>
 </Project>

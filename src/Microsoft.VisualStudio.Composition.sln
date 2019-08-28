@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28606.126
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -34,8 +34,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2", "tests\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests2.csproj", "{A424CBE4-248E-477C-88BD-575FA240EACB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.AppHost", "Microsoft.VisualStudio.Composition.AppHost\Microsoft.VisualStudio.Composition.AppHost.csproj", "{93C14982-BB95-4554-BE09-2D0A4C9ADA09}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.LocalizationShell", "Microsoft.VisualStudio.Composition.LocalizationShell\Microsoft.VisualStudio.Composition.LocalizationShell.csproj", "{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.TestEmbeddableTypes", "tests\Microsoft.VisualStudio.Composition.TestEmbeddableTypes\Microsoft.VisualStudio.Composition.TestEmbeddableTypes.csproj", "{E4BB6F4B-EAB5-4DF2-9FFA-08981105DF90}"
 EndProject
@@ -95,10 +93,6 @@ Global
 		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{93C14982-BB95-4554-BE09-2D0A4C9ADA09}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6F1F9729-DCE8-4397-BE0E-EF841EDCD9DC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E4BB6F4B-EAB5-4DF2-9FFA-08981105DF90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E4BB6F4B-EAB5-4DF2-9FFA-08981105DF90}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4BB6F4B-EAB5-4DF2-9FFA-08981105DF90}.Release|Any CPU.ActiveCfg = Release|Any CPU
