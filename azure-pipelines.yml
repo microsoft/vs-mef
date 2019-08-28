@@ -11,6 +11,7 @@ variables:
   BuildConfiguration: Release
   BuildPlatform: Any CPU
   codecov_token: bfce293b-9f33-43bb-be7f-c1a4ed2b518d
+  NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
 
 jobs:
 - job: Windows
