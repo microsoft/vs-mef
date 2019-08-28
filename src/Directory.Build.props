@@ -11,7 +11,7 @@
     <UpdateXlfOnBuild Condition=" '$(UpdateXlfOnBuild)' == '' ">true</UpdateXlfOnBuild>
 
     <NerdbankGitVersioningVersion>2.2.33</NerdbankGitVersioningVersion>
-    <MicroBuildVersion>2.0.55</MicroBuildVersion>
+    <MicroBuildVersion>2.0.58</MicroBuildVersion>
     <MicroBuild_LocalizeOutputAssembly>false</MicroBuild_LocalizeOutputAssembly>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
