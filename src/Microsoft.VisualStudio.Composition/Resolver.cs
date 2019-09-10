@@ -14,8 +14,7 @@ namespace Microsoft.VisualStudio.Composition
     public class Resolver
     {
         /// <summary>
-        /// A <see cref="Resolver"/> instance that should only be used in code paths
-        /// that serve for *debugging* purposes.
+        /// A <see cref="Resolver"/> instance that may be used where customizing assembly loading is not necessary.
         /// </summary>
         public static readonly Resolver DefaultInstance = new Resolver(new StandardAssemblyLoader());
 

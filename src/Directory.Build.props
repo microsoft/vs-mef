@@ -8,6 +8,7 @@
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>CS1591;CS1701</NoWarn>
+    <UpdateXlfOnBuild Condition=" '$(UpdateXlfOnBuild)' == '' ">true</UpdateXlfOnBuild>
 
     <NerdbankGitVersioningVersion>2.2.33</NerdbankGitVersioningVersion>
     <MicroBuildVersion>2.0.55</MicroBuildVersion>
