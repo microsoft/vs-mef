@@ -64,7 +64,7 @@
         </trans-unit>
         <trans-unit id="TypeOfMetadataViewUnsupported" translate="yes" xml:space="preserve">
           <source>The type {0} is an unsupported type of metadata view.</source>
-          <target state="needs-review-translation">Meta veri görüntüleme türü desteklenmiyor.</target>
+          <target state="translated">{0} türü desteklenmeyen bir meta veri görünümü türüdür.</target>
           <note from="MultilingualUpdate" annotates="source" priority="2">Please verify the translation’s accuracy as the source string was updated after it was translated.</note>
           <note from="MultilingualBuild" annotates="source" priority="2">{0} is the metadata view type.</note>
         </trans-unit>
