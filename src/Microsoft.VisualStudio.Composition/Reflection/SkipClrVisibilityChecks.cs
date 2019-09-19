@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 // If this type has a base type defined in another assembly that is also internal
                 // (with InternalsVisibleTo to the assembly hosting the original type)
                 // then we'll need to add that.
-                // TODO: Learn we somehow we don't need to do this, even given our test defines an internal interface
+                // TODO: Learn why somehow we don't need to do this, even given our test defines an internal interface
                 //       that derives from another internal interface defined in another assembly.
                 ////if (typeInfo.BaseType != null)
                 ////{

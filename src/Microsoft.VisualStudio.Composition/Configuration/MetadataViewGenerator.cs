@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public delegate object MetadataViewFactory(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata);
 
-        private static AssemblyBuilder CreateProxyAssemblyBuilder(ConstructorInfo constructorInfo)
+        private static AssemblyBuilder CreateProxyAssemblyBuilder()
         {
             var proxyAssemblyName = new AssemblyName(string.Format(CultureInfo.InvariantCulture, "MetadataViewProxies_{0}", Guid.NewGuid()));
             return AssemblyBuilder.DefineDynamicAssembly(proxyAssemblyName, AssemblyBuilderAccess.Run);
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.Composition
             var skipVisibilityCheckAssemblies = SkipClrVisibilityChecks.GetSkipVisibilityChecksRequirements(viewType);
             if (!TransparentProxyModuleBuilderByVisibilityCheck.TryGetValue(skipVisibilityCheckAssemblies, out ModuleBuilder moduleBuilder))
             {
-                var assemblyBuilder = CreateProxyAssemblyBuilder(typeof(SecurityTransparentAttribute).GetTypeInfo().GetConstructor(Type.EmptyTypes));
+                var assemblyBuilder = CreateProxyAssemblyBuilder();
                 moduleBuilder = assemblyBuilder.DefineDynamicModule("MetadataViewProxiesModule");
                 var skipClrVisibilityChecks = new SkipClrVisibilityChecks(assemblyBuilder, moduleBuilder);
                 skipClrVisibilityChecks.SkipVisibilityChecksFor(skipVisibilityCheckAssemblies);
