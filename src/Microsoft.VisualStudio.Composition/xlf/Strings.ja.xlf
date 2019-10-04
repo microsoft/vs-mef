@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="CollectionTypeMustDeriveFromICollectionOfT" translate="yes" xml:space="preserve">
         <source>Collection type must derive from ICollection&lt;T&gt;.</source>
-        <target state="translated">コレクション型は ICollection<it id="1" pos="open">&lt;T&gt;</it> から派生しなければなりません。</target>
+        <target state="translated">コレクション型は ICollection&lt;T&gt; から派生しなければなりません。</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerErrorsOccurred" translate="yes" xml:space="preserve">
@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="ImportingCtorHasUnsupportedParameterTypeForImportMany" translate="yes" xml:space="preserve">
         <source>Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable&lt;T&gt; are supported.</source>
-        <target state="translated">インポート コンストラクターには、[ImportMany] に対してサポートされていないパラメーター型があります。T[] および IEnumerable<it id="1" pos="open">&lt;T&gt;</it> のみサポートされています。</target>
+        <target state="translated">インポート コンストラクターには、[ImportMany] に対してサポートされていないパラメーター型があります。T[] および IEnumerable&lt;T&gt; のみサポートされています。</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingPropertyHasNoSetter" translate="yes" xml:space="preserve">
@@ -164,7 +164,7 @@
       </trans-unit>
       <trans-unit id="IsExpectedOnlyOnImportsOfExportFactoryOfT" translate="yes" xml:space="preserve">
         <source>{0} is expected only on imports of ExportFactory&lt;T&gt;.</source>
-        <target state="translated">{0} は、 ExportFactory<it id="1" pos="open">&lt;T&gt;</it> をインポートする場合にのみ必要です。</target>
+        <target state="translated">{0} は、ExportFactory&lt;T&gt; をインポートする場合にのみ必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="IsExportFactoryExpectedTrue" translate="yes" xml:space="preserve">
@@ -305,7 +305,7 @@
       </trans-unit>
       <trans-unit id="TypeOfMetadataViewUnsupported" translate="yes" xml:space="preserve">
         <source>The type {0} is an unsupported type of metadata view.</source>
-        <target state="new">The type {0} is an unsupported type of metadata view.</target>
+        <target state="translated">型 {0} は、サポートされていない種類のメタデータ ビューです。</target>
         <note from="MultilingualUpdate" annotates="source" priority="2">{0} is the metadata view type.</note>
         <note from="MultilingualBuild" annotates="source" priority="2">{0} is the metadata view type.</note>
       </trans-unit>

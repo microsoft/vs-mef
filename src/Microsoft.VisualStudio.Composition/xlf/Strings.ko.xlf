@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="CollectionTypeMustDeriveFromICollectionOfT" translate="yes" xml:space="preserve">
         <source>Collection type must derive from ICollection&lt;T&gt;.</source>
-        <target state="translated">수집 형식은 ICollection에서 파생되어야 합니다<it id="1" pos="open">&lt;T&gt;</it>.</target>
+        <target state="translated">수집 형식은 ICollection에서 파생되어야 합니다&lt;T&gt;.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerErrorsOccurred" translate="yes" xml:space="preserve">
@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="ImportingCtorHasUnsupportedParameterTypeForImportMany" translate="yes" xml:space="preserve">
         <source>Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable&lt;T&gt; are supported.</source>
-        <target state="translated">가져오기 생성자의 매개 변수 형식이 [ImportMany]에 대해 지원되지 않습니다. T[] 및 IEnumerable<it id="1" pos="open">&lt;T&gt;</it>만 지원됩니다.</target>
+        <target state="translated">가져오기 생성자의 매개 변수 형식이 [ImportMany]에 대해 지원되지 않습니다. T[] 및 IEnumerable&lt;T&gt;만 지원됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingPropertyHasNoSetter" translate="yes" xml:space="preserve">
@@ -164,7 +164,7 @@
       </trans-unit>
       <trans-unit id="IsExpectedOnlyOnImportsOfExportFactoryOfT" translate="yes" xml:space="preserve">
         <source>{0} is expected only on imports of ExportFactory&lt;T&gt;.</source>
-        <target state="translated">{0}은(는) ExportFactory 가져오기에서만 필요합니다<it id="1" pos="open">&lt;T&gt;</it>.</target>
+        <target state="translated">{0}은(는) ExportFactory 가져오기에서만 필요합니다&lt;T&gt;.</target>
         <note />
       </trans-unit>
       <trans-unit id="IsExportFactoryExpectedTrue" translate="yes" xml:space="preserve">
@@ -305,7 +305,7 @@
       </trans-unit>
       <trans-unit id="TypeOfMetadataViewUnsupported" translate="yes" xml:space="preserve">
         <source>The type {0} is an unsupported type of metadata view.</source>
-        <target state="new">The type {0} is an unsupported type of metadata view.</target>
+        <target state="translated">{0} 형식은 지원되지 않는 메타데이터 보기 형식입니다.</target>
         <note from="MultilingualUpdate" annotates="source" priority="2">{0} is the metadata view type.</note>
         <note from="MultilingualBuild" annotates="source" priority="2">{0} is the metadata view type.</note>
       </trans-unit>
