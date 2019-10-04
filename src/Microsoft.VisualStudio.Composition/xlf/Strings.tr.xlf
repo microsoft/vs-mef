@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="CollectionTypeMustDeriveFromICollectionOfT" translate="yes" xml:space="preserve">
         <source>Collection type must derive from ICollection&lt;T&gt;.</source>
-        <target state="translated">Koleksiyon türü ICollection<it id="1" pos="open">&lt;T&gt;</it>'den türetilmelidir.</target>
+        <target state="translated">Koleksiyon türü ICollection&lt;T&gt;'den türetilmelidir.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerErrorsOccurred" translate="yes" xml:space="preserve">
@@ -144,7 +144,7 @@ ancak bulunan: {2}.{3}</target>
       </trans-unit>
       <trans-unit id="ImportingCtorHasUnsupportedParameterTypeForImportMany" translate="yes" xml:space="preserve">
         <source>Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable&lt;T&gt; are supported.</source>
-        <target state="translated">İçeri aktarma oluşturucusunda, [ImportMany] için desteklenmeyen bir parametre türü var. Yalnızca T[] ve IEnumerable<it id="1" pos="open">&lt;T&gt;</it> desteklenir.</target>
+        <target state="translated">İçeri aktarma oluşturucusunda, [ImportMany] için desteklenmeyen bir parametre türü var. Yalnızca T[] ve IEnumerable&lt;T&gt; desteklenir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingPropertyHasNoSetter" translate="yes" xml:space="preserve">
@@ -164,7 +164,7 @@ ancak bulunan: {2}.{3}</target>
       </trans-unit>
       <trans-unit id="IsExpectedOnlyOnImportsOfExportFactoryOfT" translate="yes" xml:space="preserve">
         <source>{0} is expected only on imports of ExportFactory&lt;T&gt;.</source>
-        <target state="translated">{0} yalnızca ExportFactory<it id="1" pos="open">&lt;T&gt;</it> içeri aktarmalarında beklenir.</target>
+        <target state="translated">{0} yalnızca ExportFactory&lt;T&gt; içeri aktarmalarında beklenir.</target>
         <note />
       </trans-unit>
       <trans-unit id="IsExportFactoryExpectedTrue" translate="yes" xml:space="preserve">
@@ -305,7 +305,7 @@ ancak bulunan: {2}.{3}</target>
       </trans-unit>
       <trans-unit id="TypeOfMetadataViewUnsupported" translate="yes" xml:space="preserve">
         <source>The type {0} is an unsupported type of metadata view.</source>
-        <target state="new">The type {0} is an unsupported type of metadata view.</target>
+        <target state="translated">{0} türü desteklenmeyen bir meta veri görünümü türüdür.</target>
         <note from="MultilingualUpdate" annotates="source" priority="2">{0} is the metadata view type.</note>
         <note from="MultilingualBuild" annotates="source" priority="2">{0} is the metadata view type.</note>
       </trans-unit>

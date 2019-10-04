@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="CollectionTypeMustDeriveFromICollectionOfT" translate="yes" xml:space="preserve">
         <source>Collection type must derive from ICollection&lt;T&gt;.</source>
-        <target state="translated">Le type Collection doit dériver de ICollection<it id="1" pos="open">&lt;T&gt;</it>.</target>
+        <target state="translated">Le type Collection doit dériver de ICollection&lt;T&gt;.</target>
         <note />
       </trans-unit>
       <trans-unit id="CompilerErrorsOccurred" translate="yes" xml:space="preserve">
@@ -144,7 +144,7 @@
       </trans-unit>
       <trans-unit id="ImportingCtorHasUnsupportedParameterTypeForImportMany" translate="yes" xml:space="preserve">
         <source>Importing constructor has an unsupported parameter type for an [ImportMany]. Only T[] and IEnumerable&lt;T&gt; are supported.</source>
-        <target state="translated">Le constructeur d'importation a un type de paramètre non pris en charge pour [ImportMany]. Seuls T[] et IEnumerable<it id="1" pos="open">&lt;T&gt;</it> sont pris en charge.</target>
+        <target state="translated">Le constructeur d'importation a un type de paramètre non pris en charge pour [ImportMany]. Seuls T[] et IEnumerable&lt;T&gt; sont pris en charge.</target>
         <note />
       </trans-unit>
       <trans-unit id="ImportingPropertyHasNoSetter" translate="yes" xml:space="preserve">
@@ -164,7 +164,7 @@
       </trans-unit>
       <trans-unit id="IsExpectedOnlyOnImportsOfExportFactoryOfT" translate="yes" xml:space="preserve">
         <source>{0} is expected only on imports of ExportFactory&lt;T&gt;.</source>
-        <target state="translated">{0} est attendu uniquement sur les importations de ExportFactory<it id="1" pos="open">&lt;T&gt;</it>.</target>
+        <target state="translated">{0} est attendu uniquement sur les importations de ExportFactory&lt;T&gt;.</target>
         <note />
       </trans-unit>
       <trans-unit id="IsExportFactoryExpectedTrue" translate="yes" xml:space="preserve">
@@ -305,7 +305,7 @@
       </trans-unit>
       <trans-unit id="TypeOfMetadataViewUnsupported" translate="yes" xml:space="preserve">
         <source>The type {0} is an unsupported type of metadata view.</source>
-        <target state="new">The type {0} is an unsupported type of metadata view.</target>
+        <target state="translated">Le type {0} est un type d'affichage de métadonnées non pris en charge.</target>
         <note from="MultilingualUpdate" annotates="source" priority="2">{0} is the metadata view type.</note>
         <note from="MultilingualBuild" annotates="source" priority="2">{0} is the metadata view type.</note>
       </trans-unit>
