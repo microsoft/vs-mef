@@ -251,7 +251,7 @@ namespace Microsoft.VisualStudio.Composition
                 resolver);
         }
 
-        [DebuggerDisplay("{" + nameof(RuntimePart.TypeRef.FullName) + ",nq}")]
+        [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
         public class RuntimePart : IEquatable<RuntimePart>
         {
             public RuntimePart(
@@ -293,6 +293,8 @@ namespace Microsoft.VisualStudio.Composition
             public bool IsInstantiable => this.ImportingConstructorOrFactoryMethodRef != null;
 
             public MethodInfo OnImportsSatisfied => (MethodInfo)this.OnImportsSatisfiedRef?.MethodBase;
+
+            private string DebuggerDisplay => this.TypeRef?.FullName;
 
             public override bool Equals(object obj) => this.Equals(obj as RuntimePart);
 
