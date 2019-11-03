@@ -4,6 +4,7 @@
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.AppHost.ruleset</CodeAnalysisRuleSet>
 
     <Description>Adds a VS MEF system with a pre-computed, cached MEF graph.</Description>
+    <NoWarn>$(NoWarn),NU5128</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="ExportProviderFactory.cs" />
