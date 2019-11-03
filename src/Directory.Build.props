@@ -7,6 +7,7 @@
     <PackageOutputPath>$(RepoBinPath)$(Configuration)\Packages\</PackageOutputPath>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <LangVersion>8</LangVersion>
     <NoWarn>CS1591;CS1701</NoWarn>
     <UpdateXlfOnBuild Condition=" '$(UpdateXlfOnBuild)' == '' ">true</UpdateXlfOnBuild>
 
@@ -21,7 +22,7 @@
     <PackageTags>Mef Composition Extensibility</PackageTags>
     <Company>Microsoft</Company>
     <PackageProjectUrl>https://github.com/Microsoft/vs-mef</PackageProjectUrl>
-    <PackageIconUrl>https://aka.ms/VsExtensibilityIcon</PackageIconUrl>
+    <PackageIcon>PackageIcon.png</PackageIcon>
     <Authors>Microsoft</Authors>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -32,7 +33,9 @@
     <PackageReference Include="MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta-63127-02" PrivateAssets="All" />
   </ItemGroup>
-
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)PackageIcon.png" Pack="true" PackagePath="" />
+  </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json">
       <Visible>true</Visible>
