@@ -6,6 +6,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Collections.Generic;
     using System.Composition;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
@@ -37,6 +38,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.True(weakRefs.All(r => !r.IsAlive));
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         private static WeakReference[] DisposableNonSharedPartDisposedWithContainerForAllInstancesAndThenReleased_Helper(IContainer container)
         {
             var weakRefs = new WeakReference[3];

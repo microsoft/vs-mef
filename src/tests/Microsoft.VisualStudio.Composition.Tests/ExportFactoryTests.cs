@@ -6,6 +6,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Collections.Generic;
     using System.Composition;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
     using Xunit;
@@ -289,6 +290,28 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var value1 = partFactory.Factory.CreateExport().Value;
             var value2 = partFactory.Factory.CreateExport().Value;
             Assert.NotSame(value1, value2);
+        }
+
+        [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryV2), typeof(NonSharedPart))]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
+        public void ExportFactoryForNonSharedPartNoLeakAfterExportDisposal(IContainer container)
+        {
+            WeakReference exportedPart = ExportFactoryForNonSharedPartNoLeakAfterExportDisposal_Helper(container);
+            GC.Collect();
+            Assert.False(exportedPart.IsAlive);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static WeakReference ExportFactoryForNonSharedPartNoLeakAfterExportDisposal_Helper(IContainer container)
+        {
+            var partFactory = container.GetExportedValue<PartFactoryV2>();
+            var export = partFactory.Factory.CreateExport();
+            WeakReference exportedValue = new WeakReference(export.Value);
+
+            // This should remove the exported part from the container.
+            export.Dispose();
+            return exportedValue;
         }
 
         [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryManyV2), typeof(NonSharedPart), typeof(NonSharedPart2))]
