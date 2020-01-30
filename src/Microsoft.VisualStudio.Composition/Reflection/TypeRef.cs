@@ -9,6 +9,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using Microsoft.VisualStudio.Composition.Diagnostic;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
@@ -43,6 +44,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// </summary>
         private ImmutableArray<TypeRef> baseTypes;
 
+        /// <summary>
+        /// DiagnosticInfoCollector for collection all information
+        /// </summary>
+        private DiagnosticInfoCollector diagnosticInfoCollector = DiagnosticInfoCollector.CreateInstance();
+
         private TypeRef(
             Resolver resolver,
             AssemblyName assemblyName,
@@ -76,6 +82,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
 
             this.ElementTypeRef = elementTypeRef ?? this;
+            this.diagnosticInfoCollector.Collect($"FullName : {fullName}, assemblyName = {assemblyName}");
         }
 
         private TypeRef(Resolver resolver, Type type, bool shallow = false)
@@ -100,13 +107,18 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.FullName = (arrayElementType.GetTypeInfo().IsGenericType ? arrayElementType.GetGenericTypeDefinition() : arrayElementType).FullName;
             this.GenericTypeParameterCount = arrayElementType.GetTypeInfo().GenericTypeParameters.Length;
             this.GenericTypeArguments = arrayElementType.GenericTypeArguments != null && arrayElementType.GenericTypeArguments.Length > 0
-                ? arrayElementType.GenericTypeArguments.Where(t => !(shallow && t.IsGenericParameter)).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray()
+                ? arrayElementType.GenericTypeArguments
+                    .Where(t => !(shallow && t.IsGenericParameter))
+                    .Select(t => new TypeRef(resolver, t, shallow: true))
+                    .ToImmutableArray()
                 : ImmutableArray<TypeRef>.Empty;
 
             if (!shallow)
             {
                 this.baseTypes = arrayElementType.EnumTypeBaseTypesAndInterfaces().Skip(1).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray();
             }
+
+            this.diagnosticInfoCollector.Collect($"Requested Type : {type}, Shallow = {shallow}, FullName : {this.FullName}");
         }
 
         public AssemblyName AssemblyName { get; }
@@ -208,8 +220,18 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
                     if (this.GenericTypeArguments.Length > 0)
                     {
-                        using (var genericTypeArguments = GetResolvedTypeArray(this.GenericTypeArguments))
+                        using (var genericTypeArguments = this.GetResolvedTypeArray(this.GenericTypeArguments, out bool isNullableTypeRefRequested))
                         {
+                            //Generic type does not support creation with nullable argument
+                            if (isNullableTypeRefRequested)
+                            {
+                                this.diagnosticInfoCollector.Collect($"Total GenericTypeArguments = {this.GenericTypeArguments.Length} for ResolvedType = {this.resolvedType}");
+                                this.diagnosticInfoCollector.Collect($"FullName = {this.FullName}");
+                                this.diagnosticInfoCollector.Collect($"AssemblyName = {this.AssemblyName}");
+
+                                throw new ArgumentException($"TypeArguments for the type parameters {genericTypeArguments.Value} of the current generic type should not be null. {this.diagnosticInfoCollector.GetAllInformation()}");
+                            }
+
                             type = resolvedType.MakeGenericType(genericTypeArguments.Value);
                         }
                     }
@@ -388,10 +410,12 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         internal void GetInputAssemblies(ISet<AssemblyName> assemblies) => ResolverExtensions.GetInputAssemblies(this, assemblies);
 
-        private static Rental<Type[]> GetResolvedTypeArray(ImmutableArray<TypeRef> typeRefs)
+        private Rental<Type[]> GetResolvedTypeArray(ImmutableArray<TypeRef> typeRefs, out bool isNullableTypeRefRequested)
         {
+            isNullableTypeRefRequested = false;
             if (typeRefs.IsDefault)
             {
+                this.diagnosticInfoCollector.Collect($"Default type requested.");
                 return default(Rental<Type[]>);
             }
 
@@ -399,6 +423,13 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             for (int i = 0; i < typeRefs.Length; i++)
             {
                 result.Value[i] = typeRefs[i].ResolvedType;
+
+                this.diagnosticInfoCollector.Collect($"arg[{i}]={result.Value[i]}");
+                if (result.Value[i] == null && !isNullableTypeRefRequested)
+                {
+                    isNullableTypeRefRequested = true;
+                    this.diagnosticInfoCollector.Collect($"arg[{i}] is expected to be not null.");
+                }
             }
 
             return result;
