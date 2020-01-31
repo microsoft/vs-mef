@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
         }
 
         [Fact]
-        public void Test()
+        public void ThrowArgumentExceptionWhenArgIsNull()
         {
             var testGuid = new Guid("00000000-0000-0000-0000-000000000001");
             var loadSystemAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => assembly.FullName.Contains("mscorlib"));
