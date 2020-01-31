@@ -44,11 +44,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// </summary>
         private ImmutableArray<TypeRef> baseTypes;
 
-        /// <summary>
-        /// DiagnosticInfoCollector for collection all information
-        /// </summary>
-        private DiagnosticInfoCollector diagnosticInfoCollector = DiagnosticInfoCollector.CreateInstance();
-
         private TypeRef(
             Resolver resolver,
             AssemblyName assemblyName,
@@ -82,7 +77,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
 
             this.ElementTypeRef = elementTypeRef ?? this;
-            this.diagnosticInfoCollector.Collect($"FullName : {fullName}, assemblyName = {assemblyName}");
+            this.DiagnosticInfoCollector.Collect($"FullName : {fullName}, assemblyName = {assemblyName}");
         }
 
         private TypeRef(Resolver resolver, Type type, bool shallow = false)
@@ -118,7 +113,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 this.baseTypes = arrayElementType.EnumTypeBaseTypesAndInterfaces().Skip(1).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray();
             }
 
-            this.diagnosticInfoCollector.Collect($"Requested Type : {type}, Shallow = {shallow}, FullName : {this.FullName}");
+            this.DiagnosticInfoCollector.Collect($"Requested Type : {type}, Shallow = {shallow}, FullName : {this.FullName}");
         }
 
         public AssemblyName AssemblyName { get; }
@@ -225,11 +220,12 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                             //Generic type does not support creation with nullable argument
                             if (isNullableTypeRefRequested)
                             {
-                                this.diagnosticInfoCollector.Collect($"Total GenericTypeArguments = {this.GenericTypeArguments.Length} for ResolvedType = {this.resolvedType}");
-                                this.diagnosticInfoCollector.Collect($"FullName = {this.FullName}");
-                                this.diagnosticInfoCollector.Collect($"AssemblyName = {this.AssemblyName}");
+                                this.DiagnosticInfoCollector.Collect($"Resolved: Total GenericTypeArguments = {this.GenericTypeArguments.Length} for ResolvedType = {this.resolvedType}");
+                                this.DiagnosticInfoCollector.Collect($"Resolved: FullName = {this.FullName}");
+                                this.DiagnosticInfoCollector.Collect($"Resolved: AssemblyName = {this.AssemblyName}");
+                                this.DiagnosticInfoCollector.Collect($"Resolved: Manifest = {manifest?.FullyQualifiedName}");
 
-                                throw new ArgumentException($"TypeArguments for the type parameters {genericTypeArguments.Value} of the current generic type should not be null. {this.diagnosticInfoCollector.GetAllInformation()}");
+                                throw new ArgumentException($"TypeArguments for the type parameters {genericTypeArguments.Value} of the current generic type should not be null. {this.DiagnosticInfoCollector.GetAndClearInformation()}");
                             }
 
                             type = resolvedType.MakeGenericType(genericTypeArguments.Value);
@@ -247,6 +243,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
                     // Only assign the field once we've fully decided what the type is.
                     this.resolvedType = type;
+
+                    this.DiagnosticInfoCollector.Collect($"Current ResolvedType = {type?.FullName}");
+                    this.DiagnosticInfoCollector.Collect($"Current FullName = {this.FullName}");
+                    this.DiagnosticInfoCollector.Collect($"Current AssemblyName = {this.AssemblyName}");
+                    this.DiagnosticInfoCollector.Collect($"Current Manifest = {manifest?.FullyQualifiedName}");
                 }
 
                 return this.resolvedType;
@@ -380,6 +381,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return result;
         }
 
+        /// <summary>
+        /// DiagnosticInfoCollector for collection all information
+        /// </summary>
+        internal DiagnosticInfoCollector DiagnosticInfoCollector = DiagnosticInfoCollector.CreateInstance();
+
         public override bool Equals(object obj)
         {
             return obj is TypeRef typeRef && this.Equals(typeRef);
@@ -415,7 +421,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             isNullableTypeRefRequested = false;
             if (typeRefs.IsDefault)
             {
-                this.diagnosticInfoCollector.Collect($"Default type requested.");
+                this.DiagnosticInfoCollector.Collect($"Default type requested.");
                 return default(Rental<Type[]>);
             }
 
@@ -424,11 +430,12 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             {
                 result.Value[i] = typeRefs[i].ResolvedType;
 
-                this.diagnosticInfoCollector.Collect($"arg[{i}]={result.Value[i]}");
+                this.DiagnosticInfoCollector.Collect($"arg[{i}]={result.Value[i]}");
                 if (result.Value[i] == null && !isNullableTypeRefRequested)
                 {
                     isNullableTypeRefRequested = true;
-                    this.diagnosticInfoCollector.Collect($"arg[{i}] is expected to be not null.");
+                    this.DiagnosticInfoCollector.Collect($"arg[{i}] is expected to be not null.");
+                    this.DiagnosticInfoCollector.Collect($"arg[{i}] Details: {typeRefs[i].DiagnosticInfoCollector.GetAndClearInformation()}");
                 }
             }
 

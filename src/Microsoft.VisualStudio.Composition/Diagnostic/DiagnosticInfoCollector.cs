@@ -4,7 +4,7 @@ namespace Microsoft.VisualStudio.Composition.Diagnostic
 {
     using System.Text;
 
-    public class DiagnosticInfoCollector
+    internal class DiagnosticInfoCollector
     {
         private StringBuilder messages;
 
@@ -23,9 +23,12 @@ namespace Microsoft.VisualStudio.Composition.Diagnostic
             this.messages.AppendLine(message);
         }
 
-        public string GetAllInformation()
+        public string GetAndClearInformation()
         {
-            return this.messages.ToString();
+            var response = this.messages.ToString();
+            this.messages.Clear();
+
+            return response;
         }
     }
 }

@@ -1,6 +1,2 @@
-Microsoft.VisualStudio.Composition.Diagnostic.DiagnosticInfoCollector
-Microsoft.VisualStudio.Composition.Diagnostic.DiagnosticInfoCollector.Collect(string message) -> void
-Microsoft.VisualStudio.Composition.Diagnostic.DiagnosticInfoCollector.GetAllInformation() -> string
 Microsoft.VisualStudio.Composition.ExportProvider.GetExportedValues(System.Type type, string contractName) -> System.Collections.Generic.IEnumerable<object>
 Microsoft.VisualStudio.Composition.ExportProvider.GetExports(System.Type type, System.Type metadataViewType, string contractName) -> System.Collections.Generic.IEnumerable<System.Lazy<object, object>>
-static Microsoft.VisualStudio.Composition.Diagnostic.DiagnosticInfoCollector.CreateInstance() -> Microsoft.VisualStudio.Composition.Diagnostic.DiagnosticInfoCollector
