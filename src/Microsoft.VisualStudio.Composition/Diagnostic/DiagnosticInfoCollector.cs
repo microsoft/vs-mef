@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Composition.Diagnostic
 
         internal string GetAndClearInformation()
         {
-            var response = string.Join(Environment.NewLine, this.messages.ToArray());
+            var response = string.Join(Environment.NewLine, this.messages);
             this.messages.Clear();
 
             return response;
