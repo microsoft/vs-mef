@@ -9,12 +9,12 @@ namespace Microsoft.VisualStudio.Composition.Diagnostic
     {
         private readonly List<string> messages = new List<string>();
 
-        public void Collect(string message)
+        internal void Collect(string message)
         {
             this.messages.Add(message);
         }
 
-        public string GetAndClearInformation()
+        internal string GetAndClearInformation()
         {
             var response = string.Join(Environment.NewLine, this.messages.ToArray());
             this.messages.Clear();
