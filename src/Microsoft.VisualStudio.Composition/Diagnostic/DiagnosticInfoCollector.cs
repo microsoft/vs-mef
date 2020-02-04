@@ -2,30 +2,21 @@
 
 namespace Microsoft.VisualStudio.Composition.Diagnostic
 {
-    using System.Text;
+    using System;
+    using System.Collections.Generic;
 
     internal class DiagnosticInfoCollector
     {
-        private StringBuilder messages;
-
-        private DiagnosticInfoCollector()
-        {
-            this.messages = new StringBuilder();
-        }
-
-        public static DiagnosticInfoCollector CreateInstance()
-        {
-            return new DiagnosticInfoCollector();
-        }
+        private readonly List<string> messages = new List<string>();
 
         public void Collect(string message)
         {
-            this.messages.AppendLine(message);
+            this.messages.Add(message);
         }
 
         public string GetAndClearInformation()
         {
-            var response = this.messages.ToString();
+            var response = string.Join(Environment.NewLine, this.messages.ToArray());
             this.messages.Clear();
 
             return response;

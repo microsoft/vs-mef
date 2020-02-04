@@ -217,7 +217,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                     {
                         using (var genericTypeArguments = this.GetResolvedTypeArray(this.GenericTypeArguments, out bool isNullableTypeRefRequested))
                         {
-                            //Generic type does not support creation with nullable argument
+                            // Generic type does not support creation with nullable argument
                             if (isNullableTypeRefRequested)
                             {
                                 this.DiagnosticInfoCollector.Collect($"Resolved: Total GenericTypeArguments = {this.GenericTypeArguments.Length} for ResolvedType = {this.resolvedType}");
@@ -244,10 +244,14 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                     // Only assign the field once we've fully decided what the type is.
                     this.resolvedType = type;
 
-                    this.DiagnosticInfoCollector.Collect($"Current ResolvedType = {type?.FullName}");
-                    this.DiagnosticInfoCollector.Collect($"Current FullName = {this.FullName}");
-                    this.DiagnosticInfoCollector.Collect($"Current AssemblyName = {this.AssemblyName}");
-                    this.DiagnosticInfoCollector.Collect($"Current Manifest = {manifest?.FullyQualifiedName}");
+                    // Collect information only when required type is null.
+                    if (this.resolvedType == null)
+                    {
+                        this.DiagnosticInfoCollector.Collect($"Current ResolvedType = {type?.FullName}");
+                        this.DiagnosticInfoCollector.Collect($"Current FullName = {this.FullName}");
+                        this.DiagnosticInfoCollector.Collect($"Current AssemblyName = {this.AssemblyName}");
+                        this.DiagnosticInfoCollector.Collect($"Current Manifest = {manifest?.FullyQualifiedName}");
+                    }
                 }
 
                 return this.resolvedType;
@@ -384,7 +388,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// <summary>
         /// DiagnosticInfoCollector for collection all information
         /// </summary>
-        internal DiagnosticInfoCollector DiagnosticInfoCollector = DiagnosticInfoCollector.CreateInstance();
+        internal DiagnosticInfoCollector DiagnosticInfoCollector = new DiagnosticInfoCollector();
 
         public override bool Equals(object obj)
         {
