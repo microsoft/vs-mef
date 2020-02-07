@@ -60,12 +60,11 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
             };
             var assemblyIdentity = new StrongAssemblyIdentity(loadedAssemblyName, testGuid);
 
-            var typeRefNullableArgument2 = TypeRef.Get(TestUtilities.Resolver, assemblyIdentity, 0x02000001, "Fake assembly", TypeRefFlags.None, 0, ImmutableArray<TypeRef>.Empty, false, ImmutableArray<TypeRef>.Empty, null);
+            var typeRefNullableArgument = TypeRef.Get(TestUtilities.Resolver, assemblyIdentity, 0x02000001, "Fake assembly", TypeRefFlags.None, 0, ImmutableArray<TypeRef>.Empty, false, ImmutableArray<TypeRef>.Empty, null);
 
-            var typeRef = TypeRef.Get(TestUtilities.Resolver, assemblyIdentity, 0x02000001, typeof(Dictionary<,>).FullName, TypeRefFlags.None, 0, new[] { typeRefNullableArgument2 }.ToImmutableArray(), false, new[] { typeRefNullableArgument2 }.ToImmutableArray(), null);
+            var typeRef = TypeRef.Get(TestUtilities.Resolver, assemblyIdentity, 0x02000001, typeof(Dictionary<,>).FullName, TypeRefFlags.None, 0, new[] { typeRefNullableArgument }.ToImmutableArray(), false, new[] { typeRefNullableArgument }.ToImmutableArray(), null);
 
-            var actualException = Assert.Throws<TypeLoadException>(() => typeRef.Resolve());
-            Assert.NotNull(actualException);
+            var actualException = Assert.Throws<TypeLoadException>(() => typeRef.Resolve());            
             Assert.True(actualException.Message.Contains("Could not load type 'Fake assembly"));
         }
 
