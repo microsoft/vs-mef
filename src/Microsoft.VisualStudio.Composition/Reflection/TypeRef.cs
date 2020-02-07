@@ -203,7 +203,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                     else
                     {
                         manifest = this.Resolver.GetManifest(this.AssemblyName);
-                        resolvedType = manifest.GetType(this.FullName);
+                        resolvedType = manifest.GetType(this.FullName, throwOnError: true, ignoreCase: false);
                     }
 
                     if (this.GenericTypeArguments.Length > 0)
