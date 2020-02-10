@@ -47,6 +47,27 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
             this.TestAssemblyNameEqualityNotEqual(assemblyName, assemblyName, @"C:\MyAssembly.dll", @"C:\MyAssembly.dll", guidV1, guidV2);
         }
 
+        [Fact]
+        public void ThrowTypeLoadExceptionWhenArgIsNull()
+        {
+            var testGuid = new Guid("00000000-0000-0000-0000-000000000001");
+            var loadSystemAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => assembly.FullName.Contains("mscorlib"));
+            Assert.NotNull(loadSystemAssembly);
+
+            var loadedAssemblyName = new AssemblyName(loadSystemAssembly.FullName)
+            {
+                CodeBase = loadSystemAssembly.CodeBase
+            };
+            var assemblyIdentity = new StrongAssemblyIdentity(loadedAssemblyName, testGuid);
+
+            var typeRefNullableArgument = TypeRef.Get(TestUtilities.Resolver, assemblyIdentity, 0x02000001, "Fake assembly", TypeRefFlags.None, 0, ImmutableArray<TypeRef>.Empty, false, ImmutableArray<TypeRef>.Empty, null);
+
+            var typeRef = TypeRef.Get(TestUtilities.Resolver, assemblyIdentity, 0x02000001, typeof(Dictionary<,>).FullName, TypeRefFlags.None, 0, new[] { typeRefNullableArgument }.ToImmutableArray(), false, new[] { typeRefNullableArgument }.ToImmutableArray(), null);
+
+            var actualException = Assert.Throws<TypeLoadException>(() => typeRef.Resolve());
+            Assert.True(actualException.Message.Contains("Could not load type 'Fake assembly"));
+        }
+
         private void TestAssemblyNameEqualityNotEqual(string assemblyNameV1String, string assemblyNameV2String, string codeBaseV1, string codeBaseV2, Guid mvidV1, Guid mvidV2)
         {
             AssemblyName assemblyNameV1 = new AssemblyName(assemblyNameV1String);
