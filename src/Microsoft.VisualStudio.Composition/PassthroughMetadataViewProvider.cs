@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
-    using Reflection;
+    using Microsoft.VisualStudio.Composition.Reflection;
 
     /// <summary>
     /// Supports metadata views that are any type that <see cref="ImmutableDictionary{TKey, TValue}"/>

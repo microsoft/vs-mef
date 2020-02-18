@@ -11,6 +11,6 @@ namespace Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests
     public enum SomeEnum
     {
         SomeEnumValue,
-        SomeOtherEnumValue
+        SomeOtherEnumValue,
     }
 }

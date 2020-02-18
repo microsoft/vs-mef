@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
-    using Reflection;
+    using Microsoft.VisualStudio.Composition.Reflection;
 
     [DebuggerDisplay("{" + nameof(Definition) + "." + nameof(ComposablePartDefinition.Type) + ".Name}")]
     public class ComposedPart
