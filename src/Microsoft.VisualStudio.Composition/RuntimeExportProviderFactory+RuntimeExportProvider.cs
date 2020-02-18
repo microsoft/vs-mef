@@ -254,7 +254,7 @@ namespace Microsoft.VisualStudio.Composition
                     RuntimeExportProvider scope = newSharingScope
                         ? new RuntimeExportProvider(this.composition, this, sharingBoundaries)
                         : this;
-                    var exportedValueConstructor = ((RuntimeExportProvider)scope).GetExportedValue(import, export, importingPartTracker);
+                    var exportedValueConstructor = scope.GetExportedValue(import, export, importingPartTracker);
                     exportedValueConstructor.ExportingPart.GetValueReadyToExpose();
                     object constructedValue = exportedValueConstructor.ValueConstructor();
                     var disposableValue = newSharingScope ? scope : exportedValueConstructor.ExportingPart as IDisposable;

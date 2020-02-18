@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Reflection;
+    using Microsoft.VisualStudio.Composition.Reflection;
 
     public interface IRuntimeCompositionCacheManager
     {

@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
     using System.Threading.Tasks;
     using Microsoft.Build.Framework;
     using Microsoft.Build.Utilities;
-    using Reflection;
+    using Microsoft.VisualStudio.Composition.Reflection;
 
     public class CreateComposition : AppDomainIsolatedTask, ICancelableTask
     {
@@ -386,10 +386,10 @@ namespace Microsoft.VisualStudio.Composition.AppHost
         /// Considers a path to load for satisfying an assembly ref and loads it
         /// if the file exists and version is sufficient.
         /// </summary>
-        /// <param name="filePath">Path to consider for load</param>
-        /// <param name="minimumVersion">Minimum version to consider</param>
-        /// <param name="assembly">loaded assembly</param>
-        /// <returns>true if assembly was loaded</returns>
+        /// <param name="filePath">Path to consider for load.</param>
+        /// <param name="minimumVersion">Minimum version to consider.</param>
+        /// <param name="assembly">loaded assembly.</param>
+        /// <returns>true if assembly was loaded.</returns>
         private bool Probe(string filePath, Version minimumVersion, out Assembly assembly)
         {
             if (File.Exists(filePath))

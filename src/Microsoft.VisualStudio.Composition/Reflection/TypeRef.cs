@@ -301,7 +301,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// if any of them are equal to this instance. Should that fail, the CLR is asked to check for assignability
         /// which will trigger an assembly load.
         /// </remarks>
-        /// <param name="other">TypeRef to compare to</param>
+        /// <param name="other">TypeRef to compare to.</param>
         /// <returns>true if the given TypeRef can be assigned to this instance, false otherwise.</returns>
         public bool IsAssignableFrom(TypeRef other)
         {
@@ -339,7 +339,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// <summary>
         /// Compares for type equality, ignoring whether or not the TypeRef is shallow.
         /// </summary>
-        /// <param name="other">TypeRef to compare to</param>
+        /// <param name="other">TypeRef to compare to.</param>
         /// <returns>true if the TypeRefs represent the same type, false otherwise.</returns>
         internal bool TypeRefEquals(TypeRef other)
         {

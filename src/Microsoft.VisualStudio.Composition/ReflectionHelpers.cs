@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
-    using Reflection;
+    using Microsoft.VisualStudio.Composition.Reflection;
 
     public static class ReflectionHelpers
     {

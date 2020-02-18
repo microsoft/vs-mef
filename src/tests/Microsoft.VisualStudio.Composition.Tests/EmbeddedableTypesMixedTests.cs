@@ -9,9 +9,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
-    using EmbeddedTypeReceiver;
+    using Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver;
     using Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver;
-    using Shell.Interop;
+    using Microsoft.VisualStudio.Shell.Interop;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 

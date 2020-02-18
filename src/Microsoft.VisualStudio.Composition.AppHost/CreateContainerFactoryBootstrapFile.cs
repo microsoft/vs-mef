@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
 
             File.WriteAllText(
                 this.BootstrapFile,
-               sourceFileContent);
+                sourceFileContent);
 
             return !this.Log.HasLoggedErrors;
         }

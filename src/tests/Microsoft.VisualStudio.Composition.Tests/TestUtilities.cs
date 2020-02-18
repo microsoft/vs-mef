@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Composition.Reflection;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Sdk;

@@ -762,7 +762,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public enum MetadataEnum
         {
             Value1,
-            Value2
+            Value2,
         }
 
         internal enum MetadataEnumNonPublic
@@ -851,10 +851,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(true, (bool)export.Metadata["bool"]);
             Assert.Equal(byte.MaxValue, (byte)export.Metadata["byte"]);
             Assert.Equal('a', (char)export.Metadata["char"]);
-            Assert.Equal((double)5, (double)export.Metadata["double"]);
+            Assert.Equal(5, (double)export.Metadata["double"]);
             Assert.Equal(double.MaxValue, (double)export.Metadata["doubleMax"]);
             Assert.Equal(double.MinValue, (double)export.Metadata["doubleMin"]);
-            Assert.Equal((float)5, (float)export.Metadata["float"]);
+            Assert.Equal(5, (float)export.Metadata["float"]);
             Assert.Equal(float.MaxValue, (float)export.Metadata["floatMax"]);
             Assert.Equal(float.MinValue, (float)export.Metadata["floatMin"]);
             Assert.Equal(int.MaxValue, (int)export.Metadata["int"]);
@@ -872,10 +872,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(new[] { true }, (bool[])export.Metadata["array_bool"]);
             Assert.Equal(new[] { byte.MaxValue }, (byte[])export.Metadata["array_byte"]);
             Assert.Equal(new[] { 'a' }, (char[])export.Metadata["array_char"]);
-            Assert.Equal(new[] { (double)5 }, (double[])export.Metadata["array_double"]);
+            Assert.Equal(new[] { 5D }, (double[])export.Metadata["array_double"]);
             Assert.Equal(new[] { double.MaxValue }, (double[])export.Metadata["array_doubleMax"]);
             Assert.Equal(new[] { double.MinValue }, (double[])export.Metadata["array_doubleMin"]);
-            Assert.Equal(new[] { (float)5 }, (float[])export.Metadata["array_float"]);
+            Assert.Equal(new[] { 5F }, (float[])export.Metadata["array_float"]);
             Assert.Equal(new[] { float.MaxValue }, (float[])export.Metadata["array_floatMax"]);
             Assert.Equal(new[] { float.MinValue }, (float[])export.Metadata["array_floatMin"]);
             Assert.Equal(new[] { int.MaxValue }, (int[])export.Metadata["array_int"]);
@@ -902,10 +902,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [ExportMetadata("bool", true), MefV1.ExportMetadata("bool", true)]
         [ExportMetadata("byte", byte.MaxValue), MefV1.ExportMetadata("byte", byte.MaxValue)]
         [ExportMetadata("char", 'a'), MefV1.ExportMetadata("char", 'a')]
-        [ExportMetadata("double", (double)5), MefV1.ExportMetadata("double", (double)5)]
+        [ExportMetadata("double", 5D), MefV1.ExportMetadata("double", 5D)]
         [ExportMetadata("doubleMax", double.MaxValue), MefV1.ExportMetadata("doubleMax", double.MaxValue)]
         [ExportMetadata("doubleMin", double.MinValue), MefV1.ExportMetadata("doubleMin", double.MinValue)]
-        [ExportMetadata("float", (float)5), MefV1.ExportMetadata("float", (float)5)]
+        [ExportMetadata("float", 5F), MefV1.ExportMetadata("float", 5F)]
         [ExportMetadata("floatMax", float.MaxValue), MefV1.ExportMetadata("floatMax", float.MaxValue)]
         [ExportMetadata("floatMin", float.MinValue), MefV1.ExportMetadata("floatMin", float.MinValue)]
         [ExportMetadata("int", int.MaxValue), MefV1.ExportMetadata("int", int.MaxValue)]
@@ -922,10 +922,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [ExportMetadata("array_bool", new[] { true }), MefV1.ExportMetadata("array_bool", new[] { true })]
         [ExportMetadata("array_byte", new[] { byte.MaxValue }), MefV1.ExportMetadata("array_byte", new[] { byte.MaxValue })]
         [ExportMetadata("array_char", new[] { 'a' }), MefV1.ExportMetadata("array_char", new[] { 'a' })]
-        [ExportMetadata("array_double", new[] { (double)5 }), MefV1.ExportMetadata("array_double", new[] { (double)5 })]
+        [ExportMetadata("array_double", new[] { 5D }), MefV1.ExportMetadata("array_double", new[] { 5D })]
         [ExportMetadata("array_doubleMax", new[] { double.MaxValue }), MefV1.ExportMetadata("array_doubleMax", new[] { double.MaxValue })]
         [ExportMetadata("array_doubleMin", new[] { double.MinValue }), MefV1.ExportMetadata("array_doubleMin", new[] { double.MinValue })]
-        [ExportMetadata("array_float", new[] { (float)5 }), MefV1.ExportMetadata("array_float", new[] { (float)5 })]
+        [ExportMetadata("array_float", new[] { 5F }), MefV1.ExportMetadata("array_float", new[] { 5F })]
         [ExportMetadata("array_floatMax", new[] { float.MaxValue }), MefV1.ExportMetadata("array_floatMax", new[] { float.MaxValue })]
         [ExportMetadata("array_floatMin", new[] { float.MinValue }), MefV1.ExportMetadata("array_floatMin", new[] { float.MinValue })]
         [ExportMetadata("array_int", new[] { int.MaxValue }), MefV1.ExportMetadata("array_int", new[] { int.MaxValue })]

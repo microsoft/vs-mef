@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             [MefV1.Import]
             public Fruit AppleDefault { get; set; }
 
-            [Import((string)null)]
+            [Import(null)]
             [MefV1.Import((string)null)]
             public Fruit AppleNull { get; set; }
 

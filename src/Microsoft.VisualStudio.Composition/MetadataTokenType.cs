@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Composition
     /// This can be used in the future to remove these MSBs when serializing the metadata tokens
     /// in order to make them more compressible by virtue of their being significantly smaller
     /// numbers after removing the leading byte.
-    /// These come from: http://msdn.microsoft.com/en-us/library/ms231937(v=vs.110).aspx
+    /// These come from <see href="http://msdn.microsoft.com/en-us/library/ms231937(v=vs.110).aspx" />.
     /// </remarks>
     internal enum MetadataTokenType : uint
     {

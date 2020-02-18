@@ -10,9 +10,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
-    using Composition.Reflection;
     using Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests;
     using Microsoft.VisualStudio.Composition.BrokenAssemblyTests;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
