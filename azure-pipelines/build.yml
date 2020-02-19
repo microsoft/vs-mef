@@ -127,6 +127,7 @@ steps:
       bin\$(BuildConfiguration)\Packages\Microsoft.VisualStudio.Composition.1*
       bin\$(BuildConfiguration)\Packages\Microsoft.VisualStudio.Composition.AppHost.1*
       bin\$(BuildConfiguration)\Packages\Microsoft.VisualStudio.Composition.NetFxAttributes.*
+      bin\$(BuildConfiguration)\Packages\Microsoft.VisualStudio.Composition.Analyzers.*
     TargetFolder: $(Build.ArtifactStagingDirectory)/deployables
     flattenFolders: true
   displayName: Collecting deployables
