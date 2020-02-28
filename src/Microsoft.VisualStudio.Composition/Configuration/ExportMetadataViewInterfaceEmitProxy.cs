@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Composition;
     using System.Linq;
     using System.Reflection;
-    using Reflection;
+    using Microsoft.VisualStudio.Composition.Reflection;
 
     internal static class ExportMetadataViewInterfaceEmitProxy
     {

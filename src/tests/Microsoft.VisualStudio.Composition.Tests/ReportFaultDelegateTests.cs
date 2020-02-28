@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 {
                     new object[] { ExportWithLazyImportOfBadConstructorExport.GetTestCase() },
                     new object[] { ExportWithLazyImportOfBadExportingMember.GetTestCase() },
-                    new object[] { ExportWithLazyImportOfTwoBadExports.GetTestCase() }
+                    new object[] { ExportWithLazyImportOfTwoBadExports.GetTestCase() },
                 };
             }
         }
@@ -158,8 +158,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                         {
                             ExportWithLazyImportOfBadConstructorExport import = (ExportWithLazyImportOfBadConstructorExport)failingImport;
                             var unused = import.FailingConstructor.Value;
-                        })
-                    }
+                        }),
+                    },
                 };
             }
         }
@@ -194,8 +194,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                         {
                             ExportWithLazyImportOfBadExportingMember import = (ExportWithLazyImportOfBadExportingMember)failingImport;
                             var unused = import.FailingExport.Value;
-                        })
-                    }
+                        }),
+                    },
                 };
             }
         }
@@ -239,8 +239,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                         {
                             ExportWithLazyImportOfTwoBadExports import = (ExportWithLazyImportOfTwoBadExports)failingImport;
                             var unused = import.FailingExports.ElementAt(1).Value;
-                        })
-                    }
+                        }),
+                    },
                 };
             }
         }

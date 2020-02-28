@@ -5,7 +5,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Reflection;
-    using Composition.Reflection;
+    using Microsoft.VisualStudio.Composition.Reflection;
     using Xunit;
 
     public class ComposablePartDefinitionTests

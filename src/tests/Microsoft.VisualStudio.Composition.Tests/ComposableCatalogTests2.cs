@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Reflection;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests;
-    using Shell.Interop;
+    using Microsoft.VisualStudio.Shell.Interop;
     using Xunit;
     using Xunit.Abstractions;
     using MEFv1 = System.ComponentModel.Composition;
@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
                 typeof(PartWithEnumValueMetadata).GetTypeInfo().Assembly.GetName(),
-                typeof(object).GetTypeInfo().Assembly.GetName()
+                typeof(object).GetTypeInfo().Assembly.GetName(),
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
                 typeof(ExportingWithTypeSingleMetadata).GetTypeInfo().Assembly.GetName(),
-                typeof(object).GetTypeInfo().Assembly.GetName()
+                typeof(object).GetTypeInfo().Assembly.GetName(),
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
                 typeof(ExportingWithTypeMetadata).GetTypeInfo().Assembly.GetName(),
-                typeof(object).GetTypeInfo().Assembly.GetName()
+                typeof(object).GetTypeInfo().Assembly.GetName(),
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 typeof(AllColorableItemInfo).GetTypeInfo().Assembly.GetName(),
                 typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
                 typeof(ExportingWithMultipleTypeMetadata).GetTypeInfo().Assembly.GetName(),
-                typeof(object).GetTypeInfo().Assembly.GetName()
+                typeof(object).GetTypeInfo().Assembly.GetName(),
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 typeof(AssemblyDiscoveryTests.SomeEnum).GetTypeInfo().Assembly.GetName(),
                 typeof(ExportingWithEnumMetadata).GetTypeInfo().Assembly.GetName(),
-                typeof(object).GetTypeInfo().Assembly.GetName()
+                typeof(object).GetTypeInfo().Assembly.GetName(),
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -218,7 +218,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 typeof(AssemblyDiscoveryTests.SomeEnum).GetTypeInfo().Assembly.GetName(),
                 typeof(AssemblyDiscoveryTests2.SomeOtherEnum).GetTypeInfo().Assembly.GetName(),
                 typeof(ExportingWithMultipleDifferentEnumMetadata).GetTypeInfo().Assembly.GetName(),
-                typeof(object).GetTypeInfo().Assembly.GetName()
+                typeof(object).GetTypeInfo().Assembly.GetName(),
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -238,7 +238,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 typeof(AssemblyDiscoveryTests2.SomeOtherEnum).GetTypeInfo().Assembly.GetName(),
                 typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
                 typeof(ExportingWithLotsOfMetadata).GetTypeInfo().Assembly.GetName(),
-                typeof(object).GetTypeInfo().Assembly.GetName()
+                typeof(object).GetTypeInfo().Assembly.GetName(),
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
                 typeof(ExportingWithExportingMembers).GetTypeInfo().Assembly.GetName(),
-                typeof(object).GetTypeInfo().Assembly.GetName()
+                typeof(object).GetTypeInfo().Assembly.GetName(),
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -274,7 +274,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
                 typeof(ExportingTypeWithNullExportMetadata).GetTypeInfo().Assembly.GetName(),
-                typeof(object).GetTypeInfo().Assembly.GetName()
+                typeof(object).GetTypeInfo().Assembly.GetName(),
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 typeof(AssemblyDiscoveryTests.ISomeInterface).GetTypeInfo().Assembly.GetName(),
                 typeof(System.Exception).GetTypeInfo().Assembly.GetName(),
                 typeof(ExportingTypeWithExportMetadataWithExternalDependencies).GetTypeInfo().Assembly.GetName(),
-                typeof(object).GetTypeInfo().Assembly.GetName()
+                typeof(object).GetTypeInfo().Assembly.GetName(),
             };
 
             var actual = catalog.GetInputAssemblies();
@@ -323,7 +323,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 typeof(AssemblyDiscoveryTests.ISomeInterfaceWithBaseInterface).GetTypeInfo().Assembly.GetName(),
                 typeof(AssemblyDiscoveryTests2.IBlankInterface).GetTypeInfo().Assembly.GetName(),
                 typeof(ExportingTypeWithExportMetadataWithExternalDependenciesAndInterfaceTree).GetTypeInfo().Assembly.GetName(),
-                typeof(object).GetTypeInfo().Assembly.GetName()
+                typeof(object).GetTypeInfo().Assembly.GetName(),
             };
 
             var actual = catalog.GetInputAssemblies();

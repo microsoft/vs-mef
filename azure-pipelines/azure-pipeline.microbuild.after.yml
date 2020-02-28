@@ -28,8 +28,9 @@ steps:
         ,"bin\Microsoft.VisualStudio.Composition.AppHost.dll"
         ,"bin\Microsoft.VisualStudio.Composition.Configuration.dll"
         ,"bin\Microsoft.VisualStudio.Composition.NetFxAttributes.dll"
+        ,"bin\Microsoft.VisualStudio.Composition.Analyzers.dll"
     )
-    Get-ChildItem $DllPaths -rec |% {
+    Get-ChildItem $DllPaths -rec |? { !$_.Directory.FullName.Contains('Tests') } |% {
         $OutputDir = "$($_.Directory.FullName)\symstore"
         if (!(Test-Path $OutputDir)) { mkdir $OutputDir | Out-Null }
         Write-Host "Converting PDB for $_"
@@ -47,6 +48,8 @@ steps:
       Microsoft.VisualStudio.Composition.Configuration/$(BuildConfiguration)/**/symstore/Microsoft.VisualStudio.Composition.Configuration.pdb
       Microsoft.VisualStudio.Composition.NetFxAttributes/$(BuildConfiguration)/**/*.dll
       Microsoft.VisualStudio.Composition.NetFxAttributes/$(BuildConfiguration)/**/symstore/*.pdb
+      Microsoft.VisualStudio.Composition.Analyzers/$(BuildConfiguration)/**/*.dll
+      Microsoft.VisualStudio.Composition.Analyzers/$(BuildConfiguration)/**/symstore/*.pdb
       !Tests/**
     TargetFolder: $(Build.ArtifactStagingDirectory)/symbols
   displayName: Collecting symbols artifacts
