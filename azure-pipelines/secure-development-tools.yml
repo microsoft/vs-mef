@@ -19,7 +19,7 @@ steps:
     InputType: Basic
     AnalyzeSymPath: '$(Build.ArtifactStagingDirectory)\symbols\*.pdb'
     AnalyzeTarget: '$(Build.ArtifactStagingDirectory)\symbols\*.dll'
-  condition: and(eq(variables['StaticAnalysis'], 'true'))
+  condition: eq(variables['StaticAnalysis'], 'true')
 
   ### Scan binaries for correct build configuration
   ### Note: Don't run for node build
@@ -29,7 +29,7 @@ steps:
     InputType: Basic
     AnalyzeSymPath: '$(Build.ArtifactStagingDirectory)\symbols\*.pdb'
     AnalyzeTarget: '$(Build.ArtifactStagingDirectory)\symbols\*.exe'
-  condition: and(eq(variables['StaticAnalysis'], 'true'))
+  condition: eq(variables['StaticAnalysis'], 'true')
 
  ### Check for checked in credentials.
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
