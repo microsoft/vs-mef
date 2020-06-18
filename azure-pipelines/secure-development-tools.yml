@@ -28,7 +28,7 @@ steps:
   inputs:
     InputType: Basic
     AnalyzeSymPath: '$(Build.ArtifactStagingDirectory)\symbols\*.pdb'
-    AnalyzeTarget: '$(Build.ArtifactStagingDirectory)\symbols\*.exe'
+    AnalyzeTarget: '$(Build.ArtifactStagingDirectory)\symbols\*.dll'
   condition: eq(variables['StaticAnalysis'], 'true')
 
  ### Check for checked in credentials.
