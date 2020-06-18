@@ -1,0 +1,63 @@
+steps:
+ ## Post-Build CI-only analysis steps. Violations are reported in the Code Analysis log.
+ ## To run, queue build with StaticAnalysis = true
+
+ ### Scan binaries with Windows Defender
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-antimalware.AntiMalware@3
+  displayName: 'Scan with Windows Defender'
+  inputs:
+    TreatSignatureUpdateFailureAs: Standard
+    SignatureFreshness: OneDay
+    FileDirPath: '$(System.DefaultWorkingDirectory)\bin\'
+  condition: eq(variables['StaticAnalysis'], 'true')
+
+### Scan binaries for correct build configuration
+### Note: Don't run for node build
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-binskim.BinSkim@3
+  displayName: 'Run BinSkim for Assemblies'
+  inputs:
+    InputType: Basic
+    AnalyzeSymPath: '$(Build.ArtifactStagingDirectory)\symbols\*.pdb'
+    AnalyzeTarget: '$(Build.ArtifactStagingDirectory)\symbols\*.dll'
+  condition: and(eq(variables['StaticAnalysis'], 'true'))
+
+  ### Scan binaries for correct build configuration
+  ### Note: Don't run for node build
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-binskim.BinSkim@3
+  displayName: 'Run BinSkim for Exes'
+  inputs:
+    InputType: Basic
+    AnalyzeSymPath: '$(Build.ArtifactStagingDirectory)\symbols\*.pdb'
+    AnalyzeTarget: '$(Build.ArtifactStagingDirectory)\symbols\*.exe'
+  condition: and(eq(variables['StaticAnalysis'], 'true'))
+
+ ### Check for checked in credentials.
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
+  displayName: 'Run CredScan'
+  inputs:
+    debugMode: false
+  condition: eq(variables['StaticAnalysis'], 'true')
+
+ ### Run PoliCheck to check for disallowed terms. targetType: F indicates we're searching files and folders.
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-policheck.PoliCheck@1
+  displayName: 'Run PoliCheck'
+  inputs:
+    targetType: F
+  condition: eq(variables['StaticAnalysis'], 'true')
+
+ ### Create formatted HTML code analysis log file.
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-report.SdtReport@1
+  displayName: 'Create Security Analysis Report'
+  inputs:
+    BinSkim: true
+    BinSkimBreakOn: WarningAbove
+    CredScan: true
+    PoliCheck: true
+    PoliCheckBreakOn: Severity4Above
+  continueOnError: true
+  condition: eq(variables['StaticAnalysis'], 'true')
+
+### Publish Code Analysis results to build Artifacts.
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-publishsecurityanalysislogs.PublishSecurityAnalysisLogs@2
+  displayName: 'Publish Code Analysis Logs'
+  condition: eq(variables['StaticAnalysis'], 'true')
