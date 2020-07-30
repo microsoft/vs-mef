@@ -39,4 +39,4 @@ Learn more about [the differences between .NET MEF, NuGet MEF, and this library]
 
 [MEFv2Pkg]: https://www.nuget.org/packages/system.composition
 [Differences]: mef_library_differences.md
-[Hosting]: https://github.com/microsoft/vs-mef/blob/master/doc/hosting.md#hosting-mef-in-an-extensible-application
+[Hosting]: https://github.com/microsoft/vs-mef/blob/main/doc/hosting.md#hosting-mef-in-an-extensible-application

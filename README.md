@@ -2,7 +2,7 @@
 
 [![NuGet package](https://img.shields.io/nuget/v/Microsoft.VisualStudio.Composition.svg)](https://nuget.org/packages/Microsoft.VisualStudio.Composition)
 [![Build Status](https://dev.azure.com/azure-public/vside/_apis/build/status/vs-mef)](https://dev.azure.com/azure-public/vside/_build/latest?definitionId=17)
-[![codecov](https://codecov.io/gh/Microsoft/vs-mef/branch/master/graph/badge.svg)](https://codecov.io/gh/Microsoft/vs-mef)
+[![codecov](https://codecov.io/gh/Microsoft/vs-mef/branch/main/graph/badge.svg)](https://codecov.io/gh/Microsoft/vs-mef)
 [![Join the chat at https://gitter.im/vs-mef/Lobby](https://badges.gitter.im/vs-mef/Lobby.svg)](https://gitter.im/vs-mef/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Features
