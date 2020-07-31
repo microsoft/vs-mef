@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.Composition
 
                     if (x.GetType() != y.GetType())
                     {
-                        // Whitelist Type[] and RuntimeType[] arrays as equivalent.
+                        // Consider Type[] and RuntimeType[] arrays as equivalent.
                         if (!(x.GetType().IsArray && y.GetType().IsArray &&
                             typeof(Type).GetTypeInfo().IsAssignableFrom(x.GetType().GetElementType()) &&
                             typeof(Type).GetTypeInfo().IsAssignableFrom(y.GetType().GetElementType())))
