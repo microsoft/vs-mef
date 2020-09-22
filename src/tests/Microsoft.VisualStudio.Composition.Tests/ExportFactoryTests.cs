@@ -4,11 +4,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
     using System.Composition;
     using System.Linq;
     using System.Runtime.CompilerServices;
-    using System.Text;
-    using System.Threading.Tasks;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
@@ -314,10 +313,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             // This should remove the exported part from the container.
             export.Dispose();
+            Assert.True(export.Value.Disposed);
             return exportedValue;
         }
 
-        [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryV2), typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(NonSharedPart), Skip = "Bug #135")]
+        [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryV2), typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(NonSharedPart))]
         [Trait("WeakReference", "true")]
         [Trait(Traits.SkipOnMono, "WeakReference")]
         public void ExportFactoryForNonSharedPartNoLeakAfterExportDisposal_TransitiveV2(IContainer container)
@@ -339,6 +339,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             // This should remove the exported part from the container.
             export.Dispose();
+            Assert.True(export.Value.Disposed);
+            Assert.True(export.Value.NonSharedPart.Disposed);
             return (exportedValue, transitiveExportedValue);
         }
 
@@ -361,10 +363,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             // This should remove the exported part from the container.
             export.Dispose();
+            Assert.True(export.Value.Disposed);
             return exportedValue;
         }
 
-        [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(NonSharedPart), Skip = "Bug #135")]
+        [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(NonSharedPart))]
         [Trait("WeakReference", "true")]
         [Trait(Traits.SkipOnMono, "WeakReference")]
         public void ExportFactoryForNonSharedPartNoLeakAfterExportDisposal_TransitiveV1(IContainer container)
@@ -386,6 +389,109 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             // This should remove the exported part from the container.
             export.Dispose();
+            Assert.True(export.Value.Disposed);
+            Assert.True(export.Value.NonSharedPart.Disposed);
+            return (exportedValue, transitiveExportedValue);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(NonSharedPart))]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
+        public void NonSharedPartExportNoLeakAfterReleaseLazy_TransitiveV1(IContainer container)
+        {
+            (WeakReference part1, WeakReference part2) = NonSharedPartExportNoLeakAfterReleaseLazy_TransitiveV1_Helper(container);
+            GC.Collect();
+            Assert.False(part1.IsAlive);
+            Assert.False(part2.IsAlive);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static (WeakReference, WeakReference) NonSharedPartExportNoLeakAfterReleaseLazy_TransitiveV1_Helper(IContainer container)
+        {
+            var export = container.GetExport<NonSharedPartThatImportsAnotherNonSharedPart>();
+            Assert.NotNull(export.Value.NonSharedPart);
+            WeakReference exportedValue = new WeakReference(export.Value);
+            WeakReference transitiveExportedValue = new WeakReference(export.Value.NonSharedPart);
+
+            // This should remove the exported part from the container.
+            container.ReleaseExport(export);
+            Assert.True(export.Value.Disposed);
+            Assert.True(export.Value.NonSharedPart.Disposed);
+            return (exportedValue, transitiveExportedValue);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(NonSharedPart))]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
+        public void NonSharedPartExportNoLeakAfterReleaseExport_TransitiveV1(IContainer container)
+        {
+            (WeakReference part1, WeakReference part2) = NonSharedPartExportNoLeakAfterReleaseExport_TransitiveV1_Helper(container);
+            GC.Collect();
+            Assert.False(part1.IsAlive);
+            Assert.False(part2.IsAlive);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static (WeakReference, WeakReference) NonSharedPartExportNoLeakAfterReleaseExport_TransitiveV1_Helper(IContainer container)
+        {
+            string contractName = typeof(NonSharedPartThatImportsAnotherNonSharedPart).FullName;
+            object export;
+            NonSharedPartThatImportsAnotherNonSharedPart value;
+            Action releaseExport;
+            if (container is TestUtilities.V1ContainerWrapper v1container)
+            {
+                var v1Export = v1container.Container.GetExports(new MefV1.Primitives.ImportDefinition(ed => ed.ContractName == contractName, contractName, MefV1.Primitives.ImportCardinality.ExactlyOne, false, false)).Single();
+                value = (NonSharedPartThatImportsAnotherNonSharedPart)v1Export.Value;
+                releaseExport = () => v1container.Container.ReleaseExport(v1Export);
+                export = v1Export;
+            }
+            else if (container is TestUtilities.V3ContainerWrapper v3container)
+            {
+                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
+                value = (NonSharedPartThatImportsAnotherNonSharedPart)v3Export.Value;
+                releaseExport = () => v3container.ExportProvider.ReleaseExport(v3Export);
+                export = v3Export;
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+
+            export = container.GetExport<NonSharedPartThatImportsAnotherNonSharedPart>();
+            Assert.NotNull(value.NonSharedPart);
+            WeakReference exportedValue = new WeakReference(value);
+            WeakReference transitiveExportedValue = new WeakReference(value.NonSharedPart);
+
+            // This should remove the exported part from the container.
+            releaseExport();
+            Assert.True(value.Disposed);
+            Assert.True(value.NonSharedPart.Disposed);
+            return (exportedValue, transitiveExportedValue);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(NonSharedPart))]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
+        public void NonSharedPartExportNoLeakAfterReleaseLazyEnumerable_TransitiveV1(IContainer container)
+        {
+            (WeakReference part1, WeakReference part2) = NonSharedPartExportNoLeakAfterReleaseLazyEnumerable_TransitiveV1_Helper(container);
+            GC.Collect();
+            Assert.False(part1.IsAlive);
+            Assert.False(part2.IsAlive);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static (WeakReference, WeakReference) NonSharedPartExportNoLeakAfterReleaseLazyEnumerable_TransitiveV1_Helper(IContainer container)
+        {
+            var export = container.GetExport<NonSharedPartThatImportsAnotherNonSharedPart>();
+            Assert.NotNull(export.Value.NonSharedPart);
+            WeakReference exportedValue = new WeakReference(export.Value);
+            WeakReference transitiveExportedValue = new WeakReference(export.Value.NonSharedPart);
+
+            // This should remove the exported part from the container.
+            container.ReleaseExports(new Lazy<NonSharedPartThatImportsAnotherNonSharedPart>[] { export });
+            Assert.True(export.Value.Disposed);
+            Assert.True(export.Value.NonSharedPart.Disposed);
             return (exportedValue, transitiveExportedValue);
         }
 
@@ -539,9 +645,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 InstantiationCounter++;
             }
 
+            internal bool Disposed { get; private set; }
+
             public void Dispose()
             {
                 DisposalCounter++;
+                this.Disposed = true;
             }
         }
 
@@ -560,9 +669,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
             [Import, MefV1.Import]
             public NonSharedPart NonSharedPart { get; set; }
 
+            internal bool Disposed { get; private set; }
+
             public void Dispose()
             {
                 DisposalCounter++;
+                this.Disposed = true;
             }
         }
 

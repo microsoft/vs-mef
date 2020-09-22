@@ -374,6 +374,58 @@ namespace Microsoft.VisualStudio.Composition
             return exportsSnapshot;
         }
 
+        /// <summary>
+        /// Releases the specified <see cref="Export"/> from the <see cref="ExportProvider"/>.
+        /// </summary>
+        /// <param name="export">The export to release.</param>
+        /// <remarks>
+        /// <para>When non-shared parts implement <see cref="IDisposable"/> they are referenced by this <see cref="ExportProvider"/>
+        /// until either the <see cref="ExportProvider"/> is disposed or the export is released by calling this method.</para>
+        /// <para>When provided an <see cref="Export"/> for a shared part, this method does nothing.</para>
+        /// </remarks>
+        public void ReleaseExport(Export export)
+        {
+            Requires.NotNull(export, nameof(export));
+
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc cref="ReleaseExport(Export)"/>
+        public void ReleaseExport<T>(Lazy<T> export)
+        {
+            Requires.NotNull(export, nameof(export));
+
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Releases the specified <see cref="Export"/> instances from the <see cref="ExportProvider"/>.
+        /// </summary>
+        /// <param name="exports">The exports to release.</param>
+        /// <inheritdoc cref="ReleaseExport(Export)"/>
+        public void ReleaseExports(IEnumerable<Export> exports)
+        {
+            Requires.NotNull(exports, nameof(exports));
+
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc cref="ReleaseExports(IEnumerable{Export})"/>
+        public void ReleaseExports<T>(IEnumerable<Lazy<T>> exports)
+        {
+            Requires.NotNull(exports, nameof(exports));
+
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc cref="ReleaseExports{T}(IEnumerable{Lazy{T}})"/>
+        public void ReleaseExports<T, TMetadataView>(IEnumerable<Lazy<T, TMetadataView>> exports)
+        {
+            Requires.NotNull(exports, nameof(exports));
+
+            throw new NotImplementedException();
+        }
+
         public void Dispose()
         {
             this.Dispose(true);
