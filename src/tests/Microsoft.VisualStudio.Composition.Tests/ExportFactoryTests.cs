@@ -329,7 +329,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static ValueTuple<WeakReference, WeakReference> ExportFactoryForNonSharedPartNoLeakAfterExportDisposal_TransitiveV2_Helper(IContainer container)
+        private static (WeakReference, WeakReference) ExportFactoryForNonSharedPartNoLeakAfterExportDisposal_TransitiveV2_Helper(IContainer container)
         {
             var partFactory = container.GetExportedValue<PartFactoryV2>();
             var export = partFactory.TransitiveNonSharedFactory.CreateExport();
@@ -376,7 +376,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static ValueTuple<WeakReference, WeakReference> ExportFactoryForNonSharedPartNoLeakAfterExportDisposal_TransitiveV1_Helper(IContainer container)
+        private static (WeakReference, WeakReference) ExportFactoryForNonSharedPartNoLeakAfterExportDisposal_TransitiveV1_Helper(IContainer container)
         {
             var partFactory = container.GetExportedValue<PartFactoryV1>();
             var export = partFactory.TransitiveNonSharedFactory.CreateExport();
