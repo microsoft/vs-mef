@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.Composition
         private readonly ImmutableDictionary<string, HashSet<IDisposable>> disposableInstantiatedSharedParts;
 
         /// <summary>
-        /// The dispoable objects whose lifetimes are controlled by this instance.
+        /// The disposable objects whose lifetimes are controlled by this instance.
         /// </summary>
         /// <remarks>
         /// Access to this collection is guarded by locking the collection instance itself.
