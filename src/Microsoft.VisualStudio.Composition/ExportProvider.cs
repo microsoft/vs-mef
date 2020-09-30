@@ -407,7 +407,10 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(exports, nameof(exports));
 
-            throw new NotImplementedException();
+            foreach (Export export in exports)
+            {
+                this.ReleaseExport(export);
+            }
         }
 
         /// <inheritdoc cref="ReleaseExports(IEnumerable{Export})"/>
@@ -415,7 +418,10 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(exports, nameof(exports));
 
-            throw new NotImplementedException();
+            foreach (Lazy<T> export in exports)
+            {
+                this.ReleaseExport(export);
+            }
         }
 
         /// <inheritdoc cref="ReleaseExports{T}(IEnumerable{Lazy{T}})"/>
@@ -423,7 +429,10 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(exports, nameof(exports));
 
-            throw new NotImplementedException();
+            foreach (Lazy<T> export in exports)
+            {
+                this.ReleaseExport(export);
+            }
         }
 
         public void Dispose()
