@@ -227,6 +227,52 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return (exportedValue, transitiveExportedValue);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(DisposableNonSharedPart))]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
+        public void GetExports_UnactivatedExportCanBeCollected(IContainer container)
+        {
+            WeakReference part1 = GetExports_UnactivatedExportCanBeCollectedHelper(container);
+            GC.Collect();
+            Assert.False(part1.IsAlive);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static WeakReference GetExports_UnactivatedExportCanBeCollectedHelper(IContainer container)
+        {
+            string contractName = typeof(DisposableNonSharedPart).FullName;
+            if (container is TestUtilities.V1ContainerWrapper v1container)
+            {
+                var v1Export = v1container.Container.GetExports(new MefV1.Primitives.ImportDefinition(ed => ed.ContractName == contractName, contractName, MefV1.Primitives.ImportCardinality.ExactlyOne, false, false)).Single();
+                return new WeakReference(v1Export);
+            }
+            else if (container is TestUtilities.V3ContainerWrapper v3container)
+            {
+                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
+                return new WeakReference(v3Export);
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        [MefFact(CompositionEngines.V2Compat, typeof(DisposableNonSharedPart))]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
+        public void GetExports_UnactivatedLazyCanBeCollected(IContainer container)
+        {
+            WeakReference part1 = GetExports_UnactivatedLazyCanBeCollectedHelper(container);
+            GC.Collect();
+            Assert.False(part1.IsAlive);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static WeakReference GetExports_UnactivatedLazyCanBeCollectedHelper(IContainer container)
+        {
+            return new WeakReference(container.GetExport<DisposableNonSharedPart>());
+        }
+
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(DisposableNonSharedPart))]
         [Trait("Disposal", "")]
         [Trait("WeakReference", "true")]
