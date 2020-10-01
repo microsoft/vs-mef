@@ -387,7 +387,19 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(export, nameof(export));
 
-            throw new NotImplementedException();
+            if (export is IDisposable disposable)
+            {
+                bool removed;
+                lock (this.disposableNonSharedParts)
+                {
+                    removed = this.disposableNonSharedParts.Remove(disposable);
+                }
+
+                if (removed)
+                {
+                    disposable.Dispose();
+                }
+            }
         }
 
         /// <inheritdoc cref="ReleaseExport(Export)"/>
@@ -395,7 +407,19 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(export, nameof(export));
 
-            throw new NotImplementedException();
+            if (export is IDisposable disposable)
+            {
+                bool removed;
+                lock (this.disposableNonSharedParts)
+                {
+                    removed = this.disposableNonSharedParts.Remove(disposable);
+                }
+
+                if (removed)
+                {
+                    disposable.Dispose();
+                }
+            }
         }
 
         /// <summary>
