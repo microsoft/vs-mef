@@ -519,11 +519,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             public IEnumerable<object> GetExportedValues(Type type, string contractName) => throw new NotSupportedException();
 
-            public void ReleaseExport(MefV1.Primitives.Export export) => this.container.ReleaseExport(export);
-
             public void ReleaseExport<T>(Lazy<T> export) => this.container.ReleaseExport(export);
-
-            public void ReleaseExports(IEnumerable<MefV1.Primitives.Export> exports) => this.container.ReleaseExports(exports);
 
             public void ReleaseExports<T>(IEnumerable<Lazy<T>> export) => this.container.ReleaseExports(export);
 
@@ -769,11 +765,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             public IEnumerable<object> GetExportedValues(Type type, string contractName) => this.container.GetExportedValues(type, contractName);
 
-            public void ReleaseExport(Export export) => this.container.ReleaseExport(export);
-
             public void ReleaseExport<T>(Lazy<T> export) => this.container.ReleaseExport(export);
-
-            public void ReleaseExports(IEnumerable<Export> exports) => this.container.ReleaseExports(exports);
 
             public void ReleaseExports<T>(IEnumerable<Lazy<T>> export) => this.container.ReleaseExports(export);
 
