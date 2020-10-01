@@ -336,11 +336,20 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var export = container.GetExport<NonSharedPartThatImportsAnotherNonSharedPart>();
             Assert.NotNull(export.Value.NonSharedPart);
-            WeakReference exportedValue = new WeakReference(export.Value);
-            WeakReference transitiveExportedValue = new WeakReference(export.Value.NonSharedPart);
 
             container.ReleaseExports(new Lazy<NonSharedPartThatImportsAnotherNonSharedPart>[] { export });
             Assert.Equal(1, export.Value.DisposalCount);
+            Assert.Equal(1, export.Value.NonSharedPart.DisposalCount);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(NonSharedPartThatImportsNonSharedDisposableViaImportConstraint), typeof(DisposableMaybeSharedPartV1))]
+        [Trait("Disposal", "")]
+        public void GetExport_ConditionallyNonSharedPartExportDisposedAfterReleaseExport_Transitive(IContainer container)
+        {
+            var export = container.GetExport<NonSharedPartThatImportsNonSharedDisposableViaImportConstraint>();
+            Assert.NotNull(export.Value.NonSharedPart);
+
+            container.ReleaseExport(export);
             Assert.Equal(1, export.Value.NonSharedPart.DisposalCount);
         }
 
@@ -428,6 +437,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Export]
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class DisposableNonSharedPart : IDisposable
+        {
+            public int DisposalCount { get; private set; }
+
+            public void Dispose() => this.DisposalCount++;
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class NonSharedPartThatImportsNonSharedDisposableViaImportConstraint
+        {
+            [MefV1.Import(RequiredCreationPolicy = MefV1.CreationPolicy.NonShared)]
+            public DisposableMaybeSharedPartV1 NonSharedPart { get; private set; }
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.Any)]
+        public class DisposableMaybeSharedPartV1 : IDisposable
         {
             public int DisposalCount { get; private set; }
 
