@@ -495,6 +495,44 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return (exportedValue, transitiveExportedValue);
         }
 
+        [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(NonSharedPart))]
+        public void ExportFactory_LazyActivatedAfterContainerDisposalV1(IContainer container)
+        {
+            Lazy<NonSharedPart> export = container.GetExport<NonSharedPart>();
+            container.Dispose();
+            Assert.Throws<ObjectDisposedException>(() => export.Value);
+        }
+
+        [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryV2), typeof(NonSharedPart))]
+        public void ExportFactory_LazyActivatedAfterContainerDisposalV2(IContainer container)
+        {
+            Lazy<NonSharedPart> export = container.GetExport<NonSharedPart>();
+            container.Dispose();
+            Assert.Throws<ObjectDisposedException>(() => export.Value);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(PartFactoryV1), typeof(NonSharedPart))]
+        public void ExportFactory_ExportActivatedAfterContainerDisposalV1(IContainer container)
+        {
+            string contractName = typeof(NonSharedPart).FullName;
+            if (container is TestUtilities.V1ContainerWrapper v1container)
+            {
+                var v1Export = v1container.Container.GetExports(new MefV1.Primitives.ImportDefinition(ed => ed.ContractName == contractName, contractName, MefV1.Primitives.ImportCardinality.ExactlyOne, false, false)).Single();
+                container.Dispose();
+                Assert.Throws<ObjectDisposedException>(() => v1Export.Value);
+            }
+            else if (container is TestUtilities.V3ContainerWrapper v3container)
+            {
+                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
+                container.Dispose();
+                Assert.Throws<ObjectDisposedException>(() => v3Export.Value);
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         [MefFact(CompositionEngines.V2Compat, typeof(PartFactoryManyV2), typeof(NonSharedPart), typeof(NonSharedPart2))]
         public void ExportFactoryForNonSharedPartManyV2(IContainer container)
         {
