@@ -389,7 +389,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Trait("Disposal", "")]
         public void GetExport_LazyActivatedAfterContainerDisposal_MemberExport(IContainer container)
         {
-            Lazy<NonSharedPart> export = container.GetExport<NonSharedPart>();
+            Lazy<ConstructedValue> export = container.GetExport<ConstructedValue>();
             container.Dispose();
             Assert.Throws<ObjectDisposedException>(() => export.Value);
         }
@@ -401,6 +401,16 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Lazy<DisposableNonSharedPart> export = container.GetExport<DisposableNonSharedPart>();
             container.Dispose();
             Assert.Throws<ObjectDisposedException>(() => export.Value);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(DisposablePartWithPropertyExportingNonSharedPart))]
+        [Trait("Disposal", "")]
+        public void GetExport_NonSharedDisposablePartWithExportingMember_DisposedWhenExportReleased(IContainer container)
+        {
+            Lazy<ConstructedValue> export = container.GetExport<ConstructedValue>();
+            Assert.NotNull(export.Value);
+            container.ReleaseExport(export);
+            Assert.Equal(1, ((DisposablePartWithPropertyExportingNonSharedPart)export.Value.Owner).DisposalCount);
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -430,11 +440,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
             [MefV1.Export, Export]
             [MefV1.ExportMetadata("N", "V")]
             [ExportMetadata("N", "V")]
-            public NonSharedPart ExportingProperty => new NonSharedPart();
+            public ConstructedValue ExportingProperty => new ConstructedValue(this);
 
             internal int DisposalCount { get; private set; }
 
             public void Dispose() => this.DisposalCount++;
+        }
+
+        public class ConstructedValue
+        {
+            internal ConstructedValue(object owner)
+            {
+                this.Owner = owner;
+            }
+
+            public object Owner { get; }
         }
 
         #endregion
