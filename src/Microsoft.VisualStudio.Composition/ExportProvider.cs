@@ -562,6 +562,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 memberValueFactory = () =>
                 {
+                    Verify.NotDisposed(this);
                     PartLifecycleTracker maybeSharedValueFactory = this.GetOrCreateValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importDefinition.Metadata, nonSharedInstanceRequired);
                     return maybeSharedValueFactory.GetValueReadyToExpose();
                 };
@@ -570,6 +571,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 memberValueFactory = () =>
                 {
+                    Verify.NotDisposed(this);
                     PartLifecycleTracker maybeSharedValueFactory = this.GetOrCreateValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importDefinition.Metadata, nonSharedInstanceRequired);
                     return GetValueFromMember(maybeSharedValueFactory.GetValueReadyToRetrieveExportingMembers(), exportingMemberRef.MemberInfo);
                 };

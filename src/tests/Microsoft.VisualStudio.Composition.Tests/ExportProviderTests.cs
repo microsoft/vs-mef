@@ -323,7 +323,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
-        [MefFact(CompositionEngines.V2Compat /* We'll probably remove our Compat goal from this. */, typeof(NonSharedPart))]
+        [MefFact(CompositionEngines.V2, typeof(NonSharedPart), NoCompatGoal = true)]
         [Trait("Disposal", "")]
         public void GetExport_LazyActivatedAfterContainerDisposalV2(IContainer container)
         {
@@ -335,6 +335,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefFact(CompositionEngines.V1Compat, typeof(NonSharedPart))]
         [Trait("Disposal", "")]
         public void GetExport_LazyActivatedAfterContainerDisposal(IContainer container)
+        {
+            Lazy<NonSharedPart> export = container.GetExport<NonSharedPart>();
+            container.Dispose();
+            Assert.Throws<ObjectDisposedException>(() => export.Value);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(DisposablePartWithPropertyExportingNonSharedPart))]
+        [Trait("Disposal", "")]
+        public void GetExport_LazyActivatedAfterContainerDisposal_MemberExport(IContainer container)
         {
             Lazy<NonSharedPart> export = container.GetExport<NonSharedPart>();
             container.Dispose();
