@@ -174,6 +174,24 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return (exportedValue, transitiveExportedValue);
         }
 
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(NonSharedPart))]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
+        public void GetExport_NonDisposableNonSharedPartDoesNotLeakEvenWithoutReleaseLazy_Transitive(IContainer container)
+        {
+            WeakReference part1 = GetExport_NonDisposableNonSharedPartDoesNotLeakEvenWithoutReleaseLazy_Transitive_Helper(container);
+            GC.Collect();
+            Assert.False(part1.IsAlive);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static WeakReference GetExport_NonDisposableNonSharedPartDoesNotLeakEvenWithoutReleaseLazy_Transitive_Helper(IContainer container)
+        {
+            Lazy<NonSharedPart> export = container.GetExport<NonSharedPart>();
+            Assert.NotNull(export.Value);
+            return new WeakReference(export.Value);
+        }
+
         [MefFact(CompositionEngines.V1Compat, typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(DisposableNonSharedPart))]
         [Trait("Disposal", "")]
         public void GetExport_NonSharedPartExportDisposedAfterReleaseLazy_Transitive(IContainer container)

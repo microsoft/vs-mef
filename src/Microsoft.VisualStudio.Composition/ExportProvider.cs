@@ -1313,6 +1313,8 @@ namespace Microsoft.VisualStudio.Composition
                 }
                 else
                 {
+                    this.OwningExportProvider.TrackDisposableValue(this, this.sharingBoundary);
+
                     lock (this.syncObject)
                     {
                         if (this.nonSharedChildParts is null)
@@ -1354,9 +1356,7 @@ namespace Microsoft.VisualStudio.Composition
                             Assumes.True(this.State == PartLifecycleState.Creating);
                             this.Value = value;
 
-                            // Ask the container to track our lifetime if we're disposable,
-                            // or if we're non-shared since we might have non-shared 'children' that *are* disposable.
-                            if (value is IDisposable || this.sharingBoundary is null)
+                            if (value is IDisposable)
                             {
                                 if (this.sharingBoundary is object || this.nonSharedPartOwner is null)
                                 {
