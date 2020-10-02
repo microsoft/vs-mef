@@ -3,4 +3,3 @@ Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExport<T>(System.Lazy<T
 Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExports(System.Collections.Generic.IEnumerable<Microsoft.VisualStudio.Composition.Export> exports) -> void
 Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExports<T, TMetadataView>(System.Collections.Generic.IEnumerable<System.Lazy<T, TMetadataView>> exports) -> void
 Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExports<T>(System.Collections.Generic.IEnumerable<System.Lazy<T>> exports) -> void
-virtual Microsoft.VisualStudio.Composition.Export.Value.get -> object

@@ -104,6 +104,7 @@ Microsoft.VisualStudio.Composition.Export.Export(Microsoft.VisualStudio.Composit
 Microsoft.VisualStudio.Composition.Export.Export(Microsoft.VisualStudio.Composition.ExportDefinition definition, System.Lazy<object> exportedValueGetter) -> void
 Microsoft.VisualStudio.Composition.Export.Export(string contractName, System.Collections.Generic.IReadOnlyDictionary<string, object> metadata, System.Func<object> exportedValueGetter) -> void
 Microsoft.VisualStudio.Composition.Export.Metadata.get -> System.Collections.Generic.IReadOnlyDictionary<string, object>
+Microsoft.VisualStudio.Composition.Export.Value.get -> object
 Microsoft.VisualStudio.Composition.ExportDefinition
 Microsoft.VisualStudio.Composition.ExportDefinition.ContractName.get -> string
 Microsoft.VisualStudio.Composition.ExportDefinition.Equals(Microsoft.VisualStudio.Composition.ExportDefinition other) -> bool

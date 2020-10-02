@@ -46,7 +46,9 @@ namespace Microsoft.VisualStudio.Composition
         /// <remarks>
         /// This may incur a value construction cost upon first retrieval.
         /// </remarks>
-        public virtual object Value => this.exportedValueGetter.Value;
+        public object Value => this.ValueFilter(this.exportedValueGetter.Value);
+
+        internal virtual object ValueFilter(object lazyValue) => lazyValue;
 
         private string DebuggerDisplay => this.Definition.ContractName;
     }

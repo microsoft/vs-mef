@@ -355,7 +355,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 exports = filteredExportInfos.Select(
                     fe => fe.HasNonSharedLifetime
-                        ? new NonSharedExport(fe.Definition, fe.ExportedValueGetter, this)
+                        ? new NonSharedExport(fe.Definition, fe.ExportedValueGetter)
                         : new Export(fe.Definition, () => fe.ExportedValueGetter().Value));
             }
 
