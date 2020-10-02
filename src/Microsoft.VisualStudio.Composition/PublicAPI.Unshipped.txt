@@ -1,2 +1,0 @@
-Microsoft.VisualStudio.Composition.ExportProvider.GetExportedValues(System.Type type, string contractName) -> System.Collections.Generic.IEnumerable<object>
-Microsoft.VisualStudio.Composition.ExportProvider.GetExports(System.Type type, System.Type metadataViewType, string contractName) -> System.Collections.Generic.IEnumerable<System.Lazy<object, object>>
