@@ -4,9 +4,6 @@ namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     /// <summary>
@@ -57,9 +54,9 @@ namespace Microsoft.VisualStudio.Composition
             throw new NotImplementedException();
         }
 
-        protected internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata)
+        protected internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner)
         {
-            return this.inner.CreatePartLifecycleTracker(partType, importMetadata);
+            return this.inner.CreatePartLifecycleTracker(partType, importMetadata, nonSharedPartOwner);
         }
     }
 }

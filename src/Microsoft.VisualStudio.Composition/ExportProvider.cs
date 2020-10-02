@@ -10,15 +10,12 @@ namespace Microsoft.VisualStudio.Composition
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
-    using System.Runtime.CompilerServices;
     using System.Runtime.ExceptionServices;
-    using System.Text;
     using System.Threading;
-    using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
     using DefaultMetadataType = System.Collections.Generic.IDictionary<string, object>;
 
-    public abstract class ExportProvider : IDisposableObservable
+    public abstract partial class ExportProvider : IDisposableObservable
     {
         internal static readonly ExportDefinition ExportProviderExportDefinition = new ExportDefinition(
             ContractNameServices.GetTypeIdentity(typeof(ExportProvider)),
@@ -356,7 +353,10 @@ namespace Microsoft.VisualStudio.Composition
             }
             else
             {
-                exports = filteredExportInfos.Select(fe => new Export(fe.Definition, fe.ExportedValueGetter));
+                exports = filteredExportInfos.Select(
+                    fe => fe.HasNonSharedLifetime
+                        ? new NonSharedExport(fe.Definition, fe.ExportedValueGetter, this)
+                        : new Export(fe.Definition, () => fe.ExportedValueGetter().Value));
             }
 
             var exportsSnapshot = exports.ToArray(); // avoid repeating all the foregoing work each time this sequence is enumerated.
@@ -387,18 +387,9 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(export, nameof(export));
 
-            if (export is IDisposable disposable)
+            if (export is NonSharedExport disposable)
             {
-                bool removed;
-                lock (this.disposableNonSharedParts)
-                {
-                    removed = this.disposableNonSharedParts.Remove(disposable);
-                }
-
-                if (removed)
-                {
-                    disposable.Dispose();
-                }
+                disposable.Dispose();
             }
         }
 
@@ -407,18 +398,9 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(export, nameof(export));
 
-            if (export is IDisposable disposable)
+            if (export is INonSharedLazy nonSharedExport)
             {
-                bool removed;
-                lock (this.disposableNonSharedParts)
-                {
-                    removed = this.disposableNonSharedParts.Remove(disposable);
-                }
-
-                if (removed)
-                {
-                    disposable.Dispose();
-                }
+                this.ReleaseExport(nonSharedExport.NonSharedExport);
             }
         }
 
@@ -557,14 +539,14 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
             Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
 
-            Func<object> memberValueFactory;
+            Func<(object Value, IDisposable NonSharedDisposalTracker)> memberValueFactory;
             if (exportingMemberRef == null)
             {
                 memberValueFactory = () =>
                 {
                     Verify.NotDisposed(this);
-                    PartLifecycleTracker maybeSharedValueFactory = this.GetOrCreateValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importDefinition.Metadata, nonSharedInstanceRequired);
-                    return maybeSharedValueFactory.GetValueReadyToExpose();
+                    PartLifecycleTracker maybeSharedValueFactory = this.GetOrCreateValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importDefinition.Metadata, nonSharedInstanceRequired, nonSharedPartOwner: null);
+                    return (maybeSharedValueFactory.GetValueReadyToExpose(), nonSharedInstanceRequired ? maybeSharedValueFactory : null);
                 };
             }
             else
@@ -572,12 +554,12 @@ namespace Microsoft.VisualStudio.Composition
                 memberValueFactory = () =>
                 {
                     Verify.NotDisposed(this);
-                    PartLifecycleTracker maybeSharedValueFactory = this.GetOrCreateValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importDefinition.Metadata, nonSharedInstanceRequired);
-                    return GetValueFromMember(maybeSharedValueFactory.GetValueReadyToRetrieveExportingMembers(), exportingMemberRef.MemberInfo);
+                    PartLifecycleTracker maybeSharedValueFactory = this.GetOrCreateValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importDefinition.Metadata, nonSharedInstanceRequired, nonSharedPartOwner: null);
+                    return (GetValueFromMember(maybeSharedValueFactory.GetValueReadyToRetrieveExportingMembers(), exportingMemberRef.MemberInfo), nonSharedInstanceRequired ? maybeSharedValueFactory : null);
                 };
             }
 
-            return new ExportInfo(importDefinition.ContractName, exportMetadata, memberValueFactory);
+            return new ExportInfo(importDefinition.ContractName, exportMetadata, memberValueFactory, nonSharedInstanceRequired);
         }
 
         protected object CreateExportFactory(Type importingSiteElementType, IReadOnlyCollection<string> sharingBoundaries, Func<KeyValuePair<object, IDisposable>> valueFactory, Type exportFactoryType, IReadOnlyDictionary<string, object> exportMetadata)
@@ -631,8 +613,8 @@ namespace Microsoft.VisualStudio.Composition
                 ImmutableHashSet<string>.Empty, // no support for sub-scopes queried for imperatively.
                 () =>
                 {
-                    object value = exportInfo.ExportedValueGetter();
-                    return new KeyValuePair<object, IDisposable>(value, value as IDisposable);
+                    var result = exportInfo.ExportedValueGetter();
+                    return new KeyValuePair<object, IDisposable>(result.Value, result.NonSharedDisposalTracker ?? result.Value as IDisposable);
                 },
                 exportFactoryType,
                 exportInfo.Definition.Metadata));
@@ -714,10 +696,10 @@ namespace Microsoft.VisualStudio.Composition
             throw new NotSupportedException();
         }
 
-        protected PartLifecycleTracker GetOrCreateValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata, bool nonSharedInstanceRequired)
+        protected PartLifecycleTracker GetOrCreateValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata, bool nonSharedInstanceRequired, PartLifecycleTracker nonSharedPartOwner)
         {
             return nonSharedInstanceRequired
-                ? this.CreateNewValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importMetadata)
+                ? this.CreateNewValue(originalPartTypeRef, constructedPartTypeRef, nonSharedInstanceRequired ? null : partSharingBoundary, importMetadata, nonSharedPartOwner)
                 : this.GetOrCreateShareableValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importMetadata);
         }
 
@@ -732,7 +714,7 @@ namespace Microsoft.VisualStudio.Composition
                 return existingLifecycle;
             }
 
-            var partLifecycle = this.CreateNewValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importMetadata);
+            var partLifecycle = this.CreateNewValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importMetadata, null);
 
             // Since we have not been holding a lock, we must now reconcile the creation of this
             // shared instance with a dictionary of shared instances to make sure there is only one that survives.
@@ -741,18 +723,18 @@ namespace Microsoft.VisualStudio.Composition
             return partLifecycle;
         }
 
-        protected PartLifecycleTracker CreateNewValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata)
+        protected PartLifecycleTracker CreateNewValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner)
         {
             // Be careful to pass the export provider that owns the sharing boundary for this part into the value factory.
             // If we accidentally capture "this", then if this is a sub-scope ExportProvider and we're constructing
             // a parent scope shared part, then we tie the lifetime of this child scope to the lifetime of the
             // parent scoped part's value factory. If it never evaluates, we never get released even after our own disposal.
             ExportProvider owningExportProvider = partSharingBoundary != null ? this.sharingBoundaryExportProviderOwners[partSharingBoundary] : this;
-            var partLifecycle = owningExportProvider.CreatePartLifecycleTracker(originalPartTypeRef, importMetadata);
+            var partLifecycle = owningExportProvider.CreatePartLifecycleTracker(originalPartTypeRef, importMetadata, nonSharedPartOwner);
             return partLifecycle;
         }
 
-        protected internal abstract PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata);
+        protected internal abstract PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner);
 
         private bool TryGetSharedInstanceFactory(string partSharingBoundary, TypeRef partTypeRef, out PartLifecycleTracker value)
         {
@@ -791,11 +773,14 @@ namespace Microsoft.VisualStudio.Composition
         /// The sharing boundary associated with the part.
         /// May be null for non-shared parts, or the empty string for the default sharing scope.
         /// </param>
+        /// <remarks>
+        /// The values are tracked in a set, so calling this repeatedly with the same value is harmless.
+        /// </remarks>
         protected void TrackDisposableValue(IDisposable instantiatedPart, string sharingBoundary)
         {
             Requires.NotNull(instantiatedPart, nameof(instantiatedPart));
 
-            if (sharingBoundary == null)
+            if (sharingBoundary is null)
             {
                 lock (this.disposableNonSharedParts)
                 {
@@ -809,6 +794,14 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     disposablePartsHashSet.Add(instantiatedPart);
                 }
+            }
+        }
+
+        protected bool ReleaseNonSharedPart(IDisposable nonSharedPart)
+        {
+            lock (this.disposableNonSharedParts)
+            {
+                return this.disposableNonSharedParts.Remove(nonSharedPart);
             }
         }
 
@@ -891,13 +884,24 @@ namespace Microsoft.VisualStudio.Composition
         {
             var results = this.GetExports(contractName, cardinality, typeof(T), typeof(TMetadataView), out var metadataViewProvider);
 
-            return results.Select(result => new Lazy<T, TMetadataView>(
-                () => CastValueTo<T>(result.Value),
-                (TMetadataView)metadataViewProvider.CreateProxy(
-                    result.Metadata,
+            static Lazy<T, TMetadataView> CreateLazy(Export export, IMetadataViewProvider metadataViewProvider)
+            {
+                var metadata = (TMetadataView)metadataViewProvider.CreateProxy(
+                    export.Metadata,
                     GetMetadataViewDefaults(typeof(TMetadataView)),
-                    typeof(TMetadataView))))
-                .ToArray();
+                    typeof(TMetadataView));
+                Func<T> factory = () => CastValueTo<T>(export.Value);
+                if (export is NonSharedExport disposableExport)
+                {
+                    return new NonSharedLazy<T, TMetadataView>(factory, metadata, disposableExport);
+                }
+                else
+                {
+                    return new Lazy<T, TMetadataView>(factory, metadata);
+                }
+            }
+
+            return results.Select(export => CreateLazy(export, metadataViewProvider)).ToArray();
         }
 
         private IEnumerable<Export> GetExports(string contractName, ImportCardinality cardinality, Type type, Type metadataViewType, out IMetadataViewProvider metadataViewProvider)
@@ -997,14 +1001,21 @@ namespace Microsoft.VisualStudio.Composition
             return sharingBoundary;
         }
 
+        [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
         protected struct ExportInfo
         {
-            public ExportInfo(string contractName, IReadOnlyDictionary<string, object> metadata, Func<object> exportedValueGetter)
+            public ExportInfo(string contractName, IReadOnlyDictionary<string, object> metadata, Func<(object Value, IDisposable NonSharedDisposalTracker)> exportedValueGetter)
                 : this(new ExportDefinition(contractName, metadata), exportedValueGetter)
             {
             }
 
-            public ExportInfo(ExportDefinition exportDefinition, Func<object> exportedValueGetter)
+            public ExportInfo(string contractName, IReadOnlyDictionary<string, object> metadata, Func<(object Value, IDisposable NonSharedDisposalTracker)> exportedValueGetter, bool hasNonSharedLifetime)
+                : this(new ExportDefinition(contractName, metadata), exportedValueGetter)
+            {
+                this.HasNonSharedLifetime = hasNonSharedLifetime;
+            }
+
+            public ExportInfo(ExportDefinition exportDefinition, Func<(object Value, IDisposable NonSharedDisposalTracker)> exportedValueGetter)
                 : this()
             {
                 Requires.NotNull(exportDefinition, nameof(exportDefinition));
@@ -1014,9 +1025,19 @@ namespace Microsoft.VisualStudio.Composition
                 this.ExportedValueGetter = exportedValueGetter;
             }
 
-            public ExportDefinition Definition { get; private set; }
+            public ExportDefinition Definition { get; }
 
-            public Func<object> ExportedValueGetter { get; private set; }
+            /// <summary>
+            /// Gets a function that returns the exported value.
+            /// </summary>
+            public Func<(object Value, IDisposable NonSharedDisposalTracker)> ExportedValueGetter { get; }
+
+            /// <summary>
+            /// Gets a value indicating whether <see cref="ExportedValueGetter"/> will produce a value that must be disposed of if <see cref="ReleaseExport(Export)"/> is invoked.
+            /// </summary>
+            public bool HasNonSharedLifetime { get; }
+
+            private string DebuggerDisplay => this.Definition.ContractName;
 
             internal ExportInfo CloseGenericExport(Type[] genericTypeArguments)
             {
@@ -1031,7 +1052,7 @@ namespace Microsoft.VisualStudio.Composition
                 string contractName = this.Definition.ContractName == openGenericExportTypeIdentity
                     ? closedTypeIdentity : this.Definition.ContractName;
 
-                return new ExportInfo(contractName, metadata, this.ExportedValueGetter);
+                return new ExportInfo(contractName, metadata, this.ExportedValueGetter, this.HasNonSharedLifetime);
             }
         }
 
@@ -1077,6 +1098,16 @@ namespace Microsoft.VisualStudio.Composition
             private HashSet<PartLifecycleTracker> deferredInitializationParts;
 
             /// <summary>
+            /// A lazily-initialized collection of all transitive non-shared parts that should be disposed with this non-shared part.
+            /// </summary>
+            private HashSet<PartLifecycleTracker> nonSharedChildParts;
+
+            /// <summary>
+            /// The non-shared part that imported this non-shared part.
+            /// </summary>
+            private PartLifecycleTracker nonSharedPartOwner;
+
+            /// <summary>
             /// The managed thread ID of the thread that is currently executing a particular step.
             /// </summary>
             /// <remarks>
@@ -1110,6 +1141,20 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             /// <summary>
+            /// Initializes a new instance of the <see cref="PartLifecycleTracker"/> class
+            /// that is non-shared and whose lifetime is tied to another non-shared part.
+            /// </summary>
+            /// <param name="owningExportProvider">The ExportProvider that owns the lifetime and sharing boundaries for the part to be instantiated.</param>
+            /// <param name="nonSharedPartImportingParent"><inheritdoc cref="nonSharedPartOwner" path="/summary"/></param>
+            public PartLifecycleTracker(ExportProvider owningExportProvider, PartLifecycleTracker nonSharedPartImportingParent)
+                : this(owningExportProvider, sharingBoundary: null)
+            {
+                Requires.NotNull(nonSharedPartImportingParent, nameof(nonSharedPartImportingParent));
+                Requires.Argument(nonSharedPartImportingParent.sharingBoundary is null, nameof(nonSharedPartImportingParent), "Only a non-shared part should be specified here.");
+                this.nonSharedPartOwner = nonSharedPartImportingParent;
+            }
+
+            /// <summary>
             /// Gets or sets the instantiated part, if applicable and after it has been created. Otherwise <c>null</c>.
             /// </summary>
             public object Value
@@ -1130,6 +1175,8 @@ namespace Microsoft.VisualStudio.Composition
             /// Gets the level of initialization the MEF part has already undergone.
             /// </summary>
             public PartLifecycleState State { get; private set; }
+
+            internal bool IsNonShared => this.sharingBoundary is null;
 
             /// <summary>
             /// Gets the ExportProvider that owns the lifetime and sharing boundaries for the part to be instantiated.
@@ -1184,11 +1231,32 @@ namespace Microsoft.VisualStudio.Composition
             public void Dispose()
             {
                 this.isDisposed = true;
+
+                if (this.sharingBoundary is null && this.nonSharedPartOwner is null)
+                {
+                    this.OwningExportProvider.ReleaseNonSharedPart(this);
+                }
+
                 IDisposable disposableValue = this.value as IDisposable;
                 this.value = null;
-                if (disposableValue != null)
+                if (disposableValue is object)
                 {
                     disposableValue.Dispose();
+                }
+
+                HashSet<PartLifecycleTracker> nonSharedChildParts;
+                lock (this.syncObject)
+                {
+                    nonSharedChildParts = this.nonSharedChildParts;
+                    this.nonSharedChildParts = null;
+                }
+
+                if (nonSharedChildParts is object)
+                {
+                    foreach (PartLifecycleTracker descendant in nonSharedChildParts)
+                    {
+                        descendant.Dispose();
+                    }
                 }
             }
 
@@ -1237,6 +1305,26 @@ namespace Microsoft.VisualStudio.Composition
                 throw new CompositionFailedException(string.Format(CultureInfo.CurrentCulture, Strings.PartIsNotInstantiable, partTypeName));
             }
 
+            private void AddNonSharedDescendant(PartLifecycleTracker nonSharedDescendant)
+            {
+                if (this.nonSharedPartOwner is object)
+                {
+                    this.nonSharedPartOwner.AddNonSharedDescendant(nonSharedDescendant);
+                }
+                else
+                {
+                    lock (this.syncObject)
+                    {
+                        if (this.nonSharedChildParts is null)
+                        {
+                            this.nonSharedChildParts = new HashSet<PartLifecycleTracker>();
+                        }
+
+                        this.nonSharedChildParts.Add(nonSharedDescendant);
+                    }
+                }
+            }
+
             /// <summary>
             /// Invokes <see cref="CreateValue"/> if this part has not already done so
             /// and performs initial processing of the instance.
@@ -1265,9 +1353,19 @@ namespace Microsoft.VisualStudio.Composition
                         {
                             Assumes.True(this.State == PartLifecycleState.Creating);
                             this.Value = value;
-                            if (value is IDisposable)
+
+                            // Ask the container to track our lifetime if we're disposable,
+                            // or if we're non-shared since we might have non-shared 'children' that *are* disposable.
+                            if (value is IDisposable || this.sharingBoundary is null)
                             {
-                                this.OwningExportProvider.TrackDisposableValue(this, this.sharingBoundary);
+                                if (this.sharingBoundary is object || this.nonSharedPartOwner is null)
+                                {
+                                    this.OwningExportProvider.TrackDisposableValue(this, this.sharingBoundary);
+                                }
+                                else
+                                {
+                                    this.nonSharedPartOwner.AddNonSharedDescendant(this);
+                                }
                             }
 
                             Assumes.True(this.UpdateState(PartLifecycleState.Created));

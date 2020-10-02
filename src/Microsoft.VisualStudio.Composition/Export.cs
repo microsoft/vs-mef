@@ -4,12 +4,9 @@ namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
-    using System.Collections.Immutable;
-    using System.Globalization;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    using System.Diagnostics;
 
+    [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     public class Export
     {
         private readonly Lazy<object> exportedValueGetter;
@@ -49,9 +46,8 @@ namespace Microsoft.VisualStudio.Composition
         /// <remarks>
         /// This may incur a value construction cost upon first retrieval.
         /// </remarks>
-        public object Value
-        {
-            get { return this.exportedValueGetter.Value; }
-        }
+        public virtual object Value => this.exportedValueGetter.Value;
+
+        private string DebuggerDisplay => this.Definition.ContractName;
     }
 }
