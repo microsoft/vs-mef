@@ -734,7 +734,7 @@ namespace Microsoft.VisualStudio.Composition
             return partLifecycle;
         }
 
-        protected internal abstract PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner);
+        internal abstract PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner);
 
         private bool TryGetSharedInstanceFactory(string partSharingBoundary, TypeRef partTypeRef, out PartLifecycleTracker value)
         {

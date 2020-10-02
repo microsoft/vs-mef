@@ -14,6 +14,4 @@ Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExports(System.Collecti
 Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExports<T, TMetadataView>(System.Collections.Generic.IEnumerable<System.Lazy<T, TMetadataView>> exports) -> void
 Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExports<T>(System.Collections.Generic.IEnumerable<System.Lazy<T>> exports) -> void
 Microsoft.VisualStudio.Composition.ExportProvider.ReleaseNonSharedPart(System.IDisposable nonSharedPart) -> bool
-abstract Microsoft.VisualStudio.Composition.ExportProvider.CreatePartLifecycleTracker(Microsoft.VisualStudio.Composition.Reflection.TypeRef partType, System.Collections.Generic.IReadOnlyDictionary<string, object> importMetadata, Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker nonSharedPartOwner) -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker
-override Microsoft.VisualStudio.Composition.DelegatingExportProvider.CreatePartLifecycleTracker(Microsoft.VisualStudio.Composition.Reflection.TypeRef partType, System.Collections.Generic.IReadOnlyDictionary<string, object> importMetadata, Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker nonSharedPartOwner) -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker
 virtual Microsoft.VisualStudio.Composition.Export.Value.get -> object

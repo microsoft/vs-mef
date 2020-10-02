@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.Composition
                         export.MemberRef);
             }
 
-            protected internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner)
+            internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner)
             {
                 return nonSharedPartOwner is object
                     ? new RuntimePartLifecycleTracker(this, this.composition.GetPart(partType), importMetadata, nonSharedPartOwner)
