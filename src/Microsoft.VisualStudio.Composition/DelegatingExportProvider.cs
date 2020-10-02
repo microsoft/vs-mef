@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Throws <see cref="NotImplementedException"/>.
         /// </summary>
-        protected sealed override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
+        private protected sealed override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
         {
             // This should never be called, because our GetExports override calls the inner one instead,
             // which IS implemented.

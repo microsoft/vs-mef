@@ -162,7 +162,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// The several stages of initialization that each MEF part goes through.
         /// </summary>
-        protected internal enum PartLifecycleState
+        internal enum PartLifecycleState
         {
             /// <summary>
             /// The MEF part has not yet been instantiated.
@@ -517,7 +517,7 @@ namespace Microsoft.VisualStudio.Composition
         /// prior to being exposed to the receiver; <c>false</c> if the export can be partially initialized when the receiver
         /// first observes it.
         /// </returns>
-        protected static bool IsFullyInitializedExportRequiredWhenSettingImport(PartLifecycleTracker importingPartTracker, bool isLazy, bool isImportingConstructorArgument)
+        private protected static bool IsFullyInitializedExportRequiredWhenSettingImport(PartLifecycleTracker importingPartTracker, bool isLazy, bool isImportingConstructorArgument)
         {
             // Only non-lazy importing properties can receive exports that are only partially initialized.
             return isLazy || isImportingConstructorArgument;
@@ -530,9 +530,9 @@ namespace Microsoft.VisualStudio.Composition
         /// <remarks>
         /// The derived type is *not* expected to filter the exports based on the import definition constraints.
         /// </remarks>
-        protected abstract IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition);
+        private protected abstract IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition);
 
-        protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> exportMetadata, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, bool nonSharedInstanceRequired, MemberRef exportingMemberRef)
+        private protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> exportMetadata, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, bool nonSharedInstanceRequired, MemberRef exportingMemberRef)
         {
             Requires.NotNull(importDefinition, nameof(importDefinition));
             Requires.NotNull(exportMetadata, "metadata");
@@ -696,14 +696,14 @@ namespace Microsoft.VisualStudio.Composition
             throw new NotSupportedException();
         }
 
-        protected PartLifecycleTracker GetOrCreateValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata, bool nonSharedInstanceRequired, PartLifecycleTracker nonSharedPartOwner)
+        private protected PartLifecycleTracker GetOrCreateValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata, bool nonSharedInstanceRequired, PartLifecycleTracker nonSharedPartOwner)
         {
             return nonSharedInstanceRequired
                 ? this.CreateNewValue(originalPartTypeRef, constructedPartTypeRef, nonSharedInstanceRequired ? null : partSharingBoundary, importMetadata, nonSharedPartOwner)
                 : this.GetOrCreateShareableValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importMetadata);
         }
 
-        protected PartLifecycleTracker GetOrCreateShareableValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata)
+        private protected PartLifecycleTracker GetOrCreateShareableValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata)
         {
             Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
             Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
@@ -723,7 +723,7 @@ namespace Microsoft.VisualStudio.Composition
             return partLifecycle;
         }
 
-        protected PartLifecycleTracker CreateNewValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner)
+        private protected PartLifecycleTracker CreateNewValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner)
         {
             // Be careful to pass the export provider that owns the sharing boundary for this part into the value factory.
             // If we accidentally capture "this", then if this is a sub-scope ExportProvider and we're constructing
@@ -797,7 +797,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected bool ReleaseNonSharedPart(IDisposable nonSharedPart)
+        private bool ReleaseNonSharedPart(IDisposable nonSharedPart)
         {
             lock (this.disposableNonSharedParts)
             {
@@ -1002,7 +1002,7 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-        protected struct ExportInfo
+        private protected struct ExportInfo
         {
             public ExportInfo(string contractName, IReadOnlyDictionary<string, object> metadata, Func<(object Value, IDisposable NonSharedDisposalTracker)> exportedValueGetter)
                 : this(new ExportDefinition(contractName, metadata), exportedValueGetter)
@@ -1061,7 +1061,7 @@ namespace Microsoft.VisualStudio.Composition
         /// Every single instantiated MEF part (including each individual NonShared instance)
         /// has an associated instance of this class to track its lifecycle from initialization to disposal.
         /// </summary>
-        protected internal abstract class PartLifecycleTracker : IDisposable
+        internal abstract class PartLifecycleTracker : IDisposable
         {
             /// <summary>
             /// An object that locks when the state machine is transitioning between states.

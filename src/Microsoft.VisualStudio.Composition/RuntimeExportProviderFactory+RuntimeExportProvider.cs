@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.Composition
                 this.composition = composition;
             }
 
-            protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
+            private protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
             {
                 var exports = this.composition.GetExports(importDefinition.ContractName);
 
