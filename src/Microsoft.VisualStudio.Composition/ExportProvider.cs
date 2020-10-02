@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.Composition
                     this.GetMetadataViewProviderExtensions);
         }
 
-        protected ExportProvider(Resolver resolver)
+        private protected ExportProvider(Resolver resolver)
             : this(
                 resolver,
                 SharedInstantiatedPartsTemplate,
@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.Composition
         {
         }
 
-        protected ExportProvider(ExportProvider parent, ImmutableHashSet<string> freshSharingBoundaries)
+        private protected ExportProvider(ExportProvider parent, ImmutableHashSet<string> freshSharingBoundaries)
             : this(
                   Requires.NotNull(parent, nameof(parent)).Resolver,
                   parent.sharedInstantiatedParts,
@@ -859,7 +859,7 @@ namespace Microsoft.VisualStudio.Composition
             return result;
         }
 
-        protected internal static int GetOrderMetadata(IReadOnlyDictionary<string, object> metadata)
+        internal static int GetOrderMetadata(IReadOnlyDictionary<string, object> metadata)
         {
             Requires.NotNull(metadata, nameof(metadata));
 
