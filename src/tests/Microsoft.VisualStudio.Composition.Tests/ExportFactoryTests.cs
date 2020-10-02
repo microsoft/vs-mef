@@ -348,8 +348,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var partFactory = container.GetExportedValue<PartFactoryV2>();
             var export = partFactory.TransitiveNonSharedFactory.CreateExport();
             Assert.NotNull(export.Value.NonSharedPart);
-            WeakReference exportedValue = new WeakReference(export.Value);
-            WeakReference transitiveExportedValue = new WeakReference(export.Value.NonSharedPart);
 
             export.Dispose();
             Assert.True(export.Value.Disposed);
@@ -411,8 +409,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var partFactory = container.GetExportedValue<PartFactoryV1>();
             var export = partFactory.TransitiveNonSharedFactory.CreateExport();
             Assert.NotNull(export.Value.NonSharedPart);
-            WeakReference exportedValue = new WeakReference(export.Value);
-            WeakReference transitiveExportedValue = new WeakReference(export.Value.NonSharedPart);
 
             export.Dispose();
             Assert.True(export.Value.Disposed);
