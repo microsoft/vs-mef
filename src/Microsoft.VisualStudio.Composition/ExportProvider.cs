@@ -1232,7 +1232,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 this.isDisposed = true;
 
-                if (this.sharingBoundary is null && this.nonSharedPartOwner is null)
+                if (this.IsNonShared && this.nonSharedPartOwner is null)
                 {
                     this.OwningExportProvider.ReleaseNonSharedPart(this);
                 }
