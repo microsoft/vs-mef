@@ -3,13 +3,11 @@
 namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
-    using System.Collections;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Composition;
     using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    using System.Runtime.CompilerServices;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
@@ -149,6 +147,390 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var foo = container.GetExport<Func<Apple>>();
             Assert.Throws<CompositionFailedException>(() => foo.Value());
         }
+
+        #region GetExports of nonshared parts get disposed and released
+
+        [MefFact(CompositionEngines.V1Compat, typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(DisposableNonSharedPart))]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
+        public void GetExport_NonSharedPartExportNoLeakAfterReleaseLazy_Transitive(IContainer container)
+        {
+            (WeakReference part1, WeakReference part2) = GetExport_NonSharedPartExportNoLeakAfterReleaseLazy_Transitive_Helper(container);
+            GC.Collect();
+            Assert.False(part1.IsAlive);
+            Assert.False(part2.IsAlive);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static (WeakReference, WeakReference) GetExport_NonSharedPartExportNoLeakAfterReleaseLazy_Transitive_Helper(IContainer container)
+        {
+            Lazy<NonSharedPartThatImportsAnotherNonSharedPart> export = container.GetExport<NonSharedPartThatImportsAnotherNonSharedPart>();
+            Assert.NotNull(export.Value.NonSharedPart);
+            WeakReference exportedValue = new WeakReference(export.Value);
+            WeakReference transitiveExportedValue = new WeakReference(export.Value.NonSharedPart);
+
+            // This should remove the exported part from the container.
+            container.ReleaseExport(export);
+            return (exportedValue, transitiveExportedValue);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(NonSharedPart))]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
+        public void GetExport_NonDisposableNonSharedPartDoesNotLeakEvenWithoutReleaseLazy_Transitive(IContainer container)
+        {
+            WeakReference part1 = GetExport_NonDisposableNonSharedPartDoesNotLeakEvenWithoutReleaseLazy_Transitive_Helper(container);
+            GC.Collect();
+            Assert.False(part1.IsAlive);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static WeakReference GetExport_NonDisposableNonSharedPartDoesNotLeakEvenWithoutReleaseLazy_Transitive_Helper(IContainer container)
+        {
+            Lazy<NonSharedPart> export = container.GetExport<NonSharedPart>();
+            Assert.NotNull(export.Value);
+            return new WeakReference(export.Value);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(DisposableNonSharedPart))]
+        [Trait("Disposal", "")]
+        public void GetExport_NonSharedPartExportDisposedAfterReleaseLazy_Transitive(IContainer container)
+        {
+            Lazy<NonSharedPartThatImportsAnotherNonSharedPart> export = container.GetExport<NonSharedPartThatImportsAnotherNonSharedPart>();
+            Assert.NotNull(export.Value.NonSharedPart);
+
+            container.ReleaseExport(export);
+            Assert.Equal(1, export.Value.DisposalCount);
+            Assert.Equal(1, export.Value.NonSharedPart.DisposalCount);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(DisposableNonSharedPart))]
+        [Trait("Disposal", "")]
+        public void GetExport_NonSharedPartExportDisposedAfterReleaseExport_Transitive(IContainer container)
+        {
+            string contractName = typeof(NonSharedPartThatImportsAnotherNonSharedPart).FullName;
+            NonSharedPartThatImportsAnotherNonSharedPart export;
+            Action releaseExport;
+            if (container is TestUtilities.V1ContainerWrapper v1container)
+            {
+                var v1Export = v1container.Container.GetExports(new MefV1.Primitives.ImportDefinition(ed => ed.ContractName == contractName, contractName, MefV1.Primitives.ImportCardinality.ExactlyOne, false, false)).Single();
+                export = (NonSharedPartThatImportsAnotherNonSharedPart)v1Export.Value;
+                releaseExport = () => v1container.Container.ReleaseExport(v1Export);
+            }
+            else if (container is TestUtilities.V3ContainerWrapper v3container)
+            {
+                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
+                export = (NonSharedPartThatImportsAnotherNonSharedPart)v3Export.Value;
+                releaseExport = () => v3container.ExportProvider.ReleaseExport(v3Export);
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+
+            Assert.NotNull(export.NonSharedPart);
+
+            releaseExport();
+            Assert.Equal(1, export.DisposalCount);
+            Assert.Equal(1, export.NonSharedPart.DisposalCount);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(DisposableNonSharedPart))]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
+        public void GetExports_NonSharedPartExportNoLeakAfterReleaseExport_Transitive(IContainer container)
+        {
+            (WeakReference part1, WeakReference part2) = GetExports_NonSharedPartExportNoLeakAfterReleaseExport_Transitive_Helper(container);
+            GC.Collect();
+            Assert.False(part1.IsAlive);
+            Assert.False(part2.IsAlive);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static (WeakReference, WeakReference) GetExports_NonSharedPartExportNoLeakAfterReleaseExport_Transitive_Helper(IContainer container)
+        {
+            string contractName = typeof(NonSharedPartThatImportsAnotherNonSharedPart).FullName;
+            NonSharedPartThatImportsAnotherNonSharedPart value;
+            Action releaseExport;
+            if (container is TestUtilities.V1ContainerWrapper v1container)
+            {
+                var v1Export = v1container.Container.GetExports(new MefV1.Primitives.ImportDefinition(ed => ed.ContractName == contractName, contractName, MefV1.Primitives.ImportCardinality.ExactlyOne, false, false)).Single();
+                value = (NonSharedPartThatImportsAnotherNonSharedPart)v1Export.Value;
+                releaseExport = () => v1container.Container.ReleaseExport(v1Export);
+            }
+            else if (container is TestUtilities.V3ContainerWrapper v3container)
+            {
+                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
+                value = (NonSharedPartThatImportsAnotherNonSharedPart)v3Export.Value;
+                releaseExport = () => v3container.ExportProvider.ReleaseExport(v3Export);
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+
+            Assert.NotNull(value.NonSharedPart);
+            WeakReference exportedValue = new WeakReference(value);
+            WeakReference transitiveExportedValue = new WeakReference(value.NonSharedPart);
+
+            // This should remove the exported part from the container.
+            releaseExport();
+            return (exportedValue, transitiveExportedValue);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(DisposableNonSharedPart))]
+        [Trait("Disposal", "")]
+        public void GetExports_NonSharedPartExportDisposedAfterReleaseExport_Transitive(IContainer container)
+        {
+            string contractName = typeof(NonSharedPartThatImportsAnotherNonSharedPart).FullName;
+            NonSharedPartThatImportsAnotherNonSharedPart value;
+            Action releaseExport;
+            if (container is TestUtilities.V1ContainerWrapper v1container)
+            {
+                var v1Export = v1container.Container.GetExports(new MefV1.Primitives.ImportDefinition(ed => ed.ContractName == contractName, contractName, MefV1.Primitives.ImportCardinality.ExactlyOne, false, false)).Single();
+                value = (NonSharedPartThatImportsAnotherNonSharedPart)v1Export.Value;
+                releaseExport = () => v1container.Container.ReleaseExport(v1Export);
+            }
+            else if (container is TestUtilities.V3ContainerWrapper v3container)
+            {
+                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
+                value = (NonSharedPartThatImportsAnotherNonSharedPart)v3Export.Value;
+                releaseExport = () => v3container.ExportProvider.ReleaseExport(v3Export);
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+
+            Assert.NotNull(value.NonSharedPart);
+
+            releaseExport();
+            Assert.Equal(1, value.DisposalCount);
+            Assert.Equal(1, value.NonSharedPart.DisposalCount);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(DisposableNonSharedPart))]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
+        public void GetExports_UnactivatedExportCanBeCollected(IContainer container)
+        {
+            WeakReference part1 = GetExports_UnactivatedExportCanBeCollectedHelper(container);
+            GC.Collect();
+            Assert.False(part1.IsAlive);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static WeakReference GetExports_UnactivatedExportCanBeCollectedHelper(IContainer container)
+        {
+            string contractName = typeof(DisposableNonSharedPart).FullName;
+            if (container is TestUtilities.V1ContainerWrapper v1container)
+            {
+                var v1Export = v1container.Container.GetExports(new MefV1.Primitives.ImportDefinition(ed => ed.ContractName == contractName, contractName, MefV1.Primitives.ImportCardinality.ExactlyOne, false, false)).Single();
+                return new WeakReference(v1Export);
+            }
+            else if (container is TestUtilities.V3ContainerWrapper v3container)
+            {
+                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
+                return new WeakReference(v3Export);
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        [MefFact(CompositionEngines.V2Compat, typeof(DisposableNonSharedPart))]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
+        public void GetExports_UnactivatedLazyCanBeCollected(IContainer container)
+        {
+            WeakReference part1 = GetExports_UnactivatedLazyCanBeCollectedHelper(container);
+            GC.Collect();
+            Assert.False(part1.IsAlive);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static WeakReference GetExports_UnactivatedLazyCanBeCollectedHelper(IContainer container)
+        {
+            return new WeakReference(container.GetExport<DisposableNonSharedPart>());
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(DisposableNonSharedPart))]
+        [Trait("WeakReference", "true")]
+        [Trait(Traits.SkipOnMono, "WeakReference")]
+        public void GetExport_NonSharedPartExportNoLeakAfterReleaseLazyEnumerable_Transitive(IContainer container)
+        {
+            (WeakReference part1, WeakReference part2) = GetExport_NonSharedPartExportNoLeakAfterReleaseLazyEnumerable_TransitiveV1_Helper(container);
+            GC.Collect();
+            Assert.False(part1.IsAlive);
+            Assert.False(part2.IsAlive);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static (WeakReference, WeakReference) GetExport_NonSharedPartExportNoLeakAfterReleaseLazyEnumerable_TransitiveV1_Helper(IContainer container)
+        {
+            Lazy<NonSharedPartThatImportsAnotherNonSharedPart> export = container.GetExport<NonSharedPartThatImportsAnotherNonSharedPart>();
+            Assert.NotNull(export.Value.NonSharedPart);
+            WeakReference exportedValue = new WeakReference(export.Value);
+            WeakReference transitiveExportedValue = new WeakReference(export.Value.NonSharedPart);
+
+            // This should remove the exported part from the container.
+            container.ReleaseExports(new Lazy<NonSharedPartThatImportsAnotherNonSharedPart>[] { export });
+            return (exportedValue, transitiveExportedValue);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(NonSharedPartThatImportsAnotherNonSharedPart), typeof(DisposableNonSharedPart))]
+        [Trait("Disposal", "")]
+        public void GetExport_NonSharedPartExportDisposedAfterReleaseLazyEnumerable_Transitive(IContainer container)
+        {
+            Lazy<NonSharedPartThatImportsAnotherNonSharedPart> export = container.GetExport<NonSharedPartThatImportsAnotherNonSharedPart>();
+            Assert.NotNull(export.Value.NonSharedPart);
+
+            container.ReleaseExports(new Lazy<NonSharedPartThatImportsAnotherNonSharedPart>[] { export });
+            Assert.Equal(1, export.Value.DisposalCount);
+            Assert.Equal(1, export.Value.NonSharedPart.DisposalCount);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(NonSharedPartThatImportsNonSharedDisposableViaImportConstraint), typeof(DisposableMaybeSharedPartV1))]
+        [Trait("Disposal", "")]
+        public void GetExport_ConditionallyNonSharedPartExportDisposedAfterReleaseExport_Transitive(IContainer container)
+        {
+            Lazy<NonSharedPartThatImportsNonSharedDisposableViaImportConstraint> export = container.GetExport<NonSharedPartThatImportsNonSharedDisposableViaImportConstraint>();
+            Assert.NotNull(export.Value.NonSharedPart);
+
+            container.ReleaseExport(export);
+            Assert.Equal(1, export.Value.NonSharedPart.DisposalCount);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(DisposableNonSharedPart))]
+        [Trait("Disposal", "")]
+        public void GetExports_ExportActivatedAfterContainerDisposal(IContainer container)
+        {
+            string contractName = typeof(DisposableNonSharedPart).FullName;
+            if (container is TestUtilities.V1ContainerWrapper v1container)
+            {
+                var v1Export = v1container.Container.GetExports(new MefV1.Primitives.ImportDefinition(ed => ed.ContractName == contractName, contractName, MefV1.Primitives.ImportCardinality.ExactlyOne, false, false)).Single();
+                container.Dispose();
+                Assert.Throws<ObjectDisposedException>(() => v1Export.Value);
+            }
+            else if (container is TestUtilities.V3ContainerWrapper v3container)
+            {
+                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
+                container.Dispose();
+                Assert.Throws<ObjectDisposedException>(() => v3Export.Value);
+            }
+            else
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        [MefFact(CompositionEngines.V2, typeof(NonSharedPart), NoCompatGoal = true)]
+        [Trait("Disposal", "")]
+        public void GetExport_LazyActivatedAfterContainerDisposalV2(IContainer container)
+        {
+            Lazy<NonSharedPart> export = container.GetExport<NonSharedPart>();
+            container.Dispose();
+            NonSharedPart value = export.Value;
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(NonSharedPart))]
+        [Trait("Disposal", "")]
+        public void GetExport_LazyActivatedAfterContainerDisposal(IContainer container)
+        {
+            Lazy<NonSharedPart> export = container.GetExport<NonSharedPart>();
+            container.Dispose();
+            Assert.Throws<ObjectDisposedException>(() => export.Value);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(DisposablePartWithPropertyExportingNonSharedPart))]
+        [Trait("Disposal", "")]
+        public void GetExport_LazyActivatedAfterContainerDisposal_MemberExport(IContainer container)
+        {
+            Lazy<ConstructedValue> export = container.GetExport<ConstructedValue>();
+            container.Dispose();
+            Assert.Throws<ObjectDisposedException>(() => export.Value);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(DisposableNonSharedPart))]
+        [Trait("Disposal", "")]
+        public void GetExport_LazyActivatedAfterContainerDisposal_DisposablePart(IContainer container)
+        {
+            Lazy<DisposableNonSharedPart> export = container.GetExport<DisposableNonSharedPart>();
+            container.Dispose();
+            Assert.Throws<ObjectDisposedException>(() => export.Value);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(DisposablePartWithPropertyExportingNonSharedPart))]
+        [Trait("Disposal", "")]
+        public void GetExport_NonSharedDisposablePartWithExportingMember_DisposedWhenExportReleased(IContainer container)
+        {
+            Lazy<ConstructedValue> export = container.GetExport<ConstructedValue>();
+            Assert.NotNull(export.Value);
+            container.ReleaseExport(export);
+            Assert.Equal(1, ((DisposablePartWithPropertyExportingNonSharedPart)export.Value.Owner).DisposalCount);
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        [Export]
+        public class NonSharedPartThatImportsAnotherNonSharedPart : IDisposable
+        {
+            [Import, MefV1.Import]
+            public DisposableNonSharedPart NonSharedPart { get; set; }
+
+            internal int DisposalCount { get; private set; }
+
+            public void Dispose() => this.DisposalCount++;
+        }
+
+        [Export]
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class DisposableNonSharedPart : IDisposable
+        {
+            public int DisposalCount { get; private set; }
+
+            public void Dispose() => this.DisposalCount++;
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class NonSharedPartThatImportsNonSharedDisposableViaImportConstraint
+        {
+            [MefV1.Import(RequiredCreationPolicy = MefV1.CreationPolicy.NonShared)]
+            public DisposableMaybeSharedPartV1 NonSharedPart { get; private set; }
+        }
+
+        [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.Any)]
+        public class DisposableMaybeSharedPartV1 : IDisposable
+        {
+            public int DisposalCount { get; private set; }
+
+            public void Dispose() => this.DisposalCount++;
+        }
+
+        [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class DisposablePartWithPropertyExportingNonSharedPart : IDisposable
+        {
+            [MefV1.Export, Export]
+            [MefV1.ExportMetadata("N", "V")]
+            [ExportMetadata("N", "V")]
+            public ConstructedValue ExportingProperty => new ConstructedValue(this);
+
+            internal int DisposalCount { get; private set; }
+
+            public void Dispose() => this.DisposalCount++;
+        }
+
+        public class ConstructedValue
+        {
+            internal ConstructedValue(object owner)
+            {
+                this.Owner = owner;
+            }
+
+            public object Owner { get; }
+        }
+
+        #endregion
 
         [Export, Shared]
         [MefV1.Export]

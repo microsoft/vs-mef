@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.Composition
                 this.composition = composition;
             }
 
-            protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
+            private protected override IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition)
             {
                 var exports = this.composition.GetExports(importDefinition.ContractName);
 
@@ -74,9 +74,11 @@ namespace Microsoft.VisualStudio.Composition
                         export.MemberRef);
             }
 
-            protected internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata)
+            internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner)
             {
-                return new RuntimePartLifecycleTracker(this, this.composition.GetPart(partType), importMetadata);
+                return nonSharedPartOwner is object
+                    ? new RuntimePartLifecycleTracker(this, this.composition.GetPart(partType), importMetadata, nonSharedPartOwner)
+                    : new RuntimePartLifecycleTracker(this, this.composition.GetPart(partType), importMetadata);
             }
 
             internal override IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
@@ -301,12 +303,15 @@ namespace Microsoft.VisualStudio.Composition
                 Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
                 Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
 
+                bool nonSharedInstanceRequired = !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired;
+                RuntimePartLifecycleTracker nonSharedPartOwner = nonSharedInstanceRequired && importingPartTracker.IsNonShared && !import.IsExportFactory ? importingPartTracker : null;
                 PartLifecycleTracker partLifecycle = this.GetOrCreateValue(
                     originalPartTypeRef,
                     constructedPartTypeRef,
                     exportingRuntimePart.SharingBoundary,
                     import.Metadata,
-                    !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired);
+                    nonSharedInstanceRequired,
+                    nonSharedPartOwner);
                 var faultCallback = this.faultCallback;
 
                 Func<object> exportedValue = () =>
@@ -468,6 +473,16 @@ namespace Microsoft.VisualStudio.Composition
 
                 public RuntimePartLifecycleTracker(RuntimeExportProvider owningExportProvider, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata)
                     : base(owningExportProvider, partDefinition.SharingBoundary)
+                {
+                    Requires.NotNull(partDefinition, nameof(partDefinition));
+                    Requires.NotNull(importMetadata, nameof(importMetadata));
+
+                    this.partDefinition = partDefinition;
+                    this.importMetadata = importMetadata;
+                }
+
+                public RuntimePartLifecycleTracker(RuntimeExportProvider owningExportProvider, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner)
+                    : base(owningExportProvider, nonSharedPartOwner)
                 {
                     Requires.NotNull(partDefinition, nameof(partDefinition));
                     Requires.NotNull(importMetadata, nameof(importMetadata));

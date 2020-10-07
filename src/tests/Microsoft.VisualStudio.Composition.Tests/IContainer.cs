@@ -38,5 +38,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>();
 
         IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName);
+
+        void ReleaseExport<T>(Lazy<T> export);
+
+        void ReleaseExports<T>(IEnumerable<Lazy<T>> export);
+
+        void ReleaseExports<T, TMetadataView>(IEnumerable<Lazy<T, TMetadataView>> export);
     }
 }

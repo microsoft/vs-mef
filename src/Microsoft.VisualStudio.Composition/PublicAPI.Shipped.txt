@@ -129,17 +129,7 @@ Microsoft.VisualStudio.Composition.ExportMetadataValueImportConstraint.Name.get 
 Microsoft.VisualStudio.Composition.ExportMetadataValueImportConstraint.ToString(System.IO.TextWriter writer) -> void
 Microsoft.VisualStudio.Composition.ExportMetadataValueImportConstraint.Value.get -> object
 Microsoft.VisualStudio.Composition.ExportProvider
-Microsoft.VisualStudio.Composition.ExportProvider.CreateExport(Microsoft.VisualStudio.Composition.ImportDefinition importDefinition, System.Collections.Generic.IReadOnlyDictionary<string, object> exportMetadata, Microsoft.VisualStudio.Composition.Reflection.TypeRef originalPartTypeRef, Microsoft.VisualStudio.Composition.Reflection.TypeRef constructedPartTypeRef, string partSharingBoundary, bool nonSharedInstanceRequired, Microsoft.VisualStudio.Composition.Reflection.MemberRef exportingMemberRef) -> Microsoft.VisualStudio.Composition.ExportProvider.ExportInfo
-Microsoft.VisualStudio.Composition.ExportProvider.CreateExportFactory(System.Type importingSiteElementType, System.Collections.Generic.IReadOnlyCollection<string> sharingBoundaries, System.Func<System.Collections.Generic.KeyValuePair<object, System.IDisposable>> valueFactory, System.Type exportFactoryType, System.Collections.Generic.IReadOnlyDictionary<string, object> exportMetadata) -> object
-Microsoft.VisualStudio.Composition.ExportProvider.CreateNewValue(Microsoft.VisualStudio.Composition.Reflection.TypeRef originalPartTypeRef, Microsoft.VisualStudio.Composition.Reflection.TypeRef constructedPartTypeRef, string partSharingBoundary, System.Collections.Generic.IReadOnlyDictionary<string, object> importMetadata) -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker
 Microsoft.VisualStudio.Composition.ExportProvider.Dispose() -> void
-Microsoft.VisualStudio.Composition.ExportProvider.ExportInfo
-Microsoft.VisualStudio.Composition.ExportProvider.ExportInfo.Definition.get -> Microsoft.VisualStudio.Composition.ExportDefinition
-Microsoft.VisualStudio.Composition.ExportProvider.ExportInfo.ExportInfo(Microsoft.VisualStudio.Composition.ExportDefinition exportDefinition, System.Func<object> exportedValueGetter) -> void
-Microsoft.VisualStudio.Composition.ExportProvider.ExportInfo.ExportInfo(string contractName, System.Collections.Generic.IReadOnlyDictionary<string, object> metadata, System.Func<object> exportedValueGetter) -> void
-Microsoft.VisualStudio.Composition.ExportProvider.ExportInfo.ExportedValueGetter.get -> System.Func<object>
-Microsoft.VisualStudio.Composition.ExportProvider.ExportProvider(Microsoft.VisualStudio.Composition.ExportProvider parent, System.Collections.Immutable.ImmutableHashSet<string> freshSharingBoundaries) -> void
-Microsoft.VisualStudio.Composition.ExportProvider.ExportProvider(Microsoft.VisualStudio.Composition.Resolver resolver) -> void
 Microsoft.VisualStudio.Composition.ExportProvider.GetExport<T, TMetadataView>() -> System.Lazy<T, TMetadataView>
 Microsoft.VisualStudio.Composition.ExportProvider.GetExport<T, TMetadataView>(string contractName) -> System.Lazy<T, TMetadataView>
 Microsoft.VisualStudio.Composition.ExportProvider.GetExport<T>() -> System.Lazy<T>
@@ -152,36 +142,6 @@ Microsoft.VisualStudio.Composition.ExportProvider.GetExports<T, TMetadataView>()
 Microsoft.VisualStudio.Composition.ExportProvider.GetExports<T, TMetadataView>(string contractName) -> System.Collections.Generic.IEnumerable<System.Lazy<T, TMetadataView>>
 Microsoft.VisualStudio.Composition.ExportProvider.GetExports<T>() -> System.Collections.Generic.IEnumerable<System.Lazy<T>>
 Microsoft.VisualStudio.Composition.ExportProvider.GetExports<T>(string contractName) -> System.Collections.Generic.IEnumerable<System.Lazy<T>>
-Microsoft.VisualStudio.Composition.ExportProvider.GetMethodWithArity(System.Type declaringType, string methodName, int arity) -> System.Reflection.MethodInfo
-Microsoft.VisualStudio.Composition.ExportProvider.GetOrCreateShareableValue(Microsoft.VisualStudio.Composition.Reflection.TypeRef originalPartTypeRef, Microsoft.VisualStudio.Composition.Reflection.TypeRef constructedPartTypeRef, string partSharingBoundary, System.Collections.Generic.IReadOnlyDictionary<string, object> importMetadata) -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker
-Microsoft.VisualStudio.Composition.ExportProvider.GetOrCreateValue(Microsoft.VisualStudio.Composition.Reflection.TypeRef originalPartTypeRef, Microsoft.VisualStudio.Composition.Reflection.TypeRef constructedPartTypeRef, string partSharingBoundary, System.Collections.Generic.IReadOnlyDictionary<string, object> importMetadata, bool nonSharedInstanceRequired) -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker
-Microsoft.VisualStudio.Composition.ExportProvider.GetStrongTypedMetadata(System.Collections.Generic.IReadOnlyDictionary<string, object> metadata, System.Type metadataType) -> object
-Microsoft.VisualStudio.Composition.ExportProvider.IMetadataDictionary
-Microsoft.VisualStudio.Composition.ExportProvider.NonDisposableWrapper.get -> System.Lazy<object>
-Microsoft.VisualStudio.Composition.ExportProvider.NonDisposableWrapperExportAsListOfOne.get -> System.Collections.Immutable.ImmutableList<Microsoft.VisualStudio.Composition.Export>
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState.Created = 2 -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState.Creating = 1 -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState.Final = 8 -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState.ImmediateImportsSatisfied = 3 -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState.ImmediateImportsSatisfiedTransitively = 4 -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState.NotCreated = 0 -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState.OnImportsSatisfiedInProgress = 5 -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState.OnImportsSatisfiedInvoked = 6 -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState.OnImportsSatisfiedInvokedTransitively = 7 -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker.Dispose() -> void
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker.GetValueReadyToExpose() -> object
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker.GetValueReadyToRetrieveExportingMembers() -> object
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker.OwningExportProvider.get -> Microsoft.VisualStudio.Composition.ExportProvider
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker.PartLifecycleTracker(Microsoft.VisualStudio.Composition.ExportProvider owningExportProvider, string sharingBoundary) -> void
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker.ReportPartiallyInitializedImport(Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker importedPart) -> void
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker.State.get -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleState
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker.ThrowPartNotInstantiableException() -> void
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker.Value.get -> object
-Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker.Value.set -> void
-Microsoft.VisualStudio.Composition.ExportProvider.Resolver.get -> Microsoft.VisualStudio.Composition.Resolver
-Microsoft.VisualStudio.Composition.ExportProvider.TrackDisposableValue(System.IDisposable instantiatedPart, string sharingBoundary) -> void
 Microsoft.VisualStudio.Composition.ExportTypeIdentityConstraint
 Microsoft.VisualStudio.Composition.ExportTypeIdentityConstraint.Equals(Microsoft.VisualStudio.Composition.IImportSatisfiabilityConstraint obj) -> bool
 Microsoft.VisualStudio.Composition.ExportTypeIdentityConstraint.ExportTypeIdentityConstraint(System.Type typeIdentity) -> void
@@ -400,12 +360,6 @@ Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.Equals(Microsoft.Visua
 Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.Mvid.get -> System.Guid
 Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.Name.get -> System.Reflection.AssemblyName
 Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.StrongAssemblyIdentity(System.Reflection.AssemblyName name, System.Guid mvid) -> void
-abstract Microsoft.VisualStudio.Composition.ExportProvider.CreatePartLifecycleTracker(Microsoft.VisualStudio.Composition.Reflection.TypeRef partType, System.Collections.Generic.IReadOnlyDictionary<string, object> importMetadata) -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker
-abstract Microsoft.VisualStudio.Composition.ExportProvider.GetExportsCore(Microsoft.VisualStudio.Composition.ImportDefinition importDefinition) -> System.Collections.Generic.IEnumerable<Microsoft.VisualStudio.Composition.ExportProvider.ExportInfo>
-abstract Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker.CreateValue() -> object
-abstract Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker.InvokeOnImportsSatisfied() -> void
-abstract Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker.PartType.get -> System.Type
-abstract Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker.SatisfyImports() -> void
 abstract Microsoft.VisualStudio.Composition.PartDiscovery.CreatePart(System.Type partType, bool typeExplicitlyRequested) -> Microsoft.VisualStudio.Composition.ComposablePartDefinition
 abstract Microsoft.VisualStudio.Composition.PartDiscovery.GetTypes(System.Reflection.Assembly assembly) -> System.Collections.Generic.IEnumerable<System.Type>
 abstract Microsoft.VisualStudio.Composition.PartDiscovery.IsExportFactoryType(System.Type type) -> bool
@@ -422,7 +376,6 @@ override Microsoft.VisualStudio.Composition.AttributedPartDiscoveryV1.IsExportFa
 override Microsoft.VisualStudio.Composition.ComposableCatalog.GetHashCode() -> int
 override Microsoft.VisualStudio.Composition.ComposablePartDefinition.Equals(object obj) -> bool
 override Microsoft.VisualStudio.Composition.ComposablePartDefinition.GetHashCode() -> int
-override Microsoft.VisualStudio.Composition.DelegatingExportProvider.CreatePartLifecycleTracker(Microsoft.VisualStudio.Composition.Reflection.TypeRef partType, System.Collections.Generic.IReadOnlyDictionary<string, object> importMetadata) -> Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker
 override Microsoft.VisualStudio.Composition.DelegatingExportProvider.GetExports(Microsoft.VisualStudio.Composition.ImportDefinition importDefinition) -> System.Collections.Generic.IEnumerable<Microsoft.VisualStudio.Composition.Export>
 override Microsoft.VisualStudio.Composition.ExportDefinition.Equals(object obj) -> bool
 override Microsoft.VisualStudio.Composition.ExportDefinition.GetHashCode() -> int
@@ -460,14 +413,8 @@ override Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimePart.Equal
 override Microsoft.VisualStudio.Composition.RuntimeComposition.RuntimePart.GetHashCode() -> int
 override Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.Equals(object obj) -> bool
 override Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.GetHashCode() -> int
-override sealed Microsoft.VisualStudio.Composition.DelegatingExportProvider.GetExportsCore(Microsoft.VisualStudio.Composition.ImportDefinition importDefinition) -> System.Collections.Generic.IEnumerable<Microsoft.VisualStudio.Composition.ExportProvider.ExportInfo>
 static Microsoft.VisualStudio.Composition.ComposableCatalog.Create(Microsoft.VisualStudio.Composition.Resolver resolver) -> Microsoft.VisualStudio.Composition.ComposableCatalog
 static Microsoft.VisualStudio.Composition.CompositionConfiguration.Create(Microsoft.VisualStudio.Composition.ComposableCatalog catalog) -> Microsoft.VisualStudio.Composition.CompositionConfiguration
-static Microsoft.VisualStudio.Composition.ExportProvider.CannotInstantiatePartWithNoImportingConstructor() -> object
-static Microsoft.VisualStudio.Composition.ExportProvider.GetMetadataViewDefaults(System.Type metadataView) -> System.Collections.Generic.IReadOnlyDictionary<string, object>
-static Microsoft.VisualStudio.Composition.ExportProvider.GetOrderMetadata(System.Collections.Generic.IReadOnlyDictionary<string, object> metadata) -> int
-static Microsoft.VisualStudio.Composition.ExportProvider.GetValueFromMember(object exportingPart, System.Reflection.MemberInfo exportingMember, System.Type importingSiteElementType = null, System.Type exportedValueType = null) -> object
-static Microsoft.VisualStudio.Composition.ExportProvider.IsFullyInitializedExportRequiredWhenSettingImport(Microsoft.VisualStudio.Composition.ExportProvider.PartLifecycleTracker importingPartTracker, bool isLazy, bool isImportingConstructorArgument) -> bool
 static Microsoft.VisualStudio.Composition.ExportTypeIdentityConstraint.GetExportMetadata(System.Type type) -> System.Collections.Immutable.ImmutableDictionary<string, object>
 static Microsoft.VisualStudio.Composition.ExportTypeIdentityConstraint.GetExportMetadata(string typeIdentity) -> System.Collections.Immutable.ImmutableDictionary<string, object>
 static Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.GetConstraint(Microsoft.VisualStudio.Composition.Reflection.TypeRef metadataTypeRef, Microsoft.VisualStudio.Composition.Resolver resolver) -> Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint
@@ -505,14 +452,9 @@ static Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.CreateFrom(Syst
 static Microsoft.VisualStudio.Composition.StrongAssemblyIdentity.CreateFrom(string assemblyFile, System.Reflection.AssemblyName assemblyName) -> Microsoft.VisualStudio.Composition.StrongAssemblyIdentity
 static readonly Microsoft.VisualStudio.Composition.CachedCatalog.TextEncoding -> System.Text.Encoding
 static readonly Microsoft.VisualStudio.Composition.DiscoveredParts.Empty -> Microsoft.VisualStudio.Composition.DiscoveredParts
-static readonly Microsoft.VisualStudio.Composition.ExportProvider.EmptyMetadata -> System.Collections.Immutable.ImmutableDictionary<string, object>
-static readonly Microsoft.VisualStudio.Composition.ExportProvider.EmptyObjectArray -> object[]
-static readonly Microsoft.VisualStudio.Composition.ExportProvider.EmptyTypeArray -> System.Type[]
-static readonly Microsoft.VisualStudio.Composition.ExportProvider.NotInstantiablePartLazy -> System.Lazy<object>
 static readonly Microsoft.VisualStudio.Composition.PartCreationPolicyConstraint.NonSharedPartRequired -> Microsoft.VisualStudio.Composition.PartCreationPolicyConstraint
 static readonly Microsoft.VisualStudio.Composition.PartCreationPolicyConstraint.SharedPartRequired -> Microsoft.VisualStudio.Composition.PartCreationPolicyConstraint
 static readonly Microsoft.VisualStudio.Composition.Resolver.DefaultInstance -> Microsoft.VisualStudio.Composition.Resolver
-virtual Microsoft.VisualStudio.Composition.ExportProvider.Dispose(bool disposing) -> void
 virtual Microsoft.VisualStudio.Composition.ExportProvider.GetExports(Microsoft.VisualStudio.Composition.ImportDefinition importDefinition) -> System.Collections.Generic.IEnumerable<Microsoft.VisualStudio.Composition.Export>
 virtual Microsoft.VisualStudio.Composition.PartDiscovery.ThrowOnInvalidExportingMember(System.Reflection.ICustomAttributeProvider member) -> void
 virtual Microsoft.VisualStudio.Composition.PartDiscovery.ThrowOnInvalidImportingMemberOrParameter(System.Reflection.ICustomAttributeProvider member, bool isImportMany) -> void

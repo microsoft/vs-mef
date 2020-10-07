@@ -519,6 +519,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             public IEnumerable<object> GetExportedValues(Type type, string contractName) => throw new NotSupportedException();
 
+            public void ReleaseExport<T>(Lazy<T> export) => this.container.ReleaseExport(export);
+
+            public void ReleaseExports<T>(IEnumerable<Lazy<T>> export) => this.container.ReleaseExports(export);
+
+            public void ReleaseExports<T, TMetadataView>(IEnumerable<Lazy<T, TMetadataView>> export) => this.container.ReleaseExports(export);
+
             public void Dispose()
             {
                 this.container.Dispose();
@@ -663,6 +669,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             public IEnumerable<object> GetExportedValues(Type type, string contractName) => this.container.GetExports(type, contractName);
 
+            void IContainer.ReleaseExport<T>(Lazy<T> export) => throw new NotSupportedException();
+
+            void IContainer.ReleaseExports<T>(IEnumerable<Lazy<T>> export) => throw new NotSupportedException();
+
+            void IContainer.ReleaseExports<T, TMetadataView>(IEnumerable<Lazy<T, TMetadataView>> export) => throw new NotSupportedException();
+
             public void Dispose()
             {
                 this.container.Dispose();
@@ -752,6 +764,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
 
             public IEnumerable<object> GetExportedValues(Type type, string contractName) => this.container.GetExportedValues(type, contractName);
+
+            public void ReleaseExport<T>(Lazy<T> export) => this.container.ReleaseExport(export);
+
+            public void ReleaseExports<T>(IEnumerable<Lazy<T>> export) => this.container.ReleaseExports(export);
+
+            public void ReleaseExports<T, TMetadataView>(IEnumerable<Lazy<T, TMetadataView>> export) => this.container.ReleaseExports(export);
 
             public void Dispose()
             {

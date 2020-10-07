@@ -71,9 +71,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(DisposableNonSharedPart), typeof(UninstantiatedNonSharedPart), typeof(NonSharedPartThatImportsDisposableNonSharedPart))]
-        public void DisposableNonSharedPartDisposedWithContainerAfterImportToAnotherPart(IContainer container)
+        public void DisposableNonSharedPartDisposedWithContainerAfterImportToANonSharedPart(IContainer container)
         {
             var part = container.GetExportedValue<NonSharedPartThatImportsDisposableNonSharedPart>();
+            Assert.False(part.ImportOfDisposableNonSharedPart.IsDisposed);
+            container.Dispose();
+            Assert.True(part.ImportOfDisposableNonSharedPart.IsDisposed);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(DisposableNonSharedPart), typeof(UninstantiatedNonSharedPart), typeof(SharedPartThatImportsDisposableNonSharedPart))]
+        public void DisposableNonSharedPartDisposedWithContainerAfterImportToASharedPart(IContainer container)
+        {
+            var part = container.GetExportedValue<SharedPartThatImportsDisposableNonSharedPart>();
             Assert.False(part.ImportOfDisposableNonSharedPart.IsDisposed);
             container.Dispose();
             Assert.True(part.ImportOfDisposableNonSharedPart.IsDisposed);
@@ -94,6 +103,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Export]
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class NonSharedPartThatImportsDisposableNonSharedPart
+        {
+            [Import, MefV1.Import]
+            public DisposableNonSharedPart ImportOfDisposableNonSharedPart { get; set; }
+        }
+
+        [Export, Shared]
+        [MefV1.Export]
+        public class SharedPartThatImportsDisposableNonSharedPart
         {
             [Import, MefV1.Import]
             public DisposableNonSharedPart ImportOfDisposableNonSharedPart { get; set; }
