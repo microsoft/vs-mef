@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Composition
             if (type != null && type.GetTypeInfo().IsGenericType)
             {
                 var typeDefinition = type.GetGenericTypeDefinition();
-                if (typeDefinition.FullName.StartsWith(ExportFactoryV1FullName))
+                if (typeDefinition.FullName?.StartsWith(ExportFactoryV1FullName) ?? false)
                 {
                     return true;
                 }
@@ -37,12 +37,15 @@ namespace Microsoft.VisualStudio.Composition
 
         internal static bool IsExportFactoryTypeV1(this TypeRef type)
         {
-            int arity = type?.GenericTypeParameterCount + type?.GenericTypeArguments.Length ?? 0;
-            if (arity > 0 && arity <= 2)
+            if (type is object)
             {
-                if (type.FullName.StartsWith(ExportFactoryV1FullName))
+                int arity = type.GenericTypeParameterCount + type.GenericTypeArguments.Length;
+                if (arity > 0 && arity <= 2)
                 {
-                    return true;
+                    if (type.FullName?.StartsWith(ExportFactoryV1FullName) ?? false)
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -54,7 +57,7 @@ namespace Microsoft.VisualStudio.Composition
             if (type != null && type.GetTypeInfo().IsGenericType)
             {
                 var typeDefinition = type.GetGenericTypeDefinition();
-                if (typeDefinition.FullName.StartsWith(ExportFactoryV2FullName))
+                if (typeDefinition.FullName?.StartsWith(ExportFactoryV2FullName) ?? false)
                 {
                     return true;
                 }
@@ -65,12 +68,15 @@ namespace Microsoft.VisualStudio.Composition
 
         internal static bool IsExportFactoryTypeV2(this TypeRef type)
         {
-            int arity = type?.GenericTypeParameterCount + type?.GenericTypeArguments.Length ?? 0;
-            if (arity > 0 && arity <= 2)
+            if (type is object)
             {
-                if (type.FullName.StartsWith(ExportFactoryV2FullName))
+                int arity = type.GenericTypeParameterCount + type.GenericTypeArguments.Length;
+                if (arity > 0 && arity <= 2)
                 {
-                    return true;
+                    if (type.FullName?.StartsWith(ExportFactoryV2FullName) ?? false)
+                    {
+                        return true;
+                    }
                 }
             }
 

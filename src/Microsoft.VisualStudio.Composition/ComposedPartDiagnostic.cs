@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Composition
         {
         }
 
-        public ComposedPartDiagnostic(ComposedPart part, string unformattedMessage, params object[] args)
+        public ComposedPartDiagnostic(ComposedPart part, string unformattedMessage, params object?[] args)
             : this(part, string.Format(CultureInfo.CurrentCulture, unformattedMessage, args))
         {
         }
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.Composition
             this.Message = formattedMessage;
         }
 
-        public ComposedPartDiagnostic(IEnumerable<ComposedPart> parts, string unformattedMessage, params object[] args)
+        public ComposedPartDiagnostic(IEnumerable<ComposedPart> parts, string unformattedMessage, params object?[] args)
             : this(parts, string.Format(CultureInfo.CurrentCulture, unformattedMessage, args))
         {
         }

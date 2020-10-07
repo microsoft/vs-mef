@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             this.assembly = typeof(StrongAssemblyIdentityTests).GetTypeInfo().Assembly;
             this.assemblyName = this.assembly.GetName();
-            this.assemblyPath = new Uri(this.assemblyName.CodeBase).LocalPath;
+            this.assemblyPath = new Uri(this.assemblyName.CodeBase!).LocalPath;
             this.mvid = Guid.NewGuid();
         }
 

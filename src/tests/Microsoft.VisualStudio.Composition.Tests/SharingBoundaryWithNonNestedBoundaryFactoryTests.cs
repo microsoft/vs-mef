@@ -30,24 +30,24 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Root
         {
             [Import, SharingBoundary("A")]
-            public ExportFactory<SharingBoundaryPart> SelfFactory { get; set; }
+            public ExportFactory<SharingBoundaryPart> SelfFactory { get; set; } = null!;
         }
 
         [Export, Shared("A")]
         public class SharingBoundaryPart
         {
             [Import]
-            public ExportFactory<SharingBoundaryPart> SelfFactoryWithoutSharingBoundary { get; set; }
+            public ExportFactory<SharingBoundaryPart> SelfFactoryWithoutSharingBoundary { get; set; } = null!;
 
             [Import]
-            public AnotherSharedPartInBoundaryA AnotherSharedValue { get; set; }
+            public AnotherSharedPartInBoundaryA AnotherSharedValue { get; set; } = null!;
         }
 
         [Export, Shared("A")]
         public class AnotherSharedPartInBoundaryA
         {
             [Import]
-            public SharingBoundaryPart FirstSharedPart { get; set; }
+            public SharingBoundaryPart FirstSharedPart { get; set; } = null!;
         }
     }
 }

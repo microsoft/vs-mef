@@ -51,30 +51,30 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportAnyAsAnyPart
         {
             [Import(RequiredCreationPolicy = CreationPolicy.Any)]
-            public ExportWithAnyCreationPolicy ImportAnyAsAny { get; set; }
+            public ExportWithAnyCreationPolicy ImportAnyAsAny { get; set; } = null!;
 
             [Import]
-            public ExportWithAnyCreationPolicy ImportAnyAsDefault { get; set; }
+            public ExportWithAnyCreationPolicy ImportAnyAsDefault { get; set; } = null!;
 
             [Import(RequiredCreationPolicy = CreationPolicy.Any)]
-            public ExportWithDefaultCreationPolicy ImportDefaultAsAny { get; set; }
+            public ExportWithDefaultCreationPolicy ImportDefaultAsAny { get; set; } = null!;
 
             [Import]
-            public ExportWithDefaultCreationPolicy ImportDefaultAsDefault { get; set; }
+            public ExportWithDefaultCreationPolicy ImportDefaultAsDefault { get; set; } = null!;
         }
 
         [Export, PartCreationPolicy(CreationPolicy.NonShared)]
         public class ImportAnyAsSharedPart
         {
             [Import(RequiredCreationPolicy = CreationPolicy.Shared)]
-            public ExportWithAnyCreationPolicy ImportingProperty { get; set; }
+            public ExportWithAnyCreationPolicy ImportingProperty { get; set; } = null!;
         }
 
         [Export, PartCreationPolicy(CreationPolicy.NonShared)]
         public class ImportAnyAsNonSharedPart
         {
             [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
-            public ExportWithAnyCreationPolicy ImportingProperty { get; set; }
+            public ExportWithAnyCreationPolicy ImportingProperty { get; set; } = null!;
         }
 
         #endregion
@@ -118,28 +118,28 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportSharedAsNonSharedPart // Invalid combination test
         {
             [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
-            public ExportWithSharedCreationPolicy ImportingProperty { get; set; }
+            public ExportWithSharedCreationPolicy ImportingProperty { get; set; } = null!;
         }
 
         [Export, PartCreationPolicy(CreationPolicy.NonShared)]
         public class ImportSharedAsNonSharedOptionalPart
         {
             [Import(AllowDefault = true, RequiredCreationPolicy = CreationPolicy.NonShared)]
-            public ExportWithSharedCreationPolicy ImportingProperty { get; set; }
+            public ExportWithSharedCreationPolicy ImportingProperty { get; set; } = null!;
         }
 
         [Export, PartCreationPolicy(CreationPolicy.NonShared)]
         public class ImportSharedAsSharedPart
         {
             [Import(RequiredCreationPolicy = CreationPolicy.Shared)]
-            public ExportWithSharedCreationPolicy ImportingProperty { get; set; }
+            public ExportWithSharedCreationPolicy ImportingProperty { get; set; } = null!;
         }
 
         [Export, PartCreationPolicy(CreationPolicy.NonShared)]
         public class ImportSharedAsAnyPart
         {
             [Import(RequiredCreationPolicy = CreationPolicy.Any)]
-            public ExportWithSharedCreationPolicy ImportingProperty { get; set; }
+            public ExportWithSharedCreationPolicy ImportingProperty { get; set; } = null!;
         }
 
         #endregion
@@ -183,28 +183,28 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportNonSharedAsSharedPart // Invalid combination test
         {
             [Import(RequiredCreationPolicy = CreationPolicy.Shared)]
-            public ExportWithNonSharedCreationPolicy ImportingProperty { get; set; }
+            public ExportWithNonSharedCreationPolicy ImportingProperty { get; set; } = null!;
         }
 
         [Export, PartCreationPolicy(CreationPolicy.NonShared)]
         public class ImportNonSharedAsSharedOptionalPart
         {
             [Import(AllowDefault = true, RequiredCreationPolicy = CreationPolicy.Shared)]
-            public ExportWithNonSharedCreationPolicy ImportingProperty { get; set; }
+            public ExportWithNonSharedCreationPolicy ImportingProperty { get; set; } = null!;
         }
 
         [Export, PartCreationPolicy(CreationPolicy.NonShared)]
         public class ImportNonSharedAsNonSharedPart
         {
             [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
-            public ExportWithNonSharedCreationPolicy ImportingProperty { get; set; }
+            public ExportWithNonSharedCreationPolicy ImportingProperty { get; set; } = null!;
         }
 
         [Export, PartCreationPolicy(CreationPolicy.NonShared)]
         public class ImportNonSharedAsAnyPart
         {
             [Import(RequiredCreationPolicy = CreationPolicy.Any)]
-            public ExportWithNonSharedCreationPolicy ImportingProperty { get; set; }
+            public ExportWithNonSharedCreationPolicy ImportingProperty { get; set; } = null!;
         }
 
         #endregion
@@ -232,17 +232,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportExportFactoryWithFilteringExportsPart
         {
             [Import]
-            public ExportFactory<object> Factory { get; set; }
+            public ExportFactory<object> Factory { get; set; } = null!;
         }
 
         [Export, PartCreationPolicy(CreationPolicy.NonShared)]
         public class ImportOneWithFilteringExportsPart
         {
             [Import(RequiredCreationPolicy = CreationPolicy.NonShared)]
-            public object NonShared { get; set; }
+            public object NonShared { get; set; } = null!;
 
             [Import(RequiredCreationPolicy = CreationPolicy.Shared)]
-            public object Shared { get; set; }
+            public object Shared { get; set; } = null!;
         }
 
         #endregion

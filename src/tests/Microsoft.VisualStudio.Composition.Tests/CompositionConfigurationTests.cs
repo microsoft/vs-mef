@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public void Create()
         {
-            Assert.Throws<ArgumentNullException>(() => ComposableCatalog.Create(null));
+            Assert.Throws<ArgumentNullException>(() => ComposableCatalog.Create(null!));
 
             Assert.NotNull(ComposableCatalog.Create(Resolver.DefaultInstance));
         }

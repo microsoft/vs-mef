@@ -46,16 +46,16 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportOneWithContraintPart
         {
             [Import("Common"), ImportMetadataConstraint("Name", "First")]
-            public object FirstByOne { get; set; }
+            public object FirstByOne { get; set; } = null!;
 
             [ImportMany("Common"), ImportMetadataConstraint("Name", "Second")]
-            public ICollection<object> SecondByMany { get; set; }
+            public ICollection<object> SecondByMany { get; set; } = null!;
 
             [ImportMany("Common"), ImportMetadataConstraint("Number", "Odd")]
-            public ICollection<object> OddNumberedExports { get; set; }
+            public ICollection<object> OddNumberedExports { get; set; } = null!;
 
             [ImportMany("Common")]
-            public ICollection<object> UnconstrainedMany { get; set; }
+            public ICollection<object> UnconstrainedMany { get; set; } = null!;
         }
 
         [Export("Common", typeof(object))]

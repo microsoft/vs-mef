@@ -5,6 +5,7 @@ namespace Microsoft.VisualStudio.Composition
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -29,9 +30,9 @@ namespace Microsoft.VisualStudio.Composition
         /// The underlying metadata, which may be partially translated since value translation may choose
         /// to persist the translated result.
         /// </summary>
-        protected ImmutableDictionary<string, object> underlyingMetadata;
+        protected ImmutableDictionary<string, object?> underlyingMetadata;
 
-        internal LazyMetadataWrapper(ImmutableDictionary<string, object> metadata, Direction direction, Resolver resolver)
+        internal LazyMetadataWrapper(ImmutableDictionary<string, object?> metadata, Direction direction, Resolver resolver)
         {
             Requires.NotNull(metadata, nameof(metadata));
             Requires.NotNull(resolver, nameof(resolver));
@@ -66,16 +67,16 @@ namespace Microsoft.VisualStudio.Composition
             get { return this.underlyingMetadata.Keys; }
         }
 
-        ICollection<string> IDictionary<string, object>.Keys
+        ICollection<string> IDictionary<string, object?>.Keys
         {
             get
             {
-                IDictionary<string, object> metadata = this.underlyingMetadata;
+                IDictionary<string, object?> metadata = this.underlyingMetadata;
                 return metadata.Keys;
             }
         }
 
-        public IEnumerable<object> Values
+        public IEnumerable<object?> Values
         {
             get
             {
@@ -85,7 +86,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        ICollection<object> IDictionary<string, object>.Values
+        ICollection<object?> IDictionary<string, object?>.Values
         {
             get
             {
@@ -103,7 +104,7 @@ namespace Microsoft.VisualStudio.Composition
             get { return true; }
         }
 
-        public object this[string key]
+        public object? this[string key]
         {
             get { return this.SubstituteValueIfRequired(key, this.underlyingMetadata[key]); }
             set { throw new NotSupportedException(); }
@@ -114,9 +115,9 @@ namespace Microsoft.VisualStudio.Composition
             return this.underlyingMetadata.ContainsKey(key);
         }
 
-        public bool TryGetValue(string key, out object value)
+        public bool TryGetValue(string key, out object? value)
         {
-            object underlyingValue;
+            object? underlyingValue;
             if (this.underlyingMetadata.TryGetValue(key, out underlyingValue))
             {
                 value = this.SubstituteValueIfRequired(key, underlyingValue);
@@ -129,10 +130,10 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
+        public IEnumerator<KeyValuePair<string, object?>> GetEnumerator()
         {
             var enumerable = from pair in this.underlyingMetadata
-                             select new KeyValuePair<string, object>(pair.Key, this.SubstituteValueIfRequired(pair.Key, pair.Value));
+                             select new KeyValuePair<string, object?>(pair.Key, this.SubstituteValueIfRequired(pair.Key, pair.Value));
             return enumerable.GetEnumerator();
         }
 
@@ -141,7 +142,7 @@ namespace Microsoft.VisualStudio.Composition
             return this.GetEnumerator();
         }
 
-        public void Add(string key, object value)
+        public void Add(string key, object? value)
         {
             throw new NotSupportedException();
         }
@@ -151,7 +152,7 @@ namespace Microsoft.VisualStudio.Composition
             throw new NotSupportedException();
         }
 
-        public void Add(KeyValuePair<string, object> item)
+        public void Add(KeyValuePair<string, object?> item)
         {
             throw new NotSupportedException();
         }
@@ -161,9 +162,9 @@ namespace Microsoft.VisualStudio.Composition
             throw new NotSupportedException();
         }
 
-        public bool Contains(KeyValuePair<string, object> item)
+        public bool Contains(KeyValuePair<string, object?> item)
         {
-            object value;
+            object? value;
             if (this.underlyingMetadata.TryGetValue(item.Key, out value))
             {
                 value = this.SubstituteValueIfRequired(item.Key, value);
@@ -173,7 +174,7 @@ namespace Microsoft.VisualStudio.Composition
             return false;
         }
 
-        public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex)
+        public void CopyTo(KeyValuePair<string, object?>[] array, int arrayIndex)
         {
             foreach (var pair in this)
             {
@@ -181,12 +182,13 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        public bool Remove(KeyValuePair<string, object> item)
+        public bool Remove(KeyValuePair<string, object?> item)
         {
             throw new NotSupportedException();
         }
 
-        internal static IReadOnlyDictionary<string, object> TryUnwrap(IReadOnlyDictionary<string, object> metadata)
+        [return: NotNullIfNotNull("metadata")]
+        internal static IReadOnlyDictionary<string, object?>? TryUnwrap(IReadOnlyDictionary<string, object?>? metadata)
         {
             var self = metadata as LazyMetadataWrapper;
             if (self != null)
@@ -205,7 +207,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="resolver">Type resolver to use.</param>
         /// <param name="value">out param for the TypeRef associated with the given key.</param>
         /// <returns>Either a TypeRef representing the type of the underlying value or a TypeRef[] if the underlying value was an array.</returns>
-        internal static bool TryGetLoadSafeValueTypeRef(IReadOnlyDictionary<string, object> metadata, string key, Resolver resolver, out object value)
+        internal static bool TryGetLoadSafeValueTypeRef(IReadOnlyDictionary<string, object?> metadata, string key, Resolver resolver, out object? value)
         {
             Requires.NotNull(metadata, nameof(metadata));
 
@@ -214,7 +216,7 @@ namespace Microsoft.VisualStudio.Composition
                 metadata = lazyMetadata.underlyingMetadata;
             }
 
-            if (!metadata.TryGetValue(key, out var innerValue))
+            if (!metadata.TryGetValue(key, out object? innerValue))
             {
                 value = null;
                 return false;
@@ -236,7 +238,7 @@ namespace Microsoft.VisualStudio.Composition
             return true;
         }
 
-        internal static IReadOnlyDictionary<string, object> Rewrap(IReadOnlyDictionary<string, object> originalWrapper, IReadOnlyDictionary<string, object> updatedMetadata)
+        internal static IReadOnlyDictionary<string, object?> Rewrap(IReadOnlyDictionary<string, object?> originalWrapper, IReadOnlyDictionary<string, object?> updatedMetadata)
         {
             var self = originalWrapper as LazyMetadataWrapper;
             if (self != null)
@@ -247,12 +249,12 @@ namespace Microsoft.VisualStudio.Composition
             return updatedMetadata;
         }
 
-        protected virtual LazyMetadataWrapper Clone(LazyMetadataWrapper oldVersion, IReadOnlyDictionary<string, object> newMetadata)
+        protected virtual LazyMetadataWrapper Clone(LazyMetadataWrapper oldVersion, IReadOnlyDictionary<string, object?> newMetadata)
         {
             return new LazyMetadataWrapper(newMetadata.ToImmutableDictionary(), oldVersion.direction, this.resolver);
         }
 
-        protected object SubstituteValueIfRequired(string key, object value)
+        protected object? SubstituteValueIfRequired(string key, object? value)
         {
             Requires.NotNull(key, nameof(key));
 
@@ -274,7 +276,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(value, nameof(value));
 
-            ISubstitutedValue substitutedValue;
+            ISubstitutedValue? substitutedValue;
             switch (this.direction)
             {
                 case Direction.ToSubstitutedValue:
@@ -328,7 +330,7 @@ namespace Microsoft.VisualStudio.Composition
 
             internal int RawValue { get; private set; }
 
-            internal static bool TrySubstituteValue(object value, Resolver resolver, out ISubstitutedValue substitutedValue)
+            internal static bool TrySubstituteValue(object value, Resolver resolver, [NotNullWhen(true)] out ISubstitutedValue? substitutedValue)
             {
                 Requires.NotNull(resolver, nameof(resolver));
 
@@ -346,7 +348,7 @@ namespace Microsoft.VisualStudio.Composition
                 return false;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (obj == null)
                 {
@@ -358,7 +360,7 @@ namespace Microsoft.VisualStudio.Composition
                     return this.Equals((Enum32Substitution)obj);
                 }
 
-                ISubstitutedValue other;
+                ISubstitutedValue? other;
                 if (TrySubstituteValue(obj, this.EnumType.Resolver, out other))
                 {
                     return this.Equals((Enum32Substitution)other);
@@ -372,7 +374,7 @@ namespace Microsoft.VisualStudio.Composition
                 return this.EnumType.GetHashCode() ^ this.RawValue;
             }
 
-            public bool Equals(Enum32Substitution other)
+            public bool Equals(Enum32Substitution? other)
             {
                 if (other == null)
                 {
@@ -402,7 +404,7 @@ namespace Microsoft.VisualStudio.Composition
                 get { return this.TypeRef.Resolve(); }
             }
 
-            internal static bool TrySubstituteValue(object value, Resolver resolver, out ISubstitutedValue substitutedValue)
+            internal static bool TrySubstituteValue(object value, Resolver resolver, [NotNullWhen(true)] out ISubstitutedValue? substitutedValue)
             {
                 if (value is Type)
                 {
@@ -419,7 +421,7 @@ namespace Microsoft.VisualStudio.Composition
                 return this.TypeRef.GetHashCode();
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (obj == null)
                 {
@@ -431,7 +433,7 @@ namespace Microsoft.VisualStudio.Composition
                     return this.Equals((TypeSubstitution)obj);
                 }
 
-                ISubstitutedValue other;
+                ISubstitutedValue? other;
                 if (TrySubstituteValue(obj, this.TypeRef.Resolver, out other))
                 {
                     return this.Equals((TypeSubstitution)other);
@@ -440,7 +442,7 @@ namespace Microsoft.VisualStudio.Composition
                 return false;
             }
 
-            public bool Equals(TypeSubstitution other)
+            public bool Equals(TypeSubstitution? other)
             {
                 if (other == null)
                 {
@@ -473,7 +475,7 @@ namespace Microsoft.VisualStudio.Composition
                 get { return this.TypeRefArray.Select(ResolverExtensions.Resolve).ToArray(); }
             }
 
-            internal static bool TrySubstituteValue(object value, Resolver resolver, out ISubstitutedValue substitutedValue)
+            internal static bool TrySubstituteValue(object value, Resolver resolver, [NotNullWhen(true)] out ISubstitutedValue? substitutedValue)
             {
                 if (value is Type[])
                 {
@@ -490,7 +492,7 @@ namespace Microsoft.VisualStudio.Composition
                 return this.TypeRefArray.Count > 0 ? this.TypeRefArray[0].GetHashCode() : 0;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
             {
                 if (obj == null)
                 {
@@ -502,7 +504,7 @@ namespace Microsoft.VisualStudio.Composition
                     return this.Equals((TypeArraySubstitution)obj);
                 }
 
-                ISubstitutedValue other;
+                ISubstitutedValue? other;
                 if (TrySubstituteValue(obj, this.resolver, out other))
                 {
                     return this.Equals((TypeArraySubstitution)other);
@@ -511,7 +513,7 @@ namespace Microsoft.VisualStudio.Composition
                 return false;
             }
 
-            public bool Equals(TypeArraySubstitution other)
+            public bool Equals(TypeArraySubstitution? other)
             {
                 if (other == null)
                 {

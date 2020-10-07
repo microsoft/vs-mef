@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Export(typeof(IEquatable<Exporter>))]
         public class Exporter : IEquatable<Exporter>
         {
-            public bool Equals(Exporter other)
+            public bool Equals(Exporter? other)
             {
                 throw new NotImplementedException();
             }
@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Importer
         {
             [Import]
-            public IEquatable<Exporter> ImportingProperty { get; set; }
+            public IEquatable<Exporter> ImportingProperty { get; set; } = null!;
         }
 
         #endregion
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Root
         {
             [Import, SharingBoundary("Scope1")]
-            public ExportFactory<PartInScope1> ScopeFactory { get; set; }
+            public ExportFactory<PartInScope1> ScopeFactory { get; set; } = null!;
         }
 
         [Export, Shared("Scope1")]

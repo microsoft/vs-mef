@@ -6,6 +6,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.InteropServices;
@@ -66,7 +67,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public MethodBase MethodBase => (MethodBase)this.MemberInfo;
 
-        public MethodBase MethodBaseNoResolve => (MethodBase)this.MemberInfoNoResolve;
+        public MethodBase? MethodBaseNoResolve => (MethodBase?)this.MemberInfoNoResolve;
 
         protected override MemberInfo Resolve() => ResolverExtensions.Resolve(this);
 
@@ -76,7 +77,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public ImmutableArray<TypeRef> GenericMethodArguments { get; }
 
-        public static MethodRef Get(MethodBase method, Resolver resolver) => method != null ? new MethodRef(method, resolver) : null;
+        [return: NotNullIfNotNull("method")]
+        public static MethodRef? Get(MethodBase? method, Resolver resolver) => method != null ? new MethodRef(method, resolver) : null;
 
         internal override void GetInputAssemblies(ISet<AssemblyName> assemblies)
         {
@@ -100,6 +102,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public override int GetHashCode() => this.DeclaringType.GetHashCode() + this.Name.GetHashCode();
 
-        public bool Equals(MethodRef other) => this.Equals((MemberRef)other);
+        public bool Equals(MethodRef? other) => this.Equals((MemberRef?)other);
     }
 }

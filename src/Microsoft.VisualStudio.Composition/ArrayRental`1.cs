@@ -15,8 +15,8 @@ namespace Microsoft.VisualStudio.Composition
 
         internal static Rental<T[]> Get(int length)
         {
-            Stack<T[]> stack;
-            if (!Arrays.Value.TryGetValue(length, out stack))
+            Stack<T[]>? stack;
+            if (!Arrays.Value!.TryGetValue(length, out stack))
             {
                 Arrays.Value.Add(length, stack = new Stack<T[]>());
             }

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net472;netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks>net472;netcoreapp2.1;netcoreapp3.1</TargetFrameworks>
     <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.Tests.ruleset</CodeAnalysisRuleSet>
     <NoWarn>$(NoWarn);CS1762</NoWarn>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -12,6 +12,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
     <PackageReference Include="DiffPlex" Version="1.6.3" />
+    <PackageReference Include="Nullable" Version="1.3.0" PrivateAssets="all" />
     <PackageReference Include="Xunit" Version="2.2.0" />
     <PackageReference Include="xunit.extensibility.execution" Version="2.2.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3" />
@@ -56,7 +57,7 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <Target Name="SuppressCopyOfMissingAssembly" BeforeTargets="PrepareForRun;_CopyFilesMarkedCopyLocal;" Condition=" '$(TargetFramework)' != 'netcoreapp2.1' ">
+  <Target Name="SuppressCopyOfMissingAssembly" BeforeTargets="PrepareForRun;_CopyFilesMarkedCopyLocal;" Condition=" '$(TargetFramework)' == 'net472' ">
     <ItemGroup>
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition=" '%(FileName)' == 'Microsoft.VisualStudio.Composition.MissingAssemblyTests' " />
     </ItemGroup>

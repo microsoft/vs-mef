@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Composition
                     && metadataType.GetTypeInfo().GetMembers().All(IsPropertyRelated);
             }
 
-            public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
+            public object CreateProxy(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultValues, Type metadataViewType)
             {
                 var factory = MetadataViewGenerator.GetMetadataViewFactory(metadataViewType);
                 return factory(metadata, defaultValues);

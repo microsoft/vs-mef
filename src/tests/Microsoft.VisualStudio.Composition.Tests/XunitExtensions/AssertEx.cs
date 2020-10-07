@@ -15,7 +15,7 @@
     /// </remarks>
     internal static class AssertEx
     {
-        internal static void False(bool condition, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
+        internal static void False(bool condition, [CallerFilePath] string? filePath = null, [CallerMemberName] string? memberName = null, [CallerLineNumber] int lineNumber = 0)
         {
             if (condition)
             {
@@ -24,7 +24,7 @@
             }
         }
 
-        internal static void True(bool condition, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
+        internal static void True(bool condition, [CallerFilePath] string? filePath = null, [CallerMemberName] string? memberName = null, [CallerLineNumber] int lineNumber = 0)
         {
             if (!condition)
             {
@@ -33,7 +33,7 @@
             }
         }
 
-        internal static void NotNull(object reference, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
+        internal static void NotNull(object? reference, [CallerFilePath] string? filePath = null, [CallerMemberName] string? memberName = null, [CallerLineNumber] int lineNumber = 0)
         {
             if (reference == null)
             {
@@ -42,7 +42,7 @@
             }
         }
 
-        internal static void NotEqual<T>(T expected, T actual, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
+        internal static void NotEqual<T>(T expected, T actual, [CallerFilePath] string? filePath = null, [CallerMemberName] string? memberName = null, [CallerLineNumber] int lineNumber = 0)
             where T : IEquatable<T>
         {
             if (EqualityComparer<T>.Default.Equals(expected, actual))
@@ -52,7 +52,7 @@
             }
         }
 
-        internal static void Equal<T>(T expected, T actual, [CallerFilePath] string filePath = null, [CallerMemberName] string memberName = null, [CallerLineNumber] int lineNumber = 0)
+        internal static void Equal<T>(T expected, T actual, [CallerFilePath] string? filePath = null, [CallerMemberName] string? memberName = null, [CallerLineNumber] int lineNumber = 0)
             where T : IEquatable<T>
         {
             if (!EqualityComparer<T>.Default.Equals(expected, actual))

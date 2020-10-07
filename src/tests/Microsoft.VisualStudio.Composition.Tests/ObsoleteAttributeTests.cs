@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 set { this.NonObsoleteAccessor = value; }
             }
 
-            public SomeExportedValue NonObsoleteAccessor { get; set; }
+            public SomeExportedValue NonObsoleteAccessor { get; set; } = null!;
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(PartWithObsoleteExportingField))]
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void ObsoleteImportingField(IContainer container)
         {
             var export = container.GetExportedValue<PartWithObsoleteImportingField>();
-            Assert.NotNull(typeof(PartWithObsoleteImportingField).GetTypeInfo().GetField("ObsoleteField").GetValue(export));
+            Assert.NotNull(typeof(PartWithObsoleteImportingField).GetTypeInfo().GetField("ObsoleteField")!.GetValue(export));
         }
 
         [MefV1.Export]
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Obsolete("This part is activated by MEF. You should not call this directly.", true)]
             [MefV1.Import]
-            public SomeExportedValue ObsoleteField;
+            public SomeExportedValue ObsoleteField = null!;
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(PartWithObsoleteExportingMethod))]

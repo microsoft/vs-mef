@@ -51,10 +51,10 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
         public void ThrowTypeLoadExceptionWhenArgIsNull()
         {
             var testGuid = new Guid("00000000-0000-0000-0000-000000000001");
-            var loadSystemAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => assembly.FullName.Contains("mscorlib"));
+            var loadSystemAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => assembly.FullName!.Contains("mscorlib"));
             Assert.NotNull(loadSystemAssembly);
 
-            var loadedAssemblyName = new AssemblyName(loadSystemAssembly.FullName)
+            var loadedAssemblyName = new AssemblyName(loadSystemAssembly.FullName!)
             {
                 CodeBase = loadSystemAssembly.CodeBase,
             };
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
 
             var typeRefNullableArgument = TypeRef.Get(TestUtilities.Resolver, assemblyIdentity, 0x02000001, "Fake assembly", TypeRefFlags.None, 0, ImmutableArray<TypeRef>.Empty, false, ImmutableArray<TypeRef>.Empty, null);
 
-            var typeRef = TypeRef.Get(TestUtilities.Resolver, assemblyIdentity, 0x02000001, typeof(Dictionary<,>).FullName, TypeRefFlags.None, 0, new[] { typeRefNullableArgument }.ToImmutableArray(), false, new[] { typeRefNullableArgument }.ToImmutableArray(), null);
+            var typeRef = TypeRef.Get(TestUtilities.Resolver, assemblyIdentity, 0x02000001, typeof(Dictionary<,>).FullName!, TypeRefFlags.None, 0, new[] { typeRefNullableArgument }.ToImmutableArray(), false, new[] { typeRefNullableArgument }.ToImmutableArray(), null);
 
             var actualException = Assert.Throws<TypeLoadException>(() => typeRef.Resolve());
             Assert.True(actualException.Message.Contains("Could not load type 'Fake assembly"));

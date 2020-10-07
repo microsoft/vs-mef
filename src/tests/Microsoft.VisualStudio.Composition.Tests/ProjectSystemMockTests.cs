@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ProjectService
         {
             [Import, SharingBoundary("Project")]
-            public ExportFactory<Project> ProjectFactory { get; set; }
+            public ExportFactory<Project> ProjectFactory { get; set; } = null!;
 
             public Export<Project> CreateProject(params string[] capabilities)
             {
@@ -147,21 +147,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Project : IDisposable
         {
             [Import]
-            public ProjectService ProjectService { get; set; }
+            public ProjectService ProjectService { get; set; } = null!;
 
             [Import, SharingBoundary("ConfiguredProject")]
-            public ExportFactory<ConfiguredProject> ConfiguredProjectFactory { get; set; }
+            public ExportFactory<ConfiguredProject> ConfiguredProjectFactory { get; set; } = null!;
 
             [Import]
-            public ProjectActiveConfiguration ActiveConfiguration { get; set; }
+            public ProjectActiveConfiguration ActiveConfiguration { get; set; } = null!;
 
             [Import]
-            public ActiveConfiguredProjectSubscriptionService ActiveConfiguredProjectSubscriptionService { get; set; }
+            public ActiveConfiguredProjectSubscriptionService ActiveConfiguredProjectSubscriptionService { get; set; } = null!;
 
             [ImportMany("ProjectExtension")]
-            public Lazy<object, IDictionary<string, object>>[] Extensions { get; set; }
+            public Lazy<object, IDictionary<string, object>>[] Extensions { get; set; } = null!;
 
-            public string[] Capabilities { get; set; }
+            public string[]? Capabilities { get; set; }
 
             internal int DisposalCount { get; private set; }
 
@@ -185,7 +185,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ProjectActiveConfiguration : IDisposable
         {
             [Import]
-            public Project Project { get; set; }
+            public Project Project { get; set; } = null!;
 
             internal int DisposalCount { get; private set; }
 
@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ActiveConfiguredProject<T>
         {
             [Import]
-            private Project Project { get; set; }
+            private Project Project { get; set; } = null!;
 
             public T Value
             {
@@ -211,13 +211,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ActiveConfiguredProjectSubscriptionService
         {
             [Import]
-            internal ActiveConfiguredProject<Helper> ImportHelper { get; set; }
+            internal ActiveConfiguredProject<Helper> ImportHelper { get; set; } = null!;
 
             [Export]
             internal class Helper
             {
                 [Import]
-                internal ProjectSubscriptionService ProjectSubscriptionService { get; set; }
+                internal ProjectSubscriptionService ProjectSubscriptionService { get; set; } = null!;
             }
         }
 
@@ -225,10 +225,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ConfiguredProject : IDisposable
         {
             [Import]
-            public Project Project { get; set; }
+            public Project Project { get; set; } = null!;
 
             [Import]
-            public ProjectSubscriptionService SubscriptionService { get; set; }
+            public ProjectSubscriptionService SubscriptionService { get; set; } = null!;
 
             internal int DisposalCount { get; private set; }
 

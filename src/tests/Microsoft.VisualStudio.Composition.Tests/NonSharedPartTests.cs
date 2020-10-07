@@ -28,10 +28,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class EnumerableImportManyOfNonSharedPart
         {
             [ImportMany, MefV1.ImportMany]
-            public IEnumerable<NonSharedPart> NonSharedParts { get; set; }
+            public IEnumerable<NonSharedPart> NonSharedParts { get; set; } = null!;
 
             [ImportMany, MefV1.ImportMany]
-            public IEnumerable<Lazy<NonSharedPart>> LazyNonSharedParts { get; set; }
+            public IEnumerable<Lazy<NonSharedPart>> LazyNonSharedParts { get; set; } = null!;
         }
 
         [Export]

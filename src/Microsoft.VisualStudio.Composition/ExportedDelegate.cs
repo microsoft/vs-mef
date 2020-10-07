@@ -8,10 +8,10 @@ namespace Microsoft.VisualStudio.Composition
 
     public class ExportedDelegate
     {
-        private readonly object target;
+        private readonly object? target;
         private readonly MethodInfo method;
 
-        public ExportedDelegate(object target, MethodInfo method)
+        public ExportedDelegate(object? target, MethodInfo method)
         {
             Requires.NotNull(method, nameof(method));
 
@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Composition
             this.method = method;
         }
 
-        public Delegate CreateDelegate(Type delegateType)
+        public Delegate? CreateDelegate(Type delegateType)
         {
             Requires.NotNull(delegateType, nameof(delegateType));
 

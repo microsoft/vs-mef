@@ -34,31 +34,31 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Root
         {
             [Import, SharingBoundary("Boundary1")]
-            public ExportFactory<Boundary1Part> Boundary1Factory { get; set; }
+            public ExportFactory<Boundary1Part> Boundary1Factory { get; set; } = null!;
         }
 
         [Export, Shared("Boundary1")]
         public class Boundary1Part
         {
             [Import, SharingBoundary("Boundary2")]
-            public ExportFactory<Boundary2Part> Boundary2Factory { get; set; }
+            public ExportFactory<Boundary2Part> Boundary2Factory { get; set; } = null!;
         }
 
         [Export, Shared("Boundary2")]
         public class Boundary2Part
         {
             [Import]
-            public Boundary1Part Boundary1Part { get; set; }
+            public Boundary1Part Boundary1Part { get; set; } = null!;
 
             [Import]
-            public V1PartBelongingToBoundary2 V1Part { get; set; }
+            public V1PartBelongingToBoundary2 V1Part { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class V1PartBelongingToBoundary2
         {
             [MefV1.Import]
-            public Boundary2Part Boundary2Part { get; set; }
+            public Boundary2Part Boundary2Part { get; set; } = null!;
         }
     }
 }

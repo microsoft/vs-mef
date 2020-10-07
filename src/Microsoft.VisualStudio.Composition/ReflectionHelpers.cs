@@ -101,6 +101,7 @@ namespace Microsoft.VisualStudio.Composition
                 // http://stackoverflow.com/questions/23075298/how-to-detect-compatibility-between-delegate-types/23088194#23088194
                 try
                 {
+                    Assumes.NotNull(export.ExportingMember);
                     ((MethodInfo)export.ExportingMember).CreateDelegate(receivingTypeRef.ResolvedType, null);
                     return Assignability.Definitely;
                 }
@@ -151,19 +152,20 @@ namespace Microsoft.VisualStudio.Composition
             // We look at each type in the hierarchy for their individual properties.
             // This allows us to find private property setters defined on base classes,
             // which otherwise we are unable to see.
-            var types = new List<Type> { type };
-            if (type.GetTypeInfo().IsInterface)
+            Type? workType = type;
+            var types = new List<Type> { workType };
+            if (workType.GetTypeInfo().IsInterface)
             {
-                types.AddRange(type.GetTypeInfo().ImplementedInterfaces);
+                types.AddRange(workType.GetTypeInfo().ImplementedInterfaces);
             }
             else
             {
-                while (type != null)
+                while (workType != null)
                 {
-                    type = type.GetTypeInfo().BaseType;
-                    if (type != null)
+                    workType = workType.GetTypeInfo().BaseType;
+                    if (workType != null)
                     {
-                        types.Add(type);
+                        types.Add(workType);
                     }
                 }
             }
@@ -178,10 +180,11 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(type, nameof(type));
 
-            while (type != null)
+            Type? workType = type;
+            while (workType != null)
             {
-                yield return type;
-                type = type.GetTypeInfo().BaseType;
+                yield return workType;
+                workType = workType.GetTypeInfo().BaseType;
             }
         }
 
@@ -189,7 +192,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(type, nameof(type));
 
-            for (Type baseType = type; baseType != null; baseType = baseType.GetTypeInfo().BaseType)
+            for (Type? baseType = type; baseType != null; baseType = baseType.GetTypeInfo().BaseType)
             {
                 yield return baseType;
             }
@@ -224,7 +227,7 @@ namespace Microsoft.VisualStudio.Composition
 
             if (exportingMember is PropertyInfo exportingProperty)
             {
-                return (exportingProperty.GetMethod ?? exportingProperty.SetMethod).IsStatic;
+                return (exportingProperty.GetMethod ?? exportingProperty.SetMethod)?.IsStatic ?? false;
             }
 
             if (exportingMember is MethodBase exportingMethodBase)
@@ -301,13 +304,13 @@ namespace Microsoft.VisualStudio.Composition
             return methodInfo.IsPublic && !methodInfo.IsStatic;
         }
 
-        internal static string GetTypeName(Type type, bool genericTypeDefinition, bool evenNonPublic, HashSet<Assembly> relevantAssemblies, HashSet<Type> relevantEmbeddedTypes)
+        internal static string GetTypeName(Type type, bool genericTypeDefinition, bool evenNonPublic, HashSet<Assembly>? relevantAssemblies, HashSet<Type>? relevantEmbeddedTypes)
         {
             Requires.NotNull(type, nameof(type));
 
             if (type.IsArray)
             {
-                return GetTypeName(type.GetElementType(), genericTypeDefinition, evenNonPublic, relevantAssemblies, relevantEmbeddedTypes) + "[]";
+                return GetTypeName(type.GetElementType()!, genericTypeDefinition, evenNonPublic, relevantAssemblies, relevantEmbeddedTypes) + "[]";
             }
 
             if (relevantAssemblies != null)
@@ -354,13 +357,13 @@ namespace Microsoft.VisualStudio.Composition
             else
             {
                 string[] typeArguments = type.GetTypeInfo().GenericTypeArguments.Select(t => GetTypeName(t, false, evenNonPublic, relevantAssemblies, relevantEmbeddedTypes)).ToArray();
-                result += ReplaceBackTickWithTypeArgs(type.DeclaringType == null ? type.FullName : type.Name, typeArguments);
+                result += ReplaceBackTickWithTypeArgs(type.DeclaringType == null ? (type.FullName ?? type.Name) : type.Name, typeArguments);
             }
 
             return result;
         }
 
-        private static void AddEmbeddedInterfaces(Type type, HashSet<Type> relevantEmbeddedTypes, ImmutableStack<Type> observedTypes = null)
+        private static void AddEmbeddedInterfaces(Type type, HashSet<Type> relevantEmbeddedTypes, ImmutableStack<Type>? observedTypes = null)
         {
             Requires.NotNull(type, nameof(type));
             Requires.NotNull(relevantEmbeddedTypes, nameof(relevantEmbeddedTypes));
@@ -380,9 +383,9 @@ namespace Microsoft.VisualStudio.Composition
                     relevantEmbeddedTypes.Add(type);
                 }
 
-                if (type.GetTypeInfo().BaseType != null)
+                if (type.GetTypeInfo().BaseType is { } baseType)
                 {
-                    AddEmbeddedInterfaces(type.GetTypeInfo().BaseType, relevantEmbeddedTypes, observedTypes);
+                    AddEmbeddedInterfaces(baseType, relevantEmbeddedTypes, observedTypes);
                 }
 
                 foreach (Type iface in type.GetTypeInfo().ImplementedInterfaces)
@@ -461,7 +464,7 @@ namespace Microsoft.VisualStudio.Composition
 
             if (typeInfo.IsArray)
             {
-                return IsPublic(typeInfo.GetElementType(), checkGenericTypeArgs);
+                return IsPublic(typeInfo.GetElementType()!, checkGenericTypeArgs);
             }
 
             if (checkGenericTypeArgs && typeInfo.IsGenericType && !typeInfo.IsGenericTypeDefinition)
@@ -489,14 +492,15 @@ namespace Microsoft.VisualStudio.Composition
                 return false;
             }
 
-            while (type != null)
+            Type? workType = type;
+            while (workType != null)
             {
-                if (type == baseClass)
+                if (workType == baseClass)
                 {
                     return true;
                 }
 
-                type = type.GetTypeInfo().BaseType;
+                workType = workType.GetTypeInfo().BaseType;
             }
 
             return false;
@@ -636,7 +640,7 @@ namespace Microsoft.VisualStudio.Composition
             return attribute;
         }
 
-        internal static object Instantiate(this MethodBase ctorOrFactoryMethod, object[] arguments)
+        internal static object Instantiate(this MethodBase ctorOrFactoryMethod, object?[] arguments)
         {
             Requires.NotNull(ctorOrFactoryMethod, nameof(ctorOrFactoryMethod));
 
@@ -646,7 +650,9 @@ namespace Microsoft.VisualStudio.Composition
             }
             else if (ctorOrFactoryMethod is MethodInfo method && method.IsStatic)
             {
-                return method.Invoke(null, arguments);
+                var result = method.Invoke(null, arguments);
+                Assumes.NotNull(result);
+                return result;
             }
             else
             {
@@ -654,7 +660,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        internal static void GetInputAssembliesFromMetadata(ISet<AssemblyName> assemblies, IReadOnlyDictionary<string, object> metadata)
+        internal static void GetInputAssembliesFromMetadata(ISet<AssemblyName> assemblies, IReadOnlyDictionary<string, object?> metadata)
         {
             Requires.NotNull(assemblies, nameof(assemblies));
             Requires.NotNull(metadata, nameof(metadata));
@@ -664,7 +670,7 @@ namespace Microsoft.VisualStudio.Composition
             foreach (var value in metadata.Values.Where(v => v != null))
             {
                 var valueAsType = value as Type;
-                var valueType = value.GetType();
+                var valueType = value!.GetType();
 
                 // Check lazy metadata first, then try to get the type data from the value (if not lazy)
                 if (typeof(LazyMetadataWrapper.Enum32Substitution) == valueType)
@@ -739,7 +745,8 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(type, nameof(type));
 
-            string name = fullName ? type.FullName : type.Name;
+            string? name = fullName ? type.FullName : type.Name;
+            Assumes.NotNull(name);
             if (type.GetTypeInfo().IsGenericType && name.IndexOf('`') >= 0) // simple name may not include ` if parent type is the generic one
             {
                 name = name.Substring(0, name.IndexOf('`'));
@@ -772,7 +779,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(type, nameof(type));
 
-            for (Type baseType = type.GetTypeInfo().BaseType; baseType != null; baseType = baseType.GetTypeInfo().BaseType)
+            for (Type? baseType = type.GetTypeInfo().BaseType; baseType != null; baseType = baseType.GetTypeInfo().BaseType)
             {
                 yield return baseType;
             }

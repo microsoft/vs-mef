@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsExportProvider
         {
             [Import, MefV1.Import]
-            public ExportProvider ExportProvider { get; set; }
+            public ExportProvider ExportProvider { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -73,7 +73,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Export]
             [MefV1.Export]
-            public ExportProvider ExportProvider
+            public ExportProvider? ExportProvider
             {
                 get { return null; }
             }
@@ -121,27 +121,27 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class TopLevelPart
         {
             [Import, SharingBoundary("SubScope")]
-            public ExportFactory<SubScopePart> ScopeFactory { get; set; }
+            public ExportFactory<SubScopePart> ScopeFactory { get; set; } = null!;
 
             [Import]
-            public ExportProvider ExportProvider { get; set; }
+            public ExportProvider ExportProvider { get; set; } = null!;
         }
 
         [Export, Shared("SubScope")]
         public class SubScopePart
         {
             [Import]
-            public ExportProvider ExportProvider { get; set; }
+            public ExportProvider ExportProvider { get; set; } = null!;
 
             [Import(AllowDefault = true)]
-            public OtherSubScopePart OtherPart { get; set; }
+            public OtherSubScopePart OtherPart { get; set; } = null!;
         }
 
         [Export, Shared("SubScope")]
         public class OtherSubScopePart
         {
             [Import]
-            public ExportProvider ExportProvider { get; set; }
+            public ExportProvider ExportProvider { get; set; } = null!;
         }
 
         #endregion
@@ -170,13 +170,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithImportManyExportProvider
         {
             [MefV1.ImportMany]
-            public List<ExportProvider> ExportProvidersPublicList { get; set; }
+            public List<ExportProvider> ExportProvidersPublicList { get; set; } = null!;
 
             [MefV1.ImportMany]
-            public ExportProvider[] ExportProvidersPublicArray { get; set; }
+            public ExportProvider[] ExportProvidersPublicArray { get; set; } = null!;
 
             [MefV1.ImportMany]
-            internal ExportProvider[] ExportProvidersInternalArray { get; set; }
+            internal ExportProvider[] ExportProvidersInternalArray { get; set; } = null!;
         }
 
         #endregion

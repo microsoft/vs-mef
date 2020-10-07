@@ -6,6 +6,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Composition;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -45,7 +46,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
+        protected override ComposablePartDefinition? CreatePart(Type partType, bool typeExplicitlyRequested)
         {
             Requires.NotNull(partType, nameof(partType));
 
@@ -92,9 +93,9 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             TypeRef partTypeRef = TypeRef.Get(partType, this.Resolver);
-            Type partTypeAsGenericTypeDefinition = partTypeInfo.IsGenericType ? partType.GetGenericTypeDefinition() : null;
+            Type? partTypeAsGenericTypeDefinition = partTypeInfo.IsGenericType ? partType.GetGenericTypeDefinition() : null;
 
-            string sharingBoundary = null;
+            string? sharingBoundary = null;
             var sharedAttribute = partTypeInfo.GetFirstAttribute<SharedAttribute>();
             if (sharedAttribute != null)
             {
@@ -145,7 +146,7 @@ namespace Microsoft.VisualStudio.Composition
                 Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", Strings.MemberContainsBothImportAndImportMany, member.Name);
 
                 var importConstraints = GetImportConstraints(member);
-                ImportDefinition importDefinition;
+                ImportDefinition? importDefinition;
                 if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, importConstraints, out importDefinition))
                 {
                     var importDefinitionBinding = new ImportDefinitionBinding(
@@ -158,7 +159,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            MethodInfo onImportsSatisfied = null;
+            MethodInfo? onImportsSatisfied = null;
             foreach (var method in partTypeInfo.GetMethods(this.PublicVsNonPublicFlags | BindingFlags.Instance))
             {
                 if (method.IsAttributeDefined<OnImportsSatisfiedAttribute>())
@@ -183,7 +184,7 @@ namespace Microsoft.VisualStudio.Composition
                 importingConstructorParameters.Add(import);
             }
 
-            var partMetadata = ImmutableDictionary.CreateBuilder<string, object>();
+            var partMetadata = ImmutableDictionary.CreateBuilder<string, object?>();
             foreach (var partMetadataAttribute in partTypeInfo.GetAttributes<PartMetadataAttribute>())
             {
                 partMetadata[partMetadataAttribute.Name] = partMetadataAttribute.Value;
@@ -230,11 +231,11 @@ namespace Microsoft.VisualStudio.Composition
             return this.IsNonPublicSupported ? assembly.GetTypes() : assembly.GetExportedTypes();
         }
 
-        private ImmutableDictionary<string, object> GetExportMetadata(ICustomAttributeProvider member)
+        private ImmutableDictionary<string, object?> GetExportMetadata(ICustomAttributeProvider member)
         {
             Requires.NotNull(member, nameof(member));
 
-            var result = ImmutableDictionary.CreateBuilder<string, object>();
+            var result = ImmutableDictionary.CreateBuilder<string, object?>();
             var namesOfMetadataWithMultipleValues = new HashSet<string>(StringComparer.Ordinal);
             foreach (var attribute in member.GetAttributes<Attribute>())
             {
@@ -261,9 +262,9 @@ namespace Microsoft.VisualStudio.Composition
             return result.ToImmutable();
         }
 
-        private static void UpdateMetadataDictionary(IDictionary<string, object> result, HashSet<string> namesOfMetadataWithMultipleValues, string name, object value, Type elementType)
+        private static void UpdateMetadataDictionary(IDictionary<string, object?> result, HashSet<string> namesOfMetadataWithMultipleValues, string name, object? value, Type? elementType)
         {
-            object priorValue;
+            object? priorValue;
             if (result.TryGetValue(name, out priorValue))
             {
                 if (namesOfMetadataWithMultipleValues.Add(name))
@@ -273,7 +274,7 @@ namespace Microsoft.VisualStudio.Composition
                     priorValue = AddElement(null, priorValue, elementType);
                 }
 
-                result[name] = AddElement((Array)priorValue, value, elementType);
+                result[name] = AddElement((Array?)priorValue, value, elementType);
             }
             else
             {
@@ -281,7 +282,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private bool TryCreateImportDefinition(Type importingType, ICustomAttributeProvider member, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints, out ImportDefinition importDefinition)
+        private bool TryCreateImportDefinition(Type importingType, ICustomAttributeProvider member, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints, [NotNullWhen(true)] out ImportDefinition? importDefinition)
         {
             Requires.NotNull(importingType, nameof(importingType));
             Requires.NotNull(member, nameof(member));
@@ -356,10 +357,10 @@ namespace Microsoft.VisualStudio.Composition
 
         private ImportDefinitionBinding CreateImport(ParameterInfo parameter, ImmutableHashSet<IImportSatisfiabilityConstraint> importConstraints)
         {
-            Assumes.True(this.TryCreateImportDefinition(parameter.ParameterType, parameter, importConstraints, out ImportDefinition importDefinition));
+            Assumes.True(this.TryCreateImportDefinition(parameter.ParameterType, parameter, importConstraints, out ImportDefinition? importDefinition));
             return new ImportDefinitionBinding(
                 importDefinition,
-                TypeRef.Get(parameter.Member.DeclaringType, this.Resolver),
+                TypeRef.Get(parameter.Member.DeclaringType!, this.Resolver),
                 ParameterRef.Get(parameter, this.Resolver),
                 TypeRef.Get(parameter.ParameterType, this.Resolver),
                 TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, parameter.ParameterType), this.Resolver));
@@ -381,7 +382,7 @@ namespace Microsoft.VisualStudio.Composition
             return constraints;
         }
 
-        private static ExportDefinition CreateExportDefinition(ImmutableDictionary<string, object> memberExportMetadata, ExportAttribute exportAttribute, Type exportedType)
+        private static ExportDefinition CreateExportDefinition(ImmutableDictionary<string, object?> memberExportMetadata, ExportAttribute exportAttribute, Type exportedType)
         {
             string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
             var exportMetadata = memberExportMetadata

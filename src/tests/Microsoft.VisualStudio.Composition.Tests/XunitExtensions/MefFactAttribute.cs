@@ -58,9 +58,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         internal CompositionEngines CompositionVersions { get; }
 
-        internal Type[] Parts { get; }
+        internal Type[]? Parts { get; }
 
-        internal IReadOnlyList<string> Assemblies { get; }
+        internal IReadOnlyList<string>? Assemblies { get; }
 
         internal static MefFactAttribute Instantiate(IAttributeInfo attribute)
         {

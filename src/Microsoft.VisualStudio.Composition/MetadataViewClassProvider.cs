@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.Composition
             return typeInfo.IsClass && !typeInfo.IsAbstract && FindConstructor(typeInfo) != null;
         }
 
-        public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
+        public object CreateProxy(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultValues, Type metadataViewType)
         {
             return FindConstructor(metadataViewType.GetTypeInfo())
                 .Invoke(new object[] { ImmutableDictionary.CreateRange(metadata) });
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.Composition
                                               let parameters = ctor.GetParameters()
                                               where parameters.Length == 1
                                               let paramInfo = parameters[0].ParameterType.GetTypeInfo()
-                                              where paramInfo.IsAssignableFrom(typeof(ImmutableDictionary<string, object>).GetTypeInfo())
+                                              where paramInfo.IsAssignableFrom(typeof(ImmutableDictionary<string, object?>).GetTypeInfo())
                                               select ctor;
             return publicCtorsWithOneParameter.FirstOrDefault();
         }

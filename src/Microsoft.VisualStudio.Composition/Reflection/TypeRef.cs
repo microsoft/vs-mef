@@ -6,6 +6,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -26,7 +27,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// <summary>
         /// Backing field for the lazily initialized <see cref="ResolvedType"/> property.
         /// </summary>
-        private Type resolvedType;
+        private Type? resolvedType;
 
         /// <summary>
         /// A lazily initialized cache of the result of calling <see cref="GetHashCode"/>.
@@ -36,7 +37,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// <summary>
         /// Backing field for <see cref="AssemblyId"/>.
         /// </summary>
-        private StrongAssemblyIdentity assemblyId;
+        private StrongAssemblyIdentity? assemblyId;
 
         /// <summary>
         /// Backing field for <see cref="BaseTypes"/>.
@@ -46,7 +47,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         private TypeRef(
             Resolver resolver,
             AssemblyName assemblyName,
-            StrongAssemblyIdentity assemblyId,
+            StrongAssemblyIdentity? assemblyId,
             int metadataToken,
             string fullName,
             TypeRefFlags typeFlags,
@@ -54,7 +55,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             ImmutableArray<TypeRef> genericTypeArguments,
             bool shallow,
             ImmutableArray<TypeRef> baseTypes,
-            TypeRef elementTypeRef)
+            TypeRef? elementTypeRef)
         {
             Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(assemblyName, nameof(assemblyName));
@@ -97,7 +98,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             var arrayElementType = this.ArrayElementType;
             Requires.Argument(!arrayElementType.IsGenericParameter, nameof(type), "Generic parameters are not supported.");
             this.MetadataToken = arrayElementType.GetTypeInfo().MetadataToken;
-            this.FullName = (arrayElementType.GetTypeInfo().IsGenericType ? arrayElementType.GetGenericTypeDefinition() : arrayElementType).FullName;
+            this.FullName = (arrayElementType.GetTypeInfo().IsGenericType ? arrayElementType.GetGenericTypeDefinition() : arrayElementType).FullName ?? throw Assumes.NotReachable();
             this.GenericTypeParameterCount = arrayElementType.GetTypeInfo().GenericTypeParameters.Length;
             this.GenericTypeArguments = arrayElementType.GenericTypeArguments != null && arrayElementType.GenericTypeArguments.Length > 0
                 ? arrayElementType.GenericTypeArguments.Where(t => !(shallow && t.IsGenericParameter)).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray()
@@ -203,7 +204,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                     else
                     {
                         manifest = this.Resolver.GetManifest(this.AssemblyName);
-                        resolvedType = manifest.GetType(this.FullName, throwOnError: true, ignoreCase: false);
+                        resolvedType = manifest.GetType(this.FullName, throwOnError: true, ignoreCase: false)!;
                     }
 
                     if (this.GenericTypeArguments.Length > 0)
@@ -231,15 +232,15 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
         }
 
-        private Type ArrayElementType => this.IsArray ? this.ResolvedType.GetElementType() : this.ResolvedType;
+        private Type ArrayElementType => this.IsArray ? this.ResolvedType.GetElementType()! : this.ResolvedType;
 
-        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, TypeRefFlags typeFlags, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, bool shallow, ImmutableArray<TypeRef> baseTypes, TypeRef elementTypeRef)
+        public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, TypeRefFlags typeFlags, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, bool shallow, ImmutableArray<TypeRef> baseTypes, TypeRef? elementTypeRef)
         {
             Requires.NotNull(resolver, nameof(resolver));
             return new TypeRef(resolver, assemblyName, null, metadataToken, fullName, typeFlags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementTypeRef);
         }
 
-        public static TypeRef Get(Resolver resolver, StrongAssemblyIdentity assemblyId, int metadataToken, string fullName, TypeRefFlags typeFlags, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, bool shallow, ImmutableArray<TypeRef> baseTypes, TypeRef elementTypeRef)
+        public static TypeRef Get(Resolver resolver, StrongAssemblyIdentity assemblyId, int metadataToken, string fullName, TypeRefFlags typeFlags, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, bool shallow, ImmutableArray<TypeRef> baseTypes, TypeRef? elementTypeRef)
         {
             return new TypeRef(resolver, assemblyId.Name, assemblyId, metadataToken, fullName, typeFlags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementTypeRef);
         }
@@ -250,7 +251,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// <param name="type">The Type to represent. May be <c>null</c> to get a <c>null</c> result.</param>
         /// <param name="resolver">The resolver to use to reconstitute <paramref name="type"/> or derivatives later.</param>
         /// <returns>An instance of TypeRef if <paramref name="type"/> is not <c>null</c>; otherwise <c>null</c>.</returns>
-        public static TypeRef Get(Type type, Resolver resolver)
+        [return: NotNullIfNotNull("type")]
+        public static TypeRef? Get(Type? type, Resolver resolver)
         {
             Requires.NotNull(resolver, nameof(resolver));
 
@@ -259,10 +261,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 return null;
             }
 
-            TypeRef result;
+            TypeRef? result;
             lock (resolver.InstanceCache)
             {
-                WeakReference<TypeRef> weakResult;
+                WeakReference<TypeRef>? weakResult;
                 if (!resolver.InstanceCache.TryGetValue(type, out weakResult))
                 {
                     result = new TypeRef(resolver, type);
@@ -358,12 +360,12 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return result;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is TypeRef typeRef && this.Equals(typeRef);
         }
 
-        public bool Equals(TypeRef other)
+        public bool Equals(TypeRef? other)
         {
             if (other == null)
             {
@@ -381,7 +383,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return result;
         }
 
-        public bool Equals(Type other)
+        public bool Equals(Type? other)
         {
             return this.Equals(TypeRef.Get(other, this.Resolver));
         }
@@ -425,7 +427,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             Requires.NotNull(assemblyName, nameof(assemblyName));
 
             AssemblyName normalizedAssemblyName = assemblyName;
-            if (assemblyName.CodeBase.IndexOf('~') >= 0)
+            if (assemblyName.CodeBase?.IndexOf('~') >= 0)
             {
                 // Using ToString() rather than AbsoluteUri here to match the CLR's AssemblyName.CodeBase convention of paths without %20 space characters.
                 string normalizedCodeBase = new Uri(Path.GetFullPath(new Uri(assemblyName.CodeBase).LocalPath)).ToString();

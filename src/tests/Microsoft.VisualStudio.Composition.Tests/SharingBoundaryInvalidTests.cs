@@ -42,21 +42,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class RootPart
         {
             [Import, SharingBoundary("SomeBoundary")]
-            public ExportFactory<BoundaryPart> Factory { get; set; }
+            public ExportFactory<BoundaryPart> Factory { get; set; } = null!;
         }
 
         [Export, Shared("SomeBoundary")]
         public class BoundaryPart
         {
             [Import]
-            public PartThatImportsBoundaryPartFromOutsideBoundary BoundaryScopedSharedParts { get; set; }
+            public PartThatImportsBoundaryPartFromOutsideBoundary BoundaryScopedSharedParts { get; set; } = null!;
         }
 
         [Export, Shared]
         public class PartThatImportsBoundaryPartFromOutsideBoundary
         {
             [Import]
-            public BoundaryPart BoundaryPart { get; set; }
+            public BoundaryPart BoundaryPart { get; set; } = null!;
         }
     }
 }

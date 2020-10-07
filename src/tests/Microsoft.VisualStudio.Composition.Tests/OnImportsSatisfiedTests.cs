@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public bool OnImportsSatisfiedCalledOnInnerPart { get; private set; }
 
             [MefV1.Import, Import]
-            public InnerPart InnerPart { get; set; }
+            public InnerPart InnerPart { get; set; } = null!;
 
             [OnImportsSatisfied]
             public void OnImportsSatisfied()
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public int ImportsSatisfiedInvocationCount { get; set; }
 
             [Import, MefV1.Import]
-            public SomeRandomPart SomeImport { get; set; }
+            public SomeRandomPart SomeImport { get; set; } = null!;
 
             [OnImportsSatisfied] // V2
             public void ImportsSatisfied()
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public int ImportsSatisfiedInvocationCount { get; set; }
 
             [MefV1.Import]
-            public SomeRandomPart SomeImport { get; set; }
+            public SomeRandomPart SomeImport { get; set; } = null!;
 
             // V1. We're using explicit implementation syntax deliberately as part of the test.
             void MefV1.IPartImportsSatisfiedNotification.OnImportsSatisfied()
@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class RequestedPart
         {
             [MefV1.Import, Import]
-            public TransitivePart TransitivePart { get; set; }
+            public TransitivePart TransitivePart { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -148,9 +148,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class TransitivePart : MefV1.IPartImportsSatisfiedNotification
         {
             [MefV1.Import, Import]
-            public RequestedPart RequestedPart { get; set; }
+            public RequestedPart RequestedPart { get; set; } = null!;
 
-            internal static Action<TransitivePart> OnImportsSatisfiedHandler;
+            internal static Action<TransitivePart>? OnImportsSatisfiedHandler;
 
             [OnImportsSatisfied]
             public void OnImportsSatisfied()
@@ -179,13 +179,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.Export]
         public class PartThatQueriesForItself : MefV1.IPartImportsSatisfiedNotification
         {
-            internal static IContainer Container;
+            internal static IContainer? Container;
             private int onImportsSatisfiedInvocationCounter;
 
             [OnImportsSatisfied]
             public void OnImportsSatisfied()
             {
                 Assert.Equal(1, ++this.onImportsSatisfiedInvocationCounter);
+                Assumes.NotNull(Container);
                 var self = Container.GetExportedValue<PartThatQueriesForItself>();
                 Assert.Same(this, self);
             }

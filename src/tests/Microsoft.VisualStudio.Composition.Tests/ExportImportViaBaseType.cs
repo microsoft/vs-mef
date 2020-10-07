@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Consumer
         {
             [Import]
-            public ISomeType Imported { get; set; }
+            public ISomeType Imported { get; set; } = null!;
         }
     }
 }

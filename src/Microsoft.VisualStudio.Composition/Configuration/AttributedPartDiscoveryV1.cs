@@ -7,6 +7,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.ComponentModel.Composition;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
@@ -17,14 +18,14 @@ namespace Microsoft.VisualStudio.Composition
 
     public class AttributedPartDiscoveryV1 : PartDiscovery
     {
-        private static readonly MethodInfo OnImportsSatisfiedMethodInfo = typeof(IPartImportsSatisfiedNotification).GetMethod("OnImportsSatisfied", BindingFlags.Public | BindingFlags.Instance);
+        private static readonly MethodInfo OnImportsSatisfiedMethodInfo = typeof(IPartImportsSatisfiedNotification).GetMethod("OnImportsSatisfied", BindingFlags.Public | BindingFlags.Instance)!;
 
         public AttributedPartDiscoveryV1(Resolver resolver)
             : base(resolver)
         {
         }
 
-        protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
+        protected override ComposablePartDefinition? CreatePart(Type partType, bool typeExplicitlyRequested)
         {
             Requires.NotNull(partType, nameof(partType));
 
@@ -88,12 +89,12 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             TypeRef partTypeRef = TypeRef.Get(partType, this.Resolver);
-            Type partTypeAsGenericTypeDefinition = partTypeInfo.IsGenericType ? partType.GetGenericTypeDefinition() : null;
+            Type? partTypeAsGenericTypeDefinition = partTypeInfo.IsGenericType ? partType.GetGenericTypeDefinition() : null;
 
             // Collect information for all imports.
             var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
             this.AddImportsFromMembers(declaredProperties, declaredFields, partTypeRef, imports);
-            Type baseType = partTypeInfo.BaseType;
+            Type? baseType = partTypeInfo.BaseType;
             while (baseType != null && baseType != typeof(object))
             {
                 this.AddImportsFromMembers(baseType.GetProperties(instanceLocal), baseType.GetFields(instanceLocal), partTypeRef, imports);
@@ -114,9 +115,8 @@ namespace Microsoft.VisualStudio.Composition
             {
                 var memberExportMetadata = allExportsMetadata.AddRange(GetExportMetadata(export.Key));
 
-                if (export.Key is MethodInfo)
+                if (export.Key is MethodInfo method)
                 {
-                    var method = export.Key as MethodInfo;
                     var exportAttributes = export.Value;
                     if (exportAttributes.Any())
                     {
@@ -163,7 +163,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            MethodInfo onImportsSatisfied = null;
+            MethodInfo? onImportsSatisfied = null;
             if (typeof(IPartImportsSatisfiedNotification).IsAssignableFrom(partType))
             {
                 onImportsSatisfied = OnImportsSatisfiedMethodInfo;
@@ -185,7 +185,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            var partMetadata = ImmutableDictionary.CreateBuilder<string, object>();
+            var partMetadata = ImmutableDictionary.CreateBuilder<string, object?>();
             foreach (var partMetadataAttribute in partTypeInfo.GetAttributes<PartMetadataAttribute>())
             {
                 partMetadata[partMetadataAttribute.Name] = partMetadataAttribute.Value;
@@ -231,7 +231,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     try
                     {
-                        if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, out ImportDefinition importDefinition))
+                        if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, out ImportDefinition? importDefinition))
                         {
                             Type importingSiteType = ReflectionHelpers.GetMemberType(member);
                             var importDefinitionBinding = new ImportDefinitionBinding(
@@ -277,7 +277,7 @@ namespace Microsoft.VisualStudio.Composition
             return assembly.GetTypes();
         }
 
-        private bool TryCreateImportDefinition(Type importingType, ICustomAttributeProvider member, out ImportDefinition importDefinition)
+        private bool TryCreateImportDefinition(Type importingType, ICustomAttributeProvider member, [NotNullWhen(true)] out ImportDefinition? importDefinition)
         {
             Requires.NotNull(importingType, nameof(importingType));
             Requires.NotNull(member, nameof(member));
@@ -348,20 +348,20 @@ namespace Microsoft.VisualStudio.Composition
 
         private ImportDefinitionBinding CreateImport(ParameterInfo parameter)
         {
-            Assumes.True(this.TryCreateImportDefinition(parameter.ParameterType, parameter, out ImportDefinition importDefinition));
+            Assumes.True(this.TryCreateImportDefinition(parameter.ParameterType, parameter, out ImportDefinition? importDefinition));
             return new ImportDefinitionBinding(
                 importDefinition,
-                TypeRef.Get(parameter.Member.DeclaringType, this.Resolver),
+                TypeRef.Get(parameter.Member.DeclaringType!, this.Resolver),
                 ParameterRef.Get(parameter, this.Resolver),
                 TypeRef.Get(parameter.ParameterType, this.Resolver),
                 TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, parameter.ParameterType), this.Resolver));
         }
 
-        private static IReadOnlyDictionary<string, object> GetExportMetadata(MemberInfo member)
+        private static IReadOnlyDictionary<string, object?> GetExportMetadata(MemberInfo member)
         {
             Requires.NotNull(member, nameof(member));
 
-            var result = ImmutableDictionary.CreateBuilder<string, object>();
+            var result = ImmutableDictionary.CreateBuilder<string, object?>();
             foreach (var attribute in member.GetAttributes<Attribute>())
             {
                 var exportMetadataAttribute = attribute as ExportMetadataAttribute;
@@ -397,8 +397,8 @@ namespace Microsoft.VisualStudio.Composition
                                 if (result.ContainsKey(property.Name))
                                 {
                                     string memberName = member.MemberType.HasFlag(MemberTypes.TypeInfo) || member.MemberType.HasFlag(MemberTypes.NestedType)
-                                        ? ((TypeInfo)member).FullName
-                                        : $"{member.DeclaringType.FullName}.{member.Name}";
+                                        ? ((TypeInfo)member).FullName!
+                                        : $"{member.DeclaringType?.FullName}.{member.Name}";
 
                                     throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.DiscoveredIdenticalPropertiesInMetadataAttributesForPart, memberName, property.Name));
                                 }

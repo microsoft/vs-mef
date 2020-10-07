@@ -26,22 +26,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void CustomMetadataOnDerivedMetadataAttributeOnExportedTypeV1(IContainer container)
         {
             var part = container.GetExportedValue<PartThatImportsExportWithDerivedMetadata>();
-            Assert.Equal("Andrew", part.ImportingProperty.Metadata["Name"]);
+            Assert.Equal("Andrew", part.ImportingProperty?.Metadata["Name"]);
         }
 
         [MefFact(CompositionEngines.V2, typeof(ExportedTypeWithDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata), NoCompatGoal = true)]
         public void CustomMetadataOnDerivedMetadataAttributeOnExportedTypeV2(IContainer container)
         {
             var part = container.GetExportedValue<PartThatImportsExportWithDerivedMetadata>();
-            Assert.False(part.ImportingProperty.Metadata.ContainsKey("Name"));
+            Assert.False(part.ImportingProperty?.Metadata.ContainsKey("Name"));
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExportedTypeWithAllowMultipleDerivedMetadata), typeof(PartThatImportsExportWithDerivedMetadata))]
         public void CustomMetadataOnAllowMultipleDerivedMetadataAttributeOnExportedType(IContainer container)
         {
             var part = container.GetExportedValue<PartThatImportsExportWithDerivedMetadata>();
-            Assert.IsType<string[]>(part.ImportingAllowMultiple.Metadata["Name"]);
-            var array = (string[])part.ImportingAllowMultiple.Metadata["Name"];
+            var array = Assert.IsType<string[]>(part.ImportingAllowMultiple?.Metadata["Name"]);
             Assert.Equal(2, array.Length);
             Assert.True(array.Contains("Andrew1"));
             Assert.True(array.Contains("Andrew2"));
@@ -51,8 +50,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void CustomMetadataOnAllowMultipleMetadataAttributeOnExportedType(IContainer container)
         {
             var part = container.GetExportedValue<PartThatImportsExportWithMetadata>();
-            Assert.IsType<string[]>(part.ImportingAllowMultiple.Metadata["Name"]);
-            var array = (string[])part.ImportingAllowMultiple.Metadata["Name"];
+            var array = Assert.IsType<string[]>(part.ImportingAllowMultiple?.Metadata["Name"]);
             Assert.Equal(2, array.Length);
             Assert.True(array.Contains("Andrew1"));
             Assert.True(array.Contains("Andrew2"));
@@ -63,9 +61,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void MultipleCustomMetadataOnExportedType(IContainer container)
         {
             var part = container.GetExportedValue<ImportingPart>();
-            Assert.IsType<string[]>(part.ImportOfTypeWithMultipleMetadata.Metadata["Name"]);
-            Assert.Equal(null, ((string[])part.ImportOfTypeWithMultipleMetadata.Metadata["Name"])[0]);
-            Assert.Equal(null, ((string[])part.ImportOfTypeWithMultipleMetadata.Metadata["Name"])[1]);
+            var nameArray = Assert.IsType<string[]>(part.ImportOfTypeWithMultipleMetadata?.Metadata["Name"]);
+            Assert.Equal(null, nameArray[0]);
+            Assert.Equal(null, nameArray[1]);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ImportingPart), typeof(ExportedTypeWithMetadata), typeof(TypeWithExportingMemberAndMetadata))]
@@ -90,15 +88,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var part = container.GetExportedValue<PartThatImportsAnExportWithMultipleComplementingMetadata>();
 
-            object after = part.ImportingProperty.Metadata["After"];
-            Assert.IsType<string[]>(after);
-            var afterArray = (string[])after;
+            var afterArray = Assert.IsType<string?[]>(part.ImportingProperty.Metadata["After"]);
             Assert.True(afterArray.Contains(null));
             Assert.True(afterArray.Contains("AfterValue"));
 
-            object before = part.ImportingProperty.Metadata["Before"];
-            Assert.IsType<string[]>(before);
-            var beforeArray = (string[])before;
+            var beforeArray = Assert.IsType<string?[]>(part.ImportingProperty.Metadata["Before"]);
             Assert.True(beforeArray.Contains(null));
             Assert.True(beforeArray.Contains("BeforeValue"));
         }
@@ -108,14 +102,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var part = container.GetExportedValue<ImportingPartForDerivedExportMetadata>();
 
-            object prop1 = part.ImportingProperty.Metadata["Property"];
-            Assert.IsType<string[]>(prop1);
-            var prop1Array = (string[])prop1;
+            var prop1Array = Assert.IsType<string[]>(part.ImportingProperty.Metadata["Property"]);
             Assert.Contains("prop1", prop1Array);
 
-            object prop2 = part.ImportingProperty.Metadata["AnotherProperty"];
-            Assert.IsType<string[]>(prop2);
-            var prop2Array = (string[])prop2;
+            var prop2Array = Assert.IsType<string[]>(part.ImportingProperty.Metadata["AnotherProperty"]);
             Assert.Contains("prop2", prop2Array);
         }
 
@@ -129,9 +119,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 Assert.DoesNotContain(propertyName, part.ImportingProperty.Metadata.Keys);
             }
 
-            object somePropertyValue = part.ImportingProperty.Metadata["SomeProperty"];
-            Assert.IsType<string>(somePropertyValue);
-            Assert.Equal("SomePropertyValue", somePropertyValue.ToString());
+            string value = Assert.IsType<string>(part.ImportingProperty.Metadata["SomeProperty"]);
+            Assert.Equal("SomePropertyValue", value);
             Assert.NotNull(part.ImportingProperty.Value);
         }
 
@@ -148,10 +137,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var part = container.GetExportedValue<ImportingPartForDerivedExportMetadata>();
 
-            object prop1 = part.ImportingProperty.Metadata["Property"];
+            object? prop1 = part.ImportingProperty.Metadata["Property"];
             Assert.Equal("prop1", prop1);
 
-            object prop2 = part.ImportingProperty.Metadata["AnotherProperty"];
+            object? prop2 = part.ImportingProperty.Metadata["AnotherProperty"];
             Assert.Equal("prop2", prop2);
         }
 
@@ -191,20 +180,20 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportingPartForDerivedExportMetadata
         {
             [MefV1.Import, Import]
-            public Lazy<ExportWithDerivedExportMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<ExportWithDerivedExportMetadata, IDictionary<string, object?>> ImportingProperty { get; set; } = null!;
         }
 
         [Export, MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class ImportingPart
         {
             [Import, MefV1.Import]
-            public Lazy<ExportedTypeWithMetadata, IDictionary<string, object>> ImportOfType { get; set; }
+            public Lazy<ExportedTypeWithMetadata, IDictionary<string, object?>> ImportOfType { get; set; } = null!;
 
             [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
-            public Lazy<ExportedTypeWithMultipleMetadata, IDictionary<string, object>> ImportOfTypeWithMultipleMetadata { get; set; }
+            public Lazy<ExportedTypeWithMultipleMetadata, IDictionary<string, object?>>? ImportOfTypeWithMultipleMetadata { get; set; }
 
             [Import, MefV1.Import]
-            public Lazy<string, IDictionary<string, object>> ImportOfProperty { get; set; }
+            public Lazy<string, IDictionary<string, object?>> ImportOfProperty { get; set; } = null!;
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -234,10 +223,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsExportWithDerivedMetadata
         {
             [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
-            public Lazy<ExportedTypeWithDerivedMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<ExportedTypeWithDerivedMetadata, IDictionary<string, object?>>? ImportingProperty { get; set; }
 
             [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
-            public Lazy<ExportedTypeWithAllowMultipleDerivedMetadata, IDictionary<string, object>> ImportingAllowMultiple { get; set; }
+            public Lazy<ExportedTypeWithAllowMultipleDerivedMetadata, IDictionary<string, object?>>? ImportingAllowMultiple { get; set; }
         }
 
         [MefV1.Export]
@@ -245,10 +234,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsExportWithMetadata
         {
             [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
-            public Lazy<ExportedTypeWithMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<ExportedTypeWithMetadata, IDictionary<string, object?>>? ImportingProperty { get; set; }
 
             [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
-            public Lazy<ExportedTypeWithAllowMultipleMetadata, IDictionary<string, object>> ImportingAllowMultiple { get; set; }
+            public Lazy<ExportedTypeWithAllowMultipleMetadata, IDictionary<string, object?>>? ImportingAllowMultiple { get; set; }
         }
 
         [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -284,7 +273,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsAnExportWithMultipleComplementingMetadata
         {
             [Import, MefV1.Import]
-            public Lazy<ExportWithMultipleMetadataAttributesAndComplementingMetadataValues, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<ExportWithMultipleMetadataAttributesAndComplementingMetadataValues, IDictionary<string, object?>> ImportingProperty { get; set; } = null!;
         }
 
         [DerivedFromExportAttribute("SomePropertyValue")]
@@ -295,7 +284,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsSingleDerivedExportAttributes
         {
             [Import, MefV1.Import]
-            public Lazy<ExportUsingDerivedExportAttribute, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<ExportUsingDerivedExportAttribute, IDictionary<string, object?>> ImportingProperty { get; set; } = null!;
         }
 
         [FirstAttributeWithIdenticalProperties("SomeValue")]
@@ -311,7 +300,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
         public class NameMultipleAttribute : Attribute
         {
-            public string Name { get; set; }
+            public string? Name { get; set; }
         }
 
         /// <summary>
@@ -320,7 +309,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         /// </summary>
         public class NameMultipleDerivedAttribute : NameMultipleAttribute
         {
-            public string OtherProperty { get; set; }
+            public string? OtherProperty { get; set; }
         }
 
         /// <summary>
@@ -380,53 +369,53 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.MetadataAttribute, MetadataAttribute]
         public class BaseMetadataAttribute : Attribute
         {
-            public BaseMetadataAttribute(string property)
+            public BaseMetadataAttribute(string? property)
             {
                 this.Property = property;
             }
 
-            public string Property { get; }
+            public string? Property { get; }
         }
 
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false)]
         [MefV1.MetadataAttribute, MetadataAttribute]
         public class OtherMetadataAttribute : Attribute
         {
-            public OtherMetadataAttribute(string property)
+            public OtherMetadataAttribute(string? property)
             {
                 this.Property = property;
             }
 
-            public string Property { get; }
+            public string? Property { get; }
         }
 
         public class DerivedMetadataAttribute : BaseMetadataAttribute
         {
-            public DerivedMetadataAttribute(string property, string anotherProperty)
+            public DerivedMetadataAttribute(string? property, string? anotherProperty)
                 : base(property)
             {
                 this.AnotherProperty = anotherProperty;
             }
 
-            public string AnotherProperty { get; }
+            public string? AnotherProperty { get; }
         }
 
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
         [MetadataAttribute, MefV1.MetadataAttribute]
         public class OrderAttribute : Attribute
         {
-            public string Before { get; set; }
+            public string? Before { get; set; }
 
-            public string After { get; set; }
+            public string? After { get; set; }
         }
 
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
         [MetadataAttribute, MefV1.MetadataAttribute]
         public class FirstAttributeWithIdenticalPropertiesAttribute : Attribute
         {
-            public string Property { get; set; }
+            public string? Property { get; set; }
 
-            public FirstAttributeWithIdenticalPropertiesAttribute(string property)
+            public FirstAttributeWithIdenticalPropertiesAttribute(string? property)
             {
                 this.Property = property;
             }
@@ -436,9 +425,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MetadataAttribute, MefV1.MetadataAttribute]
         public class SecondAttributeWithIdenticalPropertiesAttribute : Attribute
         {
-            public string Property { get; set; }
+            public string? Property { get; set; }
 
-            public SecondAttributeWithIdenticalPropertiesAttribute(string property)
+            public SecondAttributeWithIdenticalPropertiesAttribute(string? property)
             {
                 this.Property = property;
             }
@@ -470,7 +459,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsLotsOfTypesAndVisibilitiesAttribute
         {
             [Import, MefV1.Import]
-            public Lazy<PartWithLotsOfTypesAndVisibilitiesAttribute, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<PartWithLotsOfTypesAndVisibilitiesAttribute, IDictionary<string, object?>> ImportingProperty { get; set; } = null!;
         }
 
         [Export, MefV1.Export]

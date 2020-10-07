@@ -52,6 +52,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             if (this.Definition.ImportingConstructorOrFactoryRef != null)
             {
+                Assumes.NotNull(this.Definition.ImportingConstructorImports);
                 foreach (var import in this.Definition.ImportingConstructorImports)
                 {
                     var key = this.SatisfyingExports.Keys.Single(k => k.ImportDefinition == import.ImportDefinition);
@@ -184,10 +185,12 @@ namespace Microsoft.VisualStudio.Composition
                 CultureInfo.CurrentCulture,
                 "{0}.{1}",
                 import.ComposablePartType.FullName,
-                import.ImportingMemberRef == null ? ("ctor(" + import.ImportingParameter.Name + ")") : import.ImportingMember.Name);
+                import.ImportingParameter is object ? ("ctor(" + import.ImportingParameter.Name + ")") :
+                import.ImportingMemberRef is object ? import.ImportingMemberRef.Name :
+                "(unknown)");
         }
 
-        private static string GetDiagnosticLocation(ExportDefinitionBinding export)
+        private static string? GetDiagnosticLocation(ExportDefinitionBinding export)
         {
             Requires.NotNull(export, nameof(export));
 
@@ -197,7 +200,7 @@ namespace Microsoft.VisualStudio.Composition
                     CultureInfo.CurrentCulture,
                     Strings.TypeNameWithAssemblyLocation,
                     export.PartDefinition.Type.FullName,
-                    export.ExportingMember.Name,
+                    export.ExportingMemberRef.Name,
                     export.PartDefinition.Type.GetTypeInfo().Assembly.FullName);
             }
             else

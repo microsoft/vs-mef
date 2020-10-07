@@ -17,6 +17,6 @@
     public class PartImportingOpenGenericExport
     {
         [Import]
-        public OpenGenericExport<SomeOtherType> ImportingProperty { get; set; }
+        public OpenGenericExport<SomeOtherType> ImportingProperty { get; set; } = null!;
     }
 }

@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.IsType<Tree>(results[0].Value);
         }
 
-        public delegate object SomeDelegate(string arg1, object arg2);
+        public delegate object? SomeDelegate(string? arg1, object? arg2);
 
         [MefFact(CompositionEngines.V1Compat, typeof(PartExportingPropertyThatReturnsDelegate))]
         public void GetExportsImportDefinitionForDelegateReturningProperty(IContainer container)
@@ -247,10 +247,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         private class SatisfyImportsOnceWithPartCreationPolicyReceiver
         {
             [MefV1.Import(RequiredCreationPolicy = MefV1.CreationPolicy.NonShared)]
-            public Apple NonSharedApple { get; set; }
+            public Apple NonSharedApple { get; set; } = null!;
 
             [MefV1.Import(RequiredCreationPolicy = MefV1.CreationPolicy.Shared, AllowDefault = true)]
-            public Apple SharedApple { get; set; }
+            public Apple SharedApple { get; set; } = null!;
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(Apple))]
@@ -275,7 +275,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         private class SatisfyImportsOnceWithExportFactoryReceiver
         {
             [MefV1.Import]
-            public MefV1.ExportFactory<Apple> AppleFactory { get; set; }
+            public MefV1.ExportFactory<Apple> AppleFactory { get; set; } = null!;
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ApplePartCreationAny))]
@@ -300,7 +300,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         private class SatisfyImportsOnceWithExportFactoryOfCreationPolicyAnyReceiver
         {
             [MefV1.Import]
-            public MefV1.ExportFactory<ApplePartCreationAny> AppleFactory { get; set; }
+            public MefV1.ExportFactory<ApplePartCreationAny> AppleFactory { get; set; } = null!;
         }
 
         [MefV1.Export]
@@ -332,7 +332,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         private class SatisfyImportsOnceWithExportFactoryMetadataReceiver
         {
             [MefV1.Import]
-            public MefV1.ExportFactory<Tree, IDictionary<string, object>> TreeFactory { get; set; }
+            public MefV1.ExportFactory<Tree, IDictionary<string, object>> TreeFactory { get; set; } = null!;
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(Tree))]
@@ -360,7 +360,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         private class SatisfyImportsOnceWithExportFactoryTMetadataReceiver
         {
             [MefV1.Import]
-            public MefV1.ExportFactory<Tree, IMetadata> TreeFactory { get; set; }
+            public MefV1.ExportFactory<Tree, IMetadata> TreeFactory { get; set; } = null!;
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(Tree))]
@@ -386,7 +386,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         private class SatisfyImportsOnceWithListOfExportFactoryReceiver
         {
             [MefV1.ImportMany]
-            public List<MefV1.ExportFactory<Apple>> AppleFactories { get; set; }
+            public List<MefV1.ExportFactory<Apple>> AppleFactories { get; set; } = null!;
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(Tree<>))]
@@ -412,7 +412,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         private class SatisfyImportsOnceWithListOfExportFactoryOfOpenGenericExportReceiver
         {
             [MefV1.ImportMany]
-            public List<MefV1.ExportFactory<Tree<Orange>>> OrangeTreeFactories { get; set; }
+            public List<MefV1.ExportFactory<Tree<Orange>>> OrangeTreeFactories { get; set; } = null!;
         }
 
 #endregion
@@ -437,7 +437,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public Apple Apple { get; set; }
+            public Apple Apple { get; set; } = null!;
         }
 
         [Export(typeof(Tree<>))]
@@ -483,11 +483,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [MefV1.Export(typeof(SomeDelegate))]
             [MefV1.ExportMetadata("A", "instance")]
-            public object InstanceMethod(string arg1, object arg2) { return null; }
+            public object? InstanceMethod(string? arg1, object? arg2) { return null; }
 
             [MefV1.Export(typeof(SomeDelegate))]
             [MefV1.ExportMetadata("A", "static")]
-            public static object StaticMethod(string arg1, object arg2) { return null; }
+            public static object? StaticMethod(string? arg1, object? arg2) { return null; }
         }
 
         internal class PartExportingPropertyThatReturnsDelegate

@@ -28,14 +28,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class SharedExport1
         {
             [Import]
-            public SharedExport2 Export2 { get; set; }
+            public SharedExport2 Export2 { get; set; } = null!;
         }
 
         [Export, Shared]
         public class SharedExport2
         {
             [Import]
-            public SharedExport1 Export1 { get; set; }
+            public SharedExport1 Export1 { get; set; } = null!;
         }
 
         #endregion
@@ -55,14 +55,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         internal class InternalSharedExport1
         {
             [MefV1.Import]
-            public InternalSharedExport2 Export2 { get; set; }
+            public InternalSharedExport2 Export2 { get; set; } = null!;
         }
 
         [MefV1.Export]
         internal class InternalSharedExport2
         {
             [MefV1.Import]
-            public InternalSharedExport1 Export1 { get; set; }
+            public InternalSharedExport1 Export1 { get; set; } = null!;
         }
 
         #endregion
@@ -82,14 +82,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class LazySharedExport1
         {
             [Import]
-            public Lazy<LazySharedExport2> Export2 { get; set; }
+            public Lazy<LazySharedExport2> Export2 { get; set; } = null!;
         }
 
         [Export, Shared]
         public class LazySharedExport2
         {
             [Import]
-            public Lazy<LazySharedExport1> Export1 { get; set; }
+            public Lazy<LazySharedExport1> Export1 { get; set; } = null!;
         }
 
         #endregion
@@ -112,21 +112,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class SharedExportInLoopOfNonShared
         {
             [Import]
-            public NonSharedExportInLoopWithShared Other { get; set; }
+            public NonSharedExportInLoopWithShared Other { get; set; } = null!;
         }
 
         [Export]
         public class NonSharedExportInLoopWithShared
         {
             [Import]
-            public AnotherNonSharedExportInLoopWithShared Another { get; set; }
+            public AnotherNonSharedExportInLoopWithShared Another { get; set; } = null!;
         }
 
         [Export]
         public class AnotherNonSharedExportInLoopWithShared
         {
             [Import]
-            public SharedExportInLoopOfNonShared Shared { get; set; }
+            public SharedExportInLoopOfNonShared Shared { get; set; } = null!;
         }
 
         #endregion
@@ -143,14 +143,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class AnyPolicyPart1
         {
             [MefV1.Import(RequiredCreationPolicy = MefV1.CreationPolicy.NonShared)]
-            public AnyPolicyPart2 Export2 { get; set; }
+            public AnyPolicyPart2 Export2 { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class AnyPolicyPart2
         {
             [MefV1.Import(RequiredCreationPolicy = MefV1.CreationPolicy.NonShared)]
-            public AnyPolicyPart1 Export1 { get; set; }
+            public AnyPolicyPart1 Export1 { get; set; } = null!;
         }
 
         #endregion
@@ -168,21 +168,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class NonSharedPart1
         {
             [Import]
-            public NonSharedPart2 Part2 { get; set; }
+            public NonSharedPart2 Part2 { get; set; } = null!;
         }
 
         [Export]
         public class NonSharedPart2
         {
             [Import]
-            public NonSharedPart3 Part3 { get; set; }
+            public NonSharedPart3 Part3 { get; set; } = null!;
         }
 
         [Export]
         public class NonSharedPart3
         {
             [Import]
-            public NonSharedPart1 Part1 { get; set; }
+            public NonSharedPart1 Part1 { get; set; } = null!;
         }
 
         #endregion
@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public SelfImportingNonSharedPart Self { get; set; }
+            public SelfImportingNonSharedPart Self { get; set; } = null!;
         }
 
         [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -237,7 +237,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             [Import]
             [MefV1.Import]
-            public SelfImportingNonSharedPartViaExportingProperty SelfImport { get; set; }
+            public SelfImportingNonSharedPartViaExportingProperty SelfImport { get; set; } = null!;
         }
 
         [MefV1.Export]
@@ -246,27 +246,27 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public SelfImportingSharedPart Self { get; set; }
+            public SelfImportingSharedPart Self { get; set; } = null!;
 
             [Import]
             [MefV1.Import]
-            public Lazy<SelfImportingSharedPart> LazySelf { get; set; }
+            public Lazy<SelfImportingSharedPart> LazySelf { get; set; } = null!;
 
             [Import]
             [MefV1.Import]
-            public Lazy<SelfImportingSharedPart, IDictionary<string, object>> LazySelfMetadata { get; set; }
+            public Lazy<SelfImportingSharedPart, IDictionary<string, object?>> LazySelfMetadata { get; set; } = null!;
 
             [ImportMany]
             [MefV1.ImportMany]
-            public SelfImportingSharedPart[] SelfMany { get; set; }
+            public SelfImportingSharedPart[] SelfMany { get; set; } = null!;
 
             [ImportMany]
             [MefV1.ImportMany]
-            public Lazy<SelfImportingSharedPart>[] LazySelfMany { get; set; }
+            public Lazy<SelfImportingSharedPart>[] LazySelfMany { get; set; } = null!;
 
             [ImportMany]
             [MefV1.ImportMany]
-            public Lazy<SelfImportingSharedPart, IDictionary<string, object>>[] LazySelfManyMetadata { get; set; }
+            public Lazy<SelfImportingSharedPart, IDictionary<string, object?>>[] LazySelfManyMetadata { get; set; } = null!;
         }
 
         #endregion
@@ -288,24 +288,24 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ValidMultiplePathRoot
         {
             [Import]
-            public ValidMultiplePathTrail1 Trail1 { get; set; }
+            public ValidMultiplePathTrail1 Trail1 { get; set; } = null!;
 
             [Import]
-            public ValidMultiplePathTrail2 Trail2 { get; set; }
+            public ValidMultiplePathTrail2 Trail2 { get; set; } = null!;
         }
 
         [Export]
         public class ValidMultiplePathTrail1
         {
             [Import]
-            public ValidMultiplePathCommonImport ImportingProperty { get; set; }
+            public ValidMultiplePathCommonImport ImportingProperty { get; set; } = null!;
         }
 
         [Export]
         public class ValidMultiplePathTrail2
         {
             [Import]
-            public ValidMultiplePathCommonImport ImportingProperty { get; set; }
+            public ValidMultiplePathCommonImport ImportingProperty { get; set; } = null!;
         }
 
         [Export]
@@ -334,7 +334,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithImportingProperty
         {
             [Import, MefV1.Import]
-            public PartWithImportingConstructor PartWithImportingConstructor { get; set; }
+            public PartWithImportingConstructor PartWithImportingConstructor { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -374,7 +374,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithLazyImportingProperty
         {
             [Import, MefV1.Import]
-            public Lazy<PartWithImportingConstructorOfPartWithLazyImportingProperty> PartWithImportingConstructor { get; set; }
+            public Lazy<PartWithImportingConstructorOfPartWithLazyImportingProperty> PartWithImportingConstructor { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -426,7 +426,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithLazyImportOfPartiallyInitializedPart
         {
             [Import, MefV1.Import]
-            public Lazy<PartiallyInitializedPart> C { get; set; }
+            public Lazy<PartiallyInitializedPart> C { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -434,7 +434,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartiallyInitializedPart
         {
             [Import, MefV1.Import]
-            public PartWithImportingConstructorOfPartWithLazyImportOfPartiallyInitializedPart A { get; set; }
+            public PartWithImportingConstructorOfPartWithLazyImportOfPartiallyInitializedPart A { get; set; } = null!;
         }
 
         #endregion
@@ -463,7 +463,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithImportingPropertyOfLazyImportingConstructor
         {
             [Import, MefV1.Import]
-            public PartWithLazyImportingConstructorOfPartWithImportingProperty PartWithImportingConstructor { get; set; }
+            public PartWithLazyImportingConstructorOfPartWithImportingProperty PartWithImportingConstructor { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -500,14 +500,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class NonSharedPartWithExportFactory
         {
             [MefV1.Import]
-            public MefV1.ExportFactory<PartConstructedByExportFactory> Factory { get; set; }
+            public MefV1.ExportFactory<PartConstructedByExportFactory> Factory { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class PartConstructedByExportFactory
         {
             [MefV1.Import]
-            public NonSharedPartWithExportFactory NonSharedPartWithExportFactory { get; set; }
+            public NonSharedPartWithExportFactory NonSharedPartWithExportFactory { get; set; } = null!;
         }
 
         #endregion
@@ -527,14 +527,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class SharedPartWithExportFactory
         {
             [MefV1.Import]
-            public MefV1.ExportFactory<PartConstructedBySharedExportFactory> Factory { get; set; }
+            public MefV1.ExportFactory<PartConstructedBySharedExportFactory> Factory { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class PartConstructedBySharedExportFactory
         {
             [MefV1.Import]
-            public PartWithImportingConstructorInLoopWithExportFactory NonSharedPartWithExportFactory { get; set; }
+            public PartWithImportingConstructorInLoopWithExportFactory NonSharedPartWithExportFactory { get; set; } = null!;
         }
 
         [MefV1.Export]
@@ -563,13 +563,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.Export]
         public class RootPartThatImperativelyQueriesForPartWithImportingConstructor
         {
-            internal static IContainer ContainerForRunningTest;
+            internal static IContainer? ContainerForRunningTest;
 
             public RootPartThatImperativelyQueriesForPartWithImportingConstructor()
             {
                 // This matches what Microsoft.VisualStudio.Web.Application GetNugetProjectTypeContext is doing when it uses
                 // IComponentModel.GetService<VsPackageInstallerServices>() on the callstack above the SolutionManager constructor.
-                var nonAnalyzableDependency = ContainerForRunningTest.GetExportedValue<PartThatImportsRootPartViaImportingConstructor>();
+                var nonAnalyzableDependency = ContainerForRunningTest!.GetExportedValue<PartThatImportsRootPartViaImportingConstructor>();
             }
         }
 
@@ -606,7 +606,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class RootPartThatImperativelyQueriesForPartWithImportingProperty
         {
             internal static int CtorCounter;
-            internal static IContainer ContainerForRunningTest;
+            internal static IContainer? ContainerForRunningTest;
 
             public RootPartThatImperativelyQueriesForPartWithImportingProperty()
             {
@@ -614,7 +614,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
                 // This matches what Microsoft.VisualStudio.Web.Application GetNugetProjectTypeContext is doing when it uses
                 // IComponentModel.GetService<VsPackageInstallerServices>() on the callstack above the SolutionManager constructor.
-                var nonAnalyzableDependency = ContainerForRunningTest.GetExportedValue<PartThatImportsRootPartViaImportingProperty>();
+                var nonAnalyzableDependency = ContainerForRunningTest!.GetExportedValue<PartThatImportsRootPartViaImportingProperty>();
                 this.ImperativelyAcquiredExport = nonAnalyzableDependency;
             }
 
@@ -625,7 +625,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsRootPartViaImportingProperty
         {
             [MefV1.Import]
-            internal RootPartThatImperativelyQueriesForPartWithImportingProperty RootPart { get; set; }
+            internal RootPartThatImperativelyQueriesForPartWithImportingProperty RootPart { get; set; } = null!;
         }
 
         #endregion

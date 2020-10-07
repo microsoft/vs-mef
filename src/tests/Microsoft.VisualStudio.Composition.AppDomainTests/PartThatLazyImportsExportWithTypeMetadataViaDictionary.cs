@@ -11,6 +11,6 @@
     public class PartThatLazyImportsExportWithTypeMetadataViaDictionary
     {
         [Import("AnExportWithMetadataTypeValue")]
-        public Lazy<object, IDictionary<string, object>> ImportWithDictionary { get; set; }
+        public Lazy<object, IDictionary<string, object>> ImportWithDictionary { get; set; } = null!;
     }
 }

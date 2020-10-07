@@ -98,8 +98,8 @@ namespace Microsoft.VisualStudio.Composition
 
             internal void Write(RuntimeComposition compositionRuntime)
             {
-                Requires.NotNull(this.writer, "writer");
                 Requires.NotNull(compositionRuntime, nameof(compositionRuntime));
+                Verify.Operation(this.writer is object, "This instance not configured for writing.");
 
                 using (this.Trace("RuntimeComposition"))
                 {
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.Composition
 
             internal RuntimeComposition ReadRuntimeComposition()
             {
-                Requires.NotNull(this.reader, "reader");
+                Verify.Operation(this.reader is object, "This instance not configured for reading.");
 
                 RuntimeComposition result;
                 using (this.Trace("RuntimeComposition"))
@@ -142,16 +142,16 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            private RuntimeComposition.RuntimeExport ReadRuntimeExport()
+            private RuntimeComposition.RuntimeExport? ReadRuntimeExport()
             {
                 using (this.Trace("RuntimeExport"))
                 {
                     uint id;
-                    RuntimeComposition.RuntimeExport value;
+                    RuntimeComposition.RuntimeExport? value;
                     if (this.TryPrepareDeserializeReusableObject(out id, out value))
                     {
-                        var contractName = this.ReadString();
-                        var declaringType = this.ReadTypeRef();
+                        var contractName = this.ReadString()!;
+                        var declaringType = this.ReadTypeRef()!;
                         var member = this.ReadMemberRef();
                         var exportedValueType = this.ReadTypeRef();
                         var metadata = this.ReadMetadata();
@@ -177,11 +177,11 @@ namespace Microsoft.VisualStudio.Composition
                     this.Write(part.Exports, this.Write);
                     if (part.ImportingConstructorOrFactoryMethodRef == null)
                     {
-                        this.writer.Write(false);
+                        this.writer!.Write(false);
                     }
                     else
                     {
-                        this.writer.Write(true);
+                        this.writer!.Write(true);
                         this.Write(part.ImportingConstructorOrFactoryMethodRef);
                         this.Write(part.ImportingConstructorArguments, this.Write);
                     }
@@ -196,12 +196,12 @@ namespace Microsoft.VisualStudio.Composition
             {
                 using (this.Trace("RuntimePart"))
                 {
-                    MethodRef importingCtor = default(MethodRef);
+                    MethodRef? importingCtor = default(MethodRef);
                     IReadOnlyList<RuntimeComposition.RuntimeImport> importingCtorArguments = ImmutableList<RuntimeComposition.RuntimeImport>.Empty;
 
-                    var type = this.ReadTypeRef();
-                    var exports = this.ReadList(this.reader, this.ReadRuntimeExport);
-                    bool hasCtor = this.reader.ReadBoolean();
+                    var type = this.ReadTypeRef()!;
+                    var exports = this.ReadList(this.reader!, this.ReadRuntimeExport);
+                    bool hasCtor = this.reader!.ReadBoolean();
                     if (hasCtor)
                     {
                         importingCtor = this.ReadMethodRef();
@@ -217,7 +217,7 @@ namespace Microsoft.VisualStudio.Composition
                         importingCtor,
                         importingCtorArguments,
                         importingMembers,
-                        exports,
+                        exports!,
                         onImportsSatisfied,
                         sharingBoundary);
                 }
@@ -234,7 +234,7 @@ namespace Microsoft.VisualStudio.Composition
                     flags |=
                         import.Cardinality == ImportCardinality.ExactlyOne ? RuntimeImportFlags.CardinalityExactlyOne :
                         import.Cardinality == ImportCardinality.OneOrZero ? RuntimeImportFlags.CardinalityOneOrZero : 0;
-                    this.writer.Write((byte)flags);
+                    this.writer!.Write((byte)flags);
 
                     if (import.ImportingMemberRef == null)
                     {
@@ -271,15 +271,15 @@ namespace Microsoft.VisualStudio.Composition
             {
                 using (this.Trace("RuntimeImport"))
                 {
-                    var flags = (RuntimeImportFlags)this.reader.ReadByte();
+                    var flags = (RuntimeImportFlags)this.reader!.ReadByte();
                     var cardinality =
                         flags.HasFlag(RuntimeImportFlags.CardinalityOneOrZero) ? ImportCardinality.OneOrZero :
                         flags.HasFlag(RuntimeImportFlags.CardinalityExactlyOne) ? ImportCardinality.ExactlyOne :
                         ImportCardinality.ZeroOrMore;
                     bool isExportFactory = flags.HasFlag(RuntimeImportFlags.IsExportFactory);
 
-                    MemberRef importingMember = default(MemberRef);
-                    ParameterRef importingParameter = default(ParameterRef);
+                    MemberRef? importingMember = default(MemberRef);
+                    ParameterRef? importingParameter = default(ParameterRef);
                     if (flags.HasFlag(RuntimeImportFlags.IsParameter))
                     {
                         importingParameter = this.ReadParameterRef();
@@ -289,36 +289,36 @@ namespace Microsoft.VisualStudio.Composition
                         importingMember = this.ReadMemberRef();
                     }
 
-                    var importingSiteTypeRef = this.ReadTypeRef();
+                    var importingSiteTypeRef = this.ReadTypeRef()!;
                     TypeRef importingSiteTypeWithoutCollectionRef =
-                        cardinality == ImportCardinality.ZeroOrMore ? this.ReadTypeRef() : importingSiteTypeRef;
+                        cardinality == ImportCardinality.ZeroOrMore ? this.ReadTypeRef()! : importingSiteTypeRef;
                     var satisfyingExports = this.ReadList(this.reader, this.ReadRuntimeExport);
                     var metadata = this.ReadMetadata();
-                    IReadOnlyList<string> exportFactorySharingBoundaries = isExportFactory
+                    IReadOnlyList<string?> exportFactorySharingBoundaries = isExportFactory
                         ? this.ReadList(this.reader, this.ReadString)
                         : ImmutableList<string>.Empty;
 
                     return importingMember == null
                         ? new RuntimeComposition.RuntimeImport(
-                            importingParameter,
+                            importingParameter!,
                             importingSiteTypeRef,
                             importingSiteTypeWithoutCollectionRef,
                             cardinality,
-                            satisfyingExports,
+                            satisfyingExports!,
                             flags.HasFlag(RuntimeImportFlags.IsNonSharedInstanceRequired),
                             isExportFactory,
                             metadata,
-                            exportFactorySharingBoundaries)
+                            exportFactorySharingBoundaries!)
                         : new RuntimeComposition.RuntimeImport(
                             importingMember,
                             importingSiteTypeRef,
                             importingSiteTypeWithoutCollectionRef,
                             cardinality,
-                            satisfyingExports,
+                            satisfyingExports!,
                             flags.HasFlag(RuntimeImportFlags.IsNonSharedInstanceRequired),
                             isExportFactory,
                             metadata,
-                            exportFactorySharingBoundaries);
+                            exportFactorySharingBoundaries!);
                 }
             }
 
@@ -343,8 +343,8 @@ namespace Microsoft.VisualStudio.Composition
                     var builder = ImmutableDictionary.CreateBuilder<TypeRef, RuntimeComposition.RuntimeExport>();
                     for (uint i = 0; i < count; i++)
                     {
-                        var key = this.ReadTypeRef();
-                        var value = this.ReadRuntimeExport();
+                        var key = this.ReadTypeRef()!;
+                        var value = this.ReadRuntimeExport()!;
                         builder.Add(key, value);
                     }
 

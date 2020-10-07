@@ -38,9 +38,9 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         /// <param name="partCreationPolicy">The <see cref="CreationPolicy"/> of the exporting <see cref="ComposablePartDefinition"/>.</param>
         /// <returns>A dictionary of metadata.</returns>
-        public static ImmutableDictionary<string, object> GetExportMetadata(CreationPolicy partCreationPolicy)
+        public static ImmutableDictionary<string, object?> GetExportMetadata(CreationPolicy partCreationPolicy)
         {
-            var result = ImmutableDictionary.Create<string, object>();
+            var result = ImmutableDictionary.Create<string, object?>();
 
             // As an optimization, only specify the export metadata if the policy isn't Any.
             // This matches our logic in IsSatisfiedBy that interprets no metadata as no part creation policy.
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.Composition
             return result;
         }
 
-        public static PartCreationPolicyConstraint GetRequiredCreationPolicyConstraint(CreationPolicy requiredCreationPolicy)
+        public static PartCreationPolicyConstraint? GetRequiredCreationPolicyConstraint(CreationPolicy requiredCreationPolicy)
         {
             switch (requiredCreationPolicy)
             {
@@ -92,8 +92,8 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
-            object value;
-            if (exportDefinition.Metadata.TryGetValue(CompositionConstants.PartCreationPolicyMetadataName, out value))
+            object? value;
+            if (exportDefinition.Metadata.TryGetValue(CompositionConstants.PartCreationPolicyMetadataName, out value) && value is object)
             {
                 var partCreationPolicy = (CreationPolicy)value;
                 return partCreationPolicy == CreationPolicy.Any
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.Composition
             indentingWriter.WriteLine("RequiredCreationPolicy: {0}", this.RequiredCreationPolicy);
         }
 
-        public bool Equals(IImportSatisfiabilityConstraint obj)
+        public bool Equals(IImportSatisfiabilityConstraint? obj)
         {
             var other = obj as PartCreationPolicyConstraint;
             if (other == null)

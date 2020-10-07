@@ -92,19 +92,19 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         private static byte[] GetPublicKeyFromExecutingAssembly()
         {
-            byte[] publicKey = typeof(ByValueEqualityTests).GetTypeInfo().Assembly.GetName().GetPublicKey();
+            byte[] publicKey = typeof(ByValueEqualityTests).GetTypeInfo().Assembly.GetName().GetPublicKey()!;
             Assert.NotNull(publicKey);
             return publicKey;
         }
 
         private static byte[] GetPublicKeyTokenFromExecutingAssembly()
         {
-            byte[] publicKeyToken = typeof(ByValueEqualityTests).GetTypeInfo().Assembly.GetName().GetPublicKeyToken();
+            byte[] publicKeyToken = typeof(ByValueEqualityTests).GetTypeInfo().Assembly.GetName().GetPublicKeyToken()!;
             Assert.NotNull(publicKeyToken);
             return publicKeyToken;
         }
 
-        private static AssemblyName CreateAssemblyName(string name, Version version, CultureInfo cultureInfo, string codeBase, byte[] publicKey = null, byte[] publicKeyToken = null)
+        private static AssemblyName CreateAssemblyName(string name, Version version, CultureInfo cultureInfo, string codeBase, byte[]? publicKey = null, byte[]? publicKeyToken = null)
         {
             AssemblyName assemblyName = new AssemblyName();
             assemblyName.Name = name;

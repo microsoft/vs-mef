@@ -36,10 +36,10 @@ namespace Microsoft.VisualStudio.Composition
     /// <code><![CDATA[
     /// public class __Foo__MetadataViewProxy : TMetadataView
     ///
-    ///     private readonly IReadOnlyDictionary<string, object> metadata;
-    ///     private readonly IReadOnlyDictionary<string, object> defaultMetadata;
+    ///     private readonly IReadOnlyDictionary<string, object?> metadata;
+    ///     private readonly IReadOnlyDictionary<string, object?> defaultMetadata;
     ///
-    ///     private __Foo__MetadataViewProxy (IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata)
+    ///     private __Foo__MetadataViewProxy (IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultMetadata)
     ///     {
     ///         this.metadata = metadata;
     ///         this.defaultMetadata = defaultMetadata;
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.Composition
     ///         }
     ///     }
     ///
-    ///     public static object Create(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata)
+    ///     public static object Create(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultMetadata)
     ///     {
     ///        return new __Foo__MetadataViewProxy(metadata, defaultMetadata);
     ///     }
@@ -81,15 +81,15 @@ namespace Microsoft.VisualStudio.Composition
 
         private static readonly Dictionary<Type, MetadataViewFactory> MetadataViewFactories = new Dictionary<Type, MetadataViewFactory>();
 
-        private static readonly Type[] CtorArgumentTypes = new Type[] { typeof(IReadOnlyDictionary<string, object>), typeof(IReadOnlyDictionary<string, object>) };
-        private static readonly MethodInfo MdvDictionaryTryGet = CtorArgumentTypes[0].GetTypeInfo().GetMethod("TryGetValue");
-        private static readonly MethodInfo MdvDictionaryIndexer = CtorArgumentTypes[0].GetTypeInfo().GetMethod("get_Item");
-        private static readonly MethodInfo ObjectGetType = typeof(object).GetTypeInfo().GetMethod("GetType", Type.EmptyTypes);
-        private static readonly ConstructorInfo ObjectCtor = typeof(object).GetTypeInfo().GetConstructor(Type.EmptyTypes);
+        private static readonly Type[] CtorArgumentTypes = new Type[] { typeof(IReadOnlyDictionary<string, object?>), typeof(IReadOnlyDictionary<string, object?>) };
+        private static readonly MethodInfo MdvDictionaryTryGet = CtorArgumentTypes[0].GetTypeInfo().GetMethod("TryGetValue")!;
+        private static readonly MethodInfo MdvDictionaryIndexer = CtorArgumentTypes[0].GetTypeInfo().GetMethod("get_Item")!;
+        private static readonly MethodInfo ObjectGetType = typeof(object).GetTypeInfo().GetMethod("GetType", Type.EmptyTypes)!;
+        private static readonly ConstructorInfo ObjectCtor = typeof(object).GetTypeInfo().GetConstructor(Type.EmptyTypes)!;
 
         private static readonly Dictionary<ImmutableHashSet<AssemblyName>, ModuleBuilder> TransparentProxyModuleBuilderByVisibilityCheck = new Dictionary<ImmutableHashSet<AssemblyName>, ModuleBuilder>(new ByContentEqualityComparer());
 
-        public delegate object MetadataViewFactory(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultMetadata);
+        public delegate object MetadataViewFactory(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultMetadata);
 
         private static AssemblyBuilder CreateProxyAssemblyBuilder()
         {
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.Composition
             // because the CLR will not honor any additions to that set once the first generated type is closed.
             // So maintain a dictionary to point at dynamic modules based on the set of skip visiblity check assemblies they were generated with.
             var skipVisibilityCheckAssemblies = SkipClrVisibilityChecks.GetSkipVisibilityChecksRequirements(viewType);
-            if (!TransparentProxyModuleBuilderByVisibilityCheck.TryGetValue(skipVisibilityCheckAssemblies, out ModuleBuilder moduleBuilder))
+            if (!TransparentProxyModuleBuilderByVisibilityCheck.TryGetValue(skipVisibilityCheckAssemblies, out ModuleBuilder? moduleBuilder))
             {
                 var assemblyBuilder = CreateProxyAssemblyBuilder();
                 moduleBuilder = assemblyBuilder.DefineDynamicModule("MetadataViewProxiesModule");
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.Composition
             Assumes.NotNull(viewType);
             Assumes.True(viewType.GetTypeInfo().IsInterface);
 
-            MetadataViewFactory metadataViewFactory;
+            MetadataViewFactory? metadataViewFactory;
 
             lock (MetadataViewFactories)
             {
@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.Composition
                     // We actually create the proxy type within the lock because we're
                     // tampering with the ModuleBuilder which isn't thread-safe.
                     TypeInfo generatedProxyType = GenerateInterfaceViewProxyType(viewType);
-                    var methodInfo = generatedProxyType.GetMethod(MetadataViewGenerator.MetadataViewFactoryName, BindingFlags.Public | BindingFlags.Static);
+                    var methodInfo = generatedProxyType.GetMethod(MetadataViewGenerator.MetadataViewFactoryName, BindingFlags.Public | BindingFlags.Static)!;
                     metadataViewFactory = (MetadataViewFactory)methodInfo.CreateDelegate(typeof(MetadataViewFactory));
                     MetadataViewFactories.Add(viewType, metadataViewFactory);
                 }
@@ -198,8 +198,8 @@ namespace Microsoft.VisualStudio.Composition
                 string propertyName = propertyInfo.Name;
 
                 Type[] propertyTypeArguments = new Type[] { propertyInfo.PropertyType };
-                Type[] optionalModifiers = null;
-                Type[] requiredModifiers = null;
+                Type[]? optionalModifiers = null;
+                Type[]? requiredModifiers = null;
 
                 // PropertyInfo does not support GetOptionalCustomModifiers and GetRequiredCustomModifiers on Silverlight
                 optionalModifiers = propertyInfo.GetOptionalCustomModifiers();
@@ -226,7 +226,7 @@ namespace Microsoft.VisualStudio.Composition
                     null,
                     null);
 
-                proxyTypeBuilder.DefineMethodOverride(getMethodBuilder, propertyInfo.GetGetMethod());
+                proxyTypeBuilder.DefineMethodOverride(getMethodBuilder, propertyInfo.GetGetMethod()!);
                 ILGenerator getMethodIL = getMethodBuilder.GetILGenerator();
 
                 // object value;
@@ -259,7 +259,7 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             // Implement the static factory
-            //// public static object Create(IReadOnlyDictionary<string, object>, IReadOnlyDictionary<string, object>)
+            //// public static object Create(IReadOnlyDictionary<string, object?>, IReadOnlyDictionary<string, object?>)
             //// {
             ////    return new <ProxyClass>(dictionary);
             //// }
@@ -271,9 +271,9 @@ namespace Microsoft.VisualStudio.Composition
             factoryIL.Emit(OpCodes.Ret);
 
             // Finished implementing the type
-            proxyType = proxyTypeBuilder.CreateTypeInfo();
+            proxyType = proxyTypeBuilder.CreateTypeInfo()!;
 
-            return proxyType;
+            return proxyType!;
         }
 
         private static IEnumerable<PropertyInfo> GetAllProperties(this Type type)
@@ -283,8 +283,18 @@ namespace Microsoft.VisualStudio.Composition
 
         private class ByContentEqualityComparer : IEqualityComparer<ImmutableHashSet<AssemblyName>>
         {
-            public bool Equals(ImmutableHashSet<AssemblyName> x, ImmutableHashSet<AssemblyName> y)
+            public bool Equals(ImmutableHashSet<AssemblyName>? x, ImmutableHashSet<AssemblyName>? y)
             {
+                if (x == y)
+                {
+                    return true;
+                }
+
+                if (x is null || y is null)
+                {
+                    return false;
+                }
+
                 if (x.Count != y.Count)
                 {
                     return false;

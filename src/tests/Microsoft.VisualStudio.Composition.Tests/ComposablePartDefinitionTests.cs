@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             ComposablePartDefinition partDef1 =
                 new ComposablePartDefinition(
                     typeRef,
-                    ImmutableDictionary<string, object>.Empty,
+                    ImmutableDictionary<string, object?>.Empty,
                     ImmutableList.Create<ExportDefinition>(),
                     ImmutableDictionary.Create<MemberRef, IReadOnlyCollection<ExportDefinition>>(),
                     ImmutableList.Create<ImportDefinitionBinding>(),
@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             ComposablePartDefinition partDef2 =
                 new ComposablePartDefinition(
                     typeRef,
-                    ImmutableDictionary<string, object>.Empty,
+                    ImmutableDictionary<string, object?>.Empty,
                     ImmutableList.Create<ExportDefinition>(),
                     ImmutableDictionary.Create<MemberRef, IReadOnlyCollection<ExportDefinition>>(),
                     ImmutableList.Create<ImportDefinitionBinding>(),

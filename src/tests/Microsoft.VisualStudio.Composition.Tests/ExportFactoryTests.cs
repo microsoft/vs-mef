@@ -146,33 +146,33 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartFactoryV1WithExplicitContractType
         {
             [MefV1.Import(typeof(NonSharedPart))]
-            public MefV1.ExportFactory<IDisposable> Factory { get; set; }
+            public MefV1.ExportFactory<IDisposable> Factory { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class PartFactoryV1
         {
             [MefV1.Import]
-            public MefV1.ExportFactory<NonSharedPart> Factory { get; set; }
+            public MefV1.ExportFactory<NonSharedPart> Factory { get; set; } = null!;
 
             [MefV1.Import(AllowDefault = true)]
-            public MefV1.ExportFactory<NonSharedPartThatImportsAnotherNonSharedPart> TransitiveNonSharedFactory { get; set; }
+            public MefV1.ExportFactory<NonSharedPartThatImportsAnotherNonSharedPart> TransitiveNonSharedFactory { get; set; } = null!;
 
             [MefV1.Import]
-            public MefV1.ExportFactory<NonSharedPart, IDictionary<string, object>> FactoryWithMetadata { get; set; }
+            public MefV1.ExportFactory<NonSharedPart, IDictionary<string, object>> FactoryWithMetadata { get; set; } = null!;
 
             [MefV1.Import]
-            public MefV1.ExportFactory<NonSharedPart, IMetadata> FactoryWithTMetadata { get; set; }
+            public MefV1.ExportFactory<NonSharedPart, IMetadata> FactoryWithTMetadata { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class PartFactoryManyV1
         {
             [MefV1.ImportMany]
-            public IEnumerable<MefV1.ExportFactory<NonSharedPart>> Factories { get; set; }
+            public IEnumerable<MefV1.ExportFactory<NonSharedPart>> Factories { get; set; } = null!;
 
             [MefV1.ImportMany]
-            public IEnumerable<MefV1.ExportFactory<NonSharedPart, IDictionary<string, object>>> FactoriesWithMetadata { get; set; }
+            public IEnumerable<MefV1.ExportFactory<NonSharedPart, IDictionary<string, object>>> FactoriesWithMetadata { get; set; } = null!;
         }
 
         public interface INonSharedOpenGenericExportPart<T> { }
@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartFactoryOfOpenGenericPart
         {
             [MefV1.Import(typeof(NonSharedOpenGenericExportPart<IDisposable>))]
-            public MefV1.ExportFactory<INonSharedOpenGenericExportPart<IDisposable>> Factory { get; set; }
+            public MefV1.ExportFactory<INonSharedOpenGenericExportPart<IDisposable>> Factory { get; set; } = null!;
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(PublicFactoryOfInternalPartViaPublicInterface), typeof(InternalPart))]
@@ -212,14 +212,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PublicFactoryOfInternalPartViaPublicInterface
         {
             [MefV1.Import]
-            public MefV1.ExportFactory<IDisposable> InternalPartFactory { get; set; }
+            public MefV1.ExportFactory<IDisposable> InternalPartFactory { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class NonPublicFactoryOfInternalPart
         {
             [MefV1.Import]
-            internal MefV1.ExportFactory<InternalPart> InternalPartFactory { get; set; }
+            internal MefV1.ExportFactory<InternalPart> InternalPartFactory { get; set; } = null!;
         }
 
         [MefV1.Export(typeof(IDisposable))]
@@ -328,7 +328,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static (WeakReference, WeakReference) ExportFactoryForNonSharedPartNoLeakAfterExportDisposal_TransitiveV2_Helper(IContainer container)
+        private static (WeakReference Direct, WeakReference Transitive) ExportFactoryForNonSharedPartNoLeakAfterExportDisposal_TransitiveV2_Helper(IContainer container)
         {
             var partFactory = container.GetExportedValue<PartFactoryV2>();
             var export = partFactory.TransitiveNonSharedFactory.CreateExport();
@@ -389,7 +389,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static (WeakReference, WeakReference) ExportFactoryForNonSharedPartNoLeakAfterExportDisposal_TransitiveV1_Helper(IContainer container)
+        private static (WeakReference Direct, WeakReference Transitive) ExportFactoryForNonSharedPartNoLeakAfterExportDisposal_TransitiveV1_Helper(IContainer container)
         {
             var partFactory = container.GetExportedValue<PartFactoryV1>();
             var export = partFactory.TransitiveNonSharedFactory.CreateExport();
@@ -442,23 +442,23 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartFactoryV2
         {
             [Import]
-            public ExportFactory<NonSharedPart> Factory { get; set; }
+            public ExportFactory<NonSharedPart> Factory { get; set; } = null!;
 
             [Import(AllowDefault = true)]
-            public ExportFactory<NonSharedPartThatImportsAnotherNonSharedPart> TransitiveNonSharedFactory { get; set; }
+            public ExportFactory<NonSharedPartThatImportsAnotherNonSharedPart> TransitiveNonSharedFactory { get; set; } = null!;
 
             [Import]
-            public ExportFactory<NonSharedPart, IDictionary<string, object>> FactoryWithMetadata { get; set; }
+            public ExportFactory<NonSharedPart, IDictionary<string, object>> FactoryWithMetadata { get; set; } = null!;
         }
 
         [Export]
         public class PartFactoryManyV2
         {
             [ImportMany]
-            public IEnumerable<ExportFactory<NonSharedPart>> Factories { get; set; }
+            public IEnumerable<ExportFactory<NonSharedPart>> Factories { get; set; } = null!;
 
             [ImportMany]
-            public IEnumerable<ExportFactory<NonSharedPart, IDictionary<string, object>>> FactoriesWithMetadata { get; set; }
+            public IEnumerable<ExportFactory<NonSharedPart, IDictionary<string, object>>> FactoriesWithMetadata { get; set; } = null!;
         }
 
         #endregion
@@ -489,14 +489,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ExportFactoryOfSharedPartV1Part
         {
             [MefV1.Import]
-            public MefV1.ExportFactory<ExportWithSharedCreationPolicy> Factory { get; set; }
+            public MefV1.ExportFactory<ExportWithSharedCreationPolicy> Factory { get; set; } = null!;
         }
 
         [Export]
         public class ExportFactoryOfSharedPartV2Part
         {
             [Import]
-            public ExportFactory<ExportWithSharedCreationPolicy> Factory { get; set; }
+            public ExportFactory<ExportWithSharedCreationPolicy> Factory { get; set; } = null!;
         }
 
         #endregion
@@ -532,21 +532,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ExportFactoryOfAnyCreationPolicyPartV1Part
         {
             [MefV1.Import]
-            public MefV1.ExportFactory<ExportWithAnyCreationPolicy> Factory { get; set; }
+            public MefV1.ExportFactory<ExportWithAnyCreationPolicy> Factory { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class ExportFactoryAndImportOfAnyCreationPolicyPartV1 : ExportFactoryOfAnyCreationPolicyPartV1Part
         {
             [MefV1.Import]
-            public ExportWithAnyCreationPolicy SharedImport { get; set; }
+            public ExportWithAnyCreationPolicy SharedImport { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class ImportOfAnyCreationPolicyPartV1
         {
             [MefV1.Import]
-            public ExportWithAnyCreationPolicy SharedImport { get; set; }
+            public ExportWithAnyCreationPolicy SharedImport { get; set; } = null!;
         }
 
         #endregion
@@ -587,7 +587,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
 
             [Import, MefV1.Import]
-            public NonSharedPart NonSharedPart { get; set; }
+            public NonSharedPart NonSharedPart { get; set; } = null!;
 
             internal bool Disposed { get; private set; }
 

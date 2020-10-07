@@ -18,9 +18,10 @@ namespace Microsoft.VisualStudio.Composition
             return HasMetadataViewImplementation(metadataType);
         }
 
-        public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
+        public object CreateProxy(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultValues, Type metadataViewType)
         {
             var ctor = FindImplClassConstructor(metadataViewType);
+            Assumes.NotNull(ctor);
             return ctor.Invoke(new object[] { metadata });
         }
 
@@ -29,7 +30,7 @@ namespace Microsoft.VisualStudio.Composition
             return FindImplClassConstructor(metadataType) != null;
         }
 
-        private static ConstructorInfo FindImplClassConstructor(Type metadataType)
+        private static ConstructorInfo? FindImplClassConstructor(Type metadataType)
         {
             Requires.NotNull(metadataType, nameof(metadataType));
             var attr = metadataType.GetTypeInfo().GetFirstAttribute<MefV1.MetadataViewImplementationAttribute>();
@@ -40,8 +41,8 @@ namespace Microsoft.VisualStudio.Composition
                     var ctors = from ctor in attr.ImplementationType.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
                                 let parameters = ctor.GetParameters()
                                 where parameters.Length == 1 && (
-                                    parameters[0].ParameterType.IsAssignableFrom(typeof(IDictionary<string, object>)) ||
-                                    parameters[0].ParameterType.IsAssignableFrom(typeof(IReadOnlyDictionary<string, object>)))
+                                    parameters[0].ParameterType.IsAssignableFrom(typeof(IDictionary<string, object?>)) ||
+                                    parameters[0].ParameterType.IsAssignableFrom(typeof(IReadOnlyDictionary<string, object?>)))
                                 select ctor;
                     return ctors.FirstOrDefault();
                 }

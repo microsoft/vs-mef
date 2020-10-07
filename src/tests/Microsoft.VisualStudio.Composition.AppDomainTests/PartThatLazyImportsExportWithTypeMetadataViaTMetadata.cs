@@ -12,7 +12,7 @@
     public class PartThatLazyImportsExportWithTypeMetadataViaTMetadata
     {
         [Import("AnExportWithMetadataTypeValue")]
-        public Lazy<object, IMetadataView> ImportWithTMetadata { get; set; }
+        public Lazy<object, IMetadataView> ImportWithTMetadata { get; set; } = null!;
     }
 
     public interface IMetadataView

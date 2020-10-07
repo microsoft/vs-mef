@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportingPart
         {
             [Import, MefV1.Import]
-            public Lazy<ExportedPart, IProfferedServiceMetadataView> ImportingProperty { get; set; }
+            public Lazy<ExportedPart, IProfferedServiceMetadataView> ImportingProperty { get; set; } = null!;
         }
 
         [ExportVsProfferedProjectService("{A97C49F7-8E06-41D1-A0A5-2E0135E17A2E}")]

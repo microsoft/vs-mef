@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task TwoContainersDoNotShareAnyExports()
         {
             var discovery = TestUtilities.V2Discovery;
-            var part = discovery.CreatePart(typeof(SharedExport));
+            var part = discovery.CreatePart(typeof(SharedExport))!;
             var catalog = TestUtilities.EmptyCatalog.AddPart(part);
             var configuration = CompositionConfiguration.Create(catalog);
             var container1 = await configuration.CreateContainerAsync(this.output);

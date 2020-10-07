@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             /// It must be a field (not a property) for the test to verify what it is intended to.
             /// </remarks>
             [MefV1.Import]
-            public EmptyPart ImportingField;
+            public EmptyPart ImportingField = null!;
         }
     }
 }

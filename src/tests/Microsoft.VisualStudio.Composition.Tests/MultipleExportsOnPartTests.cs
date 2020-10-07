@@ -56,16 +56,16 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class MultipleImportsForSamePart
         {
             [Import, MefV1.Import]
-            public NonSharedExport NonSharedExport1 { get; set; }
+            public NonSharedExport NonSharedExport1 { get; set; } = null!;
 
             [Import("NonSharedExport"), MefV1.Import("NonSharedExport")]
-            public object NonSharedExport2 { get; set; }
+            public object NonSharedExport2 { get; set; } = null!;
 
             [Import, MefV1.Import]
-            public SharedExport SharedExport1 { get; set; }
+            public SharedExport SharedExport1 { get; set; } = null!;
 
             [Import("SharedExport"), MefV1.Import("SharedExport")]
-            public object SharedExport2 { get; set; }
+            public object SharedExport2 { get; set; } = null!;
         }
     }
 }

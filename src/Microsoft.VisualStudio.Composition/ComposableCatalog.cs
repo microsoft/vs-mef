@@ -6,6 +6,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.ComponentModel;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -162,7 +163,7 @@ namespace Microsoft.VisualStudio.Composition
             return inputAssemblies.ToImmutable();
         }
 
-        public bool Equals(ComposableCatalog other)
+        public bool Equals(ComposableCatalog? other)
         {
             if (other == null)
             {
@@ -207,11 +208,11 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(importDefinition, nameof(importDefinition));
 
             // We always want to consider exports with a matching contract name.
-            var exports = this.exportsByContract.GetValueOrDefault(importDefinition.ContractName, ImmutableList.Create<ExportDefinitionBinding>());
+            var exports = this.exportsByContract.GetValueOrDefault(importDefinition.ContractName, ImmutableList.Create<ExportDefinitionBinding>())!;
 
             // For those imports of generic types, we also want to consider exports that are based on open generic exports,
-            string genericTypeDefinitionContractName;
-            Type[] genericTypeArguments;
+            string? genericTypeDefinitionContractName;
+            Type[]? genericTypeArguments;
             if (TryGetOpenGenericExport(importDefinition, out genericTypeDefinitionContractName, out genericTypeArguments))
             {
                 var openGenericExports = this.exportsByContract.GetValueOrDefault(genericTypeDefinitionContractName, ImmutableList.Create<ExportDefinitionBinding>());
@@ -229,7 +230,7 @@ namespace Microsoft.VisualStudio.Composition
             return ImmutableList.CreateRange(filteredExports);
         }
 
-        internal static bool TryGetOpenGenericExport(ImportDefinition importDefinition, out string contractName, out Type[] typeArguments)
+        internal static bool TryGetOpenGenericExport(ImportDefinition importDefinition, [NotNullWhen(true)] out string? contractName, [NotNullWhen(true)] out Type[]? typeArguments)
         {
             Requires.NotNull(importDefinition, nameof(importDefinition));
 

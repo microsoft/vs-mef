@@ -323,7 +323,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithPrivateImportingField
         {
             [MefV1.Import]
-            private PublicExport importingField = null;
+            private PublicExport importingField = null!;
 
             public PublicExport ImportingFieldAccessor
             {
@@ -346,21 +346,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class DelegateImportingPart
         {
             [MefV1.Import]
-            public Action SomeMethod { get; set; }
+            public Action SomeMethod { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class LazyDelegateImportingPart
         {
             [MefV1.Import]
-            public Lazy<Action> SomeMethod { get; set; }
+            public Lazy<Action> SomeMethod { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class ManyLazyDelegateImportingPart
         {
             [MefV1.ImportMany]
-            public List<Lazy<Action>> SomeMethod { get; set; }
+            public List<Lazy<Action>> SomeMethod { get; set; } = null!;
         }
 
         #endregion
@@ -375,21 +375,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithLazyImportOfInternalPartViaPublicInterface
         {
             [MefV1.Import]
-            public Lazy<IPublicInterface> ImportingProperty { get; set; }
+            public Lazy<IPublicInterface> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class PartWithImportOfInternalPartViaPublicInterface
         {
             [MefV1.Import]
-            public IPublicInterface ImportingProperty { get; set; }
+            public IPublicInterface ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class PartWithImportManyOfInternalPartViaPublicInterface
         {
             [MefV1.ImportMany]
-            public List<IPublicInterface> ImportingProperty { get; set; }
+            public List<IPublicInterface> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
@@ -401,42 +401,42 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
 
             [MefV1.ImportMany]
-            internal List<IInternalInterface> ImportingProperty { get; set; }
+            internal List<IInternalInterface> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class PartWithImportManyOfInternalPartViaInternalInterface
         {
             [MefV1.ImportMany]
-            internal List<IInternalInterface> ImportingProperty { get; set; }
+            internal List<IInternalInterface> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         internal class PartWithLazyImportOfInternalPartViaInternalInterface
         {
             [MefV1.Import]
-            internal Lazy<IInternalInterface> ImportingProperty { get; set; }
+            internal Lazy<IInternalInterface> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         internal class PartWithLazyImportManyOfInternalPartViaInternalInterface
         {
             [MefV1.ImportMany]
-            internal List<Lazy<IInternalInterface>> ImportingProperty { get; set; }
+            internal List<Lazy<IInternalInterface>> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class PartWithLazyImportMetadataOfInternalPartViaPublicInterface
         {
             [MefV1.Import]
-            public Lazy<IPublicInterface, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<IPublicInterface, IDictionary<string, object>> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         internal class PartWithLazyImportMetadataOfInternalPartViaInternalInterface
         {
             [MefV1.Import]
-            internal Lazy<IInternalInterface, IDictionary<string, object>> ImportingProperty { get; set; }
+            internal Lazy<IInternalInterface, IDictionary<string, object>> ImportingProperty { get; set; } = null!;
         }
 
         internal interface IInternalInterface { }
@@ -447,55 +447,55 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [MefV1.Import]
             [MefV2.Import]
-            public PublicExport PublicImportingProperty { get; set; }
+            public PublicExport PublicImportingProperty { get; set; } = null!;
 
             [MefV1.Import]
             [MefV2.Import]
-            internal PublicExport InternalImportingProperty { get; set; }
+            internal PublicExport InternalImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         internal class InternalExportNonShared
         {
             [MefV1.Import]
-            public PublicExport PublicImportingProperty { get; set; }
+            public PublicExport PublicImportingProperty { get; set; } = null!;
 
             [MefV1.Import]
-            internal PublicExport InternalImportingProperty { get; set; }
+            internal PublicExport InternalImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         internal class InternalPartImportingInternalPart
         {
             [MefV1.Import]
-            internal Lazy<InternalExport> InternalImportingProperty { get; set; }
+            internal Lazy<InternalExport> InternalImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         internal class InternalPartWithImportManyOfInternalPart
         {
             [MefV1.ImportMany]
-            internal IEnumerable<Lazy<InternalExport>> InternalImportingProperty { get; set; }
+            internal IEnumerable<Lazy<InternalExport>> InternalImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         internal class InternalGenericExport<T>
         {
             [MefV1.Import]
-            public PublicExport PublicImportingProperty { get; set; }
+            public PublicExport PublicImportingProperty { get; set; } = null!;
 
             [MefV1.Import]
-            internal PublicExport InternalImportingProperty { get; set; }
+            internal PublicExport InternalImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export(typeof(IInternalInterface))]
         public class PublicExportOfInternalInterface : IInternalInterface
         {
             [MefV1.Import]
-            public PublicExport PublicImportingProperty { get; set; }
+            public PublicExport PublicImportingProperty { get; set; } = null!;
 
             [MefV1.Import]
-            internal PublicExport InternalImportingProperty { get; set; }
+            internal PublicExport InternalImportingProperty { get; set; } = null!;
         }
 
         internal class InternalTypeWithExportingMember
@@ -520,7 +520,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public int ImportedInt { get; set; }
 
             [MefV1.Import]
-            public string ImportedString { get; set; }
+            public string ImportedString { get; set; } = null!;
         }
 
         [MefV1.Export]
@@ -531,7 +531,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ExportWithPrivateImportingProperty
         {
             [MefV1.Import]
-            private PublicExport ImportingProperty { get; set; }
+            private PublicExport ImportingProperty { get; set; } = null!;
 
             internal PublicExport InternalAccessor
             {
@@ -542,7 +542,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ExportWithPrivateImportingPropertySetterBase
         {
             [MefV1.Import]
-            public PublicExport ImportingProperty { get; private set; }
+            public PublicExport ImportingProperty { get; private set; } = null!;
         }
 
         [MefV1.Export]
@@ -554,7 +554,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class OpenGenericPartWithPrivateImportingProperty<T>
         {
             [MefV1.Import]
-            private PublicExport ImportingProperty { get; set; }
+            private PublicExport ImportingProperty { get; set; } = null!;
 
             internal PublicExport InternalAccessor
             {
@@ -566,7 +566,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ExportWithPrivateImportingField
         {
             [MefV1.Import]
-            private PublicExport importingField = null;
+            private PublicExport importingField = null!;
 
             internal PublicExport InternalAccessor
             {
@@ -578,7 +578,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class OpenGenericPartWithPrivateImportingField<T>
         {
             [MefV1.Import]
-            private PublicExport importingField = null;
+            private PublicExport importingField = null!;
 
             internal PublicExport InternalAccessor
             {
@@ -599,7 +599,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsPrivateExportingProperty
         {
             [MefV1.Import]
-            public string Value { get; set; }
+            public string Value { get; set; } = null!;
         }
 
         public class PartWithPrivateExportingField
@@ -617,7 +617,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsPrivateExportingField
         {
             [MefV1.Import]
-            public string Value { get; set; }
+            public string Value { get; set; } = null!;
         }
 
         public class PartWithPrivateExportedMethod
@@ -633,13 +633,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithImportOfPrivateExportedMethod
         {
             [MefV1.Import]
-            public Func<string> Value { get; set; }
+            public Func<string> Value { get; set; } = null!;
         }
 
         public class PublicBaseClassWithImports
         {
             [MefV1.Import]
-            public PublicExport ImportingProperty { get; set; }
+            public PublicExport ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
@@ -649,7 +649,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithPrivateImportManyFieldArray
         {
             [MefV1.ImportMany]
-            private PublicExport[] importManyField = null;
+            private PublicExport[] importManyField = null!;
 
             internal PublicExport[] ImportManyFieldAccessor
             {
@@ -661,7 +661,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithPrivateImportManyFieldSpecialCollection
         {
             [MefV1.ImportMany]
-            private List<PublicExport> importManyField = null;
+            private List<PublicExport> importManyField = null!;
 
             internal List<PublicExport> ImportManyFieldAccessor
             {
@@ -673,7 +673,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithPrivateImportManyPropertySpecialCollection
         {
             [MefV1.ImportMany]
-            private List<PublicExport> ImportManyProperty { get; set; }
+            private List<PublicExport> ImportManyProperty { get; set; } = null!;
 
             internal List<PublicExport> ImportManyPropertyAccessor
             {
@@ -685,7 +685,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithPrivateImportManyFieldPrivateCollection
         {
             [MefV1.ImportMany]
-            private CustomCollection<PublicExport> importManyField = null;
+            private CustomCollection<PublicExport> importManyField = null!;
 
             internal CustomCollection<PublicExport> ImportManyFieldAccessor
             {
@@ -697,7 +697,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithPrivateImportManyPropertyPrivateCollection
         {
             [MefV1.ImportMany]
-            private CustomCollection<PublicExport> ImportManyProperty { get; set; }
+            private CustomCollection<PublicExport> ImportManyProperty { get; set; } = null!;
 
             internal CustomCollection<PublicExport> ImportManyPropertyAccessor
             {
@@ -718,7 +718,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 this.ConstructorArg = arg;
             }
 
-            public object ConstructorArg { get; private set; }
+            public object? ConstructorArg { get; private set; }
 
             public bool Cleared { get; set; }
 

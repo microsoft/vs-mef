@@ -27,14 +27,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportingPart1
         {
             [MefV1.Import]
-            public Lazy<ExportingPart, SubNS1.IMetadata> ImportingProperty { get; set; }
+            public Lazy<ExportingPart, SubNS1.IMetadata> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class ImportingPart2
         {
             [MefV1.Import]
-            public Lazy<ExportingPart, SubNS2.IMetadata> ImportingProperty { get; set; }
+            public Lazy<ExportingPart, SubNS2.IMetadata> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]

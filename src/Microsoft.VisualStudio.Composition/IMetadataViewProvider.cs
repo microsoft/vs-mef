@@ -28,6 +28,6 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="defaultValues">The metadata dictionary of defaults, to be used when <paramref name="metadata"/> is missing a key. Is never null.</param>
         /// <param name="metadataViewType">The type of metadata view to create.</param>
         /// <returns>The proxy instance.</returns>
-        object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType);
+        object CreateProxy(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultValues, Type metadataViewType);
     }
 }

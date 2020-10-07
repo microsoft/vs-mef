@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         private readonly Type[] parts;
         private readonly IReadOnlyList<string> assemblyNames;
 
-        public Mef3DiscoveryTestCaseRunner(IXunitTestCase testCase, string displayName, string skipReason, object[] constructorArguments, IMessageBus messageBus, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, CompositionEngines compositionEngines, Type[] parts, IReadOnlyList<string> assemblyNames, bool expectInvalidConfiguration)
+        public Mef3DiscoveryTestCaseRunner(IXunitTestCase testCase, string displayName, string? skipReason, object[] constructorArguments, IMessageBus messageBus, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, CompositionEngines compositionEngines, Type[] parts, IReadOnlyList<string> assemblyNames, bool expectInvalidConfiguration)
             : base(testCase, displayName, skipReason, constructorArguments, null, messageBus, aggregator, cancellationTokenSource)
         {
             Requires.NotNull(testCase, nameof(testCase));
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             this.expectInvalidConfiguration = expectInvalidConfiguration;
         }
 
-        public IReadOnlyList<(CompositionConfiguration Configuration, string Description)> ResultingConfigurations { get; set; }
+        public IReadOnlyList<(CompositionConfiguration Configuration, string Description)>? ResultingConfigurations { get; set; }
 
         public bool Passed { get; private set; }
 

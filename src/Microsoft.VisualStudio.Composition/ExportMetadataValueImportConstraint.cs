@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Composition
 
     public class ExportMetadataValueImportConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
-        public ExportMetadataValueImportConstraint(string name, object value)
+        public ExportMetadataValueImportConstraint(string name, object? value)
         {
             Requires.NotNullOrEmpty(name, nameof(name));
 
@@ -21,16 +21,16 @@ namespace Microsoft.VisualStudio.Composition
 
         public string Name { get; private set; }
 
-        public object Value { get; private set; }
+        public object? Value { get; private set; }
 
         public bool IsSatisfiedBy(ExportDefinition exportDefinition)
         {
             Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
-            object exportMetadataValue;
+            object? exportMetadataValue;
             if (exportDefinition.Metadata.TryGetValue(this.Name, out exportMetadataValue))
             {
-                if (EqualityComparer<object>.Default.Equals(this.Value, exportMetadataValue))
+                if (EqualityComparer<object?>.Default.Equals(this.Value, exportMetadataValue))
                 {
                     return true;
                 }
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Composition
             return false;
         }
 
-        public bool Equals(IImportSatisfiabilityConstraint obj)
+        public bool Equals(IImportSatisfiabilityConstraint? obj)
         {
             var other = obj as ExportMetadataValueImportConstraint;
             if (other == null)
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             return this.Name == other.Name
-                && EqualityComparer<object>.Default.Equals(this.Value, other.Value);
+                && EqualityComparer<object?>.Default.Equals(this.Value, other.Value);
         }
 
         public void ToString(TextWriter writer)

@@ -22,12 +22,12 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         /// <param name="metadataNamesAndTypes">The metadata names and requirements.</param>
         /// <param name="resolver">A resolver to use when handling <see cref="TypeRef"/> objects. Must not be null unless <paramref name="metadataNamesAndTypes"/> is empty.</param>
-        public ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> metadataNamesAndTypes, Resolver resolver)
+        public ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> metadataNamesAndTypes, Resolver? resolver)
         {
             Requires.NotNull(metadataNamesAndTypes, nameof(metadataNamesAndTypes));
             if (metadataNamesAndTypes.Count > 0)
             {
-                Requires.NotNull(resolver, nameof(resolver));
+                Requires.NotNull(resolver!, nameof(resolver));
             }
 
             this.Requirements = ImmutableDictionary.CreateRange(metadataNamesAndTypes);
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.Composition
         /// Gets the <see cref="Composition.Resolver"/> to use.
         /// May be <c>null</c> if <see cref="Requirements"/> is empty.
         /// </summary>
-        public Resolver Resolver { get; }
+        public Resolver? Resolver { get; }
 
         /// <summary>
         /// Creates a constraint for the specified metadata type.
@@ -74,9 +74,10 @@ namespace Microsoft.VisualStudio.Composition
                 return true;
             }
 
+            Assumes.NotNull(this.Resolver);
             foreach (var entry in this.Requirements)
             {
-                object value;
+                object? value;
                 if (!LazyMetadataWrapper.TryGetLoadSafeValueTypeRef(exportDefinition.Metadata, entry.Key, this.Resolver, out value))
                 {
                     if (entry.Value.IsMetadataumValueRequired)
@@ -154,7 +155,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        public bool Equals(IImportSatisfiabilityConstraint obj)
+        public bool Equals(IImportSatisfiabilityConstraint? obj)
         {
             var other = obj as ImportMetadataViewConstraint;
             if (other == null)

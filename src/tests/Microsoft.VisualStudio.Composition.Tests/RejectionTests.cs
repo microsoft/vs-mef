@@ -153,28 +153,28 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatOptionallyImportsBrokenPart
         {
             [MefV1.Import(AllowDefault = true), Import(AllowDefault = true)]
-            public SomePartWithoutImportingConstructor ImportOfBrokenPart { get; set; }
+            public SomePartWithoutImportingConstructor ImportOfBrokenPart { get; set; } = null!;
         }
 
         [MefV1.Export, Export]
         public class PartThatUnconditionallyImportsBrokenPart
         {
             [MefV1.Import, Import]
-            public SomePartWithoutImportingConstructor ImportOfBrokenPart { get; set; }
+            public SomePartWithoutImportingConstructor ImportOfBrokenPart { get; set; } = null!;
         }
 
         [MefV1.Export, Export]
         public class PartThatUnconditionallyLazyImportsBrokenPart
         {
             [MefV1.Import, Import]
-            public Lazy<SomePartWithoutImportingConstructor> ImportOfBrokenPart { get; set; }
+            public Lazy<SomePartWithoutImportingConstructor> ImportOfBrokenPart { get; set; } = null!;
         }
 
         [MefV1.Export, Export]
         public class PartWithImportPropertyAndNoSetter
         {
             [MefV1.Import, Import]
-            public ValidExportingPart ImportingProperty { get; }
+            public ValidExportingPart ImportingProperty { get; } = null!;
         }
 
         [MefV1.Export, Export]
@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithImportManyPropertyAndNoSetterNoInit
         {
             [MefV1.ImportMany, ImportMany]
-            public List<ValidExportingPart> ImportingProperty { get; }
+            public List<ValidExportingPart> ImportingProperty { get; } = null!;
         }
 
         [MefV1.Export, Export]

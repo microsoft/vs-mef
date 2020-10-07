@@ -44,7 +44,7 @@
         /// <param name="assemblyName">The assembly name, if already known; otherwise <c>null</c>.</param>
         /// <returns>The assembly metadata.</returns>
         /// <exception cref="FileNotFoundException">Thrown if <paramref name="assemblyFile"/> does not refer to an existing file.</exception>
-        public static StrongAssemblyIdentity CreateFrom(string assemblyFile, AssemblyName assemblyName)
+        public static StrongAssemblyIdentity CreateFrom(string assemblyFile, AssemblyName? assemblyName)
         {
             Requires.NotNullOrEmpty(assemblyFile, nameof(assemblyFile));
 
@@ -64,7 +64,7 @@
         /// <param name="assembly">The assembly to read metadata from.</param>
         /// <param name="assemblyName">An optional <see cref="AssemblyName"/> that may be important for dynamic assemblies to find their CodeBase.</param>
         /// <returns>The assembly metadata.</returns>
-        public static StrongAssemblyIdentity CreateFrom(Assembly assembly, AssemblyName assemblyName)
+        public static StrongAssemblyIdentity CreateFrom(Assembly assembly, AssemblyName? assemblyName)
         {
             Requires.NotNull(assembly, nameof(assembly));
 
@@ -77,10 +77,10 @@
         }
 
         /// <inheritdoc/>
-        public override bool Equals(object obj) => this.Equals(obj as StrongAssemblyIdentity);
+        public override bool Equals(object? obj) => this.Equals(obj as StrongAssemblyIdentity);
 
         /// <inheritdoc/>
-        public bool Equals(StrongAssemblyIdentity other)
+        public bool Equals(StrongAssemblyIdentity? other)
         {
             return other != null
                 && ByValueEquality.AssemblyNameNoFastCheck.Equals(this.Name, other.Name)

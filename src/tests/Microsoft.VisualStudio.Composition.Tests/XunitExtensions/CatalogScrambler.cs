@@ -5,6 +5,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
@@ -61,7 +62,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 part.IsSharingBoundaryInferred);
         }
 
-        private MethodRef Scramble(MethodRef methodRef)
+        [return: NotNullIfNotNull("methodRef")]
+        private MethodRef? Scramble(MethodRef? methodRef)
         {
             if (methodRef == null)
             {
@@ -73,8 +75,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 this.GetScrambledMetadataToken(methodRef.MetadataToken),
                 methodRef.Name,
                 methodRef.IsStatic,
-                methodRef.ParameterTypes.Select(this.Scramble).ToImmutableArray(),
-                methodRef.GenericMethodArguments.Select(this.Scramble).ToImmutableArray());
+                methodRef.ParameterTypes.Select(this.Scramble).ToImmutableArray()!,
+                methodRef.GenericMethodArguments.Select(this.Scramble).ToImmutableArray()!);
         }
 
         private KeyValuePair<MemberRef, IReadOnlyCollection<ExportDefinition>> Scramble(KeyValuePair<MemberRef, IReadOnlyCollection<ExportDefinition>> kv)
@@ -84,14 +86,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 kv.Value);
         }
 
-        private TypeRef Scramble(TypeRef typeRef)
+        [return: NotNullIfNotNull("typeRef")]
+        private TypeRef? Scramble(TypeRef? typeRef)
         {
             if (typeRef == null)
             {
                 return null;
             }
 
-            if (!this.scrambledTypeRefs.TryGetValue(typeRef, out TypeRef scrambled))
+            if (!this.scrambledTypeRefs.TryGetValue(typeRef, out TypeRef? scrambled))
             {
                 scrambled = TypeRef.Get(
                     this.resolver,
@@ -100,9 +103,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     typeRef.FullName,
                     typeRef.TypeFlags,
                     typeRef.GenericTypeParameterCount,
-                    typeRef.GenericTypeArguments.Select(this.Scramble).ToImmutableArray(),
+                    typeRef.GenericTypeArguments.Select(this.Scramble).ToImmutableArray()!,
                     typeRef.IsShallow,
-                    typeRef.IsShallow ? ImmutableArray<TypeRef>.Empty : typeRef.BaseTypes.Select(this.Scramble).ToImmutableArray(),
+                    typeRef.IsShallow ? ImmutableArray<TypeRef>.Empty : typeRef.BaseTypes.Select(this.Scramble).ToImmutableArray()!,
                     typeRef.ElementTypeRef);
                 this.scrambledTypeRefs.Add(typeRef, scrambled);
             }
@@ -110,14 +113,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return scrambled;
         }
 
-        private StrongAssemblyIdentity Scramble(StrongAssemblyIdentity assemblyId)
+        [return: NotNullIfNotNull("assemblyId")]
+        private StrongAssemblyIdentity? Scramble(StrongAssemblyIdentity assemblyId)
         {
             if (assemblyId == null)
             {
                 return null;
             }
 
-            if (!this.scrambledAssemblyIds.TryGetValue(assemblyId, out StrongAssemblyIdentity scrambled))
+            if (!this.scrambledAssemblyIds.TryGetValue(assemblyId, out StrongAssemblyIdentity? scrambled))
             {
                 scrambled = new StrongAssemblyIdentity(
                     assemblyId.Name,
@@ -137,7 +141,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 return new ImportDefinitionBinding(
                     importDefinitionBinding.ImportDefinition,
                     this.Scramble(importDefinitionBinding.ComposablePartTypeRef),
-                    this.Scramble(importDefinitionBinding.ImportingParameterRef),
+                    this.Scramble(importDefinitionBinding.ImportingParameterRef!),
                     this.Scramble(importDefinitionBinding.ImportingSiteTypeRef),
                     this.Scramble(importDefinitionBinding.ImportingSiteTypeWithoutCollectionRef));
             }
@@ -152,7 +156,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
-        private ParameterRef Scramble(ParameterRef importingParameterRef)
+        [return: NotNullIfNotNull("importingParameterRef")]
+        private ParameterRef? Scramble(ParameterRef? importingParameterRef)
         {
             if (importingParameterRef == null)
             {
@@ -164,7 +169,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 importingParameterRef.ParameterIndex);
         }
 
-        private FieldRef Scramble(FieldRef fieldRef)
+        [return: NotNullIfNotNull("fieldRef")]
+        private FieldRef? Scramble(FieldRef? fieldRef)
         {
             if (fieldRef == null)
             {
@@ -179,7 +185,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 fieldRef.IsStatic);
         }
 
-        private PropertyRef Scramble(PropertyRef propertyRef)
+        [return: NotNullIfNotNull("propertyRef")]
+        private PropertyRef? Scramble(PropertyRef? propertyRef)
         {
             if (propertyRef == null)
             {
@@ -196,7 +203,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 propertyRef.IsStatic);
         }
 
-        private MemberRef Scramble(MemberRef importingMemberRef)
+        [return: NotNullIfNotNull("importingMemberRef")]
+        private MemberRef? Scramble(MemberRef? importingMemberRef)
         {
             switch (importingMemberRef)
             {

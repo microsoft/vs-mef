@@ -3,11 +3,6 @@
 namespace Microsoft.VisualStudio.Composition
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
 
     public class PartDiscoveryException : Exception
     {
@@ -25,8 +20,8 @@ namespace Microsoft.VisualStudio.Composition
         {
         }
 
-        public string AssemblyPath { get; set; }
+        public string? AssemblyPath { get; set; }
 
-        public Type ScannedType { get; set; }
+        public Type? ScannedType { get; set; }
     }
 }

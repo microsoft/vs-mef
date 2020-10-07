@@ -84,8 +84,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public void AddPart_EquivalentPartsAddedTwice()
         {
-            var part1a = TestUtilities.V2Discovery.CreatePart(typeof(Export1));
-            var part1b = TestUtilities.V2Discovery.CreatePart(typeof(Export1));
+            var part1a = TestUtilities.V2Discovery.CreatePart(typeof(Export1))!;
+            var part1b = TestUtilities.V2Discovery.CreatePart(typeof(Export1))!;
 
             var catalog = TestUtilities.EmptyCatalog.AddPart(part1a);
             Assert.Same(catalog, catalog.AddPart(part1a));
@@ -97,7 +97,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public void AddPart_SameTypeAddedAsTwoUniqueParts()
         {
-            var part1a = TestUtilities.V2Discovery.CreatePart(typeof(Export1));
+            var part1a = TestUtilities.V2Discovery.CreatePart(typeof(Export1))!;
 
             // Contrive a slightly different part definition.
             var part1b = new ComposablePartDefinition(

@@ -203,8 +203,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var part = container.GetExportedValue<ImportingPartWithMetadataDictionary>();
 
-            object metadataValue;
-            Assert.True(part.ImportingProperty.Metadata.TryGetValue("ExportTypeIdentity", out metadataValue));
+            Assert.True(part.ImportingProperty.Metadata.TryGetValue("ExportTypeIdentity", out object? metadataValue));
             Assert.IsType(typeof(string), metadataValue);
             Assert.Equal(typeof(PartWithExportMetadata).FullName, metadataValue);
         }
@@ -255,14 +254,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportingPartOfObjectWithMetadataInterface
         {
             [MefV1.Import("ExportWithMetadata")]
-            public Lazy<object, IMetadata> ImportingProperty { get; set; }
+            public Lazy<object, IMetadata> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class ImportManyPartOfObjectWithMetadataInterface
         {
             [MefV1.ImportMany("ExportWithMetadata")]
-            public IEnumerable<Lazy<object, IMetadata>> ImportingProperty { get; set; }
+            public IEnumerable<Lazy<object, IMetadata>> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export("ExportWithMetadata", typeof(object))]
@@ -312,7 +311,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportOfMultipleMetadata
         {
             [MefV1.Import]
-            public Lazy<ExportWithMultipleMetadata, IMetadataViewForMultipleValues> ImportingProperty { get; set; }
+            public Lazy<ExportWithMultipleMetadata, IMetadataViewForMultipleValues> ImportingProperty { get; set; } = null!;
         }
 
         #endregion
@@ -340,7 +339,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public Lazy<PartWithMultipleTypedMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<PartWithMultipleTypedMetadata, IDictionary<string, object>> ImportingProperty { get; set; } = null!;
         }
 
         #endregion
@@ -354,7 +353,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             object dictionaryValue = part.ImportingPropertyWithDictionary.Metadata["Names"];
             IEnumerable<string> interfaceValue = part.ImportingPropertyWithInterface.Metadata.Names;
             Assert.Null(interfaceValue);
-            Assert.Equal(new object[] { null, null }, dictionaryValue);
+            Assert.Equal(new object?[] { null, null }, dictionaryValue);
         }
 
         [Export, ExportMetadata("Names", null), ExportMetadata("Names", null)]
@@ -373,11 +372,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public Lazy<PartWithMultipleNullMetadata, INamedMetadata> ImportingPropertyWithInterface { get; set; }
+            public Lazy<PartWithMultipleNullMetadata, INamedMetadata> ImportingPropertyWithInterface { get; set; } = null!;
 
             [Import]
             [MefV1.Import]
-            public Lazy<PartWithMultipleNullMetadata, IDictionary<string, object>> ImportingPropertyWithDictionary { get; set; }
+            public Lazy<PartWithMultipleNullMetadata, IDictionary<string, object>> ImportingPropertyWithDictionary { get; set; } = null!;
         }
 
         #endregion
@@ -408,11 +407,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public Lazy<PartWithSingleNullMetadata, ISingleNameMetadata> ImportingPropertyWithInterface { get; set; }
+            public Lazy<PartWithSingleNullMetadata, ISingleNameMetadata> ImportingPropertyWithInterface { get; set; } = null!;
 
             [Import]
             [MefV1.Import]
-            public Lazy<PartWithSingleNullMetadata, IDictionary<string, object>> ImportingPropertyWithDictionary { get; set; }
+            public Lazy<PartWithSingleNullMetadata, IDictionary<string, object>> ImportingPropertyWithDictionary { get; set; } = null!;
         }
 
         #region GetExports (plural) tests
@@ -528,8 +527,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void ExportedMethodHasExportTypeIdentityMetadata(IContainer container)
         {
             var part = container.GetExportedValue<PartThatImportsMethod>();
-            object metadataValue;
-            Assert.True(part.ImportedMethod.Metadata.TryGetValue("ExportTypeIdentity", out metadataValue));
+            Assert.True(part.ImportedMethod.Metadata.TryGetValue("ExportTypeIdentity", out object? metadataValue));
             Assert.IsType(typeof(string), metadataValue);
             Assert.Equal("System.Single(System.Int32,System.Int32)", metadataValue);
         }
@@ -547,7 +545,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsMethod
         {
             [MefV1.Import]
-            public Lazy<Func<int, int, float>, IDictionary<string, object>> ImportedMethod { get; set; }
+            public Lazy<Func<int, int, float>, IDictionary<string, object>> ImportedMethod { get; set; } = null!;
         }
 
         #endregion
@@ -575,7 +573,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartImportingExtremeValues
         {
             [MefV1.Import, Import]
-            public Lazy<PartWithExtremeValues, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<PartWithExtremeValues, IDictionary<string, object>> ImportingProperty { get; set; } = null!;
         }
 
         #endregion
@@ -614,7 +612,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartImportingPartWithNamesSingleMetadata
         {
             [MefV1.ImportMany, ImportMany]
-            public List<Lazy<PartWithNamesSingleMetadata, INamedMetadata>> ImportingProperty { get; set; }
+            public List<Lazy<PartWithNamesSingleMetadata, INamedMetadata>> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -630,7 +628,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportingPartWithMetadataDictionary
         {
             [Import, MefV1.Import]
-            public Lazy<PartWithExportMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<PartWithExportMetadata, IDictionary<string, object>> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -638,7 +636,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportingPartWithMetadataConcreteDictionary
         {
             [Import, MefV1.Import]
-            public Lazy<PartWithExportMetadata, Dictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<PartWithExportMetadata, Dictionary<string, object>> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -646,7 +644,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportingPartWithMetadataInterface
         {
             [Import, MefV1.Import]
-            public Lazy<PartWithExportMetadata, IMetadata> ImportingProperty { get; set; }
+            public Lazy<PartWithExportMetadata, IMetadata> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -654,7 +652,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportingPartWithMetadataClass
         {
             [Import, MefV1.Import]
-            public Lazy<PartWithExportMetadata, MetadataClass> ImportingProperty { get; set; }
+            public Lazy<PartWithExportMetadata, MetadataClass> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -662,7 +660,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportingPartWithNonPublicMetadataClass
         {
             [Import, MefV1.Import]
-            internal Lazy<PartWithExportMetadata, NonPublicMetadataClass> ImportingProperty { get; set; }
+            internal Lazy<PartWithExportMetadata, NonPublicMetadataClass> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -670,7 +668,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportManyPartWithMetadataDictionary
         {
             [ImportMany, MefV1.ImportMany]
-            public IEnumerable<Lazy<PartWithExportMetadata, IDictionary<string, object>>> ImportingProperty { get; set; }
+            public IEnumerable<Lazy<PartWithExportMetadata, IDictionary<string, object>>> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -678,7 +676,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportManyPartWithMetadataInterface
         {
             [ImportMany, MefV1.ImportMany]
-            public IEnumerable<Lazy<PartWithExportMetadata, IMetadata>> ImportingProperty { get; set; }
+            public IEnumerable<Lazy<PartWithExportMetadata, IMetadata>> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -686,7 +684,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportManyPartWithInternalMetadataInterface
         {
             [ImportMany, MefV1.ImportMany]
-            internal IEnumerable<Lazy<PartWithExportMetadata, IMetadataInternal>> ImportingProperty { get; set; }
+            internal IEnumerable<Lazy<PartWithExportMetadata, IMetadataInternal>> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -694,7 +692,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportManyPartWithInternalMetadataInterface2
         {
             [ImportMany, MefV1.ImportMany]
-            internal IEnumerable<Lazy<PartWithExportMetadata, AssemblyDiscoveryTests.IInternalMetadataView>> ImportingProperty { get; set; }
+            internal IEnumerable<Lazy<PartWithExportMetadata, AssemblyDiscoveryTests.IInternalMetadataView>> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -702,7 +700,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportManyPartWithMetadataClass
         {
             [ImportMany, MefV1.ImportMany]
-            public IEnumerable<Lazy<PartWithExportMetadata, MetadataClass>> ImportingProperty { get; set; }
+            public IEnumerable<Lazy<PartWithExportMetadata, MetadataClass>> ImportingProperty { get; set; } = null!;
         }
 
         public interface IMetadataBase
@@ -737,23 +735,22 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class MetadataClass
         {
             // Only MEFv1 requires this constructor -- MEFv2 doesn't need it.
-            public MetadataClass(IDictionary<string, object> data)
+            public MetadataClass(IDictionary<string, object?> data)
             {
-                object value;
-                if (data.TryGetValue("a", out value))
+                if (data.TryGetValue("a", out object? value))
                 {
-                    this.a = (string)value;
+                    this.a = (string?)value;
                 }
             }
 
 #pragma warning disable SA1300 // Element must begin with upper-case letter
-            public string a { get; set; }
+            public string? a { get; set; }
 #pragma warning restore SA1300 // Element must begin with upper-case letter
         }
 
         internal class NonPublicMetadataClass : MetadataClass
         {
-            public NonPublicMetadataClass(IDictionary<string, object> data)
+            public NonPublicMetadataClass(IDictionary<string, object?> data)
                 : base(data)
             {
             }
@@ -789,7 +786,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public Lazy<ExportWithEnumMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<ExportWithEnumMetadata, IDictionary<string, object>> ImportingProperty { get; set; } = null!;
         }
 
         [Export]
@@ -804,7 +801,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public Lazy<ExportWithTypeMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<ExportWithTypeMetadata, IDictionary<string, object>> ImportingProperty { get; set; } = null!;
         }
 
         [Export]
@@ -821,7 +818,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public Lazy<ExportWithCharMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<ExportWithCharMetadata, IDictionary<string, object>> ImportingProperty { get; set; } = null!;
         }
 
         [Export]
@@ -836,7 +833,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public Lazy<ExportWithBoolMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<ExportWithBoolMetadata, IDictionary<string, object>> ImportingProperty { get; set; } = null!;
         }
 
         #region Exhaustive metatadata value types testing
@@ -944,7 +941,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsPartWithExhaustiveMetadataValueTypes
         {
             [Import, MefV1.Import]
-            public Lazy<PartWithExhaustiveMetadataValueTypes, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<PartWithExhaustiveMetadataValueTypes, IDictionary<string, object>> ImportingProperty { get; set; } = null!;
         }
 
         #endregion

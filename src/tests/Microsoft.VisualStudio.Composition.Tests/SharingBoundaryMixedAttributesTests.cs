@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class RootPart
         {
             [Import, SharingBoundary("SomeBoundary")]
-            public ExportFactory<BoundaryPart> Factory { get; set; }
+            public ExportFactory<BoundaryPart> Factory { get; set; } = null!;
         }
 
         [Export, Shared("SomeBoundary")]
@@ -84,21 +84,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public BoundaryPart() { }
 
             [Import]
-            public PartWithFactoryOfPartThatImportsSharingBoundary NonSharedPartFactory { get; set; }
+            public PartWithFactoryOfPartThatImportsSharingBoundary NonSharedPartFactory { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class PartWithFactoryOfPartThatImportsSharingBoundary
         {
             [MefV1.Import]
-            public MefV1.ExportFactory<NonSharedPartThatImportsBoundaryPart> Factory { get; set; }
+            public MefV1.ExportFactory<NonSharedPartThatImportsBoundaryPart> Factory { get; set; } = null!;
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
         public class NonSharedPartThatImportsBoundaryPart
         {
             [MefV1.Import]
-            public BoundaryPart BoundaryPart { get; set; }
+            public BoundaryPart BoundaryPart { get; set; } = null!;
         }
     }
 }

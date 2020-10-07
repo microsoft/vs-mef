@@ -125,11 +125,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 var importDefinition = new ImportDefinition(
                     typeof(DiscoverablePart1).FullName,
                     ImportCardinality.ExactlyOne,
-                    ImmutableDictionary<string, object>.Empty,
+                    ImmutableDictionary<string, object?>.Empty,
                     ImmutableList<IImportSatisfiabilityConstraint>.Empty);
                 var export = exportProvider.GetExports(importDefinition).Single();
                 AssertEx.NotNull(export.Value);
-                AssertEx.Equal(typeof(DiscoverablePart1).FullName, export.Value.GetType().FullName);
+                AssertEx.Equal(typeof(DiscoverablePart1).FullName, export.Value!.GetType().FullName);
 
                 // Validate that we loaded the substituted assembly and that the metadata token is different (to assert we're testing something useful)
                 AssertEx.Equal(substitutedAssemblyPath, export.Value.GetType().Assembly.Location);

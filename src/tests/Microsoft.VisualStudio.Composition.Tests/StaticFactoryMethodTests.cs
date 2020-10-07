@@ -27,8 +27,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task StaticFactoryMethodCanCreateMEFPart()
         {
             var discoverer = new AttributedPartDiscovery(Resolver.DefaultInstance, isNonPublicSupported: true);
-            var someOtherExportPart = discoverer.CreatePart(typeof(SomeOtherExport));
-            var staticFactoryPart = discoverer.CreatePart(typeof(MEFPartWithStaticFactoryMethod));
+            var someOtherExportPart = discoverer.CreatePart(typeof(SomeOtherExport))!;
+            var staticFactoryPart = discoverer.CreatePart(typeof(MEFPartWithStaticFactoryMethod))!;
             var staticFactoryMethodRef = MethodRef.Get(typeof(MEFPartWithStaticFactoryMethod).GetTypeInfo().DeclaredMethods.Single(m => m.Name == nameof(MEFPartWithStaticFactoryMethod.Create)), Resolver.DefaultInstance);
             staticFactoryPart = new ComposablePartDefinition(
                 staticFactoryPart.TypeRef,

@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public void AddPartNullThrows()
         {
-            Assert.Throws<ArgumentNullException>(() => TestUtilities.EmptyCatalog.AddPart(null));
+            Assert.Throws<ArgumentNullException>(() => TestUtilities.EmptyCatalog.AddPart(null!));
         }
 
         [Fact]
@@ -367,7 +367,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public ImportingType(ExportingType importingParameter) { }
 
             [Import, MEFv1.Import]
-            public ExportingType ImportingProperty { get; set; }
+            public ExportingType ImportingProperty { get; set; } = null!;
         }
 
         public class NonExportingType { }
@@ -459,7 +459,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             [Export, MEFv1.Export]
             [MEFv1.ExportMetadata("SomeInterface", typeof(AssemblyDiscoveryTests.ISomeInterface))]
             [ExportMetadata("SomeInterface", typeof(AssemblyDiscoveryTests.ISomeInterface))]
-            public object Export { get; set; }
+            public object? Export { get; set; }
         }
 
         [Export, MEFv1.Export]
@@ -469,12 +469,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
         internal sealed class MultipleTypeMetadataAttribute : Attribute
         {
-            public MultipleTypeMetadataAttribute(Type type)
+            public MultipleTypeMetadataAttribute(Type? type)
             {
                 this.Type = type;
             }
 
-            public Type Type { get; private set; }
+            public Type? Type { get; private set; }
         }
 
         private class AssemblyNameComparer : IEqualityComparer<AssemblyName>
@@ -483,16 +483,16 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             internal AssemblyNameComparer() { }
 
-            public bool Equals(AssemblyName x, AssemblyName y)
+            public bool Equals(AssemblyName? x, AssemblyName? y)
             {
-                if (x == null ^ y == null)
-                {
-                    return false;
-                }
-
-                if (x == null)
+                if (x == y)
                 {
                     return true;
+                }
+
+                if (x == null || y == null)
+                {
+                    return false;
                 }
 
                 // fast path
@@ -504,13 +504,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 // Testing on FullName is horrifically slow.
                 // So test directly on its components instead.
                 return x.Name == y.Name
-                    && x.Version.Equals(y.Version)
-                    && x.CultureName.Equals(y.CultureName);
+                    && EqualityComparer<Version?>.Default.Equals(x.Version, y.Version)
+                    && x.CultureName == y.CultureName;
             }
 
             public int GetHashCode(AssemblyName obj)
             {
-                return obj.Name.GetHashCode();
+                return obj.Name?.GetHashCode() ?? 0;
             }
         }
     }

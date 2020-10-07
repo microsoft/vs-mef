@@ -17,8 +17,18 @@ namespace Microsoft.VisualStudio.Composition
         {
         }
 
-        public bool Equals(PropertyInfo x, PropertyInfo y)
+        public bool Equals(PropertyInfo? x, PropertyInfo? y)
         {
+            if (x == y)
+            {
+                return true;
+            }
+
+            if (x is null || y is null)
+            {
+                return false;
+            }
+
             return x.Name == y.Name;
         }
 

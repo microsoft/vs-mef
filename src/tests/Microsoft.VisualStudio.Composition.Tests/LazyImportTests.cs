@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ExportWithLazyImport
         {
             [Import]
-            public Lazy<AnotherExport> AnotherExport { get; set; }
+            public Lazy<AnotherExport> AnotherExport { get; set; } = null!;
         }
 
         #endregion
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ExportWithLazyImportOfBaseType
         {
             [Import("AnotherExport")]
-            public Lazy<object> AnotherExport { get; set; }
+            public Lazy<object> AnotherExport { get; set; } = null!;
         }
 
         #endregion
@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ExportWithListOfLazyImport
         {
             [ImportMany]
-            public IList<Lazy<AnotherExport>> AnotherExports { get; set; }
+            public IList<Lazy<AnotherExport>> AnotherExports { get; set; } = null!;
         }
 
         #endregion
@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Link1
         {
             [Import, MefV1.Import]
-            public Lazy<Link2> Link { get; set; }
+            public Lazy<Link2> Link { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
 
             [Import, MefV1.Import]
-            public Link3 Link { get; set; }
+            public Link3 Link { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Link3
         {
             [Import, MefV1.Import]
-            public Link4 Link { get; set; }
+            public Link4 Link { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Link4
         {
             [Import, MefV1.Import]
-            public Link5 Link { get; set; }
+            public Link5 Link { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Link5
         {
             [Import, MefV1.Import]
-            public Link6 Link { get; set; }
+            public Link6 Link { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -167,7 +167,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Link6
         {
             [Import, MefV1.Import]
-            public Link7 Link { get; set; }
+            public Link7 Link { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Link7
         {
             [Import, MefV1.Import]
-            public Link8 Link { get; set; }
+            public Link8 Link { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -183,7 +183,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Link8
         {
             [Import, MefV1.Import]
-            public Link9 Link { get; set; }
+            public Link9 Link { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Link9
         {
             [Import, MefV1.Import]
-            public AnotherExport Link { get; set; }
+            public AnotherExport Link { get; set; } = null!;
         }
 
         #endregion

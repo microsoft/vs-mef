@@ -95,7 +95,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsRandomExport
         {
             [Import, MefV1.Import]
-            public RandomExport RandomExport { get; set; }
+            public RandomExport RandomExport { get; set; } = null!;
         }
 
         #endregion
@@ -286,11 +286,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         public class FeatureMetadata
         {
-            public string SomeMetadata { get; private set; }
+            public string? SomeMetadata { get; private set; }
 
             public FeatureMetadata(IDictionary<string, object> data)
             {
-                object value;
+                object? value;
                 if (data.TryGetValue("SomeMetadata", out value))
                 {
                     this.SomeMetadata = (string)value;
@@ -390,10 +390,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatInitializesLater
         {
             [Import, MefV1.Import]
-            public RandomExport RandomExport { get; set; }
+            public RandomExport RandomExport { get; set; } = null!;
 
             [Import, MefV1.Import]
-            public PartWithImportingConstructorOfPartThatInitializesLater ImportingConstructorPart { get; set; }
+            public PartWithImportingConstructorOfPartThatInitializesLater ImportingConstructorPart { get; set; } = null!;
         }
 
         #endregion
@@ -521,7 +521,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithLazyLoopbackImportingProperty
         {
             [ImportMany, MefV1.ImportMany]
-            public Lazy<PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty>[] OtherLazy { get; private set; }
+            public Lazy<PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty>[] OtherLazy { get; private set; } = null!;
         }
 
         #endregion
@@ -613,10 +613,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsTwoPartsWithImportingConstructorsOfLazyThis
         {
             [Import, MefV1.Import]
-            public PartWithImportingConstructorOfLazyPartImportingThis1 A { get; set; }
+            public PartWithImportingConstructorOfLazyPartImportingThis1 A { get; set; } = null!;
 
             [Import, MefV1.Import]
-            public PartWithImportingConstructorOfLazyPartImportingThis2 B { get; set; }
+            public PartWithImportingConstructorOfLazyPartImportingThis2 B { get; set; } = null!;
         }
 
         #endregion

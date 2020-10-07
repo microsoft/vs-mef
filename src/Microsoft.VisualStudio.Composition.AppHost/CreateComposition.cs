@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
         /// <summary>
         /// Gets or sets a list of codes to suppress warnings for.
         /// </summary>
-        public string[] NoWarn { get; set; }
+        public string[]? NoWarn { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to continue when errors occur while scanning MEF assemblies.
@@ -92,21 +92,21 @@ namespace Microsoft.VisualStudio.Composition.AppHost
         public bool ContinueOnCompositionErrors { get; set; }
 
         [Required]
-        public string CompositionCacheFile { get; set; }
+        public string CompositionCacheFile { get; set; } = null!;
 
-        public string DgmlOutputPath { get; set; }
+        public string? DgmlOutputPath { get; set; }
 
         /// <summary>
         /// Gets or sets the directory to write the discovery and composition log files.
         /// </summary>
         [Required]
-        public string LogOutputPath { get; set; }
+        public string LogOutputPath { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets a list of files that were written during this task's execution.
         /// </summary>
         [Output]
-        public ITaskItem[] FileWrites { get; set; }
+        public ITaskItem[]? FileWrites { get; set; }
 
         /// <inheritdoc />
         public void Cancel() => this.cts.Cancel();
@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
                 if (!string.IsNullOrEmpty(this.DgmlOutputPath))
                 {
                     configuration.CreateDgml().Save(this.DgmlOutputPath);
-                    this.writtenFiles.Add(this.DgmlOutputPath);
+                    this.writtenFiles.Add(this.DgmlOutputPath!);
                 }
 
                 this.CancellationToken.ThrowIfCancellationRequested();
@@ -304,13 +304,13 @@ namespace Microsoft.VisualStudio.Composition.AppHost
             return Path.GetFullPath(taskItem.GetMetadata("FullPath"));
         }
 
-        private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        private Assembly? CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             // apply any existing policy
             AssemblyName referenceName = new AssemblyName(AppDomain.CurrentDomain.ApplyPolicy(args.Name));
 
             string fileName = referenceName.Name + ".dll";
-            Assembly assm;
+            Assembly? assm;
 
             // Look through user-specified assembly lists.
             foreach (var candidate in this.catalogAssemblyPaths.Concat(this.ReferenceAssemblies.Select(i => i.GetMetadata("FullPath"))))
@@ -336,7 +336,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
             }
 
             // look next to requesting assembly
-            string assemblyPath = args.RequestingAssembly?.Location;
+            string? assemblyPath = args.RequestingAssembly?.Location;
             if (!string.IsNullOrEmpty(assemblyPath))
             {
                 probingPath = Path.Combine(Path.GetDirectoryName(assemblyPath), fileName);
@@ -390,7 +390,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
         /// <param name="minimumVersion">Minimum version to consider.</param>
         /// <param name="assembly">loaded assembly.</param>
         /// <returns>true if assembly was loaded.</returns>
-        private bool Probe(string filePath, Version minimumVersion, out Assembly assembly)
+        private bool Probe(string filePath, Version minimumVersion, [NotNullWhen(true)] out Assembly? assembly)
         {
             if (File.Exists(filePath))
             {

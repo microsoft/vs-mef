@@ -27,10 +27,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public abstract class OpenGenericBaseClass<T>
         {
             [Import, MefV1.Import]
-            public T ImportingProperty { get; set; }
+            public T ImportingProperty { get; set; } = default!;
 
             [ImportMany, MefV1.ImportMany]
-            public Lazy<T, IDictionary<string, object>>[] ImportingCollections { get; set; }
+            public Lazy<T, IDictionary<string, object>>[] ImportingCollections { get; set; } = null!;
         }
 
         [Export, MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]

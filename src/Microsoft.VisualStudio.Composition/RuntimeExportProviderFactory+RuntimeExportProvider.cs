@@ -31,11 +31,11 @@ namespace Microsoft.VisualStudio.Composition
                 ImmutableList<RuntimeComposition.RuntimeExport>.Empty,
                 isNonSharedInstanceRequired: false,
                 isExportFactory: false,
-                metadata: ImmutableDictionary<string, object>.Empty,
+                metadata: ImmutableDictionary<string, object?>.Empty,
                 exportFactorySharingBoundaries: ImmutableHashSet<string>.Empty);
 
             private readonly RuntimeComposition composition;
-            private readonly ReportFaultCallback faultCallback;
+            private readonly ReportFaultCallback? faultCallback;
 
             internal RuntimeExportProvider(RuntimeComposition composition, ReportFaultCallback faultCallback)
                 : this(composition)
@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.Composition
                         export.MemberRef);
             }
 
-            internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner)
+            internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object?> importMetadata, PartLifecycleTracker? nonSharedPartOwner)
             {
                 return nonSharedPartOwner is object
                     ? new RuntimePartLifecycleTracker(this, this.composition.GetPart(partType), importMetadata, nonSharedPartOwner)
@@ -83,11 +83,13 @@ namespace Microsoft.VisualStudio.Composition
 
             internal override IMetadataViewProvider GetMetadataViewProvider(Type metadataView)
             {
-                RuntimeComposition.RuntimeExport metadataViewProviderExport;
+                RuntimeComposition.RuntimeExport? metadataViewProviderExport;
                 if (this.composition.MetadataViewsAndProviders.TryGetValue(TypeRef.Get(metadataView, this.Resolver), out metadataViewProviderExport))
                 {
                     var export = this.GetExportedValue(MetadataViewProviderImport, metadataViewProviderExport, importingPartTracker: null);
-                    return (IMetadataViewProvider)export.ValueConstructor();
+                    var result = (IMetadataViewProvider?)export.ValueConstructor();
+                    Assumes.NotNull(result);
+                    return result;
                 }
                 else
                 {
@@ -95,7 +97,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            private void ThrowIfExportedValueIsNotAssignableToImport(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, object exportedValue)
+            private void ThrowIfExportedValueIsNotAssignableToImport(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, object? exportedValue)
             {
                 Requires.NotNull(import, nameof(import));
                 Requires.NotNull(export, nameof(export));
@@ -118,7 +120,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 Requires.NotNull(import, nameof(import));
 
-                Func<Func<object>, object, object> lazyFactory = import.LazyFactory;
+                Func<Func<object?>, object, object>? lazyFactory = import.LazyFactory;
                 var exports = import.SatisfyingExports;
                 if (import.Cardinality == ImportCardinality.ZeroOrMore)
                 {
@@ -141,10 +143,11 @@ namespace Microsoft.VisualStudio.Composition
                     }
                     else
                     {
-                        object collectionObject = null;
-                        MemberInfo importingMember = import.ImportingMember;
+                        object? collectionObject = null;
+                        MemberInfo? importingMember = import.ImportingMember;
                         if (importingMember != null)
                         {
+                            Assumes.NotNull(importingPartTracker.Value);
                             collectionObject = GetImportingMember(importingPartTracker.Value, importingMember);
                         }
 
@@ -159,14 +162,16 @@ namespace Microsoft.VisualStudio.Composition
                                     Type listType = typeof(List<>).MakeGenericType(typeArgs.Value);
                                     if (import.ImportingSiteType.GetTypeInfo().IsAssignableFrom(listType.GetTypeInfo()))
                                     {
-                                        collectionObject = Activator.CreateInstance(listType);
+                                        collectionObject = Activator.CreateInstance(listType)!;
                                     }
                                     else
                                     {
-                                        collectionObject = Activator.CreateInstance(import.ImportingSiteType);
+                                        collectionObject = Activator.CreateInstance(import.ImportingSiteType)!;
                                     }
                                 }
 
+                                Assumes.NotNull(importingPartTracker.Value);
+                                Assumes.NotNull(importingMember);
                                 SetImportingMember(importingPartTracker.Value, importingMember, collectionObject);
                             }
                             else
@@ -180,7 +185,7 @@ namespace Microsoft.VisualStudio.Composition
                             }
                         }
 
-                        var collectionAccessor = CollectionServices.GetCollectionWrapper(import.ImportingSiteTypeWithoutCollection, collectionObject);
+                        var collectionAccessor = CollectionServices.GetCollectionWrapper(import.ImportingSiteTypeWithoutCollection, collectionObject!);
                         if (preexistingInstance)
                         {
                             collectionAccessor.Clear();
@@ -210,7 +215,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            private object GetValueForImportElement(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Func<Func<object>, object, object> lazyFactory)
+            private object? GetValueForImportElement(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Func<Func<object?>, object, object>? lazyFactory)
             {
                 if (import.IsExportFactory)
                 {
@@ -220,23 +225,23 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     if (import.IsLazy)
                     {
-                        Requires.NotNull(lazyFactory, nameof(lazyFactory));
+                        Requires.NotNull(lazyFactory!, nameof(lazyFactory));
                     }
 
                     if (this.composition.GetPart(export).TypeRef.Equals(import.DeclaringTypeRef))
                     {
                         // This is importing itself.
-                        object part = importingPartTracker.Value;
-                        object value = import.IsLazy
-                            ? lazyFactory(() => part, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
+                        object? part = importingPartTracker.Value;
+                        object? value = import.IsLazy
+                            ? lazyFactory!(() => part, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
                             : part;
                         return value;
                     }
 
                     ExportedValueConstructor exportedValueConstructor = this.GetExportedValue(import, export, importingPartTracker);
 
-                    object importedValue = import.IsLazy
-                        ? lazyFactory(exportedValueConstructor.ValueConstructor, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
+                    object? importedValue = import.IsLazy
+                        ? lazyFactory!(exportedValueConstructor.ValueConstructor, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
                         : exportedValueConstructor.ValueConstructor();
                     return importedValue;
                 }
@@ -251,24 +256,24 @@ namespace Microsoft.VisualStudio.Composition
                 Type importingSiteElementType = import.ImportingSiteElementType;
                 ImmutableHashSet<string> sharingBoundaries = import.ExportFactorySharingBoundaries.ToImmutableHashSet();
                 bool newSharingScope = sharingBoundaries.Count > 0;
-                Func<KeyValuePair<object, IDisposable>> valueFactory = () =>
+                Func<KeyValuePair<object?, IDisposable?>> valueFactory = () =>
                 {
                     RuntimeExportProvider scope = newSharingScope
                         ? new RuntimeExportProvider(this.composition, this, sharingBoundaries)
                         : this;
                     var exportedValueConstructor = scope.GetExportedValue(import, export, importingPartTracker);
-                    exportedValueConstructor.ExportingPart.GetValueReadyToExpose();
-                    object constructedValue = exportedValueConstructor.ValueConstructor();
+                    exportedValueConstructor.ExportingPart!.GetValueReadyToExpose();
+                    object? constructedValue = exportedValueConstructor.ValueConstructor();
                     var disposableValue = newSharingScope ? scope : exportedValueConstructor.ExportingPart as IDisposable;
-                    return new KeyValuePair<object, IDisposable>(constructedValue, disposableValue);
+                    return new KeyValuePair<object?, IDisposable?>(constructedValue, disposableValue);
                 };
-                Type exportFactoryType = import.ImportingSiteTypeWithoutCollection;
+                Type? exportFactoryType = import.ImportingSiteTypeWithoutCollection!;
                 var exportMetadata = export.Metadata;
 
                 return this.CreateExportFactory(importingSiteElementType, sharingBoundaries, valueFactory, exportFactoryType, exportMetadata);
             }
 
-            private ExportedValueConstructor GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker importingPartTracker)
+            private ExportedValueConstructor GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker)
             {
                 Requires.NotNull(import, nameof(import));
                 Requires.NotNull(export, nameof(export));
@@ -295,7 +300,7 @@ namespace Microsoft.VisualStudio.Composition
             /// where it captures "this" in the closure for exportedValue, resulting in a memory leak
             /// which caused one of our GC unit tests to fail.
             /// </remarks>
-            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker importingPartTracker)
+            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker? importingPartTracker)
             {
                 Requires.NotNull(import, nameof(import));
                 Requires.NotNull(export, nameof(export));
@@ -304,7 +309,8 @@ namespace Microsoft.VisualStudio.Composition
                 Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
 
                 bool nonSharedInstanceRequired = !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired;
-                RuntimePartLifecycleTracker nonSharedPartOwner = nonSharedInstanceRequired && importingPartTracker.IsNonShared && !import.IsExportFactory ? importingPartTracker : null;
+                Requires.Argument(importingPartTracker is object || !nonSharedInstanceRequired, nameof(importingPartTracker), "Value required for non-shared parts.");
+                RuntimePartLifecycleTracker? nonSharedPartOwner = nonSharedInstanceRequired && importingPartTracker!.IsNonShared && !import.IsExportFactory ? importingPartTracker : null;
                 PartLifecycleTracker partLifecycle = this.GetOrCreateValue(
                     originalPartTypeRef,
                     constructedPartTypeRef,
@@ -314,7 +320,7 @@ namespace Microsoft.VisualStudio.Composition
                     nonSharedPartOwner);
                 var faultCallback = this.faultCallback;
 
-                Func<object> exportedValue = () =>
+                Func<object?> exportedValue = () =>
                 {
                     try
                     {
@@ -326,12 +332,12 @@ namespace Microsoft.VisualStudio.Composition
 
                         if (export.MemberRef != null)
                         {
-                            object part = export.Member.IsStatic()
+                            object? part = export.Member!.IsStatic()
                                 ? null
                                 : (fullyInitializedValueIsRequired
                                     ? partLifecycle.GetValueReadyToExpose()
                                     : partLifecycle.GetValueReadyToRetrieveExportingMembers());
-                            return GetValueFromMember(part, export.Member, import.ImportingSiteElementType, export.ExportedValueTypeRef.Resolve());
+                            return GetValueFromMember(part, export.Member!, import.ImportingSiteElementType, export.ExportedValueTypeRef.Resolve());
                         }
                         else
                         {
@@ -354,7 +360,7 @@ namespace Microsoft.VisualStudio.Composition
             /// <summary>
             /// Gets the constructed type (non generic type definition) for a part.
             /// </summary>
-            private static Reflection.TypeRef GetPartConstructedTypeRef(RuntimeComposition.RuntimePart part, IReadOnlyDictionary<string, object> importMetadata)
+            private static Reflection.TypeRef GetPartConstructedTypeRef(RuntimeComposition.RuntimePart part, IReadOnlyDictionary<string, object?> importMetadata)
             {
                 Requires.NotNull(part, nameof(part));
                 Requires.NotNull(importMetadata, nameof(importMetadata));
@@ -362,8 +368,8 @@ namespace Microsoft.VisualStudio.Composition
                 if (part.TypeRef.IsGenericTypeDefinition)
                 {
                     var bareMetadata = LazyMetadataWrapper.TryUnwrap(importMetadata);
-                    object typeArgsObject;
-                    if (bareMetadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out typeArgsObject))
+                    object? typeArgsObject;
+                    if (bareMetadata.TryGetValue(CompositionConstants.GenericParametersMetadataName, out typeArgsObject) && typeArgsObject is object)
                     {
                         IEnumerable<TypeRef> typeArgs = typeArgsObject is LazyMetadataWrapper.TypeArraySubstitution
                             ? ((LazyMetadataWrapper.TypeArraySubstitution)typeArgsObject).TypeRefArray
@@ -376,10 +382,11 @@ namespace Microsoft.VisualStudio.Composition
                 return part.TypeRef;
             }
 
-            private static void SetImportingMember(object part, MemberInfo member, object value)
+            private static void SetImportingMember(object part, MemberInfo member, object? value)
             {
                 Requires.NotNull(part, nameof(part));
                 Requires.NotNull(member, nameof(member));
+                Requires.Argument(member.DeclaringType is object, nameof(member), "DeclaringType must not be null.");
 
                 bool containsGenericParameters = member.DeclaringType.GetTypeInfo().ContainsGenericParameters;
                 if (containsGenericParameters)
@@ -408,7 +415,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            private static object GetImportingMember(object part, MemberInfo member)
+            private static object? GetImportingMember(object part, MemberInfo member)
             {
                 Requires.NotNull(part, nameof(part));
                 Requires.NotNull(member, nameof(member));
@@ -437,7 +444,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private struct ValueForImportSite
             {
-                internal ValueForImportSite(object value)
+                internal ValueForImportSite(object? value)
                     : this()
                 {
                     this.Value = value;
@@ -446,12 +453,12 @@ namespace Microsoft.VisualStudio.Composition
 
                 public bool ValueShouldBeSet { get; private set; }
 
-                public object Value { get; private set; }
+                public object? Value { get; private set; }
             }
 
             private struct ExportedValueConstructor
             {
-                public ExportedValueConstructor(PartLifecycleTracker exportingPart, Func<object> valueConstructor)
+                public ExportedValueConstructor(PartLifecycleTracker? exportingPart, Func<object?> valueConstructor)
                     : this()
                 {
                     Requires.NotNull(valueConstructor, nameof(valueConstructor));
@@ -460,18 +467,18 @@ namespace Microsoft.VisualStudio.Composition
                     this.ValueConstructor = valueConstructor;
                 }
 
-                public Func<object> ValueConstructor { get; private set; }
+                public Func<object?> ValueConstructor { get; private set; }
 
-                public PartLifecycleTracker ExportingPart { get; private set; }
+                public PartLifecycleTracker? ExportingPart { get; private set; }
             }
 
             [DebuggerDisplay("{" + nameof(partDefinition) + "." + nameof(RuntimeComposition.RuntimePart.TypeRef) + "." + nameof(TypeRef.ResolvedType) + ".FullName,nq} ({State})")]
             private class RuntimePartLifecycleTracker : PartLifecycleTracker
             {
                 private readonly RuntimeComposition.RuntimePart partDefinition;
-                private readonly IReadOnlyDictionary<string, object> importMetadata;
+                private readonly IReadOnlyDictionary<string, object?> importMetadata;
 
-                public RuntimePartLifecycleTracker(RuntimeExportProvider owningExportProvider, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata)
+                public RuntimePartLifecycleTracker(RuntimeExportProvider owningExportProvider, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object?> importMetadata)
                     : base(owningExportProvider, partDefinition.SharingBoundary)
                 {
                     Requires.NotNull(partDefinition, nameof(partDefinition));
@@ -481,7 +488,7 @@ namespace Microsoft.VisualStudio.Composition
                     this.importMetadata = importMetadata;
                 }
 
-                public RuntimePartLifecycleTracker(RuntimeExportProvider owningExportProvider, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner)
+                public RuntimePartLifecycleTracker(RuntimeExportProvider owningExportProvider, RuntimeComposition.RuntimePart partDefinition, IReadOnlyDictionary<string, object?> importMetadata, PartLifecycleTracker nonSharedPartOwner)
                     : base(owningExportProvider, nonSharedPartOwner)
                 {
                     Requires.NotNull(partDefinition, nameof(partDefinition));
@@ -511,7 +518,7 @@ namespace Microsoft.VisualStudio.Composition
                     base.ReportPartiallyInitializedImport(part);
                 }
 
-                protected override object CreateValue()
+                protected override object? CreateValue()
                 {
                     if (this.partDefinition.TypeRef.Equals(ExportProviderPartDefinition.TypeRef))
                     {
@@ -527,7 +534,7 @@ namespace Microsoft.VisualStudio.Composition
                     var constructedPartType = GetPartConstructedTypeRef(this.partDefinition, this.importMetadata);
                     var ctorArgs = this.partDefinition.ImportingConstructorArguments
                         .Select(import => this.OwningExportProvider.GetValueForImportSite(this, import).Value).ToArray();
-                    MethodBase importingConstructor = this.partDefinition.ImportingConstructorOrFactoryMethod;
+                    MethodBase? importingConstructor = this.partDefinition.ImportingConstructorOrFactoryMethod!;
                     if (importingConstructor.ContainsGenericParameters)
                     {
                         // TODO: fix this to find the precise match, including cases where the matching constructor includes a generic type parameter.
@@ -536,7 +543,7 @@ namespace Microsoft.VisualStudio.Composition
 
                     try
                     {
-                        object part = importingConstructor.Instantiate(ctorArgs);
+                        object? part = importingConstructor.Instantiate(ctorArgs);
                         return part;
                     }
                     catch (TargetInvocationException ex)
@@ -563,7 +570,7 @@ namespace Microsoft.VisualStudio.Composition
                                 ValueForImportSite value = this.OwningExportProvider.GetValueForImportSite(this, import);
                                 if (value.ValueShouldBeSet)
                                 {
-                                    SetImportingMember(this.Value, import.ImportingMember, value.Value);
+                                    SetImportingMember(this.Value!, import.ImportingMember!, value.Value);
                                 }
                             }
                             catch (CompositionFailedException ex)

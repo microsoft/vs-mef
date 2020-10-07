@@ -73,45 +73,45 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class RootPart
         {
             [Import, SharingBoundary("SomeBoundary")]
-            public ExportFactory<BoundaryPart> Factory { get; set; }
+            public ExportFactory<BoundaryPart> Factory { get; set; } = null!;
         }
 
         [Export]
         public class PartWithImportManyOfScopedExports
         {
             [ImportMany("NonSharedWithinBoundaryParts")]
-            public IList<object> BoundaryScopedNonSharedParts { get; set; }
+            public IList<object> BoundaryScopedNonSharedParts { get; set; } = null!;
         }
 
         [Export, Shared("SomeBoundary")]
         public class BoundaryPart
         {
             [ImportMany("NonSharedWithinBoundaryParts")]
-            public IList<object> BoundaryScopedNonSharedParts { get; set; }
+            public IList<object> BoundaryScopedNonSharedParts { get; set; } = null!;
 
             [Import]
-            public PartWithImportManyOfScopedExports ImportManyPart { get; set; }
+            public PartWithImportManyOfScopedExports ImportManyPart { get; set; } = null!;
         }
 
         [Export, Export("NonSharedWithinBoundaryParts", typeof(object))]
         public class NonSharedPartThatImportsBoundaryPart
         {
             [Import]
-            public BoundaryPart BoundaryPart { get; set; }
+            public BoundaryPart BoundaryPart { get; set; } = null!;
         }
 
         [Export, Export("NonSharedWithinBoundaryParts", typeof(object))]
         public class NonSharedPartThatOptionallyImportsBoundaryPart
         {
             [Import(AllowDefault = true)]
-            public BoundaryPart BoundaryPart { get; set; }
+            public BoundaryPart BoundaryPart { get; set; } = null!;
         }
 
         [Export, Export("NonSharedWithinBoundaryParts", typeof(object))]
         public class NonSharedPartThatIndirectlyImportsBoundaryPart
         {
             [Import]
-            public NonSharedPartThatImportsBoundaryPart BoundaryImportingPart { get; set; }
+            public NonSharedPartThatImportsBoundaryPart BoundaryImportingPart { get; set; } = null!;
         }
     }
 }

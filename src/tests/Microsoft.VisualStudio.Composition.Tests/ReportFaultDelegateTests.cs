@@ -32,17 +32,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         public class ReportFaultTestCase
         {
-            public IFaultReportingExportProviderFactory ExportProviderFactory { get; set; }
+            public IFaultReportingExportProviderFactory? ExportProviderFactory { get; set; }
 
-            public Type ExpectedBaseExceptionType { get; set; }
+            public Type? ExpectedBaseExceptionType { get; set; }
 
-            public Exception ExpectedInnerException { get; set; }
+            public Exception? ExpectedInnerException { get; set; }
 
             public int ExpectedCallbackCount { get; set; }
 
-            public Func<ExportProvider, BaseImportingClass> GetBaseImportingClassFromExportProvider { get; set; }
+            public Func<ExportProvider, BaseImportingClass>? GetBaseImportingClassFromExportProvider { get; set; }
 
-            public IEnumerable<Action<BaseImportingClass>> ActionsToRunAgainstBaseImportingClass { get; set; }
+            public IEnumerable<Action<BaseImportingClass>>? ActionsToRunAgainstBaseImportingClass { get; set; }
         }
 
         [Fact]
@@ -50,10 +50,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var discovery = TestUtilities.V2Discovery;
             List<ComposablePartDefinition> parts = new List<ComposablePartDefinition>();
-            parts.Add(discovery.CreatePart(typeof(ExportWithFailingConstructor)));
+            parts.Add(discovery.CreatePart(typeof(ExportWithFailingConstructor))!);
 
             var exportProviderFactory = CreateExportProviderFactory(parts);
-            Assert.Throws<ArgumentNullException>(() => exportProviderFactory.CreateExportProvider(null));
+            Assert.Throws<ArgumentNullException>(() => exportProviderFactory.CreateExportProvider(null!));
         }
 
         [Fact]
@@ -61,8 +61,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var discovery = TestUtilities.V2Discovery;
             List<ComposablePartDefinition> parts = new List<ComposablePartDefinition>();
-            parts.Add(discovery.CreatePart(typeof(ExportWithFailingConstructor)));
-            parts.Add(discovery.CreatePart(typeof(ExportWithLazyImportOfBadConstructorExport)));
+            parts.Add(discovery.CreatePart(typeof(ExportWithFailingConstructor))!);
+            parts.Add(discovery.CreatePart(typeof(ExportWithLazyImportOfBadConstructorExport))!);
 
             var exportProviderFactory = CreateExportProviderFactory(parts);
             Assert.NotNull(exportProviderFactory);
@@ -81,8 +81,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(testCase.ExportProviderFactory);
 
             int timesCallbackIsCalled = 0;
-            Exception exceptionPassedToCallback = null;
-            var exportProvider = testCase.ExportProviderFactory.CreateExportProvider(
+            Exception? exceptionPassedToCallback = null;
+            var exportProvider = testCase.ExportProviderFactory!.CreateExportProvider(
                 (ex, import, export) =>
                 {
                     Assert.NotNull(ex);
@@ -98,10 +98,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 });
             Assert.NotNull(exportProvider);
 
-            var exportWithLazyImport = testCase.GetBaseImportingClassFromExportProvider(exportProvider);
+            var exportWithLazyImport = testCase.GetBaseImportingClassFromExportProvider!(exportProvider);
             Assert.NotNull(exportWithLazyImport);
 
-            foreach (var action in testCase.ActionsToRunAgainstBaseImportingClass)
+            foreach (var action in testCase.ActionsToRunAgainstBaseImportingClass!)
             {
                 try
                 {
@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var configuration = CompositionConfiguration.Create(catalog);
             var runtimeComposition = RuntimeComposition.CreateRuntimeComposition(configuration);
 
-            return runtimeComposition.CreateExportProviderFactory() as IFaultReportingExportProviderFactory;
+            return (IFaultReportingExportProviderFactory)runtimeComposition.CreateExportProviderFactory();
         }
 
         #region Testcases and Export/Imports
@@ -131,14 +131,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ExportWithLazyImportOfBadConstructorExport : BaseImportingClass
         {
             [Import]
-            public Lazy<ExportWithFailingConstructor> FailingConstructor { get; set; }
+            public Lazy<ExportWithFailingConstructor> FailingConstructor { get; set; } = null!;
 
             public static ReportFaultTestCase GetTestCase()
             {
                 List<ComposablePartDefinition> parts = new List<ComposablePartDefinition>();
                 var discovery = TestUtilities.V2Discovery;
-                parts.Add(discovery.CreatePart(typeof(ExportWithFailingConstructor)));
-                parts.Add(discovery.CreatePart(typeof(ExportWithLazyImportOfBadConstructorExport)));
+                parts.Add(discovery.CreatePart(typeof(ExportWithFailingConstructor))!);
+                parts.Add(discovery.CreatePart(typeof(ExportWithLazyImportOfBadConstructorExport))!);
 
                 var exportProviderFactory = CreateExportProviderFactory(parts);
 
@@ -168,14 +168,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ExportWithLazyImportOfBadExportingMember : BaseImportingClass
         {
             [Import]
-            public Lazy<DummyClass> FailingExport { get; set; }
+            public Lazy<DummyClass> FailingExport { get; set; } = null!;
 
             public static ReportFaultTestCase GetTestCase()
             {
                 List<ComposablePartDefinition> parts = new List<ComposablePartDefinition>();
                 var discovery = TestUtilities.V2Discovery;
-                parts.Add(discovery.CreatePart(typeof(ClassWithExportingMemberThatFails)));
-                parts.Add(discovery.CreatePart(typeof(ExportWithLazyImportOfBadExportingMember)));
+                parts.Add(discovery.CreatePart(typeof(ClassWithExportingMemberThatFails))!);
+                parts.Add(discovery.CreatePart(typeof(ExportWithLazyImportOfBadExportingMember))!);
 
                 var exportProviderFactory = CreateExportProviderFactory(parts);
                 return new ReportFaultTestCase
@@ -204,15 +204,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ExportWithLazyImportOfTwoBadExports : BaseImportingClass
         {
             [ImportMany]
-            public IEnumerable<Lazy<FailingExport>> FailingExports { get; set; }
+            public IEnumerable<Lazy<FailingExport>> FailingExports { get; set; } = null!;
 
             public static ReportFaultTestCase GetTestCase()
             {
                 List<ComposablePartDefinition> parts = new List<ComposablePartDefinition>();
                 var discovery = TestUtilities.V2Discovery;
-                parts.Add(discovery.CreatePart(typeof(FailingExport1)));
-                parts.Add(discovery.CreatePart(typeof(FailingExport2)));
-                parts.Add(discovery.CreatePart(typeof(ExportWithLazyImportOfTwoBadExports)));
+                parts.Add(discovery.CreatePart(typeof(FailingExport1))!);
+                parts.Add(discovery.CreatePart(typeof(FailingExport2))!);
+                parts.Add(discovery.CreatePart(typeof(ExportWithLazyImportOfTwoBadExports))!);
 
                 var exportProviderFactory = CreateExportProviderFactory(parts);
 

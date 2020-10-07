@@ -5,6 +5,7 @@ namespace Microsoft.VisualStudio.Composition
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.CompilerServices;
@@ -48,7 +49,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="assemblyName">The name of the assembly to look up.</param>
         /// <param name="assemblyId">Receives the metadata from the assembly, if it has been loaded by this <see cref="Resolver"/>; otherwise <c>null</c>.</param>
         /// <returns><c>true</c> if the metadata was found; <c>false</c> otherwise.</returns>
-        internal bool TryGetAssemblyId(AssemblyName assemblyName, out StrongAssemblyIdentity assemblyId)
+        internal bool TryGetAssemblyId(AssemblyName assemblyName, [NotNullWhen(true)] out StrongAssemblyIdentity? assemblyId)
         {
             lock (this.loadedAssemblyStrongIdentities)
             {
@@ -62,7 +63,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="assembly">The loaded assembly.</param>
         /// <param name="assemblyName">An optional <see cref="AssemblyName"/> that may be important for dynamic assemblies to find their CodeBase.</param>
         /// <returns>The identity determined for this assembly.</returns>
-        internal StrongAssemblyIdentity GetStrongAssemblyIdentity(Assembly assembly, AssemblyName assemblyName) => this.NotifyAssemblyLoaded(assembly, assemblyName);
+        internal StrongAssemblyIdentity GetStrongAssemblyIdentity(Assembly assembly, AssemblyName? assemblyName) => this.NotifyAssemblyLoaded(assembly, assemblyName);
 
         /// <summary>
         /// Determines the strong identity of an assembly and stores it.
@@ -70,7 +71,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="assembly">The loaded assembly.</param>
         /// <param name="assemblyName">An optional <see cref="AssemblyName"/> that may be important for dynamic assemblies to find their CodeBase.</param>
         /// <returns>The identity determined for this assembly.</returns>
-        private StrongAssemblyIdentity NotifyAssemblyLoaded(Assembly assembly, AssemblyName assemblyName)
+        private StrongAssemblyIdentity NotifyAssemblyLoaded(Assembly assembly, AssemblyName? assemblyName)
         {
             Requires.NotNull(assembly, nameof(assembly));
 
@@ -79,7 +80,7 @@ namespace Microsoft.VisualStudio.Composition
                 assemblyName = assembly.GetName();
             }
 
-            if (this.TryGetAssemblyId(assemblyName, out StrongAssemblyIdentity result))
+            if (this.TryGetAssemblyId(assemblyName, out StrongAssemblyIdentity? result))
             {
                 return result;
             }

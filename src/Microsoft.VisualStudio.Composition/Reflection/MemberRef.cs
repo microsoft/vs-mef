@@ -5,6 +5,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.InteropServices;
@@ -23,7 +24,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// The <see cref="MemberInfo"/> that this value was instantiated with,
         /// or cached later when a metadata token was resolved.
         /// </summary>
-        private MemberInfo cachedMemberInfo;
+        private MemberInfo? cachedMemberInfo;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MemberRef"/> class.
@@ -48,7 +49,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         protected MemberRef(MemberInfo memberInfo, Resolver resolver)
             : this(
-                 TypeRef.Get(Requires.NotNull(memberInfo, nameof(memberInfo)).DeclaringType, resolver),
+                 TypeRef.Get(Requires.NotNull(memberInfo, nameof(memberInfo)).DeclaringType ?? throw new ArgumentException("DeclaringType is null", nameof(memberInfo)), resolver),
                  memberInfo)
         {
         }
@@ -65,11 +66,12 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public MemberInfo MemberInfo => this.cachedMemberInfo ?? (this.cachedMemberInfo = this.Resolve());
 
-        internal MemberInfo MemberInfoNoResolve => this.cachedMemberInfo;
+        internal MemberInfo? MemberInfoNoResolve => this.cachedMemberInfo;
 
         internal Resolver Resolver => this.DeclaringType.Resolver;
 
-        public static MemberRef Get(MemberInfo member, Resolver resolver)
+        [return: NotNullIfNotNull("member")]
+        public static MemberRef? Get(MemberInfo member, Resolver resolver)
         {
             if (member == null)
             {
@@ -90,7 +92,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
         }
 
-        public virtual bool Equals(MemberRef other)
+        public virtual bool Equals(MemberRef? other)
         {
             if (other == null || !this.GetType().IsEquivalentTo(other.GetType()))
             {
@@ -141,7 +143,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             throw new NotImplementedException();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is MemberRef && this.Equals((MemberRef)obj);
         }

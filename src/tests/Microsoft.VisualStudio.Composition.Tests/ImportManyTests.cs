@@ -385,10 +385,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportsMethods
         {
             [MefV1.ImportMany]
-            public Action[] ImportedMethods { get; set; }
+            public Action[] ImportedMethods { get; set; } = null!;
 
             [MefV1.ImportMany]
-            public Lazy<Action>[] LazilyImportedMethods { get; set; }
+            public Lazy<Action>[] LazilyImportedMethods { get; set; } = null!;
         }
 
         public class ExportMembers
@@ -426,7 +426,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany("NonPublic")]
             [MefV1.ImportMany("NonPublic")]
-            public List<Lazy<IExtension>> Extensions { get; set; }
+            public List<Lazy<IExtension>> Extensions { get; set; } = null!;
         }
 
         #endregion
@@ -459,7 +459,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            internal CustomCollectionWithPublicCtor<IInternalExtension> ImportingCollection { get; set; }
+            internal CustomCollectionWithPublicCtor<IInternalExtension> ImportingCollection { get; set; } = null!;
         }
 
         public interface IPublicMetadataView { }
@@ -470,7 +470,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            internal CustomCollectionWithPublicCtor<IInternalExtension, IPublicMetadataView> ImportingCollection { get; set; }
+            internal CustomCollectionWithPublicCtor<IInternalExtension, IPublicMetadataView> ImportingCollection { get; set; } = null!;
         }
 
         #endregion
@@ -511,7 +511,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            public IEnumerable<IExtension> Extensions { get; set; }
+            public IEnumerable<IExtension> Extensions { get; set; } = null!;
         }
 
         [Export]
@@ -520,7 +520,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            public IList<IExtension> Extensions { get; set; }
+            public IList<IExtension> Extensions { get; set; } = null!;
         }
 
         [Export]
@@ -529,7 +529,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            public List<IExtension> Extensions { get; set; }
+            public List<IExtension> Extensions { get; set; } = null!;
         }
 
         [Export]
@@ -538,7 +538,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            public IExtension[] Extensions { get; set; }
+            public IExtension[] Extensions { get; set; } = null!;
         }
 
         [Export]
@@ -547,7 +547,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            public Lazy<IExtension, IDictionary<string, object>>[] Extensions { get; set; }
+            public Lazy<IExtension, IDictionary<string, object>>[] Extensions { get; set; } = null!;
         }
 
         [Export]
@@ -556,7 +556,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            public HashSet<IExtension> Extensions { get; set; }
+            public HashSet<IExtension> Extensions { get; set; } = null!;
         }
 
         [Export]
@@ -565,7 +565,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            public CustomCollectionWithPublicCtor<IExtension> Extensions { get; set; }
+            public CustomCollectionWithPublicCtor<IExtension> Extensions { get; set; } = null!;
         }
 
         [Export]
@@ -579,7 +579,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             [ImportMany]
             [MefV1.ImportMany]
-            public CustomCollectionWithPublicCtor<IExtension> Extensions { get; set; }
+            public CustomCollectionWithPublicCtor<IExtension> Extensions { get; set; } = null!;
         }
 
         [Export]
@@ -593,7 +593,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             [ImportMany]
             [MefV1.ImportMany]
-            public CustomCollectionWithInternalCtor<IExtension> Extensions { get; set; }
+            public CustomCollectionWithInternalCtor<IExtension> Extensions { get; set; } = null!;
         }
 
         [Export]
@@ -602,7 +602,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            public CustomCollectionWithLazyMetadata<IExtension, IDictionary<string, object>> Extensions { get; set; }
+            public CustomCollectionWithLazyMetadata<IExtension, IDictionary<string, object>> Extensions { get; set; } = null!;
         }
 
         [Export]
@@ -611,7 +611,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            public CustomCollectionConcreteType Extensions { get; set; }
+            public CustomCollectionConcreteType Extensions { get; set; } = null!;
         }
 
         [Export]
@@ -620,7 +620,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            public CustomCollectionConcreteTypeWithMetadata Extensions { get; set; }
+            public CustomCollectionConcreteTypeWithMetadata Extensions { get; set; } = null!;
         }
 
         public class CustomCollectionWithPublicCtor<T> : ICollection<T>
@@ -637,12 +637,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
             }
 
-            public CustomCollectionWithPublicCtor(object arg)
+            public CustomCollectionWithPublicCtor(object? arg)
             {
                 this.ConstructorArg = arg;
             }
 
-            public object ConstructorArg { get; private set; }
+            public object? ConstructorArg { get; private set; }
 
             public bool Cleared { get; set; }
 

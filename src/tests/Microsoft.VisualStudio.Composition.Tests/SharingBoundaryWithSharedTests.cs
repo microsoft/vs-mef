@@ -158,7 +158,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class RootPart
         {
             [Import, SharingBoundary("SomeBoundary")]
-            public ExportFactory<BoundaryPart> Factory { get; set; }
+            public ExportFactory<BoundaryPart> Factory { get; set; } = null!;
         }
 
         /// <summary>
@@ -178,14 +178,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithImportManyOfScopedExports
         {
             [ImportMany("SharedWithinBoundaryParts")]
-            public IList<object> BoundaryScopedSharedParts { get; set; }
+            public IList<object> BoundaryScopedSharedParts { get; set; } = null!;
         }
 
         [Export]
         public class AnotherPartWithImportManyOfScopedExports
         {
             [ImportMany("SharedWithinBoundaryParts")]
-            public IList<object> BoundaryScopedSharedParts { get; set; }
+            public IList<object> BoundaryScopedSharedParts { get; set; } = null!;
         }
 
         [Export, Shared("SomeBoundary")]
@@ -194,20 +194,20 @@ namespace Microsoft.VisualStudio.Composition.Tests
             internal int DisposalCount { get; private set; }
 
             [ImportMany("SharedWithinBoundaryParts")]
-            public IList<object> BoundaryScopedSharedParts { get; set; }
+            public IList<object> BoundaryScopedSharedParts { get; set; } = null!;
 
             [Import]
-            public PartWithImportManyOfScopedExports ImportManyPart1 { get; set; }
+            public PartWithImportManyOfScopedExports ImportManyPart1 { get; set; } = null!;
 
             [Import]
-            public AnotherPartWithImportManyOfScopedExports ImportManyPart2 { get; set; }
+            public AnotherPartWithImportManyOfScopedExports ImportManyPart2 { get; set; } = null!;
 
             /// <summary>
             /// Gets or sets a lazy import that is meant to help with GC tests.
             /// It must never be constructed, lest the value factory be released and defeat the test.
             /// </summary>
             [Import]
-            public Lazy<SharedRootPartOnlyImportedFromChildScope> SharedRootPart { get; set; }
+            public Lazy<SharedRootPartOnlyImportedFromChildScope> SharedRootPart { get; set; } = null!;
 
             public void Dispose()
             {
@@ -222,7 +222,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             internal int DisposalCount { get; private set; }
 
             [Import]
-            public BoundaryPart BoundaryPart { get; set; }
+            public BoundaryPart BoundaryPart { get; set; } = null!;
 
             public void Dispose()
             {
@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class SharedPartThatOptionallyImportsBoundaryPart
         {
             [Import(AllowDefault = true)]
-            public BoundaryPart BoundaryPart { get; set; }
+            public BoundaryPart? BoundaryPart { get; set; }
         }
 
         [Export, Export("SharedWithinBoundaryParts", typeof(object))]
@@ -243,7 +243,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class SharedPartThatIndirectlyImportsBoundaryPart
         {
             [Import]
-            public SharedPartThatImportsBoundaryPart BoundaryImportingPart { get; set; }
+            public SharedPartThatImportsBoundaryPart BoundaryImportingPart { get; set; } = null!;
         }
 
         [MefV1.Export, MefV1.Export("SharedWithinBoundaryParts", typeof(object))]
@@ -252,7 +252,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             internal int DisposalCount { get; private set; }
 
             [MefV1.Import]
-            public BoundaryPart BoundaryPart { get; set; }
+            public BoundaryPart BoundaryPart { get; set; } = null!;
 
             public void Dispose()
             {
@@ -264,14 +264,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class V1SharedPartThatOptionallyImportsBoundaryPart
         {
             [MefV1.Import(AllowDefault = true)]
-            public BoundaryPart BoundaryPart { get; set; }
+            public BoundaryPart? BoundaryPart { get; set; }
         }
 
         [MefV1.Export, MefV1.Export("SharedWithinBoundaryParts", typeof(object))]
         public class V1SharedPartThatIndirectlyImportsBoundaryPart
         {
             [MefV1.Import]
-            public SharedPartThatImportsBoundaryPart BoundaryImportingPart { get; set; }
+            public SharedPartThatImportsBoundaryPart BoundaryImportingPart { get; set; } = null!;
         }
     }
 }

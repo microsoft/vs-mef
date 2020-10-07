@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc />
         public Assembly LoadAssembly(AssemblyName assemblyName)
         {
-            Assembly assembly;
+            Assembly? assembly;
             lock (this.loadedAssemblies)
             {
                 this.loadedAssemblies.TryGetValue(assemblyName, out assembly);

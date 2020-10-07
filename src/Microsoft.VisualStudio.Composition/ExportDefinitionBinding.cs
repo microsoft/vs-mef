@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition
 
     public class ExportDefinitionBinding : IEquatable<ExportDefinitionBinding>
     {
-        public ExportDefinitionBinding(ExportDefinition exportDefinition, ComposablePartDefinition partDefinition, MemberRef exportingMemberRef)
+        public ExportDefinitionBinding(ExportDefinition exportDefinition, ComposablePartDefinition partDefinition, MemberRef? exportingMemberRef)
         {
             Requires.NotNull(exportDefinition, nameof(exportDefinition));
             Requires.NotNull(partDefinition, nameof(partDefinition));
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets the member with the ExportAttribute applied. <c>null</c> when the export is on the type itself.
         /// </summary>
-        public MemberInfo ExportingMember
+        public MemberInfo? ExportingMember
         {
             get { return this.ExportingMemberRef?.MemberInfo; }
         }
@@ -44,14 +44,14 @@ namespace Microsoft.VisualStudio.Composition
         /// Gets the member with the ExportAttribute applied. The return value is <c>null</c>
         /// when the export is on the type itself.
         /// </summary>
-        public MemberRef ExportingMemberRef { get; private set; }
+        public MemberRef? ExportingMemberRef { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether the exporting member is static.
         /// </summary>
         public bool IsStaticExport
         {
-            get { return this.ExportingMemberRef.IsStatic(); }
+            get { return this.ExportingMemberRef?.IsStatic() ?? false; }
         }
 
         public TypeRef ExportedValueTypeRef
@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.Composition
 
             string exportTypeIdentity = string.Format(
                 CultureInfo.InvariantCulture,
-                (string)this.ExportDefinition.Metadata[CompositionConstants.ExportTypeIdentityMetadataName],
+                (string)this.ExportDefinition.Metadata[CompositionConstants.ExportTypeIdentityMetadataName]!,
                 genericTypeArguments.Select(ContractNameServices.GetTypeIdentity).ToArray());
             var updatedMetadata = ImmutableDictionary.CreateRange(this.ExportDefinition.Metadata)
                 .SetItem(CompositionConstants.ExportTypeIdentityMetadataName, exportTypeIdentity);
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.Composition
                 this.ExportingMemberRef);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return this.Equals(obj as ExportDefinitionBinding);
         }
@@ -106,11 +106,16 @@ namespace Microsoft.VisualStudio.Composition
             return hashCode;
         }
 
-        public bool Equals(ExportDefinitionBinding other)
+        public bool Equals(ExportDefinitionBinding? other)
         {
+            if (other is null)
+            {
+                return false;
+            }
+
             bool result = this.PartDefinition.TypeRef.Equals(other.PartDefinition.TypeRef)
                 && this.ExportDefinition.Equals(other.ExportDefinition)
-                && this.ExportingMemberRef.Equals(other.ExportingMemberRef);
+                && Equals(this.ExportingMemberRef, other.ExportingMemberRef);
             return result;
         }
     }

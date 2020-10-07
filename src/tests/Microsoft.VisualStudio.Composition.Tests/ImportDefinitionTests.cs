@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var importDefinition = new ImportDefinition(
                 "someContract",
                 ImportCardinality.ZeroOrMore,
-                ImmutableDictionary<string, object>.Empty,
+                ImmutableDictionary<string, object?>.Empty,
                 ImmutableHashSet.Create<IImportSatisfiabilityConstraint>(new ExportMetadataValueImportConstraint("a", "b")));
 
             var newConstraint = new ExportMetadataValueImportConstraint("c", "d");
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var importDefinition = new ImportDefinition(
                 "someContract",
                 ImportCardinality.ZeroOrMore,
-                ImmutableDictionary<string, object>.Empty,
+                ImmutableDictionary<string, object?>.Empty,
                 ImmutableHashSet.Create<IImportSatisfiabilityConstraint>(new ExportMetadataValueImportConstraint("c", "d")));
 
             var newConstraints = ImmutableHashSet.Create<IImportSatisfiabilityConstraint>(new ExportMetadataValueImportConstraint("a", "b"));

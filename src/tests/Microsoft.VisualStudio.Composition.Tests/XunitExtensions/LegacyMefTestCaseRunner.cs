@@ -18,11 +18,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
     public class LegacyMefTestCaseRunner : XunitTestCaseRunner
     {
         private readonly CompositionEngines engineVersion;
-        private readonly Type[] parts;
-        private readonly IReadOnlyList<string> assemblies;
+        private readonly Type[]? parts;
+        private readonly IReadOnlyList<string>? assemblies;
         private readonly bool invalidConfiguration;
 
-        public LegacyMefTestCaseRunner(IXunitTestCase testCase, string displayName, string skipReason, object[] constructorArguments, IMessageBus messageBus, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, CompositionEngines engineVersion, Type[] parts, IReadOnlyList<string> assemblies, bool invalidConfiguration)
+        public LegacyMefTestCaseRunner(IXunitTestCase testCase, string displayName, string? skipReason, object[] constructorArguments, IMessageBus messageBus, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, CompositionEngines engineVersion, Type[]? parts, IReadOnlyList<string>? assemblies, bool invalidConfiguration)
             : base(testCase, displayName, skipReason, constructorArguments, null, new TestResultInverter(messageBus, invalidConfiguration), aggregator, cancellationTokenSource)
         {
             Requires.Argument(parts != null || assemblies != null, "parts ?? assemblies", "Either parameter must be non-null.");
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return runSummary;
         }
 
-        private async Task<RunSummary> RunMultiEngineTestAsync(CompositionEngines attributesVersion, Type[] parts, IReadOnlyList<string> assemblies, Func<IContainer, Task<RunSummary>> test)
+        private async Task<RunSummary> RunMultiEngineTestAsync(CompositionEngines attributesVersion, Type[]? parts, IReadOnlyList<string>? assemblies, Func<IContainer, Task<RunSummary>> test)
         {
             try
             {

@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.Export, MefV1.ExportMetadata("Origin", "Lone")]
         public class Tree<T>
         {
-            public List<T> Fruit { get; set; }
+            public List<T>? Fruit { get; set; }
         }
 
         [Export, Shared]
@@ -88,11 +88,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            public Lazy<Tree<Apple>, IDictionary<string, object>>[] AppleTrees { get; set; }
+            public Lazy<Tree<Apple>, IDictionary<string, object>>[] AppleTrees { get; set; } = null!;
 
             [ImportMany]
             [MefV1.ImportMany]
-            public Lazy<Tree<Pear>, IDictionary<string, object>>[] PearTrees { get; set; }
+            public Lazy<Tree<Pear>, IDictionary<string, object>>[] PearTrees { get; set; } = null!;
         }
 
         public class Apple { }

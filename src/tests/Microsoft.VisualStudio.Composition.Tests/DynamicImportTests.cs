@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import("SomeContract")]
             [MefV1.Import("SomeContract")]
-            public dynamic Apple { get; set; }
+            public dynamic Apple { get; set; } = null!;
         }
 
         [Export]
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import("SomeContract")]
             [MefV1.Import("SomeContract")]
-            public object Apple { get; set; }
+            public object Apple { get; set; } = null!;
         }
 
         [Export]
@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import("SomeContract")]
             [MefV1.Import("SomeContract")]
-            public Fruit Apple { get; set; }
+            public Fruit Apple { get; set; } = null!;
         }
 
         public class Fruit { }

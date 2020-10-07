@@ -182,7 +182,7 @@ namespace Microsoft.VisualStudio.Composition
                 where export.Value.ContractName == ContractNameServices.GetTypeIdentity(typeof(IMetadataViewProvider))
                 orderby ExportProvider.GetOrderMetadata(export.Value.Metadata) descending
                 let exportDefinitionBinding = new ExportDefinitionBinding(export.Value, part, default(MemberRef))
-                let provider = (IMetadataViewProvider)part.ImportingConstructorOrFactory.Instantiate(Type.EmptyTypes)
+                let provider = (IMetadataViewProvider)part.ImportingConstructorOrFactory!.Instantiate(Type.EmptyTypes)
                 select Tuple.Create(provider, exportDefinitionBinding)).ToList();
 
             var metadataTypes = new HashSet<Type>(
@@ -217,12 +217,13 @@ namespace Microsoft.VisualStudio.Composition
             return composition.CreateExportProviderFactory();
         }
 
-        public string GetEffectiveSharingBoundary(ComposablePartDefinition partDefinition)
+        public string? GetEffectiveSharingBoundary(ComposablePartDefinition partDefinition)
         {
             Requires.NotNull(partDefinition, nameof(partDefinition));
             Requires.Argument(partDefinition.IsShared, "partDefinition", Strings.PartIsNotShared);
 
-            return this.effectiveSharingBoundaryOverrides.GetValueOrDefault(partDefinition) ?? partDefinition.SharingBoundary;
+            this.effectiveSharingBoundaryOverrides.TryGetValue(partDefinition, out string? value);
+            return value ?? partDefinition.SharingBoundary;
         }
 
         /// <summary>
@@ -266,6 +267,7 @@ namespace Microsoft.VisualStudio.Composition
         /// If a path is not found, an empty stack is returned.
         /// </returns>
         private static ImmutableStack<T> PathExistsBetween<T>(T origin, T target, Func<T, IEnumerable<T>> getDirectLinks, HashSet<T> visited)
+            where T : notnull
         {
             Requires.NotNullAllowStructs(origin, nameof(origin));
             Requires.NotNullAllowStructs(target, nameof(target));
@@ -448,19 +450,19 @@ namespace Microsoft.VisualStudio.Composition
             var dgml = Dgml.Create(out nodes, out links, direction: "RightToLeft")
                 .WithStyle(
                     "ExportFactory",
-                    new Dictionary<string, string>
+                    new Dictionary<string, string?>
                     {
                         { "StrokeDashArray", "2,2" },
                     },
                     "Link")
                 .WithStyle(
                     "VsMEFBuiltIn",
-                    new Dictionary<string, string>
+                    new Dictionary<string, string?>
                     {
                         { "Visibility", "Hidden" },
                     });
 
-            foreach (string sharingBoundary in parts.Select(p => p.Definition.SharingBoundary).Distinct())
+            foreach (string? sharingBoundary in parts.Select(p => p.Definition.SharingBoundary).Distinct())
             {
                 if (!string.IsNullOrEmpty(sharingBoundary))
                 {
@@ -473,10 +475,10 @@ namespace Microsoft.VisualStudio.Composition
                 var node = Dgml.Node(part.Definition.Id, ReflectionHelpers.GetTypeName(part.Definition.Type, false, true, null, null));
                 if (!string.IsNullOrEmpty(part.Definition.SharingBoundary))
                 {
-                    node.ContainedBy(part.Definition.SharingBoundary, dgml);
+                    node.ContainedBy(part.Definition.SharingBoundary!, dgml);
                 }
 
-                string[] partDgmlCategories;
+                string[]? partDgmlCategories;
                 if (part.Definition.Metadata.TryGetValue(CompositionConstants.DgmlCategoryPartMetadataName, out partDgmlCategories))
                 {
                     node = node.WithCategories(partDgmlCategories);
@@ -487,7 +489,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     foreach (ExportDefinitionBinding export in part.SatisfyingExports[import])
                     {
-                        string linkLabel = !export.ExportedValueTypeRef.Equals(export.PartDefinition.TypeRef)
+                        string? linkLabel = !export.ExportedValueTypeRef.Equals(export.PartDefinition.TypeRef)
                             ? export.ExportedValueType.ToString()
                             : null;
                         var link = Dgml.Link(export.PartDefinition.Id, part.Definition.Id, linkLabel);
@@ -547,11 +549,11 @@ namespace Microsoft.VisualStudio.Composition
                 this.ApplySharingBoundary(this.PartDefinition.SharingBoundary);
             }
 
-            private void ApplySharingBoundary(string sharingBoundary)
+            private void ApplySharingBoundary(string? sharingBoundary)
             {
                 if (!string.IsNullOrEmpty(sharingBoundary))
                 {
-                    if (this.RequiredSharingBoundaries.Add(sharingBoundary))
+                    if (this.RequiredSharingBoundaries.Add(sharingBoundary!))
                     {
                         // Since this is new to us, be sure that all our importers belong to this sharing boundary as well.
                         foreach (var importingPart in this.ImportingParts)
@@ -636,8 +638,18 @@ namespace Microsoft.VisualStudio.Composition
             {
             }
 
-            public bool Equals(ExportDefinition x, ExportDefinition y)
+            public bool Equals(ExportDefinition? x, ExportDefinition? y)
             {
+                if (x == y)
+                {
+                    return true;
+                }
+
+                if (x is null || y is null)
+                {
+                    return false;
+                }
+
                 return string.Equals(x.ContractName, y.ContractName, StringComparison.Ordinal)
                     && string.Equals(x.Metadata.GetValueOrDefault(CompositionConstants.ExportTypeIdentityMetadataName) as string, y.Metadata.GetValueOrDefault(CompositionConstants.ExportTypeIdentityMetadataName) as string, StringComparison.Ordinal);
             }
@@ -657,7 +669,7 @@ namespace Microsoft.VisualStudio.Composition
             {
             }
 
-            public bool Equals(T x, T y)
+            public bool Equals(T? x, T? y)
             {
                 return ReferenceEquals(x, y);
             }

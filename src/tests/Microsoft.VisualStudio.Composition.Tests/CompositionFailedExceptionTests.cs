@@ -18,10 +18,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void ExceptionIsSerializable()
         {
             var discovery = TestUtilities.V2Discovery;
-            var catalog = TestUtilities.EmptyCatalog.AddParts(new[] { discovery.CreatePart(typeof(Tree)) });
+            var catalog = TestUtilities.EmptyCatalog.AddParts(new[] { discovery.CreatePart(typeof(Tree))! });
             var configuration = CompositionConfiguration.Create(catalog);
 
-            CompositionFailedException exception = null;
+            CompositionFailedException? exception = null;
             try
             {
                 configuration.ThrowOnErrors();
@@ -38,18 +38,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             ms.Position = 0;
             var actual = (CompositionFailedException)formatter.Deserialize(ms);
-            Assert.Equal(exception.Message, actual.Message);
+            Assert.Equal(exception!.Message, actual.Message);
             Assert.NotNull(actual.Errors);
-            Assert.False(actual.Errors.IsEmpty);
+            Assert.False(actual.Errors!.IsEmpty);
             Assert.Equal(1, actual.Errors.Peek().Count);
-            Assert.Equal(exception.Errors.Peek().Single().Message, actual.Errors.Peek().Single().Message);
+            Assert.Equal(exception.Errors!.Peek().Single().Message, actual.Errors.Peek().Single().Message);
         }
 
         [Export]
         public class Tree
         {
             [Import("Fruit")] // not satisfied
-            public object Fruit { get; set; }
+            public object Fruit { get; set; } = null!;
         }
     }
 }
