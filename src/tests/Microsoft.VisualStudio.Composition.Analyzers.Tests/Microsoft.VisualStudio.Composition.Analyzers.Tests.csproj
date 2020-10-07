@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!-- Do not contribute to the one test directory that all the others do, because we're unrelated
+         and most importantly our analyzer test dependencies bring their own copy of vs-mef, leading to a 'last one wins' file overwrite
+         issue if we were to share a directory with vs-mef tests that makes testing unstable. -->
+    <BaseOutputPath>$(MSBuildThisFileDirectory)..\..\..\bin\Tests\Microsoft.VisualStudio.Composition.Analyzers.Tests</BaseOutputPath>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
