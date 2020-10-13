@@ -39,10 +39,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Root1
         {
             [Import, SharingBoundary("A")]
-            public ExportFactory<SharingBoundaryPart> SubScopeFactory { get; set; }
+            public ExportFactory<SharingBoundaryPart> SubScopeFactory { get; set; } = null!;
 
             [Import]
-            public Lazy<Root2> Root2 { get; set; }
+            public Lazy<Root2> Root2 { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
 
             [Import]
-            public Lazy<Root3> Root3 { get; set; }
+            public Lazy<Root3> Root3 { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class SharingBoundaryPart
         {
             [Import]
-            public Lazy<Root3> Root3 { get; set; }
+            public Lazy<Root3> Root3 { get; set; } = null!;
         }
     }
 }

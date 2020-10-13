@@ -11,6 +11,6 @@
     public class ExternalExportWithLazy
     {
         [Import("YetAnotherExport")]
-        public Lazy<object> YetAnotherExport { get; set; }
+        public Lazy<object> YetAnotherExport { get; set; } = null!;
     }
 }

@@ -11,9 +11,9 @@ namespace Microsoft.VisualStudio.Composition
     internal struct Rental<T> : IDisposable
         where T : class
     {
-        private T value;
-        private Stack<T> returnTo;
-        private Action<T> cleanup;
+        private T? value;
+        private Stack<T>? returnTo;
+        private Action<T>? cleanup;
 
         internal Rental(Stack<T> returnTo, Func<int, T> create, Action<T> cleanup, int createArg)
         {
@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public T Value
         {
-            get { return this.value; }
+            get { return this.value ?? throw new ObjectDisposedException(nameof(Rental<T>)); }
         }
 
         public void Dispose()

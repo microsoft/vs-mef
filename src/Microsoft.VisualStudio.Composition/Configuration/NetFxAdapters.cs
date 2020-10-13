@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Composition
         static NetFxAdapters()
         {
             var discovery = new AttributedPartDiscoveryV1(Resolver.DefaultInstance);
-            CompositionServicePart = discovery.CreatePart(typeof(CompositionService));
+            CompositionServicePart = discovery.CreatePart(typeof(CompositionService)) ?? throw Assumes.NotReachable();
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.Composition
 
         private class MefV1ExportProvider : MefV1.Hosting.ExportProvider
         {
-            private static readonly Type ExportFactoryV1Type = typeof(MefV1.ExportFactory<object, IDictionary<string, object>>);
+            private static readonly Type ExportFactoryV1Type = typeof(MefV1.ExportFactory<object, IDictionary<string, object?>>);
 
             private static readonly string ExportFactoryV1TypeIdentity = PartDiscovery.GetContractName(ExportFactoryV1Type);
 
@@ -105,9 +105,9 @@ namespace Microsoft.VisualStudio.Composition
                 // We use ZeroOrMore to indicate we'll accept any response.
                 var cardinality = ImportCardinality.ZeroOrMore;
 
-                var metadata = (IReadOnlyDictionary<string, object>)definition.Metadata;
+                var metadata = (IReadOnlyDictionary<string, object?>)definition.Metadata;
 
-                MefV1.Primitives.ImportDefinition productImportDefinitionV1 = GetExportFactoryProductImportDefinitionIfApplicable(definition);
+                MefV1.Primitives.ImportDefinition? productImportDefinitionV1 = GetExportFactoryProductImportDefinitionIfApplicable(definition);
 
                 if (productImportDefinitionV1 != null)
                 {
@@ -125,14 +125,14 @@ namespace Microsoft.VisualStudio.Composition
             /// </summary>
             /// <param name="definition">The ImportDefinition which may be an ExportFactory.</param>
             /// <returns>The import definition that describes the created part, or <c>null</c> if the import definition isn't an ExportFactory.</returns>
-            private static MefV1.Primitives.ImportDefinition GetExportFactoryProductImportDefinitionIfApplicable(MefV1.Primitives.ImportDefinition definition)
+            private static MefV1.Primitives.ImportDefinition? GetExportFactoryProductImportDefinitionIfApplicable(MefV1.Primitives.ImportDefinition definition)
             {
                 return ReflectionModelServices.IsExportFactoryImportDefinition(definition)
                     ? ReflectionModelServices.GetExportFactoryProductImportDefinition(definition)
                     : null;
             }
 
-            private static IDictionary<string, object> GetMefV1ExportDefinitionMetadataFromV3(IReadOnlyDictionary<string, object> exportDefinitionMetadata)
+            private static IDictionary<string, object?> GetMefV1ExportDefinitionMetadataFromV3(IReadOnlyDictionary<string, object?> exportDefinitionMetadata)
             {
                 Requires.NotNull(exportDefinitionMetadata, nameof(exportDefinitionMetadata));
                 var metadata = exportDefinitionMetadata.ToImmutableDictionary();
@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.Composition
                         UnwrapCreationPolicy(creationPolicy));
                 }
 
-                ExportDefinition productDefinitionMetadatum;
+                ExportDefinition? productDefinitionMetadatum;
                 if (metadata.TryGetValue(CompositionConstants.ProductDefinitionMetadataName, out productDefinitionMetadatum))
                 {
                     // The value of this metadata is expected to be a V3 ExportDefinition. We must adapt it to be a V1 ExportDefinition
@@ -199,7 +199,7 @@ namespace Microsoft.VisualStudio.Composition
                     return new MefV1.Primitives.Export(
                         "System.ComponentModel.Composition.Contracts.ExportFactory",
                         metadata,
-                        () => new ComposablePartDefinitionForExportFactory((MefV1.ExportFactory<object, IDictionary<string, object>>)export.Value));
+                        () => new ComposablePartDefinitionForExportFactory((MefV1.ExportFactory<object, IDictionary<string, object?>>)export.Value!));
                 }
 
                 return new MefV1.Primitives.Export(
@@ -208,11 +208,16 @@ namespace Microsoft.VisualStudio.Composition
                     () => UnwrapExportedValue(export.Value));
             }
 
-            private static object UnwrapExportedValue(object value)
+            private static object? UnwrapExportedValue(object? value)
             {
                 if (value is ExportedDelegate)
                 {
                     var del = ((ExportedDelegate)value).CreateDelegate(typeof(Delegate));
+                    if (del is null)
+                    {
+                        throw new InvalidOperationException("Unable to create the delegate.");
+                    }
+
                     return new MefV1.Primitives.ExportedDelegate(del.Target, del.Method);
                 }
                 else
@@ -223,7 +228,7 @@ namespace Microsoft.VisualStudio.Composition
 
             private class ComposablePartForExportFactory : MefV1.Primitives.ComposablePart, IDisposable
             {
-                internal static readonly MefV1.Primitives.ExportDefinition ExportFactoryDefinitionSentinel = new MefV1.Primitives.ExportDefinition("ExportFactoryValue", ImmutableDictionary<string, object>.Empty);
+                internal static readonly MefV1.Primitives.ExportDefinition ExportFactoryDefinitionSentinel = new MefV1.Primitives.ExportDefinition("ExportFactoryValue", ImmutableDictionary<string, object?>.Empty);
 
                 private readonly MefV1.ExportLifetimeContext<object> value;
 
@@ -266,9 +271,9 @@ namespace Microsoft.VisualStudio.Composition
             private class ComposablePartDefinitionForExportFactory : MefV1.Primitives.ComposablePartDefinition
             {
                 private static readonly MefV1.Primitives.ExportDefinition[] SentinelExportDefinitionArray = new[] { ComposablePartForExportFactory.ExportFactoryDefinitionSentinel };
-                private readonly MefV1.ExportFactory<object, IDictionary<string, object>> exportFactory;
+                private readonly MefV1.ExportFactory<object, IDictionary<string, object?>> exportFactory;
 
-                internal ComposablePartDefinitionForExportFactory(MefV1.ExportFactory<object, IDictionary<string, object>> exportFactory)
+                internal ComposablePartDefinitionForExportFactory(MefV1.ExportFactory<object, IDictionary<string, object?>> exportFactory)
                 {
                     Requires.NotNull(exportFactory, nameof(exportFactory));
                     this.exportFactory = exportFactory;
@@ -306,11 +311,11 @@ namespace Microsoft.VisualStudio.Composition
             {
                 var v1ExportDefinition = new MefV1.Primitives.ExportDefinition(
                     exportDefinition.ContractName,
-                    (IDictionary<string, object>)exportDefinition.Metadata);
+                    (IDictionary<string, object?>)exportDefinition.Metadata);
                 return this.definition.IsConstraintSatisfiedBy(v1ExportDefinition);
             }
 
-            public bool Equals(IImportSatisfiabilityConstraint obj)
+            public bool Equals(IImportSatisfiabilityConstraint? obj)
             {
                 var other = obj as ImportConstraint;
                 if (other == null)

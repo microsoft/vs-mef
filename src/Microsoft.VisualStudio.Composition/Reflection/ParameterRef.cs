@@ -5,6 +5,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Reflection;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
@@ -19,7 +20,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// <summary>
         /// A cache behind the <see cref="ParameterInfo"/> property.
         /// </summary>
-        private ParameterInfo cachedParameterInfo;
+        private ParameterInfo? cachedParameterInfo;
 
         public ParameterRef(MethodRef method, int parameterIndex)
         {
@@ -41,7 +42,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public MethodRef Method { get; }
 
-        public ParameterInfo ParameterInfo => this.cachedParameterInfo ?? (this.cachedParameterInfo = this.Resolve());
+        public ParameterInfo? ParameterInfo => this.cachedParameterInfo ?? (this.cachedParameterInfo = this.Resolve());
 
         public TypeRef DeclaringType => this.Method.DeclaringType;
 
@@ -56,7 +57,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         internal Resolver Resolver => this.DeclaringType.Resolver;
 
-        public static ParameterRef Get(ParameterInfo parameter, Resolver resolver)
+        [return: NotNullIfNotNull("parameter")]
+        public static ParameterRef? Get(ParameterInfo parameter, Resolver resolver)
         {
             if (parameter != null)
             {
@@ -66,15 +68,20 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return default(ParameterRef);
         }
 
-        public bool Equals(ParameterRef other)
+        public bool Equals(ParameterRef? other)
         {
+            if (other is null)
+            {
+                return false;
+            }
+
             return this.Method.Equals(other.Method)
                 && this.ParameterIndex == other.ParameterIndex;
         }
 
         public override int GetHashCode() => unchecked(this.Method.MetadataToken + this.ParameterIndex);
 
-        public override bool Equals(object obj) => obj is ParameterRef parameter && this.Equals(parameter);
+        public override bool Equals(object? obj) => obj is ParameterRef parameter && this.Equals(parameter);
 
         internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
         {

@@ -10,10 +10,10 @@ namespace Microsoft.VisualStudio.Composition
     internal static partial class CollectionServices
     {
         private static readonly Type[] CollectionOfObjectCtorArgTypes = new Type[] { typeof(object) };
-        private static readonly ConstructorInfo CollectionOfObjectCtor = typeof(CollectionOfObject<>).GetTypeInfo().GetConstructor(CollectionOfObjectCtorArgTypes);
-        private static readonly Dictionary<Type, Func<object, ICollection<object>>> CachedCollectionWrapperFactories = new Dictionary<Type, Func<object, ICollection<object>>>();
+        private static readonly ConstructorInfo CollectionOfObjectCtor = typeof(CollectionOfObject<>).GetTypeInfo().GetConstructor(CollectionOfObjectCtorArgTypes)!;
+        private static readonly Dictionary<Type, Func<object, ICollection<object?>>> CachedCollectionWrapperFactories = new Dictionary<Type, Func<object, ICollection<object?>>>();
 
-        internal static ICollection<object> GetCollectionWrapper(Type itemType, object collectionObject)
+        internal static ICollection<object?> GetCollectionWrapper(Type itemType, object collectionObject)
         {
             Requires.NotNull(itemType, nameof(itemType));
             Requires.NotNull(collectionObject, nameof(collectionObject));
@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Composition
 
             if (underlyingItemType == typeof(object))
             {
-                return (ICollection<object>)collectionObject;
+                return (ICollection<object?>)collectionObject;
             }
 
             // Most common .Net collections implement IList as well so for those
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Composition
                 return new CollectionOfObjectList((IList)collectionObject);
             }
 
-            Func<object, ICollection<object>> factory;
+            Func<object, ICollection<object?>>? factory;
             lock (CachedCollectionWrapperFactories)
             {
                 CachedCollectionWrapperFactories.TryGetValue(underlyingItemType, out factory);
@@ -42,14 +42,14 @@ namespace Microsoft.VisualStudio.Composition
             if (factory == null)
             {
                 Type collectionType = typeof(CollectionOfObject<>).MakeGenericType(underlyingItemType);
-                var ctor = (ConstructorInfo)MethodBase.GetMethodFromHandle(CollectionOfObjectCtor.MethodHandle, collectionType.TypeHandle);
+                var ctor = (ConstructorInfo)MethodBase.GetMethodFromHandle(CollectionOfObjectCtor.MethodHandle, collectionType.TypeHandle)!;
 
                 factory = collection =>
                 {
                     using (var args = ArrayRental<object>.Get(1))
                     {
                         args.Value[0] = collection;
-                        return (ICollection<object>)ctor.Invoke(args.Value);
+                        return (ICollection<object?>)ctor.Invoke(args.Value);
                     }
                 };
 
@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.Composition
             return factory(collectionObject);
         }
 
-        private class CollectionOfObjectList : ICollection<object>
+        private class CollectionOfObjectList : ICollection<object?>
         {
             private readonly IList list;
 
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.Composition
                 get { return this.list.IsReadOnly; }
             }
 
-            public void Add(object item)
+            public void Add(object? item)
             {
                 this.list.Add(item);
             }
@@ -91,22 +91,22 @@ namespace Microsoft.VisualStudio.Composition
                 this.list.Clear();
             }
 
-            public bool Contains(object item)
+            public bool Contains(object? item)
             {
                 throw Assumes.NotReachable();
             }
 
-            public void CopyTo(object[] array, int arrayIndex)
+            public void CopyTo(object?[] array, int arrayIndex)
             {
                 throw Assumes.NotReachable();
             }
 
-            public bool Remove(object item)
+            public bool Remove(object? item)
             {
                 throw Assumes.NotReachable();
             }
 
-            public IEnumerator<object> GetEnumerator()
+            public IEnumerator<object?> GetEnumerator()
             {
                 throw Assumes.NotReachable();
             }
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private class CollectionOfObject<T> : ICollection<object>
+        private class CollectionOfObject<T> : ICollection<object?>
         {
             private readonly ICollection<T> collectionOfT;
 
@@ -136,9 +136,9 @@ namespace Microsoft.VisualStudio.Composition
                 get { return this.collectionOfT.IsReadOnly; }
             }
 
-            public void Add(object item)
+            public void Add(object? item)
             {
-                this.collectionOfT.Add((T)item);
+                this.collectionOfT.Add((T)item!);
             }
 
             public void Clear()
@@ -146,22 +146,22 @@ namespace Microsoft.VisualStudio.Composition
                 this.collectionOfT.Clear();
             }
 
-            public bool Contains(object item)
+            public bool Contains(object? item)
             {
                 throw Assumes.NotReachable();
             }
 
-            public void CopyTo(object[] array, int arrayIndex)
+            public void CopyTo(object?[] array, int arrayIndex)
             {
                 throw Assumes.NotReachable();
             }
 
-            public bool Remove(object item)
+            public bool Remove(object? item)
             {
                 throw Assumes.NotReachable();
             }
 
-            public IEnumerator<object> GetEnumerator()
+            public IEnumerator<object?> GetEnumerator()
             {
                 throw Assumes.NotReachable();
             }

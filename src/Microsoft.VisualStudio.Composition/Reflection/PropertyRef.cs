@@ -44,8 +44,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         public PropertyRef(PropertyInfo propertyInfo, Resolver resolver)
             : base(propertyInfo, resolver)
         {
-            this.getMethodMetadataToken = propertyInfo?.GetMethod?.MetadataToken;
-            this.setMethodMetadataToken = propertyInfo?.SetMethod?.MetadataToken;
+            this.getMethodMetadataToken = propertyInfo.GetMethod?.MetadataToken;
+            this.setMethodMetadataToken = propertyInfo.SetMethod?.MetadataToken;
             this.Name = propertyInfo.Name;
             this.PropertyTypeRef = TypeRef.Get(propertyInfo.PropertyType, resolver);
         }
@@ -68,10 +68,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return this.Name == otherProperty.Name;
         }
 
-        protected override MemberInfo Resolve() => ResolverExtensions.Resolve(this);
+        protected override MemberInfo Resolve() => ResolverExtensions.Resolve(this) ?? throw new InvalidOperationException($"Unable to find property {this.Name} on {this.DeclaringType.FullName}");
 
         public override int GetHashCode() => this.DeclaringType.GetHashCode() + this.Name.GetHashCode();
 
-        public bool Equals(PropertyRef other) => this.Equals((MemberRef)other);
+        public bool Equals(PropertyRef? other) => this.Equals((MemberRef?)other);
     }
 }

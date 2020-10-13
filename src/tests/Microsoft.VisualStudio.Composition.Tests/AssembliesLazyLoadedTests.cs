@@ -319,8 +319,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         private class AppDomainTestDriver : MarshalByRefObject
         {
-            private ExportProvider container;
-            private ComposableCatalog catalog;
+            private ExportProvider? container;
+            private ComposableCatalog? catalog;
 
             internal void Initialize(Type cacheManagerType, Stream cachedComposition, Stream cachedCatalog)
             {
@@ -366,7 +366,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             internal void TestGetInputAssembliesDoesNotLoadLazyExport(string lazyLoadedAssemblyPath)
             {
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
-                this.catalog.GetInputAssemblies();
+                this.catalog!.GetInputAssemblies();
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
@@ -376,7 +376,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
 
                 // Now query for the export, but don't evaluate it yet. This shouldn't load the assembly.
-                var export = this.container.GetExport<object>(contractName);
+                var export = this.container!.GetExport<object>(contractName);
                 AssertEx.NotNull(export);
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
 
@@ -389,7 +389,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             internal void TestExternalExportWithLazy(string lazyLoadedAssemblyPath)
             {
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
-                var exportWithLazy = this.container.GetExportedValue<ExternalExportWithLazy>();
+                var exportWithLazy = this.container!.GetExportedValue<ExternalExportWithLazy>();
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 Assert.NotNull(exportWithLazy.YetAnotherExport.Value);
                 AssertEx.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
@@ -403,7 +403,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             internal void TestPartThatImportsExportWithTypeMetadataViaDictionary(string lazyLoadedAssemblyPath)
             {
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
-                var exportWithLazy = this.container.GetExportedValue<PartThatLazyImportsExportWithTypeMetadataViaDictionary>();
+                var exportWithLazy = this.container!.GetExportedValue<PartThatLazyImportsExportWithTypeMetadataViaDictionary>();
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 Assert.NotNull(exportWithLazy.ImportWithDictionary.Metadata.ContainsKey("foo"));
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
@@ -418,7 +418,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             internal void TestPartThatImportsExportWithTypeMetadataViaTMetadata(string lazyLoadedAssemblyPath)
             {
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
-                var exportWithLazy = this.container.GetExportedValue<PartThatLazyImportsExportWithTypeMetadataViaTMetadata>();
+                var exportWithLazy = this.container!.GetExportedValue<PartThatLazyImportsExportWithTypeMetadataViaTMetadata>();
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 Assert.Equal("default", exportWithLazy.ImportWithTMetadata.Metadata.SomeProperty);
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
@@ -433,23 +433,23 @@ namespace Microsoft.VisualStudio.Composition.Tests
             internal void TestPartThatImportsExportWithGenericTypeArg(string lazyLoadedAssemblyPath)
             {
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
-                var exportWithLazy = this.container.GetExportedValue<PartImportingOpenGenericExport>();
+                var exportWithLazy = this.container!.GetExportedValue<PartImportingOpenGenericExport>();
                 AssertEx.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 
             internal void TestPartThatLazyImportsExportWithMetadataOfCustomType(string lazyLoadedAssemblyPath, bool isRuntime)
             {
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
-                var exportWithLazy = this.container.GetExportedValue<PartThatLazyImportsExportWithMetadataOfCustomType>();
+                var exportWithLazy = this.container!.GetExportedValue<PartThatLazyImportsExportWithMetadataOfCustomType>();
 
                 // This next segment we'll permit an assembly load only for code gen cases, which aren't as well tuned at present.
                 AssertEx.False(isRuntime && GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
-                AssertEx.Equal("Value", exportWithLazy.ImportingProperty.Metadata["Simple"] as string);
+                Assert.Equal("Value", exportWithLazy.ImportingProperty.Metadata["Simple"] as string);
                 AssertEx.False(isRuntime && GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
 
                 // At this point, loading the assembly is absolutely required.
-                object customEnum = exportWithLazy.ImportingProperty.Metadata["CustomValue"];
-                AssertEx.Equal("CustomEnum", customEnum.GetType().Name);
+                object? customEnum = exportWithLazy.ImportingProperty.Metadata["CustomValue"];
+                Assert.Equal("CustomEnum", customEnum?.GetType().Name);
                 AssertEx.True(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
             }
 

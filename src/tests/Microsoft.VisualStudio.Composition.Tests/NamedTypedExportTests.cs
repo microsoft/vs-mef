@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import("Pear")]
             [MefV1.Import("Pear")]
-            public Fruit Pear { get; set; }
+            public Fruit Pear { get; set; } = null!;
         }
 
         [Export]
@@ -94,15 +94,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public Fruit AppleDefault { get; set; }
+            public Fruit? AppleDefault { get; set; }
 
             [Import(null)]
-            [MefV1.Import((string)null)]
-            public Fruit AppleNull { get; set; }
+            [MefV1.Import((string?)null)]
+            public Fruit? AppleNull { get; set; }
 
             [Import("")]
             [MefV1.Import("")]
-            public Fruit AppleEmptyString { get; set; }
+            public Fruit? AppleEmptyString { get; set; }
         }
 
         #region Contract and type name collision testing
@@ -120,11 +120,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [MefV1.ImportMany("SomeContractName")]
             [ImportMany("SomeContractName")]
-            public IEnumerable<ISomeOtherInterface> ImportManyProperty { get; set; }
+            public IEnumerable<ISomeOtherInterface> ImportManyProperty { get; set; } = null!;
 
             [MefV1.Import("SomeContractName", AllowDefault = true)]
             [Import("SomeContractName", AllowDefault = true)]
-            public ISomeOtherInterface ImportProperty { get; set; }
+            public ISomeOtherInterface? ImportProperty { get; set; }
         }
 
         [Export("SomeContractName")]

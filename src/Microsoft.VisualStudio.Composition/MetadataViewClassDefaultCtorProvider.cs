@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.Composition
             return typeInfo.IsClass && !typeInfo.IsAbstract && FindConstructor(typeInfo) != null;
         }
 
-        public object CreateProxy(IReadOnlyDictionary<string, object> metadata, IReadOnlyDictionary<string, object> defaultValues, Type metadataViewType)
+        public object CreateProxy(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultValues, Type metadataViewType)
         {
             Requires.NotNull(metadata, nameof(metadata));
             Requires.NotNull(defaultValues, nameof(defaultValues));
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.Composition
 
             foreach (var propertyInfo in metadataViewType.EnumProperties().WherePublicInstance())
             {
-                if ((metadata.TryGetValue(propertyInfo.Name, out object value) || defaultValues.TryGetValue(propertyInfo.Name, out value)) && propertyInfo.SetMethod != null)
+                if ((metadata.TryGetValue(propertyInfo.Name, out object? value) || defaultValues.TryGetValue(propertyInfo.Name, out value)) && propertyInfo.SetMethod != null)
                 {
                     propertyInfo.SetValue(view, value);
                 }

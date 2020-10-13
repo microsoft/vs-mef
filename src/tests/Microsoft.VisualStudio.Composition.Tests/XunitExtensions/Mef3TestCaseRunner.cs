@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         private readonly CompositionConfiguration configuration;
         private readonly CompositionEngines compositionVersions;
 
-        public Mef3TestCaseRunner(IXunitTestCase testCase, string displayName, string skipReason, object[] constructorArguments, IMessageBus messageBus, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, CompositionConfiguration configuration, CompositionEngines compositionVersions)
+        public Mef3TestCaseRunner(IXunitTestCase testCase, string displayName, string? skipReason, object[] constructorArguments, IMessageBus messageBus, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource, CompositionConfiguration configuration, CompositionEngines compositionVersions)
             : base(testCase, displayName, skipReason, constructorArguments, null, messageBus, aggregator, cancellationTokenSource)
         {
             Requires.NotNull(configuration, nameof(configuration));

@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public IReadOnlyCollection<RuntimeExport> GetExports(string contractName)
         {
-            IReadOnlyCollection<RuntimeExport> exports;
+            IReadOnlyCollection<RuntimeExport>? exports;
             if (this.exportsByContractName.TryGetValue(contractName, out exports))
             {
                 return exports;
@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.Composition
             return this.partsByType[partType];
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return this.Equals(obj as RuntimeComposition);
         }
@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.Composition
             return hashCode;
         }
 
-        public bool Equals(RuntimeComposition other)
+        public bool Equals(RuntimeComposition? other)
         {
             if (other == null)
             {
@@ -156,8 +156,8 @@ namespace Microsoft.VisualStudio.Composition
             return string.Format(
                 CultureInfo.CurrentCulture,
                 "{0}.{1}",
-                import.DeclaringTypeRef.Resolve().FullName,
-                import.ImportingMember == null ? ("ctor(" + import.ImportingParameter.Name + ")") : import.ImportingMember.Name);
+                import.DeclaringTypeRef?.Resolve().FullName,
+                import.ImportingMember == null ? ("ctor(" + import.ImportingParameter!.Name + ")") : import.ImportingMember.Name);
         }
 
         internal static string GetDiagnosticLocation(RuntimeExport export)
@@ -174,7 +174,7 @@ namespace Microsoft.VisualStudio.Composition
             }
             else
             {
-                return export.DeclaringTypeRef.Resolve().FullName;
+                return export.DeclaringTypeRef.Resolve().FullName ?? "<no name>";
             }
         }
 
@@ -215,7 +215,7 @@ namespace Microsoft.VisualStudio.Composition
             else
             {
                 return new RuntimeImport(
-                    importDefinitionBinding.ImportingParameterRef,
+                    importDefinitionBinding.ImportingParameterRef!,
                     importDefinitionBinding.ImportingSiteTypeRef,
                     importDefinitionBinding.ImportingSiteTypeWithoutCollectionRef,
                     importDefinitionBinding.ImportDefinition.Cardinality,
@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private static RuntimeExport CreateRuntimeExport(ExportDefinition exportDefinition, TypeRef partTypeRef, MemberRef exportingMemberRef, Resolver resolver)
+        private static RuntimeExport CreateRuntimeExport(ExportDefinition exportDefinition, TypeRef partTypeRef, MemberRef? exportingMemberRef, Resolver resolver)
         {
             Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
@@ -256,12 +256,12 @@ namespace Microsoft.VisualStudio.Composition
         {
             public RuntimePart(
                 TypeRef type,
-                MethodRef importingConstructor,
+                MethodRef? importingConstructor,
                 IReadOnlyList<RuntimeImport> importingConstructorArguments,
                 IReadOnlyList<RuntimeImport> importingMembers,
                 IReadOnlyList<RuntimeExport> exports,
-                MethodRef onImportsSatisfied,
-                string sharingBoundary)
+                MethodRef? onImportsSatisfied,
+                string? sharingBoundary)
             {
                 this.TypeRef = type;
                 this.ImportingConstructorOrFactoryMethodRef = importingConstructor;
@@ -274,9 +274,9 @@ namespace Microsoft.VisualStudio.Composition
 
             public TypeRef TypeRef { get; private set; }
 
-            public MethodRef ImportingConstructorOrFactoryMethodRef { get; private set; }
+            public MethodRef? ImportingConstructorOrFactoryMethodRef { get; private set; }
 
-            public MethodBase ImportingConstructorOrFactoryMethod => this.ImportingConstructorOrFactoryMethodRef?.MethodBase;
+            public MethodBase? ImportingConstructorOrFactoryMethod => this.ImportingConstructorOrFactoryMethodRef?.MethodBase;
 
             public IReadOnlyList<RuntimeImport> ImportingConstructorArguments { get; private set; }
 
@@ -284,23 +284,23 @@ namespace Microsoft.VisualStudio.Composition
 
             public IReadOnlyList<RuntimeExport> Exports { get; set; }
 
-            public MethodRef OnImportsSatisfiedRef { get; private set; }
+            public MethodRef? OnImportsSatisfiedRef { get; private set; }
 
-            public string SharingBoundary { get; private set; }
+            public string? SharingBoundary { get; private set; }
 
             public bool IsShared => this.SharingBoundary != null;
 
             public bool IsInstantiable => this.ImportingConstructorOrFactoryMethodRef != null;
 
-            public MethodInfo OnImportsSatisfied => (MethodInfo)this.OnImportsSatisfiedRef?.MethodBase;
+            public MethodInfo? OnImportsSatisfied => (MethodInfo?)this.OnImportsSatisfiedRef?.MethodBase;
 
-            private string DebuggerDisplay => this.TypeRef?.FullName;
+            private string? DebuggerDisplay => this.TypeRef.FullName;
 
-            public override bool Equals(object obj) => this.Equals(obj as RuntimePart);
+            public override bool Equals(object? obj) => this.Equals(obj as RuntimePart);
 
             public override int GetHashCode() => this.TypeRef.GetHashCode();
 
-            public bool Equals(RuntimePart other)
+            public bool Equals(RuntimePart? other)
             {
                 if (other == null)
                 {
@@ -308,11 +308,11 @@ namespace Microsoft.VisualStudio.Composition
                 }
 
                 bool result = EqualityComparer<TypeRef>.Default.Equals(this.TypeRef, other.TypeRef)
-                    && EqualityComparer<MethodRef>.Default.Equals(this.ImportingConstructorOrFactoryMethodRef, other.ImportingConstructorOrFactoryMethodRef)
+                    && EqualityComparer<MethodRef?>.Default.Equals(this.ImportingConstructorOrFactoryMethodRef, other.ImportingConstructorOrFactoryMethodRef)
                     && this.ImportingConstructorArguments.SequenceEqual(other.ImportingConstructorArguments)
                     && ByValueEquality.EquivalentIgnoreOrder<RuntimeImport>().Equals(this.ImportingMembers, other.ImportingMembers)
                     && ByValueEquality.EquivalentIgnoreOrder<RuntimeExport>().Equals(this.Exports, other.Exports)
-                    && EqualityComparer<MethodRef>.Default.Equals(this.OnImportsSatisfiedRef, other.OnImportsSatisfiedRef)
+                    && EqualityComparer<MethodRef?>.Default.Equals(this.OnImportsSatisfiedRef, other.OnImportsSatisfiedRef)
                     && this.SharingBoundary == other.SharingBoundary;
                 return result;
             }
@@ -322,14 +322,14 @@ namespace Microsoft.VisualStudio.Composition
         public class RuntimeImport : IEquatable<RuntimeImport>
         {
             private NullableBool isLazy;
-            private Type importingSiteElementType;
-            private Func<Func<object>, object, object> lazyFactory;
-            private ParameterInfo importingParameter;
-            private MemberInfo importingMember;
+            private Type? importingSiteElementType;
+            private Func<Func<object?>, object, object>? lazyFactory;
+            private ParameterInfo? importingParameter;
+            private MemberInfo? importingMember;
             private volatile bool isMetadataTypeInitialized;
-            private Type metadataType;
+            private Type? metadataType;
 
-            private RuntimeImport(TypeRef importingSiteTypeRef, TypeRef importingSiteTypeWithoutCollectionRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
+            private RuntimeImport(TypeRef importingSiteTypeRef, TypeRef importingSiteTypeWithoutCollectionRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
             {
                 Requires.NotNull(importingSiteTypeRef, nameof(importingSiteTypeRef));
                 Requires.NotNull(importingSiteTypeWithoutCollectionRef, nameof(importingSiteTypeWithoutCollectionRef));
@@ -345,27 +345,28 @@ namespace Microsoft.VisualStudio.Composition
                 this.ExportFactorySharingBoundaries = exportFactorySharingBoundaries;
             }
 
-            public RuntimeImport(MemberRef importingMemberRef, TypeRef importingSiteTypeRef, TypeRef importingSiteTypeWithoutCollectionRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
+            public RuntimeImport(MemberRef? importingMemberRef, TypeRef importingSiteTypeRef, TypeRef importingSiteTypeWithoutCollectionRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
                 : this(importingSiteTypeRef, importingSiteTypeWithoutCollectionRef, cardinality, satisfyingExports, isNonSharedInstanceRequired, isExportFactory, metadata, exportFactorySharingBoundaries)
             {
                 this.ImportingMemberRef = importingMemberRef;
             }
 
-            public RuntimeImport(ParameterRef importingParameterRef, TypeRef importingSiteTypeRef, TypeRef importingSiteTypeWithoutCollectionRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
+            public RuntimeImport(ParameterRef importingParameterRef, TypeRef importingSiteTypeRef, TypeRef importingSiteTypeWithoutCollectionRef, ImportCardinality cardinality, IReadOnlyList<RuntimeExport> satisfyingExports, bool isNonSharedInstanceRequired, bool isExportFactory, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<string> exportFactorySharingBoundaries)
                 : this(importingSiteTypeRef, importingSiteTypeWithoutCollectionRef, cardinality, satisfyingExports, isNonSharedInstanceRequired, isExportFactory, metadata, exportFactorySharingBoundaries)
             {
+                Requires.NotNull(importingParameterRef, nameof(importingParameterRef));
                 this.ImportingParameterRef = importingParameterRef;
             }
 
             /// <summary>
             /// Gets the importing member. May be empty if the import site is an importing constructor parameter.
             /// </summary>
-            public MemberRef ImportingMemberRef { get; private set; }
+            public MemberRef? ImportingMemberRef { get; private set; }
 
             /// <summary>
             /// Gets the importing parameter. May be empty if the import site is an importing field or property.
             /// </summary>
-            public ParameterRef ImportingParameterRef { get; private set; }
+            public ParameterRef? ImportingParameterRef { get; private set; }
 
             public TypeRef ImportingSiteTypeRef { get; private set; }
 
@@ -377,9 +378,9 @@ namespace Microsoft.VisualStudio.Composition
 
             public bool IsNonSharedInstanceRequired { get; private set; }
 
-            public IReadOnlyDictionary<string, object> Metadata { get; private set; }
+            public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
-            public Type ExportFactory
+            public Type? ExportFactory
             {
                 get
                 {
@@ -394,9 +395,9 @@ namespace Microsoft.VisualStudio.Composition
             /// </summary>
             public IReadOnlyCollection<string> ExportFactorySharingBoundaries { get; private set; }
 
-            public MemberInfo ImportingMember => this.importingMember ?? (this.importingMember = this.ImportingMemberRef?.MemberInfo);
+            public MemberInfo? ImportingMember => this.importingMember ?? (this.importingMember = this.ImportingMemberRef?.MemberInfo);
 
-            public ParameterInfo ImportingParameter => this.importingParameter ?? (this.importingParameter = this.ImportingParameterRef.ParameterInfo);
+            public ParameterInfo? ImportingParameter => this.importingParameter ?? (this.importingParameter = this.ImportingParameterRef?.ParameterInfo);
 
             public bool IsLazy
             {
@@ -411,9 +412,9 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            public Type ImportingSiteType => this.ImportingSiteTypeRef?.ResolvedType;
+            public Type ImportingSiteType => this.ImportingSiteTypeRef.ResolvedType;
 
-            public Type ImportingSiteTypeWithoutCollection => this.ImportingSiteTypeWithoutCollectionRef?.ResolvedType;
+            public Type ImportingSiteTypeWithoutCollection => this.ImportingSiteTypeWithoutCollectionRef.ResolvedType;
 
             public TypeRef ImportingSiteTypeWithoutCollectionRef { get; private set; }
 
@@ -433,7 +434,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            public Type MetadataType
+            public Type? MetadataType
             {
                 get
                 {
@@ -453,11 +454,11 @@ namespace Microsoft.VisualStudio.Composition
             {
                 get
                 {
-                    return this.ImportingMemberRef?.DeclaringType ?? this.ImportingParameterRef?.DeclaringType;
+                    return this.ImportingMemberRef?.DeclaringType ?? this.ImportingParameterRef?.DeclaringType ?? throw Assumes.NotReachable();
                 }
             }
 
-            internal Func<Func<object>, object, object> LazyFactory
+            internal Func<Func<object?>, object, object>? LazyFactory
             {
                 get
                 {
@@ -471,11 +472,11 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            public override int GetHashCode() => this.ImportingMemberRef.GetHashCode();
+            public override int GetHashCode() => this.ImportingMemberRef?.GetHashCode() ?? 0;
 
-            public override bool Equals(object obj) => this.Equals(obj as RuntimeImport);
+            public override bool Equals(object? obj) => this.Equals(obj as RuntimeImport);
 
-            public bool Equals(RuntimeImport other)
+            public bool Equals(RuntimeImport? other)
             {
                 if (other == null)
                 {
@@ -488,21 +489,22 @@ namespace Microsoft.VisualStudio.Composition
                     && this.IsNonSharedInstanceRequired == other.IsNonSharedInstanceRequired
                     && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata)
                     && ByValueEquality.EquivalentIgnoreOrder<string>().Equals(this.ExportFactorySharingBoundaries, other.ExportFactorySharingBoundaries)
-                    && EqualityComparer<MemberRef>.Default.Equals(this.ImportingMemberRef, other.ImportingMemberRef)
-                    && EqualityComparer<ParameterRef>.Default.Equals(this.ImportingParameterRef, other.ImportingParameterRef);
+                    && EqualityComparer<MemberRef?>.Default.Equals(this.ImportingMemberRef, other.ImportingMemberRef)
+                    && EqualityComparer<ParameterRef?>.Default.Equals(this.ImportingParameterRef, other.ImportingParameterRef);
                 return result;
             }
         }
 
         public class RuntimeExport : IEquatable<RuntimeExport>
         {
-            private MemberInfo member;
-            private TypeRef exportedValueTypeRef;
+            private MemberInfo? member;
+            private TypeRef? exportedValueTypeRef;
 
-            public RuntimeExport(string contractName, TypeRef declaringTypeRef, MemberRef memberRef, IReadOnlyDictionary<string, object> metadata)
+            public RuntimeExport(string contractName, TypeRef declaringTypeRef, MemberRef? memberRef, IReadOnlyDictionary<string, object?> metadata)
             {
-                Requires.NotNull(metadata, nameof(metadata));
                 Requires.NotNullOrEmpty(contractName, nameof(contractName));
+                Requires.NotNull(declaringTypeRef, nameof(declaringTypeRef));
+                Requires.NotNull(metadata, nameof(metadata));
 
                 this.ContractName = contractName;
                 this.DeclaringTypeRef = declaringTypeRef;
@@ -510,10 +512,11 @@ namespace Microsoft.VisualStudio.Composition
                 this.Metadata = metadata;
             }
 
-            public RuntimeExport(string contractName, TypeRef declaringTypeRef, MemberRef memberRef, TypeRef exportedValueTypeRef, IReadOnlyDictionary<string, object> metadata)
+            public RuntimeExport(string contractName, TypeRef declaringTypeRef, MemberRef? memberRef, TypeRef? exportedValueTypeRef, IReadOnlyDictionary<string, object?> metadata)
             {
-                Requires.NotNull(metadata, nameof(metadata));
                 Requires.NotNullOrEmpty(contractName, nameof(contractName));
+                Requires.NotNull(declaringTypeRef, nameof(declaringTypeRef));
+                Requires.NotNull(metadata, nameof(metadata));
 
                 this.ContractName = contractName;
                 this.DeclaringTypeRef = declaringTypeRef;
@@ -526,7 +529,7 @@ namespace Microsoft.VisualStudio.Composition
 
             public TypeRef DeclaringTypeRef { get; private set; }
 
-            public MemberRef MemberRef { get; private set; }
+            public MemberRef? MemberRef { get; private set; }
 
             public TypeRef ExportedValueTypeRef
             {
@@ -551,15 +554,15 @@ namespace Microsoft.VisualStudio.Composition
                 get { return this.ExportedValueTypeRef.ResolvedType; }
             }
 
-            public IReadOnlyDictionary<string, object> Metadata { get; private set; }
+            public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
-            public MemberInfo Member => this.member ?? (this.member = this.MemberRef?.MemberInfo);
+            public MemberInfo? Member => this.member ?? (this.member = this.MemberRef?.MemberInfo);
 
             public override int GetHashCode() => this.ContractName.GetHashCode() + this.DeclaringTypeRef.GetHashCode();
 
-            public override bool Equals(object obj) => this.Equals(obj as RuntimeExport);
+            public override bool Equals(object? obj) => this.Equals(obj as RuntimeExport);
 
-            public bool Equals(RuntimeExport other)
+            public bool Equals(RuntimeExport? other)
             {
                 if (other == null)
                 {
@@ -568,7 +571,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 bool result = this.ContractName == other.ContractName
                     && EqualityComparer<TypeRef>.Default.Equals(this.DeclaringTypeRef, other.DeclaringTypeRef)
-                    && EqualityComparer<MemberRef>.Default.Equals(this.MemberRef, other.MemberRef)
+                    && EqualityComparer<MemberRef?>.Default.Equals(this.MemberRef, other.MemberRef)
                     && EqualityComparer<TypeRef>.Default.Equals(this.ExportedValueTypeRef, other.ExportedValueTypeRef)
                     && ByValueEquality.Metadata.Equals(this.Metadata, other.Metadata);
                 return result;

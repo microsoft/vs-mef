@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public Useful<int> Useful { get; set; }
+            public Useful<int> Useful { get; set; } = null!;
         }
 
         [Export]
@@ -125,7 +125,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public Useful<int, byte> Useful { get; set; }
+            public Useful<int, byte> Useful { get; set; } = null!;
         }
 
         [Export]
@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            public Useful<int>[] Useful { get; set; }
+            public Useful<int>[] Useful { get; set; } = null!;
         }
 
         [Export]
@@ -143,7 +143,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            public Lazy<Useful<int>>[] Useful { get; set; }
+            public Lazy<Useful<int>>[] Useful { get; set; } = null!;
         }
 
         public class OpenGenericPartWithExportingProperty<T>
@@ -199,10 +199,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class SharedUserOfSharedUseful
         {
             [Import, MefV1.Import]
-            public SharedUseful<IDisposable> Disposable { get; set; }
+            public SharedUseful<IDisposable> Disposable { get; set; } = null!;
 
             [Import, MefV1.Import]
-            public SharedUseful<IContainer> Container { get; set; }
+            public SharedUseful<IContainer> Container { get; set; } = null!;
         }
 
         [Export(typeof(InternalSharedUseful<>)), Shared]
@@ -214,10 +214,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class SharedUserOfInternalSharedUseful
         {
             [Import, MefV1.Import]
-            internal InternalSharedUseful<IDisposable> Disposable { get; set; }
+            internal InternalSharedUseful<IDisposable> Disposable { get; set; } = null!;
 
             [Import, MefV1.Import]
-            internal InternalSharedUseful<IContainer> Container { get; set; }
+            internal InternalSharedUseful<IContainer> Container { get; set; } = null!;
         }
 
         #endregion
@@ -245,7 +245,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class UserOfNonPublicNestedType
         {
             [Import, MefV1.Import]
-            internal Useful<NonPublicNestedType> Importer { get; set; }
+            internal Useful<NonPublicNestedType> Importer { get; set; } = null!;
 
             internal class NonPublicNestedType { }
         }

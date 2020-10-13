@@ -16,10 +16,10 @@ namespace Microsoft.VisualStudio.Composition
     /// </summary>
     internal static class LazyServices
     {
-        private static readonly MethodInfo CreateStronglyTypedLazyOfTMValue = typeof(LazyServices).GetTypeInfo().GetMethod("CreateStronglyTypedLazyOfTM", BindingFlags.NonPublic | BindingFlags.Static);
-        private static readonly MethodInfo CreateStronglyTypedLazyOfTValue = typeof(LazyServices).GetTypeInfo().GetMethod("CreateStronglyTypedLazyOfT", BindingFlags.NonPublic | BindingFlags.Static);
-        private static readonly string Lazy1FullName = typeof(Lazy<>).FullName;
-        private static readonly string Lazy2FullName = typeof(Lazy<,>).FullName;
+        private static readonly MethodInfo CreateStronglyTypedLazyOfTMValue = typeof(LazyServices).GetTypeInfo().GetMethod("CreateStronglyTypedLazyOfTM", BindingFlags.NonPublic | BindingFlags.Static)!;
+        private static readonly MethodInfo CreateStronglyTypedLazyOfTValue = typeof(LazyServices).GetTypeInfo().GetMethod("CreateStronglyTypedLazyOfT", BindingFlags.NonPublic | BindingFlags.Static)!;
+        private static readonly string Lazy1FullName = typeof(Lazy<>).FullName!;
+        private static readonly string Lazy2FullName = typeof(Lazy<,>).FullName!;
 
         internal static readonly Type DefaultMetadataViewType = typeof(IDictionary<string, object>);
         internal static readonly Type DefaultExportedValueType = typeof(object);
@@ -76,7 +76,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="exportType">The type of values created by the Func{object} value factories. Null is interpreted to be <c>typeof(object)</c>.</param>
         /// <param name="metadataViewType">The type of metadata passed to the lazy factory. Null is interpreted to be <c>typeof(IDictionary{string, object})</c>.</param>
         /// <returns>A function that takes a Func{object} value factory and metadata, and produces a Lazy{T, TMetadata} instance.</returns>
-        internal static Func<Func<object>, object, object> CreateStronglyTypedLazyFactory(Type exportType, Type metadataViewType)
+        internal static Func<Func<object?>, object, object> CreateStronglyTypedLazyFactory(Type? exportType, Type? metadataViewType)
         {
             MethodInfo genericMethod;
             if (metadataViewType != null)
@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.Composition
                 genericMethod = CreateStronglyTypedLazyOfTValue.MakeGenericMethod(exportType ?? DefaultExportedValueType);
             }
 
-            return (Func<Func<object>, object, object>)genericMethod.CreateDelegate(typeof(Func<Func<object>, object, object>));
+            return (Func<Func<object?>, object, object>)genericMethod.CreateDelegate(typeof(Func<Func<object?>, object, object>));
         }
 
         internal static Func<T> AsFunc<T>(this Lazy<T> lazy)

@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public Lazy<ExportWithMetadata, IMetadata> ImportingProperty { get; set; }
+            public Lazy<ExportWithMetadata, IMetadata> ImportingProperty { get; set; } = null!;
         }
 
         public interface IMetadata1

@@ -8,11 +8,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests;
     using Microsoft.VisualStudio.Composition.BrokenAssemblyTests;
-    using Microsoft.VisualStudio.Composition.Reflection;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
@@ -23,9 +21,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public void NonSharedPartProduction()
         {
-            ComposablePartDefinition result = this.DiscoveryService.CreatePart(typeof(NonSharedPart));
+            ComposablePartDefinition? result = this.DiscoveryService.CreatePart(typeof(NonSharedPart));
             Assert.NotNull(result);
-            Assert.Equal(1, result.ExportedTypes.Count);
+            Assert.Equal(1, result!.ExportedTypes.Count);
             Assert.Equal(0, result.ImportingMembers.Count);
             Assert.False(result.IsShared);
         }
@@ -33,9 +31,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public void SharedPartProduction()
         {
-            ComposablePartDefinition result = this.DiscoveryService.CreatePart(typeof(SharedPart));
+            ComposablePartDefinition? result = this.DiscoveryService.CreatePart(typeof(SharedPart));
             Assert.NotNull(result);
-            Assert.Equal(1, result.ExportedTypes.Count);
+            Assert.Equal(1, result!.ExportedTypes.Count);
             Assert.Equal(0, result.ImportingMembers.Count);
             Assert.True(result.IsShared);
         }
@@ -215,7 +213,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void PartMetadataInCatalogIsPresent()
         {
             var part = this.DiscoveryService.CreatePart(typeof(SomePartWithPartMetadata));
-            Assert.Equal("V1", part.Metadata["PM1"]);
+            Assert.Equal("V1", part!.Metadata["PM1"]);
             Assert.Equal("V2", part.Metadata["PM2"]);
         }
 
@@ -231,14 +229,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void PartMetadataInCatalogDoesNotPropagateToExportMetadata()
         {
             var part = this.DiscoveryService.CreatePart(typeof(SomePartWithPartMetadata));
-            Assert.False(part.ExportDefinitions.Single().Value.Metadata.ContainsKey("PM1"));
+            Assert.False(part!.ExportDefinitions.Single().Value.Metadata.ContainsKey("PM1"));
         }
 
         [Fact]
         public void PartMetadataInCatalogOmitsBaseClassMetadata()
         {
             var part = this.DiscoveryService.CreatePart(typeof(SomePartWithPartMetadata));
-            Assert.False(part.Metadata.ContainsKey("BasePM"));
+            Assert.False(part!.Metadata.ContainsKey("BasePM"));
         }
 
         [PartMetadata("BasePM", "V1"), MefV1.PartMetadata("BasePM", "V1")]
@@ -274,7 +272,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
             }
 
-            protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
+            protected override ComposablePartDefinition? CreatePart(Type partType, bool typeExplicitlyRequested)
             {
                 return null;
             }

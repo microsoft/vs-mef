@@ -134,10 +134,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithImportManyOfBaseClassWithCustomExport
         {
             [MefV1.ImportMany("InheritedExportBothPlaces")]
-            public List<Lazy<BaseClassWithCustomExport, IDictionary<string, object>>> InheritedExportBothPlaces { get; set; }
+            public List<Lazy<BaseClassWithCustomExport, IDictionary<string, object>>> InheritedExportBothPlaces { get; set; } = null!;
 
             [MefV1.ImportMany("InheritedExportOnBaseOnly")]
-            public List<Lazy<BaseClassWithCustomExport, IDictionary<string, object>>> InheritedExportOnBaseType { get; set; }
+            public List<Lazy<BaseClassWithCustomExport, IDictionary<string, object>>> InheritedExportOnBaseType { get; set; } = null!;
         }
 
         #endregion

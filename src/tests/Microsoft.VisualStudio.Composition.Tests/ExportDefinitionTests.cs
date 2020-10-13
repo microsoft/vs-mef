@@ -18,13 +18,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var exportDefinition1 = new ExportDefinition(
                 "a",
-                ImmutableDictionary.Create<string, object>().Add("b", new object[] { "c" }));
+                ImmutableDictionary.Create<string, object?>().Add("b", new object[] { "c" }));
             var exportDefinition2 = new ExportDefinition(
                 "a",
-                ImmutableDictionary.Create<string, object>().Add("b", new object[] { "c" }));
+                ImmutableDictionary.Create<string, object?>().Add("b", new object[] { "c" }));
             var exportDefinition3 = new ExportDefinition(
                 "a",
-                ImmutableDictionary.Create<string, object>().Add("b", new object[] { "d" }));
+                ImmutableDictionary.Create<string, object?>().Add("b", new object[] { "d" }));
             Assert.Equal(exportDefinition1, exportDefinition2);
             Assert.NotEqual(exportDefinition1, exportDefinition3);
         }

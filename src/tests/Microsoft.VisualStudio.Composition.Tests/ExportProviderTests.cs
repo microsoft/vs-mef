@@ -20,9 +20,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var exportProvider = importer.ExportProvider;
 
             var importDefinition = new ImportDefinition(
-                typeof(SomeOtherPart).FullName,
+                typeof(SomeOtherPart).FullName!,
                 ImportCardinality.ZeroOrMore,
-                ImmutableDictionary<string, object>.Empty,
+                ImmutableDictionary<string, object?>.Empty,
                 ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty);
             IEnumerable<Export> exports = exportProvider.GetExports(importDefinition);
 
@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
         public void GetExport_WithMetadataDictionary(IContainer container)
         {
-            var export = container.GetExport<SomeOtherPart, IDictionary<string, object>>();
+            var export = container.GetExport<SomeOtherPart, IDictionary<string, object?>>();
             Assert.Equal(1, export.Metadata["A"]);
             Assert.NotNull(export.Value);
         }
@@ -48,8 +48,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(SomeOtherPart))]
         public void GetExports_WithMetadataDictionary_NonGeneric(IContainer container)
         {
-            var export = container.GetExports(typeof(SomeOtherPart), typeof(IDictionary<string, object>), null).Single();
-            Assert.Equal(1, ((IDictionary<string, object>)export.Metadata)["A"]);
+            var export = container.GetExports(typeof(SomeOtherPart), typeof(IDictionary<string, object?>), null).Single();
+            Assert.Equal(1, ((IDictionary<string, object?>)export.Metadata)["A"]);
             Assert.NotNull(export.Value);
         }
 
@@ -208,7 +208,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Trait("Disposal", "")]
         public void GetExport_NonSharedPartExportDisposedAfterReleaseExport_Transitive(IContainer container)
         {
-            string contractName = typeof(NonSharedPartThatImportsAnotherNonSharedPart).FullName;
+            string contractName = typeof(NonSharedPartThatImportsAnotherNonSharedPart).FullName!;
             NonSharedPartThatImportsAnotherNonSharedPart export;
             Action releaseExport;
             if (container is TestUtilities.V1ContainerWrapper v1container)
@@ -219,8 +219,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
             else if (container is TestUtilities.V3ContainerWrapper v3container)
             {
-                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
-                export = (NonSharedPartThatImportsAnotherNonSharedPart)v3Export.Value;
+                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object?>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
+                export = (NonSharedPartThatImportsAnotherNonSharedPart)v3Export.Value!;
                 releaseExport = () => v3container.ExportProvider.ReleaseExport(v3Export);
             }
             else
@@ -249,7 +249,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static (WeakReference, WeakReference) GetExports_NonSharedPartExportNoLeakAfterReleaseExport_Transitive_Helper(IContainer container)
         {
-            string contractName = typeof(NonSharedPartThatImportsAnotherNonSharedPart).FullName;
+            string contractName = typeof(NonSharedPartThatImportsAnotherNonSharedPart).FullName!;
             NonSharedPartThatImportsAnotherNonSharedPart value;
             Action releaseExport;
             if (container is TestUtilities.V1ContainerWrapper v1container)
@@ -260,8 +260,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
             else if (container is TestUtilities.V3ContainerWrapper v3container)
             {
-                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
-                value = (NonSharedPartThatImportsAnotherNonSharedPart)v3Export.Value;
+                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object?>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
+                value = (NonSharedPartThatImportsAnotherNonSharedPart)v3Export.Value!;
                 releaseExport = () => v3container.ExportProvider.ReleaseExport(v3Export);
             }
             else
@@ -282,7 +282,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Trait("Disposal", "")]
         public void GetExports_NonSharedPartExportDisposedAfterReleaseExport_Transitive(IContainer container)
         {
-            string contractName = typeof(NonSharedPartThatImportsAnotherNonSharedPart).FullName;
+            string contractName = typeof(NonSharedPartThatImportsAnotherNonSharedPart).FullName!;
             NonSharedPartThatImportsAnotherNonSharedPart value;
             Action releaseExport;
             if (container is TestUtilities.V1ContainerWrapper v1container)
@@ -293,8 +293,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
             else if (container is TestUtilities.V3ContainerWrapper v3container)
             {
-                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
-                value = (NonSharedPartThatImportsAnotherNonSharedPart)v3Export.Value;
+                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object?>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
+                value = (NonSharedPartThatImportsAnotherNonSharedPart)v3Export.Value!;
                 releaseExport = () => v3container.ExportProvider.ReleaseExport(v3Export);
             }
             else
@@ -322,7 +322,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static WeakReference GetExports_UnactivatedExportCanBeCollectedHelper(IContainer container)
         {
-            string contractName = typeof(DisposableNonSharedPart).FullName;
+            string contractName = typeof(DisposableNonSharedPart).FullName!;
             if (container is TestUtilities.V1ContainerWrapper v1container)
             {
                 var v1Export = v1container.Container.GetExports(new MefV1.Primitives.ImportDefinition(ed => ed.ContractName == contractName, contractName, MefV1.Primitives.ImportCardinality.ExactlyOne, false, false)).Single();
@@ -330,7 +330,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
             else if (container is TestUtilities.V3ContainerWrapper v3container)
             {
-                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
+                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object?>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
                 return new WeakReference(v3Export);
             }
             else
@@ -406,7 +406,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Trait("Disposal", "")]
         public void GetExports_ExportActivatedAfterContainerDisposal(IContainer container)
         {
-            string contractName = typeof(DisposableNonSharedPart).FullName;
+            string contractName = typeof(DisposableNonSharedPart).FullName!;
             if (container is TestUtilities.V1ContainerWrapper v1container)
             {
                 var v1Export = v1container.Container.GetExports(new MefV1.Primitives.ImportDefinition(ed => ed.ContractName == contractName, contractName, MefV1.Primitives.ImportCardinality.ExactlyOne, false, false)).Single();
@@ -415,7 +415,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
             else if (container is TestUtilities.V3ContainerWrapper v3container)
             {
-                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
+                var v3Export = v3container.ExportProvider.GetExports(new ImportDefinition(contractName, ImportCardinality.ExactlyOne, ImmutableDictionary<string, object?>.Empty, ImmutableList<IImportSatisfiabilityConstraint>.Empty)).Single();
                 container.Dispose();
                 Assert.Throws<ObjectDisposedException>(() => v3Export.Value);
             }
@@ -476,7 +476,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class NonSharedPartThatImportsAnotherNonSharedPart : IDisposable
         {
             [Import, MefV1.Import]
-            public DisposableNonSharedPart NonSharedPart { get; set; }
+            public DisposableNonSharedPart NonSharedPart { get; set; } = null!;
 
             internal int DisposalCount { get; private set; }
 
@@ -496,7 +496,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class NonSharedPartThatImportsNonSharedDisposableViaImportConstraint
         {
             [MefV1.Import(RequiredCreationPolicy = MefV1.CreationPolicy.NonShared)]
-            public DisposableMaybeSharedPartV1 NonSharedPart { get; private set; }
+            public DisposableMaybeSharedPartV1 NonSharedPart { get; private set; } = null!;
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.Any)]
@@ -537,7 +537,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsExportProvider
         {
             [Import, MefV1.Import]
-            public ExportProvider ExportProvider { get; set; }
+            public ExportProvider ExportProvider { get; set; } = null!;
         }
 
         [Export, Shared, ExportMetadata("A", 1)]

@@ -44,20 +44,20 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class Importer1
         {
             [Import]
-            public SharedExport ImportingProperty1 { get; set; }
+            public SharedExport ImportingProperty1 { get; set; } = null!;
 
             [Import]
-            public SharedExport ImportingProperty2 { get; set; }
+            public SharedExport ImportingProperty2 { get; set; } = null!;
         }
 
         [Export]
         public class Importer2
         {
             [Import]
-            public SharedExport ImportingProperty1 { get; set; }
+            public SharedExport ImportingProperty1 { get; set; } = null!;
 
             [Import]
-            public SharedExport ImportingProperty2 { get; set; }
+            public SharedExport ImportingProperty2 { get; set; } = null!;
         }
     }
 }

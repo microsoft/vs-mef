@@ -50,11 +50,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import(AllowDefault = true)]
             [MefV1.Import(AllowDefault = true)]
-            public Lazy<PartWithIntMetadataValues, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<PartWithIntMetadataValues, IDictionary<string, object>> ImportingProperty { get; set; } = null!;
 
             [Import(AllowDefault = true)]
             [MefV1.Import(AllowDefault = true)]
-            public Lazy<PartWithNegativeIntMetadataValues, IDictionary<string, object>> NegativeMetadataImport { get; set; }
+            public Lazy<PartWithNegativeIntMetadataValues, IDictionary<string, object>> NegativeMetadataImport { get; set; } = null!;
         }
     }
 }

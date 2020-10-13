@@ -72,13 +72,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class CompositionServiceImportingPart
         {
             [Import]
-            public ICompositionService CompositionService { get; set; }
+            public ICompositionService CompositionService { get; set; } = null!;
         }
 
         public class ImportOnlyPart
         {
             [Import]
-            public CompositionServiceImportingPart SomePropertyThatImports { get; set; }
+            public CompositionServiceImportingPart SomePropertyThatImports { get; set; } = null!;
         }
 
 #region Sharing boundary tests
@@ -150,40 +150,40 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class RootPart
         {
             [MefV2.Import, MefV2.SharingBoundary("a")]
-            public MefV2.ExportFactory<SubScopedPart> ScopeFactory { get; set; }
+            public MefV2.ExportFactory<SubScopedPart> ScopeFactory { get; set; } = null!;
 
             [Import, MefV2.Import]
-            public ICompositionService CompositionService { get; set; }
+            public ICompositionService CompositionService { get; set; } = null!;
 
             [Import, MefV2.Import]
-            public AnotherRootPart AnotherRootPart { get; set; }
+            public AnotherRootPart AnotherRootPart { get; set; } = null!;
         }
 
         [MefV2.Export, MefV2.Shared]
         public class AnotherRootPart
         {
             [Import, MefV2.Import]
-            public ICompositionService CompositionService { get; set; }
+            public ICompositionService CompositionService { get; set; } = null!;
         }
 
         [MefV2.Export, MefV2.Shared("a")]
         public class SubScopedPart
         {
             [Import, MefV2.Import]
-            public RootPart Root { get; set; }
+            public RootPart Root { get; set; } = null!;
 
             [Import, MefV2.Import]
-            public AnotherSubScopedPart AnotherSubScopedPart { get; set; }
+            public AnotherSubScopedPart AnotherSubScopedPart { get; set; } = null!;
 
             [Import, MefV2.Import]
-            public ICompositionService CompositionService { get; set; }
+            public ICompositionService CompositionService { get; set; } = null!;
         }
 
         [MefV2.Export, MefV2.Shared("a")]
         public class AnotherSubScopedPart
         {
             [Import, MefV2.Import]
-            public ICompositionService CompositionService { get; set; }
+            public ICompositionService CompositionService { get; set; } = null!;
         }
 
 #endregion
@@ -214,14 +214,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class RootScopePart
         {
             [MefV2.Import, MefV2.SharingBoundary("B")]
-            public MefV2.ExportFactory<SubScopedBPart> ScopeFactory { get; set; }
+            public MefV2.ExportFactory<SubScopedBPart> ScopeFactory { get; set; } = null!;
         }
 
         [MefV2.Export, MefV2.Shared]
         public class RootScopeSecondPart : IDisposable
         {
             [MefV2.Import]
-            public RootScopePart Root { get; set; }
+            public RootScopePart Root { get; set; } = null!;
 
             public bool IsDisposed { get; private set; }
 
@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class SubScopedBPart
         {
             [MefV2.Import]
-            public RootScopeSecondPart Root { get; set; }
+            public RootScopeSecondPart Root { get; set; } = null!;
         }
 
 #endregion

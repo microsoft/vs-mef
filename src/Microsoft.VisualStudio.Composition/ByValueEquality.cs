@@ -13,17 +13,19 @@ namespace Microsoft.VisualStudio.Composition
 
     internal static partial class ByValueEquality
     {
-        internal static IEqualityComparer<IReadOnlyDictionary<string, object>> Metadata
+        internal static IEqualityComparer<IReadOnlyDictionary<string, object?>> Metadata
         {
             get { return MetadataDictionaryEqualityComparer.Default; }
         }
 
-        internal static IEqualityComparer<IReadOnlyDictionary<TKey, TValue>> Dictionary<TKey, TValue>(IEqualityComparer<TValue> valueComparer = null)
+        internal static IEqualityComparer<IReadOnlyDictionary<TKey, TValue>> Dictionary<TKey, TValue>(IEqualityComparer<TValue>? valueComparer = null)
+            where TKey : notnull
         {
             return DictionaryEqualityComparer<TKey, TValue>.Get(valueComparer);
         }
 
         internal static IEqualityComparer<IReadOnlyDictionary<TKey, ImmutableHashSet<TValue>>> DictionaryOfImmutableHashSet<TKey, TValue>()
+            where TKey : notnull
         {
             return DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue>.Default;
         }
@@ -46,21 +48,16 @@ namespace Microsoft.VisualStudio.Composition
                 get { return EqualityComparer<T>.Default; }
             }
 
-            public bool Equals(IReadOnlyCollection<T> x, IReadOnlyCollection<T> y)
+            public bool Equals(IReadOnlyCollection<T>? x, IReadOnlyCollection<T>? y)
             {
                 if (object.ReferenceEquals(x, y))
                 {
                     return true;
                 }
 
-                if (x == null ^ y == null)
+                if (x is null || y is null)
                 {
                     return false;
-                }
-
-                if (x == null)
-                {
-                    return true;
                 }
 
                 if (x.Count != y.Count)
@@ -97,9 +94,9 @@ namespace Microsoft.VisualStudio.Composition
             public int GetHashCode(IReadOnlyCollection<T> obj)
             {
                 int hashCode = obj.Count;
-                foreach (var item in obj)
+                foreach (T item in obj)
                 {
-                    hashCode += item.GetHashCode();
+                    hashCode += item is null ? 0 : item.GetHashCode();
                 }
 
                 return hashCode;
@@ -107,17 +104,18 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         private class DictionaryEqualityComparer<TKey, TValue> : IEqualityComparer<IReadOnlyDictionary<TKey, TValue>>
+            where TKey : notnull
         {
             private readonly IEqualityComparer<TValue> valueComparer;
 
             internal static readonly DictionaryEqualityComparer<TKey, TValue> Default = new DictionaryEqualityComparer<TKey, TValue>();
 
-            protected DictionaryEqualityComparer(IEqualityComparer<TValue> valueComparer = null)
+            protected DictionaryEqualityComparer(IEqualityComparer<TValue>? valueComparer = null)
             {
                 this.valueComparer = valueComparer ?? EqualityComparer<TValue>.Default;
             }
 
-            internal static DictionaryEqualityComparer<TKey, TValue> Get(IEqualityComparer<TValue> valueComparer = null)
+            internal static DictionaryEqualityComparer<TKey, TValue> Get(IEqualityComparer<TValue>? valueComparer = null)
             {
                 if (valueComparer == null || valueComparer == EqualityComparer<TValue>.Default)
                 {
@@ -129,11 +127,16 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            public virtual bool Equals(IReadOnlyDictionary<TKey, TValue> x, IReadOnlyDictionary<TKey, TValue> y)
+            public virtual bool Equals(IReadOnlyDictionary<TKey, TValue>? x, IReadOnlyDictionary<TKey, TValue>? y)
             {
                 if (object.ReferenceEquals(x, y))
                 {
                     return true;
+                }
+
+                if (x is null || y is null)
+                {
+                    return false;
                 }
 
                 if (x.Count != y.Count)
@@ -170,7 +173,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private class MetadataDictionaryEqualityComparer : DictionaryEqualityComparer<string, object>
+        private class MetadataDictionaryEqualityComparer : DictionaryEqualityComparer<string, object?>
         {
             internal static new readonly MetadataDictionaryEqualityComparer Default = new MetadataDictionaryEqualityComparer();
 
@@ -179,12 +182,12 @@ namespace Microsoft.VisualStudio.Composition
             {
             }
 
-            public override int GetHashCode(IReadOnlyDictionary<string, object> obj)
+            public override int GetHashCode(IReadOnlyDictionary<string, object?> obj)
             {
                 // We don't want to hash the entire contents. So just look for one key that tends to be on most
                 // metadata and usually has a fairly distinguishing value and hash on that.
-                string typeIdentity;
-                if (obj.TryGetValue(CompositionConstants.ExportTypeIdentityMetadataName, out typeIdentity) && typeIdentity != null)
+                string? typeIdentity;
+                if (obj.TryGetValue(CompositionConstants.ExportTypeIdentityMetadataName, out typeIdentity))
                 {
                     return typeIdentity.GetHashCode();
                 }
@@ -193,7 +196,7 @@ namespace Microsoft.VisualStudio.Composition
                 return 1;
             }
 
-            public override bool Equals(IReadOnlyDictionary<string, object> x, IReadOnlyDictionary<string, object> y)
+            public override bool Equals(IReadOnlyDictionary<string, object?>? x, IReadOnlyDictionary<string, object?>? y)
             {
                 if (object.ReferenceEquals(x, y))
                 {
@@ -204,7 +207,7 @@ namespace Microsoft.VisualStudio.Composition
                 return base.Equals(LazyMetadataWrapper.TryUnwrap(x), LazyMetadataWrapper.TryUnwrap(y));
             }
 
-            private class MetadataValueComparer : IEqualityComparer<object>
+            private class MetadataValueComparer : IEqualityComparer<object?>
             {
                 internal static readonly MetadataValueComparer Default = new MetadataValueComparer();
 
@@ -212,25 +215,26 @@ namespace Microsoft.VisualStudio.Composition
                 {
                 }
 
-                public new bool Equals(object x, object y)
+                public new bool Equals(object? x, object? y)
                 {
                     if (x == y)
                     {
                         return true;
                     }
 
-                    if (x == null ^ y == null)
+                    if (x is null || y is null)
                     {
                         return false;
                     }
 
-                    var xSubstituted = x as LazyMetadataWrapper.ISubstitutedValue;
-                    var ySubstituted = y as LazyMetadataWrapper.ISubstitutedValue;
-                    if (xSubstituted != null || ySubstituted != null)
+                    if (x is LazyMetadataWrapper.ISubstitutedValue xSubstituted)
                     {
-                        return xSubstituted != null
-                            ? xSubstituted.Equals(y)
-                            : ySubstituted.Equals(x);
+                        return xSubstituted.Equals(y);
+                    }
+
+                    if (y is LazyMetadataWrapper.ISubstitutedValue ySubstituted)
+                    {
+                        return ySubstituted.Equals(x);
                     }
 
                     if (x.GetType() != y.GetType())
@@ -254,7 +258,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
                 }
 
-                private static bool ArrayEquals(Array xArray, Array yArray, Func<object, object> translator)
+                private static bool ArrayEquals(Array xArray, Array yArray, Func<object?, object?> translator)
                 {
                     if (xArray.Length != yArray.Length)
                     {
@@ -263,7 +267,7 @@ namespace Microsoft.VisualStudio.Composition
 
                     for (int i = 0; i < xArray.Length; i++)
                     {
-                        if (!EqualityComparer<object>.Default.Equals(translator(xArray.GetValue(i)), translator(yArray.GetValue(i))))
+                        if (!EqualityComparer<object?>.Default.Equals(translator(xArray.GetValue(i)), translator(yArray.GetValue(i))))
                         {
                             return false;
                         }
@@ -272,7 +276,7 @@ namespace Microsoft.VisualStudio.Composition
                     return true;
                 }
 
-                public int GetHashCode(object obj)
+                public int GetHashCode(object? obj)
                 {
                     throw new NotImplementedException();
                 }
@@ -280,6 +284,7 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         private class DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue> : DictionaryEqualityComparer<TKey, ImmutableHashSet<TValue>>
+            where TKey : notnull
         {
             internal static new readonly DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue> Default = new DictionaryOfImmutableHashSetEqualityComparer<TKey, TValue>();
 
@@ -296,7 +301,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                 }
 
-                public bool Equals(ImmutableHashSet<TValue> x, ImmutableHashSet<TValue> y)
+                public bool Equals(ImmutableHashSet<TValue>? x, ImmutableHashSet<TValue>? y)
                 {
                     if (x == null ^ y == null)
                     {

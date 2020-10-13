@@ -5,6 +5,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.CompilerServices;
@@ -16,19 +17,21 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         private const BindingFlags AllInstanceMembers = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         private const BindingFlags AllMembers = AllInstanceMembers | BindingFlags.Static;
 
-        public static Type Resolve(this TypeRef typeRef)
+        [return: NotNullIfNotNull("typeRef")]
+        public static Type? Resolve(this TypeRef? typeRef)
         {
             return typeRef?.ResolvedType;
         }
 
-        public static MethodBase Resolve(this MethodRef methodRef)
+        [return: NotNullIfNotNull("methodRef")]
+        public static MethodBase? Resolve(this MethodRef? methodRef)
         {
             if (methodRef == null)
             {
                 return null;
             }
 
-            MethodBase method = null;
+            MethodBase? method = null;
             if (TryUseFastReflection(methodRef.DeclaringType, out Module manifest))
             {
                 method = manifest.ResolveMethod(methodRef.MetadataToken);
@@ -42,16 +45,21 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 method = FindMethodByParameters(candidates, methodRef.Name, methodRef.ParameterTypes);
             }
 
+            if (method is null)
+            {
+                throw new InvalidOperationException("Unable to find method: " + methodRef);
+            }
+
             if (methodRef.GenericMethodArguments.Length > 0)
             {
-                var constructedMethod = ((MethodInfo)method).MakeGenericMethod(methodRef.GenericMethodArguments.Select(Resolve).ToArray());
+                var constructedMethod = ((MethodInfo)method).MakeGenericMethod(methodRef.GenericMethodArguments.Select(Resolve).ToArray()!);
                 return constructedMethod;
             }
 
             return method;
         }
 
-        public static PropertyInfo Resolve(this PropertyRef propertyRef)
+        public static PropertyInfo? Resolve(this PropertyRef? propertyRef)
         {
             if (propertyRef == null)
             {
@@ -69,13 +77,13 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
         }
 
-        public static MethodInfo ResolveGetter(this PropertyRef propertyRef)
+        public static MethodInfo? ResolveGetter(this PropertyRef propertyRef)
         {
             if (propertyRef.GetMethodMetadataToken.HasValue)
             {
                 if (TryUseFastReflection(propertyRef.DeclaringType, out Module manifest))
                 {
-                    return (MethodInfo)manifest.ResolveMethod(propertyRef.GetMethodMetadataToken.Value);
+                    return (MethodInfo)manifest.ResolveMethod(propertyRef.GetMethodMetadataToken.Value)!;
                 }
                 else
                 {
@@ -86,13 +94,13 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return null;
         }
 
-        public static MethodInfo ResolveSetter(this PropertyRef propertyRef)
+        public static MethodInfo? ResolveSetter(this PropertyRef propertyRef)
         {
             if (propertyRef.SetMethodMetadataToken.HasValue)
             {
                 if (TryUseFastReflection(propertyRef.DeclaringType, out Module manifest))
                 {
-                    return (MethodInfo)manifest.ResolveMethod(propertyRef.SetMethodMetadataToken.Value);
+                    return (MethodInfo)manifest.ResolveMethod(propertyRef.SetMethodMetadataToken.Value)!;
                 }
                 else
                 {
@@ -103,7 +111,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return null;
         }
 
-        public static FieldInfo Resolve(this FieldRef fieldRef)
+        [return: NotNullIfNotNull("fieldRef")]
+        public static FieldInfo? Resolve(this FieldRef? fieldRef)
         {
             if (fieldRef == null)
             {
@@ -112,15 +121,16 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             if (TryUseFastReflection(fieldRef.DeclaringType, out Module manifest))
             {
-                return manifest.ResolveField(fieldRef.MetadataToken);
+                return manifest.ResolveField(fieldRef.MetadataToken)!;
             }
             else
             {
-                return Resolve(fieldRef.DeclaringType).GetField(fieldRef.Name, AllMembers);
+                return Resolve(fieldRef.DeclaringType).GetField(fieldRef.Name, AllMembers)!;
             }
         }
 
-        public static ParameterInfo Resolve(this ParameterRef parameterRef)
+        [return: NotNullIfNotNull("parameterRef")]
+        public static ParameterInfo? Resolve(this ParameterRef? parameterRef)
         {
             if (parameterRef == null)
             {
@@ -130,7 +140,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             MethodBase method;
             if (TryUseFastReflection(parameterRef.DeclaringType, out Module manifest))
             {
-                method = manifest.ResolveMethod(parameterRef.Method.MetadataToken);
+                method = manifest.ResolveMethod(parameterRef.Method.MetadataToken)!;
             }
             else
             {
@@ -183,6 +193,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return IsStrongAssemblyIdentityMatch(typeRef, manifest);
         }
 
+        [return: MaybeNull]
         private static T FindMethodByParameters<T>(IEnumerable<T> members, string memberName, ImmutableArray<TypeRef> parameterTypes)
             where T : MethodBase
         {

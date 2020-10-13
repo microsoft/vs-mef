@@ -29,15 +29,15 @@ namespace Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver
     {
         public bool AlreadyReferenced { get; set; }
 
-        public string FullPath { get; set; }
+        public string? FullPath { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 
     public class VsProjectReference : VsReferenceBase, IVsProjectReference
     {
-        public string Identity { get; set; }
+        public string? Identity { get; set; }
 
-        public string ReferenceSpecification { get; set; }
+        public string? ReferenceSpecification { get; set; }
     }
 }

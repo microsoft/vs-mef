@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.Composition
         private static readonly XName StylesName = XName.Get("Styles", Namespace);
         private static readonly XName StyleName = XName.Get("Style", Namespace);
 
-        internal static XDocument Create(out XElement nodes, out XElement links, string layout = "Sugiyama", string direction = null)
+        internal static XDocument Create(out XElement nodes, out XElement links, string layout = "Sugiyama", string? direction = null)
         {
             var dgml = new XDocument();
             dgml.Add(
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="id">The ID by which the node can be referenced in links. Used as label if label is null.</param>
         /// <param name="label">The node's caption.</param>
         /// <param name="group">May be empty, "Expanded" or "Collapsed" (for container nodes).</param>
-        internal static XElement Node(string id = null, string label = null, string group = null)
+        internal static XElement Node(string? id = null, string? label = null, string? group = null)
         {
             var element = new XElement(NodeName);
 
@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.Composition
             return document;
         }
 
-        internal static XElement Link(string source, string target, string label)
+        internal static XElement Link(string source, string target, string? label)
         {
             Requires.NotNullOrEmpty(source, nameof(source));
             Requires.NotNullOrEmpty(target, nameof(target));
@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.Composition
             return link;
         }
 
-        internal static XElement Link(XElement source, XElement target, string label)
+        internal static XElement Link(XElement source, XElement target, string? label)
         {
             return Link(source.Attribute("Id").Value, target.Attribute("Id").Value, label);
         }
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.Composition
             return document;
         }
 
-        internal static XElement Category(string id, string label = null, string background = null, string foreground = null, string icon = null, bool isTag = false, bool isContainment = false)
+        internal static XElement Category(string id, string? label = null, string? background = null, string? foreground = null, string? icon = null, bool isTag = false, bool isContainment = false)
         {
             Requires.NotNullOrEmpty(id, nameof(id));
 
@@ -196,7 +196,7 @@ namespace Microsoft.VisualStudio.Composition
             return Node(label: label).WithCategories("Comment");
         }
 
-        internal static XElement Container(string id, string label = null)
+        internal static XElement Container(string id, string? label = null)
         {
             return Node(id, label, group: "Expanded");
         }
@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.Composition
             return element;
         }
 
-        internal static XDocument WithStyle(this XDocument document, string categoryId, IEnumerable<KeyValuePair<string, string>> properties, string targetType = "Node")
+        internal static XDocument WithStyle(this XDocument document, string categoryId, IEnumerable<KeyValuePair<string, string?>> properties, string targetType = "Node")
         {
             Requires.NotNull(document, nameof(document));
             Requires.NotNullOrEmpty(categoryId, nameof(categoryId));
@@ -283,9 +283,9 @@ namespace Microsoft.VisualStudio.Composition
             return document;
         }
 
-        internal static XDocument WithStyle(this XDocument document, string categoryId, string targetType = "Node", string foreground = null, string background = null, string icon = null)
+        internal static XDocument WithStyle(this XDocument document, string categoryId, string targetType = "Node", string? foreground = null, string? background = null, string? icon = null)
         {
-            var properties = new Dictionary<string, string>();
+            var properties = new Dictionary<string, string?>();
             if (!string.IsNullOrEmpty(foreground))
             {
                 properties.Add("Foreground", foreground);

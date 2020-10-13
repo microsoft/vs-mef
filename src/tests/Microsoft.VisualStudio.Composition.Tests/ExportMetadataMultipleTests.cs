@@ -18,39 +18,36 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void MultipleExportMetadataValuesForOneKey(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPart>();
-            object metadataValue = importingPart.ImportingProperty.Metadata["SomeName"];
-            Assert.IsType<string[]>(metadataValue);
-            Assert.Equal(2, ((string[])metadataValue).Length);
-            Assert.Contains("b", (string[])metadataValue);
-            Assert.Contains("c", (string[])metadataValue);
+            var metadataValue = Assert.IsType<string[]>(importingPart.ImportingProperty?.Metadata["SomeName"]);
+            Assert.Equal(2, metadataValue.Length);
+            Assert.Contains("b", metadataValue);
+            Assert.Contains("c", metadataValue);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ImportingPart), typeof(PartWithMultipleCustomMetadata))]
         public void MultipleCustomExportMetadataValuesForOneKey(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPart>();
-            object metadataValue = importingPart.CustomMetadataImport.Metadata["SomeName"];
-            Assert.IsType<string[]>(metadataValue);
-            Assert.Equal(2, ((string[])metadataValue).Length);
-            Assert.Contains("b", (string[])metadataValue);
-            Assert.Contains("c", (string[])metadataValue);
+            var metadataValue = Assert.IsType<string[]>(importingPart.CustomMetadataImport?.Metadata["SomeName"]);
+            Assert.Equal(2, metadataValue.Length);
+            Assert.Contains("b", metadataValue);
+            Assert.Contains("c", metadataValue);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ImportingPart), typeof(PartWithSingleCustomMetadata))]
         public void SingleCustomExportMetadataValuesForOneKeyV1(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPart>();
-            object metadataValue = importingPart.SingleCustomMetadataImport.Metadata["SomeName"];
-            Assert.IsType<string[]>(metadataValue);
-            Assert.Equal(1, ((string[])metadataValue).Length);
-            Assert.Contains("b", (string[])metadataValue);
+            var metadataValue = Assert.IsType<string[]>(importingPart.SingleCustomMetadataImport?.Metadata["SomeName"]);
+            Assert.Equal(1, metadataValue.Length);
+            Assert.Contains("b", metadataValue);
         }
 
         [MefFact(CompositionEngines.V2Compat, typeof(ImportingPart), typeof(PartWithSingleCustomMetadata))]
         public void SingleCustomExportMetadataValuesForOneKeyV2(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPart>();
-            object metadataValue = importingPart.SingleCustomMetadataImport.Metadata["SomeName"];
+            object? metadataValue = importingPart.SingleCustomMetadataImport?.Metadata["SomeName"];
             Assert.Equal("b", metadataValue);
         }
 
@@ -79,22 +76,22 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import(AllowDefault = true)]
             [MefV1.Import(AllowDefault = true)]
-            public Lazy<PartWithMultipleMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<PartWithMultipleMetadata, IDictionary<string, object?>>? ImportingProperty { get; set; }
 
             [Import(AllowDefault = true)]
             [MefV1.Import(AllowDefault = true)]
-            public Lazy<PartWithMultipleCustomMetadata, IDictionary<string, object>> CustomMetadataImport { get; set; }
+            public Lazy<PartWithMultipleCustomMetadata, IDictionary<string, object?>>? CustomMetadataImport { get; set; }
 
             [Import(AllowDefault = true)]
             [MefV1.Import(AllowDefault = true)]
-            public Lazy<PartWithSingleCustomMetadata, IDictionary<string, object>> SingleCustomMetadataImport { get; set; }
+            public Lazy<PartWithSingleCustomMetadata, IDictionary<string, object?>>? SingleCustomMetadataImport { get; set; }
         }
 
         [MetadataAttribute, MefV1.MetadataAttribute]
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
         public class CustomMetadataAttribute : Attribute
         {
-            public string SomeName { get; set; }
+            public string? SomeName { get; set; }
         }
     }
 }

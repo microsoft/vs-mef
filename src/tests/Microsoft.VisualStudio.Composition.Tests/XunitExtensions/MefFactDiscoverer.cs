@@ -51,15 +51,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         private class MefFactTestCase : XunitTestCase
         {
-            private Type[] parts;
-            private IReadOnlyList<string> assemblies;
+            private Type[]? parts;
+            private IReadOnlyList<string>? assemblies;
             private CompositionEngines compositionVersions;
             private bool noCompatGoal;
             private bool invalidConfiguration;
 
             [EditorBrowsable(EditorBrowsableState.Never)]
             [Obsolete("Called by the de-serializer", true)]
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
             public MefFactTestCase() { }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
             public MefFactTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, IAttributeInfo factAttributeInfo)
                 : base(diagnosticMessageSink, defaultMethodDisplay, testMethod)
@@ -134,7 +136,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
                     if (v3DiscoveryTest.Passed && (!this.invalidConfiguration || this.compositionVersions.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors)))
                     {
-                        foreach (var namedConfiguration in v3DiscoveryTest.ResultingConfigurations)
+                        foreach (var namedConfiguration in v3DiscoveryTest.ResultingConfigurations!)
                         {
                             string name = "V3 engine";
                             if (!string.IsNullOrEmpty(namedConfiguration.Description))

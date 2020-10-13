@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Composition
     {
         private bool? isLazy;
 
-        private TypeRef importingSiteElementTypeRef;
+        private TypeRef? importingSiteElementTypeRef;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportDefinitionBinding"/> class
@@ -30,6 +30,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(importDefinition, nameof(importDefinition));
             Requires.NotNull(composablePartType, nameof(composablePartType));
+            Requires.NotNull(importingMember, nameof(importingMember));
             Requires.NotNull(importingSiteTypeRef, nameof(importingSiteTypeRef));
             Requires.NotNull(importingSiteTypeWithoutCollectionRef, nameof(importingSiteTypeWithoutCollectionRef));
 
@@ -53,6 +54,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(importDefinition, nameof(importDefinition));
             Requires.NotNull(composablePartType, nameof(composablePartType));
+            Requires.NotNull(importingConstructorParameter, nameof(importingConstructorParameter));
             Requires.NotNull(importingSiteTypeRef, nameof(importingSiteTypeRef));
             Requires.NotNull(importingSiteTypeWithoutCollectionRef, nameof(importingSiteTypeWithoutCollectionRef));
 
@@ -71,18 +73,18 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets the member this import is found on. Null for importing constructors.
         /// </summary>
-        public MemberInfo ImportingMember => this.ImportingMemberRef?.MemberInfo;
+        public MemberInfo? ImportingMember => this.ImportingMemberRef?.MemberInfo;
 
         /// <summary>
         /// Gets the member this import is found on. Null for importing constructors.
         /// </summary>
-        public MemberRef ImportingMemberRef { get; private set; }
+        public MemberRef? ImportingMemberRef { get; private set; }
 
-        public ParameterInfo ImportingParameter => this.ImportingParameterRef?.ParameterInfo;
+        public ParameterInfo? ImportingParameter => this.ImportingParameterRef?.ParameterInfo;
 
-        public ParameterRef ImportingParameterRef { get; private set; }
+        public ParameterRef? ImportingParameterRef { get; private set; }
 
-        public Type ComposablePartType => this.ComposablePartTypeRef?.ResolvedType;
+        public Type ComposablePartType => this.ComposablePartTypeRef.ResolvedType;
 
         public TypeRef ComposablePartTypeRef { get; private set; }
 
@@ -91,7 +93,7 @@ namespace Microsoft.VisualStudio.Composition
         /// This includes any Lazy, ExportFactory or collection wrappers.
         /// </summary>
         /// <value>Never null.</value>
-        public Type ImportingSiteType => this.ImportingSiteTypeRef?.Resolve();
+        public Type ImportingSiteType => this.ImportingSiteTypeRef.Resolve();
 
         /// <summary>
         /// Gets the actual type of the variable or member that will be assigned the result.
@@ -102,7 +104,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public TypeRef ImportingSiteTypeWithoutCollectionRef { get; }
 
-        public Type ImportingSiteTypeWithoutCollection => this.ImportingSiteTypeWithoutCollectionRef?.ResolvedType;
+        public Type ImportingSiteTypeWithoutCollection => this.ImportingSiteTypeWithoutCollectionRef.ResolvedType;
 
         /// <summary>
         /// Gets the type of the member, with the ImportMany collection and Lazy/ExportFactory stripped off, when present.
@@ -123,7 +125,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets the type of the member, with the ImportMany collection and Lazy/ExportFactory stripped off, when present.
         /// </summary>
-        public Type ImportingSiteElementType => this.ImportingSiteElementTypeRef?.Resolve();
+        public Type? ImportingSiteElementType => this.ImportingSiteElementTypeRef?.Resolve();
 
         public bool IsLazy
         {
@@ -138,7 +140,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        public Type MetadataType
+        public Type? MetadataType
         {
             get
             {
@@ -160,7 +162,7 @@ namespace Microsoft.VisualStudio.Composition
             get { return this.ImportingSiteTypeWithoutCollectionRef.IsExportFactoryType(); }
         }
 
-        public Type ExportFactoryType
+        public Type? ExportFactoryType
         {
             get { return this.IsExportFactory ? this.ImportingSiteTypeWithoutCollection : null; }
         }
@@ -170,12 +172,12 @@ namespace Microsoft.VisualStudio.Composition
             return this.ImportDefinition.GetHashCode();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return this.Equals(obj as ImportDefinitionBinding);
         }
 
-        public bool Equals(ImportDefinitionBinding other)
+        public bool Equals(ImportDefinitionBinding? other)
         {
             if (other == null)
             {
@@ -184,8 +186,8 @@ namespace Microsoft.VisualStudio.Composition
 
             bool result = this.ImportDefinition.Equals(other.ImportDefinition)
                 && EqualityComparer<TypeRef>.Default.Equals(this.ComposablePartTypeRef, other.ComposablePartTypeRef)
-                && EqualityComparer<MemberRef>.Default.Equals(this.ImportingMemberRef, other.ImportingMemberRef)
-                && EqualityComparer<ParameterRef>.Default.Equals(this.ImportingParameterRef, other.ImportingParameterRef);
+                && EqualityComparer<MemberRef?>.Default.Equals(this.ImportingMemberRef, other.ImportingMemberRef)
+                && EqualityComparer<ParameterRef?>.Default.Equals(this.ImportingParameterRef, other.ImportingParameterRef);
 
             return result;
         }

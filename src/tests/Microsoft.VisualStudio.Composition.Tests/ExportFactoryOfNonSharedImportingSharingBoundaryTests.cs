@@ -30,14 +30,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class NonSharedBoundaryImportingPart
         {
             [Import]
-            public SharingBoundaryPart SharingBoundaryImport { get; set; }
+            public SharingBoundaryPart SharingBoundaryImport { get; set; } = null!;
         }
 
         [Export]
         public class RootPart
         {
             [Import, SharingBoundary("SharingBoundary")]
-            public ExportFactory<NonSharedBoundaryImportingPart> Factory { get; set; }
+            public ExportFactory<NonSharedBoundaryImportingPart> Factory { get; set; } = null!;
         }
     }
 }

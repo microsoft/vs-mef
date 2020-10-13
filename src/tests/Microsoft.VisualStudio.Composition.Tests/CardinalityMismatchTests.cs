@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public void MissingRequiredImport()
         {
-            var catalog = TestUtilities.EmptyCatalog.AddParts(new[] { TestUtilities.V2Discovery.CreatePart(typeof(RequiredImportMissing)) });
+            var catalog = TestUtilities.EmptyCatalog.AddParts(new[] { TestUtilities.V2Discovery.CreatePart(typeof(RequiredImportMissing))! });
             var configuration = CompositionConfiguration.Create(catalog);
             Assert.Throws<CompositionFailedException>(() => configuration.ThrowOnErrors());
         }
@@ -41,14 +41,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class RequiredImportMissing
         {
             [Import]
-            public ICustomFormatter MissingRequiredImport { get; set; }
+            public ICustomFormatter MissingRequiredImport { get; set; } = null!;
         }
 
         [Export]
         public class OptionalImportMissing
         {
             [Import(AllowDefault = true)]
-            public ICustomFormatter MissingOptionalImport { get; set; }
+            public ICustomFormatter MissingOptionalImport { get; set; } = null!;
         }
 
         [MefV1.Export]
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
 
             [MefV1.Import(AllowDefault = true)]
-            internal IFoo MissingOptionalImport { get; set; }
+            internal IFoo MissingOptionalImport { get; set; } = null!;
         }
 
         internal interface IFoo { }

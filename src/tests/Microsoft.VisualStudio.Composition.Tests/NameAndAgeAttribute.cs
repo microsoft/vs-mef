@@ -15,9 +15,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
     public class NameAndAgeAttribute : Attribute
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         // TODO: make this an integer and verify tests still pass.
-        public string Age { get; set; }
+        public string? Age { get; set; }
     }
 }

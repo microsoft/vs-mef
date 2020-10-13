@@ -7,6 +7,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Collections.Immutable;
     using System.Composition.Hosting;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -77,26 +78,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();
         }
 
-        internal static Task<ExportProvider> CreateContainer(ITestOutputHelper output, params Type[] parts)
-        {
-            return CreateContainerAsync(output, parts);
-        }
-
-        internal static async Task<ExportProvider> CreateContainerAsync(ITestOutputHelper output, params Type[] parts)
-        {
-            var catalog = EmptyCatalog.AddParts(await V2Discovery.CreatePartsAsync(parts));
-            var configuration = await CompositionConfiguration.Create(catalog)
-                .CreateContainerAsync(output);
-            return configuration;
-        }
-
-        internal static IContainer CreateContainerV1(params Type[] parts)
-        {
-            Requires.NotNull(parts, nameof(parts));
-            var catalog = new MefV1.Hosting.TypeCatalog(parts);
-            return CreateContainerV1(catalog);
-        }
-
         internal static IContainer CreateContainerV1(IReadOnlyList<Assembly> assemblies, Type[] parts)
         {
             Requires.NotNull(parts, nameof(parts));
@@ -112,12 +93,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Requires.NotNull(catalog, nameof(catalog));
             var container = new DebuggableCompositionContainer(catalog, MefV1.Hosting.CompositionOptions.ExportCompositionService | MefV1.Hosting.CompositionOptions.IsThreadSafe);
             return new V1ContainerWrapper(container);
-        }
-
-        internal static IContainer CreateContainerV2(params Type[] parts)
-        {
-            var configuration = new ContainerConfiguration().WithParts(parts);
-            return CreateContainerV2(configuration);
         }
 
         internal static IContainer CreateContainerV2(IReadOnlyList<Assembly> assemblies, Type[] types)
@@ -139,35 +114,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
-        internal static Task<IContainer> CreateContainerV3Async(ITestOutputHelper output, params Type[] parts)
-        {
-            return CreateContainerV3Async(parts, CompositionEngines.Unspecified, output);
-        }
-
-        internal static Task<IContainer> CreateContainerV3Async(IReadOnlyList<Assembly> assemblies, ITestOutputHelper output)
-        {
-            return CreateContainerV3Async(assemblies, CompositionEngines.Unspecified, output);
-        }
-
-        internal static Task<IContainer> CreateContainerV3Async(Type[] parts, CompositionEngines attributesDiscovery, ITestOutputHelper output)
-        {
-            return CreateContainerV3Async(default(IReadOnlyList<Assembly>), attributesDiscovery, output, parts);
-        }
-
-        internal static async Task<IContainer> CreateContainerV3Async(IReadOnlyList<Assembly> assemblies, CompositionEngines attributesDiscovery, ITestOutputHelper output, Type[] parts = null)
-        {
-            PartDiscovery discovery = GetDiscoveryService(attributesDiscovery);
-            var assemblyParts = await discovery.CreatePartsAsync(assemblies);
-            var catalog = EmptyCatalog.AddParts(assemblyParts);
-            if (parts != null && parts.Length != 0)
-            {
-                var typeCatalog = EmptyCatalog.AddParts(await discovery.CreatePartsAsync(parts));
-                catalog = EmptyCatalog.AddParts(catalog.Parts.Concat(typeCatalog.Parts));
-            }
-
-            return await CreateContainerV3Async(catalog, attributesDiscovery, output);
-        }
-
         internal static async Task<CompositionConfiguration> CreateConfigurationAsync(CompositionEngines attributesDiscovery, params Type[] parts)
         {
             PartDiscovery discovery = GetDiscoveryService(attributesDiscovery);
@@ -176,7 +122,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             return CompositionConfiguration.Create(catalog);
         }
 
-        internal static Exception GetInnermostException(Exception ex)
+        [return: NotNullIfNotNull("ex")]
+        internal static Exception? GetInnermostException(Exception? ex)
         {
             while (ex?.InnerException != null)
             {
@@ -203,61 +150,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
 
             return PartDiscovery.Combine(discovery.ToArray());
-        }
-
-        private static async Task<IContainer> CreateContainerV3Async(ComposableCatalog catalog, CompositionEngines options, ITestOutputHelper output)
-        {
-            Requires.NotNull(catalog, nameof(catalog));
-            Requires.NotNull(output, nameof(output));
-
-            var catalogWithCompositionService = catalog
-                .WithCompositionService();
-            var configuration = CompositionConfiguration.Create(catalogWithCompositionService);
-            if (!options.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors))
-            {
-                configuration.ThrowOnErrors();
-            }
-
-#if DGML
-            string dgmlFile = System.IO.Path.GetTempFileName() + ".dgml";
-            configuration.CreateDgml().Save(dgmlFile);
-            output.WriteLine("DGML saved to: " + dgmlFile);
-#endif
-            var container = await configuration.CreateContainerAsync(output);
-            return new V3ContainerWrapper(container, configuration);
-        }
-
-        internal static async Task<RunSummary> RunMultiEngineTest(CompositionEngines attributesVersion, Type[] parts, Func<IContainer, Task<RunSummary>> test, ITestOutputHelper output)
-        {
-            Requires.NotNull(output, nameof(output));
-
-            var totalSummary = new RunSummary();
-            if (attributesVersion.HasFlag(CompositionEngines.V1))
-            {
-                totalSummary.Aggregate(await test(CreateContainerV1(parts)));
-            }
-
-            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1))
-            {
-                totalSummary.Aggregate(await test(await CreateContainerV3Async(parts, CompositionEngines.V1, output)));
-            }
-
-            if (attributesVersion.HasFlag(CompositionEngines.V2))
-            {
-                totalSummary.Aggregate(await test(CreateContainerV2(parts)));
-            }
-
-            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV2))
-            {
-                totalSummary.Aggregate(await test(await CreateContainerV3Async(parts, CompositionEngines.V2, output)));
-            }
-
-            if (attributesVersion.HasFlag(CompositionEngines.V3EmulatingV1AndV2AtOnce))
-            {
-                totalSummary.Aggregate(await test(await CreateContainerV3Async(parts, CompositionEngines.V1 | CompositionEngines.V2, output)));
-            }
-
-            return totalSummary;
         }
 
         /// <summary>
@@ -339,7 +231,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
             }
 
-            public Lazy<T> GetExport<T>(string contractName)
+            public Lazy<T> GetExport<T>(string? contractName)
             {
                 try
                 {
@@ -371,7 +263,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
             }
 
-            public Lazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
+            public Lazy<T, TMetadataView> GetExport<T, TMetadataView>(string? contractName)
             {
                 try
                 {
@@ -403,7 +295,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
             }
 
-            public IEnumerable<Lazy<T>> GetExports<T>(string contractName)
+            public IEnumerable<Lazy<T>> GetExports<T>(string? contractName)
             {
                 try
                 {
@@ -435,7 +327,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
             }
 
-            public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
+            public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string? contractName)
             {
                 try
                 {
@@ -451,7 +343,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
             }
 
-            public IEnumerable<Lazy<object, object>> GetExports(Type type, Type metadataViewType, string contractName) => this.container.GetExports(type, metadataViewType, contractName);
+            public IEnumerable<Lazy<object?, object>> GetExports(Type type, Type metadataViewType, string? contractName) => this.container.GetExports(type, metadataViewType, contractName);
 
             public T GetExportedValue<T>()
             {
@@ -469,7 +361,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
             }
 
-            public T GetExportedValue<T>(string contractName)
+            public T GetExportedValue<T>(string? contractName)
             {
                 try
                 {
@@ -501,7 +393,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
             }
 
-            public IEnumerable<T> GetExportedValues<T>(string contractName)
+            public IEnumerable<T> GetExportedValues<T>(string? contractName)
             {
                 try
                 {
@@ -517,7 +409,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
             }
 
-            public IEnumerable<object> GetExportedValues(Type type, string contractName) => throw new NotSupportedException();
+            public IEnumerable<object> GetExportedValues(Type type, string? contractName) => throw new NotSupportedException();
 
             public void ReleaseExport<T>(Lazy<T> export) => this.container.ReleaseExport(export);
 
@@ -557,7 +449,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 });
             }
 
-            public Lazy<T> GetExport<T>(string contractName)
+            public Lazy<T> GetExport<T>(string? contractName)
             {
                 // MEF v2 doesn't support this, so emulate it.
                 return new Lazy<T>(() =>
@@ -578,7 +470,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 throw new NotSupportedException("Not supported by System.Composition.");
             }
 
-            public Lazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
+            public Lazy<T, TMetadataView> GetExport<T, TMetadataView>(string? contractName)
             {
                 throw new NotSupportedException("Not supported by System.Composition.");
             }
@@ -595,7 +487,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
             }
 
-            public T GetExportedValue<T>(string contractName)
+            public T GetExportedValue<T>(string? contractName)
             {
                 try
                 {
@@ -619,7 +511,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
             }
 
-            public IEnumerable<Lazy<T>> GetExports<T>(string contractName)
+            public IEnumerable<Lazy<T>> GetExports<T>(string? contractName)
             {
                 try
                 {
@@ -636,12 +528,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 throw new NotSupportedException();
             }
 
-            public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
+            public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string? contractName)
             {
                 throw new NotSupportedException();
             }
 
-            public IEnumerable<Lazy<object, object>> GetExports(Type type, Type metadataViewType, string contractName) => throw new NotSupportedException();
+            public IEnumerable<Lazy<object?, object>> GetExports(Type type, Type metadataViewType, string? contractName) => throw new NotSupportedException();
 
             public IEnumerable<T> GetExportedValues<T>()
             {
@@ -655,7 +547,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
             }
 
-            public IEnumerable<T> GetExportedValues<T>(string contractName)
+            public IEnumerable<T> GetExportedValues<T>(string? contractName)
             {
                 try
                 {
@@ -667,7 +559,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
             }
 
-            public IEnumerable<object> GetExportedValues(Type type, string contractName) => this.container.GetExports(type, contractName);
+            public IEnumerable<object> GetExportedValues(Type type, string? contractName) => this.container.GetExports(type, contractName);
 
             void IContainer.ReleaseExport<T>(Lazy<T> export) => throw new NotSupportedException();
 
@@ -706,7 +598,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 return this.container.GetExport<T>();
             }
 
-            public Lazy<T> GetExport<T>(string contractName)
+            public Lazy<T> GetExport<T>(string? contractName)
             {
                 return this.container.GetExport<T>(contractName);
             }
@@ -716,7 +608,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 return this.container.GetExport<T, TMetadataView>();
             }
 
-            public Lazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
+            public Lazy<T, TMetadataView> GetExport<T, TMetadataView>(string? contractName)
             {
                 return this.container.GetExport<T, TMetadataView>(contractName);
             }
@@ -726,7 +618,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 return this.container.GetExportedValue<T>();
             }
 
-            public T GetExportedValue<T>(string contractName)
+            public T GetExportedValue<T>(string? contractName)
             {
                 return this.container.GetExportedValue<T>(contractName);
             }
@@ -736,7 +628,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 return this.container.GetExports<T>();
             }
 
-            public IEnumerable<Lazy<T>> GetExports<T>(string contractName)
+            public IEnumerable<Lazy<T>> GetExports<T>(string? contractName)
             {
                 return this.container.GetExports<T>(contractName);
             }
@@ -746,24 +638,24 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 return this.container.GetExports<T, TMetadataView>();
             }
 
-            public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
+            public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string? contractName)
             {
                 return this.container.GetExports<T, TMetadataView>(contractName);
             }
 
-            public IEnumerable<Lazy<object, object>> GetExports(Type type, Type metadataViewType, string contractName) => this.container.GetExports(type, metadataViewType, contractName);
+            public IEnumerable<Lazy<object?, object>> GetExports(Type type, Type metadataViewType, string? contractName) => this.container.GetExports(type, metadataViewType, contractName);
 
             public IEnumerable<T> GetExportedValues<T>()
             {
                 return this.container.GetExportedValues<T>();
             }
 
-            public IEnumerable<T> GetExportedValues<T>(string contractName)
+            public IEnumerable<T> GetExportedValues<T>(string? contractName)
             {
                 return this.container.GetExportedValues<T>(contractName);
             }
 
-            public IEnumerable<object> GetExportedValues(Type type, string contractName) => this.container.GetExportedValues(type, contractName);
+            public IEnumerable<object?> GetExportedValues(Type type, string? contractName) => this.container.GetExportedValues(type, contractName);
 
             public void ReleaseExport<T>(Lazy<T> export) => this.container.ReleaseExport(export);
 

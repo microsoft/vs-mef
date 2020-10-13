@@ -10,9 +10,9 @@ namespace Microsoft.VisualStudio.Composition
         [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
         private class NonSharedExport : Export, IDisposable
         {
-            private IDisposable partLifecycleTracker;
+            private IDisposable? partLifecycleTracker;
 
-            internal NonSharedExport(ExportDefinition definition, Func<(object Value, IDisposable NonSharedDisposalTracker)> exportedValueGetter)
+            internal NonSharedExport(ExportDefinition definition, Func<(object? Value, IDisposable? NonSharedDisposalTracker)> exportedValueGetter)
                 : base(definition, () => exportedValueGetter())
             {
             }
@@ -21,9 +21,9 @@ namespace Microsoft.VisualStudio.Composition
 
             public void Dispose() => this.partLifecycleTracker?.Dispose();
 
-            internal override object ValueFilter(object lazyValue)
+            internal override object? ValueFilter(object? lazyValue)
             {
-                var tuple = ((object Value, IDisposable NonSharedDisposalTracker))lazyValue;
+                var tuple = ((object? Value, IDisposable NonSharedDisposalTracker))lazyValue!;
                 this.partLifecycleTracker = tuple.NonSharedDisposalTracker;
                 return tuple.Value;
             }

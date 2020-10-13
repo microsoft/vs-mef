@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Composition
     /// </remarks>
     internal static class DelegateServices
     {
-        private static readonly MethodInfo CastAsFuncMethodInfo = new Func<Func<object>, Delegate>(As<object>).GetMethodInfo().GetGenericMethodDefinition();
+        private static readonly MethodInfo CastAsFuncMethodInfo = new Func<Func<object>, Delegate>(As<object>).GetMethodInfo()!.GetGenericMethodDefinition();
 
         /// <summary>
         /// Creates a Func{T} from a delegate that takes one parameter
@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.Composition
             using (var args = ArrayRental<object>.Get(1))
             {
                 args.Value[0] = func;
-                return (Func<object>)CastAsFuncMethodInfo.MakeGenericMethod(typeArg).Invoke(null, args.Value);
+                return (Func<object>)CastAsFuncMethodInfo.MakeGenericMethod(typeArg).Invoke(null, args.Value)!;
             }
         }
 

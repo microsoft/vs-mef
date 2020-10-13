@@ -80,63 +80,63 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class UpcastingExplicitImporter
         {
             [MefV1.Import(typeof(ISomeType))]
-            public object ImportingProperty { get; set; }
+            public object ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class DowncastingExplicitImporter
         {
             [MefV1.Import(typeof(ISomeType))]
-            public Implementor ImportingProperty { get; set; }
+            public Implementor ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class LazyUpcastingExplicitImporter
         {
             [MefV1.Import(typeof(ISomeType))]
-            public Lazy<object> ImportingProperty { get; set; }
+            public Lazy<object> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class LazyDowncastingExplicitImporter
         {
             [MefV1.Import(typeof(ISomeType))]
-            public Lazy<Implementor> ImportingProperty { get; set; }
+            public Lazy<Implementor> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class ImportManyLazyUpcastingExplicitImporter
         {
             [MefV1.ImportMany(typeof(ISomeType))]
-            public IEnumerable<Lazy<object>> ImportingProperty { get; set; }
+            public IEnumerable<Lazy<object>> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class ImportManyLazyDowncastingExplicitImporter
         {
             [MefV1.ImportMany(typeof(ISomeType))]
-            public IEnumerable<Lazy<Implementor>> ImportingProperty { get; set; }
+            public IEnumerable<Lazy<Implementor>> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class ImportManyUpcastingExplicitImporter
         {
             [MefV1.ImportMany(typeof(ISomeType))]
-            public IEnumerable<object> ImportingProperty { get; set; }
+            public IEnumerable<object> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class ImportManyDowncastingExplicitImporter
         {
             [MefV1.ImportMany(typeof(ISomeType))]
-            public IEnumerable<Implementor> ImportingProperty { get; set; }
+            public IEnumerable<Implementor> ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class InvalidDowncastingExplicitImporter
         {
             [MefV1.Import(typeof(ISomeType))]
-            public string ImportingProperty { get; set; }
+            public string ImportingProperty { get; set; } = null!;
         }
 
         public interface ISomeType { }

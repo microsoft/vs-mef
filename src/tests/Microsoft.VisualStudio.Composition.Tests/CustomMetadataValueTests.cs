@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public Lazy<ExportWithCustomMetadata, IDictionary<string, object>> ImportingProperty { get; set; }
+            public Lazy<ExportWithCustomMetadata, IDictionary<string, object>> ImportingProperty { get; set; } = null!;
         }
 
         [Export]

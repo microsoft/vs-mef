@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var importDefinition = new ImportDefinition(
                 "DelegateReturningProperty",
                 ImportCardinality.ZeroOrMore,
-                ImmutableDictionary.Create<string, object>(),
+                ImmutableDictionary.Create<string, object?>(),
                 ImmutableHashSet.Create<IImportSatisfiabilityConstraint>());
             List<Export> exports = v3ExportProvider.GetExports(importDefinition).ToList();
             Assert.Equal(1, exports.Count);
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var importDefinition = new ImportDefinition(
                 "Method",
                 ImportCardinality.ZeroOrMore,
-                ImmutableDictionary.Create<string, object>(),
+                ImmutableDictionary.Create<string, object?>(),
                 ImmutableHashSet.Create<IImportSatisfiabilityConstraint>());
             List<Export> exports = v3ExportProvider.GetExports(importDefinition).ToList();
             Assert.NotEqual(0, exports.Count);
@@ -174,10 +174,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportingClass
         {
             [MefV1.Import("Method")]
-            public Func<int, string, bool> FuncOf2 { get; set; }
+            public Func<int, string, bool> FuncOf2 { get; set; } = null!;
 
             [MefV1.Import("Method", AllowDefault = true)]
-            public Func<string, string, bool> FuncOf2WrongTypeArgs { get; set; }
+            public Func<string, string, bool>? FuncOf2WrongTypeArgs { get; set; }
         }
 
         public abstract class ExportingMembersBaseClass<T>
@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var importer = container.GetExportedValue<PartImportingDelegatesOfCustomType>();
             Assert.Equal(1, importer.Handlers.Count);
-            importer.Handlers[0](null, null);
+            importer.Handlers[0](null, null!);
             Assert.Equal(1, container.GetExportedValue<PartExportingDelegateOfCustomType>().InvocationCount);
         }
 
@@ -270,7 +270,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartImportingDelegatesOfCustomType
         {
             [MefV1.ImportMany]
-            public List<EventHandler> Handlers { get; set; }
+            public List<EventHandler> Handlers { get; set; } = null!;
         }
 
         [MefV1.Export]
@@ -320,10 +320,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         internal class EventHandlerImportingPart
         {
             [MefV1.ImportMany]
-            internal List<EventHandler<MyEventArgs>> Handlers { get; set; }
+            internal List<EventHandler<MyEventArgs>> Handlers { get; set; } = null!;
 
             [MefV1.ImportMany]
-            internal List<Lazy<EventHandler<MyEventArgs>>> LazyHandlers { get; set; }
+            internal List<Lazy<EventHandler<MyEventArgs>>> LazyHandlers { get; set; } = null!;
         }
 
         internal class MyEventArgs : EventArgs { }

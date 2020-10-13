@@ -69,28 +69,28 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithMissingImport
         {
             [Import, MefV1.Import]
-            public IFormattable MissingImportProperty { get; set; }
+            public IFormattable MissingImportProperty { get; set; } = null!;
         }
 
         [Export, MefV1.Export]
         public class PartThatRequiresPartWithMissingImport
         {
             [Import, MefV1.Import]
-            public PartWithMissingImport ImportOfPartWithMissingImport { get; set; }
+            public PartWithMissingImport ImportOfPartWithMissingImport { get; set; } = null!;
         }
 
         [Export, MefV1.Export]
         public class PartThatOptionallyImportsPartWithMissingImport
         {
             [Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]
-            public PartWithMissingImport ImportOfPartWithMissingImport { get; set; }
+            public PartWithMissingImport ImportOfPartWithMissingImport { get; set; } = null!;
         }
 
         [Export, MefV1.Export]
         public class PartWithSatisfiedImports
         {
             [Import, MefV1.Import]
-            public SomePart SatisfiedImport { get; set; }
+            public SomePart SatisfiedImport { get; set; } = null!;
         }
 
         [Export, MefV1.Export]
@@ -159,14 +159,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsUncreatablePart
         {
             [Import, MefV1.Import]
-            public UncreatablePart ImportOfUncreatablePart { get; set; }
+            public UncreatablePart ImportOfUncreatablePart { get; set; } = null!;
         }
 
         [Export, MefV1.Export]
         public class PartThatLazyImportsUncreatablePart
         {
             [Import, MefV1.Import]
-            public Lazy<UncreatablePart, IDictionary<string, object>> ImportOfUncreatablePart { get; set; }
+            public Lazy<UncreatablePart, IDictionary<string, object>> ImportOfUncreatablePart { get; set; } = null!;
         }
 
         #endregion
@@ -198,14 +198,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public UncreatablePartWithImportingProperty(IServiceProvider serviceProvider) { }
 
             [Import, MefV1.Import]
-            public SomePart ImportingProperty { get; set; }
+            public SomePart ImportingProperty { get; set; } = null!;
         }
 
         [Export, MefV1.Export]
         public class PartThatLazilyImportsUncreatablePartWithImportingProperty
         {
             [Import, MefV1.Import]
-            public Lazy<UncreatablePartWithImportingProperty, IDictionary<string, object>> LazyImportOfUncreatablePart { get; set; }
+            public Lazy<UncreatablePartWithImportingProperty, IDictionary<string, object>> LazyImportOfUncreatablePart { get; set; } = null!;
         }
 
         #endregion
@@ -289,7 +289,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 // We also want to ensure that the exception message points at the guilty party.
                 bool exportingPartFound = false, importingPartFound = false, importingMemberFound = false;
-                Exception innerException = ex;
+                Exception? innerException = ex;
                 while (innerException != null)
                 {
                     exportingPartFound |= innerException.Message.Contains(typeof(TExportingPart).Name);
@@ -369,7 +369,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsIComparableDirectly
         {
             [Import, MefV1.Import]
-            public IComparable ComparableImport { get; set; }
+            public IComparable ComparableImport { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -377,7 +377,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsIComparableInArray
         {
             [ImportMany, MefV1.ImportMany]
-            public IComparable[] ComparableImportManyArray { get; set; }
+            public IComparable[] ComparableImportManyArray { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -385,7 +385,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsIComparableInList
         {
             [ImportMany, MefV1.ImportMany]
-            public List<IComparable> ComparableImportManyList { get; set; }
+            public List<IComparable> ComparableImportManyList { get; set; } = null!;
         }
 
         [MefFact(CompositionEngines.V2Compat, typeof(PartThatExportsFooFromMemberAsBar), typeof(PartThatImportsBar), InvalidConfiguration = true)]
@@ -408,14 +408,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatExportsFooFromMemberAsBar
         {
             [Export(typeof(Bar)), MefV1.Export(typeof(Bar))]
-            public Foo Foo { get; set; }
+            public Foo? Foo { get; set; }
         }
 
         [Export, MefV1.Export]
         public class PartThatImportsBar
         {
             [Import, MefV1.Import]
-            public Bar Bar { get; set; }
+            public Bar Bar { get; set; } = null!;
         }
 
         public class Foo { }

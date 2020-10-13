@@ -12,6 +12,6 @@
     public class PartThatLazyImportsExportWithMetadataOfCustomType
     {
         [Import("Microsoft.VisualStudio.Composition.AppDomainTests2.ExportWithCustomMetadata")]
-        public Lazy<object, IDictionary<string, object>> ImportingProperty { get; set; }
+        public Lazy<object, IDictionary<string, object?>> ImportingProperty { get; set; } = null!;
     }
 }

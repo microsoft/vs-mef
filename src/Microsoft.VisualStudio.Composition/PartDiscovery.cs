@@ -6,6 +6,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
@@ -50,7 +51,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="partType">The type to reflect over.</param>
         /// <returns>A new instance of <see cref="ComposablePartDefinition"/> if <paramref name="partType"/>
         /// represents a MEF part; otherwise <c>null</c>.</returns>
-        public ComposablePartDefinition CreatePart(Type partType)
+        public ComposablePartDefinition? CreatePart(Type partType)
         {
             return this.CreatePart(partType, true);
         }
@@ -97,7 +98,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="progress">An optional way to receive progress updates on how discovery is progressing.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A set of generated parts.</returns>
-        public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<Assembly> assemblies, IProgress<DiscoveryProgress> progress = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<Assembly> assemblies, IProgress<DiscoveryProgress>? progress = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(assemblies, nameof(assemblies));
 
@@ -119,7 +120,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="progress">An optional way to receive progress updates on how discovery is progressing.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A set of generated parts.</returns>
-        public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<string> assemblyPaths, IProgress<DiscoveryProgress> progress = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<DiscoveredParts> CreatePartsAsync(IEnumerable<string> assemblyPaths, IProgress<DiscoveryProgress>? progress = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(assemblyPaths, nameof(assemblyPaths));
 
@@ -227,13 +228,13 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        internal static bool TryGetElementTypeFromMany(Type type, out Type elementType)
+        internal static bool TryGetElementTypeFromMany(Type type, [NotNullWhen(true)] out Type? elementType)
         {
             Requires.NotNull(type, nameof(type));
 
             if (type.IsArray)
             {
-                elementType = type.GetElementType(); // T[] -> T
+                elementType = type.GetElementType()!; // T[] -> T
                 return true;
             }
             else
@@ -288,7 +289,7 @@ namespace Microsoft.VisualStudio.Composition
             var result = ImmutableHashSet.Create<IImportSatisfiabilityConstraint>();
 
             Type elementType = importMany ? PartDiscovery.GetElementTypeFromMany(receivingType) : receivingType;
-            Type metadataType = GetMetadataType(elementType);
+            Type? metadataType = GetMetadataType(elementType);
             if (metadataType != null)
             {
                 result = result.Add(ImportMetadataViewConstraint.GetConstraint(TypeRef.Get(metadataType, this.Resolver), this.Resolver));
@@ -311,7 +312,7 @@ namespace Microsoft.VisualStudio.Composition
             // add elements to the collection.
             if (!isImportMany && member is PropertyInfo importingMember && importingMember.SetMethod == null)
             {
-                throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ImportingPropertyHasNoSetter, importingMember.Name, importingMember.DeclaringType.FullName));
+                throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ImportingPropertyHasNoSetter, importingMember.Name, importingMember.DeclaringType!.FullName));
             }
         }
 
@@ -324,7 +325,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(member, nameof(member));
             if (member is PropertyInfo exportingProperty && exportingProperty.GetMethod == null)
             {
-                throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ExportingPropertyHasNoGetter, exportingProperty.Name, exportingProperty.DeclaringType.FullName));
+                throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ExportingPropertyHasNoGetter, exportingProperty.Name, exportingProperty.DeclaringType!.FullName));
             }
         }
 
@@ -342,18 +343,18 @@ namespace Microsoft.VisualStudio.Composition
             return constraints;
         }
 
-        protected internal static ImmutableDictionary<string, object> GetImportMetadataForGenericTypeImport(Type contractType)
+        protected internal static ImmutableDictionary<string, object?> GetImportMetadataForGenericTypeImport(Type contractType)
         {
             Requires.NotNull(contractType, nameof(contractType));
             if (contractType.IsConstructedGenericType)
             {
-                return ImmutableDictionary.Create<string, object>()
+                return ImmutableDictionary.Create<string, object?>()
                     .Add(CompositionConstants.GenericContractMetadataName, GetContractName(contractType.GetGenericTypeDefinition()))
                     .Add(CompositionConstants.GenericParametersMetadataName, contractType.GenericTypeArguments);
             }
             else
             {
-                return ImmutableDictionary<string, object>.Empty;
+                return ImmutableDictionary<string, object?>.Empty;
             }
         }
 
@@ -364,13 +365,13 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="value">The value to add to the array. May be <c>null</c>.</param>
         /// <param name="elementType">The element type for the array, if it is created fresh. May be <c>null</c>.</param>
         /// <returns>A new array.</returns>
-        protected static Array AddElement(Array priorArray, object value, Type elementType)
+        protected static Array AddElement(Array? priorArray, object? value, Type? elementType)
         {
-            Type valueType;
+            Type? valueType;
             Array newValue;
             if (priorArray != null)
             {
-                Type priorArrayElementType = priorArray.GetType().GetElementType();
+                Type priorArrayElementType = priorArray.GetType().GetElementType()!;
                 valueType = priorArrayElementType == typeof(object) && value != null ? value.GetType() : priorArrayElementType;
                 newValue = Array.CreateInstance(valueType, priorArray.Length + 1);
                 Array.Copy(priorArray, newValue, priorArray.Length);
@@ -399,7 +400,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="typeExplicitlyRequested">A value indicating whether this type was explicitly requested for inclusion in the catalog.</param>
         /// <returns>A new instance of <see cref="ComposablePartDefinition"/> if <paramref name="partType"/>
         /// represents a MEF part; otherwise <c>null</c>.</returns>
-        protected abstract ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested);
+        protected abstract ComposablePartDefinition? CreatePart(Type partType, bool typeExplicitlyRequested);
 
         /// <summary>
         /// Checks whether an import many collection is creatable.
@@ -446,7 +447,7 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         /// <param name="receivingType">The type of the importing member or parameter, without its ImportMany collection if it had one.</param>
         /// <returns>The metadata view, <see cref="IDictionary{String, Object}"/>, or <c>null</c> if there is none.</returns>
-        private static Type GetMetadataType(Type receivingType)
+        private static Type? GetMetadataType(Type receivingType)
         {
             Requires.NotNull(receivingType, nameof(receivingType));
 
@@ -462,11 +463,11 @@ namespace Microsoft.VisualStudio.Composition
             return null;
         }
 
-        private Tuple<ITargetBlock<Type>, Task<DiscoveredParts>> CreateDiscoveryBlockChain(bool typeExplicitlyRequested, IProgress<DiscoveryProgress> progress, CancellationToken cancellationToken)
+        private Tuple<ITargetBlock<Type>, Task<DiscoveredParts>> CreateDiscoveryBlockChain(bool typeExplicitlyRequested, IProgress<DiscoveryProgress>? progress, CancellationToken cancellationToken)
         {
             string status = Strings.ScanningMEFAssemblies;
             int typesScanned = 0;
-            var transformBlock = new TransformBlock<Type, object>(
+            var transformBlock = new TransformBlock<Type, object?>(
                 type =>
                 {
                     try
@@ -487,7 +488,7 @@ namespace Microsoft.VisualStudio.Composition
                 });
             var parts = ImmutableHashSet.CreateBuilder<ComposablePartDefinition>();
             var errors = ImmutableList.CreateBuilder<PartDiscoveryException>();
-            var aggregatingBlock = new ActionBlock<object>(partOrException =>
+            var aggregatingBlock = new ActionBlock<object?>(partOrException =>
             {
                 var part = partOrException as ComposablePartDefinition;
                 var error = partOrException as PartDiscoveryException;
@@ -522,7 +523,7 @@ namespace Microsoft.VisualStudio.Composition
             return Tuple.Create<ITargetBlock<Type>, Task<DiscoveredParts>>(transformBlock, tcs.Task);
         }
 
-        private Tuple<ITargetBlock<Assembly>, Task<DiscoveredParts>> CreateAssemblyDiscoveryBlockChain(IProgress<DiscoveryProgress> progress, CancellationToken cancellationToken)
+        private Tuple<ITargetBlock<Assembly>, Task<DiscoveredParts>> CreateAssemblyDiscoveryBlockChain(IProgress<DiscoveryProgress>? progress, CancellationToken cancellationToken)
         {
             var progressFilter = new ProgressFilter(progress);
 
@@ -588,13 +589,13 @@ namespace Microsoft.VisualStudio.Composition
 
         private class ProgressFilter : IProgress<DiscoveryProgress>
         {
-            private readonly IProgress<DiscoveryProgress> upstreamReceiver;
+            private readonly IProgress<DiscoveryProgress>? upstreamReceiver;
 
             private int totalTypes;
 
             private DiscoveryProgress lastReportedProgress;
 
-            internal ProgressFilter(IProgress<DiscoveryProgress> upstreamReceiver)
+            internal ProgressFilter(IProgress<DiscoveryProgress>? upstreamReceiver)
             {
                 this.upstreamReceiver = upstreamReceiver;
             }
@@ -641,7 +642,7 @@ namespace Microsoft.VisualStudio.Composition
                 this.discoveryMechanisms = discoveryMechanisms;
             }
 
-            protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
+            protected override ComposablePartDefinition? CreatePart(Type partType, bool typeExplicitlyRequested)
             {
                 Requires.NotNull(partType, nameof(partType));
 

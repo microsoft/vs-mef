@@ -3,12 +3,16 @@
 ////#define TRACESERIALIZATION
 #endif
 
+#pragma warning disable CS8602 // possible dereference of null reference
+#pragma warning disable CS8604 // null reference as argument
+
 namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.IO;
     using System.Linq;
@@ -19,13 +23,13 @@ namespace Microsoft.VisualStudio.Composition
 
     internal abstract class SerializationContextBase : IDisposable
     {
-        protected BinaryReader reader;
+        protected BinaryReader? reader;
 
-        protected BinaryWriter writer;
+        protected BinaryWriter? writer;
 
-        protected Dictionary<object, uint> serializingObjectTable;
+        protected Dictionary<object, uint>? serializingObjectTable;
 
-        protected Dictionary<uint, object> deserializingObjectTable;
+        protected Dictionary<uint, object>? deserializingObjectTable;
 
 #if TRACESERIALIZATION || TRACESTATS
         protected readonly IndentingTextWriter trace;
@@ -35,7 +39,7 @@ namespace Microsoft.VisualStudio.Composition
         protected Dictionary<string, int> sizeStats;
 #endif
 
-        private readonly ImmutableDictionary<string, object>.Builder metadataBuilder = ImmutableDictionary.CreateBuilder<string, object>();
+        private readonly ImmutableDictionary<string, object?>.Builder metadataBuilder = ImmutableDictionary.CreateBuilder<string, object?>();
 
         private readonly byte[] guidBuffer = new byte[128 / 8];
 
@@ -160,7 +164,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected SerializationTrace Trace(string elementName, bool isArray = false)
         {
-            Stream stream = null;
+            Stream? stream = null;
 #if TRACESERIALIZATION || TRACESTATS
             // It turns out that acquiring the stream is very expensive because
             // each time you get it, the writer is flushed. Since we use the stream
@@ -172,7 +176,7 @@ namespace Microsoft.VisualStudio.Composition
             return new SerializationTrace(this, elementName, isArray, stream);
         }
 
-        protected void Write(MethodRef methodRef)
+        protected void Write(MethodRef? methodRef)
         {
             using (this.Trace(nameof(MethodRef)))
             {
@@ -193,7 +197,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected MethodRef ReadMethodRef()
+        protected MethodRef? ReadMethodRef()
         {
             using (this.Trace(nameof(MethodRef)))
             {
@@ -206,7 +210,7 @@ namespace Microsoft.VisualStudio.Composition
                     var isStatic = this.ReadCompressedUInt() != 0;
                     var parameterTypes = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
                     var genericMethodArguments = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
-                    return new MethodRef(declaringType, metadataToken, name, isStatic, parameterTypes, genericMethodArguments);
+                    return new MethodRef(declaringType, metadataToken, name, isStatic, parameterTypes!, genericMethodArguments!);
                 }
                 else
                 {
@@ -223,7 +227,7 @@ namespace Microsoft.VisualStudio.Composition
             Method,
         }
 
-        protected void Write(MemberRef memberRef)
+        protected void Write(MemberRef? memberRef)
         {
             using (this.Trace(nameof(MemberRef)))
             {
@@ -248,7 +252,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected MemberRef ReadMemberRef()
+        protected MemberRef? ReadMemberRef()
         {
             using (this.Trace(nameof(MemberRef)))
             {
@@ -299,11 +303,11 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected PropertyRef ReadPropertyRef()
+        protected PropertyRef? ReadPropertyRef()
         {
             using (this.Trace(nameof(PropertyRef)))
             {
-                if (this.TryPrepareDeserializeReusableObject(out uint id, out PropertyRef value))
+                if (this.TryPrepareDeserializeReusableObject(out uint id, out PropertyRef? value))
                 {
                     var declaringType = this.ReadTypeRef();
                     var propertyType = this.ReadTypeRef();
@@ -354,11 +358,11 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected FieldRef ReadFieldRef()
+        protected FieldRef? ReadFieldRef()
         {
             using (this.Trace(nameof(FieldRef)))
             {
-                if (this.TryPrepareDeserializeReusableObject(out uint id, out FieldRef value))
+                if (this.TryPrepareDeserializeReusableObject(out uint id, out FieldRef? value))
                 {
                     var declaringType = this.ReadTypeRef();
                     var fieldType = this.ReadTypeRef();
@@ -374,7 +378,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected void Write(ParameterRef parameterRef)
+        protected void Write(ParameterRef? parameterRef)
         {
             using (this.Trace(nameof(ParameterRef)))
             {
@@ -386,11 +390,11 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected ParameterRef ReadParameterRef()
+        protected ParameterRef? ReadParameterRef()
         {
             using (this.Trace(nameof(ParameterRef)))
             {
-                if (this.TryPrepareDeserializeReusableObject(out uint id, out ParameterRef value))
+                if (this.TryPrepareDeserializeReusableObject(out uint id, out ParameterRef? value))
                 {
                     var method = this.ReadMethodRef();
                     var parameterIndex = this.reader.ReadByte();
@@ -444,12 +448,12 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected TypeRef ReadTypeRef()
+        protected TypeRef? ReadTypeRef()
         {
             using (this.Trace(nameof(TypeRef)))
             {
                 uint id;
-                TypeRef value;
+                TypeRef? value;
                 if (this.TryPrepareDeserializeReusableObject(out id, out value))
                 {
                     var assemblyId = this.ReadStrongAssemblyIdentity();
@@ -461,7 +465,7 @@ namespace Microsoft.VisualStudio.Composition
 
                     var shallow = this.ReadCompressedUInt() != 0;
                     var baseTypes = shallow
-                        ? ImmutableArray<TypeRef>.Empty
+                        ? ImmutableArray<TypeRef?>.Empty
                         : this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
 
                     var hasElementType = this.ReadCompressedUInt() != 0;
@@ -469,7 +473,7 @@ namespace Microsoft.VisualStudio.Composition
                         ? this.ReadTypeRef()
                         : null;
 
-                    value = TypeRef.Get(this.Resolver, assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementType);
+                    value = TypeRef.Get(this.Resolver, assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments!, shallow, baseTypes!, elementType);
 
                     this.OnDeserializedReusableObject(id, value);
                 }
@@ -490,16 +494,16 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected AssemblyName ReadAssemblyName()
+        protected AssemblyName? ReadAssemblyName()
         {
             using (this.Trace(nameof(AssemblyName)))
             {
                 uint id;
-                AssemblyName value;
+                AssemblyName? value;
                 if (this.TryPrepareDeserializeReusableObject(out id, out value))
                 {
-                    string fullName = this.ReadString();
-                    string codeBase = this.ReadString();
+                    string? fullName = this.ReadString();
+                    string? codeBase = this.ReadString();
                     value = new AssemblyName(fullName);
                     value.CodeBase = codeBase;
                     this.OnDeserializedReusableObject(id, value);
@@ -521,13 +525,13 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected StrongAssemblyIdentity ReadStrongAssemblyIdentity()
+        protected StrongAssemblyIdentity? ReadStrongAssemblyIdentity()
         {
             using (this.Trace(nameof(StrongAssemblyIdentity)))
             {
-                if (this.TryPrepareDeserializeReusableObject(out uint id, out StrongAssemblyIdentity value))
+                if (this.TryPrepareDeserializeReusableObject(out uint id, out StrongAssemblyIdentity? value))
                 {
-                    AssemblyName name = this.ReadAssemblyName();
+                    AssemblyName? name = this.ReadAssemblyName();
                     Guid mvid = this.ReadGuid();
                     value = new StrongAssemblyIdentity(name, mvid);
 
@@ -571,7 +575,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected void Write(string value)
+        protected void Write(string? value)
         {
             using (this.Trace(nameof(String)))
             {
@@ -582,12 +586,12 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected string ReadString()
+        protected string? ReadString()
         {
             using (this.Trace(nameof(String)))
             {
                 uint id;
-                string value;
+                string? value;
                 if (this.TryPrepareDeserializeReusableObject(out id, out value))
                 {
                     value = this.reader.ReadString();
@@ -661,7 +665,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected Array ReadArray(BinaryReader reader, Func<object> itemReader, Type elementType)
+        protected Array ReadArray(BinaryReader reader, Func<object?> itemReader, Type elementType)
         {
             using (this.Trace(elementType.Name, isArray: true))
             {
@@ -676,7 +680,7 @@ namespace Microsoft.VisualStudio.Composition
                 var list = Array.CreateInstance(elementType, (int)count);
                 for (int i = 0; i < list.Length; i++)
                 {
-                    object value = itemReader();
+                    object? value = itemReader();
                     list.SetValue(value, i);
                 }
 
@@ -709,7 +713,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected void Write(IReadOnlyDictionary<string, object> metadata)
+        protected void Write(IReadOnlyDictionary<string, object?> metadata)
         {
             using (this.Trace("Metadata"))
             {
@@ -717,7 +721,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 // Special case certain values to avoid defeating lazy load later.
                 // Check out the ReadMetadata below, how it wraps the return value.
-                IReadOnlyDictionary<string, object> serializedMetadata;
+                IReadOnlyDictionary<string, object?> serializedMetadata;
 
                 // Unwrap the metadata if its an instance of LazyMetaDataWrapper, the wrapper may end up
                 // implicitly resolving TypeRefs to Types which is undesirable.
@@ -733,7 +737,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected IReadOnlyDictionary<string, object> ReadMetadata()
+        protected IReadOnlyDictionary<string, object?> ReadMetadata()
         {
             using (this.Trace("Metadata"))
             {
@@ -746,15 +750,15 @@ namespace Microsoft.VisualStudio.Composition
                 // access of any of its contents, we'll do a just-in-time deserialization,
                 // and perhaps only of the requested values.
                 uint count = this.ReadCompressedUInt();
-                var metadata = ImmutableDictionary<string, object>.Empty;
+                var metadata = ImmutableDictionary<string, object?>.Empty;
 
                 if (count > 0)
                 {
                     var builder = this.metadataBuilder; // reuse builder to save on GC pressure
                     for (int i = 0; i < count; i++)
                     {
-                        string key = this.ReadString();
-                        object value = this.ReadObject();
+                        string? key = this.ReadString();
+                        object? value = this.ReadObject();
                         builder.Add(key, value);
                     }
 
@@ -787,7 +791,7 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         /// <param name="value">The value that may be serialized more than once.</param>
         /// <returns><c>true</c> if the object should be serialized; otherwise <c>false</c>.</returns>
-        protected bool TryPrepareSerializeReusableObject(object value)
+        protected bool TryPrepareSerializeReusableObject([NotNullWhen(true)] object? value)
         {
             uint id;
             bool result;
@@ -824,7 +828,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="id">Receives the ID of the object.</param>
         /// <param name="value">Receives the value of the object, if available.</param>
         /// <returns><c>true</c> if the caller should deserialize the object; <c>false</c> if the object is in <paramref name="value"/>.</returns>
-        protected bool TryPrepareDeserializeReusableObject<T>(out uint id, out T value)
+        protected bool TryPrepareDeserializeReusableObject<T>(out uint id, out T? value)
             where T : class
         {
             id = this.ReadCompressedUInt();
@@ -834,9 +838,9 @@ namespace Microsoft.VisualStudio.Composition
                 return false;
             }
 
-            object valueObject;
+            object? valueObject;
             bool result = !this.deserializingObjectTable.TryGetValue(id, out valueObject);
-            value = (T)valueObject;
+            value = (T?)valueObject;
 
 #if TRACESERIALIZATION
             this.trace.WriteLine((result ? "Start" : "Reuse") + $" object {id}.");
@@ -850,7 +854,7 @@ namespace Microsoft.VisualStudio.Composition
             this.deserializingObjectTable.Add(id, value);
         }
 
-        protected void WriteObject(object value)
+        protected void WriteObject(object? value)
         {
             if (value == null)
             {
@@ -868,7 +872,7 @@ namespace Microsoft.VisualStudio.Composition
                     {
                         Array array = (Array)value;
                         this.Write(ObjectType.Array);
-                        TypeRef elementTypeRef = TypeRef.Get(valueType.GetElementType(), this.Resolver);
+                        TypeRef? elementTypeRef = TypeRef.Get(valueType.GetElementType(), this.Resolver);
                         this.Write(elementTypeRef);
                         this.Write(array, this.WriteObject);
                     }
@@ -987,7 +991,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        protected object ReadObject()
+        protected object? ReadObject()
         {
             using (this.Trace(nameof(Object)))
             {
@@ -997,7 +1001,7 @@ namespace Microsoft.VisualStudio.Composition
                     case ObjectType.Null:
                         return null;
                     case ObjectType.Array:
-                        Type elementType = this.ReadTypeRef().Resolve();
+                        Type? elementType = this.ReadTypeRef().Resolve();
                         return this.ReadArray(this.reader, this.ReadObject, elementType);
                     case ObjectType.BoolTrue:
                         return true;
@@ -1036,15 +1040,15 @@ namespace Microsoft.VisualStudio.Composition
                     case ObjectType.TypeRef:
                         return this.ReadTypeRef();
                     case ObjectType.Enum32Substitution:
-                        TypeRef enumType = this.ReadTypeRef();
+                        TypeRef? enumType = this.ReadTypeRef();
                         int rawValue = this.reader.ReadInt32();
                         return new LazyMetadataWrapper.Enum32Substitution(enumType, rawValue);
                     case ObjectType.TypeSubstitution:
-                        TypeRef typeRef = this.ReadTypeRef();
+                        TypeRef? typeRef = this.ReadTypeRef();
                         return new LazyMetadataWrapper.TypeSubstitution(typeRef);
                     case ObjectType.TypeArraySubstitution:
-                        IReadOnlyList<TypeRef> typeRefArray = this.ReadList(this.reader, this.ReadTypeRef);
-                        return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray, this.Resolver);
+                        IReadOnlyList<TypeRef?> typeRefArray = this.ReadList(this.reader, this.ReadTypeRef);
+                        return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray!, this.Resolver);
                     case ObjectType.BinaryFormattedObject:
                         var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                         return formatter.Deserialize(this.reader.BaseStream);
@@ -1085,10 +1089,10 @@ namespace Microsoft.VisualStudio.Composition
             private readonly SerializationContextBase context;
             private readonly string elementName;
             private readonly bool isArray;
-            private readonly Stream stream;
+            private readonly Stream? stream;
             private readonly int startStreamPosition;
 
-            internal SerializationTrace(SerializationContextBase context, string elementName, bool isArray, Stream stream)
+            internal SerializationTrace(SerializationContextBase context, string elementName, bool isArray, Stream? stream)
             {
                 this.context = context;
                 this.elementName = elementName;
@@ -1138,7 +1142,7 @@ namespace Microsoft.VisualStudio.Composition
             {
             }
 
-            public new bool Equals(object x, object y)
+            public new bool Equals(object? x, object? y)
             {
                 if (x is AssemblyName && y is AssemblyName)
                 {

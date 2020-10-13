@@ -14,13 +14,13 @@ namespace Microsoft.VisualStudio.Composition.AppHost
     public class CreateContainerFactoryBootstrapFile : Microsoft.Build.Utilities.Task
     {
         [Required]
-        public string BootstrapFile { get; set; }
+        public string BootstrapFile { get; set; } = null!;
 
         [Required]
-        public string CompositionCacheFile { get; set; }
+        public string CompositionCacheFile { get; set; } = null!;
 
         [Required]
-        public string RootNamespace { get; set; }
+        public string RootNamespace { get; set; } = null!;
 
         public override bool Execute()
         {

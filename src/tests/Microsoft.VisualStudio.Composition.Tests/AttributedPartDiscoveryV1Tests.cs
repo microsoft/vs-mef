@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var part = this.DiscoveryService.CreatePart(typeof(SomePartWithoutImportingConstructor));
             Assert.NotNull(part);
-            Assert.False(part.IsInstantiable);
+            Assert.False(part!.IsInstantiable);
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         internal class GenericBaseType<T>
         {
             [MefV1.Import]
-            protected PublicExport ImportingProperty { get; set; }
+            protected PublicExport ImportingProperty { get; set; } = null!;
         }
 
         [MefV1.Export]

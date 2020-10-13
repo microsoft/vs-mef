@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Composition
     [DebuggerDisplay("{" + nameof(ContractName) + ",nq}")]
     public class ExportDefinition : IEquatable<ExportDefinition>
     {
-        public ExportDefinition(string contractName, IReadOnlyDictionary<string, object> metadata)
+        public ExportDefinition(string contractName, IReadOnlyDictionary<string, object?> metadata)
         {
             Requires.NotNullOrEmpty(contractName, nameof(contractName));
             Requires.NotNull(metadata, nameof(metadata));
@@ -30,9 +30,9 @@ namespace Microsoft.VisualStudio.Composition
 
         public string ContractName { get; private set; }
 
-        public IReadOnlyDictionary<string, object> Metadata { get; private set; }
+        public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return this.Equals(obj as ExportDefinition);
         }
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Composition
             return this.ContractName.GetHashCode();
         }
 
-        public bool Equals(ExportDefinition other)
+        public bool Equals(ExportDefinition? other)
         {
             if (other == null)
             {

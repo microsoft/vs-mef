@@ -23,12 +23,12 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// <summary>
         /// The <see cref="AttributeUsageAttribute(AttributeTargets)"/> constructor.
         /// </summary>
-        private static readonly ConstructorInfo AttributeUsageCtor = typeof(AttributeUsageAttribute).GetConstructor(new Type[] { typeof(AttributeTargets) });
+        private static readonly ConstructorInfo AttributeUsageCtor = typeof(AttributeUsageAttribute).GetConstructor(new Type[] { typeof(AttributeTargets) })!;
 
         /// <summary>
         /// The <see cref="AttributeUsageAttribute.AllowMultiple"/> property.
         /// </summary>
-        private static readonly PropertyInfo AttributeUsageAllowMultipleProperty = typeof(AttributeUsageAttribute).GetProperty(nameof(AttributeUsageAttribute.AllowMultiple));
+        private static readonly PropertyInfo AttributeUsageAllowMultipleProperty = typeof(AttributeUsageAttribute).GetProperty(nameof(AttributeUsageAttribute.AllowMultiple))!;
 
         /// <summary>
         /// The assembly builder that is constructing the dynamic assembly.
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// <summary>
         /// The constructor on the special attribute to reference for each skipped assembly.
         /// </summary>
-        private ConstructorInfo magicAttributeCtor;
+        private ConstructorInfo? magicAttributeCtor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SkipClrVisibilityChecks"/> class.
@@ -126,7 +126,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         {
             Requires.NotNull(assemblyName, nameof(assemblyName));
 
-            string assemblyNameArg = assemblyName.Name;
+            string? assemblyNameArg = assemblyName.Name;
+            Requires.Argument(assemblyNameArg is object, nameof(assemblyName), "Name property must be non-null.");
             if (this.attributedAssemblyNames.Add(assemblyNameArg))
             {
                 var cab = new CustomAttributeBuilder(this.GetMagicAttributeCtor(), new object[] { assemblyNameArg });
@@ -143,7 +144,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             if (this.magicAttributeCtor == null)
             {
                 var magicAttribute = this.EmitMagicAttribute();
-                this.magicAttributeCtor = magicAttribute.GetConstructor(new Type[] { typeof(string) });
+                this.magicAttributeCtor = magicAttribute.GetConstructor(new Type[] { typeof(string) })!;
             }
 
             return this.magicAttributeCtor;
@@ -181,7 +182,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             il.Emit(OpCodes.Call, AttributeBaseClassCtor);
             il.Emit(OpCodes.Ret);
 
-            return tb.CreateTypeInfo();
+            return tb.CreateTypeInfo()!;
         }
     }
 }

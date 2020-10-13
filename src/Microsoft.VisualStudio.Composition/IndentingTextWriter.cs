@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Composition
             return writer as IndentingTextWriter ?? new IndentingTextWriter(writer);
         }
 
-        public override void WriteLine(string value)
+        public override void WriteLine(string? value)
         {
             foreach (var indent in this.indentationStack)
             {

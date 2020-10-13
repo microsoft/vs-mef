@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     [Trait("Multithreaded", "")]
     public class ThreadSafetyTests
     {
-        private static ITestOutputHelper outputForNestedParts;
+        private static ITestOutputHelper outputForNestedParts = null!;
         private readonly ITestOutputHelper output;
 
         public ThreadSafetyTests(ITestOutputHelper output)
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             catch (OperationCanceledException)
             {
                 // Rethrow any exceptions that caused this to be canceled.
-                var exceptions = new AggregateException(contrivedPartTasks.Where(t => t.IsFaulted).Select(t => t.Exception));
+                var exceptions = new AggregateException(contrivedPartTasks.Where(t => t.IsFaulted).Select(t => t.Exception!));
                 if (exceptions.InnerExceptions.Count > 0)
                 {
                     testFailedCancellationSource.Cancel();
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsSharedPartWithBlockableConstructor
         {
             [Import, MefV1.Import]
-            public Lazy<SharedPartWithBlockableConstructor> ImportingProperty { get; set; }
+            public Lazy<SharedPartWithBlockableConstructor> ImportingProperty { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsNonSharedPart
         {
             [Import, MefV1.Import]
-            public Lazy<NonSharedPart> NonSharedPart { get; set; }
+            public Lazy<NonSharedPart> NonSharedPart { get; set; } = null!;
         }
 
         [Export]
@@ -269,7 +269,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             internal static readonly ManualResetEventSlim UnblockSetter = new ManualResetEventSlim();
             internal static readonly AutoResetEvent SetterInvoked = new AutoResetEvent(false);
-            private PartThatImportsPartWithBlockingImportPropertySetter otherPartThatImportsThis;
+            private PartThatImportsPartWithBlockingImportPropertySetter otherPartThatImportsThis = null!;
 
             [Import, MefV1.Import]
             public PartThatImportsPartWithBlockingImportPropertySetter OtherPartThatImportsThis
@@ -293,7 +293,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsPartWithBlockingImportPropertySetter
         {
             [Import, MefV1.Import]
-            public PartWithBlockingImportPropertySetter PartWithBlockingImport { get; set; }
+            public PartWithBlockingImportPropertySetter PartWithBlockingImport { get; set; } = null!;
         }
 
         #endregion
@@ -411,10 +411,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             internal static readonly ManualResetEventSlim SurroundingImportingPropertiesHit = new ManualResetEventSlim();
             internal static readonly ManualResetEventSlim UnblockSurroundingImportingProperties = new ManualResetEventSlim();
-            internal static Thread ThreadSatisfiedFrom;
+            internal static Thread? ThreadSatisfiedFrom;
 
             [ImportMany, MefV1.ImportMany]
-            public object[] DummyImporter
+            public object[]? DummyImporter
             {
                 get
                 {
@@ -430,9 +430,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
 
             [Import, MefV1.Import]
-            public CircularDependencySharedPart2 Part2 { get; set; }
+            public CircularDependencySharedPart2 Part2 { get; set; } = null!;
 
-            public Thread OnImportsSatisfiedInvokedThread { get; private set; }
+            public Thread? OnImportsSatisfiedInvokedThread { get; private set; }
 
             [OnImportsSatisfied]
             public void OnImportsSatisfied()
@@ -452,10 +452,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             internal static readonly ManualResetEventSlim SurroundingImportingPropertiesHit = new ManualResetEventSlim();
             internal static readonly ManualResetEventSlim UnblockSurroundingImportingProperties = new ManualResetEventSlim();
-            internal static Thread ThreadSatisfiedFrom;
+            internal static Thread? ThreadSatisfiedFrom;
 
             [ImportMany, MefV1.ImportMany]
-            public object[] DummyImporter
+            public object[]? DummyImporter
             {
                 get
                 {
@@ -471,9 +471,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
 
             [Import, MefV1.Import]
-            public CircularDependencySharedPart1 Part1 { get; set; }
+            public CircularDependencySharedPart1 Part1 { get; set; } = null!;
 
-            public Thread OnImportsSatisfiedInvokedThread { get; private set; }
+            public Thread? OnImportsSatisfiedInvokedThread { get; private set; }
 
             [OnImportsSatisfied]
             public void OnImportsSatisfied()
@@ -542,7 +542,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             internal static readonly ManualResetEventSlim UnblockImportingPropertySetters = new ManualResetEventSlim();
             internal static readonly ManualResetEventSlim ImportingPropertySettersInvoked = new ManualResetEventSlim();
 
-            private RandomExport randomExport;
+            private RandomExport randomExport = null!;
 
             [Import, MefV1.Import]
             public RandomExport RandomExport
@@ -626,7 +626,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class CircularDependencyPart
         {
             [Import("rootObject"), MefV1.Import("rootObject")]
-            public object ImportingProperty { get; set; }
+            public object ImportingProperty { get; set; } = null!;
         }
 
         #endregion
@@ -654,7 +654,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 Requires.NotNull(task, nameof(task));
                 ImmutableInterlocked.Update(ref this.trackedTasks, t => t.Add(task));
                 task.ContinueWith(
-                    t => this.Report(t.Exception),
+                    t => this.Report(t.Exception!),
                     CancellationToken.None,
                     TaskContinuationOptions.OnlyOnFaulted,
                     TaskScheduler.Default);
@@ -716,7 +716,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ParentExport
         {
             [Import, SharingBoundary("ChildBoundary")]
-            public ExportFactory<ChildExport> ChildFactory { get; set; }
+            public ExportFactory<ChildExport> ChildFactory { get; set; } = null!;
         }
 
         [Export, Shared("ChildBoundary")]
@@ -726,14 +726,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ChildExport
         {
             [Import, SharingBoundary("GrandchildBoundary")]
-            public ExportFactory<GrandchildExport> GrandchildFactory { get; set; }
+            public ExportFactory<GrandchildExport> GrandchildFactory { get; set; } = null!;
         }
 
         [Export, Shared("GrandchildBoundary")]
         public class GrandchildExport
         {
             [Import]
-            public ChildSiblingExport Export { get; set; }
+            public ChildSiblingExport Export { get; set; } = null!;
         }
 
         #endregion
@@ -790,21 +790,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class RootPartWithScopeFactory
         {
             [Import, SharingBoundary("Subscope")]
-            public ExportFactory<SubscopeSharedPartWithFactory> ScopeFactory { get; set; }
+            public ExportFactory<SubscopeSharedPartWithFactory> ScopeFactory { get; set; } = null!;
         }
 
         [Export, Shared("Subscope")]
         public class SubscopeSharedPartWithFactory
         {
             [Import]
-            public ExportFactory<NonSharedPartThatLazilyImportsSharedPart> LazyImportingPartFactory { get; set; }
+            public ExportFactory<NonSharedPartThatLazilyImportsSharedPart> LazyImportingPartFactory { get; set; } = null!;
         }
 
         [Export]
         public class NonSharedPartThatLazilyImportsSharedPart
         {
             [Import]
-            public Lazy<SharedSubscopePart> SharedPart { get; set; }
+            public Lazy<SharedSubscopePart> SharedPart { get; set; } = null!;
         }
 
         [Export, Shared("Subscope")]

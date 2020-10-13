@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
                 return new ComposablePartDefinition(
                     TypeRef.Get(typeof(int), TestUtilities.Resolver),
-                    ImmutableDictionary<string, object>.Empty,
+                    ImmutableDictionary<string, object?>.Empty,
                     ImmutableList.Create<ExportDefinition>(),
                     ImmutableDictionary.Create<MemberRef, IReadOnlyCollection<ExportDefinition>>(),
                     ImmutableList.Create<ImportDefinitionBinding>(),
@@ -181,7 +181,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
             }
 
-            protected override ComposablePartDefinition CreatePart(Type partType, bool typeExplicitlyRequested)
+            protected override ComposablePartDefinition? CreatePart(Type partType, bool typeExplicitlyRequested)
             {
                 return null;
             }

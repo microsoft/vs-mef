@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsT<T>
         {
             [Import, MefV1.Import]
-            public T Value { get; set; }
+            public T Value { get; set; } = default!;
         }
 
         [Export, Shared, MefV1.Export]
@@ -75,21 +75,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsLazyT<T>
         {
             [Import, MefV1.Import]
-            public Lazy<T> Value { get; set; }
+            public Lazy<T> Value { get; set; } = null!;
         }
 
         [Export, Shared, MefV1.Export]
         public class PartThatImportsArrayOfT<T>
         {
             [ImportMany, MefV1.ImportMany]
-            public T[] Value { get; set; }
+            public T[] Value { get; set; } = null!;
         }
 
         [Export, Shared, MefV1.Export]
         public class PartThatImportsEnumerableOfT<T>
         {
             [ImportMany, MefV1.ImportMany]
-            public IEnumerable<T> Value { get; set; }
+            public IEnumerable<T> Value { get; set; } = null!;
         }
 
         [Export, Shared, MefV1.Export]

@@ -27,25 +27,25 @@ namespace Microsoft.VisualStudio.Composition
 
         public string TypeIdentityName { get; private set; }
 
-        public static ImmutableDictionary<string, object> GetExportMetadata(Type type)
+        public static ImmutableDictionary<string, object?> GetExportMetadata(Type type)
         {
             Requires.NotNull(type, nameof(type));
 
             return GetExportMetadata(ContractNameServices.GetTypeIdentity(type));
         }
 
-        public static ImmutableDictionary<string, object> GetExportMetadata(string typeIdentity)
+        public static ImmutableDictionary<string, object?> GetExportMetadata(string typeIdentity)
         {
             Requires.NotNullOrEmpty(typeIdentity, nameof(typeIdentity));
 
-            return ImmutableDictionary<string, object>.Empty.Add(CompositionConstants.ExportTypeIdentityMetadataName, typeIdentity);
+            return ImmutableDictionary<string, object?>.Empty.Add(CompositionConstants.ExportTypeIdentityMetadataName, typeIdentity);
         }
 
         public bool IsSatisfiedBy(ExportDefinition exportDefinition)
         {
             Requires.NotNull(exportDefinition, nameof(exportDefinition));
 
-            string value;
+            string? value;
             if (exportDefinition.Metadata.TryGetValue(CompositionConstants.ExportTypeIdentityMetadataName, out value))
             {
                 return this.TypeIdentityName == value;
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.Composition
             indentingWriter.WriteLine("TypeIdentityName: {0}", this.TypeIdentityName);
         }
 
-        public bool Equals(IImportSatisfiabilityConstraint obj)
+        public bool Equals(IImportSatisfiabilityConstraint? obj)
         {
             var other = obj as ExportTypeIdentityConstraint;
             if (other == null)

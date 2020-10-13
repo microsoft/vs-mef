@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import]
             [MefV1.Import]
-            public Apple Apple { get; set; }
+            public Apple Apple { get; set; } = null!;
         }
     }
 }

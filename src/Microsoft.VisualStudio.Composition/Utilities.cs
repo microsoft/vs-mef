@@ -5,6 +5,7 @@ namespace Microsoft.VisualStudio.Composition
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.Composition
 
             var partDefinition = new ComposablePartDefinition(
                 TypeRef.Get(providerType, resolver),
-                ImmutableDictionary<string, object>.Empty.Add(CompositionConstants.DgmlCategoryPartMetadataName, new[] { "VsMEFBuiltIn" }),
+                ImmutableDictionary<string, object?>.Empty.Add(CompositionConstants.DgmlCategoryPartMetadataName, new[] { "VsMEFBuiltIn" }),
                 new[] { exportDefinition },
                 ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
                 ImmutableList<ImportDefinitionBinding>.Empty,
@@ -41,10 +42,20 @@ namespace Microsoft.VisualStudio.Composition
             return partDefinition;
         }
 
-        internal static TValue GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue = default(TValue))
+        internal static TValue? GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue?> dictionary, TKey key)
+            where TKey : notnull
+            where TValue : class
         {
-            TValue value;
-            if (!dictionary.TryGetValue(key, out value))
+            dictionary.TryGetValue(key, out TValue? value);
+            return value;
+        }
+
+        [return: NotNullIfNotNull("defaultValue")]
+        internal static TValue? GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key, TValue? defaultValue)
+            where TKey : notnull
+            where TValue : class
+        {
+            if (!dictionary.TryGetValue(key, out TValue? value))
             {
                 value = defaultValue;
             }
@@ -52,7 +63,8 @@ namespace Microsoft.VisualStudio.Composition
             return value;
         }
 
-        internal static bool EqualsByValue<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> expected, IReadOnlyDictionary<TKey, TValue> actual, IEqualityComparer<TValue> valueComparer = null)
+        internal static bool EqualsByValue<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> expected, IReadOnlyDictionary<TKey, TValue> actual, IEqualityComparer<TValue>? valueComparer = null)
+            where TKey : notnull
         {
             Requires.NotNull(expected, nameof(expected));
             Requires.NotNull(actual, nameof(actual));
@@ -81,9 +93,9 @@ namespace Microsoft.VisualStudio.Composition
             return true;
         }
 
-        internal static bool TryGetValue<TValue>(this IReadOnlyDictionary<string, object> metadata, string key, out TValue value)
+        internal static bool TryGetValue<TValue>(this IReadOnlyDictionary<string, object?> metadata, string key, [MaybeNull, NotNullWhen(true)] out TValue value)
         {
-            object valueObject;
+            object? valueObject;
             if (metadata.TryGetValue(key, out valueObject) && valueObject is TValue)
             {
                 value = (TValue)valueObject;
@@ -144,7 +156,7 @@ namespace Microsoft.VisualStudio.Composition
             return true;
         }
 
-        internal static void ToString(this IReadOnlyDictionary<string, object> metadata, IndentingTextWriter writer)
+        internal static void ToString(this IReadOnlyDictionary<string, object?> metadata, IndentingTextWriter writer)
         {
             Requires.NotNull(metadata, nameof(metadata));
             Requires.NotNull(writer, nameof(writer));
@@ -171,12 +183,12 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        internal static object SpecifyIfNull(this object value)
+        internal static object SpecifyIfNull(this object? value)
         {
             return value == null ? "<null>" : value;
         }
 
-        internal static void ReportNullSafe<T>(this IProgress<T> progress, T value)
+        internal static void ReportNullSafe<T>(this IProgress<T>? progress, T value)
         {
             if (progress != null)
             {
@@ -185,6 +197,7 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         internal static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this IEnumerable<TValue> source, Func<TValue, TKey> keySelector, int capacity)
+            where TKey : notnull
         {
             var dictionary = new Dictionary<TKey, TValue>(capacity);
             foreach (var item in source)

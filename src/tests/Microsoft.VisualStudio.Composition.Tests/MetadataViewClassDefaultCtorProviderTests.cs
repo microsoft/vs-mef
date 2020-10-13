@@ -84,16 +84,16 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         public class DefaultMetadataView
         {
-            public string PublicProperty { get; set; }
+            public string? PublicProperty { get; set; }
 
-            public string UnsettableProperty => null;
+            public string? UnsettableProperty => null;
 
             [DefaultValue(DefaultPropertyExpectedValue)]
-            public string PropertyWithDefault { get; set; }
+            public string? PropertyWithDefault { get; set; }
 
-            internal string InternalProperty { get; set; }
+            internal string? InternalProperty { get; set; }
 
-            public string PropertyWithPrivateSetter { get; private set; }
+            public string? PropertyWithPrivateSetter { get; private set; }
 
             public string UngettableProperty { set { } }
 
@@ -104,14 +104,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class DefaultMetadataViewImporter
         {
             [Import]
-            public Lazy<MetadataDecoratedPart, DefaultMetadataView> InnerPart { get; set; }
+            public Lazy<MetadataDecoratedPart, DefaultMetadataView> InnerPart { get; set; } = null!;
         }
 
         [Export]
         public class DerivedMetadataViewImporter
         {
             [Import]
-            public Lazy<MetadataDecoratedPart, DerivedView> InnerPart { get; set; }
+            public Lazy<MetadataDecoratedPart, DerivedView> InnerPart { get; set; } = null!;
 
             public class DerivedView : DefaultMetadataView
             {
@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class InternalMetadataViewImporter
         {
             [Import]
-            internal Lazy<MetadataDecoratedPart, DerivedView> InnerPart { get; set; }
+            internal Lazy<MetadataDecoratedPart, DerivedView> InnerPart { get; set; } = null!;
 
             internal class DerivedView : DefaultMetadataView
             {
@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class InternalCtorMetadataViewImporter
         {
             [Import]
-            public Lazy<MetadataDecoratedPart, DerivedView> InnerPart { get; set; }
+            public Lazy<MetadataDecoratedPart, DerivedView> InnerPart { get; set; } = null!;
 
             public class DerivedView : DefaultMetadataView
             {
@@ -145,7 +145,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class NoDefaultCtorMetadataViewImporter
         {
             [Import]
-            public Lazy<MetadataDecoratedPart, DerivedView> InnerPart { get; set; }
+            public Lazy<MetadataDecoratedPart, DerivedView> InnerPart { get; set; } = null!;
 
             public class DerivedView : DefaultMetadataView
             {
@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PropertySetterThrowsMetadataViewImporter
         {
             [Import]
-            public Lazy<MetadataDecoratedPart, PropertySetterThrowingMetadataView> InnerPart { get; set; }
+            public Lazy<MetadataDecoratedPart, PropertySetterThrowingMetadataView> InnerPart { get; set; } = null!;
 
             public class PropertySetterThrowingMetadataView
             {

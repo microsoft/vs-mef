@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class NonSharedPartThatImportsDisposableNonSharedPart
         {
             [Import, MefV1.Import]
-            public DisposableNonSharedPart ImportOfDisposableNonSharedPart { get; set; }
+            public DisposableNonSharedPart ImportOfDisposableNonSharedPart { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class SharedPartThatImportsDisposableNonSharedPart
         {
             [Import, MefV1.Import]
-            public DisposableNonSharedPart ImportOfDisposableNonSharedPart { get; set; }
+            public DisposableNonSharedPart ImportOfDisposableNonSharedPart { get; set; } = null!;
         }
 
         [Export]
@@ -325,7 +325,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThrowsInDispose : IDisposable
         {
             [Import, MefV1.Import]
-            public DisposeOrderTracker Tracker { get; set; }
+            public DisposeOrderTracker Tracker { get; set; } = null!;
 
             public void Dispose()
             {
@@ -338,7 +338,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class NoThrow1 : IDisposable
         {
             [Import, MefV1.Import]
-            public DisposeOrderTracker Tracker { get; set; }
+            public DisposeOrderTracker Tracker { get; set; } = null!;
 
             public void Dispose()
             {
@@ -402,7 +402,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithDisposeThatEvaluatesLazyImport : IDisposable
         {
             [Import, MefV1.Import]
-            public Lazy<PartThatImportsDisposeWithLazyImport> LazyImport { get; set; }
+            public Lazy<PartThatImportsDisposeWithLazyImport> LazyImport { get; set; } = null!;
 
             public void Dispose()
             {
@@ -419,7 +419,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartThatImportsDisposeWithLazyImport
         {
             [Import, MefV1.Import]
-            public PartWithDisposeThatEvaluatesLazyImport ImportingProperty { get; set; }
+            public PartWithDisposeThatEvaluatesLazyImport ImportingProperty { get; set; } = null!;
         }
 
         #endregion
@@ -458,14 +458,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class SharingBoundaryFactory
         {
             [Import, SharingBoundary("A")]
-            public ExportFactory<SharingBoundaryPartWithDisposeThatEvaluatesLazyImport> Factory { get; set; }
+            public ExportFactory<SharingBoundaryPartWithDisposeThatEvaluatesLazyImport> Factory { get; set; } = null!;
         }
 
         [Export, Shared("A")]
         public class SharingBoundaryPartWithDisposeThatEvaluatesLazyImport : IDisposable
         {
             [Import]
-            public Lazy<PartThatImportsSharingBoundaryDisposeWithLazyImport> LazyImport { get; set; }
+            public Lazy<PartThatImportsSharingBoundaryDisposeWithLazyImport> LazyImport { get; set; } = null!;
 
             public void Dispose()
             {

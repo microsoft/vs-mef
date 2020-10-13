@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.Composition
             throw new NotImplementedException();
         }
 
-        internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner)
+        internal override PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object?> importMetadata, PartLifecycleTracker? nonSharedPartOwner)
         {
             return this.inner.CreatePartLifecycleTracker(partType, importMetadata, nonSharedPartOwner);
         }

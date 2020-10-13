@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Composition
         private const char GenericFormatClosingBracket = '}';
 
         [ThreadStatic]
-        private static Dictionary<Type, string> typeIdentityCache;
+        private static Dictionary<Type, string>? typeIdentityCache;
 
         private static Dictionary<Type, string> TypeIdentityCache
         {
@@ -47,13 +47,13 @@ namespace Microsoft.VisualStudio.Composition
         internal static string GetTypeIdentity(Type type, bool formatGenericName)
         {
             Assumes.NotNull(type);
-            string typeIdentity = null;
+            string? typeIdentity = null;
 
             if (!TypeIdentityCache.TryGetValue(type, out typeIdentity))
             {
                 if (!type.GetTypeInfo().IsAbstract && type.HasBaseclassOf(typeof(Delegate)))
                 {
-                    MethodInfo method = type.GetTypeInfo().GetDeclaredMethod("Invoke");
+                    MethodInfo method = type.GetTypeInfo().GetDeclaredMethod("Invoke")!;
                     typeIdentity = ContractNameServices.GetTypeIdentityFromMethod(method);
                 }
                 else if (type.IsGenericParameter)
@@ -177,9 +177,9 @@ namespace Microsoft.VisualStudio.Composition
             // e.g. C#: Int32[][,]  Reflection: Int32[,][]
             // we are following C# order for arrays
             //
-            Type rootElementType = FindArrayElementType(type);
+            Type? rootElementType = FindArrayElementType(type)!;
             WriteType(typeName, rootElementType, formatGenericName);
-            Type elementType = type;
+            Type? elementType = type;
             do
             {
                 WriteArrayTypeDimensions(typeName, elementType);
@@ -192,7 +192,7 @@ namespace Microsoft.VisualStudio.Composition
             //
             // Writes pointer type  e.g <TypeName>*
             //
-            WriteType(typeName, type.GetElementType(), formatGenericName);
+            WriteType(typeName, type.GetElementType()!, formatGenericName);
             typeName.Append(PointerSymbol);
         }
 
@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.Composition
             //
             // Writes by ref type e.g <TypeName>&
             //
-            WriteType(typeName, type.GetElementType(), formatGenericName);
+            WriteType(typeName, type.GetElementType()!, formatGenericName);
             typeName.Append(ReferenceSymbol);
         }
 
@@ -295,12 +295,12 @@ namespace Microsoft.VisualStudio.Composition
             typeName.Append(ContractNameGenericArgumentSeparator);
         }
 
-        private static Type FindArrayElementType(Type type)
+        private static Type? FindArrayElementType(Type type)
         {
             //
             // Gets array element type by calling GetElementType() until the element is not an array
             //
-            Type elementType = type;
+            Type? elementType = type;
             while ((elementType = elementType.GetElementType()) != null && elementType.IsArray)
             {
             }

@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [ImportMany]
             [MefV1.ImportMany]
-            public IServiceProvider SP { get; set; }
+            public IServiceProvider SP { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportingPropertySetterThrowsPart
         {
             [Import, MefV1.Import]
-            public OrdinaryPart ImportingProperty
+            public OrdinaryPart? ImportingProperty
             {
                 get { return null; }
                 set { throw new MyException(); }
@@ -191,7 +191,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartImportsPartThatThrowsViaLazyProperty
         {
             [Import, MefV1.Import]
-            public Lazy<ImportingConstructorThrowsPart> Import { get; set; }
+            public Lazy<ImportingConstructorThrowsPart> Import { get; set; } = null!;
         }
 
         [Export, Shared]
@@ -248,19 +248,19 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class MultipleServiceProviderExports
         {
             [MefV1.Export(typeof(IServiceProvider))]
-            public IFormatProvider ExportingProperty { get; }
+            public IFormatProvider? ExportingProperty { get; }
 
             [MefV1.Export(typeof(IServiceProvider))]
-            public IFormatProvider ExportingProperty2 { get; }
+            public IFormatProvider? ExportingProperty2 { get; }
         }
 
         public class MultipleServiceProviderExportsWithCustomContractName
         {
             [MefV1.Export(CustomContractName, typeof(IServiceProvider))]
-            public IFormatProvider ExportingProperty { get; }
+            public IFormatProvider? ExportingProperty { get; }
 
             [MefV1.Export(CustomContractName, typeof(IServiceProvider))]
-            public IFormatProvider ExportingProperty2 { get; }
+            public IFormatProvider? ExportingProperty2 { get; }
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(CustomCollectionUninitializedPartViaParameter), InvalidConfiguration = true)]
@@ -291,7 +291,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class CustomCollectionUninitializedPartViaProperty
         {
             [MefV1.ImportMany]
-            public CustomCollection<IServiceProvider> Exports { get; set; }
+            public CustomCollection<IServiceProvider> Exports { get; set; } = null!;
         }
 
         public class CustomCollection<T> : List<T>
@@ -304,7 +304,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             AssertThrowsV1(() => container.GetExportedValue<T>());
         }
 
-        private static void AssertThrowsV1(Func<object> action)
+        private static void AssertThrowsV1(Func<object?> action)
         {
             try
             {
@@ -322,7 +322,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
-        private static bool IsSomeInnerException<T>(Exception ex)
+        private static bool IsSomeInnerException<T>(Exception? ex)
         {
             while (ex != null)
             {

@@ -28,16 +28,16 @@ namespace Microsoft.VisualStudio.Composition
                 this.fastCheck = fastCheck;
             }
 
-            public bool Equals(AssemblyName x, AssemblyName y)
+            public bool Equals(AssemblyName? x, AssemblyName? y)
             {
-                if (x == null ^ y == null)
-                {
-                    return false;
-                }
-
-                if (x == null)
+                if (x is null && y is null)
                 {
                     return true;
+                }
+
+                if (x is null || y is null)
+                {
+                    return false;
                 }
 
                 // If fast check is enabled, we can compare the code bases
@@ -51,29 +51,26 @@ namespace Microsoft.VisualStudio.Composition
                 // compare the PublicKeys first, but then fall back to GetPublicKeyToken(), which
                 // will generate a public key token for the AssemblyName that has a public key and
                 // return the public key token for the other AssemblyName.
-                byte[] xPublicKey = x.GetPublicKey();
-                byte[] yPublicKey = y.GetPublicKey();
+                byte[]? xPublicKey = x.GetPublicKey();
+                byte[]? yPublicKey = y.GetPublicKey();
 
                 // Testing on FullName is horrifically slow.
                 // So test directly on its components instead.
                 if (xPublicKey != null && yPublicKey != null)
                 {
                     return x.Name == y.Name
-                        && x.Version.Equals(y.Version)
+                        && Equals(x.Version, y.Version)
                         && string.Equals(x.CultureName, y.CultureName)
                         && ByValueEquality.Buffer.Equals(xPublicKey, yPublicKey);
                 }
 
                 return x.Name == y.Name
-                    && x.Version.Equals(y.Version)
+                    && Equals(x.Version, y.Version)
                     && string.Equals(x.CultureName, y.CultureName)
                     && ByValueEquality.Buffer.Equals(x.GetPublicKeyToken(), y.GetPublicKeyToken());
             }
 
-            public int GetHashCode(AssemblyName obj)
-            {
-                return obj.Name.GetHashCode();
-            }
+            public int GetHashCode(AssemblyName obj) => obj.Name?.GetHashCode() ?? 0;
         }
     }
 }

@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void MetadataViewImplementationViaImport_WithoutMismatchingMetadata(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPartWithoutMismatchingMetadata>();
-            Assert.IsType<MetadataViewClass>(importingPart.ImportingProperty.Metadata);
+            Assert.IsType<MetadataViewClass>(importingPart.ImportingProperty!.Metadata);
             Assert.Equal("1", importingPart.ImportingProperty.Metadata.A);
             Assert.Null(importingPart.ImportingProperty.Metadata.B);
             Assert.Equal(20, importingPart.ImportingProperty.Metadata.PropertyWithMetadataThatDoesNotMatchType);
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void MetadataViewImplementationViaImport(IContainer container)
         {
             var importingPart = container.GetExportedValue<ImportingPart>();
-            Assert.IsType<MetadataViewClass>(importingPart.ImportingProperty.Metadata);
+            Assert.IsType<MetadataViewClass>(importingPart.ImportingProperty!.Metadata);
             Assert.Equal("1", importingPart.ImportingProperty.Metadata.A);
             Assert.Null(importingPart.ImportingProperty.Metadata.B);
             Assert.Equal(10, importingPart.ImportingProperty.Metadata.PropertyWithMetadataThatDoesNotMatchType);
@@ -54,14 +54,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class ImportingPartWithoutMismatchingMetadata
         {
             [MefV1.Import]
-            public Lazy<ExportingPartWithoutMismatchingMetadata, IMetadataView> ImportingProperty { get; set; }
+            public Lazy<ExportingPartWithoutMismatchingMetadata, IMetadataView>? ImportingProperty { get; set; }
         }
 
         [MefV1.Export]
         public class ImportingPart
         {
             [MefV1.Import]
-            public Lazy<ExportingPart, IMetadataView> ImportingProperty { get; set; }
+            public Lazy<ExportingPart, IMetadataView>? ImportingProperty { get; set; }
         }
 
         [MefV1.Export]
@@ -76,10 +76,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.MetadataViewImplementation(typeof(MetadataViewClass))]
         public interface IMetadataView
         {
-            string A { get; }
+            string? A { get; }
 
             [DefaultValue("default")]
-            string B { get; }
+            string? B { get; }
 
             [DefaultValue("default")] // The value is ignored by MEFv1 when MetadataViewImplementation is present.
             int PropertyWithMetadataThatDoesNotMatchType { get; }
@@ -89,14 +89,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             public MetadataViewClass(IDictionary<string, object> metadata)
             {
-                this.A = (string)(metadata.ContainsKey("A") ? metadata["A"] : null);
-                this.B = (string)(metadata.ContainsKey("B") ? metadata["B"] : null);
+                this.A = (string?)(metadata.ContainsKey("A") ? metadata["A"] : null);
+                this.B = (string?)(metadata.ContainsKey("B") ? metadata["B"] : null);
                 this.PropertyWithMetadataThatDoesNotMatchType = metadata.ContainsKey("PropertyWithMetadataThatDoesNotMatchType") ? 10 : 20;
             }
 
-            public string A { get; set; }
+            public string? A { get; set; }
 
-            public string B { get; set; }
+            public string? B { get; set; }
 
             public int PropertyWithMetadataThatDoesNotMatchType { get; set; }
         }

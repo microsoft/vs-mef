@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public abstract class OuterBasePart<T>
         {
             [MefV1.Import]
-            public NestedType Value { get; set; }
+            public NestedType Value { get; set; } = null!;
 
             [MefV1.Export]
             public class NestedType { }

@@ -20,14 +20,14 @@ namespace Microsoft.VisualStudio.Composition
             {
             }
 
-            public bool Equals(byte[] x, byte[] y)
+            public bool Equals(byte[]? x, byte[]? y)
             {
                 if (x == y)
                 {
                     return true;
                 }
 
-                if (x == null ^ y == null)
+                if (x is null || y is null)
                 {
                     return false;
                 }

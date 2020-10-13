@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Composition
         /// Initializes a new instance of the <see cref="ImportDefinition"/> class
         /// based on MEF v2 attributes.
         /// </summary>
-        public ImportDefinition(string contractName, ImportCardinality cardinality, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, IReadOnlyCollection<string> exportFactorySharingBoundaries)
+        public ImportDefinition(string contractName, ImportCardinality cardinality, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, IReadOnlyCollection<string> exportFactorySharingBoundaries)
         {
             Requires.NotNullOrEmpty(contractName, nameof(contractName));
             Requires.NotNull(metadata, nameof(metadata));
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Composition
         /// Initializes a new instance of the <see cref="ImportDefinition"/> class
         /// based on MEF v1 attributes.
         /// </summary>
-        public ImportDefinition(string contractName, ImportCardinality cardinality, IReadOnlyDictionary<string, object> metadata, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints)
+        public ImportDefinition(string contractName, ImportCardinality cardinality, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints)
             : this(contractName, cardinality, metadata, additionalConstraints, ImmutableHashSet.Create<string>())
         {
         }
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public IReadOnlyCollection<string> ExportFactorySharingBoundaries { get; private set; }
 
-        public IReadOnlyDictionary<string, object> Metadata { get; private set; }
+        public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
         public IReadOnlyCollection<IImportSatisfiabilityConstraint> ExportConstraints
         {
@@ -81,12 +81,12 @@ namespace Microsoft.VisualStudio.Composition
             return this.ContractName.GetHashCode();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return this.Equals(obj as ImportDefinition);
         }
 
-        public bool Equals(ImportDefinition other)
+        public bool Equals(ImportDefinition? other)
         {
             if (other == null)
             {

@@ -7,13 +7,14 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.ComponentModel;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.ExceptionServices;
     using System.Threading;
     using Microsoft.VisualStudio.Composition.Reflection;
-    using DefaultMetadataType = System.Collections.Generic.IDictionary<string, object>;
+    using DefaultMetadataType = System.Collections.Generic.IDictionary<string, object?>;
 
     public abstract partial class ExportProvider : IDisposableObservable
     {
@@ -23,7 +24,7 @@ namespace Microsoft.VisualStudio.Composition
 
         internal static readonly ComposablePartDefinition ExportProviderPartDefinition = new ComposablePartDefinition(
             TypeRef.Get(typeof(ExportProviderAsExport), Resolver.DefaultInstance),
-            ImmutableDictionary<string, object>.Empty.Add(CompositionConstants.DgmlCategoryPartMetadataName, new[] { "VsMEFBuiltIn" }),
+            ImmutableDictionary<string, object?>.Empty.Add(CompositionConstants.DgmlCategoryPartMetadataName, new[] { "VsMEFBuiltIn" }),
             new[] { ExportProviderExportDefinition },
             ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
             ImmutableList<ImportDefinitionBinding>.Empty,
@@ -43,9 +44,9 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// A metadata template used by the generated code.
         /// </summary>
-        protected static readonly ImmutableDictionary<string, object> EmptyMetadata = ImmutableDictionary.Create<string, object>();
+        protected static readonly ImmutableDictionary<string, object?> EmptyMetadata = ImmutableDictionary.Create<string, object?>();
 
-        private static readonly Dictionary<Type, IReadOnlyDictionary<string, object>> GetMetadataViewDefaultsCache = new Dictionary<Type, IReadOnlyDictionary<string, object>>();
+        private static readonly Dictionary<Type, IReadOnlyDictionary<string, object?>> GetMetadataViewDefaultsCache = new Dictionary<Type, IReadOnlyDictionary<string, object?>>();
 
         private static readonly ImmutableDictionary<string, Dictionary<TypeRef, PartLifecycleTracker>> SharedInstantiatedPartsTemplate = ImmutableDictionary.Create<string, Dictionary<TypeRef, PartLifecycleTracker>>().Add(string.Empty, new Dictionary<TypeRef, PartLifecycleTracker>());
 
@@ -57,7 +58,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <remarks>
         /// This field is lazy to avoid a chicken-and-egg problem with initializing it in our constructor.
         /// </remarks>
-        private readonly Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>> metadataViewProviders;
+        private readonly Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object?>>>> metadataViewProviders;
 
         /// <summary>
         /// A map of shared boundary names to their shared instances.
@@ -104,7 +105,7 @@ namespace Microsoft.VisualStudio.Composition
             ImmutableDictionary<string, HashSet<IDisposable>> disposableInstantiatedSharedParts,
             ImmutableHashSet<string> freshSharingBoundaries,
             ImmutableDictionary<string, ExportProvider> sharingBoundaryExportProviderOwners,
-            Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>> inheritedMetadataViewProviders)
+            Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object?>>>>? inheritedMetadataViewProviders)
         {
             Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(sharedInstantiatedParts, nameof(sharedInstantiatedParts));
@@ -130,9 +131,9 @@ namespace Microsoft.VisualStudio.Composition
             var nonDisposableWrapper = (this as ExportProviderAsExport) ?? new ExportProviderAsExport(this);
             this.NonDisposableWrapper = LazyServices.FromValue<object>(nonDisposableWrapper);
             this.NonDisposableWrapperExportAsListOfOne = ImmutableList.Create(
-                new Export(ExportProviderExportDefinition, this.NonDisposableWrapper));
+                new Export(ExportProviderExportDefinition, this.NonDisposableWrapper!));
             this.metadataViewProviders = inheritedMetadataViewProviders
-                ?? new Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>>>(
+                ?? new Lazy<ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object?>>>>(
                     this.GetMetadataViewProviderExtensions);
         }
 
@@ -210,7 +211,7 @@ namespace Microsoft.VisualStudio.Composition
             Final,
         }
 
-        protected internal interface IMetadataDictionary : IDictionary<string, object>, IReadOnlyDictionary<string, object>
+        protected internal interface IMetadataDictionary : IDictionary<string, object?>, IReadOnlyDictionary<string, object?>
         {
         }
 
@@ -233,7 +234,7 @@ namespace Microsoft.VisualStudio.Composition
             return this.GetExport<T>(null);
         }
 
-        public Lazy<T> GetExport<T>(string contractName)
+        public Lazy<T> GetExport<T>(string? contractName)
         {
             return this.GetExport<T, DefaultMetadataType>(contractName);
         }
@@ -243,7 +244,7 @@ namespace Microsoft.VisualStudio.Composition
             return this.GetExport<T, TMetadataView>(null);
         }
 
-        public Lazy<T, TMetadataView> GetExport<T, TMetadataView>(string contractName)
+        public Lazy<T, TMetadataView> GetExport<T, TMetadataView>(string? contractName)
         {
             return this.GetExports<T, TMetadataView>(contractName, ImportCardinality.ExactlyOne).Single();
         }
@@ -253,7 +254,7 @@ namespace Microsoft.VisualStudio.Composition
             return this.GetExport<T>().Value;
         }
 
-        public T GetExportedValue<T>(string contractName)
+        public T GetExportedValue<T>(string? contractName)
         {
             return this.GetExport<T>(contractName).Value;
         }
@@ -263,7 +264,7 @@ namespace Microsoft.VisualStudio.Composition
             return this.GetExports<T>(null);
         }
 
-        public IEnumerable<Lazy<T>> GetExports<T>(string contractName)
+        public IEnumerable<Lazy<T>> GetExports<T>(string? contractName)
         {
             return this.GetExports<T, DefaultMetadataType>(contractName);
         }
@@ -273,16 +274,16 @@ namespace Microsoft.VisualStudio.Composition
             return this.GetExports<T, TMetadataView>(null);
         }
 
-        public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName)
+        public IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string? contractName)
         {
             return this.GetExports<T, TMetadataView>(contractName, ImportCardinality.ZeroOrMore);
         }
 
-        public IEnumerable<Lazy<object, object>> GetExports(Type type, Type metadataViewType, string contractName)
+        public IEnumerable<Lazy<object?, object>> GetExports(Type type, Type metadataViewType, string? contractName)
         {
             IEnumerable<Export> results = this.GetExports(contractName, ImportCardinality.ZeroOrMore, type, metadataViewType, out var metadataViewProvider);
 
-            return results.Select(result => new Lazy<object, object>(
+            return results.Select(result => new Lazy<object?, object>(
                 () => result.Value,
                 metadataViewProvider.CreateProxy(
                     result.Metadata,
@@ -296,12 +297,12 @@ namespace Microsoft.VisualStudio.Composition
             return this.GetExports<T>().Select(l => l.Value);
         }
 
-        public IEnumerable<T> GetExportedValues<T>(string contractName)
+        public IEnumerable<T> GetExportedValues<T>(string? contractName)
         {
             return this.GetExports<T>(contractName).Select(l => l.Value);
         }
 
-        public IEnumerable<object> GetExportedValues(Type type, string contractName)
+        public IEnumerable<object?> GetExportedValues(Type type, string? contractName)
         {
             IEnumerable<Export> results = this.GetExports(contractName, ImportCardinality.ZeroOrMore, type, typeof(DefaultMetadataType), out var metadataViewProvider);
             return results.Select(result => result.Value);
@@ -317,7 +318,7 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             bool isExportFactory = importDefinition.ContractName == CompositionConstants.PartCreatorContractName;
-            ImportDefinition exportFactoryImportDefinition = null;
+            ImportDefinition? exportFactoryImportDefinition = null;
             if (isExportFactory)
             {
                 // This is a runtime request for an ExportFactory<T>. This can happen for example when an object
@@ -326,13 +327,13 @@ namespace Microsoft.VisualStudio.Composition
                 // We must unwrap the nested import definition to unveil the actual export to be created
                 // by this export factory.
                 exportFactoryImportDefinition = importDefinition;
-                importDefinition = (ImportDefinition)importDefinition.Metadata[CompositionConstants.ExportFactoryProductImportDefinition];
+                importDefinition = (ImportDefinition)importDefinition.Metadata[CompositionConstants.ExportFactoryProductImportDefinition]!;
             }
 
             IEnumerable<ExportInfo> exportInfos = this.GetExportsCore(importDefinition);
 
-            string genericTypeDefinitionContractName;
-            Type[] genericTypeArguments;
+            string? genericTypeDefinitionContractName;
+            Type[]? genericTypeArguments;
             if (ComposableCatalog.TryGetOpenGenericExport(importDefinition, out genericTypeDefinitionContractName, out genericTypeArguments))
             {
                 var genericTypeImportDefinition = new ImportDefinition(genericTypeDefinitionContractName, importDefinition.Cardinality, importDefinition.Metadata, importDefinition.ExportConstraints);
@@ -346,9 +347,9 @@ namespace Microsoft.VisualStudio.Composition
                                       select export;
 
             IEnumerable<Export> exports;
-            if (isExportFactory)
+            if (exportFactoryImportDefinition is object)
             {
-                var exportFactoryType = (Type)exportFactoryImportDefinition.Metadata[CompositionConstants.ExportFactoryTypeMetadataName];
+                var exportFactoryType = (Type?)exportFactoryImportDefinition.Metadata[CompositionConstants.ExportFactoryTypeMetadataName]!;
                 exports = filteredExportInfos.Select(ei => this.CreateExportFactoryExport(ei, exportFactoryType));
             }
             else
@@ -475,7 +476,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 // Take care to give all disposal parts a chance to dispose
                 // even if some parts throw exceptions.
-                List<Exception> exceptions = null;
+                List<Exception>? exceptions = null;
                 foreach (var item in disposableSnapshot)
                 {
                     try
@@ -517,7 +518,7 @@ namespace Microsoft.VisualStudio.Composition
         /// prior to being exposed to the receiver; <c>false</c> if the export can be partially initialized when the receiver
         /// first observes it.
         /// </returns>
-        private protected static bool IsFullyInitializedExportRequiredWhenSettingImport(PartLifecycleTracker importingPartTracker, bool isLazy, bool isImportingConstructorArgument)
+        private protected static bool IsFullyInitializedExportRequiredWhenSettingImport(PartLifecycleTracker? importingPartTracker, bool isLazy, bool isImportingConstructorArgument)
         {
             // Only non-lazy importing properties can receive exports that are only partially initialized.
             return isLazy || isImportingConstructorArgument;
@@ -532,14 +533,14 @@ namespace Microsoft.VisualStudio.Composition
         /// </remarks>
         private protected abstract IEnumerable<ExportInfo> GetExportsCore(ImportDefinition importDefinition);
 
-        private protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object> exportMetadata, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, bool nonSharedInstanceRequired, MemberRef exportingMemberRef)
+        private protected ExportInfo CreateExport(ImportDefinition importDefinition, IReadOnlyDictionary<string, object?> exportMetadata, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string? partSharingBoundary, bool nonSharedInstanceRequired, MemberRef? exportingMemberRef)
         {
             Requires.NotNull(importDefinition, nameof(importDefinition));
             Requires.NotNull(exportMetadata, "metadata");
             Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
             Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
 
-            Func<(object Value, IDisposable NonSharedDisposalTracker)> memberValueFactory;
+            Func<(object? Value, IDisposable? NonSharedDisposalTracker)> memberValueFactory;
             if (exportingMemberRef == null)
             {
                 memberValueFactory = () =>
@@ -562,7 +563,7 @@ namespace Microsoft.VisualStudio.Composition
             return new ExportInfo(importDefinition.ContractName, exportMetadata, memberValueFactory, nonSharedInstanceRequired);
         }
 
-        protected object CreateExportFactory(Type importingSiteElementType, IReadOnlyCollection<string> sharingBoundaries, Func<KeyValuePair<object, IDisposable>> valueFactory, Type exportFactoryType, IReadOnlyDictionary<string, object> exportMetadata)
+        protected object CreateExportFactory(Type importingSiteElementType, IReadOnlyCollection<string> sharingBoundaries, Func<KeyValuePair<object?, IDisposable?>> valueFactory, Type exportFactoryType, IReadOnlyDictionary<string, object?> exportMetadata)
         {
             Requires.NotNull(importingSiteElementType, nameof(importingSiteElementType));
             Requires.NotNull(sharingBoundaries, nameof(sharingBoundaries));
@@ -581,13 +582,13 @@ namespace Microsoft.VisualStudio.Composition
 
             Func<object> factory = () =>
             {
-                KeyValuePair<object, IDisposable> constructedValueAndDisposable = valueFactory();
+                KeyValuePair<object?, IDisposable?> constructedValueAndDisposable = valueFactory();
 
-                using (var ctorArgs = ArrayRental<object>.Get(2))
+                using (var ctorArgs = ArrayRental<object?>.Get(2))
                 {
                     ctorArgs.Value[0] = constructedValueAndDisposable.Key;
                     ctorArgs.Value[1] = constructedValueAndDisposable.Value != null ? new Action(constructedValueAndDisposable.Value.Dispose) : null;
-                    return Activator.CreateInstance(tupleType, ctorArgs.Value);
+                    return Activator.CreateInstance(tupleType, ctorArgs.Value)!;
                 }
             };
 
@@ -614,7 +615,7 @@ namespace Microsoft.VisualStudio.Composition
                 () =>
                 {
                     var result = exportInfo.ExportedValueGetter();
-                    return new KeyValuePair<object, IDisposable>(result.Value, result.NonSharedDisposalTracker ?? result.Value as IDisposable);
+                    return new KeyValuePair<object?, IDisposable?>(result.Value, result.NonSharedDisposalTracker ?? result.Value as IDisposable);
                 },
                 exportFactoryType,
                 exportInfo.Definition.Metadata));
@@ -629,7 +630,7 @@ namespace Microsoft.VisualStudio.Composition
                 exportFactoryCreator);
         }
 
-        protected object GetStrongTypedMetadata(IReadOnlyDictionary<string, object> metadata, Type metadataType)
+        protected object GetStrongTypedMetadata(IReadOnlyDictionary<string, object?> metadata, Type metadataType)
         {
             Requires.NotNull(metadata, nameof(metadata));
             Requires.NotNull(metadataType, nameof(metadataType));
@@ -649,7 +650,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="importingSiteElementType">The type of the importing member, with ImportMany collections and Lazy/ExportFactory stripped away.</param>
         /// <param name="exportedValueType">The contractually exported value type.</param>
         /// <returns>The value of the member.</returns>
-        protected static object GetValueFromMember(object exportingPart, MemberInfo exportingMember, Type importingSiteElementType = null, Type exportedValueType = null)
+        protected static object? GetValueFromMember(object? exportingPart, MemberInfo exportingMember, Type? importingSiteElementType = null, Type? exportedValueType = null)
         {
             Requires.NotNull(exportingMember, nameof(exportingMember));
 
@@ -679,7 +680,7 @@ namespace Microsoft.VisualStudio.Composition
                     return method.Invoke(exportingPart, EmptyObjectArray);
                 }
 
-                object target = method.IsStatic ? null : exportingPart;
+                object? target = method.IsStatic ? null : exportingPart;
                 if (importingSiteElementType != null)
                 {
                     Type delegateType = typeof(Delegate).GetTypeInfo().IsAssignableFrom(importingSiteElementType.GetTypeInfo())
@@ -696,19 +697,19 @@ namespace Microsoft.VisualStudio.Composition
             throw new NotSupportedException();
         }
 
-        private protected PartLifecycleTracker GetOrCreateValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata, bool nonSharedInstanceRequired, PartLifecycleTracker nonSharedPartOwner)
+        private protected PartLifecycleTracker GetOrCreateValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string? partSharingBoundary, IReadOnlyDictionary<string, object?> importMetadata, bool nonSharedInstanceRequired, PartLifecycleTracker? nonSharedPartOwner)
         {
             return nonSharedInstanceRequired
                 ? this.CreateNewValue(originalPartTypeRef, constructedPartTypeRef, nonSharedInstanceRequired ? null : partSharingBoundary, importMetadata, nonSharedPartOwner)
-                : this.GetOrCreateShareableValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary, importMetadata);
+                : this.GetOrCreateShareableValue(originalPartTypeRef, constructedPartTypeRef, partSharingBoundary!, importMetadata);
         }
 
-        private protected PartLifecycleTracker GetOrCreateShareableValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata)
+        private protected PartLifecycleTracker GetOrCreateShareableValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object?> importMetadata)
         {
             Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
             Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
 
-            PartLifecycleTracker existingLifecycle;
+            PartLifecycleTracker? existingLifecycle;
             if (this.TryGetSharedInstanceFactory(partSharingBoundary, constructedPartTypeRef, out existingLifecycle))
             {
                 return existingLifecycle;
@@ -723,7 +724,7 @@ namespace Microsoft.VisualStudio.Composition
             return partLifecycle;
         }
 
-        private protected PartLifecycleTracker CreateNewValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string partSharingBoundary, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner)
+        private protected PartLifecycleTracker CreateNewValue(TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, string? partSharingBoundary, IReadOnlyDictionary<string, object?> importMetadata, PartLifecycleTracker? nonSharedPartOwner)
         {
             // Be careful to pass the export provider that owns the sharing boundary for this part into the value factory.
             // If we accidentally capture "this", then if this is a sub-scope ExportProvider and we're constructing
@@ -734,15 +735,14 @@ namespace Microsoft.VisualStudio.Composition
             return partLifecycle;
         }
 
-        internal abstract PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object> importMetadata, PartLifecycleTracker nonSharedPartOwner);
+        internal abstract PartLifecycleTracker CreatePartLifecycleTracker(TypeRef partType, IReadOnlyDictionary<string, object?> importMetadata, PartLifecycleTracker? nonSharedPartOwner);
 
-        private bool TryGetSharedInstanceFactory(string partSharingBoundary, TypeRef partTypeRef, out PartLifecycleTracker value)
+        private bool TryGetSharedInstanceFactory(string partSharingBoundary, TypeRef partTypeRef, [NotNullWhen(true)] out PartLifecycleTracker? value)
         {
             var sharingBoundary = this.AcquireSharingBoundaryInstances(partSharingBoundary);
             lock (sharingBoundary)
             {
-                bool result = sharingBoundary.TryGetValue(partTypeRef, out value);
-                return result;
+                return sharingBoundary.TryGetValue(partTypeRef, out value);
             }
         }
 
@@ -754,7 +754,7 @@ namespace Microsoft.VisualStudio.Composition
             var sharingBoundary = this.AcquireSharingBoundaryInstances(partSharingBoundary);
             lock (sharingBoundary)
             {
-                PartLifecycleTracker priorValue;
+                PartLifecycleTracker? priorValue;
                 if (sharingBoundary.TryGetValue(partTypeRef, out priorValue))
                 {
                     return priorValue;
@@ -776,7 +776,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <remarks>
         /// The values are tracked in a set, so calling this repeatedly with the same value is harmless.
         /// </remarks>
-        protected void TrackDisposableValue(IDisposable instantiatedPart, string sharingBoundary)
+        protected void TrackDisposableValue(IDisposable instantiatedPart, string? sharingBoundary)
         {
             Requires.NotNull(instantiatedPart, nameof(instantiatedPart));
 
@@ -816,11 +816,11 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         /// <param name="metadataView">The metadata view type.</param>
         /// <returns>A dictionary of default metadata values.</returns>
-        protected static IReadOnlyDictionary<string, object> GetMetadataViewDefaults(Type metadataView)
+        protected static IReadOnlyDictionary<string, object?> GetMetadataViewDefaults(Type metadataView)
         {
             Requires.NotNull(metadataView, nameof(metadataView));
 
-            IReadOnlyDictionary<string, object> result;
+            IReadOnlyDictionary<string, object?>? result;
             lock (GetMetadataViewDefaultsCache)
             {
                 GetMetadataViewDefaultsCache.TryGetValue(metadataView, out result);
@@ -828,9 +828,9 @@ namespace Microsoft.VisualStudio.Composition
 
             if (result == null)
             {
-                if (metadataView.GetTypeInfo().IsClass || (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object>))))
+                if (metadataView.GetTypeInfo().IsClass || (metadataView.GetTypeInfo().IsInterface && !metadataView.Equals(typeof(IDictionary<string, object?>))))
                 {
-                    var metadataBuilder = ImmutableDictionary.CreateBuilder<string, object>();
+                    var metadataBuilder = ImmutableDictionary.CreateBuilder<string, object?>();
                     foreach (var property in metadataView.EnumProperties().WherePublicInstance())
                     {
                         if (!metadataBuilder.ContainsKey(property.Name))
@@ -847,7 +847,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
                 else
                 {
-                    result = ImmutableDictionary<string, object>.Empty;
+                    result = ImmutableDictionary<string, object?>.Empty;
                 }
 
                 lock (GetMetadataViewDefaultsCache)
@@ -859,20 +859,21 @@ namespace Microsoft.VisualStudio.Composition
             return result;
         }
 
-        internal static int GetOrderMetadata(IReadOnlyDictionary<string, object> metadata)
+        internal static int GetOrderMetadata(IReadOnlyDictionary<string, object?> metadata)
         {
             Requires.NotNull(metadata, nameof(metadata));
 
-            object value = metadata.GetValueOrDefault("OrderPrecedence");
+            object? value = metadata.GetValueOrDefault("OrderPrecedence");
             return value is int ? (int)value : 0;
         }
 
-        private static T CastValueTo<T>(object value)
+        [return: MaybeNull]
+        private static T CastValueTo<T>(object? value)
         {
             if (value is ExportedDelegate && typeof(Delegate).GetTypeInfo().IsAssignableFrom(typeof(T)))
             {
                 var exportedDelegate = (ExportedDelegate)value;
-                return (T)(object)exportedDelegate.CreateDelegate(typeof(T));
+                return (T)(object?)exportedDelegate.CreateDelegate(typeof(T));
             }
             else
             {
@@ -880,7 +881,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string contractName, ImportCardinality cardinality)
+        private IEnumerable<Lazy<T, TMetadataView>> GetExports<T, TMetadataView>(string? contractName, ImportCardinality cardinality)
         {
             var results = this.GetExports(contractName, cardinality, typeof(T), typeof(TMetadataView), out var metadataViewProvider);
 
@@ -890,7 +891,7 @@ namespace Microsoft.VisualStudio.Composition
                     export.Metadata,
                     GetMetadataViewDefaults(typeof(TMetadataView)),
                     typeof(TMetadataView));
-                Func<T> factory = () => CastValueTo<T>(export.Value);
+                Func<T> factory = () => CastValueTo<T>(export.Value)!; // may be null, but C# 8 doesn't allow us to indiciate `T?` when T is unconstrained.
                 if (export is NonSharedExport disposableExport)
                 {
                     return new NonSharedLazy<T, TMetadataView>(factory, metadata, disposableExport);
@@ -904,13 +905,13 @@ namespace Microsoft.VisualStudio.Composition
             return results.Select(export => CreateLazy(export, metadataViewProvider)).ToArray();
         }
 
-        private IEnumerable<Export> GetExports(string contractName, ImportCardinality cardinality, Type type, Type metadataViewType, out IMetadataViewProvider metadataViewProvider)
+        private IEnumerable<Export> GetExports(string? contractName, ImportCardinality cardinality, Type type, Type metadataViewType, out IMetadataViewProvider metadataViewProvider)
         {
             Requires.NotNull(type, nameof(type));
             Requires.NotNull(metadataViewType, nameof(metadataViewType));
             Verify.NotDisposed(this);
 
-            contractName = string.IsNullOrEmpty(contractName) ? ContractNameServices.GetTypeIdentity(type) : contractName;
+            contractName = string.IsNullOrEmpty(contractName) ? ContractNameServices.GetTypeIdentity(type) : contractName!;
             metadataViewProvider = this.GetMetadataViewProvider(metadataViewType);
             var constraints = ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty
                 .Union(PartDiscovery.GetExportTypeIdentityConstraints(type));
@@ -925,16 +926,16 @@ namespace Microsoft.VisualStudio.Composition
             return this.GetExports(importDefinition);
         }
 
-        private ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>> GetMetadataViewProviderExtensions()
+        private ImmutableArray<Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object?>>> GetMetadataViewProviderExtensions()
         {
             var importDefinition = new ImportDefinition(
                 ContractNameServices.GetTypeIdentity(typeof(IMetadataViewProvider)),
                 ImportCardinality.ZeroOrMore,
-                ImmutableDictionary<string, object>.Empty,
+                ImmutableDictionary<string, object?>.Empty,
                 ImmutableHashSet<IImportSatisfiabilityConstraint>.Empty);
             var extensions = from export in this.GetExports(importDefinition)
                              orderby GetOrderMetadata(export.Metadata) descending
-                             select new Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object>>(() => (IMetadataViewProvider)export.Value, export.Metadata);
+                             select new Lazy<IMetadataViewProvider, IReadOnlyDictionary<string, object?>>(() => (IMetadataViewProvider)export.Value!, export.Metadata);
             var result = ImmutableArray.CreateRange(extensions);
             return result;
         }
@@ -949,7 +950,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(metadataView, nameof(metadataView));
 
-            IMetadataViewProvider metadataViewProvider;
+            IMetadataViewProvider? metadataViewProvider;
             lock (this.typeAndSelectedMetadataViewProviderCache)
             {
                 this.typeAndSelectedMetadataViewProviderCache.TryGetValue(metadataView, out metadataViewProvider);
@@ -990,7 +991,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(sharingBoundaryName, nameof(sharingBoundaryName));
 
-            var sharingBoundary = this.sharedInstantiatedParts.GetValueOrDefault(sharingBoundaryName);
+            var sharingBoundary = this.sharedInstantiatedParts.GetValueOrDefault(sharingBoundaryName, null);
             if (sharingBoundary == null)
             {
                 // This means someone is trying to create a part
@@ -1004,18 +1005,18 @@ namespace Microsoft.VisualStudio.Composition
         [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
         private protected struct ExportInfo
         {
-            public ExportInfo(string contractName, IReadOnlyDictionary<string, object> metadata, Func<(object Value, IDisposable NonSharedDisposalTracker)> exportedValueGetter)
+            public ExportInfo(string contractName, IReadOnlyDictionary<string, object?> metadata, Func<(object? Value, IDisposable? NonSharedDisposalTracker)> exportedValueGetter)
                 : this(new ExportDefinition(contractName, metadata), exportedValueGetter)
             {
             }
 
-            public ExportInfo(string contractName, IReadOnlyDictionary<string, object> metadata, Func<(object Value, IDisposable NonSharedDisposalTracker)> exportedValueGetter, bool hasNonSharedLifetime)
+            public ExportInfo(string contractName, IReadOnlyDictionary<string, object?> metadata, Func<(object? Value, IDisposable? NonSharedDisposalTracker)> exportedValueGetter, bool hasNonSharedLifetime)
                 : this(new ExportDefinition(contractName, metadata), exportedValueGetter)
             {
                 this.HasNonSharedLifetime = hasNonSharedLifetime;
             }
 
-            public ExportInfo(ExportDefinition exportDefinition, Func<(object Value, IDisposable NonSharedDisposalTracker)> exportedValueGetter)
+            public ExportInfo(ExportDefinition exportDefinition, Func<(object? Value, IDisposable? NonSharedDisposalTracker)> exportedValueGetter)
                 : this()
             {
                 Requires.NotNull(exportDefinition, nameof(exportDefinition));
@@ -1030,7 +1031,7 @@ namespace Microsoft.VisualStudio.Composition
             /// <summary>
             /// Gets a function that returns the exported value.
             /// </summary>
-            public Func<(object Value, IDisposable NonSharedDisposalTracker)> ExportedValueGetter { get; }
+            public Func<(object? Value, IDisposable? NonSharedDisposalTracker)> ExportedValueGetter { get; }
 
             /// <summary>
             /// Gets a value indicating whether <see cref="ExportedValueGetter"/> will produce a value that must be disposed of if <see cref="ReleaseExport(Export)"/> is invoked.
@@ -1043,7 +1044,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 Requires.NotNull(genericTypeArguments, nameof(genericTypeArguments));
 
-                string openGenericExportTypeIdentity = (string)this.Definition.Metadata[CompositionConstants.ExportTypeIdentityMetadataName];
+                string openGenericExportTypeIdentity = (string)this.Definition.Metadata[CompositionConstants.ExportTypeIdentityMetadataName]!;
                 string genericTypeDefinitionIdentityPattern = openGenericExportTypeIdentity;
                 string[] genericTypeArgumentIdentities = genericTypeArguments.Select(ContractNameServices.GetTypeIdentity).ToArray();
                 string closedTypeIdentity = string.Format(CultureInfo.InvariantCulture, genericTypeDefinitionIdentityPattern, genericTypeArgumentIdentities);
@@ -1072,7 +1073,7 @@ namespace Microsoft.VisualStudio.Composition
             /// <summary>
             /// The sharing boundary that the MEF part this tracker is associated with belongs to.
             /// </summary>
-            private readonly string sharingBoundary;
+            private readonly string? sharingBoundary;
 
             /// <summary>
             /// A value indicating whether this instance has been disposed of.
@@ -1082,7 +1083,7 @@ namespace Microsoft.VisualStudio.Composition
             /// <summary>
             /// Backing field for the <see cref="Value"/> property.
             /// </summary>
-            private object value;
+            private object? value;
 
             /// <summary>
             /// A collection of all immediate imports (property and constructor) as they are satisfied
@@ -1095,17 +1096,17 @@ namespace Microsoft.VisualStudio.Composition
             /// occur on a single thread. It is then enumerated from <see cref="MoveToStateTransitively"/>
             /// which *may* be invoked from multiple threads.
             /// </remarks>
-            private HashSet<PartLifecycleTracker> deferredInitializationParts;
+            private HashSet<PartLifecycleTracker>? deferredInitializationParts;
 
             /// <summary>
             /// A lazily-initialized collection of all transitive non-shared parts that should be disposed with this non-shared part.
             /// </summary>
-            private HashSet<PartLifecycleTracker> nonSharedChildParts;
+            private HashSet<PartLifecycleTracker>? nonSharedChildParts;
 
             /// <summary>
             /// The non-shared part that imported this non-shared part.
             /// </summary>
-            private PartLifecycleTracker nonSharedPartOwner;
+            private PartLifecycleTracker? nonSharedPartOwner;
 
             /// <summary>
             /// The managed thread ID of the thread that is currently executing a particular step.
@@ -1123,14 +1124,14 @@ namespace Microsoft.VisualStudio.Composition
             /// <summary>
             /// Stores any exception captured during initialization.
             /// </summary>
-            private Exception fault;
+            private Exception? fault;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="PartLifecycleTracker"/> class.
             /// </summary>
             /// <param name="owningExportProvider">The ExportProvider that owns the lifetime and sharing boundaries for the part to be instantiated.</param>
             /// <param name="sharingBoundary">The sharing boundary the part belongs to.</param>
-            public PartLifecycleTracker(ExportProvider owningExportProvider, string sharingBoundary)
+            public PartLifecycleTracker(ExportProvider owningExportProvider, string? sharingBoundary)
             {
                 Requires.NotNull(owningExportProvider, nameof(owningExportProvider));
 
@@ -1157,7 +1158,7 @@ namespace Microsoft.VisualStudio.Composition
             /// <summary>
             /// Gets or sets the instantiated part, if applicable and after it has been created. Otherwise <c>null</c>.
             /// </summary>
-            public object Value
+            public object? Value
             {
                 get
                 {
@@ -1197,7 +1198,7 @@ namespace Microsoft.VisualStudio.Composition
             /// simply return the value as-is rather than deadlock or throw.
             /// This allows certain spec'd MEF behaviors to work.
             /// </remarks>
-            public object GetValueReadyToExpose()
+            public object? GetValueReadyToExpose()
             {
                 // If this very thread is already executing a step on this part, then we have some
                 // form of reentrancy going on. In which case, the general policy seems to be that
@@ -1219,7 +1220,7 @@ namespace Microsoft.VisualStudio.Composition
             /// Gets the instance of the part after instantiating it.
             /// Importing properties may not have been satisfied yet.
             /// </summary>
-            public object GetValueReadyToRetrieveExportingMembers()
+            public object? GetValueReadyToRetrieveExportingMembers()
             {
                 this.MoveToState(PartLifecycleState.Created);
                 return this.Value;
@@ -1237,14 +1238,14 @@ namespace Microsoft.VisualStudio.Composition
                     this.OwningExportProvider.ReleaseNonSharedPart(this);
                 }
 
-                IDisposable disposableValue = this.value as IDisposable;
+                IDisposable? disposableValue = this.value as IDisposable;
                 this.value = null;
                 if (disposableValue is object)
                 {
                     disposableValue.Dispose();
                 }
 
-                HashSet<PartLifecycleTracker> nonSharedChildParts;
+                HashSet<PartLifecycleTracker>? nonSharedChildParts;
                 lock (this.syncObject)
                 {
                     nonSharedChildParts = this.nonSharedChildParts;
@@ -1264,7 +1265,7 @@ namespace Microsoft.VisualStudio.Composition
             /// Instantiates the MEF part and initializes it only so much as executing its importing constructor.
             /// </summary>
             /// <returns>The instantiated MEF part.</returns>
-            protected abstract object CreateValue();
+            protected abstract object? CreateValue();
 
             /// <summary>
             /// Satisfies importing members on the MEF part itself.
@@ -1290,6 +1291,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     lock (this.syncObject)
                     {
+                        Assumes.NotNull(this.deferredInitializationParts);
                         this.deferredInitializationParts.Add(importedPart);
                     }
                 }
@@ -1301,7 +1303,7 @@ namespace Microsoft.VisualStudio.Composition
             protected void ThrowPartNotInstantiableException()
             {
                 Type partType = this.PartType;
-                string partTypeName = partType != null ? partType.FullName : string.Empty;
+                string? partTypeName = partType != null ? partType.FullName : string.Empty;
                 throw new CompositionFailedException(string.Format(CultureInfo.CurrentCulture, Strings.PartIsNotInstantiable, partTypeName));
             }
 
@@ -1349,7 +1351,7 @@ namespace Microsoft.VisualStudio.Composition
                     try
                     {
                         this.executingStepThreadId = Environment.CurrentManagedThreadId;
-                        object value = this.CreateValue();
+                        object? value = this.CreateValue();
 
                         lock (this.syncObject)
                         {
@@ -1546,7 +1548,7 @@ namespace Microsoft.VisualStudio.Composition
             /// It also identifies all related parts so they can be "stamped" as being transitively initialized.
             /// This MUST be <c>null</c> for non-recursive calls.
             /// </param>
-            private void MoveToStateTransitively(PartLifecycleState requiredState, HashSet<PartLifecycleTracker> visitedNodes = null)
+            private void MoveToStateTransitively(PartLifecycleState requiredState, HashSet<PartLifecycleTracker>? visitedNodes = null)
             {
                 try
                 {

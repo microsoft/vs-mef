@@ -110,13 +110,13 @@ namespace Microsoft.VisualStudio.Composition
                     this.Write(partDefinition.OnImportsSatisfiedRef);
                     if (partDefinition.ImportingConstructorOrFactoryRef == null)
                     {
-                        this.writer.Write(false);
+                        this.writer!.Write(false);
                     }
                     else
                     {
-                        this.writer.Write(true);
+                        this.writer!.Write(true);
                         this.Write(partDefinition.ImportingConstructorOrFactoryRef);
-                        this.Write(partDefinition.ImportingConstructorImports, this.Write);
+                        this.Write(partDefinition.ImportingConstructorImports!, this.Write);
                     }
 
                     this.Write(partDefinition.CreationPolicy);
@@ -128,14 +128,14 @@ namespace Microsoft.VisualStudio.Composition
             {
                 using (this.Trace(nameof(ComposablePartDefinition)))
                 {
-                    var partType = this.ReadTypeRef();
+                    var partType = this.ReadTypeRef()!;
                     var partMetadata = this.ReadMetadata();
                     var exportedTypes = this.ReadList(this.ReadExportDefinition);
                     var exportingMembers = ImmutableDictionary.CreateBuilder<MemberRef, IReadOnlyCollection<ExportDefinition>>();
                     uint exportedMembersCount = this.ReadCompressedUInt();
                     for (int i = 0; i < exportedMembersCount; i++)
                     {
-                        var member = this.ReadMemberRef();
+                        var member = this.ReadMemberRef()!;
                         var exports = this.ReadList(this.ReadExportDefinition);
                         exportingMembers.Add(member, exports);
                     }
@@ -144,9 +144,9 @@ namespace Microsoft.VisualStudio.Composition
                     var sharingBoundary = this.ReadString();
                     var onImportsSatisfied = this.ReadMethodRef();
 
-                    MethodRef importingConstructor = default(MethodRef);
-                    IReadOnlyList<ImportDefinitionBinding> importingConstructorImports = null;
-                    if (this.reader.ReadBoolean())
+                    MethodRef? importingConstructor = default(MethodRef);
+                    IReadOnlyList<ImportDefinitionBinding>? importingConstructorImports = null;
+                    if (this.reader!.ReadBoolean())
                     {
                         importingConstructor = this.ReadMethodRef();
                         importingConstructorImports = this.ReadList(this.ReadImportDefinitionBinding);
@@ -175,7 +175,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 using (this.Trace(nameof(CreationPolicy)))
                 {
-                    this.writer.Write((byte)creationPolicy);
+                    this.writer!.Write((byte)creationPolicy);
                 }
             }
 
@@ -183,7 +183,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 using (this.Trace(nameof(CreationPolicy)))
                 {
-                    return (CreationPolicy)this.reader.ReadByte();
+                    return (CreationPolicy)this.reader!.ReadByte();
                 }
             }
 
@@ -200,7 +200,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 using (this.Trace(nameof(ExportDefinition)))
                 {
-                    var contractName = this.ReadString();
+                    var contractName = this.ReadString()!;
                     var metadata = this.ReadMetadata();
                     return new ExportDefinition(contractName, metadata);
                 }
@@ -222,12 +222,12 @@ namespace Microsoft.VisualStudio.Composition
             {
                 using (this.Trace(nameof(ImportDefinition)))
                 {
-                    var contractName = this.ReadString();
+                    var contractName = this.ReadString()!;
                     var cardinality = this.ReadImportCardinality();
                     var metadata = this.ReadMetadata();
                     var constraints = this.ReadList(this.ReadIImportSatisfiabilityConstraint);
                     var sharingBoundaries = this.ReadList(this.ReadString);
-                    return new ImportDefinition(contractName, cardinality, metadata, constraints, sharingBoundaries);
+                    return new ImportDefinition(contractName, cardinality, metadata, constraints!, sharingBoundaries!);
                 }
             }
 
@@ -242,12 +242,12 @@ namespace Microsoft.VisualStudio.Composition
 
                     if (importDefinitionBinding.ImportingMemberRef == null)
                     {
-                        this.writer.Write(false);
+                        this.writer!.Write(false);
                         this.Write(importDefinitionBinding.ImportingParameterRef);
                     }
                     else
                     {
-                        this.writer.Write(true);
+                        this.writer!.Write(true);
                         this.Write(importDefinitionBinding.ImportingMemberRef);
                     }
                 }
@@ -258,21 +258,21 @@ namespace Microsoft.VisualStudio.Composition
                 using (this.Trace(nameof(ImportDefinitionBinding)))
                 {
                     var importDefinition = this.ReadImportDefinition();
-                    var part = this.ReadTypeRef();
-                    var importingSiteTypeRef = this.ReadTypeRef();
-                    var importingSiteTypeWithoutCollectionRef = this.ReadTypeRef();
+                    var part = this.ReadTypeRef()!;
+                    var importingSiteTypeRef = this.ReadTypeRef()!;
+                    var importingSiteTypeWithoutCollectionRef = this.ReadTypeRef()!;
 
-                    MemberRef member;
-                    ParameterRef parameter;
-                    bool isMember = this.reader.ReadBoolean();
+                    MemberRef? member;
+                    ParameterRef? parameter;
+                    bool isMember = this.reader!.ReadBoolean();
                     if (isMember)
                     {
-                        member = this.ReadMemberRef();
+                        member = this.ReadMemberRef()!;
                         return new ImportDefinitionBinding(importDefinition, part, member, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
                     }
                     else
                     {
-                        parameter = this.ReadParameterRef();
+                        parameter = this.ReadParameterRef()!;
                         return new ImportDefinitionBinding(importDefinition, part, parameter, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
                     }
                 }
@@ -304,7 +304,7 @@ namespace Microsoft.VisualStudio.Composition
                         throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.ImportConstraintTypeNotSupported, importConstraint.GetType().FullName));
                     }
 
-                    this.writer.Write((byte)type);
+                    this.writer!.Write((byte)type);
                     switch (type)
                     {
                         case ConstraintTypes.ImportMetadataViewConstraint:
@@ -337,11 +337,11 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            private IImportSatisfiabilityConstraint ReadIImportSatisfiabilityConstraint()
+            private IImportSatisfiabilityConstraint? ReadIImportSatisfiabilityConstraint()
             {
                 using (this.Trace(nameof(IImportSatisfiabilityConstraint)))
                 {
-                    var type = (ConstraintTypes)this.reader.ReadByte();
+                    var type = (ConstraintTypes)this.reader!.ReadByte();
                     switch (type)
                     {
                         case ConstraintTypes.ImportMetadataViewConstraint:
@@ -349,23 +349,23 @@ namespace Microsoft.VisualStudio.Composition
                             var requirements = ImmutableDictionary.CreateBuilder<string, ImportMetadataViewConstraint.MetadatumRequirement>();
                             for (int i = 0; i < count; i++)
                             {
-                                var name = this.ReadString();
-                                var valueTypeRef = this.ReadTypeRef();
+                                var name = this.ReadString()!;
+                                var valueTypeRef = this.ReadTypeRef()!;
                                 var isRequired = this.reader.ReadBoolean();
                                 requirements.Add(name, new ImportMetadataViewConstraint.MetadatumRequirement(valueTypeRef, isRequired));
                             }
 
                             return new ImportMetadataViewConstraint(requirements.ToImmutable(), this.Resolver);
                         case ConstraintTypes.ExportTypeIdentityConstraint:
-                            string exportTypeIdentity = this.ReadString();
+                            string? exportTypeIdentity = this.ReadString()!;
                             return new ExportTypeIdentityConstraint(exportTypeIdentity);
                         case ConstraintTypes.PartCreationPolicyConstraint:
                             CreationPolicy creationPolicy = this.ReadCreationPolicy();
                             return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy);
                         case ConstraintTypes.ExportMetadataValueImportConstraint:
                             {
-                                string name = this.ReadString();
-                                object value = this.ReadObject();
+                                string? name = this.ReadString()!;
+                                object? value = this.ReadObject();
                                 return new ExportMetadataValueImportConstraint(name, value);
                             }
 

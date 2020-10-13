@@ -168,30 +168,30 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartImportingNonInstantiablePartExports
         {
             [MefV1.Import("Field")]
-            public Lazy<string, IDictionary<string, object>> FieldImportingMember { get; set; }
+            public Lazy<string, IDictionary<string, object>> FieldImportingMember { get; set; } = null!;
 
             [MefV1.Import("Property")]
-            public Lazy<string, IDictionary<string, object>> PropertyImportingMember { get; set; }
+            public Lazy<string, IDictionary<string, object>> PropertyImportingMember { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class ImportingPart
         {
             [MefV1.Import("Property")]
-            public string ImportOfProperty { get; set; }
+            public string ImportOfProperty { get; set; } = null!;
 
             [MefV1.Import("Field", AllowDefault = true)]
-            public string ImportOfField { get; set; }
+            public string ImportOfField { get; set; } = null!;
 
             [MefV1.Import("Method", AllowDefault = true)]
-            public Func<string> ImportOfMethod { get; set; }
+            public Func<string> ImportOfMethod { get; set; } = null!;
         }
 
         [MefV1.Export]
         public class ImportManyWithMetadataPart
         {
             [MefV1.ImportMany("Property")]
-            public List<Lazy<string, IDictionary<string, object>>> ImportingMember { get; set; }
+            public List<Lazy<string, IDictionary<string, object>>> ImportingMember { get; set; } = null!;
         }
     }
 }

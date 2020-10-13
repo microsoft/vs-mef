@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.Export(typeof(Tree<Apple>))]
         public class Tree<T>
         {
-            public List<T> Fruit { get; set; }
+            public List<T>? Fruit { get; set; }
         }
 
         public class Apple { }

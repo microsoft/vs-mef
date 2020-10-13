@@ -39,34 +39,34 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class SharedA
         {
             [Import, SharingBoundary("B")]
-            public ExportFactory<NonSharedNeedsBothBoundaries> FactoryB { get; set; }
+            public ExportFactory<NonSharedNeedsBothBoundaries> FactoryB { get; set; } = null!;
         }
 
         [Export, Shared("B")]
         public class SharedB
         {
             [Import, SharingBoundary("A")]
-            public ExportFactory<NonSharedNeedsBothBoundaries> FactoryA { get; set; }
+            public ExportFactory<NonSharedNeedsBothBoundaries> FactoryA { get; set; } = null!;
         }
 
         [Export]
         public class NonSharedNeedsBothBoundaries
         {
             [Import]
-            public SharedA A { get; set; }
+            public SharedA A { get; set; } = null!;
 
             [Import]
-            public SharedB B { get; set; }
+            public SharedB B { get; set; } = null!;
         }
 
         [Export]
         public class Root
         {
             [Import, SharingBoundary("A")]
-            public ExportFactory<SharedA> FactoryA { get; set; }
+            public ExportFactory<SharedA> FactoryA { get; set; } = null!;
 
             [Import, SharingBoundary("B")]
-            public ExportFactory<SharedB> FactoryB { get; set; }
+            public ExportFactory<SharedB> FactoryB { get; set; } = null!;
         }
     }
 }
