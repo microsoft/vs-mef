@@ -6,15 +6,35 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics.CodeAnalysis;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     internal static class Utilities
     {
+        private const string CompositionErrorHeaderFormat = "----- CompositionError level {0} ------";
+
+        internal static void WriteErrors(TextWriter textWriter, IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> errorStack)
+        {
+            int level = 1;
+            foreach (IReadOnlyCollection<ComposedPartDiagnostic> errors in errorStack)
+            {
+                textWriter.WriteLine(string.Format(CultureInfo.CurrentCulture, CompositionErrorHeaderFormat, level++));
+                foreach (ComposedPartDiagnostic error in errors)
+                {
+                    textWriter.WriteLine(error.Message);
+                    foreach (ComposedPart part in error.Parts)
+                    {
+                        textWriter.WriteLine(string.Format(CultureInfo.CurrentCulture, "   part definition {0}", part.Definition.Type));
+                    }
+
+                    textWriter.WriteLine();
+                }
+            }
+        }
+
         internal static ComposablePartDefinition GetMetadataViewProviderPartDefinition(Type providerType, int orderPrecedence, Resolver resolver)
         {
             Requires.NotNull(providerType, nameof(providerType));
