@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
     public class CompositionFailedExceptionTests
     {
-        [Fact(Skip = "Not yet implemented.")]
+        [Fact]
         public void ExceptionIsSerializable()
         {
             var discovery = TestUtilities.V2Discovery;
@@ -39,10 +39,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
             ms.Position = 0;
             var actual = (CompositionFailedException)formatter.Deserialize(ms);
             Assert.Equal(exception!.Message, actual.Message);
-            Assert.NotNull(actual.Errors);
-            Assert.False(actual.Errors!.IsEmpty);
-            Assert.Equal(1, actual.Errors.Peek().Count);
-            Assert.Equal(exception.Errors!.Peek().Single().Message, actual.Errors.Peek().Single().Message);
+
+            Assert.Equal(exception.ErrorsAsString, actual.ErrorsAsString);
+
+            // At present, we do not implement serialization of the Errors collection.
+            Assert.Null(actual.Errors);
+            ////Assert.False(actual.Errors!.IsEmpty);
+            ////Assert.Equal(1, actual.Errors.Peek().Count);
+            ////Assert.Equal(exception.Errors!.Peek().Single().Message, actual.Errors.Peek().Single().Message);
         }
 
         [Export]
