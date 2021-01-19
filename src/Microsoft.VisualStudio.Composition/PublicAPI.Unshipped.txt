@@ -5,4 +5,6 @@ Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExport<T>(System.Lazy<T
 Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExports(System.Collections.Generic.IEnumerable<Microsoft.VisualStudio.Composition.Export!>! exports) -> void
 Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExports<T, TMetadataView>(System.Collections.Generic.IEnumerable<System.Lazy<T, TMetadataView>!>! exports) -> void
 Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExports<T>(System.Collections.Generic.IEnumerable<System.Lazy<T>!>! exports) -> void
+Microsoft.VisualStudio.Composition.PartDiscoveryException.PartDiscoveryException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
 override Microsoft.VisualStudio.Composition.CompositionFailedException.GetObjectData(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
+override Microsoft.VisualStudio.Composition.PartDiscoveryException.GetObjectData(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
