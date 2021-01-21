@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace Microsoft.VisualStudio.Composition.Tests
 {
@@ -259,7 +260,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public ImportManyArrayLazyWithMetadataConstructorPart([MefV1.ImportMany] Lazy<IRandomExport, FeatureMetadata>[] exports)
             {
                 Assert.NotNull(exports);
-                Assert.Equal(1, exports.Count());
+                Assert.Equal(1, exports.Length);
                 Assert.Equal("1", exports.First().Metadata.SomeMetadata);
                 Assert.IsType<RandomExport>(exports.First().Value);
             }
@@ -278,7 +279,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public ImportManyCollectionLazyWithMetadataConstructorPart([MefV1.ImportMany] Collection<Lazy<IRandomExport, FeatureMetadata>> exports)
             {
                 Assert.NotNull(exports);
-                Assert.Equal(1, exports.Count());
+                Assert.Equal(1, exports.Count);
                 Assert.Equal("1", exports.First().Metadata.SomeMetadata);
                 Assert.IsType<RandomExport>(exports.First().Value);
             }

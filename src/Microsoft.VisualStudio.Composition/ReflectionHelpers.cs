@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace Microsoft.VisualStudio.Composition
 {
@@ -106,6 +107,10 @@ namespace Microsoft.VisualStudio.Composition
                     return Assignability.Definitely;
                 }
                 catch (ArgumentException)
+                {
+                    return Assignability.DefinitelyNot;
+                }
+                catch (TargetParameterCountException)
                 {
                     return Assignability.DefinitelyNot;
                 }

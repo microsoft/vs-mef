@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace Microsoft.VisualStudio.Composition
 {
@@ -181,13 +182,14 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(import, nameof(import));
 
+            var memberName = import.ImportingParameter is object ? ("ctor(" + import.ImportingParameter.Name + ")") :
+                             import.ImportingMemberRef is object ? import.ImportingMemberRef.Name :
+                             "(unknown)";
             return string.Format(
                 CultureInfo.CurrentCulture,
                 "{0}.{1}",
                 import.ComposablePartType.FullName,
-                import.ImportingParameter is object ? ("ctor(" + import.ImportingParameter.Name + ")") :
-                import.ImportingMemberRef is object ? import.ImportingMemberRef.Name :
-                "(unknown)");
+                memberName);
         }
 
         private static string? GetDiagnosticLocation(ExportDefinitionBinding export)

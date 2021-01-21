@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace Microsoft.VisualStudio.Composition.Reflection
 {
@@ -418,7 +419,9 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
             else
             {
+#pragma warning disable CA2208 // Instantiate argument exceptions correctly
                 throw new ArgumentException();
+#pragma warning restore CA2208 // Instantiate argument exceptions correctly
             }
         }
 

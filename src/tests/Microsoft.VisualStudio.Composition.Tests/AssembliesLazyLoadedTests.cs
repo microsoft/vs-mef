@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 #if NETFRAMEWORK
 
@@ -24,7 +25,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
     {
         private ICompositionCacheManager cacheManager;
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private TempFileCollection tfc;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         protected AssembliesLazyLoadedTests(ICompositionCacheManager cacheManager)
         {
@@ -79,9 +82,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public async Task CatalogGetInputAssembliesDoesNotLoadLazyExports()
         {
+            SkipOnMono();
             var catalog = TestUtilities.EmptyCatalog.AddParts(
                 await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExternalExportWithExternalMetadataType), typeof(ExternalExportWithExternalMetadataTypeArray), typeof(ExternalExportWithExternalMetadataEnum32)));
             var catalogCache = await this.SaveCatalogAsync(catalog);

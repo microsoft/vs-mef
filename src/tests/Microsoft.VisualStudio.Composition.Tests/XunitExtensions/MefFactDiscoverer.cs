@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace Microsoft.VisualStudio.Composition.Tests
 {
@@ -131,7 +132,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
                 else
                 {
-                    var v3DiscoveryTest = new Mef3DiscoveryTestCaseRunner(this, "V3 composition", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, this.compositionVersions, this.parts ?? new Type[0], this.assemblies ?? ImmutableList<string>.Empty, this.invalidConfiguration);
+                    var v3DiscoveryTest = new Mef3DiscoveryTestCaseRunner(this, "V3 composition", null, constructorArguments, messageBus, aggregator, cancellationTokenSource, this.compositionVersions, this.parts ?? Array.Empty<Type>(), this.assemblies ?? ImmutableList<string>.Empty, this.invalidConfiguration);
                     runSummary.Aggregate(await v3DiscoveryTest.RunAsync());
 
                     if (v3DiscoveryTest.Passed && (!this.invalidConfiguration || this.compositionVersions.HasFlag(CompositionEngines.V3AllowConfigurationWithErrors)))

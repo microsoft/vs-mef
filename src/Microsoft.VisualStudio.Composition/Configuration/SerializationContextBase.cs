@@ -1,4 +1,7 @@
-﻿#if DEBUG
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+#if DEBUG
 ////#define TRACESTATS
 ////#define TRACESERIALIZATION
 #endif

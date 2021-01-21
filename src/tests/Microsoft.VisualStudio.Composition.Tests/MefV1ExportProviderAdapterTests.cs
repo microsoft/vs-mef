@@ -1,4 +1,5 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace Microsoft.VisualStudio.Composition.Tests
 {
@@ -119,7 +120,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var importDefinition = new MefV1.Primitives.ContractBasedImportDefinition(
                 MefV1.AttributedModelServices.GetTypeIdentity(typeof(SomeDelegate)),
                 MefV1.AttributedModelServices.GetTypeIdentity(typeof(SomeDelegate)),
-                new KeyValuePair<string, Type>[0],
+                Array.Empty<KeyValuePair<string, Type>>(),
                 MefV1.Primitives.ImportCardinality.ZeroOrMore,
                 false,
                 true,
@@ -172,7 +173,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var importDefinition = new MefV1.Primitives.ContractBasedImportDefinition(
                 MefV1.AttributedModelServices.GetTypeIdentity(typeof(SomeDelegate)),
                 MefV1.AttributedModelServices.GetTypeIdentity(typeof(SomeDelegate)),
-                new KeyValuePair<string, Type>[0],
+                Array.Empty<KeyValuePair<string, Type>>(),
                 MefV1.Primitives.ImportCardinality.ZeroOrMore,
                 false,
                 true,
