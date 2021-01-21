@@ -110,6 +110,10 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     return Assignability.DefinitelyNot;
                 }
+                catch (TargetParameterCountException)
+                {
+                    return Assignability.DefinitelyNot;
+                }
             }
             else
             {

@@ -82,9 +82,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public async Task CatalogGetInputAssembliesDoesNotLoadLazyExports()
         {
+            SkipOnMono();
             var catalog = TestUtilities.EmptyCatalog.AddParts(
                 await TestUtilities.V2Discovery.CreatePartsAsync(typeof(ExternalExportWithExternalMetadataType), typeof(ExternalExportWithExternalMetadataTypeArray), typeof(ExternalExportWithExternalMetadataEnum32)));
             var catalogCache = await this.SaveCatalogAsync(catalog);
