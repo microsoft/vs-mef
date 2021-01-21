@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             try
             {
-                parts = parts ?? new Type[0];
+                parts = parts ?? Array.Empty<Type>();
                 var loadedAssemblies = assemblies != null ? assemblies.Select(an => Assembly.Load(new AssemblyName(an))).ToImmutableList() : ImmutableList<Assembly>.Empty;
 
                 if (attributesVersion.HasFlag(CompositionEngines.V1))

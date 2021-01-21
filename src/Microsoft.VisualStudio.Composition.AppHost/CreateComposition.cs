@@ -1,9 +1,13 @@
-﻿// Copyright (c) Microsoft. All rights reserved.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 // Elements of this file taken from:
 // https://github.com/dotnet/buildtools/blob/647d79ca86350646be4b87b889221d9a1de9b710/src/common/AssemblyResolver.cs#L31-L107
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file https://github.com/dotnet/buildtools/blob/master/LICENSE for more information.
+
+#pragma warning disable CA1819 // Properties should not return arrays
+#pragma warning disable CA1001 // Types that own disposable fields should be disposable
 
 namespace Microsoft.VisualStudio.Composition.AppHost
 {
@@ -62,17 +66,17 @@ namespace Microsoft.VisualStudio.Composition.AppHost
         /// <summary>Gets a token that is canceled when MSBuild is requesting that we abort.</summary>
         public CancellationToken CancellationToken => this.cts.Token;
 
-        public ITaskItem[] CatalogAssemblies { get; set; } = new ITaskItem[0];
+        public ITaskItem[] CatalogAssemblies { get; set; } = Array.Empty<ITaskItem>();
 
         /// <summary>
         /// Gets or sets the paths to assemblies that may be loaded as part of MEF discovery (because they are referenced by an assembly in the <see cref="CatalogAssemblies"/>.)
         /// </summary>
-        public ITaskItem[] ReferenceAssemblies { get; set; } = new ITaskItem[0];
+        public ITaskItem[] ReferenceAssemblies { get; set; } = Array.Empty<ITaskItem>();
 
         /// <summary>
         /// Gets or sets a list of paths to directories to search for MEF catalog assemblies.
         /// </summary>
-        public ITaskItem[] CatalogAssemblySearchPath { get; set; } = new ITaskItem[0];
+        public ITaskItem[] CatalogAssemblySearchPath { get; set; } = Array.Empty<ITaskItem>();
 
         /// <summary>
         /// Gets or sets a list of codes to suppress warnings for.

@@ -25,7 +25,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
     {
         private ICompositionCacheManager cacheManager;
 
+#pragma warning disable CA2213 // Disposable fields should be disposed
         private TempFileCollection tfc;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         protected AssembliesLazyLoadedTests(ICompositionCacheManager cacheManager)
         {

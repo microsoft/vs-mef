@@ -614,7 +614,9 @@ namespace Microsoft.VisualStudio.Composition
                     value = new DiscoveryProgress(value.CompletedSteps, this.totalTypes, value.Status);
 
                     bool update = false;
+#pragma warning disable CA2002 // Do not lock on objects with weak identity
                     lock (this)
+#pragma warning restore CA2002 // Do not lock on objects with weak identity
                     {
                         // Only report progress if completion or status has changed significantly.
                         if (Math.Abs(value.Completion - this.lastReportedProgress.Completion) > .01 || value.Status != this.lastReportedProgress.Status)

@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 for (uint i = 0; i < uint.MaxValue; i = checked((i * 5) + 1))
                 {
-                    //this.output.WriteLine("0x{0:x8} {0,7}", i);
+                    ////this.output.WriteLine("0x{0:x8} {0,7}", i);
                     Test(i, writer, reader);
                 }
             }

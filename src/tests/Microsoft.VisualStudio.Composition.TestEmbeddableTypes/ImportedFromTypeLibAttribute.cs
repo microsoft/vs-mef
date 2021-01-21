@@ -3,6 +3,7 @@
 
 namespace System.Runtime.InteropServices
 {
+    [AttributeUsage(AttributeTargets.Assembly)]
     internal sealed class ImportedFromTypeLibAttribute : Attribute
     {
         public ImportedFromTypeLibAttribute(string tlbFile)

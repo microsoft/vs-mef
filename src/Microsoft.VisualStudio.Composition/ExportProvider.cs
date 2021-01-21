@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected static readonly Lazy<object> NotInstantiablePartLazy = new Lazy<object>(() => CannotInstantiatePartWithNoImportingConstructor());
 
-        protected static readonly Type[] EmptyTypeArray = new Type[0];
+        protected static readonly Type[] EmptyTypeArray = Array.Empty<Type>();
 
         protected static readonly object[] EmptyObjectArray = EmptyTypeArray; // Covariance allows us to reuse the derived type empty array.
 
@@ -1705,7 +1705,9 @@ namespace Microsoft.VisualStudio.Composition
             {
             }
 
+#pragma warning disable CA2215 // Dispose methods should call base class dispose
             protected override void Dispose(bool disposing)
+#pragma warning restore CA2215 // Dispose methods should call base class dispose
             {
                 throw new InvalidOperationException(Strings.CannotDirectlyDisposeAnImport);
             }
