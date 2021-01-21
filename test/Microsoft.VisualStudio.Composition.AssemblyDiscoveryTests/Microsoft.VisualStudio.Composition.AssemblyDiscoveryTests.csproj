@@ -10,6 +10,6 @@
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.MissingAssemblyTests\Microsoft.VisualStudio.Composition.MissingAssemblyTests.csproj">
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Microsoft.VisualStudio.Composition.NetFxAttributes\Microsoft.VisualStudio.Composition.NetFxAttributes.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.Composition.NetFxAttributes\Microsoft.VisualStudio.Composition.NetFxAttributes.csproj" />
   </ItemGroup>
 </Project>
