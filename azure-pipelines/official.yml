@@ -12,6 +12,7 @@ variables:
   BuildConfiguration: Release
   BuildPlatform: Any CPU
   NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
+  NugetSecurityAnalysisWarningLevel: none # we use packages.lock.json to verify package content.
 
 jobs:
 - job: Windows
