@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "dependencies": {
+    ".NETStandard,Version=v2.0": {
+      "Microsoft.Net.Compilers.Toolset": {
+        "type": "Direct",
+        "requested": "[3.7.0, )",
+        "resolved": "3.7.0",
+        "contentHash": "m+4y5aIbi/rD9NJKjb8GWL2/tGeMmzd/9OMOH6olkoQbltGMS69arcWzlQ4vrsbbN1cgvCUdYLK/e007pbz8RA=="
+      },
+      "Microsoft.SourceLink.GitHub": {
+        "type": "Direct",
+        "requested": "[1.0.0, )",
+        "resolved": "1.0.0",
+        "contentHash": "aZyGyGg2nFSxix+xMkPmlmZSsnGQ3w+mIG23LTxJZHN+GPwTQ5FpPgDo7RMOq+Kcf5D4hFWfXkGhoGstawX13Q==",
+        "dependencies": {
+          "Microsoft.Build.Tasks.Git": "1.0.0",
+          "Microsoft.SourceLink.Common": "1.0.0"
+        }
+      },
+      "Microsoft.VisualStudio.Internal.MicroBuild.NonShipping": {
+        "type": "Direct",
+        "requested": "[2.0.65, )",
+        "resolved": "2.0.65",
+        "contentHash": "/2UsUf3OCgmvm+RzPY73qAP44nTCy3NAA4uz8jAR7dv4QU0AlOakiVkGavaLhF8W5Pyk9G2zFQCDMZ0xCnQk9w==",
+        "dependencies": {
+          "Microsoft.VisualStudio.Internal.MicroBuild": "2.0.65"
+        }
+      },
+      "Microsoft.VisualStudio.Internal.MicroBuild.VisualStudio": {
+        "type": "Direct",
+        "requested": "[2.0.65, )",
+        "resolved": "2.0.65",
+        "contentHash": "9RkfQwLeS/zF8fv/E9khT86/HgmrJkLLwvxqzfUehOJjafk3DYzjJe28cnWc+gXwO5nrho03FMCDWYg5T+y5Fw==",
+        "dependencies": {
+          "Microsoft.VisualStudio.Internal.MicroBuild": "2.0.65"
+        }
+      },
+      "Nerdbank.GitVersioning": {
+        "type": "Direct",
+        "requested": "[3.2.31, )",
+        "resolved": "3.2.31",
+        "contentHash": "19grBnpqHLxViOt1cwE+cI+brQ2swdm4gfM97P+9KbbgWGfXtdy4EmpVAkUZ3MgntFYYbUvfldM4pUOmks5q0w=="
+      },
+      "NETStandard.Library": {
+        "type": "Direct",
+        "requested": "[2.0.3, )",
+        "resolved": "2.0.3",
+        "contentHash": "st47PosZSHrjECdjeIzZQbzivYBJFv6P2nv4cj2ypdI204DO+vZ7l5raGMiX4eXMJ53RfOIg+/s4DHVZ54Nu2A==",
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "1.1.0"
+        }
+      },
+      "StyleCop.Analyzers": {
+        "type": "Direct",
+        "requested": "[1.2.0-beta.205, )",
+        "resolved": "1.2.0-beta.205",
+        "contentHash": "ORvUXKlJRqAWstZiSH9LgEuM5hBye8mUDDSpMoQhiKLFUtFEGesfr88Qa8jC0KKVaBTUZzdo4fNZM4oHeV/JsQ==",
+        "dependencies": {
+          "StyleCop.Analyzers.Unstable": "1.2.0.205"
+        }
+      },
+      "Microsoft.Build.Tasks.Git": {
+        "type": "Transitive",
+        "resolved": "1.0.0",
+        "contentHash": "z2fpmmt+1Jfl+ZnBki9nSP08S1/tbEOxFdsK1rSR+LBehIJz1Xv9/6qOOoGNqlwnAGGVGis1Oj6S8Kt9COEYlQ=="
+      },
+      "Microsoft.NETCore.Platforms": {
+        "type": "Transitive",
+        "resolved": "1.1.0",
+        "contentHash": "kz0PEW2lhqygehI/d6XsPCQzD7ff7gUJaVGPVETX611eadGsA3A877GdSlU0LRVMCTH/+P3o2iDTak+S08V2+A=="
+      },
+      "Microsoft.SourceLink.Common": {
+        "type": "Transitive",
+        "resolved": "1.0.0",
+        "contentHash": "G8DuQY8/DK5NN+3jm5wcMcd9QYD90UV7MiLmdljSJixi3U/vNaeBKmmXUqI4DJCOeWizIUEh4ALhSt58mR+5eg=="
+      },
+      "Microsoft.VisualStudio.Internal.MicroBuild": {
+        "type": "Transitive",
+        "resolved": "2.0.65",
+        "contentHash": "nYX6AQH32jxHMXhKsrFYBygVxZIXoeEUCcagQh9Ncuk4d2KOykdwIrDpZB1mUMHbPEYxk51YGX9ZPOTHq8buXA==",
+        "dependencies": {
+          "Microsoft.VisualStudioEng.MicroBuild.Core": "0.4.1"
+        }
+      },
+      "Microsoft.VisualStudioEng.MicroBuild.Core": {
+        "type": "Transitive",
+        "resolved": "0.4.1",
+        "contentHash": "2DhYPxdDyPu0ggmMmDjFBjdlErvA/DbYRf6OhtmCaUCskgMvqfVofUAKXkFpAyu/CshNKcyiG+DX0dPIPTqhLw=="
+      },
+      "StyleCop.Analyzers.Unstable": {
+        "type": "Transitive",
+        "resolved": "1.2.0.205",
+        "contentHash": "YiRjba3yBp2mCvtsOeQf8XU1tPaOZFTKxcsj44tTpGrhRchmtuKtgyMCV9kkOFdfKISnHk0gzhigITlrrrvMuA=="
+      }
+    }
+  }
+}
