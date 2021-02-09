@@ -12,7 +12,7 @@
     <NoWarn>CS1591;CS1701</NoWarn>
     <UpdateXlfOnBuild Condition=" '$(UpdateXlfOnBuild)' == '' ">true</UpdateXlfOnBuild>
 
-    <MicroBuildVersion>2.0.61</MicroBuildVersion>
+    <MicroBuildVersion>2.0.65</MicroBuildVersion>
     <MicroBuild_LocalizeOutputAssembly>false</MicroBuild_LocalizeOutputAssembly>
 
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
@@ -26,11 +26,14 @@
     <Authors>Microsoft</Authors>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestoreLockedMode Condition=" '$(Build_BuildId)' != '' ">true</RestoreLockedMode>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Nerdbank.GitVersioning" Version="3.2.31" PrivateAssets="all" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.205" PrivateAssets="all" />
-    <PackageReference Include="MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Net.Compilers.Toolset" Version="3.7.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
