@@ -33,6 +33,10 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="tools\*.ps1" Pack="true" PackagePath="tools\" />
+  </ItemGroup>
+
   <Target Name="PackBuildOutputs" DependsOnTargets="SatelliteDllsProjectOutputGroup;DebugSymbolsProjectOutputGroup">
     <ItemGroup>
       <TfmSpecificPackageFile Include="$(TargetPath)" PackagePath="analyzers\dotnet\" />
