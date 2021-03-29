@@ -1,6 +1,6 @@
 steps:
 
-- task: MicroBuildIBCMergePlugin@0
+- task: MicroBuildIBCMergePlugin@1
   inputs:
     branch: rel/d15.8
   displayName: Install MicroBuild IBCMerge Plugin
