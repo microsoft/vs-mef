@@ -59,6 +59,8 @@ steps:
     platform: $(BuildPlatform)
     configuration: $(BuildConfiguration)
   displayName: Build Visual Studio solution
+  env:
+    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
 
 - task: DotNetCoreCLI@2
   displayName: Run tests
