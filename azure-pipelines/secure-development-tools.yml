@@ -3,12 +3,12 @@ steps:
  ## To run, queue build with StaticAnalysis = true
 
  ### Scan binaries with Windows Defender
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-antimalware.AntiMalware@3
-  displayName: 'Scan with Windows Defender'
-  inputs:
-    TreatSignatureUpdateFailureAs: Standard
-    SignatureFreshness: OneDay
-    FileDirPath: '$(System.DefaultWorkingDirectory)\bin\'
+#- task: securedevelopmentteam.vss-secure-development-tools.build-task-antimalware.AntiMalware@3
+#  displayName: 'Scan with Windows Defender'
+#  inputs:
+#    TreatSignatureUpdateFailureAs: Standard
+#    SignatureFreshness: OneDay
+#    FileDirPath: '$(System.DefaultWorkingDirectory)\bin\'
 
 ### Scan binaries for correct build configuration
 ### Note: Don't run for node build
