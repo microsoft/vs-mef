@@ -1646,8 +1646,8 @@ namespace Microsoft.VisualStudio.Composition
                         while (!Monitor.Wait(this.syncObject, TimeSpan.FromSeconds(3)))
                         {
                             // This area intentionally left blank. It exists so that managed debuggers
-                            // can break out of a hang temporarily to get out of optimized/native frames
-                            // on the top of the stack so the debugger can actually be useful.
+                            // can avoid a non-responding state temporarily to get out of optimized/native
+                            // frames on the top of the stack so the debugger can actually be useful.
                         }
                     }
                 }

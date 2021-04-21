@@ -2,15 +2,6 @@ steps:
  ## Post-Build CI-only analysis steps. Violations are reported in the Code Analysis log.
  ## To run, queue build with StaticAnalysis = true
 
- ### Scan binaries with Windows Defender
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-antimalware.AntiMalware@3
-  displayName: 'Scan with Windows Defender'
-  inputs:
-    TreatSignatureUpdateFailureAs: Standard
-    SignatureFreshness: OneDay
-    FileDirPath: '$(System.DefaultWorkingDirectory)\bin\'
-  condition: eq(variables['StaticAnalysis'], 'true')
-
 ### Scan binaries for correct build configuration
 ### Note: Don't run for node build
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-binskim.BinSkim@3
@@ -19,7 +10,6 @@ steps:
     InputType: Basic
     AnalyzeSymPath: '$(Build.ArtifactStagingDirectory)\symbols\*.pdb'
     AnalyzeTarget: '$(Build.ArtifactStagingDirectory)\symbols\*.dll'
-  condition: eq(variables['StaticAnalysis'], 'true')
 
   ### Scan binaries for correct build configuration
   ### Note: Don't run for node build
@@ -29,21 +19,19 @@ steps:
     InputType: Basic
     AnalyzeSymPath: '$(Build.ArtifactStagingDirectory)\symbols\*.pdb'
     AnalyzeTarget: '$(Build.ArtifactStagingDirectory)\symbols\*.dll'
-  condition: eq(variables['StaticAnalysis'], 'true')
 
  ### Check for checked in credentials.
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
   displayName: 'Run CredScan'
   inputs:
     debugMode: false
-  condition: eq(variables['StaticAnalysis'], 'true')
 
  ### Run PoliCheck to check for disallowed terms. targetType: F indicates we're searching files and folders.
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-policheck.PoliCheck@1
   displayName: 'Run PoliCheck'
   inputs:
     targetType: F
-  condition: eq(variables['StaticAnalysis'], 'true')
+    optionsPE: 1|2|3|4
 
  ### Create formatted HTML code analysis log file.
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-report.SdtReport@1
@@ -61,3 +49,61 @@ steps:
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-publishsecurityanalysislogs.PublishSecurityAnalysisLogs@2
   displayName: 'Publish Code Analysis Logs'
   condition: eq(variables['StaticAnalysis'], 'true')
+
+### Copy files for APIScan
+- task: CopyFiles@2
+  displayName: 'Copy Files for APIScan'
+  inputs:
+    SourceFolder: '$(Build.ArtifactStagingDirectory)\symbols'
+    Contents: |
+      *.dll
+      *.pdb
+    TargetFolder: $(Agent.TempDirectory)\APIScanFiles
+  condition: ne(variables['DisableAPIScan'], 'true')
+
+# ### Run APIScan
+#- task: APIScan@2
+#  displayName: Run APIScan
+#  inputs:
+#    softwareFolder: $(Agent.TempDirectory)\APIScanFiles
+#    softwareName: 'VS-MEF'
+#    softwareVersionNum: '$(Build.BuildId)'
+#    isLargeApp: false
+#    toolVersion: '3.1.29231'
+#  condition: ne(variables['DisableAPIScan'], 'true')
+
+ ### Create formatted HTML code analysis log file.
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-report.SdtReport@1
+  displayName: 'Create Security Analysis Report'
+  inputs:
+    BinSkim: true
+    BinSkimBreakOn: WarningAbove
+    CredScan: true
+    PoliCheck: true
+    PoliCheckBreakOn: Severity4Above
+
+ ### Publish Code Analysis results to build Artifacts.
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-publishsecurityanalysislogs.PublishSecurityAnalysisLogs@2
+  displayName: 'Publish Code Analysis Logs'
+
+ ### Fails the build if tools generate errors
+- task: PostAnalysis@1
+  inputs:
+    AllTools: false
+    APIScan: true
+    BinSkim: true
+    BinSkimBreakOn: 'WarningAbove'
+    CodesignValidation: true
+    CodesignValidationBreakOn: 'WarningAbove'
+    CredScan: true
+    FortifySCA: false
+    FxCop: false
+    ModernCop: false
+    PoliCheck: true
+    PoliCheckBreakOn: 'Severity4Above'
+    RoslynAnalyzers: false
+    RoslynAnalyzersBreakOn: 'WarningAbove'
+    SDLNativeRules: false
+    Semmle: false
+    TSLint: false
+    ToolLogsNotFoundAction: 'Standard'
