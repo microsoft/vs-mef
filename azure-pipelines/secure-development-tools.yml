@@ -11,15 +11,6 @@ steps:
     AnalyzeSymPath: '$(Build.ArtifactStagingDirectory)\symbols\*.pdb'
     AnalyzeTarget: '$(Build.ArtifactStagingDirectory)\symbols\*.dll'
 
-  ### Scan binaries for correct build configuration
-  ### Note: Don't run for node build
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-binskim.BinSkim@3
-  displayName: 'Run BinSkim for Exes'
-  inputs:
-    InputType: Basic
-    AnalyzeSymPath: '$(Build.ArtifactStagingDirectory)\symbols\*.pdb'
-    AnalyzeTarget: '$(Build.ArtifactStagingDirectory)\symbols\*.dll'
-
  ### Check for checked in credentials.
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
   displayName: 'Run CredScan'
@@ -56,8 +47,8 @@ steps:
   inputs:
     SourceFolder: '$(Build.ArtifactStagingDirectory)\symbols'
     Contents: |
-      *.dll
-      *.pdb
+      **\*.dll
+      **\*.pdb
     TargetFolder: $(Agent.TempDirectory)\APIScanFiles
   condition: ne(variables['DisableAPIScan'], 'true')
 
