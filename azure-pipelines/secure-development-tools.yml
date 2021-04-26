@@ -69,7 +69,7 @@ steps:
     softwareName: 'VS-MEF'
     softwareVersionNum: '$(Build.BuildId)'
     isLargeApp: false
-    toolVersion: 'latest'
+    toolVersion: 'Latest'
   condition: ne(variables['DisableAPIScan'], 'true')
   env:
     AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
