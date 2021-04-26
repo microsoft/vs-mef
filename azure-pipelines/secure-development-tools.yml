@@ -61,16 +61,18 @@ steps:
     TargetFolder: $(Agent.TempDirectory)\APIScanFiles
   condition: ne(variables['DisableAPIScan'], 'true')
 
-# ### Run APIScan
-#- task: APIScan@2
-#  displayName: Run APIScan
-#  inputs:
-#    softwareFolder: $(Agent.TempDirectory)\APIScanFiles
-#    softwareName: 'VS-MEF'
-#    softwareVersionNum: '$(Build.BuildId)'
-#    isLargeApp: false
-#    toolVersion: '3.1.29231'
-#  condition: ne(variables['DisableAPIScan'], 'true')
+### Run APIScan
+- task: APIScan@2
+  displayName: Run APIScan
+  inputs:
+    softwareFolder: $(Agent.TempDirectory)\APIScanFiles
+    softwareName: 'VS-MEF'
+    softwareVersionNum: '$(Build.BuildId)'
+    isLargeApp: false
+    toolVersion: 'latest'
+  condition: ne(variables['DisableAPIScan'], 'true')
+  env:
+    AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
 
  ### Create formatted HTML code analysis log file.
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-report.SdtReport@1
