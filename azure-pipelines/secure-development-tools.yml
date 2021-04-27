@@ -62,8 +62,8 @@ steps:
     isLargeApp: false
     toolVersion: 'Latest'
   condition: ne(variables['DisableAPIScan'], 'true')
-  env:
-    AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
+#  env:
+#    AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
 
  ### Create formatted HTML code analysis log file.
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-report.SdtReport@1
