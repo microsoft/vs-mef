@@ -24,23 +24,6 @@ steps:
     targetType: F
     optionsPE: 1|2|3|4
 
- ### Create formatted HTML code analysis log file.
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-report.SdtReport@1
-  displayName: 'Create Security Analysis Report'
-  inputs:
-    BinSkim: true
-    BinSkimBreakOn: WarningAbove
-    CredScan: true
-    PoliCheck: true
-    PoliCheckBreakOn: Severity4Above
-  continueOnError: true
-  condition: eq(variables['StaticAnalysis'], 'true')
-
-### Publish Code Analysis results to build Artifacts.
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-publishsecurityanalysislogs.PublishSecurityAnalysisLogs@2
-  displayName: 'Publish Code Analysis Logs'
-  condition: eq(variables['StaticAnalysis'], 'true')
-
 ### Copy files for APIScan
 - task: CopyFiles@2
   displayName: 'Copy Files for APIScan'
@@ -74,10 +57,12 @@ steps:
     CredScan: true
     PoliCheck: true
     PoliCheckBreakOn: Severity4Above
+  condition: succeededOrFailed()
 
  ### Publish Code Analysis results to build Artifacts.
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-publishsecurityanalysislogs.PublishSecurityAnalysisLogs@2
   displayName: 'Publish Code Analysis Logs'
+  condition: succeededOrFailed()
 
  ### Fails the build if tools generate errors
 - task: PostAnalysis@1
