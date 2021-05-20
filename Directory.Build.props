@@ -10,7 +10,6 @@
     <LangVersion>8</LangVersion>
     <Nullable>enable</Nullable>
     <NoWarn>CS1591;CS1701</NoWarn>
-    <UpdateXlfOnBuild Condition=" '$(UpdateXlfOnBuild)' == '' ">true</UpdateXlfOnBuild>
 
     <MicroBuildVersion>2.0.65</MicroBuildVersion>
     <MicroBuild_LocalizeOutputAssembly>false</MicroBuild_LocalizeOutputAssembly>

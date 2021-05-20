@@ -123,12 +123,6 @@
         "resolved": "4.11.1",
         "contentHash": "umDBSKTQMoYAbts6w49N33ctAjHhcfJkcva8xoDog01st35N+Ly/w+TB2vUcghxSw5vUYkpaCl/PI7tVw3R0Jw=="
       },
-      "XliffTasks": {
-        "type": "Direct",
-        "requested": "[1.0.0-beta.19503.1, )",
-        "resolved": "1.0.0-beta.19503.1",
-        "contentHash": "HJowjw15987w3ffXWg0hjuQuWXXDEKknIy+64XMnV3HSrr96zyvCgjouEOPMA6zLqE7dtrtejAngPVaw0hjfiA=="
-      },
       "Microsoft.Build.Tasks.Git": {
         "type": "Transitive",
         "resolved": "1.0.0",
@@ -614,12 +608,6 @@
         "resolved": "4.11.1",
         "contentHash": "umDBSKTQMoYAbts6w49N33ctAjHhcfJkcva8xoDog01st35N+Ly/w+TB2vUcghxSw5vUYkpaCl/PI7tVw3R0Jw=="
       },
-      "XliffTasks": {
-        "type": "Direct",
-        "requested": "[1.0.0-beta.19503.1, )",
-        "resolved": "1.0.0-beta.19503.1",
-        "contentHash": "HJowjw15987w3ffXWg0hjuQuWXXDEKknIy+64XMnV3HSrr96zyvCgjouEOPMA6zLqE7dtrtejAngPVaw0hjfiA=="
-      },
       "Microsoft.Build.Tasks.Git": {
         "type": "Transitive",
         "resolved": "1.0.0",
@@ -834,12 +822,6 @@
         "requested": "[4.11.1, )",
         "resolved": "4.11.1",
         "contentHash": "umDBSKTQMoYAbts6w49N33ctAjHhcfJkcva8xoDog01st35N+Ly/w+TB2vUcghxSw5vUYkpaCl/PI7tVw3R0Jw=="
-      },
-      "XliffTasks": {
-        "type": "Direct",
-        "requested": "[1.0.0-beta.19503.1, )",
-        "resolved": "1.0.0-beta.19503.1",
-        "contentHash": "HJowjw15987w3ffXWg0hjuQuWXXDEKknIy+64XMnV3HSrr96zyvCgjouEOPMA6zLqE7dtrtejAngPVaw0hjfiA=="
       },
       "Microsoft.Build.Tasks.Git": {
         "type": "Transitive",
