@@ -48,6 +48,10 @@ namespace Microsoft.VisualStudio.Composition
 
         private long objectTableCapacityStreamPosition = -1; // -1 indicates the stream isn't capable of seeking.
 
+        private Func<string?>? readString;
+        private Func<TypeRef?>? readTypeRef;
+        private Func<object?>? readObject;
+
         internal SerializationContextBase(BinaryReader reader, Resolver resolver)
         {
             Requires.NotNull(reader, nameof(reader));
@@ -200,6 +204,12 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+        private Func<TypeRef?> ReadTypeRefDelegate => this.readTypeRef ??= this.ReadTypeRef;
+
+        private Func<object?> ReadObjectDelegate => this.readObject ??= this.ReadObject;
+
+        protected Func<string?> ReadStringDelegate => this.readString ??= this.ReadString;
+
         protected MethodRef? ReadMethodRef()
         {
             using (this.Trace(nameof(MethodRef)))
@@ -211,8 +221,8 @@ namespace Microsoft.VisualStudio.Composition
                     var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
                     var name = this.ReadString();
                     var isStatic = this.ReadCompressedUInt() != 0;
-                    var parameterTypes = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
-                    var genericMethodArguments = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
+                    var parameterTypes = this.ReadList(this.reader, this.ReadTypeRefDelegate).ToImmutableArray();
+                    var genericMethodArguments = this.ReadList(this.reader, this.ReadTypeRefDelegate).ToImmutableArray();
                     return new MethodRef(declaringType, metadataToken, name, isStatic, parameterTypes!, genericMethodArguments!);
                 }
                 else
@@ -464,12 +474,12 @@ namespace Microsoft.VisualStudio.Composition
                     var fullName = this.ReadString();
                     var flags = (TypeRefFlags)this.ReadCompressedUInt();
                     int genericTypeParameterCount = (int)this.ReadCompressedUInt();
-                    var genericTypeArguments = this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
+                    var genericTypeArguments = this.ReadList(this.reader, this.ReadTypeRefDelegate).ToImmutableArray();
 
                     var shallow = this.ReadCompressedUInt() != 0;
                     var baseTypes = shallow
                         ? ImmutableArray<TypeRef?>.Empty
-                        : this.ReadList(this.reader, this.ReadTypeRef).ToImmutableArray();
+                        : this.ReadList(this.reader, this.ReadTypeRefDelegate).ToImmutableArray();
 
                     var hasElementType = this.ReadCompressedUInt() != 0;
                     var elementType = hasElementType
@@ -1010,7 +1020,7 @@ namespace Microsoft.VisualStudio.Composition
                         return null;
                     case ObjectType.Array:
                         Type? elementType = this.ReadTypeRef().Resolve();
-                        return this.ReadArray(this.reader, this.ReadObject, elementType);
+                        return this.ReadArray(this.reader, this.ReadObjectDelegate, elementType);
                     case ObjectType.BoolTrue:
                         return true;
                     case ObjectType.BoolFalse:
@@ -1055,7 +1065,7 @@ namespace Microsoft.VisualStudio.Composition
                         TypeRef? typeRef = this.ReadTypeRef();
                         return new LazyMetadataWrapper.TypeSubstitution(typeRef);
                     case ObjectType.TypeArraySubstitution:
-                        IReadOnlyList<TypeRef?> typeRefArray = this.ReadList(this.reader, this.ReadTypeRef);
+                        IReadOnlyList<TypeRef?> typeRefArray = this.ReadList(this.reader, this.ReadTypeRefDelegate);
                         return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray!, this.Resolver);
                     case ObjectType.BinaryFormattedObject:
                         var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
