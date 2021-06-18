@@ -658,6 +658,11 @@ namespace Microsoft.VisualStudio.Composition
                     throw new NotSupportedException();
                 }
 
+                if (count == 0)
+                {
+                    return Array.Empty<T>();
+                }
+
                 var list = new T[count];
                 for (int i = 0; i < list.Length; i++)
                 {
