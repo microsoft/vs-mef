@@ -42,15 +42,15 @@ namespace Microsoft.VisualStudio.Composition
         protected Dictionary<string, int> sizeStats;
 #endif
 
+        private protected readonly Func<string?> readStringDelegate;
+        private readonly Func<object?> readObjectDelegate;
+        private readonly Func<TypeRef?> readTypeRefDelegate;
+
         private readonly ImmutableDictionary<string, object?>.Builder metadataBuilder = ImmutableDictionary.CreateBuilder<string, object?>();
 
         private readonly byte[] guidBuffer = new byte[128 / 8];
 
         private long objectTableCapacityStreamPosition = -1; // -1 indicates the stream isn't capable of seeking.
-
-        private Func<string?>? readString;
-        private Func<TypeRef?>? readTypeRef;
-        private Func<object?>? readObject;
 
         internal SerializationContextBase(BinaryReader reader, Resolver resolver)
         {
@@ -68,6 +68,10 @@ namespace Microsoft.VisualStudio.Composition
 #if TRACESERIALIZATION || TRACESTATS
             this.trace = new IndentingTextWriter(new StreamWriter(File.OpenWrite(Environment.ExpandEnvironmentVariables(@"%TEMP%\VS-MEF.read.log"))));
 #endif
+
+            this.readStringDelegate = this.ReadString;
+            this.readObjectDelegate = this.ReadObject;
+            this.readTypeRefDelegate = this.ReadTypeRef;
         }
 
         internal SerializationContextBase(BinaryWriter writer, int estimatedObjectCount, Resolver resolver)
@@ -91,6 +95,10 @@ namespace Microsoft.VisualStudio.Composition
             Stream writerStream = writer.BaseStream;
             this.objectTableCapacityStreamPosition = writerStream.CanSeek ? writer.BaseStream.Position : -1;
             this.writer.Write(estimatedObjectCount);
+
+            this.readStringDelegate = this.ReadString;
+            this.readObjectDelegate = this.ReadObject;
+            this.readTypeRefDelegate = this.ReadTypeRef;
         }
 
         protected enum ObjectType : byte
@@ -204,12 +212,6 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private Func<TypeRef?> ReadTypeRefDelegate => this.readTypeRef ??= this.ReadTypeRef;
-
-        private Func<object?> ReadObjectDelegate => this.readObject ??= this.ReadObject;
-
-        protected Func<string?> ReadStringDelegate => this.readString ??= this.ReadString;
-
         protected MethodRef? ReadMethodRef()
         {
             using (this.Trace(nameof(MethodRef)))
@@ -221,8 +223,8 @@ namespace Microsoft.VisualStudio.Composition
                     var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
                     var name = this.ReadString();
                     var isStatic = this.ReadCompressedUInt() != 0;
-                    var parameterTypes = this.ReadList(this.reader, this.ReadTypeRefDelegate).ToImmutableArray();
-                    var genericMethodArguments = this.ReadList(this.reader, this.ReadTypeRefDelegate).ToImmutableArray();
+                    var parameterTypes = this.ReadList(this.reader, this.readTypeRefDelegate).ToImmutableArray();
+                    var genericMethodArguments = this.ReadList(this.reader, this.readTypeRefDelegate).ToImmutableArray();
                     return new MethodRef(declaringType, metadataToken, name, isStatic, parameterTypes!, genericMethodArguments!);
                 }
                 else
@@ -474,12 +476,12 @@ namespace Microsoft.VisualStudio.Composition
                     var fullName = this.ReadString();
                     var flags = (TypeRefFlags)this.ReadCompressedUInt();
                     int genericTypeParameterCount = (int)this.ReadCompressedUInt();
-                    var genericTypeArguments = this.ReadList(this.reader, this.ReadTypeRefDelegate).ToImmutableArray();
+                    var genericTypeArguments = this.ReadList(this.reader, this.readTypeRefDelegate).ToImmutableArray();
 
                     var shallow = this.ReadCompressedUInt() != 0;
                     var baseTypes = shallow
                         ? ImmutableArray<TypeRef?>.Empty
-                        : this.ReadList(this.reader, this.ReadTypeRefDelegate).ToImmutableArray();
+                        : this.ReadList(this.reader, this.readTypeRefDelegate).ToImmutableArray();
 
                     var hasElementType = this.ReadCompressedUInt() != 0;
                     var elementType = hasElementType
@@ -1020,7 +1022,7 @@ namespace Microsoft.VisualStudio.Composition
                         return null;
                     case ObjectType.Array:
                         Type? elementType = this.ReadTypeRef().Resolve();
-                        return this.ReadArray(this.reader, this.ReadObjectDelegate, elementType);
+                        return this.ReadArray(this.reader, this.readObjectDelegate, elementType);
                     case ObjectType.BoolTrue:
                         return true;
                     case ObjectType.BoolFalse:
@@ -1065,7 +1067,7 @@ namespace Microsoft.VisualStudio.Composition
                         TypeRef? typeRef = this.ReadTypeRef();
                         return new LazyMetadataWrapper.TypeSubstitution(typeRef);
                     case ObjectType.TypeArraySubstitution:
-                        IReadOnlyList<TypeRef?> typeRefArray = this.ReadList(this.reader, this.ReadTypeRefDelegate);
+                        IReadOnlyList<TypeRef?> typeRefArray = this.ReadList(this.reader, this.readTypeRefDelegate);
                         return new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray!, this.Resolver);
                     case ObjectType.BinaryFormattedObject:
                         var formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
