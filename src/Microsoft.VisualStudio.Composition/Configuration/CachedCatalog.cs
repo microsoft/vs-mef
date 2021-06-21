@@ -56,14 +56,24 @@ namespace Microsoft.VisualStudio.Composition
 
         private class SerializationContext : SerializationContextBase
         {
+            private readonly Func<IImportSatisfiabilityConstraint?> readIImportSatisfiabilityConstraintDelegate;
+            private readonly Func<ImportDefinitionBinding> readImportDefinitionBindingDelegate;
+            private readonly Func<ExportDefinition> readExportDefinitionDelegate;
+
             internal SerializationContext(BinaryReader reader, Resolver resolver)
                 : base(reader, resolver)
             {
+                this.readIImportSatisfiabilityConstraintDelegate = this.ReadIImportSatisfiabilityConstraint;
+                this.readImportDefinitionBindingDelegate = this.ReadImportDefinitionBinding;
+                this.readExportDefinitionDelegate = this.ReadExportDefinition;
             }
 
             internal SerializationContext(BinaryWriter writer, int estimatedObjectCount, Resolver resolver)
                 : base(writer, estimatedObjectCount, resolver)
             {
+                this.readIImportSatisfiabilityConstraintDelegate = this.ReadIImportSatisfiabilityConstraint;
+                this.readImportDefinitionBindingDelegate = this.ReadImportDefinitionBinding;
+                this.readExportDefinitionDelegate = this.ReadExportDefinition;
             }
 
             private enum ConstraintTypes
@@ -131,17 +141,17 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     var partType = this.ReadTypeRef()!;
                     var partMetadata = this.ReadMetadata();
-                    var exportedTypes = this.ReadList(this.ReadExportDefinition);
+                    var exportedTypes = this.ReadList(this.readExportDefinitionDelegate);
                     var exportingMembers = ImmutableDictionary.CreateBuilder<MemberRef, IReadOnlyCollection<ExportDefinition>>();
                     uint exportedMembersCount = this.ReadCompressedUInt();
                     for (int i = 0; i < exportedMembersCount; i++)
                     {
                         var member = this.ReadMemberRef()!;
-                        var exports = this.ReadList(this.ReadExportDefinition);
+                        var exports = this.ReadList(this.readExportDefinitionDelegate);
                         exportingMembers.Add(member, exports);
                     }
 
-                    var importingMembers = this.ReadList(this.ReadImportDefinitionBinding);
+                    var importingMembers = this.ReadList(this.readImportDefinitionBindingDelegate);
                     var sharingBoundary = this.ReadString();
                     var onImportsSatisfied = this.ReadMethodRef();
 
@@ -150,7 +160,7 @@ namespace Microsoft.VisualStudio.Composition
                     if (this.reader!.ReadBoolean())
                     {
                         importingConstructor = this.ReadMethodRef();
-                        importingConstructorImports = this.ReadList(this.ReadImportDefinitionBinding);
+                        importingConstructorImports = this.ReadList(this.readImportDefinitionBindingDelegate);
                     }
 
                     var creationPolicy = this.ReadCreationPolicy();
@@ -226,8 +236,8 @@ namespace Microsoft.VisualStudio.Composition
                     var contractName = this.ReadString()!;
                     var cardinality = this.ReadImportCardinality();
                     var metadata = this.ReadMetadata();
-                    var constraints = this.ReadList(this.ReadIImportSatisfiabilityConstraint);
-                    var sharingBoundaries = this.ReadList(this.ReadString);
+                    var constraints = this.ReadList(this.readIImportSatisfiabilityConstraintDelegate);
+                    var sharingBoundaries = this.ReadList(this.readStringDelegate);
                     return new ImportDefinition(contractName, cardinality, metadata, constraints!, sharingBoundaries!);
                 }
             }
