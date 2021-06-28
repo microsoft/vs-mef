@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net472</TargetFrameworks>
-    <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.AppHost.ruleset</CodeAnalysisRuleSet>
 
     <Description>Adds a VS MEF system with a pre-computed, cached MEF graph.</Description>
     <NoWarn>$(NoWarn),NU5128</NoWarn>
+    <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="ExportProviderFactory.cs" />
@@ -16,6 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Nerdbank.MSBuildExtension" Version="0.1.17-beta" PrivateAssets="all" />
-    <PackageReference Include="Nullable" Version="1.3.0" PrivateAssets="all" />
   </ItemGroup>
+  <Import Project="Microsoft.VisualStudio.Composition.AppHost.targets" />
 </Project>

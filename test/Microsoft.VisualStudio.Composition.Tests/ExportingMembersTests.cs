@@ -74,9 +74,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 ImmutableDictionary.Create<string, object?>(),
                 ImmutableHashSet.Create<IImportSatisfiabilityConstraint>());
             List<Export> exports = v3ExportProvider.GetExports(importDefinition).ToList();
-            Assert.Equal(1, exports.Count);
+            Assert.Single(exports);
             Assert.Equal("b", exports[0].Metadata["A"]);
-            Assert.IsAssignableFrom(typeof(Func<string, string>), exports[0].Value);
+            Assert.IsAssignableFrom<Func<string, string>>(exports[0].Value);
         }
 
         /// <summary>
@@ -93,11 +93,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 ImmutableDictionary.Create<string, object?>(),
                 ImmutableHashSet.Create<IImportSatisfiabilityConstraint>());
             List<Export> exports = v3ExportProvider.GetExports(importDefinition).ToList();
-            Assert.NotEqual(0, exports.Count);
+            Assert.NotEmpty(exports);
             foreach (var export in exports)
             {
                 Assert.Equal("b", export.Metadata["A"]);
-                Assert.IsAssignableFrom(typeof(ExportedDelegate), export.Value);
+                Assert.IsAssignableFrom<ExportedDelegate>(export.Value);
             }
         }
 
@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void EventHandlerAsExports(IContainer container)
         {
             var importer = container.GetExportedValue<PartImportingDelegatesOfCustomType>();
-            Assert.Equal(1, importer.Handlers.Count);
+            Assert.Single(importer.Handlers);
             importer.Handlers[0](null, null!);
             Assert.Equal(1, container.GetExportedValue<PartExportingDelegateOfCustomType>().InvocationCount);
         }
@@ -302,8 +302,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void EventHandlerImportExport(IContainer container)
         {
             var part = container.GetExportedValue<EventHandlerImportingPart>();
-            Assert.Equal(1, part.Handlers.Count);
-            Assert.Equal(1, part.LazyHandlers.Count);
+            Assert.Single(part.Handlers);
+            Assert.Single(part.LazyHandlers);
             part.Handlers[0](this, new MyEventArgs());
             part.LazyHandlers[0].Value(this, new MyEventArgs());
         }

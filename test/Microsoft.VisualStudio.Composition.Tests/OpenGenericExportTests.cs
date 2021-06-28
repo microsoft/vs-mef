@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var user = container.GetExportedValue<ImportManyUser>();
             Assert.NotNull(user);
             Assert.NotNull(user.Useful);
-            Assert.Equal(1, user.Useful.Length);
+            Assert.Single(user.Useful);
             Assert.IsType<Useful<int>>(user.Useful[0]);
         }
 
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var user = container.GetExportedValue<ImportManyLazyUser>();
             Assert.NotNull(user);
             Assert.NotNull(user.Useful);
-            Assert.Equal(1, user.Useful.Length);
+            Assert.Single(user.Useful);
             Assert.IsType<Useful<int>>(user.Useful[0].Value);
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void GetExportedValuesOfOpenGenericExport(IContainer container)
         {
             var usefuls = container.GetExportedValues<Useful<int>>();
-            Assert.Equal(1, usefuls.Count());
+            Assert.Single(usefuls);
             Assert.IsType<Useful<int>>(usefuls.First());
         }
 
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void GetExportsOfLazyOpenGenericExport(IContainer container)
         {
             var usefuls = container.GetExports<Useful<int>>();
-            Assert.Equal(1, usefuls.Count());
+            Assert.Single(usefuls);
             Assert.IsType<Useful<int>>(usefuls.First().Value);
         }
 

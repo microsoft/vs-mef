@@ -1,37 +1,30 @@
 trigger:
   branches:
-    include: ["main", "v*"]
+    include:
+    - main
+    - microbuild
+    - 'validate/*'
   paths:
-    exclude: ["doc", "*.md"]
+    exclude:
+    - doc/
+    - '*.md'
+    - .vscode/
+    - .github/
+
+parameters:
+- name: includeMacOS
+  displayName: Build on macOS
+  type: boolean
+  default: false # macOS is often bogged down in Azure Pipelines
 
 variables:
   TreatWarningsAsErrors: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   BuildConfiguration: Release
-  BuildPlatform: Any CPU
   codecov_token: bfce293b-9f33-43bb-be7f-c1a4ed2b518d
   NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
 
 jobs:
-- job: Windows
-  pool: Hosted Windows 2019 with VS2019
-  steps:
-  - template: azure-pipelines/build.yml
-
-- job: Linux
-  pool:
-    vmImage: Ubuntu 16.04
-  steps:
-  - template: azure-pipelines/testfx.yml
-    parameters:
-      projectdirectory: test/Microsoft.VisualStudio.Composition.Tests
-      testlogartifactname: linux_testlogs
-
-- job: macOS
-  pool:
-    vmImage: macOS-10.15
-  steps:
-  - template: azure-pipelines/testfx.yml
-    parameters:
-      projectdirectory: test/Microsoft.VisualStudio.Composition.Tests
-      testlogartifactname: macOS_testlogs
+- template: azure-pipelines/build.yml
+  parameters:
+    includeMacOS: ${{ parameters.includeMacOS }}

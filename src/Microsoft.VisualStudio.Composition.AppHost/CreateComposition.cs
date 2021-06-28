@@ -1,10 +1,13 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-// Elements of this file taken from:
-// https://github.com/dotnet/buildtools/blob/647d79ca86350646be4b87b889221d9a1de9b710/src/common/AssemblyResolver.cs#L31-L107
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file https://github.com/dotnet/buildtools/blob/master/LICENSE for more information.
+
+/*
+ * Elements of this file taken from:
+ * https://github.com/dotnet/buildtools/blob/647d79ca86350646be4b87b889221d9a1de9b710/src/common/AssemblyResolver.cs#L31-L107
+ * Licensed to the .NET Foundation under one or more agreements.
+ * The .NET Foundation licenses this file to you under the MIT license.
+ * See the LICENSE file https://github.com/dotnet/buildtools/blob/master/LICENSE for more information.
+ */
 
 #pragma warning disable CA1819 // Properties should not return arrays
 #pragma warning disable CA1001 // Types that own disposable fields should be disposable

@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var mergedCatalog = result1.AddCatalog(result2);
 
             Assert.Equal(result1.DiscoveredParts.DiscoveryErrors.Count + result2.DiscoveredParts.DiscoveryErrors.Count, mergedCatalog.DiscoveredParts.DiscoveryErrors.Count);
-            Assert.NotEqual(0, mergedCatalog.DiscoveredParts.DiscoveryErrors.Count); // the test is ineffective otherwise.
+            Assert.NotEmpty(mergedCatalog.DiscoveredParts.DiscoveryErrors); // the test is ineffective otherwise.
         }
 
         [Fact]
@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal(
                 result1.DiscoveredParts.DiscoveryErrors.Count + result2.DiscoveredParts.DiscoveryErrors.Count + result3.DiscoveredParts.DiscoveryErrors.Count,
                 mergedCatalog.DiscoveredParts.DiscoveryErrors.Count);
-            Assert.NotEqual(0, mergedCatalog.DiscoveredParts.DiscoveryErrors.Count); // the test is ineffective otherwise.
+            Assert.NotEmpty(mergedCatalog.DiscoveredParts.DiscoveryErrors); // the test is ineffective otherwise.
         }
 
         [Fact]

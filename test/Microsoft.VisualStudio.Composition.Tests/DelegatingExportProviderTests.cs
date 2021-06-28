@@ -21,8 +21,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             var unfilteredResults = innerExportProvider.GetExportedValues<int>();
             Assert.Equal(2, unfilteredResults.Count());
-            Assert.True(unfilteredResults.Contains(1));
-            Assert.True(unfilteredResults.Contains(2));
+            Assert.Contains(1, unfilteredResults);
+            Assert.Contains(2, unfilteredResults);
 
             var filteredResults = delegatingExportProvider.GetExportedValues<int>();
             Assert.Equal(2, filteredResults.Single());

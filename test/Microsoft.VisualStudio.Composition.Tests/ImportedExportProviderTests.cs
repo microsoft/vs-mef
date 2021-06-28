@@ -155,15 +155,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var part = container.GetExportedValue<PartWithImportManyExportProvider>();
 
             Assert.NotNull(part.ExportProvidersPublicList);
-            Assert.Equal(1, part.ExportProvidersPublicList.Count);
+            Assert.Single(part.ExportProvidersPublicList);
             Assert.NotNull(part.ExportProvidersPublicList[0]);
 
             Assert.NotNull(part.ExportProvidersPublicArray);
-            Assert.Equal(1, part.ExportProvidersPublicArray.Length);
+            Assert.Single(part.ExportProvidersPublicArray);
             Assert.Same(part.ExportProvidersPublicList[0], part.ExportProvidersPublicArray[0]);
 
             Assert.NotNull(part.ExportProvidersInternalArray);
-            Assert.Equal(1, part.ExportProvidersInternalArray.Length);
+            Assert.Single(part.ExportProvidersInternalArray);
             Assert.Same(part.ExportProvidersPublicList[0], part.ExportProvidersInternalArray[0]);
         }
 

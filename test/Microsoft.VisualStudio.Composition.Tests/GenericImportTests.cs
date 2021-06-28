@@ -46,11 +46,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void GenericPartImportsTypeParameterFailsGracefullyInV3(IContainer container)
         {
             Assert.NotNull(container.GetExportedValue<SomeOtherPart>());
-            Assert.Equal(0, container.GetExportedValues<PartThatImportsT<SomeOtherPart>>().Count());
-            Assert.Equal(0, container.GetExportedValues<PartThatImportsTViaImportingConstructor<SomeOtherPart>>().Count());
-            Assert.Equal(0, container.GetExportedValues<PartThatImportsLazyT<SomeOtherPart>>().Count());
-            Assert.Equal(0, container.GetExportedValues<PartThatImportsArrayOfT<SomeOtherPart>>().Count());
-            Assert.Equal(0, container.GetExportedValues<PartThatImportsEnumerableOfT<SomeOtherPart>>().Count());
+            Assert.Empty(container.GetExportedValues<PartThatImportsT<SomeOtherPart>>());
+            Assert.Empty(container.GetExportedValues<PartThatImportsTViaImportingConstructor<SomeOtherPart>>());
+            Assert.Empty(container.GetExportedValues<PartThatImportsLazyT<SomeOtherPart>>());
+            Assert.Empty(container.GetExportedValues<PartThatImportsArrayOfT<SomeOtherPart>>());
+            Assert.Empty(container.GetExportedValues<PartThatImportsEnumerableOfT<SomeOtherPart>>());
         }
 
         [Export, Shared, MefV1.Export]

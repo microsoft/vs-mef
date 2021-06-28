@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var v3Container = (TestUtilities.V3ContainerWrapper)container;
 
             var v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
-            var tree = v1Container.GetExportedValue<Tree>();
+            var tree = v1Container.GetExportedValue<Tree>()!;
             Assert.NotNull(tree.Apple);
         }
 
@@ -40,13 +40,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             var v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
             var apples = v1Container.GetExportedValues<Apple>(typeof(Apple).FullName);
-            Assert.Equal(1, apples.Count());
+            Assert.Single(apples);
 
             apples = v1Container.GetExportedValues<Apple>("SomeContract");
-            Assert.Equal(1, apples.Count());
+            Assert.Single(apples);
 
             apples = v1Container.GetExportedValues<Apple>("NoContractLikeThis");
-            Assert.Equal(0, apples.Count());
+            Assert.Empty(apples);
         }
 
         [MefFact(CompositionEngines.V3EmulatingV1 | CompositionEngines.V3EmulatingV2, typeof(Tree<>))]
@@ -66,7 +66,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var v3Container = (TestUtilities.V3ContainerWrapper)container;
 
             var v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
-            var tree = v1Container.GetExport<Tree, IDictionary<string, object>>();
+            var tree = v1Container.GetExport<Tree, IDictionary<string, object>>()!;
             Assert.Equal("b", tree.Metadata["A"]);
             Assert.False(tree.Metadata.ContainsKey("B"));
         }
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var v3Container = (TestUtilities.V3ContainerWrapper)container;
 
             var v1Container = new MefV1.Hosting.CompositionContainer(v3Container.ExportProvider.AsExportProvider());
-            var tree = v1Container.GetExport<Tree, IMetadata>();
+            var tree = v1Container.GetExport<Tree, IMetadata>()!;
             Assert.Equal("b", tree.Metadata.A);
             Assert.Equal("c", tree.Metadata.B);
         }
@@ -102,7 +102,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 MefV1.CreationPolicy.Any);
 
             var results = exportProvider.GetExports(importDefinition).ToArray();
-            Assert.Equal(1, results.Length);
+            Assert.Single(results);
             Assert.Equal("b", results[0].Metadata["A"]);
             Assert.IsType<Tree>(results[0].Value);
         }
@@ -114,7 +114,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var exportProvider = GetMefV1Container(container);
 
-            SomeDelegate del = exportProvider.GetExportedValue<SomeDelegate>();
+            SomeDelegate del = exportProvider.GetExportedValue<SomeDelegate>()!;
             Assert.Null(del(null, null));
 
             var importDefinition = new MefV1.Primitives.ContractBasedImportDefinition(
@@ -127,8 +127,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 MefV1.CreationPolicy.Any);
 
             var results = exportProvider.GetExports(importDefinition).ToArray();
-            Assert.Equal(1, results.Length);
-            Assert.IsAssignableFrom(typeof(SomeDelegate), results[0].Value);
+            Assert.Single(results);
+            Assert.IsAssignableFrom<SomeDelegate>(results[0].Value);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(DelegateExportingPart))]
@@ -150,17 +150,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             var results = exportProvider.GetExports(importDefinition).ToArray();
             Assert.Equal(2, results.Length);
-            Assert.Equal(1, results.Count(r => r.Metadata["A"].Equals("instance")));
-            Assert.Equal(1, results.Count(r => r.Metadata["A"].Equals("static")));
+            Assert.Equal(1, results.Count(r => r.Metadata["A"]!.Equals("instance")));
+            Assert.Equal(1, results.Count(r => r.Metadata["A"]!.Equals("static")));
 
             foreach (var export in results)
             {
-                Assert.IsAssignableFrom(typeof(MefV1.Primitives.ExportedDelegate), export.Value);
-                var exportedDelegate = (MefV1.Primitives.ExportedDelegate)export.Value;
-                SomeDelegate asSomeDelegate = (SomeDelegate)exportedDelegate.CreateDelegate(typeof(SomeDelegate));
+                Assert.IsAssignableFrom<MefV1.Primitives.ExportedDelegate>(export.Value);
+                var exportedDelegate = (MefV1.Primitives.ExportedDelegate)export.Value!;
+                SomeDelegate asSomeDelegate = (SomeDelegate)exportedDelegate.CreateDelegate(typeof(SomeDelegate))!;
                 Assert.Null(asSomeDelegate(null, null));
 
-                Delegate asDelegate = exportedDelegate.CreateDelegate(typeof(Delegate));
+                Delegate asDelegate = exportedDelegate.CreateDelegate(typeof(Delegate))!;
                 Assert.Null(asDelegate.DynamicInvoke(new object[2]));
             }
         }
@@ -180,13 +180,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 MefV1.CreationPolicy.Any);
 
             var results = exportProvider.GetExports(importDefinition).ToArray();
-            Assert.Equal(1, results.Length);
+            Assert.Single(results);
 
             foreach (var export in results)
             {
-                Assert.IsAssignableFrom(typeof(MefV1.Primitives.ExportedDelegate), export.Value);
-                var exportedDelegate = (MefV1.Primitives.ExportedDelegate)export.Value;
-                Delegate asDelegate = exportedDelegate.CreateDelegate(typeof(Delegate));
+                Assert.IsAssignableFrom<MefV1.Primitives.ExportedDelegate>(export.Value);
+                var exportedDelegate = (MefV1.Primitives.ExportedDelegate)export.Value!;
+                Delegate asDelegate = exportedDelegate.CreateDelegate(typeof(Delegate))!;
                 Assert.Null(asDelegate.DynamicInvoke(new object[1]));
             }
         }
@@ -197,7 +197,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var exportProvider = GetMefV1Container(container);
 
             var exports = exportProvider.GetExports<Apple>();
-            Assert.Equal(0, exports.Count());
+            Assert.Empty(exports);
 
             Assert.Throws<MefV1.ImportCardinalityMismatchException>(() => exportProvider.GetExport<Apple>());
         }
@@ -220,10 +220,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
             v1CatalogExportProvider.SourceProvider = childContainer;
 
             var exports = childContainer.GetExports<Apple>();
-            Assert.Equal(1, exports.Count());
+            Assert.Single(exports);
             Assert.NotNull(exports.First().Value);
 
-            var export = childContainer.GetExport<Apple>();
+            var export = childContainer.GetExport<Apple>()!;
             Assert.NotNull(export.Value);
 
             Assert.Throws<MefV1.ImportCardinalityMismatchException>(() => childContainer.GetExport<Tree>());
@@ -372,7 +372,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var receiver = new SatisfyImportsOnceWithListOfExportFactoryReceiver();
             MefV1.AttributedModelServices.SatisfyImportsOnce(v1Container, receiver);
             Assert.NotNull(receiver.AppleFactories);
-            Assert.Equal(1, receiver.AppleFactories.Count);
+            Assert.Single(receiver.AppleFactories);
             MefV1.ExportLifetimeContext<Apple> apple1 = receiver.AppleFactories[0].CreateExport();
             Assert.NotNull(apple1);
             Assert.NotNull(apple1.Value);
@@ -398,7 +398,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var receiver = new SatisfyImportsOnceWithListOfExportFactoryOfOpenGenericExportReceiver();
             MefV1.AttributedModelServices.SatisfyImportsOnce(v1Container, receiver);
             Assert.NotNull(receiver.OrangeTreeFactories);
-            Assert.Equal(1, receiver.OrangeTreeFactories.Count);
+            Assert.Single(receiver.OrangeTreeFactories);
             MefV1.ExportLifetimeContext<Tree<Orange>> orangeTree1 = receiver.OrangeTreeFactories[0].CreateExport();
             Assert.NotNull(orangeTree1);
             Assert.NotNull(orangeTree1.Value);

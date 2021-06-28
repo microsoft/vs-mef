@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <OutputPath>$(RepoBinPath)Tests\$(Configuration)\OutsideProbingPath\</OutputPath>
+    <OutputPath>$(RepoRootPath)bin\Tests\$(Configuration)\OutsideProbingPath\</OutputPath>
   </PropertyGroup>
 </Project>

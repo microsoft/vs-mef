@@ -874,11 +874,11 @@ namespace Microsoft.VisualStudio.Composition
             if (value is ExportedDelegate && typeof(Delegate).GetTypeInfo().IsAssignableFrom(typeof(T)))
             {
                 var exportedDelegate = (ExportedDelegate)value;
-                return (T)(object?)exportedDelegate.CreateDelegate(typeof(T));
+                return (T?)(object?)exportedDelegate.CreateDelegate(typeof(T));
             }
             else
             {
-                return (T)value;
+                return (T?)value;
             }
         }
 

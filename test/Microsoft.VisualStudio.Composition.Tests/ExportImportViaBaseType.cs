@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Consumer consumer = container.GetExportedValue<Consumer>();
             Assert.NotNull(consumer);
             Assert.NotNull(consumer.Imported);
-            Assert.IsAssignableFrom(typeof(Implementor), consumer.Imported);
+            Assert.IsAssignableFrom<Implementor>(consumer.Imported);
         }
 
         public interface ISomeType { }

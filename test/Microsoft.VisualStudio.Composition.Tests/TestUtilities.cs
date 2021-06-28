@@ -183,9 +183,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
         internal class DebuggableCompositionContainer : MefV1.Hosting.CompositionContainer
         {
-            protected override IEnumerable<MefV1.Primitives.Export> GetExportsCore(MefV1.Primitives.ImportDefinition definition, MefV1.Hosting.AtomicComposition atomicComposition)
+            protected override IEnumerable<MefV1.Primitives.Export> GetExportsCore(MefV1.Primitives.ImportDefinition definition, MefV1.Hosting.AtomicComposition? atomicComposition)
             {
-                var result = base.GetExportsCore(definition, atomicComposition);
+                var result = base.GetExportsCore(definition, atomicComposition)!;
                 if ((definition.Cardinality == MefV1.Primitives.ImportCardinality.ExactlyOne && result.Count() != 1) ||
                     (definition.Cardinality == MefV1.Primitives.ImportCardinality.ZeroOrOne && result.Count() > 1))
                 {
@@ -220,7 +220,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 try
                 {
-                    return this.container.GetExport<T>();
+                    return this.container.GetExport<T>()!;
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
                 {
@@ -236,7 +236,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 try
                 {
-                    return this.container.GetExport<T>(contractName);
+                    return this.container.GetExport<T>(contractName)!;
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
                 {
@@ -252,7 +252,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 try
                 {
-                    return this.container.GetExport<T, TMetadataView>();
+                    return this.container.GetExport<T, TMetadataView>()!;
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
                 {
@@ -268,7 +268,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 try
                 {
-                    return this.container.GetExport<T, TMetadataView>(contractName);
+                    return this.container.GetExport<T, TMetadataView>(contractName)!;
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
                 {
@@ -344,13 +344,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
             }
 
-            public IEnumerable<Lazy<object?, object>> GetExports(Type type, Type metadataViewType, string? contractName) => this.container.GetExports(type, metadataViewType, contractName);
+            public IEnumerable<Lazy<object?, object>> GetExports(Type type, Type metadataViewType, string? contractName) => this.container.GetExports(type, metadataViewType, contractName)!;
 
             public T GetExportedValue<T>()
             {
                 try
                 {
-                    return this.container.GetExportedValue<T>();
+                    return this.container.GetExportedValue<T>()!;
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
                 {
@@ -366,7 +366,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             {
                 try
                 {
-                    return this.container.GetExportedValue<T>(contractName);
+                    return this.container.GetExportedValue<T>(contractName)!;
                 }
                 catch (MefV1.ImportCardinalityMismatchException ex)
                 {

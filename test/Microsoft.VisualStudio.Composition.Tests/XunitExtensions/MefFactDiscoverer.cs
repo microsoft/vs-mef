@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var methodDisplay = discoveryOptions.MethodDisplayOrDefault();
 
-            yield return new MefFactTestCase(this.diagnosticMessageSink, methodDisplay, testMethod, factAttributeInfo);
+            yield return new MefFactTestCase(this.diagnosticMessageSink, methodDisplay, TestMethodDisplayOptions.None, testMethod, factAttributeInfo);
         }
 
         private static IEnumerable<Type> GetNestedTypesRecursively(Type parentType)
@@ -64,8 +64,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public MefFactTestCase() { }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-            public MefFactTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, ITestMethod testMethod, IAttributeInfo factAttributeInfo)
-                : base(diagnosticMessageSink, defaultMethodDisplay, testMethod)
+            public MefFactTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions testMethodDisplayOptions, ITestMethod testMethod, IAttributeInfo factAttributeInfo)
+                : base(diagnosticMessageSink, defaultMethodDisplay, testMethodDisplayOptions, testMethod)
             {
                 var factAttribute = MefFactAttribute.Instantiate(factAttributeInfo);
                 this.SkipReason = factAttribute.Skip;

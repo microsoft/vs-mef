@@ -1,0 +1,91 @@
+[*.cs]
+
+# CA1031: Do not catch general exception types
+dotnet_diagnostic.CA1031.severity = suggestion
+
+# CA1034: Nested types should not be visible
+dotnet_diagnostic.CA1034.severity = suggestion
+
+# CA1062: Validate arguments of public methods
+dotnet_diagnostic.CA1062.severity = suggestion
+
+# SA1600: Elements should be documented
+dotnet_diagnostic.SA1600.severity = suggestion
+
+# CA1065: Do not raise exceptions in unexpected locations
+dotnet_diagnostic.CA1065.severity = suggestion
+
+# CA1067: Override Object.Equals(object) when implementing IEquatable<T>
+dotnet_diagnostic.CA1067.severity = suggestion
+
+# CA1305: Specify IFormatProvider
+dotnet_diagnostic.CA1305.severity = suggestion
+
+# CA1310: Specify StringComparison for correctness
+dotnet_diagnostic.CA1310.severity = suggestion
+
+# CA1801: Review unused parameters
+dotnet_diagnostic.CA1801.severity = suggestion
+
+# CA1810: Initialize reference type static fields inline
+dotnet_diagnostic.CA1810.severity = suggestion
+
+# CA1812: Avoid uninstantiated internal classes
+dotnet_diagnostic.CA1812.severity = suggestion
+
+# CA1815: Override equals and operator equals on value types
+dotnet_diagnostic.CA1815.severity = suggestion
+
+# CA1822: Mark members as static
+dotnet_diagnostic.CA1822.severity = suggestion
+
+# CA1823: Avoid unused private fields
+dotnet_diagnostic.CA1823.severity = suggestion
+
+# CA1834: Consider using 'StringBuilder.Append(char)' when applicable
+dotnet_diagnostic.CA1834.severity = silent
+
+# CA2000: Dispose objects before losing scope
+dotnet_diagnostic.CA2000.severity = suggestion
+
+# CA2016: Forward the 'CancellationToken' parameter to methods that take one
+dotnet_diagnostic.CA2016.severity = suggestion
+
+# CA2248: Provide correct 'enum' argument to 'Enum.HasFlag'
+dotnet_diagnostic.CA2248.severity = none
+
+# CS1591: Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = suggestion
+
+# IDE0008: Use explicit type
+dotnet_diagnostic.IDE0008.severity = suggestion
+
+# SA1108: Block statements should not contain embedded comments
+dotnet_diagnostic.SA1108.severity = silent
+
+# SA1201: Elements should appear in the correct order
+dotnet_diagnostic.SA1201.severity = silent
+
+# SA1202: Elements should be ordered by access
+dotnet_diagnostic.SA1202.severity = silent
+
+# SA1204: Static elements should appear before instance elements
+dotnet_diagnostic.SA1204.severity = silent
+
+# SA1401: Fields should be private
+dotnet_diagnostic.SA1401.severity = suggestion
+
+# SA1601: Partial elements should be documented
+dotnet_diagnostic.SA1601.severity = silent
+
+# SA1602: Enumeration items should be documented
+dotnet_diagnostic.SA1602.severity = suggestion
+
+# SA1611: Element parameters should be documented
+dotnet_diagnostic.SA1611.severity = suggestion
+
+# SA1615: Element return value should be documented
+dotnet_diagnostic.SA1615.severity = suggestion
+
+# CA2249: Consider using 'string.Contains' instead of 'string.IndexOf'
+dotnet_diagnostic.CA2249.severity = silent

@@ -28,8 +28,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var discovery = new SketchyPartDiscovery();
             var parts = await discovery.CreatePartsAsync(typeof(string), typeof(int));
-            Assert.Equal(1, parts.DiscoveryErrors.Count);
-            Assert.Equal(1, parts.Parts.Count);
+            Assert.Single(parts.DiscoveryErrors);
+            Assert.Single(parts.Parts);
         }
 
         [Fact]
@@ -37,8 +37,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var discovery = new SketchyPartDiscovery();
             var parts = await discovery.CreatePartsAsync(this.GetType().GetTypeInfo().Assembly);
-            Assert.Equal(1, parts.DiscoveryErrors.Count);
-            Assert.Equal(0, parts.Parts.Count);
+            Assert.Single(parts.DiscoveryErrors);
+            Assert.Empty(parts.Parts);
         }
 
         [Fact]
@@ -46,8 +46,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var discovery = PartDiscovery.Combine(new SketchyPartDiscovery(), new NoOpDiscovery());
             var parts = await discovery.CreatePartsAsync(typeof(string), typeof(int));
-            Assert.Equal(1, parts.DiscoveryErrors.Count);
-            Assert.Equal(1, parts.Parts.Count);
+            Assert.Single(parts.DiscoveryErrors);
+            Assert.Single(parts.Parts);
         }
 
         [Fact]
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 this.GetType().GetTypeInfo().Assembly,
             };
             var parts = await discovery.CreatePartsAsync(assemblies.Select(a => a.Location));
-            Assert.NotEqual(0, parts.Parts.Count);
+            Assert.NotEmpty(parts.Parts);
         }
 
         [Fact]
@@ -100,7 +100,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var discovery = TestUtilities.V2Discovery;
             var result = await discovery.CreatePartsAsync(new[] { "Foo\\DoesNotExist.dll" });
-            Assert.Equal(1, result.DiscoveryErrors.Count);
+            Assert.Single(result.DiscoveryErrors);
             Assert.Equal("Foo\\DoesNotExist.dll", result.DiscoveryErrors[0].AssemblyPath);
         }
 

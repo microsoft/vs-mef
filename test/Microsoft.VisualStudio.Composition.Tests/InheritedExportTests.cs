@@ -59,10 +59,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var exports = container.GetExportedValues<BaseClass>();
             Assert.Equal(2, exports.Count());
-            Assert.Equal(1, exports.OfType<DerivedClass>().Count());
+            Assert.Single(exports.OfType<DerivedClass>());
 
             exports = container.GetExportedValues<DerivedClass>();
-            Assert.Equal(0, exports.Count());
+            Assert.Empty(exports);
         }
 
         [MefV1.InheritedExport]
@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var part = container.GetExportedValue<PartWithImportManyOfBaseClassWithCustomExport>();
             Assert.Equal(2, part.InheritedExportBothPlaces.Count);
-            Assert.Equal(1, part.InheritedExportBothPlaces.Select(v => v.Value).OfType<DerivedTypeOfExportedClassWithItsOwnExport>().Count());
+            Assert.Single(part.InheritedExportBothPlaces.Select(v => v.Value).OfType<DerivedTypeOfExportedClassWithItsOwnExport>());
 
             var derivedPart = container.GetExportedValue<DerivedTypeOfExportedClassWithItsOwnExport>();
             Assert.NotNull(derivedPart);
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var parts = container.GetExportedValues<object>("CommonContractName");
             Assert.Equal(2, parts.Count());
-            Assert.Equal(1, parts.OfType<DerivedTypeOfExportedClassWithItsOwnExport>().Count());
+            Assert.Single(parts.OfType<DerivedTypeOfExportedClassWithItsOwnExport>());
         }
 
         [MefV1.InheritedExport("InheritedExportBothPlaces", typeof(BaseClassWithCustomExport))]
@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void InheritedExportOnAbstractNonGenericBaseWithGenericDerived(IContainer container)
         {
             var exports = container.GetExportedValues<AbstractBaseClass>();
-            Assert.Equal(0, exports.Count());
+            Assert.Empty(exports);
         }
 
         [Trait("GenericExports", "Open")]
@@ -158,10 +158,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void InheritedExportOnAbstractGenericBaseWithNonGenericDerived(IContainer container)
         {
             var exports = container.GetExportedValues<GenericBase<int>>();
-            Assert.Equal(1, exports.Count());
+            Assert.Single(exports);
 
             var exports2 = container.GetExportedValues<GenericBase<double>>();
-            Assert.Equal(0, exports2.Count());
+            Assert.Empty(exports2);
         }
 
         public class GenericDerived<T> : AbstractBaseClass { }
@@ -180,13 +180,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             IEnumerable<BaseTypeWithCustomAttributes> parts;
             parts = container.GetExportedValues<BaseTypeWithCustomAttributes>("MyExportInheriting");
-            Assert.Equal(0, parts.Count());
+            Assert.Empty(parts);
             parts = container.GetExportedValues<BaseTypeWithCustomAttributes>("MyExportNonInheriting");
-            Assert.Equal(0, parts.Count());
+            Assert.Empty(parts);
             parts = container.GetExportedValues<BaseTypeWithCustomAttributes>("MyInheritedExportInheriting");
-            Assert.Equal(1, parts.Count());
+            Assert.Single(parts);
             parts = container.GetExportedValues<BaseTypeWithCustomAttributes>("MyInheritedExportNonInheriting");
-            Assert.Equal(1, parts.Count());
+            Assert.Single(parts);
         }
 
         [MyExportInheriting("MyExportInheriting", typeof(BaseTypeWithCustomAttributes))]
@@ -245,14 +245,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void InterfaceWithInheritedExportOnSelfAndImplementingClass(IContainer container)
         {
             var parts = container.GetExportedValues<ISelfExporting>();
-            Assert.Equal(1, parts.Count());
+            Assert.Single(parts);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(SomeClassImplementingSelfExportingAndDerivedInterfaceAndExporting))]
         public void InterfaceWithInheritedExportOnSelfDerivedAndImplementingClass(IContainer container)
         {
             var parts = container.GetExportedValues<ISelfExporting>();
-            Assert.Equal(1, parts.Count());
+            Assert.Single(parts);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(SomeClassImplementingSelfExportingAndDerivedInterface))]
