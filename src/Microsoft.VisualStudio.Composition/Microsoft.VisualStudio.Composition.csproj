@@ -4,7 +4,6 @@
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.VisualStudio.Composition.NetFxAttributes\Microsoft.VisualStudio.Composition.NetFxAttributes.csproj" />
     <!-- This reference is just so the analyzers package is brought in by our NuGet package. -->
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.Analyzers\Microsoft.VisualStudio.Composition.Analyzers.csproj">
       <PrivateAssets>none</PrivateAssets>
