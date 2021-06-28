@@ -18,14 +18,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void AcquirePartWithDynamicImport(IContainer container)
         {
             var part = container.GetExportedValue<PartImportingByDynamic>();
-            Assert.IsType(typeof(Apple), part.Apple);
+            Assert.IsType<Apple>(part.Apple);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(PartImportingByObject))]
         public void AcquirePartWithObjectImport(IContainer container)
         {
             var part = container.GetExportedValue<PartImportingByObject>();
-            Assert.IsType(typeof(Apple), part.Apple);
+            Assert.IsType<Apple>(part.Apple);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(PartImportingByFruit), InvalidConfiguration = true)]

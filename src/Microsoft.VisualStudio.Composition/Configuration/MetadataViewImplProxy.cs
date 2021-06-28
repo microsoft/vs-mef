@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 if (metadataType.IsAssignableFrom(attr.ImplementationType))
                 {
-                    var ctors = from ctor in attr.ImplementationType.GetConstructors(BindingFlags.Public | BindingFlags.Instance)
+                    var ctors = from ctor in attr.ImplementationType?.GetConstructors(BindingFlags.Public | BindingFlags.Instance) ?? Enumerable.Empty<ConstructorInfo>()
                                 let parameters = ctor.GetParameters()
                                 where parameters.Length == 1 && (
                                     parameters[0].ParameterType.IsAssignableFrom(typeof(IDictionary<string, object?>)) ||

@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void ImportingConstructorWithImportMany(IContainer container)
         {
             var part = container.GetExportedValue<ImportingConstructorWithImportManyPart>();
-            Assert.Equal(1, part.ConstructorImports.Length);
+            Assert.Single(part.ConstructorImports);
             Assert.IsType<RandomExport>(part.ConstructorImports[0]);
         }
 
@@ -241,7 +241,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public ImportManyEnumerableLazyWithMetadataConstructorPart([MefV1.ImportMany] IEnumerable<Lazy<IRandomExport, FeatureMetadata>> exports)
             {
                 Assert.NotNull(exports);
-                Assert.Equal(1, exports.Count());
+                Assert.Single(exports);
                 Assert.Equal("1", exports.First().Metadata.SomeMetadata);
                 Assert.IsType<RandomExport>(exports.First().Value);
             }
@@ -260,7 +260,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public ImportManyArrayLazyWithMetadataConstructorPart([MefV1.ImportMany] Lazy<IRandomExport, FeatureMetadata>[] exports)
             {
                 Assert.NotNull(exports);
-                Assert.Equal(1, exports.Length);
+                Assert.Single(exports);
                 Assert.Equal("1", exports.First().Metadata.SomeMetadata);
                 Assert.IsType<RandomExport>(exports.First().Value);
             }
@@ -279,7 +279,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public ImportManyCollectionLazyWithMetadataConstructorPart([MefV1.ImportMany] Collection<Lazy<IRandomExport, FeatureMetadata>> exports)
             {
                 Assert.NotNull(exports);
-                Assert.Equal(1, exports.Count);
+                Assert.Single(exports);
                 Assert.Equal("1", exports.First().Metadata.SomeMetadata);
                 Assert.IsType<RandomExport>(exports.First().Value);
             }
@@ -499,7 +499,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var root = container.GetExportedValue<PartWithImportingConstructorOfPartWithLazyLoopbackImportingProperty>();
             Assert.NotNull(root.Other.OtherLazy);
-            Assert.Equal(1, root.Other.OtherLazy.Length);
+            Assert.Single(root.Other.OtherLazy);
             Assert.Same(root, root.Other.OtherLazy[0].Value);
         }
 

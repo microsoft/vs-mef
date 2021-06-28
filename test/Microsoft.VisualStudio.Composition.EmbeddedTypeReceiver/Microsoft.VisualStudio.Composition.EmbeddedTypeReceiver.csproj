@@ -3,7 +3,7 @@
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Composition" Version="1.0.31" />
+    <PackageReference Include="System.Composition" Version="1.4.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.TestEmbeddableTypes\Microsoft.VisualStudio.Composition.TestEmbeddableTypes.csproj">

@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void ImportManyMetadataStaticPropertyExport(IContainer container)
         {
             var part = container.GetExportedValue<ImportManyWithMetadataPart>();
-            Assert.Equal(1, part.ImportingMember.Count);
+            Assert.Single(part.ImportingMember);
             Assert.Equal("SomeValue", part.ImportingMember[0].Metadata["SomeName"]);
             Assert.Equal(PartWithStaticExports.ExportingProperty, part.ImportingMember[0].Value);
         }

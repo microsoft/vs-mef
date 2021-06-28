@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.Composition
                 this.exportProvider = exportProvider;
             }
 
-            protected override IEnumerable<MefV1.Primitives.Export> GetExportsCore(MefV1.Primitives.ImportDefinition definition, MefV1.Hosting.AtomicComposition atomicComposition)
+            protected override IEnumerable<MefV1.Primitives.Export> GetExportsCore(MefV1.Primitives.ImportDefinition definition, MefV1.Hosting.AtomicComposition? atomicComposition)
             {
                 var v3ImportDefinition = WrapImportDefinition(definition);
                 var result = ImmutableList.CreateBuilder<MefV1.Primitives.Export>();

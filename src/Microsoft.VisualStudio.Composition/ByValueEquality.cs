@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 foreach (var pair in x)
                 {
-                    TValue otherValue;
+                    TValue? otherValue;
                     if (!y.TryGetValue(pair.Key, out otherValue))
                     {
                         return false;

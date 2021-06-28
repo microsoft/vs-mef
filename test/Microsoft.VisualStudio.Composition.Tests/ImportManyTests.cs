@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableArray>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(0, extendable.Extensions.Length);
+            Assert.Empty(extendable.Extensions);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExtendableArray), typeof(ExtensionOne))]
@@ -32,8 +32,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableArray>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(1, extendable.Extensions.Length);
-            Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
+            Assert.Single(extendable.Extensions);
+            Assert.IsAssignableFrom<ExtensionOne>(extendable.Extensions.Single());
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExtendableArray), typeof(ExtensionOne), typeof(ExtensionTwo))]
@@ -43,8 +43,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
             Assert.Equal(2, extendable.Extensions.Length);
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
+            Assert.Single(extendable.Extensions.OfType<ExtensionOne>());
+            Assert.Single(extendable.Extensions.OfType<ExtensionTwo>());
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExtendableArrayWithMetadata), typeof(ExtensionOne))]
@@ -53,9 +53,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableArrayWithMetadata>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(1, extendable.Extensions.Length);
+            Assert.Single(extendable.Extensions);
             var value = extendable.Extensions.Single();
-            Assert.IsAssignableFrom(typeof(ExtensionOne), value.Value);
+            Assert.IsAssignableFrom<ExtensionOne>(value.Value);
             Assert.Equal(1, value.Metadata["a"]);
         }
 
@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableIEnumerable>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(0, extendable.Extensions.Count());
+            Assert.Empty(extendable.Extensions);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExtendableIEnumerable), typeof(ExtensionOne))]
@@ -78,8 +78,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableIEnumerable>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(1, extendable.Extensions.Count());
-            Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
+            Assert.Single(extendable.Extensions);
+            Assert.IsAssignableFrom<ExtensionOne>(extendable.Extensions.Single());
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExtendableIEnumerable), typeof(ExtensionOne), typeof(ExtensionTwo))]
@@ -89,8 +89,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
             Assert.Equal(2, extendable.Extensions.Count());
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
+            Assert.Single(extendable.Extensions.OfType<ExtensionOne>());
+            Assert.Single(extendable.Extensions.OfType<ExtensionTwo>());
         }
 
         #endregion
@@ -113,7 +113,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
             Assert.Equal(1, extendable.Extensions.Count);
-            Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
+            Assert.IsAssignableFrom<ExtensionOne>(extendable.Extensions.Single());
         }
 
         [MefFact(CompositionEngines.V2Compat, typeof(ExtendableIList), typeof(ExtensionOne), typeof(ExtensionTwo))]
@@ -123,8 +123,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
             Assert.Equal(2, extendable.Extensions.Count);
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
+            Assert.Single(extendable.Extensions.OfType<ExtensionOne>());
+            Assert.Single(extendable.Extensions.OfType<ExtensionTwo>());
         }
 
         #endregion
@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableList>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(0, extendable.Extensions.Count);
+            Assert.Empty(extendable.Extensions);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExtendableList), typeof(ExtensionOne))]
@@ -146,8 +146,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableList>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(1, extendable.Extensions.Count);
-            Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
+            Assert.Single(extendable.Extensions);
+            Assert.IsAssignableFrom<ExtensionOne>(extendable.Extensions.Single());
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExtendableList), typeof(ExtensionOne), typeof(ExtensionTwo))]
@@ -157,8 +157,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
             Assert.Equal(2, extendable.Extensions.Count);
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
+            Assert.Single(extendable.Extensions.OfType<ExtensionOne>());
+            Assert.Single(extendable.Extensions.OfType<ExtensionTwo>());
         }
 
         #endregion
@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableCustomCollectionWithPublicCtor>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(0, extendable.Extensions.Count);
+            Assert.Empty(extendable.Extensions);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionWithPublicCtor), typeof(ExtensionOne))]
@@ -180,8 +180,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableCustomCollectionWithPublicCtor>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(1, extendable.Extensions.Count);
-            Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
+            Assert.Single(extendable.Extensions);
+            Assert.IsAssignableFrom<ExtensionOne>(extendable.Extensions.Single());
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionWithPublicCtor), typeof(ExtensionOne), typeof(ExtensionTwo))]
@@ -191,8 +191,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
             Assert.Equal(2, extendable.Extensions.Count);
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
+            Assert.Single(extendable.Extensions.OfType<ExtensionOne>());
+            Assert.Single(extendable.Extensions.OfType<ExtensionTwo>());
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionOfLazyMetadata), typeof(ExtensionOne))]
@@ -201,7 +201,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableCustomCollectionOfLazyMetadata>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(1, extendable.Extensions.Count);
+            Assert.Single(extendable.Extensions);
             var extension = extendable.Extensions.Single();
             Assert.IsType<ExtensionOne>(extension.Value);
             Assert.Equal(1, extension.Metadata["a"]);
@@ -213,7 +213,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableCustomCollectionOfConcreteType>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(1, extendable.Extensions.Count);
+            Assert.Single(extendable.Extensions);
             var extension = extendable.Extensions.Single();
             Assert.IsType<ExtensionOne>(extension);
         }
@@ -224,7 +224,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableCustomCollectionOfConcreteTypeWithMetadata>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(1, extendable.Extensions.Count);
+            Assert.Single(extendable.Extensions);
             var extension = extendable.Extensions.Single();
             Assert.IsType<ExtensionOne>(extension.Value);
             Assert.Equal(1, extension.Metadata["a"]);
@@ -240,8 +240,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(extendable.Extensions.ConstructorArg); // non-null indicates MEF didn't recreate the collection.
             Assert.True(extendable.Extensions.Cleared); // true indicates MEF did call Clear() before initializing.
             Assert.Equal(2, extendable.Extensions.Count);
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
+            Assert.Single(extendable.Extensions.OfType<ExtensionOne>());
+            Assert.Single(extendable.Extensions.OfType<ExtensionTwo>());
         }
 
         #endregion
@@ -254,7 +254,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableCustomCollectionWithInternalCtor>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(0, extendable.Extensions.Count);
+            Assert.Empty(extendable.Extensions);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionWithInternalCtor), typeof(ExtensionOne))]
@@ -263,8 +263,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableCustomCollectionWithInternalCtor>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(1, extendable.Extensions.Count);
-            Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
+            Assert.Single(extendable.Extensions);
+            Assert.IsAssignableFrom<ExtensionOne>(extendable.Extensions.Single());
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExtendableCustomCollectionWithInternalCtor), typeof(ExtensionOne), typeof(ExtensionTwo))]
@@ -274,8 +274,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
             Assert.Equal(2, extendable.Extensions.Count);
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
+            Assert.Single(extendable.Extensions.OfType<ExtensionOne>());
+            Assert.Single(extendable.Extensions.OfType<ExtensionTwo>());
         }
 
         #endregion
@@ -288,7 +288,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableHashSet>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(0, extendable.Extensions.Count);
+            Assert.Empty(extendable.Extensions);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExtendableHashSet), typeof(ExtensionOne))]
@@ -297,8 +297,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableHashSet>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(1, extendable.Extensions.Count);
-            Assert.IsAssignableFrom(typeof(ExtensionOne), extendable.Extensions.Single());
+            Assert.Single(extendable.Extensions);
+            Assert.IsAssignableFrom<ExtensionOne>(extendable.Extensions.Single());
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExtendableHashSet), typeof(ExtensionOne), typeof(ExtensionTwo))]
@@ -308,8 +308,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
             Assert.Equal(2, extendable.Extensions.Count);
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionOne>().Count());
-            Assert.Equal(1, extendable.Extensions.OfType<ExtensionTwo>().Count());
+            Assert.Single(extendable.Extensions.OfType<ExtensionOne>());
+            Assert.Single(extendable.Extensions.OfType<ExtensionTwo>());
         }
 
         #endregion
@@ -321,7 +321,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void GetExportedValuesEmpty(IContainer container)
         {
             IEnumerable<ICustomFormatter> results = container.GetExportedValues<ICustomFormatter>();
-            Assert.Equal(0, results.Count());
+            Assert.Empty(results);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExtensionOne), typeof(ExtensionTwo))]
@@ -330,8 +330,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             IEnumerable<IExtension> results = container.GetExportedValues<IExtension>();
             Assert.Equal(2, results.Count());
-            Assert.Equal(1, results.OfType<ExtensionOne>().Count());
-            Assert.Equal(1, results.OfType<ExtensionTwo>().Count());
+            Assert.Single(results.OfType<ExtensionOne>());
+            Assert.Single(results.OfType<ExtensionTwo>());
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExtensionOne), typeof(ExtensionTwo))]
@@ -339,7 +339,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void GetExportedValuesNamedEmpty(IContainer container)
         {
             IEnumerable<IExtension> results = container.GetExportedValues<IExtension>("BadName");
-            Assert.Equal(0, results.Count());
+            Assert.Empty(results);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(NamedExtensionOne), typeof(NamedExtensionTwo))]
@@ -348,8 +348,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             IEnumerable<IExtension> results = container.GetExportedValues<IExtension>("Named");
             Assert.Equal(2, results.Count());
-            Assert.Equal(1, results.OfType<NamedExtensionOne>().Count());
-            Assert.Equal(1, results.OfType<NamedExtensionTwo>().Count());
+            Assert.Single(results.OfType<NamedExtensionOne>());
+            Assert.Single(results.OfType<NamedExtensionTwo>());
         }
 
         [Export("Named", typeof(IExtension))]
@@ -413,7 +413,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void ImportManyListOfLazyPublicInterfaceWithNonPublicParts(IContainer container)
         {
             var export = container.GetExportedValue<ExtendableListOfLazy>();
-            Assert.Equal(1, export.Extensions.Count);
+            Assert.Single(export.Extensions);
             Assert.IsType<NonPublicExtensionThree>(export.Extensions.Single().Value);
         }
 

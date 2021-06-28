@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             // an exception from the first line.
             // The V1 attribute reader is content to produce parts without importing constructors,
             // so when someone imports the faulty part (optionally or otherwise) it rejects the importing part.
-            Assert.Equal(0, exports.Count);
+            Assert.Empty(exports);
         }
 
         [MefFact(CompositionEngines.V2Compat | CompositionEngines.V3AllowConfigurationWithErrors, typeof(SomePartWithoutImportingConstructor), typeof(PartThatOptionallyImportsBrokenPart), InvalidConfiguration = true)]
@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             // In V3 (with V2 attribute reader) we have rejected the part with the missing importing constructor.
             // So the optional import of the rejected type is fine to remain unsatisfied.
-            Assert.Equal(1, exports.Count);
+            Assert.Single(exports);
         }
 
         [MefFact(CompositionEngines.V2, typeof(SomePartWithoutImportingConstructor), typeof(PartThatUnconditionallyLazyImportsBrokenPart), InvalidConfiguration = true, NoCompatGoal = true)]
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var exports = container.GetExportedValues<PartThatUnconditionallyLazyImportsBrokenPart>().ToList();
 
-            Assert.Equal(1, exports.Count);
+            Assert.Single(exports);
             Assert.NotNull(exports[0].ImportOfBrokenPart);
 
             // It should finally fail here.
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             // We only reach this assertion in V3. The other two engines have already thrown
             // an exception from the first line.
-            Assert.Equal(0, exports.Count);
+            Assert.Empty(exports);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3AllowConfigurationWithErrors, typeof(PartWithImportPropertyAndNoSetter), typeof(ValidExportingPart), InvalidConfiguration = true)]

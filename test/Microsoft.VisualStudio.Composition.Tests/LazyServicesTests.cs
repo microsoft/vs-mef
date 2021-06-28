@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     return "hi";
                 },
                 5);
-            Assert.IsType(typeof(Lazy<string>), lazy);
+            Assert.IsType<Lazy<string>>(lazy);
             Assert.False(executed);
             Assert.Equal("hi", lazy.Value);
             Assert.True(executed);

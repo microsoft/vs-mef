@@ -1,0 +1,24 @@
+<Project>
+  <PropertyGroup>
+    <GenerateNuspecDependsOn>$(GenerateNuspecDependsOn);SignFilesForPackage</GenerateNuspecDependsOn>
+  </PropertyGroup>
+  <Target Name="SignFilesForPackage"
+          Condition=" '$(MicroBuild_SigningEnabled)' == 'true' ">
+    <ItemGroup>
+      <ToolPackInputsToSign Include="@(_PackageFiles)" Condition="false
+         or '%(FileName)%(Extension)' == 'Nerdbank.MSBuildExtension.dll'
+         ">
+        <Authenticode>3PartySHA2</Authenticode>
+        <StrongName>None</StrongName>
+      </ToolPackInputsToSign>
+    </ItemGroup>
+
+    <SignFiles Files="@(ToolPackInputsToSign)"
+               Type="$(SignType)"
+               BinariesDirectory="$(OutputPath)"
+               IntermediatesDirectory="$(BaseIntermediateOutputPath)"
+               ESRPSigning="$(ESRPSigning)"
+               UseBearerToken="$(UseBearerToken)"
+               Condition=" '@(ToolPackInputsToSign)' != '' " />
+  </Target>
+</Project>

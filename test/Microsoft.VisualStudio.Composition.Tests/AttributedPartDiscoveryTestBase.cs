@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             ComposablePartDefinition? result = this.DiscoveryService.CreatePart(typeof(NonSharedPart));
             Assert.NotNull(result);
             Assert.Equal(1, result!.ExportedTypes.Count);
-            Assert.Equal(0, result.ImportingMembers.Count);
+            Assert.Empty(result.ImportingMembers);
             Assert.False(result.IsShared);
         }
 
@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             ComposablePartDefinition? result = this.DiscoveryService.CreatePart(typeof(SharedPart));
             Assert.NotNull(result);
             Assert.Equal(1, result!.ExportedTypes.Count);
-            Assert.Equal(0, result.ImportingMembers.Count);
+            Assert.Empty(result.ImportingMembers);
             Assert.True(result.IsShared);
         }
 
@@ -43,8 +43,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task AssemblyDiscoveryFindsTopLevelParts()
         {
             var result = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).GetTypeInfo().Assembly);
-            Assert.True(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(DiscoverablePart1))));
-            Assert.True(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(DiscoverablePart2))));
+            Assert.Contains(result.Parts, p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(DiscoverablePart1)));
+            Assert.Contains(result.Parts, p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(DiscoverablePart2)));
         }
 
         [Fact]
@@ -58,8 +58,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public async Task AssemblyDiscoveryOmitsNonDiscoverableParts()
         {
             var result = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).GetTypeInfo().Assembly);
-            Assert.False(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonPart))));
-            Assert.False(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonDiscoverablePart))));
+            Assert.DoesNotContain(result.Parts, p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonPart)));
+            Assert.DoesNotContain(result.Parts, p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonDiscoverablePart)));
         }
 
         [Fact]
@@ -68,20 +68,20 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var combined = PartDiscovery.Combine(this.DiscoveryService, new PartDiscoveryAllTypesMock());
             var result = await combined.CreatePartsAsync(typeof(NonDiscoverablePart).GetTypeInfo().Assembly);
 
-            Assert.False(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonPart))));
-            Assert.False(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonDiscoverablePart))));
-            Assert.False(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonDiscoverablePartV1))));
-            Assert.False(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonDiscoverablePartV2))));
+            Assert.DoesNotContain(result.Parts, p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonPart)));
+            Assert.DoesNotContain(result.Parts, p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonDiscoverablePart)));
+            Assert.DoesNotContain(result.Parts, p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonDiscoverablePartV1)));
+            Assert.DoesNotContain(result.Parts, p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(NonDiscoverablePartV2)));
 
-            Assert.True(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(DiscoverablePart1))));
-            Assert.True(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(DiscoverablePart2))));
+            Assert.Contains(result.Parts, p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(DiscoverablePart1)));
+            Assert.Contains(result.Parts, p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(DiscoverablePart2)));
         }
 
         [Fact]
         public async Task AssemblyDiscoveryFindsNestedParts()
         {
             var result = await this.DiscoveryService.CreatePartsAsync(typeof(NonDiscoverablePart).GetTypeInfo().Assembly);
-            Assert.True(result.Parts.Any(p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(OuterClass.NestedPart))));
+            Assert.Contains(result.Parts, p => p.Type.GetTypeInfo().IsEquivalentTo(typeof(OuterClass.NestedPart)));
         }
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var result = await this.DiscoveryService.CreatePartsAsync(typeof(TypeWithMissingAttribute).GetTypeInfo().Assembly);
 
             // Verify that we still found parts.
-            Assert.NotEqual(0, result.Parts.Count);
+            Assert.NotEmpty(result.Parts);
         }
 
         [Fact]
@@ -139,11 +139,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 });
 
             // Verify that the ReflectionTypeLoadException is logged.
-            Assert.True(result.DiscoveryErrors.Any(ex => ex.InnerException is ReflectionTypeLoadException));
+            Assert.Contains(result.DiscoveryErrors, ex => ex.InnerException is ReflectionTypeLoadException);
 
             // Verify that we still found parts in the bad and good assemblies.
-            Assert.True(result.Parts.Any(p => p.Type == typeof(GoodPartInAssemblyWithBadTypes)));
-            Assert.True(result.Parts.Any(p => p.Type == typeof(DiscoverablePart1)));
+            Assert.Contains(result.Parts, p => p.Type == typeof(GoodPartInAssemblyWithBadTypes));
+            Assert.Contains(result.Parts, p => p.Type == typeof(DiscoverablePart1));
         }
 #endif
 
@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(OuterClass))]
         public void TypeDiscoveryOmitsNestedTypes(IContainer container)
         {
-            Assert.Equal(0, container.GetExportedValues<OuterClass.NestedPart>().Count());
+            Assert.Empty(container.GetExportedValues<OuterClass.NestedPart>());
         }
 
         #endregion

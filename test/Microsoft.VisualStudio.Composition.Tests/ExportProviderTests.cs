@@ -92,21 +92,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void GetExports_WithFilteringMetadataView(IContainer container)
         {
             var exports = container.GetExports<SomeOtherPart, IMetadataViewWithBMember>();
-            Assert.Equal(0, exports.Count());
+            Assert.Empty(exports);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(Apple))]
         public void GetExportedValue_OfTypeByObjectAndContractName(IContainer container)
         {
             var apple = container.GetExportedValue<object>("SomeContract");
-            Assert.IsType(typeof(Apple), apple);
+            Assert.IsType<Apple>(apple);
         }
 
         [MefFact(CompositionEngines.V3EmulatingV1, typeof(Apple))]
         public void GetExportedValues_OfTypeByObjectAndContractName_NonGeneric(IContainer container)
         {
             var apple = container.GetExportedValues(typeof(object), "SomeContract").Single();
-            Assert.IsType(typeof(Apple), apple);
+            Assert.IsType<Apple>(apple);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Apple))]
@@ -215,7 +215,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             if (container is TestUtilities.V1ContainerWrapper v1container)
             {
                 var v1Export = v1container.Container.GetExports(new MefV1.Primitives.ImportDefinition(ed => ed.ContractName == contractName, contractName, MefV1.Primitives.ImportCardinality.ExactlyOne, false, false)).Single();
-                export = (NonSharedPartThatImportsAnotherNonSharedPart)v1Export.Value;
+                export = (NonSharedPartThatImportsAnotherNonSharedPart)v1Export.Value!;
                 releaseExport = () => v1container.Container.ReleaseExport(v1Export);
             }
             else if (container is TestUtilities.V3ContainerWrapper v3container)
@@ -256,7 +256,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             if (container is TestUtilities.V1ContainerWrapper v1container)
             {
                 var v1Export = v1container.Container.GetExports(new MefV1.Primitives.ImportDefinition(ed => ed.ContractName == contractName, contractName, MefV1.Primitives.ImportCardinality.ExactlyOne, false, false)).Single();
-                value = (NonSharedPartThatImportsAnotherNonSharedPart)v1Export.Value;
+                value = (NonSharedPartThatImportsAnotherNonSharedPart)v1Export.Value!;
                 releaseExport = () => v1container.Container.ReleaseExport(v1Export);
             }
             else if (container is TestUtilities.V3ContainerWrapper v3container)
@@ -289,7 +289,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             if (container is TestUtilities.V1ContainerWrapper v1container)
             {
                 var v1Export = v1container.Container.GetExports(new MefV1.Primitives.ImportDefinition(ed => ed.ContractName == contractName, contractName, MefV1.Primitives.ImportCardinality.ExactlyOne, false, false)).Single();
-                value = (NonSharedPartThatImportsAnotherNonSharedPart)v1Export.Value;
+                value = (NonSharedPartThatImportsAnotherNonSharedPart)v1Export.Value!;
                 releaseExport = () => v1container.Container.ReleaseExport(v1Export);
             }
             else if (container is TestUtilities.V3ContainerWrapper v3container)
@@ -701,7 +701,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void GetExports_StaticExports(IContainer container)
         {
             List<string> exports = container.GetExportedValues<string>().ToList();
-            Assert.Equal(1, exports.Count);
+            Assert.Single(exports);
             Assert.Equal("PASS", exports[0]);
         }
 

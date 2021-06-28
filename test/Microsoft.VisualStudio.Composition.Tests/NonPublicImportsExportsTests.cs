@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void PrivateImportManyFieldArray(IContainer container)
         {
             var part = container.GetExportedValue<PartWithPrivateImportManyFieldArray>();
-            Assert.Equal(1, part.ImportManyFieldAccessor.Length);
+            Assert.Single(part.ImportManyFieldAccessor);
             Assert.NotNull(part.ImportManyFieldAccessor[0]);
         }
 
@@ -179,7 +179,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void PrivateImportManyFieldSpecialCollection(IContainer container)
         {
             var part = container.GetExportedValue<PartWithPrivateImportManyFieldSpecialCollection>();
-            Assert.Equal(1, part.ImportManyFieldAccessor.Count);
+            Assert.Single(part.ImportManyFieldAccessor);
             Assert.NotNull(part.ImportManyFieldAccessor[0]);
         }
 
@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void PrivateImportManyPropertySpecialCollection(IContainer container)
         {
             var part = container.GetExportedValue<PartWithPrivateImportManyPropertySpecialCollection>();
-            Assert.Equal(1, part.ImportManyPropertyAccessor.Count);
+            Assert.Single(part.ImportManyPropertyAccessor);
             Assert.NotNull(part.ImportManyPropertyAccessor[0]);
         }
 
@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void PrivateImportManyFieldPrivateCollection(IContainer container)
         {
             var part = container.GetExportedValue<PartWithPrivateImportManyFieldPrivateCollection>();
-            Assert.Equal(1, part.ImportManyFieldAccessor.Count);
+            Assert.Single(part.ImportManyFieldAccessor);
             Assert.NotNull(part.ImportManyFieldAccessor.Single());
         }
 
@@ -203,7 +203,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void PrivateImportManyPropertyPrivateCollection(IContainer container)
         {
             var part = container.GetExportedValue<PartWithPrivateImportManyPropertyPrivateCollection>();
-            Assert.Equal(1, part.ImportManyPropertyAccessor.Count);
+            Assert.Single(part.ImportManyPropertyAccessor);
             Assert.NotNull(part.ImportManyPropertyAccessor.Single());
         }
 
@@ -227,7 +227,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var importingPart = container.GetExportedValue<PartWithImportManyOfInternalPartViaPublicInterface>();
             Assert.NotNull(importingPart.ImportingProperty);
-            Assert.Equal(1, importingPart.ImportingProperty.Count);
+            Assert.Single(importingPart.ImportingProperty);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(PartWithImportManyOfInternalPartViaInternalInterface), typeof(InternalPartWithPublicExport))]
@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var importingPart = container.GetExportedValue<PartWithImportManyOfInternalPartViaInternalInterface>();
             Assert.NotNull(importingPart.ImportingProperty);
-            Assert.Equal(1, importingPart.ImportingProperty.Count);
+            Assert.Single(importingPart.ImportingProperty);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(PartWithImportManyOfInternalPartViaInternalInterfaceInitialized), typeof(InternalPartWithPublicExport))]
@@ -243,7 +243,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var importingPart = container.GetExportedValue<PartWithImportManyOfInternalPartViaInternalInterfaceInitialized>();
             Assert.NotNull(importingPart.ImportingProperty);
-            Assert.Equal(1, importingPart.ImportingProperty.Count);
+            Assert.Single(importingPart.ImportingProperty);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(PartWithLazyImportManyOfInternalPartViaInternalInterface), typeof(InternalPartWithPublicExport))]
@@ -251,7 +251,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var importingPart = container.GetExportedValue<PartWithLazyImportManyOfInternalPartViaInternalInterface>();
             Assert.NotNull(importingPart.ImportingProperty);
-            Assert.Equal(1, importingPart.ImportingProperty.Count);
+            Assert.Single(importingPart.ImportingProperty);
             Assert.IsType<InternalPartWithPublicExport>(importingPart.ImportingProperty[0].Value);
         }
 
@@ -308,7 +308,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void PrivateExportedDelegateManyLazy(IContainer container)
         {
             var part = container.GetExportedValue<ManyLazyDelegateImportingPart>();
-            Assert.Equal(1, part.SomeMethod.Count);
+            Assert.Single(part.SomeMethod);
             Assert.NotNull(part.SomeMethod[0].Value);
         }
 

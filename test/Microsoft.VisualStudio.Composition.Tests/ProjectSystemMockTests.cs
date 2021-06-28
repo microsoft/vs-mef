@@ -74,11 +74,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var projectService = container.GetExportedValue<ProjectService>();
 
             var project1 = projectService.CreateProject("Capability1");
-            Assert.Equal(1, project1.Value.GetApplicableExtensions().Length);
+            Assert.Single(project1.Value.GetApplicableExtensions());
             Assert.IsType<ProjectPartA>(project1.Value.GetApplicableExtensions().Single().Value);
 
             var project2 = projectService.CreateProject("Capability2");
-            Assert.Equal(1, project2.Value.GetApplicableExtensions().Length);
+            Assert.Single(project2.Value.GetApplicableExtensions());
             Assert.IsType<ProjectPartB>(project2.Value.GetApplicableExtensions().Single().Value);
         }
 

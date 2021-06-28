@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.Composition
                         foreach (var exportAttribute in exportAttributes)
                         {
                             Type exportedType = exportAttribute.ContractType ?? ReflectionHelpers.GetContractTypeForDelegate(method);
-                            string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
+                            string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName!;
                             var exportMetadata = memberExportMetadata
                                 .Add(CompositionConstants.ExportTypeIdentityMetadataName, ContractNameServices.GetTypeIdentity(exportedType));
                             var exportDefinition = new ExportDefinition(contractName, exportMetadata);
@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.Composition
                     foreach (var exportAttribute in export.Value)
                     {
                         Type exportedType = exportAttribute.ContractType ?? partTypeAsGenericTypeDefinition ?? exportSiteType;
-                        string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName;
+                        string contractName = string.IsNullOrEmpty(exportAttribute.ContractName) ? GetContractName(exportedType) : exportAttribute.ContractName!;
                         if (export.Key is TypeInfo && exportAttribute is InheritedExportAttribute)
                         {
                             if (inheritedExportContractNamesFromNonInterfaces.Contains(contractName))
@@ -310,7 +310,7 @@ namespace Microsoft.VisualStudio.Composition
                     .Union(this.GetMetadataViewConstraints(importingType, importMany: false))
                     .Union(GetExportTypeIdentityConstraints(contractType));
                 importDefinition = new ImportDefinition(
-                    string.IsNullOrEmpty(importAttribute.ContractName) ? GetContractName(contractType) : importAttribute.ContractName,
+                    string.IsNullOrEmpty(importAttribute.ContractName) ? GetContractName(contractType) : importAttribute.ContractName!,
                     importAttribute.AllowDefault ? ImportCardinality.OneOrZero : ImportCardinality.ExactlyOne,
                     GetImportMetadataForGenericTypeImport(contractType),
                     constraints);
@@ -334,7 +334,7 @@ namespace Microsoft.VisualStudio.Composition
                     .Union(this.GetMetadataViewConstraints(importingType, importMany: true))
                     .Union(GetExportTypeIdentityConstraints(contractType));
                 importDefinition = new ImportDefinition(
-                    string.IsNullOrEmpty(importManyAttribute.ContractName) ? GetContractName(contractType) : importManyAttribute.ContractName,
+                    string.IsNullOrEmpty(importManyAttribute.ContractName) ? GetContractName(contractType) : importManyAttribute.ContractName!,
                     ImportCardinality.ZeroOrMore,
                     GetImportMetadataForGenericTypeImport(contractType),
                     constraints);

@@ -409,7 +409,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 var exportWithLazy = this.container!.GetExportedValue<PartThatLazyImportsExportWithTypeMetadataViaDictionary>();
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
-                Assert.NotNull(exportWithLazy.ImportWithDictionary.Metadata.ContainsKey("foo"));
+                Assert.False(exportWithLazy.ImportWithDictionary.Metadata.ContainsKey("foo"));
                 AssertEx.False(GetLoadedAssemblies().Any(a => a.Location.Equals(lazyLoadedAssemblyPath, StringComparison.OrdinalIgnoreCase)));
                 Type type = (Type)exportWithLazy.ImportWithDictionary.Metadata["SomeType"];
                 Type[] types = (Type[])exportWithLazy.ImportWithDictionary.Metadata["SomeTypes"];

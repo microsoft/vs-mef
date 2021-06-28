@@ -508,7 +508,7 @@ namespace Microsoft.VisualStudio.Composition
             transformBlock.LinkTo(aggregatingBlock, new DataflowLinkOptions { PropagateCompletion = true });
 
             var tcs = new TaskCompletionSource<DiscoveredParts>();
-            Task.Run(async delegate
+            Task forget = Task.Run(async delegate
             {
                 try
                 {
@@ -572,7 +572,7 @@ namespace Microsoft.VisualStudio.Composition
             assemblyBlock.LinkTo(tuple.Item1, new DataflowLinkOptions { PropagateCompletion = true });
 
             var tcs = new TaskCompletionSource<DiscoveredParts>();
-            Task.Run(async delegate
+            Task forget = Task.Run(async delegate
             {
                 try
                 {

@@ -1,9 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <CodeAnalysisRuleSet>Microsoft.VisualStudio.Composition.Configuration.ruleset</CodeAnalysisRuleSet>
     <RootNamespace>Microsoft.VisualStudio.Composition</RootNamespace>
-
     <Description>Lightning fast MEF engine, supporting System.ComponentModel.Composition and System.Composition.</Description>
   </PropertyGroup>
   <ItemGroup>

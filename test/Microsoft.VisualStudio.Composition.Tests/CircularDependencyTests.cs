@@ -209,11 +209,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Same(value, value.Self);
             Assert.Same(value, value.LazySelf.Value);
             Assert.Same(value, value.LazySelfMetadata.Value);
-            Assert.Equal(1, value.SelfMany.Length);
+            Assert.Single(value.SelfMany);
             Assert.Same(value, value.SelfMany[0]);
-            Assert.Equal(1, value.LazySelfMany.Length);
+            Assert.Single(value.LazySelfMany);
             Assert.Same(value, value.LazySelfMany[0].Value);
-            Assert.Equal(1, value.LazySelfManyMetadata.Length);
+            Assert.Single(value.LazySelfManyMetadata);
             Assert.Same(value, value.LazySelfManyMetadata[0].Value);
         }
 

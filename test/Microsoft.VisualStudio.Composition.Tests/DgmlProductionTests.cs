@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             var partInScope1Node = nodes.Single(e => e.Attribute("Id").Value.Contains("PartInScope1"));
             var scopeContainerNode = nodes.Single(e => e.Attribute("Id").Value == "Scope1");
-            Assert.True(scopeContainerNode.Attribute("Label").Value.Contains("Scope1"));
+            Assert.Contains("Scope1", scopeContainerNode.Attribute("Label").Value);
 
             var scopeLink = links.Single(l => l.Attribute("Source").Value == scopeContainerNode.Attribute("Id").Value && l.Attribute("Target").Value == partInScope1Node.Attribute("Id").Value);
         }
