@@ -325,7 +325,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     try
                     {
-                        bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(importingPartTracker, import.IsLazy, import.ImportingParameterRef != null);
+                        bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(import.IsLazy, import.ImportingParameterRef != null);
                         if (!fullyInitializedValueIsRequired && importingPartTracker != null && !import.IsExportFactory)
                         {
                             importingPartTracker.ReportPartiallyInitializedImport(partLifecycle);

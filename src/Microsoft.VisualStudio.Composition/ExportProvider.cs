@@ -511,7 +511,6 @@ namespace Microsoft.VisualStudio.Composition
         /// Gets a value indicating whether an import with the given characteristics must be initially satisfied
         /// with a fully pre-initialized export.
         /// </summary>
-        /// <param name="importingPartTracker">The tracker for the part that is importing.</param>
         /// <param name="isLazy"><c>true</c> if the import is a Lazy{T} style import; <c>false</c> otherwise.</param>
         /// <param name="isImportingConstructorArgument"><c>true</c> if the import appears in an importing constructor; <c>false</c> otherwise.</param>
         /// <returns>
@@ -519,7 +518,7 @@ namespace Microsoft.VisualStudio.Composition
         /// prior to being exposed to the receiver; <c>false</c> if the export can be partially initialized when the receiver
         /// first observes it.
         /// </returns>
-        private protected static bool IsFullyInitializedExportRequiredWhenSettingImport(PartLifecycleTracker? importingPartTracker, bool isLazy, bool isImportingConstructorArgument)
+        private protected static bool IsFullyInitializedExportRequiredWhenSettingImport(bool isLazy, bool isImportingConstructorArgument)
         {
             // Only non-lazy importing properties can receive exports that are only partially initialized.
             return isLazy || isImportingConstructorArgument;
