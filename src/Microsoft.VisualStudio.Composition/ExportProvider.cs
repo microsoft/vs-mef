@@ -1087,12 +1087,12 @@ namespace Microsoft.VisualStudio.Composition
             private object? value;
 
             /// <summary>
-            /// A collection of all immediate imports (property and constructor) as they are satisfied
+            /// A lazy-initialized collection of all immediate imports (property and constructor) as they are satisfied
             /// if by an exporting part that has not been fully initialized already.
             /// It is nulled out upon reaching the final stage of initialization.
             /// </summary>
             /// <remarks>
-            /// This collection is populated from the <see cref="PartLifecycleState.Creating"/>
+            /// This collection is populated from the <see cref="PartLifecycleState.Created"/>
             /// and <see cref="PartLifecycleState.ImmediateImportsSatisfied"/> stages, each of which
             /// occur on a single thread. It is then enumerated from <see cref="MoveToStateTransitively"/>
             /// which *may* be invoked from multiple threads.
@@ -1138,7 +1138,6 @@ namespace Microsoft.VisualStudio.Composition
 
                 this.OwningExportProvider = owningExportProvider;
                 this.sharingBoundary = sharingBoundary;
-                this.deferredInitializationParts = new HashSet<PartLifecycleTracker>();
                 this.State = PartLifecycleState.NotCreated;
             }
 
@@ -1292,7 +1291,13 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     lock (this.syncObject)
                     {
-                        Assumes.NotNull(this.deferredInitializationParts);
+                        Assumes.True(this.State is PartLifecycleState.Created or PartLifecycleState.ImmediateImportsSatisfied);
+
+                        if (this.deferredInitializationParts == null)
+                        {
+                            this.deferredInitializationParts = new HashSet<PartLifecycleTracker>();
+                        }
+
                         this.deferredInitializationParts.Add(importedPart);
                     }
                 }
