@@ -38,6 +38,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportingMembersClass))]
+        public void ExportedPropertyValueDoesNotGetDisposed(IContainer container)
+        {
+            DisposableValue actual = container.GetExportedValue<DisposableValue>(nameof(ExportingMembersClass.PropertyReturningNewDisposableValue));
+            container.Dispose();
+            Assert.Equal(0, actual.DisposalCount);
+        }
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportingMembersClass))]
         [Trait("Container.GetExport", "Plural")]
         public void GetExportsFromProperty(IContainer container)
         {
@@ -208,6 +216,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 get { return "Andrew"; }
             }
 
+            [Export(nameof(PropertyReturningNewDisposableValue))]
+            [MefV1.Export(nameof(PropertyReturningNewDisposableValue))]
+            public DisposableValue PropertyReturningNewDisposableValue => new DisposableValue();
+
             [Export("PropertyGenericType")]
             [MefV1.Export("PropertyGenericType")]
             public Comparer<int> PropertyGenericType
@@ -328,6 +340,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         internal class MyEventArgs : EventArgs { }
+
+        public class DisposableValue : IDisposable
+        {
+            internal int DisposalCount { get; private set; }
+
+            public void Dispose() => this.DisposalCount++;
+        }
 
         #endregion
     }
