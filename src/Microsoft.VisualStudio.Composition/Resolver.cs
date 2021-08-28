@@ -7,6 +7,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics.CodeAnalysis;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.CompilerServices;
@@ -28,6 +29,8 @@ namespace Microsoft.VisualStudio.Composition
         /// It is not intended as a guarantee of reference equality across equivalent TypeRef instances.
         /// </remarks>
         internal readonly Dictionary<Type, WeakReference<Reflection.TypeRef>> InstanceCache = new Dictionary<Type, WeakReference<Reflection.TypeRef>>();
+
+        internal readonly Dictionary<Assembly, AssemblyName> NormalizedAssemblyCache = new Dictionary<Assembly, AssemblyName>();
 
         /// <summary>
         /// A map of assemblies loaded by VS MEF and their metadata.
@@ -78,7 +81,7 @@ namespace Microsoft.VisualStudio.Composition
 
             if (assemblyName == null)
             {
-                assemblyName = assembly.GetName();
+                assemblyName = this.GetNormalizedAssemblyName(assembly);
             }
 
             if (this.TryGetAssemblyId(assemblyName, out StrongAssemblyIdentity? result))
@@ -141,6 +144,38 @@ namespace Microsoft.VisualStudio.Composition
                 this.resolver.NotifyAssemblyLoaded(assembly, assemblyName);
                 return assembly;
             }
+        }
+
+        internal AssemblyName GetNormalizedAssemblyName(Assembly assembly)
+        {
+            Requires.NotNull(assembly, nameof(assembly));
+
+            lock (this.NormalizedAssemblyCache)
+            {
+                if (!this.NormalizedAssemblyCache.TryGetValue(assembly, out AssemblyName? assemblyName))
+                {
+                    assemblyName = GetNormalizedAssemblyName(assembly.GetName());
+                    this.NormalizedAssemblyCache[assembly] = assemblyName;
+                }
+
+                return assemblyName;
+            }
+        }
+
+        internal static AssemblyName GetNormalizedAssemblyName(AssemblyName assemblyName)
+        {
+            Requires.NotNull(assemblyName, nameof(assemblyName));
+
+            AssemblyName? normalizedAssemblyName = assemblyName;
+            if (assemblyName.CodeBase?.IndexOf('~') >= 0)
+            {
+                // Using ToString() rather than AbsoluteUri here to match the CLR's AssemblyName.CodeBase convention of paths without %20 space characters.
+                string normalizedCodeBase = new Uri(Path.GetFullPath(new Uri(assemblyName.CodeBase).LocalPath)).ToString();
+                normalizedAssemblyName = (AssemblyName)assemblyName.Clone();
+                normalizedAssemblyName.CodeBase = normalizedCodeBase;
+            }
+
+            return normalizedAssemblyName;
         }
     }
 }
