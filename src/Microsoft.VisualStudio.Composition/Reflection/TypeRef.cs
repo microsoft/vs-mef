@@ -238,7 +238,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, TypeRefFlags typeFlags, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, bool shallow, ImmutableArray<TypeRef> baseTypes, TypeRef? elementTypeRef)
         {
             Requires.NotNull(resolver, nameof(resolver));
-            return new TypeRef(resolver, resolver.GetNormalizedAssemblyName(assemblyName), null, metadataToken, fullName, typeFlags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementTypeRef);
+            return new TypeRef(resolver, Resolver.GetNormalizedAssemblyName(assemblyName), null, metadataToken, fullName, typeFlags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementTypeRef);
         }
 
         public static TypeRef Get(Resolver resolver, StrongAssemblyIdentity assemblyId, int metadataToken, string fullName, TypeRefFlags typeFlags, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, bool shallow, ImmutableArray<TypeRef> baseTypes, TypeRef? elementTypeRef)
