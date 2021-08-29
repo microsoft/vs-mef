@@ -22,6 +22,15 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
         }
 
         [Fact]
+        public void AssemblyNameInstancesReused()
+        {
+            var typeRef1 = TypeRef.Get(typeof(object), TestUtilities.Resolver);
+            var typeRef2 = TypeRef.Get(typeof(int), TestUtilities.Resolver);
+
+            Assert.Same(typeRef1.AssemblyName, typeRef2.AssemblyName);
+        }
+
+        [Fact]
         public void EqualsChecksAssemblyVersionEquality()
         {
             const string assemblyNameFormat = "MyAssembly, Version={0}, Culture=neutral, PublicKeyToken=abcdef1234567890, processorArchitecture=MSIL";
