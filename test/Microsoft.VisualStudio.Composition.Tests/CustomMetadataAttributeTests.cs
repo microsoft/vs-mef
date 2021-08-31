@@ -43,8 +43,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var part = container.GetExportedValue<PartThatImportsExportWithDerivedMetadata>();
             var array = Assert.IsType<string[]>(part.ImportingAllowMultiple?.Metadata["Name"]);
             Assert.Equal(2, array.Length);
-            Assert.True(array.Contains("Andrew1"));
-            Assert.True(array.Contains("Andrew2"));
+            Assert.Contains("Andrew1", array);
+            Assert.Contains("Andrew2", array);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ExportedTypeWithAllowMultipleMetadata), typeof(PartThatImportsExportWithMetadata))]
@@ -53,8 +53,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var part = container.GetExportedValue<PartThatImportsExportWithMetadata>();
             var array = Assert.IsType<string[]>(part.ImportingAllowMultiple?.Metadata["Name"]);
             Assert.Equal(2, array.Length);
-            Assert.True(array.Contains("Andrew1"));
-            Assert.True(array.Contains("Andrew2"));
+            Assert.Contains("Andrew1", array);
+            Assert.Contains("Andrew2", array);
         }
 
         // BUGBUG: MEFv2 throws NullReferenceException in this case.
@@ -63,8 +63,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var part = container.GetExportedValue<ImportingPart>();
             var nameArray = Assert.IsType<string[]>(part.ImportOfTypeWithMultipleMetadata?.Metadata["Name"]);
-            Assert.Equal(null, nameArray[0]);
-            Assert.Equal(null, nameArray[1]);
+            Assert.Null(nameArray[0]);
+            Assert.Null(nameArray[1]);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(ImportingPart), typeof(ExportedTypeWithMetadata), typeof(TypeWithExportingMemberAndMetadata))]
@@ -90,12 +90,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var part = container.GetExportedValue<PartThatImportsAnExportWithMultipleComplementingMetadata>();
 
             var afterArray = Assert.IsType<string?[]>(part.ImportingProperty.Metadata["After"]);
-            Assert.True(afterArray.Contains(null));
-            Assert.True(afterArray.Contains("AfterValue"));
+            Assert.Contains(null, afterArray);
+            Assert.Contains("AfterValue", afterArray);
 
             var beforeArray = Assert.IsType<string?[]>(part.ImportingProperty.Metadata["Before"]);
-            Assert.True(beforeArray.Contains(null));
-            Assert.True(beforeArray.Contains("BeforeValue"));
+            Assert.Contains(null, beforeArray);
+            Assert.Contains("BeforeValue", beforeArray);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(ExportWithDerivedExportMetadata), typeof(ImportingPartForDerivedExportMetadata))]

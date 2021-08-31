@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var importingPart = container.GetExportedValue<ImportManyPartWithMetadataDictionary>();
             Assert.NotNull(importingPart.ImportingProperty);
-            Assert.Equal(1, importingPart.ImportingProperty.Count());
+            Assert.Single(importingPart.ImportingProperty);
             Assert.Equal("b", importingPart.ImportingProperty.Single().Metadata["a"]);
             Assert.False(importingPart.ImportingProperty.Single().IsValueCreated);
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Single().Value);
@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var importingPart = container.GetExportedValue<ImportManyPartWithMetadataClass>();
             Assert.NotNull(importingPart.ImportingProperty);
-            Assert.Equal(1, importingPart.ImportingProperty.Count());
+            Assert.Single(importingPart.ImportingProperty);
             Assert.Equal("b", importingPart.ImportingProperty.Single().Metadata.a);
             Assert.False(importingPart.ImportingProperty.Single().IsValueCreated);
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Single().Value);
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var importingPart = container.GetExportedValue<ImportManyPartWithMetadataInterface>();
             Assert.NotNull(importingPart.ImportingProperty);
-            Assert.Equal(1, importingPart.ImportingProperty.Count());
+            Assert.Single(importingPart.ImportingProperty);
             Assert.Equal("b", importingPart.ImportingProperty.Single().Metadata.a);
             Assert.False(importingPart.ImportingProperty.Single().IsValueCreated);
             Assert.IsType<PartWithExportMetadata>(importingPart.ImportingProperty.Single().Value);
@@ -124,7 +124,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var importingPart = container.GetExportedValue<ImportManyPartWithInternalMetadataInterface>();
             Assert.NotNull(importingPart.ImportingProperty);
-            Assert.Equal(1, importingPart.ImportingProperty.Count());
+            Assert.Single(importingPart.ImportingProperty);
             Assert.Equal("b", importingPart.ImportingProperty.Single().Metadata.a);
             Assert.Equal("internal!", importingPart.ImportingProperty.Single().Metadata.MetadataOnInternalInterface);
             Assert.False(importingPart.ImportingProperty.Single().IsValueCreated);
@@ -205,7 +205,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var part = container.GetExportedValue<ImportingPartWithMetadataDictionary>();
 
             Assert.True(part.ImportingProperty.Metadata.TryGetValue("ExportTypeIdentity", out object? metadataValue));
-            Assert.IsType(typeof(string), metadataValue);
+            Assert.IsType<string>(metadataValue);
             Assert.Equal(typeof(PartWithExportMetadata).FullName, metadataValue);
         }
 
@@ -218,7 +218,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             // metadata "a" is mandatory per the interface, whereas "B" is optional.
             Assert.IsType<PartWithExportMetadataA>(importer.ImportingProperty.Value);
-            Assert.Equal(null, importer.ImportingProperty.Metadata.SomeStringEnum);
+            Assert.Null(importer.ImportingProperty.Metadata.SomeStringEnum);
             Assert.Equal(4, importer.ImportingProperty.Metadata.SomeInt);
         }
 
@@ -247,8 +247,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             // metadata "a" is mandatory per the interface, whereas "B" is optional.
             Assert.Equal(2, importer.ImportingProperty.Count());
-            Assert.Equal(1, importer.ImportingProperty.Select(v => v.Value).OfType<PartWithExportMetadataA>().Count());
-            Assert.Equal(1, importer.ImportingProperty.Select(v => v.Value).OfType<PartWithExportMetadataAB>().Count());
+            Assert.Single(importer.ImportingProperty.Select(v => v.Value).OfType<PartWithExportMetadataA>());
+            Assert.Single(importer.ImportingProperty.Select(v => v.Value).OfType<PartWithExportMetadataAB>());
         }
 
         [MefV1.Export]
@@ -423,7 +423,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             IEnumerable<Lazy<object, IDictionary<string, object>>> result =
                 container.GetExports<object, IDictionary<string, object>>("NoOneExportsThis");
-            Assert.Equal(0, result.Count());
+            Assert.Empty(result);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(PartWithExportMetadataA), typeof(PartWithExportMetadataB), typeof(PartWithExportMetadataAB))]
@@ -464,7 +464,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             IEnumerable<Lazy<object, IDictionary<string, object>>> result =
                 container.GetExports<object, IDictionary<string, object>>();
-            Assert.Equal(0, result.Count());
+            Assert.Empty(result);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(FooExport1), typeof(FooExport2))]
@@ -529,7 +529,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var part = container.GetExportedValue<PartThatImportsMethod>();
             Assert.True(part.ImportedMethod.Metadata.TryGetValue("ExportTypeIdentity", out object? metadataValue));
-            Assert.IsType(typeof(string), metadataValue);
+            Assert.IsType<string>(metadataValue);
             Assert.Equal("System.Single(System.Int32,System.Int32)", metadataValue);
         }
 
@@ -587,7 +587,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void ExportMetadataIsMultipleFalseIntoMultipleMetadataViewV1(IContainer container)
         {
             var export = container.GetExportedValue<PartImportingPartWithNamesSingleMetadata>();
-            Assert.Equal(1, export.ImportingProperty.Count); // MEFv1 allows through the filter...
+            Assert.Single(export.ImportingProperty); // MEFv1 allows through the filter...
             Assert.Null(export.ImportingProperty[0].Metadata.Names); // ...but then fails to obtain the value.
         }
 
@@ -599,7 +599,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void ExportMetadataIsMultipleFalseIntoMultipleMetadataViewV3(IContainer container)
         {
             var export = container.GetExportedValue<PartImportingPartWithNamesSingleMetadata>();
-            Assert.Equal(0, export.ImportingProperty.Count); // empty because the metadata filter is not satisfied (string != string[])
+            Assert.Empty(export.ImportingProperty); // empty because the metadata filter is not satisfied (string != string[])
         }
 
         [MefV1.Export, MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
@@ -846,7 +846,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var export = importingPart.ImportingProperty;
 
             // allowed types
-            Assert.Equal(true, (bool)export.Metadata["bool"]);
+            Assert.True((bool)export.Metadata["bool"]);
             Assert.Equal(byte.MaxValue, (byte)export.Metadata["byte"]);
             Assert.Equal('a', (char)export.Metadata["char"]);
             Assert.Equal(5, (double)export.Metadata["double"]);

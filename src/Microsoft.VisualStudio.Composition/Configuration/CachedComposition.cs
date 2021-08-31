@@ -77,14 +77,21 @@ namespace Microsoft.VisualStudio.Composition
 
         private class SerializationContext : SerializationContextBase
         {
+            private readonly Func<RuntimeComposition.RuntimeExport?> readRuntimeExportDelegate;
+            private readonly Func<RuntimeComposition.RuntimeImport> readRuntimeImportDelegate;
+
             internal SerializationContext(BinaryReader reader, Resolver resolver)
                 : base(reader, resolver)
             {
+                this.readRuntimeExportDelegate = this.ReadRuntimeExport;
+                this.readRuntimeImportDelegate = this.ReadRuntimeImport;
             }
 
             internal SerializationContext(BinaryWriter writer, int estimatedObjectCount, Resolver resolver)
                 : base(writer, estimatedObjectCount, resolver)
             {
+                this.readRuntimeExportDelegate = this.ReadRuntimeExport;
+                this.readRuntimeImportDelegate = this.ReadRuntimeImport;
             }
 
             private enum RuntimeImportFlags : byte
@@ -201,15 +208,15 @@ namespace Microsoft.VisualStudio.Composition
                     IReadOnlyList<RuntimeComposition.RuntimeImport> importingCtorArguments = ImmutableList<RuntimeComposition.RuntimeImport>.Empty;
 
                     var type = this.ReadTypeRef()!;
-                    var exports = this.ReadList(this.reader!, this.ReadRuntimeExport);
+                    var exports = this.ReadList(this.reader!, this.readRuntimeExportDelegate);
                     bool hasCtor = this.reader!.ReadBoolean();
                     if (hasCtor)
                     {
                         importingCtor = this.ReadMethodRef();
-                        importingCtorArguments = this.ReadList(this.reader, this.ReadRuntimeImport);
+                        importingCtorArguments = this.ReadList(this.reader, this.readRuntimeImportDelegate);
                     }
 
-                    var importingMembers = this.ReadList(this.reader, this.ReadRuntimeImport);
+                    var importingMembers = this.ReadList(this.reader, this.readRuntimeImportDelegate);
                     var onImportsSatisfied = this.ReadMethodRef();
                     var sharingBoundary = this.ReadString();
 
@@ -293,10 +300,10 @@ namespace Microsoft.VisualStudio.Composition
                     var importingSiteTypeRef = this.ReadTypeRef()!;
                     TypeRef importingSiteTypeWithoutCollectionRef =
                         cardinality == ImportCardinality.ZeroOrMore ? this.ReadTypeRef()! : importingSiteTypeRef;
-                    var satisfyingExports = this.ReadList(this.reader, this.ReadRuntimeExport);
+                    var satisfyingExports = this.ReadList(this.reader, this.readRuntimeExportDelegate);
                     var metadata = this.ReadMetadata();
                     IReadOnlyList<string?> exportFactorySharingBoundaries = isExportFactory
-                        ? this.ReadList(this.reader, this.ReadString)
+                        ? this.ReadList(this.reader, this.readStringDelegate)
                         : ImmutableList<string>.Empty;
 
                     return importingMember == null

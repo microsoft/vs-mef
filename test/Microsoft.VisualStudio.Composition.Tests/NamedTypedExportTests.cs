@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             FruitTree tree = container.GetExportedValue<FruitTree>();
             Assert.NotNull(tree);
             Assert.NotNull(tree.Pear);
-            Assert.IsAssignableFrom(typeof(Pear), tree.Pear);
+            Assert.IsAssignableFrom<Pear>(tree.Pear);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Pear), typeof(Apple), typeof(FruitTree))]
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             Fruit fruit = container.GetExportedValue<Fruit>("Pear");
             Assert.NotNull(fruit);
-            Assert.IsAssignableFrom(typeof(Pear), fruit);
+            Assert.IsAssignableFrom<Pear>(fruit);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Pear), typeof(Apple), typeof(FruitTree))]
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void GetExportsNamed(IContainer container)
         {
             IEnumerable<Lazy<Fruit>> result = container.GetExports<Fruit>("Pear");
-            Assert.Equal(1, result.Count());
+            Assert.Single(result);
             Assert.IsType<Pear>(result.Single().Value);
         }
 
@@ -44,21 +44,21 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void AcquireExportWithDefaultContractName(IContainer container)
         {
             var fruit = container.GetExportedValue<Fruit>(typeof(Fruit).FullName);
-            Assert.IsType(typeof(Apple), fruit);
+            Assert.IsType<Apple>(fruit);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2, typeof(Apple))]
         public void AcquireExportWithEmptyContractName(IContainer container)
         {
             var fruit = container.GetExportedValue<Fruit>(string.Empty);
-            Assert.IsType(typeof(Apple), fruit);
+            Assert.IsType<Apple>(fruit);
         }
 
         [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(Apple))]
         public void AcquireExportWithNullContractName(IContainer container)
         {
             var fruit = container.GetExportedValue<Fruit>(null);
-            Assert.IsType(typeof(Apple), fruit);
+            Assert.IsType<Apple>(fruit);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(Apple), typeof(AppleImportingPart))]

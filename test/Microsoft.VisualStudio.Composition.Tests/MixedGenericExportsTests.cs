@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var loneTree = appleTrees.Single(t => !(t is Forest.MyAppleTree));
 
             var pearTrees = container.GetExportedValues<Tree<Pear>>().ToList();
-            Assert.Equal(1, pearTrees.Count);
+            Assert.Single(pearTrees);
             Assert.NotNull(pearTrees[0]);
         }
 
@@ -39,11 +39,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var forestTree = appleTrees.Single(t => (string)t.Metadata["Origin"] == "Forest");
             var loneTree = appleTrees.Single(t => (string)t.Metadata["Origin"] == "Lone");
 
-            Assert.IsType(typeof(Forest.MyAppleTree), forestTree.Value);
-            Assert.IsType(typeof(Tree<Apple>), loneTree.Value);
+            Assert.IsType<Forest.MyAppleTree>(forestTree.Value);
+            Assert.IsType<Tree<Apple>>(loneTree.Value);
 
             var pearTrees = container.GetExports<Tree<Pear>, IDictionary<string, object>>().ToList();
-            Assert.Equal(1, pearTrees.Count);
+            Assert.Single(pearTrees);
             Assert.NotNull(pearTrees[0]);
         }
 
@@ -56,10 +56,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var forestTree = part.AppleTrees.Single(t => (string)t.Metadata["Origin"] == "Forest");
             var loneTree = part.AppleTrees.Single(t => (string)t.Metadata["Origin"] == "Lone");
 
-            Assert.IsType(typeof(Forest.MyAppleTree), forestTree.Value);
-            Assert.IsType(typeof(Tree<Apple>), loneTree.Value);
+            Assert.IsType<Forest.MyAppleTree>(forestTree.Value);
+            Assert.IsType<Tree<Apple>>(loneTree.Value);
 
-            Assert.Equal(1, part.PearTrees.Length);
+            Assert.Single(part.PearTrees);
             Assert.NotNull(part.PearTrees[0]);
         }
 

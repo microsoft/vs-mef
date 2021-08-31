@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28606.126
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31425.20
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition", "src\Microsoft.VisualStudio.Composition\Microsoft.VisualStudio.Composition.csproj", "{1CA6A92C-5DD9-4BE5-B5B7-EE4A1318B4C2}"
 EndProject
@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Comp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests", "test\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests.csproj", "{37E36AEC-3319-4219-974F-D258FBE8D143}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.Configuration", "src\Microsoft.VisualStudio.Composition.Configuration\Microsoft.VisualStudio.Composition.Configuration.csproj", "{2285F0B1-0B9E-43C5-9BA5-0CB293C9BC63}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver", "test\Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver\Microsoft.VisualStudio.Composition.EmbeddedTypeReceiver.csproj", "{843DB118-C15B-48B5-A9DC-B815CC788CEF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver", "test\Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver\Microsoft.VisualStudio.Composition.NonEmbeddingTypeReceiver.csproj", "{3E996534-55E8-428D-8668-2C49E8770F32}"
@@ -25,7 +23,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Comp
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{28B65BDB-4470-4946-BAC3-4EE840F40B37}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
 		global.json = global.json
 		nuget.config = nuget.config
 		README.md = README.md
@@ -39,18 +39,20 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Comp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.TestEmbeddableTypes", "test\Microsoft.VisualStudio.Composition.TestEmbeddableTypes\Microsoft.VisualStudio.Composition.TestEmbeddableTypes.csproj", "{E4BB6F4B-EAB5-4DF2-9FFA-08981105DF90}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.NetFxAttributes", "src\Microsoft.VisualStudio.Composition.NetFxAttributes\Microsoft.VisualStudio.Composition.NetFxAttributes.csproj", "{DFD69876-E482-4F1A-A772-7B5DA5D75724}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.Analyzers", "src\Microsoft.VisualStudio.Composition.Analyzers\Microsoft.VisualStudio.Composition.Analyzers.csproj", "{E05AF240-2D20-4037-97DD-7163B3BAA7F4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.Analyzers.Tests", "test\Microsoft.VisualStudio.Composition.Analyzers.Tests\Microsoft.VisualStudio.Composition.Analyzers.Tests.csproj", "{A469088A-DCA0-4968-B472-F9D6C7D6DF38}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C1E69228-5ECA-4B33-A08C-F60908B1A31A}"
 	ProjectSection(SolutionItems) = preProject
+		src\.editorconfig = src\.editorconfig
+		src\Directory.Build.props = src\Directory.Build.props
+		src\Directory.Build.targets = src\Directory.Build.targets
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{34FA3DAA-1CE6-4D26-9802-681043203006}"
 	ProjectSection(SolutionItems) = preProject
+		test\.editorconfig = test\.editorconfig
 		test\Directory.Build.props = test\Directory.Build.props
 		test\Directory.Build.targets = test\Directory.Build.targets
 	EndProjectSection
@@ -81,10 +83,6 @@ Global
 		{37E36AEC-3319-4219-974F-D258FBE8D143}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37E36AEC-3319-4219-974F-D258FBE8D143}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37E36AEC-3319-4219-974F-D258FBE8D143}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2285F0B1-0B9E-43C5-9BA5-0CB293C9BC63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2285F0B1-0B9E-43C5-9BA5-0CB293C9BC63}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2285F0B1-0B9E-43C5-9BA5-0CB293C9BC63}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2285F0B1-0B9E-43C5-9BA5-0CB293C9BC63}.Release|Any CPU.Build.0 = Release|Any CPU
 		{843DB118-C15B-48B5-A9DC-B815CC788CEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{843DB118-C15B-48B5-A9DC-B815CC788CEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{843DB118-C15B-48B5-A9DC-B815CC788CEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -113,10 +111,6 @@ Global
 		{E4BB6F4B-EAB5-4DF2-9FFA-08981105DF90}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E4BB6F4B-EAB5-4DF2-9FFA-08981105DF90}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E4BB6F4B-EAB5-4DF2-9FFA-08981105DF90}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DFD69876-E482-4F1A-A772-7B5DA5D75724}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DFD69876-E482-4F1A-A772-7B5DA5D75724}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DFD69876-E482-4F1A-A772-7B5DA5D75724}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DFD69876-E482-4F1A-A772-7B5DA5D75724}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E05AF240-2D20-4037-97DD-7163B3BAA7F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E05AF240-2D20-4037-97DD-7163B3BAA7F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E05AF240-2D20-4037-97DD-7163B3BAA7F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -135,7 +129,6 @@ Global
 		{15FC5B0E-AE82-4437-8916-B59E646C41E7} = {34FA3DAA-1CE6-4D26-9802-681043203006}
 		{8FEA4ED5-0504-43A6-92C0-E9DACB20F1C8} = {34FA3DAA-1CE6-4D26-9802-681043203006}
 		{37E36AEC-3319-4219-974F-D258FBE8D143} = {34FA3DAA-1CE6-4D26-9802-681043203006}
-		{2285F0B1-0B9E-43C5-9BA5-0CB293C9BC63} = {C1E69228-5ECA-4B33-A08C-F60908B1A31A}
 		{843DB118-C15B-48B5-A9DC-B815CC788CEF} = {34FA3DAA-1CE6-4D26-9802-681043203006}
 		{3E996534-55E8-428D-8668-2C49E8770F32} = {34FA3DAA-1CE6-4D26-9802-681043203006}
 		{635A4876-52BA-47C7-874C-8DFB125C020A} = {34FA3DAA-1CE6-4D26-9802-681043203006}
@@ -143,7 +136,6 @@ Global
 		{A424CBE4-248E-477C-88BD-575FA240EACB} = {34FA3DAA-1CE6-4D26-9802-681043203006}
 		{93C14982-BB95-4554-BE09-2D0A4C9ADA09} = {C1E69228-5ECA-4B33-A08C-F60908B1A31A}
 		{E4BB6F4B-EAB5-4DF2-9FFA-08981105DF90} = {34FA3DAA-1CE6-4D26-9802-681043203006}
-		{DFD69876-E482-4F1A-A772-7B5DA5D75724} = {C1E69228-5ECA-4B33-A08C-F60908B1A31A}
 		{E05AF240-2D20-4037-97DD-7163B3BAA7F4} = {C1E69228-5ECA-4B33-A08C-F60908B1A31A}
 		{A469088A-DCA0-4968-B472-F9D6C7D6DF38} = {34FA3DAA-1CE6-4D26-9802-681043203006}
 	EndGlobalSection

@@ -32,8 +32,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var part = container.GetExportedValue<ImportOneWithContraintPart>();
             Assert.Equal(2, part.OddNumberedExports.Count);
-            Assert.Equal(1, part.OddNumberedExports.OfType<ExportFirst>().Count());
-            Assert.Equal(1, part.OddNumberedExports.OfType<ExportThird>().Count());
+            Assert.Single(part.OddNumberedExports.OfType<ExportFirst>());
+            Assert.Single(part.OddNumberedExports.OfType<ExportThird>());
         }
 
         [MefFact(CompositionEngines.V2Compat)]

@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var importingPart = container.GetExportedValue<ImportingPart>();
             var metadataValue = Assert.IsType<string[]>(importingPart.SingleCustomMetadataImport?.Metadata["SomeName"]);
-            Assert.Equal(1, metadataValue.Length);
+            Assert.Single(metadataValue);
             Assert.Contains("b", metadataValue);
         }
 

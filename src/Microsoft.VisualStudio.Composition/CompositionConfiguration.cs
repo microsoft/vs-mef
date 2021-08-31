@@ -422,7 +422,7 @@ namespace Microsoft.VisualStudio.Composition
             var childSharingBoundariesAndTheirParents = ImmutableDictionary.CreateBuilder<string, SharingBoundaryMetadata>();
             foreach (var parentChild in sharingBoundaryExportFactories)
             {
-                SharingBoundaryMetadata priorMetadata, newMetadata;
+                SharingBoundaryMetadata? priorMetadata, newMetadata;
                 if (childSharingBoundariesAndTheirParents.TryGetValue(parentChild.ChildSharingBoundary, out priorMetadata))
                 {
                     newMetadata = priorMetadata.AdditionalFactoryEncountered(parentChild.ParentSharingBoundaries);

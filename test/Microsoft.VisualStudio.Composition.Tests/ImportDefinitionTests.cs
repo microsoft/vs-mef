@@ -25,8 +25,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var newConstraint = new ExportMetadataValueImportConstraint("c", "d");
             var modified = importDefinition.AddExportConstraint(newConstraint);
             Assert.Equal(2, modified.ExportConstraints.Count);
-            Assert.True(modified.ExportConstraints.Contains(newConstraint));
-            Assert.True(modified.ExportConstraints.Contains(importDefinition.ExportConstraints.Single()));
+            Assert.Contains(newConstraint, modified.ExportConstraints);
+            Assert.Contains(importDefinition.ExportConstraints.Single(), modified.ExportConstraints);
 
             // Also check that the rest was cloned properly.
             Assert.Equal(modified.ContractName, importDefinition.ContractName);

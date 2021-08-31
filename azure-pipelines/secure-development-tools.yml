@@ -8,69 +8,45 @@ steps:
   displayName: 'Run BinSkim for Assemblies'
   inputs:
     InputType: Basic
-    AnalyzeSymPath: '$(Build.ArtifactStagingDirectory)\symbols\*.pdb'
-    AnalyzeTarget: '$(Build.ArtifactStagingDirectory)\symbols\*.dll'
-
-  ### Scan binaries for correct build configuration
-  ### Note: Don't run for node build
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-binskim.BinSkim@3
-  displayName: 'Run BinSkim for Exes'
-  inputs:
-    InputType: Basic
-    AnalyzeSymPath: '$(Build.ArtifactStagingDirectory)\symbols\*.pdb'
-    AnalyzeTarget: '$(Build.ArtifactStagingDirectory)\symbols\*.dll'
+    AnalyzeSymPath: '$(Build.ArtifactStagingDirectory)\symbols-Windows\*.pdb'
+    AnalyzeTarget: '$(Build.ArtifactStagingDirectory)\symbols-Windows\*.dll'
 
  ### Check for checked in credentials.
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-credscan.CredScan@2
+- task: CredScan@3
   displayName: 'Run CredScan'
   inputs:
     debugMode: false
 
  ### Run PoliCheck to check for disallowed terms. targetType: F indicates we're searching files and folders.
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-policheck.PoliCheck@1
+- task: PoliCheck@1
   displayName: 'Run PoliCheck'
   inputs:
     targetType: F
     optionsPE: 1|2|3|4
 
- ### Create formatted HTML code analysis log file.
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-report.SdtReport@1
-  displayName: 'Create Security Analysis Report'
-  inputs:
-    BinSkim: true
-    BinSkimBreakOn: WarningAbove
-    CredScan: true
-    PoliCheck: true
-    PoliCheckBreakOn: Severity4Above
-  continueOnError: true
-  condition: eq(variables['StaticAnalysis'], 'true')
-
-### Publish Code Analysis results to build Artifacts.
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-publishsecurityanalysislogs.PublishSecurityAnalysisLogs@2
-  displayName: 'Publish Code Analysis Logs'
-  condition: eq(variables['StaticAnalysis'], 'true')
-
 ### Copy files for APIScan
 - task: CopyFiles@2
   displayName: 'Copy Files for APIScan'
   inputs:
-    SourceFolder: '$(Build.ArtifactStagingDirectory)\symbols'
+    SourceFolder: '$(Build.ArtifactStagingDirectory)\symbols-Windows'
     Contents: |
-      *.dll
-      *.pdb
+      **\*.dll
+      **\*.pdb
     TargetFolder: $(Agent.TempDirectory)\APIScanFiles
   condition: ne(variables['DisableAPIScan'], 'true')
 
-# ### Run APIScan
-#- task: APIScan@2
-#  displayName: Run APIScan
-#  inputs:
-#    softwareFolder: $(Agent.TempDirectory)\APIScanFiles
-#    softwareName: 'VS-MEF'
-#    softwareVersionNum: '$(Build.BuildId)'
-#    isLargeApp: false
-#    toolVersion: '3.1.29231'
-#  condition: ne(variables['DisableAPIScan'], 'true')
+### Run APIScan
+- task: APIScan@2
+  displayName: Run APIScan
+  inputs:
+    softwareFolder: $(Agent.TempDirectory)\APIScanFiles
+    softwareName: 'VS-MEF'
+    softwareVersionNum: '$(Build.BuildId)'
+    isLargeApp: false
+    toolVersion: 'Latest'
+  condition: ne(variables['DisableAPIScan'], 'true')
+  env:
+    AzureServicesAuthConnectionString: runAs=App;AppId=$(ApiScanClientId);TenantId=$(ApiScanTenant);AppKey=$(ApiScanSecret)
 
  ### Create formatted HTML code analysis log file.
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-report.SdtReport@1
@@ -81,10 +57,12 @@ steps:
     CredScan: true
     PoliCheck: true
     PoliCheckBreakOn: Severity4Above
+  condition: succeededOrFailed()
 
  ### Publish Code Analysis results to build Artifacts.
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-publishsecurityanalysislogs.PublishSecurityAnalysisLogs@2
   displayName: 'Publish Code Analysis Logs'
+  condition: succeededOrFailed()
 
  ### Fails the build if tools generate errors
 - task: PostAnalysis@1

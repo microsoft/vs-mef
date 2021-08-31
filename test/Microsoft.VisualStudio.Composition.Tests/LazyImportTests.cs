@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void LazyImportByBaseType(IContainer container)
         {
             var lazyImport = container.GetExportedValue<ExportWithLazyImportOfBaseType>();
-            Assert.IsType(typeof(AnotherExport), lazyImport.AnotherExport.Value);
+            Assert.IsType<AnotherExport>(lazyImport.AnotherExport.Value);
         }
 
         [Export]

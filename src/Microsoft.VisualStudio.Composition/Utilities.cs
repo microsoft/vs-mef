@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.Composition
 
             foreach (var entry in expected)
             {
-                TValue actualValue;
+                TValue? actualValue;
                 if (!actual.TryGetValue(entry.Key, out actualValue))
                 {
                     // missing key

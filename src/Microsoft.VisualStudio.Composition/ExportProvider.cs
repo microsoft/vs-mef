@@ -511,7 +511,6 @@ namespace Microsoft.VisualStudio.Composition
         /// Gets a value indicating whether an import with the given characteristics must be initially satisfied
         /// with a fully pre-initialized export.
         /// </summary>
-        /// <param name="importingPartTracker">The tracker for the part that is importing.</param>
         /// <param name="isLazy"><c>true</c> if the import is a Lazy{T} style import; <c>false</c> otherwise.</param>
         /// <param name="isImportingConstructorArgument"><c>true</c> if the import appears in an importing constructor; <c>false</c> otherwise.</param>
         /// <returns>
@@ -519,7 +518,7 @@ namespace Microsoft.VisualStudio.Composition
         /// prior to being exposed to the receiver; <c>false</c> if the export can be partially initialized when the receiver
         /// first observes it.
         /// </returns>
-        private protected static bool IsFullyInitializedExportRequiredWhenSettingImport(PartLifecycleTracker? importingPartTracker, bool isLazy, bool isImportingConstructorArgument)
+        private protected static bool IsFullyInitializedExportRequiredWhenSettingImport(bool isLazy, bool isImportingConstructorArgument)
         {
             // Only non-lazy importing properties can receive exports that are only partially initialized.
             return isLazy || isImportingConstructorArgument;
@@ -874,11 +873,11 @@ namespace Microsoft.VisualStudio.Composition
             if (value is ExportedDelegate && typeof(Delegate).GetTypeInfo().IsAssignableFrom(typeof(T)))
             {
                 var exportedDelegate = (ExportedDelegate)value;
-                return (T)(object?)exportedDelegate.CreateDelegate(typeof(T));
+                return (T?)(object?)exportedDelegate.CreateDelegate(typeof(T));
             }
             else
             {
-                return (T)value;
+                return (T?)value;
             }
         }
 
@@ -1087,12 +1086,12 @@ namespace Microsoft.VisualStudio.Composition
             private object? value;
 
             /// <summary>
-            /// A collection of all immediate imports (property and constructor) as they are satisfied
+            /// A lazy-initialized collection of all immediate imports (property and constructor) as they are satisfied
             /// if by an exporting part that has not been fully initialized already.
             /// It is nulled out upon reaching the final stage of initialization.
             /// </summary>
             /// <remarks>
-            /// This collection is populated from the <see cref="PartLifecycleState.Creating"/>
+            /// This collection is populated from the <see cref="PartLifecycleState.Created"/>
             /// and <see cref="PartLifecycleState.ImmediateImportsSatisfied"/> stages, each of which
             /// occur on a single thread. It is then enumerated from <see cref="MoveToStateTransitively"/>
             /// which *may* be invoked from multiple threads.
@@ -1138,7 +1137,6 @@ namespace Microsoft.VisualStudio.Composition
 
                 this.OwningExportProvider = owningExportProvider;
                 this.sharingBoundary = sharingBoundary;
-                this.deferredInitializationParts = new HashSet<PartLifecycleTracker>();
                 this.State = PartLifecycleState.NotCreated;
             }
 
@@ -1292,7 +1290,13 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     lock (this.syncObject)
                     {
-                        Assumes.NotNull(this.deferredInitializationParts);
+                        Assumes.True(this.State is PartLifecycleState.Created or PartLifecycleState.ImmediateImportsSatisfied);
+
+                        if (this.deferredInitializationParts == null)
+                        {
+                            this.deferredInitializationParts = new HashSet<PartLifecycleTracker>();
+                        }
+
                         this.deferredInitializationParts.Add(importedPart);
                     }
                 }

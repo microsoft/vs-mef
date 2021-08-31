@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             Requires.NotNullOrEmpty(fullName, nameof(fullName));
 
             this.resolver = resolver;
-            this.AssemblyName = GetNormalizedAssemblyName(assemblyName);
+            this.AssemblyName = Resolver.GetNormalizedAssemblyName(assemblyName);
             this.assemblyId = assemblyId;
             this.MetadataToken = metadataToken;
             this.FullName = fullName;
@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
             this.resolver = resolver;
             this.resolvedType = type;
-            this.AssemblyName = GetNormalizedAssemblyName(type.GetTypeInfo().Assembly.GetName());
+            this.AssemblyName = resolver.GetNormalizedAssemblyName(type.GetTypeInfo().Assembly);
             this.assemblyId = resolver.GetStrongAssemblyIdentity(type.GetTypeInfo().Assembly, this.AssemblyName);
             this.TypeFlags |= type.IsArray ? TypeRefFlags.Array : TypeRefFlags.None;
             this.TypeFlags |= type.GetTypeInfo().IsValueType ? TypeRefFlags.IsValueType : TypeRefFlags.None;
@@ -238,7 +238,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         public static TypeRef Get(Resolver resolver, AssemblyName assemblyName, int metadataToken, string fullName, TypeRefFlags typeFlags, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, bool shallow, ImmutableArray<TypeRef> baseTypes, TypeRef? elementTypeRef)
         {
             Requires.NotNull(resolver, nameof(resolver));
-            return new TypeRef(resolver, assemblyName, null, metadataToken, fullName, typeFlags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementTypeRef);
+            return new TypeRef(resolver, Resolver.GetNormalizedAssemblyName(assemblyName), null, metadataToken, fullName, typeFlags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementTypeRef);
         }
 
         public static TypeRef Get(Resolver resolver, StrongAssemblyIdentity assemblyId, int metadataToken, string fullName, TypeRefFlags typeFlags, int genericTypeParameterCount, ImmutableArray<TypeRef> genericTypeArguments, bool shallow, ImmutableArray<TypeRef> baseTypes, TypeRef? elementTypeRef)
@@ -423,22 +423,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 throw new ArgumentException();
 #pragma warning restore CA2208 // Instantiate argument exceptions correctly
             }
-        }
-
-        private static AssemblyName GetNormalizedAssemblyName(AssemblyName assemblyName)
-        {
-            Requires.NotNull(assemblyName, nameof(assemblyName));
-
-            AssemblyName normalizedAssemblyName = assemblyName;
-            if (assemblyName.CodeBase?.IndexOf('~') >= 0)
-            {
-                // Using ToString() rather than AbsoluteUri here to match the CLR's AssemblyName.CodeBase convention of paths without %20 space characters.
-                string normalizedCodeBase = new Uri(Path.GetFullPath(new Uri(assemblyName.CodeBase).LocalPath)).ToString();
-                normalizedAssemblyName = (AssemblyName)assemblyName.Clone();
-                normalizedAssemblyName.CodeBase = normalizedCodeBase;
-            }
-
-            return normalizedAssemblyName;
         }
     }
 }

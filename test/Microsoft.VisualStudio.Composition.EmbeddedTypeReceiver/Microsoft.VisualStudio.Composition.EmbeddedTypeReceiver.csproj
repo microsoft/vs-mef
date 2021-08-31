@@ -3,12 +3,12 @@
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="System.Composition" Version="1.0.31" />
+    <PackageReference Include="System.Composition" Version="5.0.1" />
+    <PackageReference Include="System.ComponentModel.Composition" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Microsoft.VisualStudio.Composition.TestEmbeddableTypes\Microsoft.VisualStudio.Composition.TestEmbeddableTypes.csproj">
       <EmbedInteropTypes>true</EmbedInteropTypes>
     </ProjectReference>
-    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.Composition.NetFxAttributes\Microsoft.VisualStudio.Composition.NetFxAttributes.csproj" />
   </ItemGroup>
 </Project>
