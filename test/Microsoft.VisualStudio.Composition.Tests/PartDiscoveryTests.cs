@@ -51,6 +51,16 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
+        public async Task AssembliesLoadedViaIAssemblyLoader()
+        {
+            LoggingAssemblyLoader assemblyLoader = new();
+            NoOpDiscovery discovery = new(new Resolver(assemblyLoader));
+            string mockAssemblyPath = typeof(PartDiscoveryTests).Assembly.Location;
+            await discovery.CreatePartsAsync(new string[] { mockAssemblyPath });
+            Assert.Equal(new[] { mockAssemblyPath }, assemblyLoader.AttemptedAssemblyPaths);
+        }
+
+        [Fact]
         public async Task Combined_CreatePartsAsync_AssemblyPathEnumerable()
         {
             var discovery = PartDiscovery.Combine(TestUtilities.V2Discovery, TestUtilities.V1Discovery);
@@ -136,6 +146,31 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
+        private class LoggingAssemblyLoader : IAssemblyLoader
+        {
+            internal List<string?> AttemptedAssemblyPaths { get; } = new();
+
+            public Assembly LoadAssembly(string assemblyFullName, string? codeBasePath)
+            {
+                lock (this.AttemptedAssemblyPaths)
+                {
+                    this.AttemptedAssemblyPaths.Add(codeBasePath);
+                }
+
+                throw new NotImplementedException();
+            }
+
+            public Assembly LoadAssembly(AssemblyName assemblyName)
+            {
+                lock (this.AttemptedAssemblyPaths)
+                {
+                    this.AttemptedAssemblyPaths.Add(assemblyName.CodeBase);
+                }
+
+                throw new NotImplementedException();
+            }
+        }
+
         private class SketchyPartDiscovery : PartDiscovery
         {
             internal SketchyPartDiscovery()
@@ -178,7 +213,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
         private class NoOpDiscovery : PartDiscovery
         {
             internal NoOpDiscovery()
-                : base(TestUtilities.Resolver)
+                : this(TestUtilities.Resolver)
+            {
+            }
+
+            internal NoOpDiscovery(Resolver resolver)
+                : base(resolver)
             {
             }
 

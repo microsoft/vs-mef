@@ -132,7 +132,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     try
                     {
-                        return new Assembly[] { Assembly.Load(AssemblyName.GetAssemblyName(path)) };
+                        return new Assembly[] { this.Resolver.AssemblyLoader.LoadAssembly(Utilities.GetAssemblyNameWithCodebasePath(path)) };
                     }
                     catch (Exception ex)
                     {
