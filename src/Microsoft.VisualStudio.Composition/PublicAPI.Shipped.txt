@@ -155,7 +155,7 @@ Microsoft.VisualStudio.Composition.ExportedDelegate.CreateDelegate(System.Type! 
 Microsoft.VisualStudio.Composition.ExportedDelegate.ExportedDelegate(object? target, System.Reflection.MethodInfo! method) -> void
 Microsoft.VisualStudio.Composition.IAssemblyLoader
 Microsoft.VisualStudio.Composition.IAssemblyLoader.LoadAssembly(System.Reflection.AssemblyName! assemblyName) -> System.Reflection.Assembly!
-Microsoft.VisualStudio.Composition.IAssemblyLoader.LoadAssembly(string! assemblyFullName, string! codeBasePath) -> System.Reflection.Assembly!
+Microsoft.VisualStudio.Composition.IAssemblyLoader.LoadAssembly(string! assemblyFullName, string? codeBasePath) -> System.Reflection.Assembly!
 Microsoft.VisualStudio.Composition.ICompositionCacheManager
 Microsoft.VisualStudio.Composition.ICompositionCacheManager.LoadExportProviderFactoryAsync(System.IO.Stream! cacheStream, Microsoft.VisualStudio.Composition.Resolver! resolver, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.Composition.IExportProviderFactory!>!
 Microsoft.VisualStudio.Composition.ICompositionCacheManager.SaveAsync(Microsoft.VisualStudio.Composition.CompositionConfiguration! configuration, System.IO.Stream! cacheStream, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task!
