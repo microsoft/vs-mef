@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 this.substitutedAssemblyPath = substitutedAssemblyPath;
             }
 
-            public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
+            public Assembly LoadAssembly(string assemblyFullName, string? codeBasePath)
             {
                 return Assembly.LoadFile(codeBasePath);
             }
