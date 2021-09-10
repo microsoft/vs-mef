@@ -638,8 +638,19 @@ namespace Microsoft.VisualStudio.Composition
         {
             private readonly IReadOnlyList<PartDiscovery> discoveryMechanisms;
 
+            private static Resolver GetResolverToUse(IReadOnlyList<PartDiscovery> discoveryMechanisms)
+            {
+                Requires.NotNull(discoveryMechanisms, nameof(discoveryMechanisms));
+                if (discoveryMechanisms.Count == 0)
+                {
+                    return Resolver.DefaultInstance;
+                }
+
+                return discoveryMechanisms.First().Resolver;
+            }
+
             internal CombinedPartDiscovery(IReadOnlyList<PartDiscovery> discoveryMechanisms)
-                : base(Resolver.DefaultInstance)
+                : base(GetResolverToUse(discoveryMechanisms))
             {
                 Requires.NotNull(discoveryMechanisms, nameof(discoveryMechanisms));
                 this.discoveryMechanisms = discoveryMechanisms;

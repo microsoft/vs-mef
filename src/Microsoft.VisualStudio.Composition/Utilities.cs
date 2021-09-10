@@ -29,7 +29,6 @@ namespace Microsoft.VisualStudio.Composition
             // .NET Framework sets this, but .NET Core does not.
             // .NET Core also *ignores* this even if set, by default. But a custom AssemblyLoadContext resolver could honor it if we preserve it.
             assemblyName.CodeBase = path;
-
             return assemblyName;
         }
 
