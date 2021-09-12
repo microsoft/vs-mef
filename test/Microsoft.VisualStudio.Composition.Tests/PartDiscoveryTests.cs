@@ -61,6 +61,17 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
+        public async Task DiscoveriesCombinedWithResolver()
+        {
+            LoggingAssemblyLoader assemblyLoader = new();
+            Resolver assemblyResolver = new(assemblyLoader);
+            var discovery = PartDiscovery.Combine(assemblyResolver, TestUtilities.V2Discovery, TestUtilities.V1Discovery);
+            string testAssemblyPath = typeof(PartDiscoveryTests).Assembly.Location;
+            await discovery.CreatePartsAsync(new string[] { testAssemblyPath });
+            Assert.Equal(new[] { testAssemblyPath }, assemblyLoader.AttemptedAssemblyPaths);
+        }
+
+        [Fact]
         public async Task Combined_CreatePartsAsync_AssemblyPathEnumerable()
         {
             var discovery = PartDiscovery.Combine(TestUtilities.V2Discovery, TestUtilities.V1Discovery);

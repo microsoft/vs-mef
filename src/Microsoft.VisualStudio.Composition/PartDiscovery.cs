@@ -36,6 +36,17 @@ namespace Microsoft.VisualStudio.Composition
         /// <returns>The aggregate PartDiscovery instance.</returns>
         public static PartDiscovery Combine(params PartDiscovery[] discoveryMechanisms)
         {
+            return Combine(Resolver.DefaultInstance, discoveryMechanisms);
+        }
+
+        /// <summary>
+        /// Creates an aggregate <see cref="PartDiscovery"/> instance that delegates to a series of other part discovery extensions.
+        /// </summary>
+        /// <param name="resolverToUse">The <see cref="Composition.Resolver"/> that the aggregate PartDiscovery instance should use.</param>
+        /// <param name="discoveryMechanisms">The discovery extensions to use. In some cases, extensions defined earlier in the list are preferred.</param>
+        /// <returns>The aggregate PartDiscovery instance with the specified resolver.</returns>
+        public static PartDiscovery Combine(Resolver resolverToUse, params PartDiscovery[] discoveryMechanisms)
+        {
             Requires.NotNull(discoveryMechanisms, nameof(discoveryMechanisms));
 
             if (discoveryMechanisms.Length == 1)
@@ -43,7 +54,7 @@ namespace Microsoft.VisualStudio.Composition
                 return discoveryMechanisms[0];
             }
 
-            return new CombinedPartDiscovery(discoveryMechanisms);
+            return new CombinedPartDiscovery(resolverToUse, discoveryMechanisms);
         }
 
         /// <summary>
@@ -638,8 +649,10 @@ namespace Microsoft.VisualStudio.Composition
         {
             private readonly IReadOnlyList<PartDiscovery> discoveryMechanisms;
 
-            internal CombinedPartDiscovery(IReadOnlyList<PartDiscovery> discoveryMechanisms)
-                : base(Resolver.DefaultInstance)
+            internal CombinedPartDiscovery(
+                Resolver resolverToUse,
+                IReadOnlyList<PartDiscovery> discoveryMechanisms)
+                : base(resolverToUse)
             {
                 Requires.NotNull(discoveryMechanisms, nameof(discoveryMechanisms));
                 this.discoveryMechanisms = discoveryMechanisms;
