@@ -55,7 +55,7 @@
         /// <summary>
         /// Gets or sets the name of the whitelist file to use.
         /// </summary>
-        public string? WhiteListFile { get; set; }
+        public string WhiteListFile { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to treat the whitelist file text as regex.
@@ -65,7 +65,7 @@
         /// <summary>
         /// Gets or sets the name of the cache file to store the imported parts.
         /// </summary>
-        public string? CacheFile { get; set; }
+        public string CacheFile { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the parts to perform matching on.

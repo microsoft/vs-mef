@@ -61,6 +61,7 @@
         private void GenerateNodeGraph()
         {
             // Get the error stack from the composition configuration
+            var whiteListChecker = new WhiteList(this.Options);
             CompositionConfiguration config = this.Creator.Config;
             var errors = config.CompositionErrors;
             int levelNumber = 1;
@@ -87,7 +88,7 @@
                     }
 
                     PartNode currentNode = new PartNode(definition, element.Message, levelNumber);
-                    currentNode.SetWhiteListed(this.Creator.IsWhiteListed(currentName));
+                    currentNode.SetWhiteListed(whiteListChecker.IsWhiteListed(currentName));
                     this.RejectionGraph.Add(currentName, currentNode);
                 }
 
