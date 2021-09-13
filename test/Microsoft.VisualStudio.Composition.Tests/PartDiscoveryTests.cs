@@ -90,6 +90,15 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
+        public void Combine_NullArgs()
+        {
+            Assert.Throws<ArgumentNullException>("resolver", () => PartDiscovery.Combine(resolver: null!, TestUtilities.V1Discovery));
+            Assert.Throws<ArgumentNullException>("discoveryMechanisms", () => PartDiscovery.Combine(resolver: Resolver.DefaultInstance, null!));
+            Assert.Throws<ArgumentException>("discoveryMechanisms", () => PartDiscovery.Combine(resolver: Resolver.DefaultInstance, new PartDiscovery[] { null! }));
+            Assert.Throws<ArgumentException>("discoveryMechanisms", () => PartDiscovery.Combine(resolver: Resolver.DefaultInstance, TestUtilities.V1Discovery, null!));
+        }
+
+        [Fact]
         public async Task Combined_CreatePartsAsync_AssemblyPathEnumerable()
         {
             var discovery = PartDiscovery.Combine(TestUtilities.V2Discovery, TestUtilities.V1Discovery);

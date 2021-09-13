@@ -49,6 +49,11 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(discoveryMechanisms, nameof(discoveryMechanisms));
 
+            foreach (PartDiscovery item in discoveryMechanisms)
+            {
+                Requires.Argument(item is object, nameof(discoveryMechanisms), Strings.AllValuesMustBeNonNull);
+            }
+
             if (discoveryMechanisms.Length == 1 && ReferenceEquals(discoveryMechanisms[0].Resolver, resolver))
             {
                 return discoveryMechanisms[0];
