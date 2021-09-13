@@ -65,10 +65,28 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             LoggingAssemblyLoader assemblyLoader = new();
             Resolver assemblyResolver = new(assemblyLoader);
-            var discovery = PartDiscovery.Combine(assemblyResolver, TestUtilities.V2Discovery, TestUtilities.V1Discovery);
+            PartDiscovery combined = PartDiscovery.Combine(assemblyResolver, TestUtilities.V2Discovery, TestUtilities.V1Discovery);
+            Assert.Same(assemblyResolver, combined.Resolver);
             string testAssemblyPath = typeof(PartDiscoveryTests).Assembly.Location;
-            await discovery.CreatePartsAsync(new string[] { testAssemblyPath });
+            await combined.CreatePartsAsync(new string[] { testAssemblyPath });
             Assert.Equal(new[] { testAssemblyPath }, assemblyLoader.AttemptedAssemblyPaths);
+        }
+
+        [Fact]
+        public void Combine_JustOneButWithDifferentResolver()
+        {
+            LoggingAssemblyLoader assemblyLoader = new();
+            Resolver assemblyResolver = new(assemblyLoader);
+            PartDiscovery combined = PartDiscovery.Combine(assemblyResolver, TestUtilities.V1Discovery);
+            Assert.NotSame(TestUtilities.V1Discovery, combined);
+            Assert.Same(assemblyResolver, combined.Resolver);
+        }
+
+        [Fact]
+        public void Combine_JustOneButWithSameResolver()
+        {
+            PartDiscovery combined = PartDiscovery.Combine(TestUtilities.V1Discovery.Resolver, TestUtilities.V1Discovery);
+            Assert.Same(TestUtilities.V1Discovery, combined);
         }
 
         [Fact]
