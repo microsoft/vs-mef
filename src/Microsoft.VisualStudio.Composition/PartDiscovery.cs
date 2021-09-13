@@ -31,19 +31,35 @@ namespace Microsoft.VisualStudio.Composition
 
         /// <summary>
         /// Creates an aggregate <see cref="PartDiscovery"/> instance that delegates to a series of other part discovery extensions.
+        /// The <see cref="Resolver.DefaultInstance"/> is used.
         /// </summary>
-        /// <param name="discoveryMechanisms">The discovery extensions to use. In some cases, extensions defined earlier in the list are preferred.</param>
-        /// <returns>The aggregate PartDiscovery instance.</returns>
+        /// <inheritdoc cref="Combine(Resolver, PartDiscovery[])"/>
         public static PartDiscovery Combine(params PartDiscovery[] discoveryMechanisms)
+        {
+            return Combine(Resolver.DefaultInstance, discoveryMechanisms);
+        }
+
+        /// <summary>
+        /// Creates an aggregate <see cref="PartDiscovery"/> instance that delegates to a series of other part discovery extensions.
+        /// </summary>
+        /// <param name="resolver">The <see cref="Composition.Resolver"/> that the aggregate PartDiscovery instance should use.</param>
+        /// <param name="discoveryMechanisms">The discovery extensions to use. In some cases, extensions defined earlier in the list are preferred.</param>
+        /// <returns>The aggregate <see cref="PartDiscovery"/> instance.</returns>
+        public static PartDiscovery Combine(Resolver resolver, params PartDiscovery[] discoveryMechanisms)
         {
             Requires.NotNull(discoveryMechanisms, nameof(discoveryMechanisms));
 
-            if (discoveryMechanisms.Length == 1)
+            foreach (PartDiscovery item in discoveryMechanisms)
+            {
+                Requires.Argument(item is object, nameof(discoveryMechanisms), Strings.AllValuesMustBeNonNull);
+            }
+
+            if (discoveryMechanisms.Length == 1 && ReferenceEquals(discoveryMechanisms[0].Resolver, resolver))
             {
                 return discoveryMechanisms[0];
             }
 
-            return new CombinedPartDiscovery(discoveryMechanisms);
+            return new CombinedPartDiscovery(resolver, discoveryMechanisms);
         }
 
         /// <summary>
@@ -638,8 +654,8 @@ namespace Microsoft.VisualStudio.Composition
         {
             private readonly IReadOnlyList<PartDiscovery> discoveryMechanisms;
 
-            internal CombinedPartDiscovery(IReadOnlyList<PartDiscovery> discoveryMechanisms)
-                : base(Resolver.DefaultInstance)
+            internal CombinedPartDiscovery(Resolver resolver, IReadOnlyList<PartDiscovery> discoveryMechanisms)
+                : base(resolver)
             {
                 Requires.NotNull(discoveryMechanisms, nameof(discoveryMechanisms));
                 this.discoveryMechanisms = discoveryMechanisms;
