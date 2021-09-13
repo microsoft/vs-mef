@@ -50,7 +50,6 @@
             List<string>? matchExports = null,
             List<string>? matchImports = null)
         {
-            Console.WriteLine("Current Working Directory is " + Directory.GetCurrentDirectory());
             CLIOptions options = new CLIOptions
             {
                 Verbose = verbose,

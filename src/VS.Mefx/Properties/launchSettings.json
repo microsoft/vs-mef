@@ -2,7 +2,7 @@
   "profiles": {
     "VS.Mefx": {
       "commandName": "Project",
-      "commandLineArgs": "--parts --directory Matching",
+      "commandLineArgs": "--parts --directory Basic",
       "workingDirectory": "C:\\Users\\Pankaj\\Documents\\Github Repos\\vs-mef\\test\\VS.Mefx"
     }
   }

@@ -124,11 +124,10 @@
             Resolver customResolver = new(customLoader);
             var nugetDiscover = new AttributedPartDiscovery(customResolver, isNonPublicSupported: true);
             var netDiscover = new AttributedPartDiscoveryV1(customResolver);
-            PartDiscovery discovery = PartDiscovery.Combine(nugetDiscover, netDiscover);
+            PartDiscovery discovery = PartDiscovery.Combine(customResolver, netDiscover, nugetDiscover);
             if (this.AssemblyPaths.Count() > 0)
             {
                 var parts = await discovery.CreatePartsAsync(this.AssemblyPaths);
-                Console.WriteLine("Number of parts found by discovery is " + parts.Parts.Count());
                 this.Catalog = ComposableCatalog.Create(discovery.Resolver).AddParts(parts);
             }
 
@@ -180,7 +179,6 @@
                     string fullPath = Path.GetFullPath(Path.Combine(folderPath, fileName));
                     if (File.Exists(fullPath))
                     {
-                        Console.WriteLine("Found Valid File in " + fullPath);
                         bool isCacheFile = extension.Equals(ValidExtensions[ValidExtensions.Length - 1]);
                         if (isCacheFile)
                         {
@@ -365,7 +363,7 @@
             /// <returns>The assembly at the specified input path.</returns>
             private Assembly LoadUsingPath(string path)
             {
-                Console.WriteLine("Received call to LoadUsingPath with path " + path);
+                // Console.WriteLine("Received call to LoadUsingPath with path " + path);
                 lock (this.LoadAssemblies)
                 {
                     if (this.LoadAssemblies.ContainsKey(path))
@@ -388,7 +386,7 @@
             {
                 string assemblyName = assemblyInfo.FullName;
 
-                Console.WriteLine("Received call to LoadUsingName with assemblyName " + assemblyName);
+                // Console.WriteLine("Received call to LoadUsingName with assemblyName " + assemblyName);
                 lock (this.LoadAssemblies)
                 {
                     if (this.LoadAssemblies.ContainsKey(assemblyName))
