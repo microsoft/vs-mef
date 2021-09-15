@@ -7,7 +7,7 @@ A Composition Analysis Tool for VS-MEF
 
 ## Part Information Getter 
 
-The following command illustrates the basic functionality to get information about parts and thier dependencies: 
+The following command illustrates the basic functionalities to get information about parts and thier dependencies: 
 ```
 --parts --detail MefCalculator.ImportTest --exporter MefCalculator.MefCalculatorInterfaces+IOperation --importer ExtendedOperations.ChainOne --file MefCalculator.dll --directory Extensions
 ```

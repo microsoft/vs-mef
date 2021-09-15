@@ -9,8 +9,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>mefx</ToolCommandName>
-    <PackageOutputPath>./nupkg</PackageOutputPath>
+    <ToolCommandName>Mefx</ToolCommandName>
+    <PackageOutputPath>..\..\</PackageOutputPath>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>

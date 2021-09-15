@@ -29,20 +29,20 @@
             {
                 string exportPartName = this.Options.MatchParts.ElementAt(0).Trim();
                 string importPartName = this.Options.MatchParts.ElementAt(1).Trim();
-                Console.WriteLine("Finding matches from " + exportPartName + " to " + importPartName);
+                this.Options.Writer.WriteLine("Finding matches from " + exportPartName + " to " + importPartName);
 
                 // Deal with the case that one of the parts doesn't exist
                 ComposablePartDefinition exportPart = this.Creator.GetPart(exportPartName);
                 if (exportPart == null)
                 {
-                    Console.WriteLine("Couldn't find part with name " + exportPartName);
+                    this.Options.Writer.WriteLine("Couldn't find part with name " + exportPartName);
                     return;
                 }
 
                 ComposablePartDefinition importPart = this.Creator.GetPart(importPartName);
                 if (importPart == null)
                 {
-                    Console.WriteLine("Couldn't find part with name " + importPartName);
+                    this.Options.Writer.WriteLine("Couldn't find part with name " + importPartName);
                     return;
                 }
 
@@ -58,10 +58,10 @@
             }
             else
             {
-                Console.WriteLine("Please provide exactly two parts to the match option");
+                this.Options.Writer.WriteLine("Please provide exactly two parts to the match option");
             }
 
-            Console.WriteLine();
+            this.Options.Writer.WriteLine();
         }
 
         /// <summary>
@@ -94,7 +94,7 @@
                 string keyName = metadataConstraint.Name;
                 string constraintString = "[Metadata - Key: " + keyName + ", Value: " +
                     metadataConstraint.Value + "]";
-                string pairValue = "No Such Key in Export";
+                string pairValue = "No Such Key";
                 if (exportDetails.Metadata.ContainsKey(keyName))
                 {
                     var keyValue = exportDetails.Metadata[keyName];
@@ -161,26 +161,26 @@
             int total = 0;
             foreach (var export in matchingExports)
             {
-                Console.WriteLine("Considering exporting field " + export.ExportingField);
+                this.Options.Writer.WriteLine("Considering exporting field " + export.ExportingField);
                 var result = this.CheckDefinitionMatch(import, export);
                 if (result.SucessfulMatch)
                 {
                     total += 1;
-                    Console.WriteLine(result.Messages.First());
+                    this.Options.Writer.WriteLine(result.Messages.First());
                 }
                 else
                 {
                     for (int i = 0; i < result.Messages.Count; i++)
                     {
-                        Console.WriteLine("Failed Constraint #" + (i + 1));
-                        Console.WriteLine(result.Messages.ElementAt(i));
+                        this.Options.Writer.WriteLine("Failed Constraint #" + (i + 1));
+                        this.Options.Writer.WriteLine(result.Messages.ElementAt(i));
                     }
                 }
             }
 
             if (matchingExports.Count() > 1)
             {
-                Console.WriteLine(total + "/" + matchingExports.Count() + " export(s) satisfy the import constraints");
+                this.Options.Writer.WriteLine(total + "/" + matchingExports.Count() + " export(s) satisfy the import constraints");
             }
         }
 
@@ -222,7 +222,7 @@
                 string currentContractName = currentImportDefintion.ContractName;
                 if (allExportDefinitions.ContainsKey(currentContractName))
                 {
-                    Console.WriteLine();
+                    this.Options.Writer.WriteLine();
                     string fieldName = importPart.Type.FullName;
                     if (import.ImportingMember != null)
                     {
@@ -230,7 +230,7 @@
                     }
 
                     var potentialMatches = allExportDefinitions[currentContractName];
-                    Console.WriteLine("Found potential match(es) for importing field " + fieldName);
+                    this.Options.Writer.WriteLine("Found potential match(es) for importing field " + fieldName);
                     foundMatch = true;
                     this.PerformDefintionChecking(currentImportDefintion, potentialMatches);
                 }
@@ -238,7 +238,7 @@
 
             if (!foundMatch)
             {
-                Console.WriteLine("Couldn't find any potential matches between the two given parts");
+                this.Options.Writer.WriteLine("Couldn't find any potential matches between the two given parts");
             }
         }
 
@@ -282,8 +282,8 @@
             // Print message about which exporting fields couldn't be found
             if (!includeAllExports && exportingFields.Count() > 0)
             {
-                Console.WriteLine("\nCouldn't find the following exporting fields: ");
-                exportingFields.ForEach(field => Console.WriteLine(field));
+                this.Options.Writer.WriteLine("\nCouldn't find the following exporting fields: ");
+                exportingFields.ForEach(field => this.Options.Writer.WriteLine(field));
             }
 
             // Perform matching against all considering imports
@@ -300,7 +300,7 @@
                 bool performMatching = checkAllImports || importingFields.Contains(importingField);
                 if (performMatching)
                 {
-                    Console.WriteLine("\nPerforming matching for importing field " + importingField);
+                    this.Options.Writer.WriteLine("\nPerforming matching for importing field " + importingField);
                     this.PerformDefintionChecking(currentImportDefintion, consideringExports);
                     if (!checkAllImports)
                     {
@@ -312,8 +312,8 @@
             // Print message about which importing fields couldn't be found
             if (!checkAllImports && importingFields.Count() > 0)
             {
-                Console.WriteLine("\nCouldn't find the following importing fields: ");
-                importingFields.ForEach(field => Console.WriteLine(field));
+                this.Options.Writer.WriteLine("\nCouldn't find the following importing fields: ");
+                importingFields.ForEach(field => this.Options.Writer.WriteLine(field));
             }
         }
 

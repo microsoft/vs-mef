@@ -132,7 +132,7 @@
         /// <param name="currentLevel">An integer representing the level we are intrested in.</param>
         private void ListErrorsinLevel(int currentLevel)
         {
-            Console.WriteLine("Errors in level " + currentLevel);
+            this.Options.Writer.WriteLine("Errors in level " + currentLevel);
             foreach (var pair in this.RejectionGraph)
             {
                 PartNode currentNode = pair.Value;
@@ -144,16 +144,16 @@
 
             if (!this.Options.Verbose)
             {
-                Console.WriteLine();
+                this.Options.Writer.WriteLine();
             }
         }
 
         /// <summary>
-        /// Method to get path to save the dgml file in.
+        /// Method to save the DGML graph to the given fileName.
         /// </summary>
         /// <param name="fileName">Name of the dgml file whose path we want to determine.</param>
-        /// <returns>The complete absolute path to save the dgml file in.</returns>
-        private string GetGraphPath(string fileName)
+        /// <param name="graph">The <see cref="GraphCreator"/> to save in the specified file path.</param>
+        private void SaveGraph(string fileName, GraphCreator graph)
         {
             string relativePath = this.Options.GraphPath;
             string currentDirectory = Directory.GetCurrentDirectory();
@@ -161,12 +161,13 @@
             if (!Directory.Exists(outputDirectory))
             {
                 string missingMessage = "Couldn't find directory " + relativePath + " so saving rejection graph to current directory";
-                Console.WriteLine(missingMessage);
+                this.Options.Writer.WriteLine(missingMessage);
                 outputDirectory = currentDirectory;
             }
 
             string outputPath = Path.GetFullPath(Path.Combine(outputDirectory, fileName));
-            return outputPath;
+            graph.SaveGraph(outputPath);
+            this.Options.Writer.WriteLine("Saved rejection graph to " + outputPath);
         }
 
         /// <summary>
@@ -181,7 +182,7 @@
         /// </remarks>
         private void ListAllRejections()
         {
-            Console.WriteLine("Listing all the rejection issues");
+            this.Options.Writer.WriteLine("Listing all the rejection issues");
             for (int level = this.MaxLevels; level > 0; level--)
             {
                 this.ListErrorsinLevel(level);
@@ -190,9 +191,9 @@
             bool saveGraph = this.Options.GraphPath.Length > 0;
             if (saveGraph)
             {
-                GraphCreator creater = new GraphCreator(this.RejectionGraph);
-                creater.SaveGraph(GetGraphPath("AllErrors.dgml"));
-                Console.WriteLine();
+                GraphCreator creator = new GraphCreator(this.RejectionGraph);
+                string fileName = "AllErrors.dgml";
+                this.SaveGraph(fileName, creator);
             }
         }
 
@@ -212,11 +213,11 @@
             // Deal with the case that there are no rejection issues with the given part
             if (!this.RejectionGraph.ContainsKey(partName))
             {
-                Console.WriteLine("No Rejection Issues associated with " + partName + "\n");
+                this.Options.Writer.WriteLine("No Rejection Issues associated with " + partName + "\n");
                 return;
             }
 
-            Console.WriteLine("Printing Rejection Graph Info for " + partName + "\n");
+            this.Options.Writer.WriteLine("Printing Rejection Graph Info for " + partName + "\n");
 
             // Store just the nodes that are involved in the current rejection chain to use when generating the graph
             Dictionary<string, PartNode> relevantNodes = null;
@@ -236,7 +237,7 @@
             while (currentLevelNodes.Count() > 0)
             {
                 int currentLevel = currentLevelNodes.Peek().Level;
-                Console.WriteLine("Errors in Level " + currentLevel);
+                this.Options.Writer.WriteLine("Errors in Level " + currentLevel);
 
                 // Iterate through all the nodes in the current level
                 int numNodes = currentLevelNodes.Count();
@@ -263,19 +264,18 @@
 
                 if (!this.Options.Verbose)
                 {
-                    Console.WriteLine();
+                    this.Options.Writer.WriteLine();
                 }
             }
 
             // Save the output graph if the user request it
             if (saveGraph)
             {
-                GraphCreator creater = new GraphCreator(relevantNodes);
+                GraphCreator nodeGraph = new GraphCreator(relevantNodes);
 
                 // Replacing '.' with '_' in the fileName to ensure that the '.' is associated with the file extension
                 string fileName = partName.Replace(".", "_") + ".dgml";
-                creater.SaveGraph(GetGraphPath(fileName));
-                Console.WriteLine();
+                this.SaveGraph(fileName, nodeGraph);
             }
         }
 
@@ -300,14 +300,14 @@
                 foreach (string errorMessage in current.VerboseMessages)
                 {
                     string message = startMessage + errorMessage;
-                    Console.WriteLine(message);
-                    Console.WriteLine();
+                    this.Options.Writer.WriteLine(message);
+                    this.Options.Writer.WriteLine();
                 }
             }
             else
             {
                 string message = startMessage + this.GetName(current.Part, "[Part]");
-                Console.WriteLine(message);
+                this.Options.Writer.WriteLine(message);
             }
         }
     }

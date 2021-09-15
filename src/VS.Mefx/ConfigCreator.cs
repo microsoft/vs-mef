@@ -32,6 +32,7 @@
             this.AssemblyPaths = new List<string>();
             this.CachePaths = new List<string>();
             this.PartInformation = new Dictionary<string, ComposablePartDefinition>();
+            this.Writer = options.Writer;
 
             // Add all the files in the input argument to the list of paths
             string currentFolder = Directory.GetCurrentDirectory();
@@ -42,7 +43,7 @@
                 {
                     if (!this.AddFile(currentFolder, file))
                     {
-                        Console.WriteLine("Couldn't add file " + file);
+                        this.Writer.WriteLine("Couldn't add file " + file);
                     }
                 }
             }
@@ -60,13 +61,18 @@
                     }
                     else
                     {
-                        Console.WriteLine("Couldn't add files from folder " + folder);
+                        this.Writer.WriteLine("Couldn't add files from folder " + folder);
                     }
                 }
             }
 
             this.OutputCacheFile = options.CacheFile;
         }
+
+        /// <summary>
+        /// Gets or sets the writer to use when writing output to the user.
+        /// </summary>
+        private TextWriter Writer { get; set; }
 
         /// <summary>
         /// Gets the catalog that stores information about the imported parts.
@@ -245,7 +251,7 @@
                 }
                 catch (Exception error)
                 {
-                    Console.WriteLine("Encountered the following error: \"" + error.Message + "\" when trying to read " +
+                    this.Writer.WriteLine("Encountered the following error: \"" + error.Message + "\" when trying to read " +
                         " file " + filePath);
                 }
             }
@@ -268,21 +274,21 @@
                     CachedCatalog cacheWriter = new CachedCatalog();
                     var fileWriter = File.Create(filePath);
                     await cacheWriter.SaveAsync(this.Catalog, fileWriter);
-                    Console.WriteLine("Saved cache of current catalog to " + filePath);
+                    this.Writer.WriteLine("Saved cache of current catalog to " + filePath);
                     fileWriter.Flush();
-                    fileWriter.Dispose();
+                    fileWriter.Close();
                 }
                 catch (Exception error)
                 {
-                    Console.WriteLine("Failed to save cache file due to error : " + error.Message);
+                    this.Writer.WriteLine("Failed to save cache file due to error : " + error.Message);
                 }
             }
             else
             {
-                Console.WriteLine("Invalid file name of " + fileName);
+                this.Writer.WriteLine("Invalid file name of " + fileName);
             }
 
-            Console.WriteLine();
+            this.Writer.WriteLine();
         }
 
         /// <summary>
@@ -295,8 +301,8 @@
                 var discoveryErrors = this.Catalog.DiscoveredParts.DiscoveryErrors;
                 if (discoveryErrors.Count() > 0)
                 {
-                    Console.WriteLine("Encountered the following errors when trying to parse input files: ");
-                    discoveryErrors.ForEach(error => Console.WriteLine(error + "\n"));
+                    this.Writer.WriteLine("Encountered the following errors when trying to parse input files: ");
+                    discoveryErrors.ForEach(error => this.Writer.WriteLine(error + "\n"));
                 }
             }
         }

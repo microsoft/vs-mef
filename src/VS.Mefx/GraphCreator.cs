@@ -78,7 +78,6 @@
         public void SaveGraph(string outputFilePath)
         {
             this.Dgml.WriteToFile(outputFilePath);
-            Console.WriteLine("Saved rejection graph to " + outputFilePath);
         }
 
         private static string GetNodeName(PartNode current)

@@ -3,7 +3,7 @@
     "VS.Mefx": {
       "commandName": "Project",
       "commandLineArgs": "--parts --directory Basic",
-      "workingDirectory": "C:\\Users\\Pankaj\\Documents\\Github Repos\\vs-mef\\test\\VS.Mefx"
+      "workingDirectory": "C:\\Users\\Pankaj\\Documents\\Github Repos\\vs-mef\\test\\VS.Mefx.Tests"
     }
   }
 }

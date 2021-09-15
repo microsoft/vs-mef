@@ -1,6 +1,7 @@
 ﻿namespace VS.Mefx
 {
     using System.Collections.Generic;
+    using System.IO;
 
     /// <summary>
     /// A class to store the command line arguments passed in by the user.
@@ -81,5 +82,10 @@
         /// Gets or sets the name of the fields to consider in the importing part when matching.
         /// </summary>
         public List<string>? MatchImports { get; set; }
+
+        /// <summary>
+        /// Gets or sets the writer to use when writing output to the user.
+        /// </summary>
+        public TextWriter Writer { get; set; }
     }
 }

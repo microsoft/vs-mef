@@ -57,7 +57,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{34FA3DAA-1
 		test\Directory.Build.targets = test\Directory.Build.targets
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VS.Mefx", "src\VS.Mefx\VS.Mefx.csproj", "{6C73C7D0-819F-4194-AE36-FF86F248EC9E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VS.Mefx", "src\VS.Mefx\VS.Mefx.csproj", "{6C73C7D0-819F-4194-AE36-FF86F248EC9E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VS.Mefx.Tests", "test\VS.Mefx.Tests\VS.Mefx.Tests.csproj", "{E4487CD4-05EA-4FFA-A527-86BDEF0BDBF7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -125,6 +127,10 @@ Global
 		{6C73C7D0-819F-4194-AE36-FF86F248EC9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C73C7D0-819F-4194-AE36-FF86F248EC9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6C73C7D0-819F-4194-AE36-FF86F248EC9E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4487CD4-05EA-4FFA-A527-86BDEF0BDBF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4487CD4-05EA-4FFA-A527-86BDEF0BDBF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4487CD4-05EA-4FFA-A527-86BDEF0BDBF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4487CD4-05EA-4FFA-A527-86BDEF0BDBF7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -145,6 +151,7 @@ Global
 		{E05AF240-2D20-4037-97DD-7163B3BAA7F4} = {C1E69228-5ECA-4B33-A08C-F60908B1A31A}
 		{A469088A-DCA0-4968-B472-F9D6C7D6DF38} = {34FA3DAA-1CE6-4D26-9802-681043203006}
 		{6C73C7D0-819F-4194-AE36-FF86F248EC9E} = {C1E69228-5ECA-4B33-A08C-F60908B1A31A}
+		{E4487CD4-05EA-4FFA-A527-86BDEF0BDBF7} = {34FA3DAA-1CE6-4D26-9802-681043203006}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {595F7089-18B6-4D24-8F38-7FFCCE2F5F0E}

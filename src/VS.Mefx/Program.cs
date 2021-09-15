@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.CommandLine.DragonFruit;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -13,7 +14,8 @@
     /// </summary>
     public class Program
     {
-        private static readonly string TestFolder = string.Empty; // Name of the test folder to navigate to
+        public static readonly string OutputFileName = "out.txt";
+        public static TextWriter Output = null;
 
         /// <summary>
         /// A command line application to diagonse composition failures in MEF applications.
@@ -50,6 +52,11 @@
             List<string>? matchExports = null,
             List<string>? matchImports = null)
         {
+            if (Output == null)
+            {
+                Output = Console.Out;
+            }
+
             CLIOptions options = new CLIOptions
             {
                 Verbose = verbose,
@@ -67,27 +74,16 @@
                 MatchParts = match,
                 MatchExports = matchExports,
                 MatchImports = matchImports,
+                Writer = Output,
             };
             await RunOptions(options);
         }
 
-        /// <summary>
-        ///  Configure the working directory of the current application for testing purposes based on the testFolder string.
-        /// </summary>
-        private static void SetWorkingDirectory()
+        public static async Task Runner(string[] args)
         {
-            string currentFolder = Directory.GetCurrentDirectory();
-            string rootFolder = Path.GetFullPath(Path.Combine(currentFolder, "..\\..\\..\\.."));
-            string testLocation = Path.Combine(rootFolder, "Tests");
-            if (TestFolder.Length > 0)
-            {
-                testLocation = Path.Combine(testLocation, TestFolder);
-            }
-
-            if (Directory.Exists(testLocation))
-            {
-                Directory.SetCurrentDirectory(testLocation);
-            }
+            Output = new StreamWriter(OutputFileName);
+            MethodInfo mainInfo = typeof(Program).GetMethod("Main");
+            await CommandLine.InvokeMethodAsync(args, mainInfo);
         }
 
         /// <summary>
@@ -99,7 +95,7 @@
             await creator.Initialize();
             if (creator.Catalog == null)
             {
-                Console.WriteLine("Couldn't find any parts in the input files and folders");
+                options.Writer.WriteLine("Couldn't find any parts in the input files and folders");
                 return;
             }
 
