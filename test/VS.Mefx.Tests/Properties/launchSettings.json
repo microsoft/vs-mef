@@ -1,8 +1,7 @@
 {
   "profiles": {
-    "VS.Mefx": {
+    "VS.Mefx.Tests": {
       "commandName": "Project",
-      "commandLineArgs": "--parts --directory Matching",
       "workingDirectory": "C:\\Users\\Pankaj\\Documents\\Github Repos\\vs-mef\\test\\VS.Mefx.Tests"
     }
   }

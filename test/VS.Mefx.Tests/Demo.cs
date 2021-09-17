@@ -8,6 +8,10 @@ namespace VS.Mefx.Tests
     using System.IO;
     using System.Collections.Generic;
     using System.Text.RegularExpressions;
+    using System.Linq;
+    using System.Collections;
+    using Xunit.Sdk;
+    using System.Reflection;
 
     public class Demo
     {
@@ -43,9 +47,8 @@ namespace VS.Mefx.Tests
             }
         }
 
-        public Demo(ITestOutputHelper output)
+        private void checkFolder()
         {
-            this.output = output;
             string currentDir = Directory.GetCurrentDirectory();
             string dirName = Path.GetFileName(currentDir);
             if (!dirName.Equals("VS.Mefx.Tests"))
@@ -54,6 +57,11 @@ namespace VS.Mefx.Tests
                 string srcDir = Path.GetFullPath(Path.Combine(currentDir, relativePath));
                 Directory.SetCurrentDirectory(srcDir);
             }
+        }
+
+        public Demo(ITestOutputHelper output)
+        {
+            this.output = output;
         }
 
         private static readonly string OutputFileName = "output.txt";
@@ -71,6 +79,23 @@ namespace VS.Mefx.Tests
             return savedOutput;
         }
 
+        [Theory]
+        [TestGetter("TestData")]
+        private async Task<bool> RunTest(string filePath)
+        {
+            TestInfo fileData = new TestInfo(filePath);
+            string[] args = fileData.GetCommandArgs();
+            using (StreamWriter sw = new StreamWriter(OutputFileName))
+            {
+                await Program.Runner(sw, args);
+            }
+
+            string savedOutput = File.ReadAllText(OutputFileName);
+            List<string> commandResult = TestInfo.GetLines(savedOutput);
+            List<string> expectedOutput = fileData.TestResult;
+            return commandResult.SequenceEqual(expectedOutput);
+        }
+
         [Fact]
         public async Task GetBasicParts()
         {
@@ -85,6 +110,46 @@ namespace VS.Mefx.Tests
             var result = await RunCommand("--parts --directory Matching");
             this.output.WriteLine(result);
             Assert.True(true);
+        }
+
+        [Fact]
+        public async Task ReadFile()
+        {
+            string currentDir = Directory.GetCurrentDirectory();
+            string relativePath = Path.Combine("TestData", "matchParts.txt");
+            string filePath = Path.GetFullPath(Path.Combine(currentDir, relativePath));
+            Assert.True(await RunTest(filePath));
+        }
+
+        private class TestGetter : DataAttribute
+        {
+            public override IEnumerable<object[]> GetData(MethodInfo testMethod)
+            {
+                List<object[]> output = new List<object[]>();
+                foreach (var filePath in this.TestFilePaths)
+                {
+                    output.Add(new object[] { filePath });
+                }
+
+                return output.AsEnumerable();
+            }
+
+            private List<string> TestFilePaths { get; set; }
+
+            public TestGetter(string folderName)
+            {
+                string currentDir = Directory.GetCurrentDirectory();
+                string folderPath = Path.GetFullPath(Path.Combine(currentDir, folderName));
+                this.TestFilePaths = new List<string>();
+                if (Directory.Exists(folderPath))
+                {
+                    DirectoryInfo dirInfo = new DirectoryInfo(folderPath);
+                    foreach (var fileInfo in dirInfo.EnumerateFiles())
+                    {
+                        this.TestFilePaths.Add(fileInfo.FullName);
+                    }
+                }
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-Parts in Catalog are 
+Parts in the Catalog are 
 CarOne.FirstCar
 CarTwo.SecondCar
 Garage.Importer
