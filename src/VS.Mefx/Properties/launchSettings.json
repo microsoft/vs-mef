@@ -2,8 +2,8 @@
   "profiles": {
     "VS.Mefx": {
       "commandName": "Project",
-      "commandLineArgs": "--parts --directory Basic",
-      "workingDirectory": "C:\\Users\\Pankaj\\Documents\\Github Repos\\vs-mef\\test\\VS.Mefx.Tests"
+      "commandLineArgs": "--parts --detail MefCalculator.ImportTest --exporter MefCalculator.MefCalculatorInterfaces+IOperation --importer ExtendedOperations.ChainOne --file MefCalculator.dll --directory Extensions",
+      "workingDirectory": "C:\\Users\\Pankaj\\Documents\\Github Repos\\vs-mef\\test\\VS.Mefx.Tests\\Basic"
     }
   }
 }

@@ -29,7 +29,7 @@
             // Listing all the parts present in the input files/folders.
             if (this.Options.ListParts)
             {
-                this.Options.Writer.WriteLine("Parts in Catalog are ");
+                this.Options.Writer.WriteLine(Strings.PartsDescription);
                 this.ListAllParts();
                 this.Options.Writer.WriteLine();
             }
@@ -71,10 +71,22 @@
         private void ListAllParts()
         {
             var allParts = this.Creator.PartInformation;
+
+            if (allParts == null)
+            {
+                return;
+            }
+
+            string[] parts = new string[allParts.Count];
+            int index = 0;
             foreach (var partPair in allParts)
             {
-                this.Options.Writer.WriteLine(this.GetName(partPair.Value, "[Part]"));
+                parts[index] = this.GetName(partPair.Value, Strings.VerbosePartLabel);
+                index += 1;
             }
+
+            Array.Sort(parts);
+            Array.ForEach(parts, part => this.Options.Writer.WriteLine(part));
         }
 
         /// <summary>
@@ -83,11 +95,11 @@
         /// <param name="partName"> The name of the part we want more information about.</param>
         private void GetPartInfo(string partName)
         {
-            this.Options.Writer.WriteLine("Printing out details for part " + partName);
+            this.Options.Writer.WriteLine(string.Format(Strings.PartDetailFormat, partName));
             ComposablePartDefinition definition = this.Creator.GetPart(partName);
             if (definition == null)
             {
-                this.Options.Writer.WriteLine("Couldn't find part with name " + partName);
+                this.Options.Writer.WriteLine(string.Format(Strings.MissingPartFormat, partName));
                 return;
             }
 
@@ -95,28 +107,26 @@
             foreach (var exportPair in definition.ExportDefinitions)
             {
                 string exportName = exportPair.Value.ContractName;
-                if (exportPair.Key == null)
+                string exportField = partName;
+                if (exportPair.Key != null)
                 {
-                    this.Options.Writer.WriteLine("[Export] " + exportName);
+                    exportField = exportPair.Key.Name;
                 }
-                else
-                {
-                    string exportField = exportPair.Key.Name;
-                    this.Options.Writer.WriteLine("[Export] Field: " + exportField + ", Contract Name: " + exportName);
-                }
+
+                this.Options.Writer.WriteLine(string.Format(Strings.ExportDetailFormat, exportField, exportName));
             }
 
             // Print details about the parts/type the current part imports
             foreach (var import in definition.Imports)
             {
                 string importName = import.ImportDefinition.ContractName;
-                string importField = "Constructor";
+                string importField = partName;
                 if (import.ImportingMember != null)
                 {
                     importField = import.ImportingMember.Name;
                 }
 
-                this.Options.Writer.WriteLine("[Import] Field: " + importField + ", Contract Name: " + importName);
+                this.Options.Writer.WriteLine(string.Format(Strings.ImportDetailFormat, importField, importName));
             }
         }
 
@@ -151,17 +161,10 @@
         private void ListTypeExporter(string contractName)
         {
             var exportingParts = this.GetContractExporters(contractName);
-            if (exportingParts.Count() == 0)
+            this.Options.Writer.WriteLine(string.Format(Strings.ExportingContractsFormat, contractName));
+            foreach (var part in exportingParts)
             {
-                this.Options.Writer.WriteLine("Couldn't find any parts exporting " + contractName);
-            }
-            else
-            {
-                this.Options.Writer.WriteLine("Exporting parts for " + contractName + ":");
-                foreach (var part in exportingParts)
-                {
-                    this.Options.Writer.WriteLine(this.GetName(part, "[Part]"));
-                }
+                this.Options.Writer.WriteLine(this.GetName(part, Strings.VerbosePartLabel));
             }
         }
 
@@ -196,17 +199,10 @@
         private void ListTypeImporter(string contractName)
         {
             var importingParts = this.GetContractImporters(contractName);
-            if (importingParts.Count() == 0)
+            this.Options.Writer.WriteLine(string.Format(Strings.ImportingContractsFormat, contractName));
+            foreach (var part in importingParts)
             {
-                this.Options.Writer.WriteLine("Couldn't find any parts importing " + contractName);
-            }
-            else
-            {
-                this.Options.Writer.WriteLine("Importing parts for " + contractName + ":");
-                foreach (var part in importingParts)
-                {
-                    this.Options.Writer.WriteLine(this.GetName(part, "[Part]"));
-                }
+                this.Options.Writer.WriteLine(this.GetName(part, Strings.VerbosePartLabel));
             }
         }
     }

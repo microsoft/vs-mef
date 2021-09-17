@@ -40,8 +40,7 @@
         /// </summary>
         public void PerformRejectionTracing()
         {
-            if (this.Options.RejectedDetails.Contains("all") ||
-                this.Options.RejectedDetails.Contains("All"))
+            if (this.Options.RejectedDetails.Contains(Strings.AllText, StringComparer.OrdinalIgnoreCase))
             {
                 this.ListAllRejections();
             }
@@ -132,7 +131,7 @@
         /// <param name="currentLevel">An integer representing the level we are intrested in.</param>
         private void ListErrorsinLevel(int currentLevel)
         {
-            this.Options.Writer.WriteLine("Errors in level " + currentLevel);
+            this.Options.Writer.WriteLine(string.Format(Strings.ErrorsLevelMessage, currentLevel));
             foreach (var pair in this.RejectionGraph)
             {
                 PartNode currentNode = pair.Value;
@@ -160,14 +159,14 @@
             string outputDirectory = Path.GetFullPath(Path.Combine(currentDirectory, relativePath));
             if (!Directory.Exists(outputDirectory))
             {
-                string missingMessage = "Couldn't find directory " + relativePath + " so saving rejection graph to current directory";
+                string missingMessage = string.Format(Strings.MissingRelativePath, relativePath);
                 this.Options.Writer.WriteLine(missingMessage);
                 outputDirectory = currentDirectory;
             }
 
             string outputPath = Path.GetFullPath(Path.Combine(outputDirectory, fileName));
             graph.SaveGraph(outputPath);
-            this.Options.Writer.WriteLine("Saved rejection graph to " + outputPath);
+            this.Options.Writer.WriteLine(string.Format(Strings.SavedGraphMessage, fileName));
         }
 
         /// <summary>
@@ -182,7 +181,7 @@
         /// </remarks>
         private void ListAllRejections()
         {
-            this.Options.Writer.WriteLine("Listing all the rejection issues");
+            this.Options.Writer.WriteLine(Strings.AllRejectionsMessage);
             for (int level = this.MaxLevels; level > 0; level--)
             {
                 this.ListErrorsinLevel(level);
@@ -213,11 +212,11 @@
             // Deal with the case that there are no rejection issues with the given part
             if (!this.RejectionGraph.ContainsKey(partName))
             {
-                this.Options.Writer.WriteLine("No Rejection Issues associated with " + partName + "\n");
+                this.Options.Writer.WriteLine(string.Format(Strings.NoRejectionMessage, partName));
                 return;
             }
 
-            this.Options.Writer.WriteLine("Printing Rejection Graph Info for " + partName + "\n");
+            this.Options.Writer.WriteLine(string.Format(Strings.IndividualRejectionMessage, partName));
 
             // Store just the nodes that are involved in the current rejection chain to use when generating the graph
             Dictionary<string, PartNode> relevantNodes = null;
@@ -237,7 +236,7 @@
             while (currentLevelNodes.Count() > 0)
             {
                 int currentLevel = currentLevelNodes.Peek().Level;
-                this.Options.Writer.WriteLine("Errors in Level " + currentLevel);
+                this.Options.Writer.WriteLine(string.Format(Strings.ErrorsLevelMessage, currentLevel));
 
                 // Iterate through all the nodes in the current level
                 int numNodes = currentLevelNodes.Count();
@@ -288,7 +287,7 @@
             string startMessage;
             if (current.IsWhiteListed)
             {
-                startMessage = "[Whitelisted] ";
+                startMessage = Strings.WhitelistLabel;
             }
             else
             {
@@ -306,7 +305,7 @@
             }
             else
             {
-                string message = startMessage + this.GetName(current.Part, "[Part]");
+                string message = startMessage + this.GetName(current.Part, Strings.VerbosePartLabel);
                 this.Options.Writer.WriteLine(message);
             }
         }

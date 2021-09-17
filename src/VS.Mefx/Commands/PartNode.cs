@@ -17,7 +17,7 @@
         public PartNode(ComposablePartDefinition definition, string message, int currLevel)
         {
             this.Part = definition;
-            this.IsWhiteListed = this.Part.Metadata.ContainsKey("RejectionExpectex");
+            this.IsWhiteListed = false;
             this.VerboseMessages = new HashSet<string> { message };
             this.ImportRejects = new HashSet<PartEdge>();
             this.RejectsCaused = new HashSet<PartEdge>();

@@ -43,7 +43,7 @@
                 {
                     if (!this.AddFile(currentFolder, file))
                     {
-                        this.Writer.WriteLine("Couldn't add file " + file);
+                        this.Writer.WriteLine(string.Format(Strings.MissingFileMessage, file));
                     }
                 }
             }
@@ -61,7 +61,7 @@
                     }
                     else
                     {
-                        this.Writer.WriteLine("Couldn't add files from folder " + folder);
+                        this.Writer.WriteLine(string.Format(Strings.MissingFolderMessage, folder));
                     }
                 }
             }
@@ -126,7 +126,7 @@
         /// <returns>A Task object when all the assembly have between loaded in and configured.</returns>
         public async Task Initialize()
         {
-            var customLoader = new CustomAssemblyLoader();
+            var customLoader = new CustomAssemblyLoader(this.Writer);
             Resolver customResolver = new(customLoader);
             var nugetDiscover = new AttributedPartDiscovery(customResolver, isNonPublicSupported: true);
             var netDiscover = new AttributedPartDiscoveryV1(customResolver);
@@ -161,7 +161,6 @@
                 {
                     await this.SaveToCache();
                 }
-
             }
         }
 
@@ -251,8 +250,7 @@
                 }
                 catch (Exception error)
                 {
-                    this.Writer.WriteLine("Encountered the following error: \"" + error.Message + "\" when trying to read " +
-                        " file " + filePath);
+                    this.Writer.WriteLine(string.Format(Strings.ErrorMessage, error.Message));
                 }
             }
         }
@@ -272,20 +270,20 @@
                 try
                 {
                     CachedCatalog cacheWriter = new CachedCatalog();
-                    var fileWriter = File.Create(filePath);
-                    await cacheWriter.SaveAsync(this.Catalog, fileWriter);
-                    this.Writer.WriteLine("Saved cache of current catalog to " + filePath);
-                    fileWriter.Flush();
-                    fileWriter.Close();
+                    using (var fileWriter = File.Create(filePath))
+                    {
+                        await cacheWriter.SaveAsync(this.Catalog, fileWriter);
+                        this.Writer.WriteLine(string.Format(Strings.SavedCacheMessage, fileName));
+                    }
                 }
                 catch (Exception error)
                 {
-                    this.Writer.WriteLine("Failed to save cache file due to error : " + error.Message);
+                    this.Writer.WriteLine(string.Format(Strings.ErrorMessage, error.Message));
                 }
             }
             else
             {
-                this.Writer.WriteLine("Invalid file name of " + fileName);
+                this.Writer.WriteLine(string.Format(Strings.InvalidFileName, fileName));
             }
 
             this.Writer.WriteLine();
@@ -301,18 +299,19 @@
                 var discoveryErrors = this.Catalog.DiscoveredParts.DiscoveryErrors;
                 if (discoveryErrors.Count() > 0)
                 {
-                    this.Writer.WriteLine("Encountered the following errors when trying to parse input files: ");
-                    discoveryErrors.ForEach(error => this.Writer.WriteLine(error + "\n"));
+                    this.Writer.WriteLine(Strings.DiscoveryErrors);
+                    discoveryErrors.ForEach(error => this.Writer.WriteLine(error));
                 }
             }
         }
 
         private class CustomAssemblyLoader : IAssemblyLoader
         {
-            public CustomAssemblyLoader()
+            public CustomAssemblyLoader(TextWriter writer)
             {
                 this.Context = new AssemblyLoadContext("Mefx");
                 this.LoadAssemblies = new Dictionary<string, Assembly>();
+                this.Writer = writer;
             }
 
             /// <summary>
@@ -324,6 +323,11 @@
             /// Gets or sets an dictionary to keep track of the loaded dictionaries.
             /// </summary>
             private Dictionary<string, Assembly> LoadAssemblies { get; set; }
+
+            /// <summary>
+            /// Gets or sets a writer to use when outputting information to the user.
+            /// </summary>
+            private TextWriter Writer { get; set; }
 
             /// <summary>
             /// Loads the assembly with the specified name and path.
@@ -369,7 +373,9 @@
             /// <returns>The assembly at the specified input path.</returns>
             private Assembly LoadUsingPath(string path)
             {
-                // Console.WriteLine("Received call to LoadUsingPath with path " + path);
+                path = path.Trim();
+
+                // this.Writer.WriteLine("LoadUsingPath with path: " + path);
                 lock (this.LoadAssemblies)
                 {
                     if (this.LoadAssemblies.ContainsKey(path))
@@ -390,9 +396,9 @@
             /// <returns>The assembly that matches the specified assembly name.</returns>
             private Assembly LoadUsingName(AssemblyName assemblyInfo)
             {
-                string assemblyName = assemblyInfo.FullName;
+                string assemblyName = assemblyInfo.FullName.Trim();
 
-                // Console.WriteLine("Received call to LoadUsingName with assemblyName " + assemblyName);
+                // this.Writer.WriteLine("LoadUsingName with assemblyName: " + assemblyName);
                 lock (this.LoadAssemblies)
                 {
                     if (this.LoadAssemblies.ContainsKey(assemblyName))

@@ -7,6 +7,7 @@ namespace VS.Mefx.Tests
     using System;
     using System.IO;
     using System.Collections.Generic;
+    using System.Text.RegularExpressions;
 
     public class Demo
     {
@@ -20,7 +21,7 @@ namespace VS.Mefx.Tests
                 return;
             }
 
-            if (targetDirExists)
+            if (!targetDirExists)
             {
                 Directory.CreateDirectory(target);
             }
@@ -46,25 +47,43 @@ namespace VS.Mefx.Tests
         {
             this.output = output;
             string currentDir = Directory.GetCurrentDirectory();
-            string relativePath = "..\\..\\..\\..\\test\\VS.Mefx.Tests";
-            string srcDir = Path.GetFullPath(Path.Combine(currentDir, relativePath));
-            moveAllSubFolders(srcDir, currentDir, false);
+            string dirName = Path.GetFileName(currentDir);
+            if (!dirName.Equals("VS.Mefx.Tests"))
+            {
+                string relativePath = "..\\..\\..\\..\\test\\VS.Mefx.Tests";
+                string srcDir = Path.GetFullPath(Path.Combine(currentDir, relativePath));
+                Directory.SetCurrentDirectory(srcDir);
+            }
         }
 
-        private static string ReadFile(string FileName)
+        private static readonly string OutputFileName = "output.txt";
+
+        private static async Task<string> RunCommand(string command)
         {
-            string result = File.ReadAllText(FileName);
-            return result.Trim();
+            // Won't support quoted strings
+            string[] parts = Regex.Split(command.Trim(), @"\s+");
+            using (StreamWriter sw = new StreamWriter(OutputFileName))
+            {
+                await Program.Runner(sw, parts);
+            }
+
+            string savedOutput = File.ReadAllText(OutputFileName).Trim();
+            return savedOutput;
         }
 
         [Fact]
-        public async Task Test1()
+        public async Task GetBasicParts()
         {
-            await Program.Runner(new string[] { "--parts", "--directory", "Basic" });
-            Program.Output.Flush();
-            Program.Output.Dispose();
-            string savedOutput = ReadFile(Program.OutputFileName);
-            this.output.WriteLine(savedOutput);
+            var result = await RunCommand("--parts --directory Basic");
+            this.output.WriteLine(result);
+            Assert.True(true);
+        }
+
+        [Fact]
+        public async Task GetMatchingParts()
+        {
+            var result = await RunCommand("--parts --directory Matching");
+            this.output.WriteLine(result);
             Assert.True(true);
         }
     }

@@ -26,10 +26,16 @@
         /// </summary>
         private bool UsingRegex { get; set; }
 
+        /// <summary>
+        /// Gets or sets a <see cref="TextWriter"/> to output text to the user.
+        /// </summary>
+        private TextWriter Output { get; set; }
+
         public WhiteList(CLIOptions options)
         {
             // Read and process the whitelist file, if one is present
             this.UsingRegex = options.UseRegex;
+            this.Output = options.Writer;
             if (this.UsingRegex)
             {
                 this.WhiteListExpressions = new HashSet<Regex>();
@@ -87,7 +93,7 @@
             string filePath = Path.Combine(currentFolder, fileName.Trim());
             if (!File.Exists(filePath))
             {
-                Console.WriteLine("Couldn't find whitelist file " + fileName);
+                this.Output.WriteLine(string.Format(Strings.MissingFileMessage), fileName);
                 return;
             }
 
@@ -110,7 +116,8 @@
             }
             catch (Exception error)
             {
-                Console.Write("Encountered error when trying to process the whitelisted file: " + error.Message);
+                var errorMessage = string.Format(Strings.ErrorMessage, error.Message);
+                this.Output.WriteLine(errorMessage);
             }
         }
     }

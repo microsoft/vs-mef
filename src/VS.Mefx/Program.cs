@@ -14,7 +14,6 @@
     /// </summary>
     public class Program
     {
-        public static readonly string OutputFileName = "out.txt";
         public static TextWriter Output = null;
 
         /// <summary>
@@ -79,9 +78,9 @@
             await RunOptions(options);
         }
 
-        public static async Task Runner(string[] args)
+        public static async Task Runner(TextWriter writer, string[] args)
         {
-            Output = new StreamWriter(OutputFileName);
+            Output = writer;
             MethodInfo mainInfo = typeof(Program).GetMethod("Main");
             await CommandLine.InvokeMethodAsync(args, mainInfo);
         }
@@ -95,7 +94,7 @@
             await creator.Initialize();
             if (creator.Catalog == null)
             {
-                options.Writer.WriteLine("Couldn't find any parts in the input files and folders");
+                options.Writer.WriteLine(Strings.NoPartsMessage);
                 return;
             }
 

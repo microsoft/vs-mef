@@ -29,20 +29,20 @@
             {
                 string exportPartName = this.Options.MatchParts.ElementAt(0).Trim();
                 string importPartName = this.Options.MatchParts.ElementAt(1).Trim();
-                this.Options.Writer.WriteLine("Finding matches from " + exportPartName + " to " + importPartName);
+                this.Options.Writer.WriteLine(string.Format(Strings.MatchingPartsFormat, exportPartName, importPartName));
 
                 // Deal with the case that one of the parts doesn't exist
                 ComposablePartDefinition exportPart = this.Creator.GetPart(exportPartName);
                 if (exportPart == null)
                 {
-                    this.Options.Writer.WriteLine("Couldn't find part with name " + exportPartName);
+                    this.Options.Writer.WriteLine(string.Format(Strings.MissingPartFormat, exportPartName));
                     return;
                 }
 
                 ComposablePartDefinition importPart = this.Creator.GetPart(importPartName);
                 if (importPart == null)
                 {
-                    this.Options.Writer.WriteLine("Couldn't find part with name " + importPartName);
+                    this.Options.Writer.WriteLine(string.Format(Strings.MissingPartFormat, importPartName));
                     return;
                 }
 
@@ -58,7 +58,7 @@
             }
             else
             {
-                this.Options.Writer.WriteLine("Please provide exactly two parts to the match option");
+                this.Options.Writer.WriteLine(Strings.MatchRequiresTwoMessage);
             }
 
             this.Options.Writer.WriteLine();
@@ -72,41 +72,40 @@
         /// <returns>A string providing some details about the given constraint.</returns>
         private string GetConstraintString(IImportSatisfiabilityConstraint constraint, PartExport export)
         {
-            if (constraint == null)
+            if (constraint == null || export == null)
             {
-                return string.Empty;
+                return Strings.NullText;
             }
+
+            string constraintString = constraint.ToString();
+            string actualValue = export.ToString();
 
             // Try to treat the constraint as an indentity constraint
             if (constraint is ExportTypeIdentityConstraint)
             {
-                var identityConstraint = (ExportTypeIdentityConstraint)constraint;
-                string constraintString = "[Type - " + identityConstraint.TypeIdentityName + "]";
-                string actualValue = "[Type - " + export.ExportingType + "]";
-                return "Expected: " + constraintString + ", Found: " + actualValue;
+                var identityConstraint = (ExportTypeIdentityConstraint) constraint;
+                constraintString = string.Format(Strings.TypeFormat, identityConstraint.TypeIdentityName);
+                actualValue = string.Format(Strings.TypeFormat, export.ExportingType);
             }
-
-            // Try to treat the constraint as an metadata constraint
-            if (constraint is ExportMetadataValueImportConstraint)
+            else if (constraint is ExportMetadataValueImportConstraint)
             {
+                // Try to treat the constraint as an metadata constraint
                 var metadataConstraint = (ExportMetadataValueImportConstraint)constraint;
                 var exportDetails = export.ExportDetails;
                 string keyName = metadataConstraint.Name;
-                string constraintString = "[Metadata - Key: " + keyName + ", Value: " +
-                    metadataConstraint.Value + "]";
-                string pairValue = "No Such Key";
+                constraintString = string.Format(Strings.MetadataFormat, keyName, metadataConstraint.Value);
+                string pairValue = Strings.MissingKeyText;
                 if (exportDetails.Metadata.ContainsKey(keyName))
                 {
                     var keyValue = exportDetails.Metadata[keyName];
-                    pairValue = keyValue != null ? keyValue.ToString() : "null";
+                    pairValue = keyValue != null ? keyValue.ToString() : Strings.NullText;
                 }
 
-                string actualValue = "[Metadata - Key: " + keyName + ", Value: " + pairValue + "]";
-                return "Expected: " + constraintString + ", Found: " + actualValue;
+                actualValue = string.Format(Strings.MetadataFormat, keyName, pairValue);
             }
 
-            // If it is neither just return the constraint type
-            return "Expected: " + constraint + ", Found: " + export;
+            // If it is neither just return the toString text of the two parameters
+            return string.Format(Strings.ExpectedFoundFormat, constraintString, actualValue);
         }
 
         /// <summary>
@@ -127,9 +126,9 @@
             output.SucessfulMatch = import.ContractName.Equals(exportDetails.ContractName);
             if (!output.SucessfulMatch)
             {
-                string contractConstraint = "[Contract Name - " + import.ContractName + "]";
-                string actualValue = "[Contract Name - " + exportDetails.ContractName + "]";
-                output.Messages.Add("Expected: " + contractConstraint + ", Found: " + actualValue);
+                string contractConstraint = string.Format(Strings.ContractNameFormat, import.ContractName);
+                string actualValue = string.Format(Strings.ContractNameFormat, exportDetails.ContractName);
+                output.Messages.Add(string.Format(Strings.ExpectedFoundFormat, contractConstraint, actualValue));
             }
 
             // Check all the Import Constraints
@@ -145,7 +144,7 @@
 
             if (output.SucessfulMatch)
             {
-                output.Messages.Add("Export matches all import constraints");
+                output.Messages.Add(Strings.ExportMatchingImport);
             }
 
             return output;
@@ -161,7 +160,7 @@
             int total = 0;
             foreach (var export in matchingExports)
             {
-                this.Options.Writer.WriteLine("Considering exporting field " + export.ExportingField);
+                this.Options.Writer.WriteLine(string.Format(Strings.ConsideringExportFormat, export.ExportingField));
                 var result = this.CheckDefinitionMatch(import, export);
                 if (result.SucessfulMatch)
                 {
@@ -172,15 +171,10 @@
                 {
                     for (int i = 0; i < result.Messages.Count; i++)
                     {
-                        this.Options.Writer.WriteLine("Failed Constraint #" + (i + 1));
+                        this.Options.Writer.WriteLine(string.Format(Strings.FailedConstraintIdentifer, i + 1));
                         this.Options.Writer.WriteLine(result.Messages.ElementAt(i));
                     }
                 }
-            }
-
-            if (matchingExports.Count() > 1)
-            {
-                this.Options.Writer.WriteLine(total + "/" + matchingExports.Count() + " export(s) satisfy the import constraints");
             }
         }
 
@@ -230,7 +224,7 @@
                     }
 
                     var potentialMatches = allExportDefinitions[currentContractName];
-                    this.Options.Writer.WriteLine("Found potential match(es) for importing field " + fieldName);
+                    this.Options.Writer.WriteLine(string.Format(Strings.ConsideringImportFormat, fieldName));
                     foundMatch = true;
                     this.PerformDefintionChecking(currentImportDefintion, potentialMatches);
                 }
@@ -238,7 +232,7 @@
 
             if (!foundMatch)
             {
-                this.Options.Writer.WriteLine("Couldn't find any potential matches between the two given parts");
+                this.Options.Writer.WriteLine(Strings.FoundNoMatchesText);
             }
         }
 
@@ -282,7 +276,7 @@
             // Print message about which exporting fields couldn't be found
             if (!includeAllExports && exportingFields.Count() > 0)
             {
-                this.Options.Writer.WriteLine("\nCouldn't find the following exporting fields: ");
+                this.Options.Writer.WriteLine(Strings.MissingExportMessage);
                 exportingFields.ForEach(field => this.Options.Writer.WriteLine(field));
             }
 
@@ -300,7 +294,7 @@
                 bool performMatching = checkAllImports || importingFields.Contains(importingField);
                 if (performMatching)
                 {
-                    this.Options.Writer.WriteLine("\nPerforming matching for importing field " + importingField);
+                    this.Options.Writer.WriteLine("\n" + string.Format(Strings.ConsideringImportFormat, importingField));
                     this.PerformDefintionChecking(currentImportDefintion, consideringExports);
                     if (!checkAllImports)
                     {
@@ -312,7 +306,7 @@
             // Print message about which importing fields couldn't be found
             if (!checkAllImports && importingFields.Count() > 0)
             {
-                this.Options.Writer.WriteLine("\nCouldn't find the following importing fields: ");
+                this.Options.Writer.WriteLine(Strings.MissingImportMessage);
                 importingFields.ForEach(field => this.Options.Writer.WriteLine(field));
             }
         }

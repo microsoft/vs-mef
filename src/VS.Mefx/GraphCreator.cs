@@ -12,7 +12,7 @@
     /// </summary>
     internal class GraphCreator
     {
-        private static readonly string WhiteListLabel = "Whitelisted";
+        private static readonly string WhiteListLabel = Strings.WhitelistLabel;
         private static readonly string NormalNodeLabel = "Error";
         private static readonly string EdgeLabel = "Edge";
         private static readonly string NodeColor = "#00FFFF";

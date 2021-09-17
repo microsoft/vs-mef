@@ -41,7 +41,7 @@
         {
             if (part == null)
             {
-                throw new ArgumentException("Request name of a null part");
+                return Strings.NullText;
             }
 
             Type partType = part.Type;
