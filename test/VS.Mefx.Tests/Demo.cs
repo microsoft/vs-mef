@@ -66,31 +66,51 @@ namespace VS.Mefx.Tests
 
         private static readonly string OutputFileName = "output.txt";
 
-        private static async Task<string> RunCommand(string command)
+        private static async Task<string> RunCommand(string[] args)
         {
             // Won't support quoted strings
-            string[] parts = Regex.Split(command.Trim(), @"\s+");
             using (StreamWriter sw = new StreamWriter(OutputFileName))
             {
-                await Program.Runner(sw, parts);
+                await Program.Runner(sw, args);
             }
 
             string savedOutput = File.ReadAllText(OutputFileName).Trim();
             return savedOutput;
         }
 
+        private static async Task CreateTest(string testFileName, string command)
+        {
+            TestInfo testData = new TestInfo();
+            testData.UpdateTestCommand(command);
+            string[] args = testData.GetCommandArgs();
+            string savedOutput = await RunCommand(args);
+            testData.UpdateTestResult(savedOutput);
+
+            string currentDir = Directory.GetCurrentDirectory();
+            string folderPath = Path.Combine(currentDir, "TestData");
+            string filePath = Path.Combine(folderPath, testFileName);
+            testData.WriteToFile(filePath);
+        }
+
         [Theory]
         [TestGetter("TestData")]
-        private async Task<bool> RunTest(string filePath)
+        private async Task UpdateAllTests(string filePath)
         {
             TestInfo fileData = new TestInfo(filePath);
             string[] args = fileData.GetCommandArgs();
-            using (StreamWriter sw = new StreamWriter(OutputFileName))
-            {
-                await Program.Runner(sw, args);
-            }
+            string savedOutput = await RunCommand(args);
+            fileData.UpdateTestResult(savedOutput);
+            string originalFilePath = fileData.FilePath;
+            fileData.WriteToFile(originalFilePath);
+        }
 
-            string savedOutput = File.ReadAllText(OutputFileName);
+        [Theory]
+        [TestGetter("TestData")]
+        private async Task<bool> RunAllTests(string filePath)
+        {
+            TestInfo fileData = new TestInfo(filePath);
+            string[] args = fileData.GetCommandArgs();
+            string savedOutput = await RunCommand(args);
             List<string> commandResult = TestInfo.GetLines(savedOutput);
             List<string> expectedOutput = fileData.TestResult;
             return commandResult.SequenceEqual(expectedOutput);
@@ -99,7 +119,7 @@ namespace VS.Mefx.Tests
         [Fact]
         public async Task GetBasicParts()
         {
-            var result = await RunCommand("--parts --directory Basic");
+            var result = await RunCommand("--parts --directory Basic".Split(" "));
             this.output.WriteLine(result);
             Assert.True(true);
         }
@@ -107,18 +127,16 @@ namespace VS.Mefx.Tests
         [Fact]
         public async Task GetMatchingParts()
         {
-            var result = await RunCommand("--parts --directory Matching");
+            var result = await RunCommand("--parts --directory Matching".Split(" "));
             this.output.WriteLine(result);
             Assert.True(true);
         }
 
         [Fact]
-        public async Task ReadFile()
+        public async Task CreateSampleTest()
         {
-            string currentDir = Directory.GetCurrentDirectory();
-            string relativePath = Path.Combine("TestData", "matchParts.txt");
-            string filePath = Path.GetFullPath(Path.Combine(currentDir, relativePath));
-            Assert.True(await RunTest(filePath));
+            await CreateTest("BasicDetail.txt", "--detail MefCalculator.ImportTest --directory Basic");
+            Assert.True(true);
         }
 
         private class TestGetter : DataAttribute

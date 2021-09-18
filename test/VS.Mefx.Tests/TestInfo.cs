@@ -11,6 +11,8 @@
 
         public List<string> TestResult { get; set; }
 
+        public string? FilePath { get; set; }
+
         public TestInfo()
         {
             this.TestCommand = string.Empty;
@@ -34,6 +36,7 @@
             this.TestCommand = lines[0];
             lines.RemoveAt(0);
             this.TestResult = lines;
+            this.FilePath = filePath;
         }
 
         public void UpdateTestCommand(string command)
@@ -65,7 +68,7 @@
             return lines;
         }
 
-        public void writeToFile(string outputFilePath)
+        public void WriteToFile(string outputFilePath)
         {
             using (StreamWriter sw = new StreamWriter(outputFilePath))
             {
