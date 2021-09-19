@@ -23,4 +23,13 @@
     <ProjectReference Include="..\..\src\VS.Mefx\VS.Mefx.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="TestFiles\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  
 </Project>

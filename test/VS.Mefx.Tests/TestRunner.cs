@@ -1,23 +1,21 @@
 namespace VS.Mefx.Tests
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Reflection;
     using System.Threading.Tasks;
+    using VS.Mefx;
     using Xunit;
     using Xunit.Abstractions;
-    using VS.Mefx;
-    using System;
-    using System.IO;
-    using System.Collections.Generic;
-    using System.Text.RegularExpressions;
-    using System.Linq;
-    using System.Collections;
     using Xunit.Sdk;
-    using System.Reflection;
 
-    public class Demo
+    public class TestRunner
     {
         private readonly ITestOutputHelper output;
 
-        private void moveAllSubFolders(string src, string target, bool saveFiles = true)
+        private void MoveAllSubFolders(string src, string target, bool saveFiles = true)
         {
             bool targetDirExists = Directory.Exists(target);
             if (saveFiles && targetDirExists)
@@ -43,11 +41,11 @@ namespace VS.Mefx.Tests
             foreach (DirectoryInfo subDir in currentDir.EnumerateDirectories())
             {
                 string destFolderPath = Path.Combine(target, subDir.Name);
-                moveAllSubFolders(subDir.FullName, destFolderPath);
+                this.MoveAllSubFolders(subDir.FullName, destFolderPath);
             }
         }
 
-        private void checkFolder()
+        private void CheckFolder()
         {
             string currentDir = Directory.GetCurrentDirectory();
             string dirName = Path.GetFileName(currentDir);
@@ -59,7 +57,7 @@ namespace VS.Mefx.Tests
             }
         }
 
-        public Demo(ITestOutputHelper output)
+        public TestRunner(ITestOutputHelper output)
         {
             this.output = output;
         }
@@ -78,7 +76,7 @@ namespace VS.Mefx.Tests
             return savedOutput;
         }
 
-        private static async Task CreateTest(string testFileName, string command)
+        private static async Task<string> CreateTest(string testFileName, string command)
         {
             TestInfo testData = new TestInfo();
             testData.UpdateTestCommand(command);
@@ -90,6 +88,7 @@ namespace VS.Mefx.Tests
             string folderPath = Path.Combine(currentDir, "TestData");
             string filePath = Path.Combine(folderPath, testFileName);
             testData.WriteToFile(filePath);
+            return savedOutput;
         }
 
         [Theory]
@@ -117,26 +116,20 @@ namespace VS.Mefx.Tests
         }
 
         [Fact]
-        public async Task GetBasicParts()
-        {
-            var result = await RunCommand("--parts --directory Basic".Split(" "));
-            this.output.WriteLine(result);
-            Assert.True(true);
-        }
-
-        [Fact]
-        public async Task GetMatchingParts()
-        {
-            var result = await RunCommand("--parts --directory Matching".Split(" "));
-            this.output.WriteLine(result);
-            Assert.True(true);
-        }
-
-        [Fact]
         public async Task CreateSampleTest()
         {
-            await CreateTest("BasicDetail.txt", "--detail MefCalculator.ImportTest --directory Basic");
-            Assert.True(true);
+            string testName = "ExportPartSpecification.txt";
+            string testCommand = "--match MefCalculator.ExportMeta MefCalculator.ImportTest --match-exports ExportOne ExportTwo --directory TestFiles/Basic";
+            string result = await CreateTest(testName, testCommand);
+            this.output.WriteLine(result);
+        }
+
+        [Fact]
+        public async Task RunSampleTest()
+        {
+            string command = "--match CarOne.MoreMetadata Garage.Importer --directory TestFiles/Matching";
+            string result = await RunCommand(command.Split(" "));
+            this.output.WriteLine(result);
         }
 
         private class TestGetter : DataAttribute

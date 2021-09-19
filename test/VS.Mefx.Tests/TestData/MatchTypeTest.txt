@@ -1,0 +1,16 @@
+--match CarOne.InvalidType Garage.Importer --match-exports CarOne.InvalidType --directory TestFiles/Matching
+Find matches from CarOne.InvalidType to Garage.Importer
+Performing matching for importing field NewerCar
+Considering exporting field CarOne.InvalidType
+Failed Constraint #1
+Expected: [Contract Name - Garage.Car], Found: [Contract Name - CarOne.InvalidType]
+Failed Constraint #2
+Expected: [Type - Garage.Car], Found: [Type - CarOne.InvalidType]
+Performing matching for importing field UsedCar
+Considering exporting field CarOne.InvalidType
+Failed Constraint #1
+Expected: [Contract Name - Garage.Car], Found: [Contract Name - CarOne.InvalidType]
+Failed Constraint #2
+Expected: [Metadata - Key: Type, Value: Used], Found: [Metadata - Key: Type, Value: No such key]
+Failed Constraint #3
+Expected: [Type - Garage.Car], Found: [Type - CarOne.InvalidType]

@@ -1,0 +1,8 @@
+--parts --directory TestFiles/Matching
+Parts in the Catalog are 
+CarOne.FirstCar
+CarOne.InvalidType
+CarOne.MoreMetadata
+CarTwo.SecondCar
+Garage.Importer
+MatchRunner.Program

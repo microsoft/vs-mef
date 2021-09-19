@@ -1,0 +1,5 @@
+--match CarOne.FirstCar Garage.Importer --match-imports NewerCar --directory TestFiles/Matching
+Find matches from CarOne.FirstCar to Garage.Importer
+Performing matching for importing field NewerCar
+Considering exporting field CarOne.FirstCar
+Export matches all import constraints

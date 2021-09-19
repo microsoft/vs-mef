@@ -1,0 +1,10 @@
+--rejected all --directory TestFiles/Basic
+Listing all the rejection issues
+Errors in level 3
+ExtendedOperations.Modulo
+Errors in level 2
+ExtendedOperations.ChainOne
+Errors in level 1
+MefCalculator.ExportTest
+MefCalculator.AddIn
+MefCalculator.ImportTest
