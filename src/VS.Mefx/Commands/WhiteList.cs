@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using System.Text.RegularExpressions;
 
@@ -93,7 +94,11 @@
             string filePath = Path.Combine(currentFolder, fileName.Trim());
             if (!File.Exists(filePath))
             {
-                this.Output.WriteLine(string.Format(Strings.MissingFileMessage), fileName);
+                string missingFile = string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.MissingFileMessage,
+                    fileName);
+                this.Output.WriteLine(missingFile);
                 return;
             }
 
@@ -116,7 +121,10 @@
             }
             catch (Exception error)
             {
-                var errorMessage = string.Format(Strings.ErrorMessage, error.Message);
+                var errorMessage = string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.ErrorMessage,
+                    error.Message);
                 this.Output.WriteLine(errorMessage);
             }
         }

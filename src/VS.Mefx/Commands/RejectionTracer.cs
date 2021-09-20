@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using Microsoft.VisualStudio.Composition;
@@ -131,7 +132,11 @@
         /// <param name="currentLevel">An integer representing the level we are intrested in.</param>
         private void ListErrorsinLevel(int currentLevel)
         {
-            this.Options.Writer.WriteLine(string.Format(Strings.ErrorsLevelMessage, currentLevel));
+            string errorMessage = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.ErrorsLevelMessage,
+                        currentLevel);
+            this.Options.Writer.WriteLine(errorMessage);
             foreach (var pair in this.RejectionGraph)
             {
                 PartNode currentNode = pair.Value;
@@ -159,14 +164,21 @@
             string outputDirectory = Path.GetFullPath(Path.Combine(currentDirectory, relativePath));
             if (!Directory.Exists(outputDirectory))
             {
-                string missingMessage = string.Format(Strings.MissingRelativePath, relativePath);
+                string missingMessage = string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.MissingRelativePath,
+                    relativePath);
                 this.Options.Writer.WriteLine(missingMessage);
                 outputDirectory = currentDirectory;
             }
 
             string outputPath = Path.GetFullPath(Path.Combine(outputDirectory, fileName));
             graph.SaveGraph(outputPath);
-            this.Options.Writer.WriteLine(string.Format(Strings.SavedGraphMessage, fileName));
+            string savedMessage = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.SavedGraphMessage,
+                        fileName);
+            this.Options.Writer.WriteLine(savedMessage);
         }
 
         /// <summary>
@@ -209,14 +221,22 @@
         /// </remarks>
         private void ListReject(string partName)
         {
+            string individualRejection = string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.IndividualRejectionMessage,
+                    partName);
+            this.Options.Writer.WriteLine(individualRejection);
+
             // Deal with the case that there are no rejection issues with the given part
             if (!this.RejectionGraph.ContainsKey(partName))
             {
-                this.Options.Writer.WriteLine(string.Format(Strings.NoRejectionMessage, partName));
+                string noRejection = string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.NoRejectionMessage,
+                    partName);
+                this.Options.Writer.WriteLine(noRejection);
                 return;
             }
-
-            this.Options.Writer.WriteLine(string.Format(Strings.IndividualRejectionMessage, partName));
 
             // Store just the nodes that are involved in the current rejection chain to use when generating the graph
             Dictionary<string, PartNode> relevantNodes = null;
@@ -236,7 +256,11 @@
             while (currentLevelNodes.Count() > 0)
             {
                 int currentLevel = currentLevelNodes.Peek().Level;
-                this.Options.Writer.WriteLine(string.Format(Strings.ErrorsLevelMessage, currentLevel));
+                string errorLevel = string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.ErrorsLevelMessage,
+                    currentLevel);
+                this.Options.Writer.WriteLine(errorLevel);
 
                 // Iterate through all the nodes in the current level
                 int numNodes = currentLevelNodes.Count();

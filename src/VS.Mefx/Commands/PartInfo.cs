@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using Microsoft.VisualStudio.Composition;
 
@@ -95,11 +96,19 @@
         /// <param name="partName"> The name of the part we want more information about.</param>
         private void GetPartInfo(string partName)
         {
-            this.Options.Writer.WriteLine(string.Format(Strings.PartDetailFormat, partName));
+            string detailPreview = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.PartDetailFormat,
+                        partName);
+            this.Options.Writer.WriteLine(detailPreview);
             ComposablePartDefinition definition = this.Creator.GetPart(partName);
             if (definition == null)
             {
-                this.Options.Writer.WriteLine(string.Format(Strings.MissingPartFormat, partName));
+                string missingPart = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.MissingPartFormat,
+                        partName);
+                this.Options.Writer.WriteLine(missingPart);
                 return;
             }
 
@@ -113,7 +122,12 @@
                     exportField = exportPair.Key.Name;
                 }
 
-                this.Options.Writer.WriteLine(string.Format(Strings.ExportDetailFormat, exportField, exportName));
+                string exportDetail = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.ExportDetailFormat,
+                        exportField,
+                        exportName);
+                this.Options.Writer.WriteLine(exportDetail);
             }
 
             // Print details about the parts/type the current part imports
@@ -126,7 +140,12 @@
                     importField = import.ImportingMember.Name;
                 }
 
-                this.Options.Writer.WriteLine(string.Format(Strings.ImportDetailFormat, importField, importName));
+                string importDetail = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.ImportDetailFormat,
+                        importField,
+                        importName);
+                this.Options.Writer.WriteLine(importDetail);
             }
         }
 
@@ -161,7 +180,11 @@
         private void ListTypeExporter(string contractName)
         {
             var exportingParts = this.GetContractExporters(contractName);
-            this.Options.Writer.WriteLine(string.Format(Strings.ExportingContractsFormat, contractName));
+            string exportPreview = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.ExportingContractsFormat,
+                        contractName);
+            this.Options.Writer.WriteLine(exportPreview);
             foreach (var part in exportingParts)
             {
                 this.Options.Writer.WriteLine(this.GetName(part, Strings.VerbosePartLabel));
@@ -199,7 +222,11 @@
         private void ListTypeImporter(string contractName)
         {
             var importingParts = this.GetContractImporters(contractName);
-            this.Options.Writer.WriteLine(string.Format(Strings.ImportingContractsFormat, contractName));
+            string importPreview = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.ImportingContractsFormat,
+                        contractName);
+            this.Options.Writer.WriteLine(importPreview);
             foreach (var part in importingParts)
             {
                 this.Options.Writer.WriteLine(this.GetName(part, Strings.VerbosePartLabel));

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using Microsoft.VisualStudio.Composition;
 
@@ -29,20 +30,33 @@
             {
                 string exportPartName = this.Options.MatchParts.ElementAt(0).Trim();
                 string importPartName = this.Options.MatchParts.ElementAt(1).Trim();
-                this.Options.Writer.WriteLine(string.Format(Strings.MatchingPartsFormat, exportPartName, importPartName));
+                string matchPreview = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.MatchingPartsFormat,
+                        exportPartName,
+                        importPartName);
+                this.Options.Writer.WriteLine(matchPreview);
 
                 // Deal with the case that one of the parts doesn't exist
                 ComposablePartDefinition exportPart = this.Creator.GetPart(exportPartName);
                 if (exportPart == null)
                 {
-                    this.Options.Writer.WriteLine(string.Format(Strings.MissingPartFormat, exportPartName));
+                    string invalidExport = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.MissingPartFormat,
+                        exportPartName);
+                    this.Options.Writer.WriteLine(invalidExport);
                     return;
                 }
 
                 ComposablePartDefinition importPart = this.Creator.GetPart(importPartName);
                 if (importPart == null)
                 {
-                    this.Options.Writer.WriteLine(string.Format(Strings.MissingPartFormat, importPartName));
+                    string invalidImport = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.MissingPartFormat,
+                        importPartName);
+                    this.Options.Writer.WriteLine(invalidImport);
                     return;
                 }
 
@@ -84,8 +98,14 @@
             if (constraint is ExportTypeIdentityConstraint)
             {
                 var identityConstraint = (ExportTypeIdentityConstraint) constraint;
-                constraintString = string.Format(Strings.TypeFormat, identityConstraint.TypeIdentityName);
-                actualValue = string.Format(Strings.TypeFormat, export.ExportingType);
+                constraintString = string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.TypeFormat,
+                    identityConstraint.TypeIdentityName);
+                actualValue = string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.TypeFormat,
+                    export.ExportingType);
             }
             else if (constraint is ExportMetadataValueImportConstraint)
             {
@@ -93,7 +113,11 @@
                 var metadataConstraint = (ExportMetadataValueImportConstraint)constraint;
                 var exportDetails = export.ExportDetails;
                 string keyName = metadataConstraint.Name;
-                constraintString = string.Format(Strings.MetadataFormat, keyName, metadataConstraint.Value);
+                constraintString = string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.MetadataFormat,
+                    keyName,
+                    metadataConstraint.Value);
                 string pairValue = Strings.MissingKeyText;
                 if (exportDetails.Metadata.ContainsKey(keyName))
                 {
@@ -101,11 +125,19 @@
                     pairValue = keyValue != null ? keyValue.ToString() : Strings.NullText;
                 }
 
-                actualValue = string.Format(Strings.MetadataFormat, keyName, pairValue);
+                actualValue = string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.MetadataFormat,
+                    keyName,
+                    pairValue);
             }
 
             // If it is neither just return the toString text of the two parameters
-            return string.Format(Strings.ExpectedFoundFormat, constraintString, actualValue);
+            return string.Format(
+                CultureInfo.CurrentCulture,
+                Strings.ExpectedFoundFormat,
+                constraintString,
+                actualValue);
         }
 
         /// <summary>
@@ -126,9 +158,20 @@
             output.SucessfulMatch = import.ContractName.Equals(exportDetails.ContractName);
             if (!output.SucessfulMatch)
             {
-                string contractConstraint = string.Format(Strings.ContractNameFormat, import.ContractName);
-                string actualValue = string.Format(Strings.ContractNameFormat, exportDetails.ContractName);
-                output.Messages.Add(string.Format(Strings.ExpectedFoundFormat, contractConstraint, actualValue));
+                string contractConstraint = string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.ContractNameFormat,
+                    import.ContractName);
+                string actualValue = string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.ContractNameFormat,
+                    exportDetails.ContractName);
+                string contractFailure = string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.ExpectedFoundFormat,
+                    contractConstraint,
+                    actualValue);
+                output.Messages.Add(contractFailure);
             }
 
             // Check all the Import Constraints
@@ -155,12 +198,16 @@
         /// </summary>
         /// <param name="import">The ImportDefintion we want to match against.</param>
         /// <param name="matchingExports">A list of ExportDefinitions that we want to match against the import.</param>
-        private void PerformDefintionChecking(ImportDefinition import, List<PartExport> matchingExports)
+        private void PerformDefinitionChecking(ImportDefinition import, List<PartExport> matchingExports)
         {
             int total = 0;
             foreach (var export in matchingExports)
             {
-                this.Options.Writer.WriteLine(string.Format(Strings.ConsideringExportFormat, export.ExportingField));
+                string consideringExport = string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.ConsideringExportFormat,
+                    export.ExportingField);
+                this.Options.Writer.WriteLine(consideringExport);
                 var result = this.CheckDefinitionMatch(import, export);
                 if (result.SucessfulMatch)
                 {
@@ -171,7 +218,11 @@
                 {
                     for (int i = 0; i < result.Messages.Count; i++)
                     {
-                        this.Options.Writer.WriteLine(string.Format(Strings.FailedConstraintIdentifer, i + 1));
+                        string failedConstraint = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.FailedConstraintIdentifer,
+                        i + 1);
+                        this.Options.Writer.WriteLine(failedConstraint);
                         this.Options.Writer.WriteLine(result.Messages.ElementAt(i));
                     }
                 }
@@ -224,9 +275,13 @@
                     }
 
                     var potentialMatches = allExportDefinitions[currentContractName];
-                    this.Options.Writer.WriteLine(string.Format(Strings.ConsideringImportFormat, fieldName));
+                    string matchPreview = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.ConsideringImportFormat,
+                        fieldName);
+                    this.Options.Writer.WriteLine(matchPreview);
                     foundMatch = true;
-                    this.PerformDefintionChecking(currentImportDefintion, potentialMatches);
+                    this.PerformDefinitionChecking(currentImportDefintion, potentialMatches);
                 }
             }
 
@@ -294,8 +349,12 @@
                 bool performMatching = checkAllImports || importingFields.Contains(importingField);
                 if (performMatching)
                 {
-                    this.Options.Writer.WriteLine("\n" + string.Format(Strings.ConsideringImportFormat, importingField));
-                    this.PerformDefintionChecking(currentImportDefintion, consideringExports);
+                    string matchPreview = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.ConsideringImportFormat,
+                        importingField);
+                    this.Options.Writer.WriteLine("\n" + matchPreview);
+                    this.PerformDefinitionChecking(currentImportDefintion, consideringExports);
                     if (!checkAllImports)
                     {
                         importingFields.Remove(importingField);

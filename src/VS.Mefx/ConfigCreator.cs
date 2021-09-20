@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -43,7 +44,11 @@
                 {
                     if (!this.AddFile(currentFolder, file))
                     {
-                        this.Writer.WriteLine(string.Format(Strings.MissingFileMessage, file));
+                        string missingFileMessage = string.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.MissingFileMessage,
+                            file);
+                        this.Writer.WriteLine(missingFileMessage);
                     }
                 }
             }
@@ -61,7 +66,11 @@
                     }
                     else
                     {
-                        this.Writer.WriteLine(string.Format(Strings.MissingFolderMessage, folder));
+                        string missingFolderMessage = string.Format(
+                            CultureInfo.CurrentCulture,
+                            Strings.MissingFolderMessage,
+                            folder);
+                        this.Writer.WriteLine(missingFolderMessage);
                     }
                 }
             }
@@ -250,7 +259,11 @@
                 }
                 catch (Exception error)
                 {
-                    this.Writer.WriteLine(string.Format(Strings.ErrorMessage, error.Message));
+                    string cacheReadError = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.ErrorMessage,
+                        error.Message);
+                    this.Writer.WriteLine(cacheReadError);
                 }
             }
         }
@@ -273,17 +286,29 @@
                     using (var fileWriter = File.Create(filePath))
                     {
                         await cacheWriter.SaveAsync(this.Catalog, fileWriter);
-                        this.Writer.WriteLine(string.Format(Strings.SavedCacheMessage, fileName));
+                        string cacheSaved = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.SavedCacheMessage,
+                        fileName);
+                        this.Writer.WriteLine(cacheSaved);
                     }
                 }
                 catch (Exception error)
                 {
-                    this.Writer.WriteLine(string.Format(Strings.ErrorMessage, error.Message));
+                    string cacheSaveError = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.ErrorMessage,
+                        error.Message);
+                    this.Writer.WriteLine(cacheSaveError);
                 }
             }
             else
             {
-                this.Writer.WriteLine(string.Format(Strings.InvalidFileName, fileName));
+                string invalidFile = string.Format(
+                        CultureInfo.CurrentCulture,
+                        Strings.InvalidFileName,
+                        fileName);
+                this.Writer.WriteLine(invalidFile);
             }
 
             this.Writer.WriteLine();
