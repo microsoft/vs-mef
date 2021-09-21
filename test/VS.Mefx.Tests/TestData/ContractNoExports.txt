@@ -1,0 +1,2 @@
+--exporter NoSuchContract --directory TestFiles/Basic
+Exporting parts for NoSuchContract:

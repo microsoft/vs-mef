@@ -398,9 +398,9 @@
             /// <returns>The assembly at the specified input path.</returns>
             private Assembly LoadUsingPath(string path)
             {
-                path = path.Trim();
+                path = new Uri(path.Trim()).LocalPath;
 
-                // this.Writer.WriteLine("LoadUsingPath with path: " + path);
+                // this.Writer.WriteLine("LoadingUsingName with path: " + path);
                 lock (this.LoadAssemblies)
                 {
                     if (this.LoadAssemblies.ContainsKey(path))

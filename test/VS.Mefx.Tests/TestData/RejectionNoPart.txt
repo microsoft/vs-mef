@@ -1,0 +1,3 @@
+--rejected MefCalculator.MefCalculatorInterfaces+Add --directory TestFiles/Basic
+Printing Rejection Graph Info for MefCalculator.MefCalculatorInterfaces+Add
+No Rejection Issues associated with MefCalculator.MefCalculatorInterfaces+Add

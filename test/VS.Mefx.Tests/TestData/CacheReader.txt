@@ -1,0 +1,10 @@
+--parts --file TestFiles/Basic/All.cache
+Parts in the Catalog are
+ExtendedOperations.ChainOne
+ExtendedOperations.Modulo
+MefCalculator.AddIn
+MefCalculator.ExportMeta
+MefCalculator.ExportTest
+MefCalculator.ImportTest
+MefCalculator.MefCalculatorInterfaces+Add
+MefCalculator.MefCalculatorInterfaces+Subtract

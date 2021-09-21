@@ -166,7 +166,7 @@
     <value>Importing parts for {0}:</value>
   </data>
   <data name="IndividualRejectionMessage" xml:space="preserve">
-    <value>Printing Rejection Graph Info for {0}</value>
+    <value>Printing rejection trace for {0}</value>
   </data>
   <data name="InvalidFileName" xml:space="preserve">
     <value>Invalid file name of {0}</value>
@@ -205,7 +205,7 @@
     <value>Couldn't find any parts in the input files and folders</value>
   </data>
   <data name="NoRejectionMessage" xml:space="preserve">
-    <value>No Rejection Issues associated with {0}</value>
+    <value>No Rejection issues associated with {0}</value>
   </data>
   <data name="NullText" xml:space="preserve">
     <value>null</value>

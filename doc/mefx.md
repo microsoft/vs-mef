@@ -13,7 +13,7 @@ The following command illustrates the basic functionalities to get information a
 ```
 
 This command performs a variety of different operations and thus we will break down the command by the specified options to understand
-its functionality. We specify that we want to perform analysis on the MefCalculator.dll file as well as the Extensions folder through ` --files MefCalculator.dll --directory Extensions`. When a folder is specified, Mefx automatically finds all valid files present in the folder itself along with its subfolders. 
+its functionality. We specify that we want to perform analysis on the MefCalculator.dll file as well as the Extensions folder through ` --file MefCalculator.dll --directory Extensions`. When a folder is specified, Mefx automatically finds all valid files present in the folder itself along with its subfolders. 
 
 Currently, Mefx considers any file with the extensions .dll, .exe, or .cache as valid files. Please note that the .cache file must have been created using the SaveAsync of the Cached Catalog in the main MEF library for Mefx to be able to properly process the file. Mefx allows users to store the catalog created from the files specified in the input argument by specifiying the output file name in the `--cache` option and thus can be called by including something like `--cache Combined.cache` in the command. 
 

@@ -1,0 +1,3 @@
+--match MefCalculator.ImportTest Part.DNE --directory TestFiles/Basic
+Find matches from MefCalculator.ImportTest to Part.DNE
+Couldn't find part with name Part.DNE

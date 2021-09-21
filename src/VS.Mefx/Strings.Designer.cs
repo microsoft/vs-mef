@@ -205,7 +205,7 @@ namespace VS.Mefx {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Printing Rejection Graph Info for {0}.
+        ///   Looks up a localized string similar to Printing rejection trace for {0}.
         /// </summary>
         internal static string IndividualRejectionMessage {
             get {
@@ -322,7 +322,7 @@ namespace VS.Mefx {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No Rejection Issues associated with {0}.
+        ///   Looks up a localized string similar to No Rejection issues associated with {0}.
         /// </summary>
         internal static string NoRejectionMessage {
             get {

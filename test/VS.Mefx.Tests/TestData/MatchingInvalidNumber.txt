@@ -1,0 +1,2 @@
+--match MefCalculator.ImportTest --directory TestFiles/Basic
+Please provide exactly two parts to the match option

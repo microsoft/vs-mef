@@ -118,8 +118,8 @@ namespace VS.Mefx.Tests
         [Fact]
         public async Task CreateSampleTest()
         {
-            string testName = "ExportPartSpecification.txt";
-            string testCommand = "--match MefCalculator.ExportMeta MefCalculator.ImportTest --match-exports ExportOne ExportTwo --directory TestFiles/Basic";
+            string testName = "CacheReader.txt";
+            string testCommand = "--parts --file TestFiles/Basic/All.cache";
             string result = await CreateTest(testName, testCommand);
             this.output.WriteLine(result);
         }
