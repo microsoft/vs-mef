@@ -1,9 +1,15 @@
 trigger:
   batch: true
   branches:
-    include: ["main", "v*"]
+    include:
+    - main
+    - 'v1*'
+    - 'validate/*'
   paths:
-    exclude: ["doc", "*.md"]
+    exclude:
+    - doc/
+    - '*.md'
+    - .vscode/
 pr: none
 
 variables:
