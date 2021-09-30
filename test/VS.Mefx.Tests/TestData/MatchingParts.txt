@@ -1,5 +1,5 @@
 --parts --directory TestFiles/Matching
-Parts in the Catalog are 
+Parts in the Catalog are
 CarOne.FirstCar
 CarOne.InvalidType
 CarOne.MoreMetadata

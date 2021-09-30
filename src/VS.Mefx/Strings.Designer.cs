@@ -259,7 +259,7 @@ namespace VS.Mefx {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Couldn&apos;t find file {0}.
+        ///   Looks up a localized string similar to Couldn&apos;t process file {0}.
         /// </summary>
         internal static string MissingFileMessage {
             get {
@@ -304,7 +304,7 @@ namespace VS.Mefx {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Couldn&apos;t find directory {0} so saving rejection graph to current directory.
+        ///   Looks up a localized string similar to Couldn&apos;t find directory {0} so using current directory.
         /// </summary>
         internal static string MissingRelativePath {
             get {

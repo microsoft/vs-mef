@@ -1,5 +1,5 @@
 --rejected ExtendedOperations.Modulo --directory TestFiles/Basic
-Printing Rejection Graph Info for ExtendedOperations.Modulo
+Printing rejection trace for ExtendedOperations.Modulo
 Errors in level 3
 ExtendedOperations.Modulo
 Errors in level 2

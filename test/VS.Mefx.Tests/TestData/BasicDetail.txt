@@ -1,6 +1,6 @@
 --detail MefCalculator.ImportTest --directory TestFiles/Basic
 Printing out details for part MefCalculator.ImportTest
 [Export] Field: MefCalculator.ImportTest, Contract Name: MefCalculator.ImportTest
-[Import] Field: failingField, Contract Name: MissingField
-[Import] Field: Operations, Contract Name: MefCalculator.MefCalculatorInterfaces+IOperation
 [Import] Field: IntInput, Contract Name: MetadataTest
+[Import] Field: Operations, Contract Name: MefCalculator.MefCalculatorInterfaces+IOperation
+[Import] Field: failingField, Contract Name: MissingField

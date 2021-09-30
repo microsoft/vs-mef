@@ -1,2 +1,2 @@
 --cache TestFiles/Basic/All.cache --directory TestFiles/Basic
-Saved cache of current catalog to TestFiles/Basic/All.cache
+Caught following error: The process cannot access the file 'C:\Users\Pankaj\Documents\Github Repos\vs-mef\bin\Tests\Debug\net5.0\TestFiles\Basic\All.cache' because it is being used by another process.

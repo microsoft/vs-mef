@@ -184,7 +184,7 @@
     <value>Couldn't find the following exporting fields:</value>
   </data>
   <data name="MissingFileMessage" xml:space="preserve">
-    <value>Couldn't find file {0}</value>
+    <value>Couldn't process file {0}</value>
   </data>
   <data name="MissingFolderMessage" xml:space="preserve">
     <value>Couldn't find directory {0}</value>
@@ -199,7 +199,7 @@
     <value>Couldn't find part with name {0}</value>
   </data>
   <data name="MissingRelativePath" xml:space="preserve">
-    <value>Couldn't find directory {0} so saving rejection graph to current directory</value>
+    <value>Couldn't find directory {0} so using current directory</value>
   </data>
   <data name="NoPartsMessage" xml:space="preserve">
     <value>Couldn't find any parts in the input files and folders</value>

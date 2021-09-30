@@ -275,7 +275,7 @@
 
                     this.WriteNodeDetail(current);
 
-                    // Add the non whitelised "children" of the current node to the queue for future processing
+                    // Add the "children" of the current node to the queue for future processing
                     if (current.ImportRejects.Count() > 0)
                     {
                         foreach (var childEdge in current.ImportRejects)

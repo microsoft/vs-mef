@@ -1,0 +1,4 @@
+--match CarOne.MoreMetadata Garage.Importer --match-imports NoCar --directory TestFiles/Matching
+Find matches from CarOne.MoreMetadata to Garage.Importer
+Couldn't find the following importing fields:
+NoCar

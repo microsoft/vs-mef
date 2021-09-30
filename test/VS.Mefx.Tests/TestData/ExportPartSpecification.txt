@@ -1,5 +1,11 @@
 --match MefCalculator.ExportMeta MefCalculator.ImportTest --match-exports ExportOne ExportTwo --directory TestFiles/Basic
 Find matches from MefCalculator.ExportMeta to MefCalculator.ImportTest
+Performing matching for importing field IntInput
+Considering exporting field ExportOne
+Export matches all import constraints
+Considering exporting field ExportTwo
+Failed Constraint #1
+Expected: [Type - System.Int32], Found: [Type - System.String]
 Performing matching for importing field Operations
 Considering exporting field ExportOne
 Failed Constraint #1
@@ -20,9 +26,3 @@ Expected: [Type - System.String], Found: [Type - System.Int32]
 Considering exporting field ExportTwo
 Failed Constraint #1
 Expected: [Contract Name - MissingField], Found: [Contract Name - MetadataTest]
-Performing matching for importing field IntInput
-Considering exporting field ExportOne
-Export matches all import constraints
-Considering exporting field ExportTwo
-Failed Constraint #1
-Expected: [Type - System.Int32], Found: [Type - System.String]

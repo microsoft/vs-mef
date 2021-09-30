@@ -5,6 +5,6 @@ ExtendedOperations.Modulo
 Errors in level 2
 ExtendedOperations.ChainOne
 Errors in level 1
+MefCalculator.ImportTest
 MefCalculator.ExportTest
 MefCalculator.AddIn
-MefCalculator.ImportTest

@@ -15,48 +15,6 @@ namespace VS.Mefx.Tests
     {
         private readonly ITestOutputHelper output;
 
-        private void MoveAllSubFolders(string src, string target, bool saveFiles = true)
-        {
-            bool targetDirExists = Directory.Exists(target);
-            if (saveFiles && targetDirExists)
-            {
-                return;
-            }
-
-            if (!targetDirExists)
-            {
-                Directory.CreateDirectory(target);
-            }
-
-            DirectoryInfo currentDir = new DirectoryInfo(src);
-            if (saveFiles)
-            {
-                foreach (FileInfo file in currentDir.EnumerateFiles())
-                {
-                    string destFilePath = Path.Combine(target, file.Name);
-                    file.CopyTo(destFilePath, true);
-                }
-            }
-
-            foreach (DirectoryInfo subDir in currentDir.EnumerateDirectories())
-            {
-                string destFolderPath = Path.Combine(target, subDir.Name);
-                this.MoveAllSubFolders(subDir.FullName, destFolderPath);
-            }
-        }
-
-        private void CheckFolder()
-        {
-            string currentDir = Directory.GetCurrentDirectory();
-            string dirName = Path.GetFileName(currentDir);
-            if (!dirName.Equals("VS.Mefx.Tests"))
-            {
-                string relativePath = "..\\..\\..\\..\\test\\VS.Mefx.Tests";
-                string srcDir = Path.GetFullPath(Path.Combine(currentDir, relativePath));
-                Directory.SetCurrentDirectory(srcDir);
-            }
-        }
-
         public TestRunner(ITestOutputHelper output)
         {
             this.output = output;
@@ -76,24 +34,20 @@ namespace VS.Mefx.Tests
             return savedOutput;
         }
 
-        private static async Task<string> CreateTest(string testFileName, string command)
+        private static async Task<string> CreateTest(string outputFilePath, string command)
         {
             TestInfo testData = new TestInfo();
             testData.UpdateTestCommand(command);
             string[] args = testData.GetCommandArgs();
             string savedOutput = await RunCommand(args);
             testData.UpdateTestResult(savedOutput);
-
-            string currentDir = Directory.GetCurrentDirectory();
-            string folderPath = Path.Combine(currentDir, "TestData");
-            string filePath = Path.Combine(folderPath, testFileName);
-            testData.WriteToFile(filePath);
+            testData.WriteToFile(outputFilePath);
             return savedOutput;
         }
 
         [Theory]
-        [TestGetter("TestData")]
-        private async Task UpdateAllTests(string filePath)
+        [TestGetter(true)]
+        private async Task UpdateTest(string filePath)
         {
             TestInfo fileData = new TestInfo(filePath);
             string[] args = fileData.GetCommandArgs();
@@ -104,8 +58,8 @@ namespace VS.Mefx.Tests
         }
 
         [Theory]
-        [TestGetter("TestData")]
-        private async Task<bool> RunAllTests(string filePath)
+        [TestGetter(false)]
+        private async Task<bool> RunTest(string filePath)
         {
             TestInfo fileData = new TestInfo(filePath);
             string[] args = fileData.GetCommandArgs();
@@ -118,9 +72,13 @@ namespace VS.Mefx.Tests
         [Fact]
         public async Task CreateSampleTest()
         {
-            string testName = "CacheReader.txt";
-            string testCommand = "--parts --file TestFiles/Basic/All.cache";
-            string result = await CreateTest(testName, testCommand);
+            string testName = "MatchingMissingField.txt";
+            string testCommand = "--match CarOne.MoreMetadata Garage.Importer --match-imports NoCar --directory TestFiles/Matching";
+
+            string testFilePath = Path.Combine(TestGetter.UpdateFolder, testName);
+            string currentDir = Directory.GetCurrentDirectory();
+            string filePath = Path.GetFullPath(Path.Combine(currentDir, testFilePath));
+            string result = await CreateTest(filePath, testCommand);
             this.output.WriteLine(result);
         }
 
@@ -134,6 +92,11 @@ namespace VS.Mefx.Tests
 
         private class TestGetter : DataAttribute
         {
+
+            private static string validFileExtension = "txt";
+            public static string RunFolder = "TestData";
+            public static string UpdateFolder = "..\\..\\..\\../test/VS.Mefx.Tests/TestData";
+
             public override IEnumerable<object[]> GetData(MethodInfo testMethod)
             {
                 List<object[]> output = new List<object[]>();
@@ -147,8 +110,14 @@ namespace VS.Mefx.Tests
 
             private List<string> TestFilePaths { get; set; }
 
-            public TestGetter(string folderName)
+            public TestGetter(bool updateTests)
             {
+                string folderName = RunFolder;
+                if (updateTests)
+                {
+                    folderName = UpdateFolder;
+                }
+
                 string currentDir = Directory.GetCurrentDirectory();
                 string folderPath = Path.GetFullPath(Path.Combine(currentDir, folderName));
                 this.TestFilePaths = new List<string>();
@@ -157,7 +126,11 @@ namespace VS.Mefx.Tests
                     DirectoryInfo dirInfo = new DirectoryInfo(folderPath);
                     foreach (var fileInfo in dirInfo.EnumerateFiles())
                     {
-                        this.TestFilePaths.Add(fileInfo.FullName);
+                        string fileName = fileInfo.Name;
+                        if (fileName.Contains(validFileExtension))
+                        {
+                            this.TestFilePaths.Add(fileInfo.FullName);
+                        }
                     }
                 }
             }
