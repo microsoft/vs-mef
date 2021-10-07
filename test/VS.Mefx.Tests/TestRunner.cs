@@ -18,6 +18,7 @@ namespace VS.Mefx.Tests
         public TestRunner(ITestOutputHelper output)
         {
             this.output = output;
+            var currentFileType = typeof(TestRunner);
         }
 
         private static readonly string OutputFileName = "output.txt";
@@ -47,7 +48,7 @@ namespace VS.Mefx.Tests
 
         [Theory]
         [TestGetter(true)]
-        private async Task UpdateTest(string filePath)
+        private async Task OverrideTest(string filePath)
         {
             TestInfo fileData = new TestInfo(filePath);
             string[] args = fileData.GetCommandArgs();
@@ -90,9 +91,16 @@ namespace VS.Mefx.Tests
             this.output.WriteLine(result);
         }
 
+        [Fact]
+        public async Task Playground()
+        {
+            var currType = typeof(TestRunner);
+            string path = currType.Assembly.Location;
+            this.output.WriteLine(path);
+        }
+
         private class TestGetter : DataAttribute
         {
-
             private static string validFileExtension = "txt";
             public static string RunFolder = "TestData";
             public static string UpdateFolder = "..\\..\\..\\../test/VS.Mefx.Tests/TestData";

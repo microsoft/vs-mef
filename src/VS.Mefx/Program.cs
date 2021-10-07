@@ -14,7 +14,7 @@
     /// </summary>
     public class Program
     {
-        public static TextWriter Output = null;
+        private static TextWriter Output = null;
 
         /// <summary>
         /// A command line application to diagonse composition failures in MEF applications.
