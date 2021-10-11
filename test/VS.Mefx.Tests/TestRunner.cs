@@ -5,8 +5,13 @@ namespace VS.Mefx.Tests
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
-    using VS.Mefx;
+    using DiffPlex;
+    using DiffPlex.DiffBuilder;
+    using DiffPlex.DiffBuilder.Model;
+    using Microsoft;
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Sdk;
@@ -15,23 +20,23 @@ namespace VS.Mefx.Tests
     {
         private readonly ITestOutputHelper output;
 
+        private static bool testOverride = false;
+
         public TestRunner(ITestOutputHelper output)
         {
             this.output = output;
-            var currentFileType = typeof(TestRunner);
         }
-
-        private static readonly string OutputFileName = "output.txt";
 
         private static async Task<string> RunCommand(string[] args)
         {
             // Won't support quoted strings
-            using (StreamWriter sw = new StreamWriter(OutputFileName))
+            StringBuilder builder = new StringBuilder();
+            using (StringWriter sw = new StringWriter(builder))
             {
                 await Program.Runner(sw, args);
             }
 
-            string savedOutput = File.ReadAllText(OutputFileName).Trim();
+            string savedOutput = builder.ToString().Trim();
             return savedOutput;
         }
 
@@ -46,8 +51,6 @@ namespace VS.Mefx.Tests
             return savedOutput;
         }
 
-        [Theory]
-        [TestGetter(true)]
         private async Task OverrideTest(string filePath)
         {
             TestInfo fileData = new TestInfo(filePath);
@@ -58,16 +61,30 @@ namespace VS.Mefx.Tests
             fileData.WriteToFile(originalFilePath);
         }
 
-        [Theory]
-        [TestGetter(false)]
-        private async Task<bool> RunTest(string filePath)
+        private async Task JustRunTest(string filePath)
         {
             TestInfo fileData = new TestInfo(filePath);
             string[] args = fileData.GetCommandArgs();
             string savedOutput = await RunCommand(args);
             List<string> commandResult = TestInfo.GetLines(savedOutput);
             List<string> expectedOutput = fileData.TestResult;
-            return commandResult.SequenceEqual(expectedOutput);
+            string commandText = string.Join("\n", commandResult);
+            string expectedText = string.Join("\n", expectedOutput);
+            Assert.False(PrintDiff("Expected", "Result", expectedText, commandText, this.output));
+        }
+
+        [Theory]
+        [TestGetter]
+        private async Task Runner(string fileName)
+        {
+            string filePath = TestGetter.GetFilePath(fileName);
+            if (testOverride)
+            {
+                await this.OverrideTest(filePath);
+            } else
+            {
+                await this.JustRunTest(filePath);
+            }
         }
 
         [Fact]
@@ -86,7 +103,7 @@ namespace VS.Mefx.Tests
         [Fact]
         public async Task RunSampleTest()
         {
-            string command = "--match CarOne.MoreMetadata Garage.Importer --directory TestFiles/Matching";
+            string command = "--verbose --rejected ExtendedOperations.Modulo --directory TestFiles/Basic";
             string result = await RunCommand(command.Split(" "));
             this.output.WriteLine(result);
         }
@@ -94,16 +111,32 @@ namespace VS.Mefx.Tests
         [Fact]
         public async Task Playground()
         {
-            var currType = typeof(TestRunner);
-            string path = currType.Assembly.Location;
-            this.output.WriteLine(path);
+            await this.Runner("BasicDetail.txt");
         }
 
         private class TestGetter : DataAttribute
         {
             private static string validFileExtension = "txt";
+
+            public static string UpdateFolder =
+                string.Format("..{0}..{0}..{0}..{0}test{0}VS.Mefx.Tests{0}TestData",
+                    Path.DirectorySeparatorChar);
+
             public static string RunFolder = "TestData";
-            public static string UpdateFolder = "..\\..\\..\\../test/VS.Mefx.Tests/TestData";
+
+            public static string GetFilePath(string fileName)
+            {
+                string folderName = RunFolder;
+                if (TestRunner.testOverride)
+                {
+                    folderName = UpdateFolder;
+                }
+
+                string currentDir = Directory.GetCurrentDirectory();
+                string folderPath = Path.Combine(currentDir, folderName);
+                string filePath = Path.Combine(folderPath, fileName);
+                return Path.GetFullPath(filePath);
+            }
 
             public override IEnumerable<object[]> GetData(MethodInfo testMethod)
             {
@@ -118,10 +151,10 @@ namespace VS.Mefx.Tests
 
             private List<string> TestFilePaths { get; set; }
 
-            public TestGetter(bool updateTests)
+            public TestGetter()
             {
                 string folderName = RunFolder;
-                if (updateTests)
+                if (TestRunner.testOverride)
                 {
                     folderName = UpdateFolder;
                 }
@@ -137,11 +170,52 @@ namespace VS.Mefx.Tests
                         string fileName = fileInfo.Name;
                         if (fileName.Contains(validFileExtension))
                         {
-                            this.TestFilePaths.Add(fileInfo.FullName);
+                            this.TestFilePaths.Add(fileName);
                         }
                     }
                 }
             }
+        }
+
+        private static bool PrintDiff(
+            string beforeDescription,
+            string afterDescription,
+            string before,
+            string after,
+            ITestOutputHelper output)
+        {
+            Requires.NotNull(output, nameof(output));
+
+            var d = new Differ();
+            var inlineBuilder = new InlineDiffBuilder(d);
+            var result = inlineBuilder.BuildDiffModel(before, after);
+            if (result.Lines.Any(l => l.Type != ChangeType.Unchanged))
+            {
+                output.WriteLine("Catalog {0} vs. {1}", beforeDescription, afterDescription);
+                foreach (var line in result.Lines)
+                {
+                    string prefix;
+                    if (line.Type == ChangeType.Inserted)
+                    {
+                        prefix = "+ ";
+                    }
+                    else if (line.Type == ChangeType.Deleted)
+                    {
+                        prefix = "- ";
+                    }
+                    else
+                    {
+                        prefix = "  ";
+                    }
+
+                    output.WriteLine(prefix + line.Text);
+                }
+
+                return true;
+                ////Assert.False(anyStringRepresentationDifferences, "Catalogs not equivalent");
+            }
+
+            return false;
         }
     }
 }

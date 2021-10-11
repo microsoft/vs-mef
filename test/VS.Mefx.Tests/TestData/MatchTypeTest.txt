@@ -11,6 +11,6 @@ Considering exporting field CarOne.InvalidType
 Failed Constraint #1
 Expected: [Contract Name - Garage.Car], Found: [Contract Name - CarOne.InvalidType]
 Failed Constraint #2
-Expected: [Type - Garage.Car], Found: [Type - CarOne.InvalidType]
-Failed Constraint #3
 Expected: [Metadata - Key: Type, Value: Used], Found: [Metadata - Key: Type, Value: No such key]
+Failed Constraint #3
+Expected: [Type - Garage.Car], Found: [Type - CarOne.InvalidType]

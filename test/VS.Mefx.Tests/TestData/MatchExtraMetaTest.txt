@@ -1,29 +1,9 @@
 --match CarOne.MoreMetadata Garage.Importer --directory TestFiles/Matching
-Encountered following errors when finding parts:
-Microsoft.VisualStudio.Composition.PartDiscoveryException: ReflectionTypeLoadException while enumerating types in assembly "C:\Users\Pankaj\Documents\Github Repos\vs-mef\bin\Tests\Debug\net5.0\TestFiles\Matching\CarOne.dll". Results will be incomplete.
----> System.Reflection.ReflectionTypeLoadException: Unable to load one or more of the requested types.
-Could not load file or assembly 'Garage, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
-Could not load file or assembly 'Garage, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
-at System.Reflection.RuntimeModule.GetTypes(RuntimeModule module)
-at System.Reflection.RuntimeModule.GetTypes()
-at System.Reflection.Assembly.GetTypes()
-at Microsoft.VisualStudio.Composition.PartDiscovery.CombinedPartDiscovery.GetTypes(Assembly assembly) in C:\Users\Pankaj\Documents\Github Repos\vs-mef\src\Microsoft.VisualStudio.Composition\PartDiscovery.cs:line 694
-at Microsoft.VisualStudio.Composition.PartDiscovery.<>c__DisplayClass33_0.<CreateAssemblyDiscoveryBlockChain>b__0(Assembly a) in C:\Users\Pankaj\Documents\Github Repos\vs-mef\src\Microsoft.VisualStudio.Composition\PartDiscovery.cs:line 557
-System.IO.FileNotFoundException: Could not load file or assembly 'Garage, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
-File name: 'Garage, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'
-System.IO.FileNotFoundException: Could not load file or assembly 'Garage, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
-File name: 'Garage, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'
---- End of inner exception stack trace ---
-Microsoft.VisualStudio.Composition.PartDiscoveryException: ReflectionTypeLoadException while enumerating types in assembly "C:\Users\Pankaj\Documents\Github Repos\vs-mef\bin\Tests\Debug\net5.0\TestFiles\Matching\CarTwo.dll". Results will be incomplete.
----> System.Reflection.ReflectionTypeLoadException: Unable to load one or more of the requested types.
-Could not load file or assembly 'Garage, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
-at System.Reflection.RuntimeModule.GetTypes(RuntimeModule module)
-at System.Reflection.RuntimeModule.GetTypes()
-at System.Reflection.Assembly.GetTypes()
-at Microsoft.VisualStudio.Composition.PartDiscovery.CombinedPartDiscovery.GetTypes(Assembly assembly) in C:\Users\Pankaj\Documents\Github Repos\vs-mef\src\Microsoft.VisualStudio.Composition\PartDiscovery.cs:line 694
-at Microsoft.VisualStudio.Composition.PartDiscovery.<>c__DisplayClass33_0.<CreateAssemblyDiscoveryBlockChain>b__0(Assembly a) in C:\Users\Pankaj\Documents\Github Repos\vs-mef\src\Microsoft.VisualStudio.Composition\PartDiscovery.cs:line 557
-System.IO.FileNotFoundException: Could not load file or assembly 'Garage, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. The system cannot find the file specified.
-File name: 'Garage, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'
---- End of inner exception stack trace ---
 Find matches from CarOne.MoreMetadata to Garage.Importer
-Couldn't find part with name CarOne.MoreMetadata
+Performing matching for importing field NewerCar
+Considering exporting field CarOne.MoreMetadata
+Export matches all import constraints
+Performing matching for importing field UsedCar
+Considering exporting field CarOne.MoreMetadata
+Failed Constraint #1
+Expected: [Metadata - Key: Type, Value: Used], Found: [Metadata - Key: Type, Value: No such key]

@@ -5,8 +5,8 @@ ExtendedOperations.Modulo
 Errors in level 2
 ExtendedOperations.ChainOne
 Errors in level 1
-MefCalculator.ImportTest
 MefCalculator.AddIn
 MefCalculator.ExportTest
+MefCalculator.ImportTest
 Couldn't find directory ./NoSuchFolder so using current directory
 Saved rejection graph to AllErrors.dgml

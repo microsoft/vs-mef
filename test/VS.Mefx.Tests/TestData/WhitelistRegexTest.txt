@@ -5,6 +5,6 @@ Errors in level 3
 Errors in level 2
 [Whitelisted] ExtendedOperations.ChainOne
 Errors in level 1
+MefCalculator.AddIn
 MefCalculator.ExportTest
 MefCalculator.ImportTest
-MefCalculator.AddIn

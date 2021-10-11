@@ -21,6 +21,16 @@
         }
 
         /// <summary>
+        /// Write the given lines in sorted order to the user.
+        /// </summary>
+        /// <param name="lines">The lines to output to the user.</param>
+        protected void WriteLines(List<string> lines)
+        {
+            lines.Sort();
+            lines.ForEach(line => this.Options.Writer.WriteLine(line));
+        }
+
+        /// <summary>
         /// Gets the composable catalog and configuration.
         /// </summary>
         protected ConfigCreator Creator { get; private set; } // Stores the catalog and config information for the input files.

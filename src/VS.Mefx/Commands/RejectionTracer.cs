@@ -5,6 +5,7 @@
     using System.Globalization;
     using System.IO;
     using System.Linq;
+    using System.Text;
     using Microsoft.VisualStudio.Composition;
 
     /// <summary>
@@ -137,15 +138,17 @@
                         Strings.ErrorsLevelMessage,
                         currentLevel);
             this.Options.Writer.WriteLine(errorMessage);
+            List<string> currentErrors = new List<string>();
             foreach (var pair in this.RejectionGraph)
             {
                 PartNode currentNode = pair.Value;
                 if (currentNode.Level.Equals(currentLevel))
                 {
-                    this.WriteNodeDetail(currentNode);
+                    currentErrors.Add(this.GetNodeDetail(currentNode));
                 }
             }
 
+            this.WriteLines(currentErrors);
             if (!this.Options.Verbose)
             {
                 this.Options.Writer.WriteLine();
@@ -264,6 +267,7 @@
 
                 // Iterate through all the nodes in the current level
                 int numNodes = currentLevelNodes.Count();
+                List<string> errorMessages = new List<string>(numNodes);
                 for (int index = 0; index < numNodes; index++)
                 {
                     // Process the current node by displaying its import issue and adding it to the graph
@@ -273,7 +277,7 @@
                         relevantNodes.Add(current.GetName(), current);
                     }
 
-                    this.WriteNodeDetail(current);
+                    errorMessages.Add(this.GetNodeDetail(current));
 
                     // Add the "children" of the current node to the queue for future processing
                     if (current.ImportRejects.Count() > 0)
@@ -285,6 +289,7 @@
                     }
                 }
 
+                this.WriteLines(errorMessages);
                 if (!this.Options.Verbose)
                 {
                     this.Options.Writer.WriteLine();
@@ -306,7 +311,8 @@
         /// Method to display information about a particular node to the user.
         /// </summary>
         /// <param name="current">The Node whose information we want to display.</param>
-        private void WriteNodeDetail(PartNode current)
+        /// <returns>A string with information regarding the input node</returns>
+        private string GetNodeDetail(PartNode current)
         {
             string startMessage;
             if (current.IsWhiteListed)
@@ -320,17 +326,20 @@
 
             if (this.Options.Verbose)
             {
+                StringWriter writer = new StringWriter(new StringBuilder());
                 foreach (string errorMessage in current.VerboseMessages)
                 {
                     string message = startMessage + errorMessage;
-                    this.Options.Writer.WriteLine(message);
-                    this.Options.Writer.WriteLine();
+                    writer.WriteLine(message);
+                    writer.WriteLine();
                 }
+
+                return writer.ToString();
             }
             else
             {
                 string message = startMessage + this.GetName(current.Part, Strings.VerbosePartLabel);
-                this.Options.Writer.WriteLine(message);
+                return message;
             }
         }
     }

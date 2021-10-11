@@ -112,6 +112,8 @@
                 return;
             }
 
+            List<string> exportOutputs = new List<string>();
+
             // Print details about the exports of the given part
             foreach (var exportPair in definition.ExportDefinitions)
             {
@@ -127,8 +129,11 @@
                         Strings.ExportDetailFormat,
                         exportField,
                         exportName);
-                this.Options.Writer.WriteLine(exportDetail);
+                exportOutputs.Add(exportDetail);
             }
+
+            this.WriteLines(exportOutputs);
+            List<string> importOutputs = new List<string>();
 
             // Print details about the parts/type the current part imports
             foreach (var import in definition.Imports)
@@ -145,8 +150,10 @@
                         Strings.ImportDetailFormat,
                         importField,
                         importName);
-                this.Options.Writer.WriteLine(importDetail);
+                importOutputs.Add(importDetail);
             }
+
+            this.WriteLines(importOutputs);
         }
 
         /// <summary>
@@ -185,10 +192,13 @@
                         Strings.ExportingContractsFormat,
                         contractName);
             this.Options.Writer.WriteLine(exportPreview);
+            List<string> exportOutputs = new List<string>();
             foreach (var part in exportingParts)
             {
-                this.Options.Writer.WriteLine(this.GetName(part, Strings.VerbosePartLabel));
+                exportOutputs.Add(this.GetName(part, Strings.VerbosePartLabel));
             }
+
+            this.WriteLines(exportOutputs);
         }
 
         /// <summary>
@@ -227,10 +237,13 @@
                         Strings.ImportingContractsFormat,
                         contractName);
             this.Options.Writer.WriteLine(importPreview);
+            List<string> importOutputs = new List<string>();
             foreach (var part in importingParts)
             {
-                this.Options.Writer.WriteLine(this.GetName(part, Strings.VerbosePartLabel));
+                importOutputs.Add(this.GetName(part, Strings.VerbosePartLabel));
             }
+
+            this.WriteLines(importOutputs);
         }
     }
 }
