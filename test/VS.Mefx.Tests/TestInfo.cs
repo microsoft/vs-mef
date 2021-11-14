@@ -7,19 +7,26 @@
 
     internal class TestInfo
     {
+
+        private static readonly string TestSeperator = "***";
+
         public string TestCommand { get; set; }
 
-        public List<string> TestResult { get; set; }
+        public List<string> TestOutputNormal { get; set; }
+
+        public List<string> TestOutputError { get; set; }
 
         public string? FilePath { get; set; }
 
         public TestInfo()
         {
             this.TestCommand = string.Empty;
-            this.TestResult = new List<string>();
+            this.TestOutputNormal = new List<string>();
+            this.TestOutputError = new List<string>();
         }
 
         public TestInfo(string filePath)
+            : this()
         {
             if (!File.Exists(filePath))
             {
@@ -34,9 +41,30 @@
             }
 
             this.TestCommand = lines[0];
-            lines.RemoveAt(0);
-            this.TestResult = lines;
             this.FilePath = filePath;
+            lines.RemoveAt(0);
+            int iterateIndex = 0;
+
+            // Get the text that is printed out to standard output
+            while (iterateIndex < lines.Count)
+            {
+                string line = lines[iterateIndex];
+                if (line.Equals(TestSeperator))
+                {
+                    iterateIndex += 1;
+                    break;
+                }
+
+                this.TestOutputNormal.Add(line);
+                iterateIndex += 1;
+            }
+
+            // Get the text that is printed out to standard error
+            while (iterateIndex < lines.Count)
+            {
+                this.TestOutputError.Add(lines[iterateIndex]);
+                iterateIndex += 1;
+            }
         }
 
         public void UpdateTestCommand(string command)
@@ -44,9 +72,14 @@
             this.TestCommand = command.Trim();
         }
 
-        public void UpdateTestResult(string text)
+        public void UpdateTestOutput(string text)
         {
-            this.TestResult = GetLines(text);
+            this.TestOutputNormal = GetLines(text);
+        }
+
+        public void UpdateTestError(string text)
+        {
+            this.TestOutputError = GetLines(text);
         }
 
         public static List<string> GetLines(string text)
@@ -73,7 +106,9 @@
             using (StreamWriter sw = new StreamWriter(outputFilePath))
             {
                 sw.WriteLine(this.TestCommand);
-                this.TestResult.ForEach(line => sw.WriteLine(line));
+                this.TestOutputNormal.ForEach(line => sw.WriteLine(line));
+                sw.WriteLine(TestSeperator);
+                this.TestOutputError.ForEach(line => sw.WriteLine(line));
             }
         }
 

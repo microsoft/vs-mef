@@ -86,6 +86,12 @@
         /// <summary>
         /// Gets or sets the writer to use when writing output to the user.
         /// </summary>
-        public TextWriter Writer { get; set; }
+        public TextWriter? Writer { get; set; }
+
+        /// <summary>
+        /// Gets or sets the writer to use when writing error messages to the user.
+        /// </summary>
+        public TextWriter? ErrorWriter { get; set; }
+
     }
 }

@@ -1,3 +1,4 @@
 --parts --directory TestFiles/ImaginaryData
+***
 Couldn't find directory TestFiles/ImaginaryData
 Couldn't find any parts in the input files and folders

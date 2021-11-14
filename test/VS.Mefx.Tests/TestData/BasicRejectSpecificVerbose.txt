@@ -15,3 +15,4 @@ MefCalculator.AddIn.fieldOne: expected exactly 1 export matching constraints:
 Contract name: ChainOne
 TypeIdentityName: System.String
 but found 0.
+***

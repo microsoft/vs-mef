@@ -9,3 +9,4 @@ MefCalculator.AddIn
 MefCalculator.ExportTest
 MefCalculator.ImportTest
 Saved rejection graph to AllErrors.dgml
+***

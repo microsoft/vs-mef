@@ -4,8 +4,6 @@ Performing matching for importing field failingField
 Considering exporting field ExportOne
 Failed Constraint #1
 Expected: [Contract Name - MissingField], Found: [Contract Name - MetadataTest]
-Failed Constraint #2
-Expected: [Type - System.String], Found: [Type - System.Int32]
 Considering exporting field ExportTwo
 Failed Constraint #1
 Expected: [Contract Name - MissingField], Found: [Contract Name - MetadataTest]
@@ -19,10 +17,7 @@ Performing matching for importing field Operations
 Considering exporting field ExportOne
 Failed Constraint #1
 Expected: [Contract Name - MefCalculator.MefCalculatorInterfaces+IOperation], Found: [Contract Name - MetadataTest]
-Failed Constraint #2
-Expected: [Type - MefCalculator.MefCalculatorInterfaces+IOperation], Found: [Type - System.Int32]
 Considering exporting field ExportTwo
 Failed Constraint #1
 Expected: [Contract Name - MefCalculator.MefCalculatorInterfaces+IOperation], Found: [Contract Name - MetadataTest]
-Failed Constraint #2
-Expected: [Type - MefCalculator.MefCalculatorInterfaces+IOperation], Found: [Type - System.String]
+***

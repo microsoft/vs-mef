@@ -6,11 +6,11 @@ CarOne.MoreMetadata
 CarTwo.SecondCar
 ExtendedOperations.ChainOne
 ExtendedOperations.Modulo
-Garage.Importer
-MatchRunner.Program
 MefCalculator.AddIn
 MefCalculator.ExportMeta
 MefCalculator.ExportTest
 MefCalculator.ImportTest
 MefCalculator.MefCalculatorInterfaces+Add
 MefCalculator.MefCalculatorInterfaces+Subtract
+User.Importer
+***

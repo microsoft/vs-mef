@@ -108,7 +108,7 @@
                         CultureInfo.CurrentCulture,
                         Strings.MissingPartFormat,
                         partName);
-                this.Options.Writer.WriteLine(missingPart);
+                this.Options.ErrorWriter.WriteLine(missingPart);
                 return;
             }
 

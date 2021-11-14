@@ -1,3 +1,4 @@
 --detail NonExistantPart --directory TestFiles/Basic
 Printing out details for part NonExistantPart
+***
 Couldn't find part with name NonExistantPart

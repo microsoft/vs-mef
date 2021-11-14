@@ -33,11 +33,11 @@
             this.AssemblyPaths = new List<string>();
             this.CachePaths = new List<string>();
             this.PartInformation = new Dictionary<string, ComposablePartDefinition>();
-            this.Writer = options.Writer;
+            this.Options = options;
 
             // Add all the files in the input argument to the list of paths
             string currentFolder = Directory.GetCurrentDirectory();
-            IEnumerable<string> files = options.Files;
+            IEnumerable<string> files = this.Options.Files;
             if (files != null)
             {
                 foreach (string file in files)
@@ -48,13 +48,13 @@
                             CultureInfo.CurrentCulture,
                             Strings.MissingFileMessage,
                             file);
-                        this.Writer.WriteLine(missingFileMessage);
+                        this.Options.Writer.WriteLine(missingFileMessage);
                     }
                 }
             }
 
             // Add all the valid files in the input folders to the list of paths
-            IEnumerable<string> folders = options.Folders;
+            IEnumerable<string> folders = this.Options.Folders;
             if (folders != null)
             {
                 foreach (string folder in folders)
@@ -70,7 +70,7 @@
                             CultureInfo.CurrentCulture,
                             Strings.MissingFolderMessage,
                             folder);
-                        this.Writer.WriteLine(missingFolderMessage);
+                        this.Options.ErrorWriter.WriteLine(missingFolderMessage);
                     }
                 }
             }
@@ -79,9 +79,9 @@
         }
 
         /// <summary>
-        /// Gets or sets the writer to use when writing output to the user.
+        /// Gets or sets the command line arguments specified by the user.
         /// </summary>
-        private TextWriter Writer { get; set; }
+        private CLIOptions Options { get; set; }
 
         /// <summary>
         /// Gets the catalog that stores information about the imported parts.
@@ -129,14 +129,21 @@
             return this.PartInformation[partName];
         }
 
+        private CustomAssemblyLoader customLoader;
+
+        public void Unload()
+        {
+            this.customLoader.UnloadLoadContext();
+        }
+
         /// <summary>
         /// Method to intialize the catalog and configuration objects from the input files.
         /// </summary>
         /// <returns>A Task object when all the assembly have between loaded in and configured.</returns>
         public async Task Initialize()
         {
-            var customLoader = new CustomAssemblyLoader(this.Writer);
-            Resolver customResolver = new(customLoader);
+            this.customLoader = new CustomAssemblyLoader(this.Options.ErrorWriter);
+            Resolver customResolver = new(this.customLoader);
             var nugetDiscover = new AttributedPartDiscovery(customResolver, isNonPublicSupported: true);
             var netDiscover = new AttributedPartDiscoveryV1(customResolver);
             PartDiscovery discovery = PartDiscovery.Combine(customResolver, netDiscover, nugetDiscover);
@@ -245,17 +252,21 @@
             {
                 try
                 {
-                    FileStream inputStream = File.OpenRead(filePath);
-                    CachedCatalog catalogReader = new CachedCatalog();
-                    ComposableCatalog cacheParts = await catalogReader.LoadAsync(inputStream, discovery.Resolver);
-                    if (this.Catalog == null)
+                    // this.Options.ErrorWriter.WriteLine("Calling ReadCache for " + filePath + " on " + DateTimeOffset.Now.ToUnixTimeMilliseconds());
+                    using (FileStream inputStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
-                        this.Catalog = cacheParts;
+                        CachedCatalog catalogReader = new CachedCatalog();
+                        ComposableCatalog cacheParts = await catalogReader.LoadAsync(inputStream, discovery.Resolver);
+                        if (this.Catalog == null)
+                        {
+                            this.Catalog = cacheParts;
+                        }
+                        else
+                        {
+                            this.Catalog = this.Catalog.AddCatalog(cacheParts);
+                        }
                     }
-                    else
-                    {
-                        this.Catalog = this.Catalog.AddCatalog(cacheParts);
-                    }
+                    // this.Options.ErrorWriter.WriteLine("Finished ReadCache for " + filePath + " on " + DateTimeOffset.Now.ToUnixTimeMilliseconds());
                 }
                 catch (Exception error)
                 {
@@ -263,7 +274,7 @@
                         CultureInfo.CurrentCulture,
                         Strings.ErrorMessage,
                         error.Message);
-                    this.Writer.WriteLine(cacheReadError);
+                    this.Options.ErrorWriter.WriteLine(cacheReadError);
                 }
             }
         }
@@ -290,7 +301,7 @@
                         CultureInfo.CurrentCulture,
                         Strings.SavedCacheMessage,
                         fileName);
-                        this.Writer.WriteLine(cacheSaved);
+                        this.Options.Writer.WriteLine(cacheSaved);
                     }
                 }
                 catch (Exception error)
@@ -299,7 +310,7 @@
                         CultureInfo.CurrentCulture,
                         Strings.ErrorMessage,
                         error.Message);
-                    this.Writer.WriteLine(cacheSaveError);
+                    this.Options.ErrorWriter.WriteLine(cacheSaveError);
                 }
             }
             else
@@ -308,10 +319,10 @@
                         CultureInfo.CurrentCulture,
                         Strings.InvalidFileName,
                         fileName);
-                this.Writer.WriteLine(invalidFile);
+                this.Options.ErrorWriter.WriteLine(invalidFile);
             }
 
-            this.Writer.WriteLine();
+            this.Options.Writer.WriteLine();
         }
 
         /// <summary>
@@ -324,8 +335,8 @@
                 var discoveryErrors = this.Catalog.DiscoveredParts.DiscoveryErrors;
                 if (discoveryErrors.Count() > 0)
                 {
-                    this.Writer.WriteLine(Strings.DiscoveryErrors);
-                    discoveryErrors.ForEach(error => this.Writer.WriteLine(error));
+                    this.Options.ErrorWriter.WriteLine(Strings.DiscoveryErrors);
+                    discoveryErrors.ForEach(error => this.Options.ErrorWriter.WriteLine(error));
                 }
             }
         }
@@ -334,10 +345,12 @@
         {
             public CustomAssemblyLoader(TextWriter writer)
             {
-                this.Context = new AssemblyLoadContext("Mefx");
-                this.LoadAssemblies = new Dictionary<string, Assembly>();
+                this.Context = new AssemblyLoadContext("Mefx", true);
+                this.LoadedAssemblies = new Dictionary<string, Assembly>();
                 this.Writer = writer;
             }
+
+            private static readonly bool DEBUG = false;
 
             /// <summary>
             /// Gets or sets a Load Context to see when loading the assemblies into Mefx.
@@ -347,12 +360,17 @@
             /// <summary>
             /// Gets or sets an dictionary to keep track of the loaded dictionaries.
             /// </summary>
-            private Dictionary<string, Assembly> LoadAssemblies { get; set; }
+            private Dictionary<string, Assembly> LoadedAssemblies { get; set; }
 
             /// <summary>
             /// Gets or sets a writer to use when outputting information to the user.
             /// </summary>
             private TextWriter Writer { get; set; }
+
+            public void UnloadLoadContext()
+            {
+                 this.Context.Unload();
+            }
 
             /// <summary>
             /// Loads the assembly with the specified name and path.
@@ -380,6 +398,11 @@
             /// <returns>The loaded assembly with the given assemblyName.</returns>
             public Assembly LoadAssembly(AssemblyName assemblyName)
             {
+                if (DEBUG)
+                {
+                    this.Writer.WriteLine("Call to load assembly " + assemblyName.Name + " at " + DateTime.Now);
+                }
+
                 // Try to read using the path first and use assemblyName as backup
                 if (assemblyName.CodeBase != null)
                 {
@@ -398,18 +421,27 @@
             /// <returns>The assembly at the specified input path.</returns>
             private Assembly LoadUsingPath(string path)
             {
-                path = new Uri(path.Trim()).LocalPath;
-
-                // this.Writer.WriteLine("LoadingUsingName with path: " + path);
-                lock (this.LoadAssemblies)
+                lock (this.LoadedAssemblies)
                 {
-                    if (this.LoadAssemblies.ContainsKey(path))
+                    path = new Uri(path.Trim()).LocalPath;
+
+                    if (DEBUG) {
+                        this.Writer.WriteLine("LoadingUsingPath with path: " + path);
+                    }
+
+                    if (this.LoadedAssemblies.ContainsKey(path))
                     {
-                        return this.LoadAssemblies[path];
+                        return this.LoadedAssemblies[path];
                     }
 
                     Assembly current = this.Context.LoadFromAssemblyPath(path);
-                    this.LoadAssemblies.Add(path, current);
+
+                    if (DEBUG)
+                    {
+                        this.Writer.WriteLine("Loaded assembly has value of " + current);
+                    }
+
+                    this.LoadedAssemblies.Add(path, current);
                     return current;
                 }
             }
@@ -423,16 +455,15 @@
             {
                 string assemblyName = assemblyInfo.FullName.Trim();
 
-                // this.Writer.WriteLine("LoadUsingName with assemblyName: " + assemblyName);
-                lock (this.LoadAssemblies)
+                lock (this.LoadedAssemblies)
                 {
-                    if (this.LoadAssemblies.ContainsKey(assemblyName))
+                    if (this.LoadedAssemblies.ContainsKey(assemblyName))
                     {
-                        return this.LoadAssemblies[assemblyName];
+                        return this.LoadedAssemblies[assemblyName];
                     }
 
                     Assembly current = this.Context.LoadFromAssemblyName(assemblyInfo);
-                    this.LoadAssemblies.Add(assemblyName, current);
+                    this.LoadedAssemblies.Add(assemblyName, current);
                     return current;
                 }
             }

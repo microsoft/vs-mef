@@ -3,3 +3,4 @@ Exporting parts for MefCalculator.MefCalculatorInterfaces+IOperation:
 ExtendedOperations.Modulo
 MefCalculator.MefCalculatorInterfaces+Add
 MefCalculator.MefCalculatorInterfaces+Subtract
+***

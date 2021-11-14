@@ -8,3 +8,4 @@ MefCalculator.ExportTest
 MefCalculator.ImportTest
 MefCalculator.MefCalculatorInterfaces+Add
 MefCalculator.MefCalculatorInterfaces+Subtract
+***

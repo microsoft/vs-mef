@@ -1,3 +1,4 @@
 --parts --file TestFiles/Basic/expected.txt
 Couldn't process file TestFiles/Basic/expected.txt
+***
 Couldn't find any parts in the input files and folders

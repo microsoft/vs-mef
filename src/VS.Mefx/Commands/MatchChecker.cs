@@ -45,7 +45,7 @@
                         CultureInfo.CurrentCulture,
                         Strings.MissingPartFormat,
                         exportPartName);
-                    this.Options.Writer.WriteLine(invalidExport);
+                    this.Options.ErrorWriter.WriteLine(invalidExport);
                     return;
                 }
 
@@ -56,7 +56,7 @@
                         CultureInfo.CurrentCulture,
                         Strings.MissingPartFormat,
                         importPartName);
-                    this.Options.Writer.WriteLine(invalidImport);
+                    this.Options.ErrorWriter.WriteLine(invalidImport);
                     return;
                 }
 
@@ -72,7 +72,7 @@
             }
             else
             {
-                this.Options.Writer.WriteLine(Strings.MatchRequiresTwoMessage);
+                this.Options.ErrorWriter.WriteLine(Strings.MatchRequiresTwoMessage);
             }
 
             this.Options.Writer.WriteLine();
@@ -172,6 +172,7 @@
                     contractConstraint,
                     actualValue);
                 output.Messages.Add(contractFailure);
+                return output;
             }
 
             // Check all the Import Constraints
@@ -331,9 +332,12 @@
             // Print message about which exporting fields couldn't be found
             if (!includeAllExports && exportingFields.Count() > 0)
             {
-                this.Options.Writer.WriteLine(Strings.MissingExportMessage);
-                exportingFields.ForEach(field => this.Options.Writer.WriteLine(field));
+                this.Options.ErrorWriter.WriteLine(Strings.MissingExportMessage);
+                exportingFields.ForEach(field => this.Options.ErrorWriter.WriteLine(field));
             }
+
+            consideringExports.Sort((first, second) => first.ExportingField.CompareTo(second.ExportingField));
+            List<ImporterStorer> consideringImports = new List<ImporterStorer>();
 
             // Perform matching against all considering imports
             bool checkAllImports = importingFields == null;
@@ -349,12 +353,7 @@
                 bool performMatching = checkAllImports || importingFields.Contains(importingField);
                 if (performMatching)
                 {
-                    string matchPreview = string.Format(
-                        CultureInfo.CurrentCulture,
-                        Strings.ConsideringImportFormat,
-                        importingField);
-                    this.Options.Writer.WriteLine("\n" + matchPreview);
-                    this.PerformDefinitionChecking(currentImportDefintion, consideringExports);
+                    consideringImports.Add(new ImporterStorer(currentImportDefintion, importingField));
                     if (!checkAllImports)
                     {
                         importingFields.Remove(importingField);
@@ -365,9 +364,36 @@
             // Print message about which importing fields couldn't be found
             if (!checkAllImports && importingFields.Count() > 0)
             {
-                this.Options.Writer.WriteLine(Strings.MissingImportMessage);
-                importingFields.ForEach(field => this.Options.Writer.WriteLine(field));
+                this.Options.ErrorWriter.WriteLine(Strings.MissingImportMessage);
+                importingFields.ForEach(field => this.Options.ErrorWriter.WriteLine(field));
             }
+
+            // Once we have found all the exports and imports to consider perform matching on them
+            consideringImports.Sort((first, second) => first.ImportingField.CompareTo(second.ImportingField));
+            foreach (var import in consideringImports)
+            {
+                string matchPreview = string.Format(
+                    CultureInfo.CurrentCulture,
+                    Strings.ConsideringImportFormat,
+                    import.ImportingField);
+                this.Options.Writer.WriteLine("\n" + matchPreview);
+
+                this.PerformDefinitionChecking(import.Import, consideringExports);
+            }
+        }
+
+        private class ImporterStorer
+        {
+
+            public ImporterStorer(ImportDefinition import, string importingField)
+            {
+                this.Import = import;
+                this.ImportingField = importingField;
+            }
+
+            public ImportDefinition Import { get; private set; }
+
+            public string ImportingField { get; private set; }
         }
 
         private class PartExport

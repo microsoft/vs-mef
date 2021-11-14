@@ -2,12 +2,11 @@
   "profiles": {
     "VS.Mefx": {
       "commandName": "Project",
-      "commandLineArgs": "--parts --file TestFiles/Basic/All.cache",
+      "commandLineArgs": "--parts --directory TestFiles/Matching",
       "workingDirectory": "C:\\Users\\Pankaj\\Documents\\Github Repos\\vs-mef\\test\\VS.Mefx.Tests"
     },
     "WSL 2": {
       "commandName": "WSL2",
-      "environmentVariables": {},
       "distributionName": ""
     }
   }

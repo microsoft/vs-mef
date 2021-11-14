@@ -2,6 +2,7 @@ namespace VS.Mefx.Tests
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -20,98 +21,135 @@ namespace VS.Mefx.Tests
     {
         private readonly ITestOutputHelper output;
 
-        private static bool testOverride = false;
+        private const bool TestOverride = false;
+        private const bool IgnoreHelperFacts = false;
+        private const string SkipLabel = IgnoreHelperFacts ? "Debugging" : null;
 
         public TestRunner(ITestOutputHelper output)
         {
             this.output = output;
         }
 
-        private static async Task<string> RunCommand(string[] args)
+        private static async Task<string[]> RunCommand(string[] args)
         {
             // Won't support quoted strings
-            StringBuilder builder = new StringBuilder();
-            using (StringWriter sw = new StringWriter(builder))
+            StringBuilder normalBuilder = new StringBuilder();
+            StringBuilder errorBuilder = new StringBuilder();
+
+            using (StringWriter errorWriter = new StringWriter(errorBuilder))
+            using (StringWriter normalWriter = new StringWriter(normalBuilder))
             {
-                await Program.Runner(sw, args);
+                await Program.Runner(normalWriter, errorWriter, args);
             }
 
-            string savedOutput = builder.ToString().Trim();
-            return savedOutput;
+            string normalOutput = normalBuilder.ToString().Trim();
+            string errorOutput = errorBuilder.ToString().Trim();
+            return new string[] { normalOutput, errorOutput };
         }
 
-        private static async Task<string> CreateTest(string outputFilePath, string command)
+        private void PrintCommandResult(string[] result)
+        {
+            this.output.WriteLine("Default Output:");
+            this.output.WriteLine(result[0]);
+            this.output.WriteLine("Standard Error: ");
+            this.output.WriteLine(result[1]);
+        }
+
+        private async Task<string[]> CreateTest(string outputFilePath, string command)
         {
             TestInfo testData = new TestInfo();
             testData.UpdateTestCommand(command);
             string[] args = testData.GetCommandArgs();
-            string savedOutput = await RunCommand(args);
-            testData.UpdateTestResult(savedOutput);
+            string[] commandOutput = await RunCommand(args);
+            this.PrintCommandResult(commandOutput);
+
+            testData.UpdateTestOutput(commandOutput[0]);
+            testData.UpdateTestError(commandOutput[1]);
             testData.WriteToFile(outputFilePath);
-            return savedOutput;
+
+            return commandOutput;
         }
 
         private async Task OverrideTest(string filePath)
         {
             TestInfo fileData = new TestInfo(filePath);
             string[] args = fileData.GetCommandArgs();
-            string savedOutput = await RunCommand(args);
-            fileData.UpdateTestResult(savedOutput);
+            string[] commandOutput = await RunCommand(args);
+            this.PrintCommandResult(commandOutput);
+
+            fileData.UpdateTestOutput(commandOutput[0]);
+            fileData.UpdateTestError(commandOutput[1]);
+
             string originalFilePath = fileData.FilePath;
             fileData.WriteToFile(originalFilePath);
+        }
+
+        private bool RunComparsion(string type, List<string> expectedOutput, string output)
+        {
+            this.output.WriteLine("Running analysis for " + type);
+            List<string> commandResult = TestInfo.GetLines(output);
+            string commandText = string.Join("\n", commandResult);
+            string expectedText = string.Join("\n", expectedOutput);
+            bool isSame = !PrintDiff("Expected", "Result", expectedText, commandText, this.output);
+            return isSame;
         }
 
         private async Task JustRunTest(string filePath)
         {
             TestInfo fileData = new TestInfo(filePath);
             string[] args = fileData.GetCommandArgs();
-            string savedOutput = await RunCommand(args);
-            List<string> commandResult = TestInfo.GetLines(savedOutput);
-            List<string> expectedOutput = fileData.TestResult;
-            string commandText = string.Join("\n", commandResult);
-            string expectedText = string.Join("\n", expectedOutput);
-            Assert.False(PrintDiff("Expected", "Result", expectedText, commandText, this.output));
+            string[] commandOutput = await RunCommand(args);
+            bool defaultMatch = this.RunComparsion("standard out", fileData.TestOutputNormal, commandOutput[0]);
+            bool errorMatch = this.RunComparsion("standard err", fileData.TestOutputError, commandOutput[1]);
+            Assert.True(defaultMatch && errorMatch);
         }
 
         [Theory]
         [TestGetter]
         private async Task Runner(string fileName)
         {
-            string filePath = TestGetter.GetFilePath(fileName);
-            if (testOverride)
+            try
             {
-                await this.OverrideTest(filePath);
-            } else
+                string filePath = TestGetter.GetFilePath(fileName);
+                if (TestOverride)
+                {
+                    await this.OverrideTest(filePath);
+                }
+                else
+                {
+                    await this.JustRunTest(filePath);
+                }
+
+            }catch (Exception)
             {
-                await this.JustRunTest(filePath);
+                throw;
             }
         }
 
-        [Fact]
+        [Fact(Skip = SkipLabel)]
         public async Task CreateSampleTest()
         {
-            string testName = "MatchingMissingField.txt";
-            string testCommand = "--match CarOne.MoreMetadata Garage.Importer --match-imports NoCar --directory TestFiles/Matching";
+            string testName = "DetailNoSuchPart.txt";
+            string testCommand = "--detail NonExistantPart --directory TestFiles/Basic";
 
             string testFilePath = Path.Combine(TestGetter.UpdateFolder, testName);
             string currentDir = Directory.GetCurrentDirectory();
             string filePath = Path.GetFullPath(Path.Combine(currentDir, testFilePath));
-            string result = await CreateTest(filePath, testCommand);
-            this.output.WriteLine(result);
+            string[] result = await CreateTest(filePath, testCommand);
         }
 
-        [Fact]
+        [Fact(Skip = SkipLabel)]
         public async Task RunSampleTest()
         {
-            string command = "--verbose --rejected ExtendedOperations.Modulo --directory TestFiles/Basic";
-            string result = await RunCommand(command.Split(" "));
-            this.output.WriteLine(result);
+            string command = "--match CarOne.InvalidType User.Importer --match-exports CarOne.InvalidType --directory TestFiles/Matching";
+            string[] result = await RunCommand(command.Split(" "));
+            this.PrintCommandResult(result);
         }
 
-        [Fact]
+        [Fact(Skip = SkipLabel)]
         public async Task Playground()
         {
-            await this.Runner("BasicDetail.txt");
+            await this.Runner("MatchTypeTest.txt");
         }
 
         private class TestGetter : DataAttribute
@@ -127,7 +165,7 @@ namespace VS.Mefx.Tests
             public static string GetFilePath(string fileName)
             {
                 string folderName = RunFolder;
-                if (TestRunner.testOverride)
+                if (TestRunner.TestOverride)
                 {
                     folderName = UpdateFolder;
                 }
@@ -154,7 +192,7 @@ namespace VS.Mefx.Tests
             public TestGetter()
             {
                 string folderName = RunFolder;
-                if (TestRunner.testOverride)
+                if (TestRunner.TestOverride)
                 {
                     folderName = UpdateFolder;
                 }

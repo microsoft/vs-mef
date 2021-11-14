@@ -1,2 +1,0 @@
---cache TestFiles/Basic/All.cache --directory TestFiles/Basic
-Caught following error: The process cannot access the file 'C:\Users\Pankaj\Documents\Github Repos\vs-mef\bin\Tests\Debug\net5.0\TestFiles\Basic\All.cache' because it is being used by another process.

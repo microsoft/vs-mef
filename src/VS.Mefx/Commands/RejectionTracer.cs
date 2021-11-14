@@ -171,7 +171,7 @@
                     CultureInfo.CurrentCulture,
                     Strings.MissingRelativePath,
                     relativePath);
-                this.Options.Writer.WriteLine(missingMessage);
+                this.Options.ErrorWriter.WriteLine(missingMessage);
                 outputDirectory = currentDirectory;
             }
 
@@ -237,7 +237,7 @@
                     CultureInfo.CurrentCulture,
                     Strings.NoRejectionMessage,
                     partName);
-                this.Options.Writer.WriteLine(noRejection);
+                this.Options.ErrorWriter.WriteLine(noRejection);
                 return;
             }
 

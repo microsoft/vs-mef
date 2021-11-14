@@ -8,5 +8,6 @@ Errors in level 1
 MefCalculator.AddIn
 MefCalculator.ExportTest
 MefCalculator.ImportTest
-Couldn't find directory ./NoSuchFolder so using current directory
 Saved rejection graph to AllErrors.dgml
+***
+Couldn't find directory ./NoSuchFolder so using current directory

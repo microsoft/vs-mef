@@ -14,7 +14,8 @@
     /// </summary>
     public class Program
     {
-        private static TextWriter Output = null;
+        private static TextWriter normalOutput = null;
+        private static TextWriter errorOutput = null;
 
         /// <summary>
         /// A command line application to diagonse composition failures in MEF applications.
@@ -51,9 +52,14 @@
             List<string>? matchExports = null,
             List<string>? matchImports = null)
         {
-            if (Output == null)
+            if (normalOutput == null)
             {
-                Output = Console.Out;
+                normalOutput = Console.Out;
+            }
+
+            if (errorOutput == null)
+            {
+                errorOutput = Console.Error;
             }
 
             CLIOptions options = new CLIOptions
@@ -73,14 +79,16 @@
                 MatchParts = match,
                 MatchExports = matchExports,
                 MatchImports = matchImports,
-                Writer = Output,
+                Writer = normalOutput,
+                ErrorWriter = errorOutput,
             };
             await RunOptions(options);
         }
 
-        public static async Task Runner(TextWriter writer, string[] args)
+        public static async Task Runner(TextWriter output, TextWriter error, string[] args)
         {
-            Output = writer;
+            normalOutput = output;
+            errorOutput = error;
             MethodInfo mainInfo = typeof(Program).GetMethod("Main");
             await CommandLine.InvokeMethodAsync(args, mainInfo);
         }
@@ -94,7 +102,7 @@
             await creator.Initialize();
             if (creator.Catalog == null)
             {
-                options.Writer.WriteLine(Strings.NoPartsMessage);
+                options.ErrorWriter.WriteLine(Strings.NoPartsMessage);
                 return;
             }
 
@@ -112,6 +120,8 @@
                 RejectionTracer tracer = new RejectionTracer(creator, options);
                 tracer.PerformRejectionTracing();
             }
+
+            creator.Unload();
         }
     }
 }
