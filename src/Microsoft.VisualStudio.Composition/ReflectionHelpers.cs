@@ -150,6 +150,20 @@ namespace Microsoft.VisualStudio.Composition
                 ?? ImmutableArray<TypeRef>.Empty;
         }
 
+        internal static IReadOnlyList<TypeRef> TypesToTypeRefs(Type[] types, Resolver resolver)
+        {
+            Requires.NotNull(types, nameof(types));
+
+            // This is a hot path during solution load, avoid allocating using LINQ
+            var builder = ImmutableArray.CreateBuilder<TypeRef>(types.Length);
+            foreach (Type type in types)
+            {
+                builder.Add(TypeRef.Get(type, resolver));
+            }
+
+            return builder.MoveToImmutable();
+        }
+
         internal static IEnumerable<PropertyInfo> EnumProperties(this Type type)
         {
             Requires.NotNull(type, nameof(type));

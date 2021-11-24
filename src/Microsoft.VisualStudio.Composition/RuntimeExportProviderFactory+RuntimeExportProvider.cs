@@ -374,7 +374,7 @@ namespace Microsoft.VisualStudio.Composition
                     {
                         IEnumerable<TypeRef> typeArgs = typeArgsObject is LazyMetadataWrapper.TypeArraySubstitution
                             ? ((LazyMetadataWrapper.TypeArraySubstitution)typeArgsObject).TypeRefArray
-                            : ((Type[])typeArgsObject).Select(t => TypeRef.Get(t, part.TypeRef.Resolver));
+                            : ReflectionHelpers.TypesToTypeRefs((Type[])typeArgsObject, part.TypeRef.Resolver);
 
                         return part.TypeRef.MakeGenericTypeRef(typeArgs.ToImmutableArray());
                     }
