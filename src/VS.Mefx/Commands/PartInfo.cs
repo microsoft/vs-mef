@@ -1,4 +1,7 @@
-﻿namespace VS.Mefx.Commands
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+namespace VS.Mefx.Commands
 {
     using System;
     using System.Collections.Generic;
@@ -101,7 +104,7 @@
                         Strings.PartDetailFormat,
                         partName);
             this.Options.Writer.WriteLine(detailPreview);
-            ComposablePartDefinition definition = this.Creator.GetPart(partName);
+            ComposablePartDefinition? definition = this.Creator.GetPart(partName);
             if (definition == null)
             {
                 string missingPart = string.Format(

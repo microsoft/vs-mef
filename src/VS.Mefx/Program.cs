@@ -1,4 +1,7 @@
-﻿namespace VS.Mefx
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+namespace VS.Mefx
 {
     using System;
     using System.Collections.Generic;
@@ -7,6 +10,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
+    using Microsoft;
     using VS.Mefx.Commands;
 
     /// <summary>
@@ -14,8 +18,8 @@
     /// </summary>
     public class Program
     {
-        private static TextWriter normalOutput = null;
-        private static TextWriter errorOutput = null;
+        private static TextWriter normalOutput = Console.Out;
+        private static TextWriter errorOutput = Console.Error;
 
         /// <summary>
         /// A command line application to diagonse composition failures in MEF applications.
@@ -52,16 +56,6 @@
             List<string>? matchExports = null,
             List<string>? matchImports = null)
         {
-            if (normalOutput == null)
-            {
-                normalOutput = Console.Out;
-            }
-
-            if (errorOutput == null)
-            {
-                errorOutput = Console.Error;
-            }
-
             CLIOptions options = new CLIOptions
             {
                 Verbose = verbose,
@@ -89,7 +83,7 @@
         {
             normalOutput = output;
             errorOutput = error;
-            MethodInfo mainInfo = typeof(Program).GetMethod("Main");
+            MethodInfo mainInfo = typeof(Program).GetMethod(nameof(Main))!;
             await CommandLine.InvokeMethodAsync(args, mainInfo);
         }
 
@@ -100,7 +94,7 @@
         {
             ConfigCreator creator = new ConfigCreator(options);
             await creator.Initialize();
-            if (creator.Catalog == null)
+            if (creator.Catalog == null || creator.Config == null)
             {
                 options.ErrorWriter.WriteLine(Strings.NoPartsMessage);
                 return;
@@ -108,20 +102,10 @@
 
             PartInfo infoGetter = new PartInfo(creator, options);
             infoGetter.PrintRequestedInfo();
-            if (options.MatchParts != null && options.MatchParts.Count() > 0)
-            {
-                MatchChecker checker = new MatchChecker(creator, options);
-                checker.PerformMatching();
-            }
-
-            // Perform rejection tracing as well as visualization if specified
-            if (options.RejectedDetails != null && options.RejectedDetails.Count() > 0)
-            {
-                RejectionTracer tracer = new RejectionTracer(creator, options);
-                tracer.PerformRejectionTracing();
-            }
-
-            creator.Unload();
+            MatchChecker checker = new MatchChecker(creator, options);
+            checker.PerformMatching();
+            RejectionTracer tracer = new RejectionTracer(creator, options);
+            tracer.PerformRejectionTracing();
         }
     }
 }

@@ -1,4 +1,7 @@
-﻿namespace VS.Mefx.Tests
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+namespace VS.Mefx.Tests
 {
     using System;
     using System.Collections.Generic;
@@ -7,7 +10,6 @@
 
     internal class TestInfo
     {
-
         private static readonly string TestSeperator = "***";
 
         public string TestCommand { get; set; }
@@ -16,13 +18,14 @@
 
         public List<string> TestOutputError { get; set; }
 
-        public string? FilePath { get; set; }
+        public string FilePath { get; set; }
 
         public TestInfo()
         {
             this.TestCommand = string.Empty;
             this.TestOutputNormal = new List<string>();
             this.TestOutputError = new List<string>();
+            this.FilePath = string.Empty;
         }
 
         public TestInfo(string filePath)
@@ -88,7 +91,7 @@
             using (StringReader sr = new StringReader(text))
             {
                 string line;
-                while ((line = sr.ReadLine()) != null)
+                while ((line = sr.ReadLine()!) != null)
                 {
                     line = line.Trim();
                     if (line.Length > 0)
@@ -116,6 +119,5 @@
         {
             return Regex.Split(this.TestCommand.Trim(), @"\s+");
         }
-
     }
 }

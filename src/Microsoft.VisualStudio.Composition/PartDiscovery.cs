@@ -694,23 +694,7 @@ namespace Microsoft.VisualStudio.Composition
                 // they'll all see the union of types returned from this method anyway,
                 // so they have to be prepared for arbitrary types.
 
-                List<Assembly> garages = AppDomain.CurrentDomain.GetAssemblies().Where(x => x.GetName().Name == "Garage").ToList();
-                IEnumerable<Type> result = null;
-
-                while (true)
-                {
-                    try
-                    {
-                        result = assembly.GetTypes();
-                        break;
-                    }
-                    catch (Exception e)
-                    {
-                        continue;
-                    }
-                }
-
-                return result;
+                return assembly.GetTypes();
             }
         }
     }

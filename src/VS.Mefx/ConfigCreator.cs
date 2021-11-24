@@ -1,4 +1,7 @@
-﻿namespace VS.Mefx
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+namespace VS.Mefx
 {
     using System;
     using System.Collections.Generic;
@@ -37,7 +40,7 @@
 
             // Add all the files in the input argument to the list of paths
             string currentFolder = Directory.GetCurrentDirectory();
-            IEnumerable<string> files = this.Options.Files;
+            IEnumerable<string> files = this.Options.Files!;
             if (files != null)
             {
                 foreach (string file in files)
@@ -48,13 +51,13 @@
                             CultureInfo.CurrentCulture,
                             Strings.MissingFileMessage,
                             file);
-                        this.Options.Writer.WriteLine(missingFileMessage);
+                        this.Options.ErrorWriter.WriteLine(missingFileMessage);
                     }
                 }
             }
 
             // Add all the valid files in the input folders to the list of paths
-            IEnumerable<string> folders = this.Options.Folders;
+            IEnumerable<string> folders = this.Options.Folders!;
             if (folders != null)
             {
                 foreach (string folder in folders)
@@ -96,7 +99,7 @@
         /// <summary>
         /// Gets or sets a dictionary storing parts indexed by thier parts name for easy lookup.
         /// </summary>
-        public Dictionary<string, ComposablePartDefinition>? PartInformation { get; set; }
+        public Dictionary<string, ComposablePartDefinition> PartInformation { get; set; }
 
         /// <summary>
         /// Gets or sets the path of the cache file to store the processed parts.
@@ -119,7 +122,7 @@
         /// <param name="partName"> The name of the part we want to get details about.</param>
         /// <returns><see cref="ComposablePartDefinition"/> associated with the given part if it is
         /// present in the catalog and null otherwise.</returns>
-        public ComposablePartDefinition GetPart(string partName)
+        public ComposablePartDefinition? GetPart(string partName)
         {
             if (!this.PartInformation.ContainsKey(partName))
             {
@@ -129,21 +132,14 @@
             return this.PartInformation[partName];
         }
 
-        private CustomAssemblyLoader customLoader;
-
-        public void Unload()
-        {
-            this.customLoader.UnloadLoadContext();
-        }
-
         /// <summary>
         /// Method to intialize the catalog and configuration objects from the input files.
         /// </summary>
         /// <returns>A Task object when all the assembly have between loaded in and configured.</returns>
         public async Task Initialize()
         {
-            this.customLoader = new CustomAssemblyLoader(this.Options.ErrorWriter);
-            Resolver customResolver = new(this.customLoader);
+            CustomAssemblyLoader customLoader = new CustomAssemblyLoader(this.Options.ErrorWriter);
+            Resolver customResolver = new(customLoader);
             var nugetDiscover = new AttributedPartDiscovery(customResolver, isNonPublicSupported: true);
             var netDiscover = new AttributedPartDiscoveryV1(customResolver);
             PartDiscovery discovery = PartDiscovery.Combine(customResolver, netDiscover, nugetDiscover);
@@ -166,17 +162,14 @@
                 // Add all the parts to the dictionary for lookup
                 foreach (ComposablePartDefinition part in this.Catalog.Parts)
                 {
-                    string partName = part.Type.FullName;
+                    string partName = part.Type.FullName!;
                     if (!this.PartInformation.ContainsKey(partName))
                     {
                         this.PartInformation.Add(partName, part);
                     }
                 }
 
-                if (this.OutputCacheFile.Length > 0)
-                {
-                    await this.SaveToCache();
-                }
+                await this.SaveToCache();
             }
         }
 
@@ -266,6 +259,7 @@
                             this.Catalog = this.Catalog.AddCatalog(cacheParts);
                         }
                     }
+
                     // this.Options.ErrorWriter.WriteLine("Finished ReadCache for " + filePath + " on " + DateTimeOffset.Now.ToUnixTimeMilliseconds());
                 }
                 catch (Exception error)
@@ -284,6 +278,11 @@
         /// </summary>
         private async Task SaveToCache()
         {
+            if (this.OutputCacheFile == null || this.OutputCacheFile.Length == 0)
+            {
+                return;
+            }
+
             string fileName = this.OutputCacheFile.Trim();
             int extensionIndex = fileName.LastIndexOf('.');
             string cacheExtension = ValidExtensions[ValidExtensions.Length - 1];
@@ -296,7 +295,7 @@
                     CachedCatalog cacheWriter = new CachedCatalog();
                     using (var fileWriter = File.Create(filePath))
                     {
-                        await cacheWriter.SaveAsync(this.Catalog, fileWriter);
+                        await cacheWriter.SaveAsync(this.Catalog!, fileWriter);
                         string cacheSaved = string.Format(
                         CultureInfo.CurrentCulture,
                         Strings.SavedCacheMessage,
@@ -345,7 +344,6 @@
         {
             public CustomAssemblyLoader(TextWriter writer)
             {
-                this.Context = new AssemblyLoadContext("Mefx", true);
                 this.LoadedAssemblies = new Dictionary<string, Assembly>();
                 this.Writer = writer;
             }
@@ -353,9 +351,9 @@
             private static readonly bool DEBUG = false;
 
             /// <summary>
-            /// Gets or sets a Load Context to see when loading the assemblies into Mefx.
+            /// Gets a Load Context to see when loading the assemblies into Mefx.
             /// </summary>
-            private AssemblyLoadContext Context { get; set; }
+            private static AssemblyLoadContext Context { get; } = new AssemblyLoadContext("Mefx");
 
             /// <summary>
             /// Gets or sets an dictionary to keep track of the loaded dictionaries.
@@ -366,11 +364,6 @@
             /// Gets or sets a writer to use when outputting information to the user.
             /// </summary>
             private TextWriter Writer { get; set; }
-
-            public void UnloadLoadContext()
-            {
-                 this.Context.Unload();
-            }
 
             /// <summary>
             /// Loads the assembly with the specified name and path.
@@ -425,7 +418,8 @@
                 {
                     path = new Uri(path.Trim()).LocalPath;
 
-                    if (DEBUG) {
+                    if (DEBUG)
+                    {
                         this.Writer.WriteLine("LoadingUsingPath with path: " + path);
                     }
 
@@ -434,7 +428,7 @@
                         return this.LoadedAssemblies[path];
                     }
 
-                    Assembly current = this.Context.LoadFromAssemblyPath(path);
+                    Assembly current = Context.LoadFromAssemblyPath(path);
 
                     if (DEBUG)
                     {
@@ -462,12 +456,11 @@
                         return this.LoadedAssemblies[assemblyName];
                     }
 
-                    Assembly current = this.Context.LoadFromAssemblyName(assemblyInfo);
+                    Assembly current = Context.LoadFromAssemblyName(assemblyInfo);
                     this.LoadedAssemblies.Add(assemblyName, current);
                     return current;
                 }
             }
-
         }
     }
 }

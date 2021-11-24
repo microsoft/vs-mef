@@ -1,9 +1,13 @@
-﻿namespace VS.Mefx.Commands
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+namespace VS.Mefx.Commands
 {
     using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
+    using Microsoft;
     using Microsoft.VisualStudio.Composition;
 
     /// <summary>
@@ -26,6 +30,11 @@
         /// </summary>
         public void PerformMatching()
         {
+            if (this.Options.MatchParts == null || this.Options.MatchParts.Count == 0)
+            {
+                return;
+            }
+
             if (this.Options.MatchParts.Count() == 2)
             {
                 string exportPartName = this.Options.MatchParts.ElementAt(0).Trim();
@@ -38,7 +47,7 @@
                 this.Options.Writer.WriteLine(matchPreview);
 
                 // Deal with the case that one of the parts doesn't exist
-                ComposablePartDefinition exportPart = this.Creator.GetPart(exportPartName);
+                ComposablePartDefinition? exportPart = this.Creator.GetPart(exportPartName);
                 if (exportPart == null)
                 {
                     string invalidExport = string.Format(
@@ -49,7 +58,7 @@
                     return;
                 }
 
-                ComposablePartDefinition importPart = this.Creator.GetPart(importPartName);
+                ComposablePartDefinition? importPart = this.Creator.GetPart(importPartName);
                 if (importPart == null)
                 {
                     string invalidImport = string.Format(
@@ -91,13 +100,13 @@
                 return Strings.NullText;
             }
 
-            string constraintString = constraint.ToString();
-            string actualValue = export.ToString();
+            string constraintString = constraint.ToString()!;
+            string actualValue = export.ToString()!;
 
             // Try to treat the constraint as an indentity constraint
             if (constraint is ExportTypeIdentityConstraint)
             {
-                var identityConstraint = (ExportTypeIdentityConstraint) constraint;
+                var identityConstraint = (ExportTypeIdentityConstraint)constraint;
                 constraintString = string.Format(
                     CultureInfo.CurrentCulture,
                     Strings.TypeFormat,
@@ -122,7 +131,7 @@
                 if (exportDetails.Metadata.ContainsKey(keyName))
                 {
                     var keyValue = exportDetails.Metadata[keyName];
-                    pairValue = keyValue != null ? keyValue.ToString() : Strings.NullText;
+                    pairValue = (keyValue != null ? keyValue.ToString() : Strings.NullText)!;
                 }
 
                 actualValue = string.Format(
@@ -250,7 +259,7 @@
                     allExportDefinitions.Add(exportName, new List<PartExport>());
                 }
 
-                string exportLabel = exportPart.Type.FullName;
+                string exportLabel = exportPart.Type.FullName!;
                 if (export.Key != null)
                 {
                     exportLabel = export.Key.Name;
@@ -269,7 +278,7 @@
                 if (allExportDefinitions.ContainsKey(currentContractName))
                 {
                     this.Options.Writer.WriteLine();
-                    string fieldName = importPart.Type.FullName;
+                    string fieldName = importPart.Type.FullName!;
                     if (import.ImportingMember != null)
                     {
                         fieldName = import.ImportingMember.Name;
@@ -302,27 +311,26 @@
         private void CheckSpecificMatch(
             ComposablePartDefinition exportPart,
             ComposablePartDefinition importPart,
-            List<string> exportingFields,
-            List<string> importingFields)
+            List<string>? exportingFields,
+            List<string>? importingFields)
         {
             List<PartExport> consideringExports = new List<PartExport>();
-            bool includeAllExports = exportingFields == null;
 
             // Find all the exports we want to consider during the matching phase
             foreach (var export in exportPart.ExportDefinitions)
             {
                 var exportDetails = export.Value;
-                string exportLabel = exportPart.Type.FullName;
+                string exportLabel = exportPart.Type.FullName!;
                 if (export.Key != null)
                 {
                     exportLabel = export.Key.Name;
                 }
 
-                bool considerExport = includeAllExports || exportingFields.Contains(exportLabel);
+                bool considerExport = (exportingFields == null) || exportingFields.Contains(exportLabel);
                 if (considerExport)
                 {
                     consideringExports.Add(new PartExport(exportDetails, exportLabel));
-                    if (!includeAllExports)
+                    if (exportingFields != null)
                     {
                         exportingFields.Remove(exportLabel);
                     }
@@ -330,7 +338,7 @@
             }
 
             // Print message about which exporting fields couldn't be found
-            if (!includeAllExports && exportingFields.Count() > 0)
+            if (exportingFields != null && exportingFields.Count() > 0)
             {
                 this.Options.ErrorWriter.WriteLine(Strings.MissingExportMessage);
                 exportingFields.ForEach(field => this.Options.ErrorWriter.WriteLine(field));
@@ -340,21 +348,20 @@
             List<ImporterStorer> consideringImports = new List<ImporterStorer>();
 
             // Perform matching against all considering imports
-            bool checkAllImports = importingFields == null;
             foreach (var import in importPart.Imports)
             {
                 var currentImportDefintion = import.ImportDefinition;
-                string importingField = importPart.Type.FullName;
+                string importingField = importPart.Type.FullName!;
                 if (import.ImportingMember != null)
                 {
                     importingField = import.ImportingMember.Name;
                 }
 
-                bool performMatching = checkAllImports || importingFields.Contains(importingField);
+                bool performMatching = importingFields == null || importingFields.Contains(importingField);
                 if (performMatching)
                 {
                     consideringImports.Add(new ImporterStorer(currentImportDefintion, importingField));
-                    if (!checkAllImports)
+                    if (importingFields != null)
                     {
                         importingFields.Remove(importingField);
                     }
@@ -362,7 +369,7 @@
             }
 
             // Print message about which importing fields couldn't be found
-            if (!checkAllImports && importingFields.Count() > 0)
+            if (importingFields != null && importingFields.Count() > 0)
             {
                 this.Options.ErrorWriter.WriteLine(Strings.MissingImportMessage);
                 importingFields.ForEach(field => this.Options.ErrorWriter.WriteLine(field));
@@ -384,7 +391,6 @@
 
         private class ImporterStorer
         {
-
             public ImporterStorer(ImportDefinition import, string importingField)
             {
                 this.Import = import;
@@ -410,7 +416,8 @@
                 var exportType = details.ContractName;
                 if (details.Metadata.ContainsKey(TypeKey))
                 {
-                    exportType = details.Metadata[TypeKey].ToString();
+                    object value = details.Metadata[TypeKey]!;
+                    exportType = value.ToString()!;
                 }
 
                 this.ExportingType = exportType;

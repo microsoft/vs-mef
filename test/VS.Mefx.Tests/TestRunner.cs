@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 namespace VS.Mefx.Tests
 {
     using System;
@@ -19,11 +22,11 @@ namespace VS.Mefx.Tests
 
     public class TestRunner
     {
-        private readonly ITestOutputHelper output;
-
         private const bool TestOverride = false;
-        private const bool IgnoreHelperFacts = false;
+        private const bool IgnoreHelperFacts = true;
         private const string SkipLabel = IgnoreHelperFacts ? "Debugging" : null;
+
+        private readonly ITestOutputHelper output;
 
         public TestRunner(ITestOutputHelper output)
         {
@@ -113,14 +116,16 @@ namespace VS.Mefx.Tests
                 string filePath = TestGetter.GetFilePath(fileName);
                 if (TestOverride)
                 {
+#pragma warning disable CS0162 // Unreachable code detected
                     await this.OverrideTest(filePath);
+#pragma warning restore CS0162 // Unreachable code detected
                 }
                 else
                 {
                     await this.JustRunTest(filePath);
                 }
-
-            }catch (Exception)
+            }
+            catch (Exception)
             {
                 throw;
             }
@@ -135,7 +140,7 @@ namespace VS.Mefx.Tests
             string testFilePath = Path.Combine(TestGetter.UpdateFolder, testName);
             string currentDir = Directory.GetCurrentDirectory();
             string filePath = Path.GetFullPath(Path.Combine(currentDir, testFilePath));
-            string[] result = await CreateTest(filePath, testCommand);
+            string[] result = await this.CreateTest(filePath, testCommand);
         }
 
         [Fact(Skip = SkipLabel)]
@@ -167,7 +172,9 @@ namespace VS.Mefx.Tests
                 string folderName = RunFolder;
                 if (TestRunner.TestOverride)
                 {
+#pragma warning disable CS0162 // Unreachable code detected
                     folderName = UpdateFolder;
+#pragma warning restore CS0162 // Unreachable code detected
                 }
 
                 string currentDir = Directory.GetCurrentDirectory();
@@ -194,7 +201,9 @@ namespace VS.Mefx.Tests
                 string folderName = RunFolder;
                 if (TestRunner.TestOverride)
                 {
+#pragma warning disable CS0162 // Unreachable code detected
                     folderName = UpdateFolder;
+#pragma warning restore CS0162 // Unreachable code detected
                 }
 
                 string currentDir = Directory.GetCurrentDirectory();

@@ -1,4 +1,7 @@
-﻿namespace VS.Mefx.Commands
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+namespace VS.Mefx.Commands
 {
     using System;
     using System.Collections.Generic;
@@ -42,6 +45,11 @@
         /// </summary>
         public void PerformRejectionTracing()
         {
+            if (this.Options.RejectedDetails == null || this.Options.RejectedDetails.Count == 0)
+            {
+                return;
+            }
+
             if (this.Options.RejectedDetails.Contains(Strings.AllText, StringComparer.OrdinalIgnoreCase))
             {
                 this.ListAllRejections();
@@ -63,7 +71,7 @@
         {
             // Get the error stack from the composition configuration
             var whiteListChecker = new WhiteList(this.Options);
-            CompositionConfiguration config = this.Creator.Config;
+            CompositionConfiguration config = this.Creator.Config!;
             var errors = config.CompositionErrors;
             int levelNumber = 1;
             while (errors.Count() > 0)
@@ -76,7 +84,7 @@
 
                     // Create a PartNode object from the definition of the current Part
                     ComposablePartDefinition definition = part.Definition;
-                    string currentName = definition.Type.FullName;
+                    string currentName = definition.Type.FullName!;
                     if (currentName == null)
                     {
                         continue;
@@ -108,7 +116,7 @@
                 // Get the imports for the current part to update the pointers associated with the current node
                 foreach (var import in nodeDefinition.Imports)
                 {
-                    string importName = import.ImportingSiteType.FullName;
+                    string importName = import.ImportingSiteType.FullName!;
                     if (importName == null || !this.RejectionGraph.ContainsKey(importName))
                     {
                         continue;
@@ -242,12 +250,8 @@
             }
 
             // Store just the nodes that are involved in the current rejection chain to use when generating the graph
-            Dictionary<string, PartNode> relevantNodes = null;
+            Dictionary<string, PartNode> relevantNodes = new Dictionary<string, PartNode>();
             bool saveGraph = this.Options.GraphPath.Length > 0;
-            if (saveGraph)
-            {
-                relevantNodes = new Dictionary<string, PartNode>();
-            }
 
             // Perform Breadth First Search (BFS) with the node associated with partName as the root.
             // When performing BFS, only the child nodes are considered since we want to the root to be
@@ -311,7 +315,7 @@
         /// Method to display information about a particular node to the user.
         /// </summary>
         /// <param name="current">The Node whose information we want to display.</param>
-        /// <returns>A string with information regarding the input node</returns>
+        /// <returns>A string with information regarding the input node.</returns>
         private string GetNodeDetail(PartNode current)
         {
             string startMessage;

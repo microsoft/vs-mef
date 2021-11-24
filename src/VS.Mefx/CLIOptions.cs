@@ -1,5 +1,9 @@
-﻿namespace VS.Mefx
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+namespace VS.Mefx
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
 
@@ -86,12 +90,11 @@
         /// <summary>
         /// Gets or sets the writer to use when writing output to the user.
         /// </summary>
-        public TextWriter? Writer { get; set; }
+        public TextWriter Writer { get; set; } = Console.Out;
 
         /// <summary>
         /// Gets or sets the writer to use when writing error messages to the user.
         /// </summary>
-        public TextWriter? ErrorWriter { get; set; }
-
+        public TextWriter ErrorWriter { get; set; } = Console.Error;
     }
 }
