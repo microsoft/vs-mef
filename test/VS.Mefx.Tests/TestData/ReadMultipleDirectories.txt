@@ -1,0 +1,16 @@
+--parts --directory TestFiles/Basic TestFiles/Matching
+Parts in the Catalog are
+CarOne.FirstCar
+CarOne.InvalidType
+CarOne.MoreMetadata
+CarTwo.SecondCar
+ExtendedOperations.ChainOne
+ExtendedOperations.Modulo
+MefCalculator.AddIn
+MefCalculator.ExportMeta
+MefCalculator.ExportTest
+MefCalculator.ImportTest
+MefCalculator.MefCalculatorInterfaces+Add
+MefCalculator.MefCalculatorInterfaces+Subtract
+User.Importer
+***

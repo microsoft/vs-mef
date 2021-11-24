@@ -653,12 +653,14 @@ namespace Microsoft.VisualStudio.Composition
         private class CombinedPartDiscovery : PartDiscovery
         {
             private readonly IReadOnlyList<PartDiscovery> discoveryMechanisms;
+            private Dictionary<string, IEnumerable<Type>> loadedTypes;
 
             internal CombinedPartDiscovery(Resolver resolver, IReadOnlyList<PartDiscovery> discoveryMechanisms)
                 : base(resolver)
             {
                 Requires.NotNull(discoveryMechanisms, nameof(discoveryMechanisms));
                 this.discoveryMechanisms = discoveryMechanisms;
+                this.loadedTypes = new Dictionary<string, IEnumerable<Type>>();
             }
 
             protected override ComposablePartDefinition? CreatePart(Type partType, bool typeExplicitlyRequested)
@@ -691,6 +693,7 @@ namespace Microsoft.VisualStudio.Composition
                 // Also, even if the individual modules returned a filtered set of types,
                 // they'll all see the union of types returned from this method anyway,
                 // so they have to be prepared for arbitrary types.
+
                 return assembly.GetTypes();
             }
         }

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "VS.Mefx.Tests": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Users\\Pankaj\\Documents\\Github Repos\\vs-mef\\test\\VS.Mefx.Tests"
+    }
+  }
+}

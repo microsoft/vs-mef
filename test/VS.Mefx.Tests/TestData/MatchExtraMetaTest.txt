@@ -1,0 +1,10 @@
+--match CarOne.MoreMetadata User.Importer --directory TestFiles/Matching
+Find matches from CarOne.MoreMetadata to User.Importer
+Performing matching for importing field NewerCar
+Considering exporting field CarOne.MoreMetadata
+Export matches all import constraints
+Performing matching for importing field UsedCar
+Considering exporting field CarOne.MoreMetadata
+Failed Constraint #1
+Expected: [Metadata - Key: Type, Value: Used], Found: [Metadata - Key: Type, Value: No such key]
+***
