@@ -1,0 +1,55 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v5.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v5.0": {
+      "User/1.0.0": {
+        "dependencies": {
+          "Garage": "1.0.0",
+          "System.Composition.AttributedModel": "5.0.1"
+        },
+        "runtime": {
+          "User.dll": {}
+        }
+      },
+      "System.Composition.AttributedModel/5.0.1": {
+        "runtime": {
+          "lib/netstandard2.0/System.Composition.AttributedModel.dll": {
+            "assemblyVersion": "5.0.0.0",
+            "fileVersion": "5.0.220.61120"
+          }
+        }
+      },
+      "Garage/1.0.0": {
+        "dependencies": {
+          "System.Composition.AttributedModel": "5.0.1"
+        },
+        "runtime": {
+          "Garage.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "User/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "System.Composition.AttributedModel/5.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ZjxeoyKxyr36D1n+m5OxTQE8ESFMZ7HgzsXlGwuVfkap1lM/bYzwcTR+zXgSwPmYJmVgvgkJCVjLeBe9UG7Ppw==",
+      "path": "system.composition.attributedmodel/5.0.1",
+      "hashPath": "system.composition.attributedmodel.5.0.1.nupkg.sha512"
+    },
+    "Garage/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

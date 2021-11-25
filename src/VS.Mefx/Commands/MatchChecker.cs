@@ -131,7 +131,7 @@ namespace VS.Mefx.Commands
                 if (exportDetails.Metadata.ContainsKey(keyName))
                 {
                     var keyValue = exportDetails.Metadata[keyName];
-                    pairValue = (keyValue != null ? keyValue.ToString() : Strings.NullText)!;
+                    pairValue = keyValue != null ? keyValue.ToString()! : Strings.NullText;
                 }
 
                 actualValue = string.Format(

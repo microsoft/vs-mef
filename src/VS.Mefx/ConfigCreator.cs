@@ -40,9 +40,9 @@ namespace VS.Mefx
 
             // Add all the files in the input argument to the list of paths
             string currentFolder = Directory.GetCurrentDirectory();
-            IEnumerable<string> files = this.Options.Files!;
-            if (files != null)
+            if (this.Options.Files != null)
             {
+                IEnumerable<string> files = this.Options.Files;
                 foreach (string file in files)
                 {
                     if (!this.AddFile(currentFolder, file))
@@ -57,9 +57,9 @@ namespace VS.Mefx
             }
 
             // Add all the valid files in the input folders to the list of paths
-            IEnumerable<string> folders = this.Options.Folders!;
-            if (folders != null)
+            if (this.Options.Folders != null)
             {
+                IEnumerable<string> folders = this.Options.Folders;
                 foreach (string folder in folders)
                 {
                     string folderPath = Path.GetFullPath(Path.Combine(currentFolder, folder));
@@ -278,7 +278,9 @@ namespace VS.Mefx
         /// </summary>
         private async Task SaveToCache()
         {
-            if (this.OutputCacheFile == null || this.OutputCacheFile.Length == 0)
+            if (this.Catalog == null ||
+                this.OutputCacheFile == null ||
+                this.OutputCacheFile.Length == 0)
             {
                 return;
             }
@@ -295,7 +297,7 @@ namespace VS.Mefx
                     CachedCatalog cacheWriter = new CachedCatalog();
                     using (var fileWriter = File.Create(filePath))
                     {
-                        await cacheWriter.SaveAsync(this.Catalog!, fileWriter);
+                        await cacheWriter.SaveAsync(this.Catalog, fileWriter);
                         string cacheSaved = string.Format(
                         CultureInfo.CurrentCulture,
                         Strings.SavedCacheMessage,
@@ -348,7 +350,7 @@ namespace VS.Mefx
                 this.Writer = writer;
             }
 
-            private static readonly bool DEBUG = false;
+            private const bool DEBUG = false;
 
             /// <summary>
             /// Gets a Load Context to see when loading the assemblies into Mefx.

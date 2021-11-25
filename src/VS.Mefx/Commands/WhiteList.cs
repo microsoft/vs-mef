@@ -65,7 +65,12 @@ namespace VS.Mefx.Commands
         {
             if (!this.UsingRegex)
             {
-                return this.WhiteListParts.Contains(partName);
+                return this.WhiteListParts == null ? false : this.WhiteListParts.Contains(partName);
+            }
+
+            if (this.WhiteListExpressions == null)
+            {
+                return false;
             }
 
             foreach (Regex test in this.WhiteListExpressions)
@@ -77,7 +82,7 @@ namespace VS.Mefx.Commands
                         return true;
                     }
                 }
-                catch (Exception error)
+                catch
                 {
                 }
             }
@@ -110,12 +115,12 @@ namespace VS.Mefx.Commands
                 foreach (string description in lines)
                 {
                     string name = description.Trim();
-                    if (this.UsingRegex)
+                    if (this.UsingRegex && this.WhiteListExpressions != null)
                     {
                         string pattern = @"^" + name + @"$";
                         this.WhiteListExpressions.Add(new Regex(pattern, RegexOptions, MaxRegexTime));
                     }
-                    else
+                    else if (this.WhiteListParts != null)
                     {
                         this.WhiteListParts.Add(name);
                     }

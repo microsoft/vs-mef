@@ -170,6 +170,11 @@ namespace VS.Mefx.Commands
         /// <param name="graph">The <see cref="GraphCreator"/> to save in the specified file path.</param>
         private void SaveGraph(string fileName, GraphCreator graph)
         {
+            if (this.Options.GraphPath == null)
+            {
+                return;
+            }
+
             string relativePath = this.Options.GraphPath;
             string currentDirectory = Directory.GetCurrentDirectory();
             string outputDirectory = Path.GetFullPath(Path.Combine(currentDirectory, relativePath));
@@ -210,7 +215,7 @@ namespace VS.Mefx.Commands
                 this.ListErrorsinLevel(level);
             }
 
-            bool saveGraph = this.Options.GraphPath.Length > 0;
+            bool saveGraph = this.Options.GraphPath != null && this.Options.GraphPath.Length > 0;
             if (saveGraph)
             {
                 GraphCreator creator = new GraphCreator(this.RejectionGraph);
@@ -251,7 +256,7 @@ namespace VS.Mefx.Commands
 
             // Store just the nodes that are involved in the current rejection chain to use when generating the graph
             Dictionary<string, PartNode> relevantNodes = new Dictionary<string, PartNode>();
-            bool saveGraph = this.Options.GraphPath.Length > 0;
+            bool saveGraph = this.Options.GraphPath != null && this.Options.GraphPath.Length > 0;
 
             // Perform Breadth First Search (BFS) with the node associated with partName as the root.
             // When performing BFS, only the child nodes are considered since we want to the root to be

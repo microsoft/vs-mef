@@ -83,7 +83,7 @@ namespace VS.Mefx.Commands
         /// <returns>The name of the associated part.</returns>
         public string GetName()
         {
-            return this.Part.Type.FullName;
+            return this.Part.Type.FullName!;
         }
 
         /// <summary>

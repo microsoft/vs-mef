@@ -70,7 +70,7 @@ namespace VS.Mefx.Commands
             }
             else
             {
-                return partType.FullName;
+                return partType.FullName!;
             }
         }
     }
