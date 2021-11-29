@@ -479,9 +479,9 @@ namespace Microsoft.VisualStudio.Composition
 
             internal static bool TrySubstituteValue(object value, Resolver resolver, [NotNullWhen(true)] out ISubstitutedValue? substitutedValue)
             {
-                if (value is Type[])
+                if (value is Type[] types)
                 {
-                    substitutedValue = new TypeArraySubstitution(((Type[])value).Select(t => TypeRef.Get(t, resolver)).ToImmutableArray(), resolver);
+                    substitutedValue = new TypeArraySubstitution(ReflectionHelpers.TypesToTypeRefs(types, resolver), resolver);
                     return true;
                 }
 
