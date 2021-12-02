@@ -344,3 +344,6 @@ MigrationBackup/
 
 # dotnet tool local install directory
 .store/
+
+#Nuget Packages
+.nupkg
