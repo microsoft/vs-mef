@@ -395,7 +395,9 @@ namespace VS.Mefx
             {
                 if (DEBUG)
                 {
+#pragma warning disable CS0162 // Unreachable code detected
                     this.Writer.WriteLine("Call to load assembly " + assemblyName.Name + " at " + DateTime.Now);
+#pragma warning restore CS0162 // Unreachable code detected
                 }
 
                 // Try to read using the path first and use assemblyName as backup
@@ -422,7 +424,9 @@ namespace VS.Mefx
 
                     if (DEBUG)
                     {
+#pragma warning disable CS0162 // Unreachable code detected
                         this.Writer.WriteLine("LoadingUsingPath with path: " + path);
+#pragma warning restore CS0162 // Unreachable code detected
                     }
 
                     if (this.LoadedAssemblies.ContainsKey(path))
@@ -434,7 +438,9 @@ namespace VS.Mefx
 
                     if (DEBUG)
                     {
+#pragma warning disable CS0162 // Unreachable code detected
                         this.Writer.WriteLine("Loaded assembly has value of " + current);
+#pragma warning restore CS0162 // Unreachable code detected
                     }
 
                     this.LoadedAssemblies.Add(path, current);

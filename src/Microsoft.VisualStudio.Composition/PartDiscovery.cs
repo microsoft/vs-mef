@@ -693,7 +693,6 @@ namespace Microsoft.VisualStudio.Composition
                 // Also, even if the individual modules returned a filtered set of types,
                 // they'll all see the union of types returned from this method anyway,
                 // so they have to be prepared for arbitrary types.
-
                 return assembly.GetTypes();
             }
         }
