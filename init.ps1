@@ -37,13 +37,17 @@
     when building.
 .PARAMETER IBCMerge
     Install the MicroBuild IBCMerge plugin for building optimized assemblies on desktop machines.
+.PARAMETER Setup
+    Install the MicroBuild setup plugin for building VSIXv3 packages.
+.PARAMETER OptProf
+    Install the MicroBuild OptProf plugin for building optimized assemblies on desktop machines.
 .PARAMETER AccessToken
     An optional access token for authenticating to Azure Artifacts authenticated feeds.
 #>
-[CmdletBinding(SupportsShouldProcess=$true)]
+[CmdletBinding(SupportsShouldProcess = $true)]
 Param (
-    [ValidateSet('repo','user','machine')]
-    [string]$InstallLocality='user',
+    [ValidateSet('repo', 'user', 'machine')]
+    [string]$InstallLocality = 'user',
     [Parameter()]
     [switch]$NoPrerequisites,
     [Parameter()]
@@ -57,10 +61,17 @@ Param (
     [Parameter()]
     [switch]$Localization,
     [Parameter()]
+    [switch]$IBCMerge,
+    [Parameter()]
+    [switch]$Setup,
+    [Parameter()]
+    [switch]$OptProf,
+    [Parameter()]
     [string]$AccessToken
 )
 
 $EnvVars = @{}
+$PrependPath = @()
 
 if (!$NoPrerequisites) {
     if (!$NoNuGetCredProvider) {
@@ -72,7 +83,7 @@ if (!$NoPrerequisites) {
         Exit 3010
     }
 
-    # The procdump tool and env var is required for dotnet test to collect deadlock/crash dumps of tests.
+    # The procdump tool and env var is required for dotnet test to collect hang/crash dumps of tests.
     # But it only works on Windows.
     if ($env:OS -eq 'Windows_NT') {
         $EnvVars['PROCDUMP_PATH'] = & "$PSScriptRoot\azure-pipelines\Get-ProcDump.ps1"
@@ -80,8 +91,8 @@ if (!$NoPrerequisites) {
 }
 
 # Workaround nuget credential provider bug that causes very unreliable package restores on Azure Pipelines
-$env:NUGET_PLUGIN_HANDSHAKE_TIMEOUT_IN_SECONDS=20
-$env:NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS=20
+$env:NUGET_PLUGIN_HANDSHAKE_TIMEOUT_IN_SECONDS = 20
+$env:NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS = 20
 
 Push-Location $PSScriptRoot
 try {
@@ -98,11 +109,22 @@ try {
     $InstallNuGetPkgScriptPath = ".\azure-pipelines\Install-NuGetPackage.ps1"
     $nugetVerbosity = 'quiet'
     if ($Verbose) { $nugetVerbosity = 'normal' }
-    $MicroBuildPackageSource = 'https://devdiv.pkgs.visualstudio.com/DefaultCollection/_packaging/MicroBuildToolset/nuget/v3/index.json'
+    $MicroBuildPackageSource = 'https://pkgs.dev.azure.com/devdiv/_packaging/MicroBuildToolset%40Local/nuget/v3/index.json'
     if ($Signing) {
         Write-Host "Installing MicroBuild signing plugin" -ForegroundColor $HeaderColor
         & $InstallNuGetPkgScriptPath MicroBuild.Plugins.Signing -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
         $EnvVars['SignType'] = "Test"
+    }
+
+    if ($Setup) {
+        Write-Host "Installing MicroBuild SwixBuild plugin..." -ForegroundColor $HeaderColor
+        & $InstallNuGetPkgScriptPath MicroBuild.Plugins.SwixBuild -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
+    }
+
+    if ($OptProf) {
+        Write-Host "Installing MicroBuild OptProf plugin" -ForegroundColor $HeaderColor
+        & $InstallNuGetPkgScriptPath MicroBuild.Plugins.OptProf -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
+        $EnvVars['OptProfEnabled'] = '1'
     }
 
     if ($Localization) {
@@ -118,12 +140,7 @@ try {
         $env:IBCMergeBranch = "master"
     }
 
-    # This is a workaround for https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1283978
-    if ($Signing -or $Localization -or $IBCMerge) {
-        & $InstallNuGetPkgScriptPath MicroBuild.Core.Sentinel -source $MicroBuildPackageSource -Verbosity $nugetVerbosity
-    }
-
-    & "$PSScriptRoot/tools/Set-EnvVars.ps1" -Variables $EnvVars | Out-Null
+    & "$PSScriptRoot/tools/Set-EnvVars.ps1" -Variables $EnvVars -PrependPath $PrependPath | Out-Null
 }
 catch {
     Write-Error $error[0]
