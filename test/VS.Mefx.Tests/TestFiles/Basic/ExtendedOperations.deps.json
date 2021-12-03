@@ -6,8 +6,9 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "Garage/17.1.17-alpha": {
+      "ExtendedOperations/17.1.17-alpha": {
         "dependencies": {
+          "MefCalculator": "1.0.0",
           "Microsoft.CodeAnalysis.NetAnalyzers": "5.0.3",
           "Microsoft.NETFramework.ReferenceAssemblies": "1.0.2",
           "Microsoft.Net.Compilers.Toolset": "3.11.0",
@@ -19,7 +20,7 @@
           "System.Composition.AttributedModel": "5.0.1"
         },
         "runtime": {
-          "Garage.dll": {}
+          "ExtendedOperations.dll": {}
         }
       },
       "Microsoft.Build.Tasks.Git/1.0.0": {},
@@ -63,11 +64,20 @@
             "fileVersion": "5.0.220.61120"
           }
         }
+      },
+      "MefCalculator/1.0.0": {
+        "dependencies": {
+          "Microsoft.VisualStudio.Internal.MicroBuild.NonShipping": "2.0.65",
+          "System.Composition.AttributedModel": "5.0.1"
+        },
+        "runtime": {
+          "MefCalculator.dll": {}
+        }
       }
     }
   },
   "libraries": {
-    "Garage/17.1.17-alpha": {
+    "ExtendedOperations/17.1.17-alpha": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -169,6 +179,11 @@
       "sha512": "sha512-ZjxeoyKxyr36D1n+m5OxTQE8ESFMZ7HgzsXlGwuVfkap1lM/bYzwcTR+zXgSwPmYJmVgvgkJCVjLeBe9UG7Ppw==",
       "path": "system.composition.attributedmodel/5.0.1",
       "hashPath": "system.composition.attributedmodel.5.0.1.nupkg.sha512"
+    },
+    "MefCalculator/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
     }
   }
 }

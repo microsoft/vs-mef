@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "Garage/17.1.17-alpha": {
+      "MefCalculator/17.1.17-alpha": {
         "dependencies": {
           "Microsoft.CodeAnalysis.NetAnalyzers": "5.0.3",
           "Microsoft.NETFramework.ReferenceAssemblies": "1.0.2",
@@ -19,7 +19,7 @@
           "System.Composition.AttributedModel": "5.0.1"
         },
         "runtime": {
-          "Garage.dll": {}
+          "MefCalculator.dll": {}
         }
       },
       "Microsoft.Build.Tasks.Git/1.0.0": {},
@@ -67,7 +67,7 @@
     }
   },
   "libraries": {
-    "Garage/17.1.17-alpha": {
+    "MefCalculator/17.1.17-alpha": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
