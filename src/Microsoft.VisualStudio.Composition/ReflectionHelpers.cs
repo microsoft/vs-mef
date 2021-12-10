@@ -6,13 +6,12 @@ namespace Microsoft.VisualStudio.Composition
     using System;
     using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics.CodeAnalysis;
     using System.Globalization;
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
     using System.Runtime.InteropServices;
-    using System.Text;
-    using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     public static class ReflectionHelpers
@@ -635,6 +634,29 @@ namespace Microsoft.VisualStudio.Composition
             return Expression.GetDelegateType(parameterTypes);
         }
 
+        internal static MethodBase? MapOpenGenericMemberToClosedGeneric(MethodBase method, TypeInfo closedGeneric)
+        {
+            ParameterInfo[] parameters = method.GetParameters();
+            Type[] parameterTypes = new Type[parameters.Length];
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                parameterTypes[i] = parameters[i].ParameterType;
+            }
+
+            if (method is ConstructorInfo)
+            {
+                return closedGeneric.GetConstructor(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, Type.DefaultBinder, parameterTypes, Array.Empty<ParameterModifier>());
+            }
+            else if (method is MethodInfo)
+            {
+                return closedGeneric.GetMethod(method.Name, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance, Type.DefaultBinder, parameterTypes, Array.Empty<ParameterModifier>());
+            }
+            else
+            {
+                throw ThrowUnsupportedImportingConstructor(method);
+            }
+        }
+
         internal static Attribute Instantiate(this CustomAttributeData attributeData)
         {
             Requires.NotNull(attributeData, nameof(attributeData));
@@ -675,8 +697,14 @@ namespace Microsoft.VisualStudio.Composition
             }
             else
             {
-                throw new NotSupportedException("Cannot instantiate with unsupported importing constructor of type: " + ctorOrFactoryMethod.GetType().Name);
+                throw ThrowUnsupportedImportingConstructor(ctorOrFactoryMethod);
             }
+        }
+
+        [DoesNotReturn]
+        internal static Exception ThrowUnsupportedImportingConstructor(MethodBase ctorOrFactoryMethod)
+        {
+            throw new NotSupportedException("Cannot instantiate with unsupported importing constructor of type: " + ctorOrFactoryMethod.GetType().Name);
         }
 
         internal static void GetInputAssembliesFromMetadata(ISet<AssemblyName> assemblies, IReadOnlyDictionary<string, object?> metadata)
