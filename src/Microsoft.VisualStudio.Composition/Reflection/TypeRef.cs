@@ -366,27 +366,14 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             return obj is TypeRef typeRef && this.Equals(typeRef);
         }
 
-        public bool Equals(TypeRef? other)
-        {
-            if (other == null)
-            {
-                return false;
-            }
-
-            // If we ever stop comparing metadata tokens,
-            // we would need to compare the other properties that describe this member.
-            bool result = this.MetadataToken == other.MetadataToken
-                && this.AssemblyId.Equals(other.AssemblyId)
-                && this.IsArray == other.IsArray
-                && this.GenericTypeParameterCount == other.GenericTypeParameterCount
-                && this.GenericTypeArguments.EqualsByValue(other.GenericTypeArguments)
-                && this.IsShallow == other.IsShallow;
-            return result;
-        }
+        public bool Equals(TypeRef? other) => this.Equals(other, allowMvidMismatch: false);
 
         public bool Equals(Type? other)
         {
-            return this.Equals(TypeRef.Get(other, this.Resolver));
+            // We allow MVID mismatches in this overload because at this point one of the types are already loaded,
+            // and the CLR doesn't look at the MVID for type equivalence. Our only caller (as of now) is looking for a matching signature
+            // so requiring an MVID match would cause the appropriate overload to be missed.
+            return this.Equals(TypeRef.Get(other, this.Resolver), allowMvidMismatch: true);
         }
 
         internal void GetInputAssemblies(ISet<AssemblyName> assemblies) => ResolverExtensions.GetInputAssemblies(this, assemblies);
@@ -424,5 +411,41 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 #pragma warning restore CA2208 // Instantiate argument exceptions correctly
             }
         }
-    }
+
+        private bool Equals(TypeRef? other, bool allowMvidMismatch)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            // If we ever stop comparing metadata tokens,
+            // we would need to compare the other properties that describe this member.
+            bool result = this.MetadataToken == other.MetadataToken
+                && this.AssemblyId.Equals(other.AssemblyId, allowMvidMismatch)
+                && this.IsArray == other.IsArray
+                && this.GenericTypeParameterCount == other.GenericTypeParameterCount
+                && EqualsByValue(this.GenericTypeArguments, other.GenericTypeArguments, allowMvidMismatch)
+                && this.IsShallow == other.IsShallow;
+            return result;
+
+            static bool EqualsByValue(ImmutableArray<TypeRef> array, ImmutableArray<TypeRef> other, bool allowMvidMismatch)
+            {
+                if (array.Length != other.Length)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < array.Length; i++)
+                {
+                    if (!array[i].Equals(other[i], allowMvidMismatch))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+   }
 }

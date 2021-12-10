@@ -83,17 +83,19 @@ namespace Microsoft.VisualStudio.Composition
         public override bool Equals(object? obj) => this.Equals(obj as StrongAssemblyIdentity);
 
         /// <inheritdoc/>
-        public bool Equals(StrongAssemblyIdentity? other)
-        {
-            return other != null
-                && ByValueEquality.AssemblyNameNoFastCheck.Equals(this.Name, other.Name)
-                && this.Mvid == other.Mvid;
-        }
+        public bool Equals(StrongAssemblyIdentity? other) => this.Equals(other, allowMvidMismatch: false);
 
         /// <inheritdoc/>
         public override int GetHashCode()
         {
             return this.Mvid.GetHashCode();
+        }
+
+        internal bool Equals(StrongAssemblyIdentity? other, bool allowMvidMismatch)
+        {
+            return other != null
+                && ByValueEquality.AssemblyNameNoFastCheck.Equals(this.Name, other.Name)
+                && (allowMvidMismatch || this.Mvid == other.Mvid);
         }
 
         /// <summary>
