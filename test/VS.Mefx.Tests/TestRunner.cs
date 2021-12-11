@@ -5,12 +5,10 @@ namespace VS.Mefx.Tests
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
-    using System.Threading;
     using System.Threading.Tasks;
     using DiffPlex;
     using DiffPlex.DiffBuilder;
@@ -23,7 +21,7 @@ namespace VS.Mefx.Tests
     public class TestRunner
     {
         private const bool TestOverride = false;
-        private const bool IgnoreHelperFacts = true;
+        private const bool IgnoreHelperFacts = false;
         private const string SkipLabel = IgnoreHelperFacts ? "Debugging" : null;
 
         private readonly ITestOutputHelper output;
@@ -122,7 +120,9 @@ namespace VS.Mefx.Tests
                 }
                 else
                 {
+#pragma warning disable CS0162 // Unreachable code detected
                     await this.JustRunTest(filePath);
+#pragma warning restore CS0162 // Unreachable code detected
                 }
             }
             catch (Exception)
@@ -146,7 +146,7 @@ namespace VS.Mefx.Tests
         [Fact(Skip = SkipLabel)]
         public async Task RunSampleTest()
         {
-            string command = "--match CarOne.InvalidType User.Importer --match-exports CarOne.InvalidType --directory TestFiles/Matching";
+            string command = "--parts --file TestFiles/Garage.cache";
             string[] result = await RunCommand(command.Split(" "));
             this.PrintCommandResult(result);
         }

@@ -3,9 +3,11 @@
 
 namespace ExtendedOperations
 {
-    using System.Composition;
+    using System.ComponentModel.Composition;
     using MefCalculator;
 
+    [Export(typeof(IOperation))]
+    [ExportMetadata("Symbol", "%")]
     public class Modulo : IOperation
     {
         public int Operate(int left, int right)
@@ -14,6 +16,6 @@ namespace ExtendedOperations
         }
 
         [Import]
-        public ChainOne? AddInput { get; }
+        public ChainOne? AddInput { get; set; }
     }
 }

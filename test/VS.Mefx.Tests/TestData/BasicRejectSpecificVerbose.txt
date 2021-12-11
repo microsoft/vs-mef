@@ -1,7 +1,7 @@
 --verbose --rejected ExtendedOperations.Modulo --directory TestFiles/Basic
 Printing rejection trace for ExtendedOperations.Modulo
 Errors in level 3
-ExtendedOperations.Modulo.addInput: expected exactly 1 export matching constraints:
+ExtendedOperations.Modulo.AddInput: expected exactly 1 export matching constraints:
 Contract name: ExtendedOperations.ChainOne
 TypeIdentityName: ExtendedOperations.ChainOne
 but found 0.
@@ -11,7 +11,7 @@ Contract name: MefCalculator.AddIn
 TypeIdentityName: MefCalculator.AddIn
 but found 0.
 Errors in level 1
-MefCalculator.AddIn.fieldOne: expected exactly 1 export matching constraints:
+MefCalculator.AddIn.FieldOne: expected exactly 1 export matching constraints:
 Contract name: ChainOne
 TypeIdentityName: System.String
 but found 0.

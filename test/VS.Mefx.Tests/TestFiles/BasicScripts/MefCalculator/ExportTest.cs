@@ -3,17 +3,17 @@
 
 namespace MefCalculator
 {
-    using System.Composition;
+    using System.ComponentModel.Composition;
 
     public class ExportTest
     {
         [Export("MajorRevision")]
-        public int MajorRevision { get; } = 4;
+        public int MajorRevision { get; set; } = 4;
 
         [Export("MinorRevision")]
-        public int MinorRevision { get; } = 0;
+        public int MinorRevision { get; set; } = 0;
 
         [Import("ChainOneString")]
-        public int? TypeMismatch { get; }
+        public int? TypeMismatch { get; set; }
     }
 }

@@ -7,10 +7,8 @@ namespace VS.Mefx
     using System.Collections.Generic;
     using System.CommandLine.DragonFruit;
     using System.IO;
-    using System.Linq;
     using System.Reflection;
     using System.Threading.Tasks;
-    using Microsoft;
     using VS.Mefx.Commands;
 
     /// <summary>

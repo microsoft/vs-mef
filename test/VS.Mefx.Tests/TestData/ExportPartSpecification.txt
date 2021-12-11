@@ -1,23 +1,24 @@
 --match MefCalculator.ExportMeta MefCalculator.ImportTest --match-exports ExportOne ExportTwo --directory TestFiles/Basic
 Find matches from MefCalculator.ExportMeta to MefCalculator.ImportTest
-Performing matching for importing field failingField
+Performing matching for importing field FailingField
 Considering exporting field ExportOne
 Failed Constraint #1
-Expected: [Contract Name - MissingField], Found: [Contract Name - MetadataTest]
+Expected: [Contract Name - MissingField], Found: [Contract Name - MetdadataTest]
 Considering exporting field ExportTwo
 Failed Constraint #1
-Expected: [Contract Name - MissingField], Found: [Contract Name - MetadataTest]
+Expected: [Contract Name - MissingField], Found: [Contract Name - MetdadataTest]
 Performing matching for importing field IntInput
 Considering exporting field ExportOne
-Export matches all import constraints
+Failed Constraint #1
+Expected: [Contract Name - System.Nullable(System.Int32)], Found: [Contract Name - MetdadataTest]
 Considering exporting field ExportTwo
 Failed Constraint #1
-Expected: [Type - System.Int32], Found: [Type - System.String]
+Expected: [Contract Name - System.Nullable(System.Int32)], Found: [Contract Name - MetdadataTest]
 Performing matching for importing field Operations
 Considering exporting field ExportOne
 Failed Constraint #1
-Expected: [Contract Name - MefCalculator.MefCalculatorInterfaces+IOperation], Found: [Contract Name - MetadataTest]
+Expected: [Contract Name - MefCalculator.IOperation], Found: [Contract Name - MetdadataTest]
 Considering exporting field ExportTwo
 Failed Constraint #1
-Expected: [Contract Name - MefCalculator.MefCalculatorInterfaces+IOperation], Found: [Contract Name - MetadataTest]
+Expected: [Contract Name - MefCalculator.IOperation], Found: [Contract Name - MetdadataTest]
 ***

@@ -4,17 +4,18 @@
 namespace MefCalculator
 {
     using System.Collections.Generic;
-    using System.Composition;
+    using System.ComponentModel.Composition;
 
+    [Export]
     public class ImportTest
     {
         [Import("MissingField")]
-        public string? FailingField { get; }
-
-        [Import("MetadataTest")]
-        public int? IntInput { get; }
+        private string? FailingField { get; set; }
 
         [ImportMany]
-        public IEnumerable<IOperation>? Operations { get; }
+        public IEnumerable<IOperation>? Operations { get; set; }
+
+        [Import]
+        public int? IntInput { get; set; }
     }
 }

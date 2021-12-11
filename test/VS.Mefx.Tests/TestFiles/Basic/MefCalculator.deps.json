@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "MefCalculator/17.1.17-alpha": {
+      "MefCalculator/17.1.18-alpha": {
         "dependencies": {
           "Microsoft.CodeAnalysis.NetAnalyzers": "5.0.3",
           "Microsoft.NETFramework.ReferenceAssemblies": "1.0.2",
@@ -16,7 +16,7 @@
           "Microsoft.VisualStudio.Internal.MicroBuild.VisualStudio": "2.0.65",
           "Nerdbank.GitVersioning": "3.4.244",
           "StyleCop.Analyzers": "1.2.0-beta.333",
-          "System.Composition.AttributedModel": "5.0.1"
+          "System.ComponentModel.Composition": "6.0.0"
         },
         "runtime": {
           "MefCalculator.dll": {}
@@ -56,18 +56,18 @@
         }
       },
       "StyleCop.Analyzers.Unstable/1.2.0.333": {},
-      "System.Composition.AttributedModel/5.0.1": {
+      "System.ComponentModel.Composition/6.0.0": {
         "runtime": {
-          "lib/netstandard2.0/System.Composition.AttributedModel.dll": {
-            "assemblyVersion": "5.0.0.0",
-            "fileVersion": "5.0.220.61120"
+          "lib/netcoreapp3.1/System.ComponentModel.Composition.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "6.0.21.52210"
           }
         }
       }
     }
   },
   "libraries": {
-    "MefCalculator/17.1.17-alpha": {
+    "MefCalculator/17.1.18-alpha": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -163,12 +163,12 @@
       "path": "stylecop.analyzers.unstable/1.2.0.333",
       "hashPath": "stylecop.analyzers.unstable.1.2.0.333.nupkg.sha512"
     },
-    "System.Composition.AttributedModel/5.0.1": {
+    "System.ComponentModel.Composition/6.0.0": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-ZjxeoyKxyr36D1n+m5OxTQE8ESFMZ7HgzsXlGwuVfkap1lM/bYzwcTR+zXgSwPmYJmVgvgkJCVjLeBe9UG7Ppw==",
-      "path": "system.composition.attributedmodel/5.0.1",
-      "hashPath": "system.composition.attributedmodel.5.0.1.nupkg.sha512"
+      "sha512": "sha512-60Qv+F7oxomOjJeTDA5Z4iCyFbQ0B/2Mi5HT+13pxxq0lVnu2ipbWMzFB+RWKr3wWKA8BSncXr9PH/fECwMX5Q==",
+      "path": "system.componentmodel.composition/6.0.0",
+      "hashPath": "system.componentmodel.composition.6.0.0.nupkg.sha512"
     }
   }
 }

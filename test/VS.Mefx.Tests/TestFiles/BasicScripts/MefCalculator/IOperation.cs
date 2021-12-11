@@ -3,13 +3,11 @@
 
 namespace MefCalculator
 {
-    using System.Composition;
+    using System.ComponentModel.Composition;
 
-#pragma warning disable SA1649 // File name should match first type name
     public interface IOperation
-#pragma warning restore SA1649 // File name should match first type name
     {
-        int Operate(int left, int right);
+        public int Operate(int left, int right);
     }
 
     [Export(typeof(IOperation))]

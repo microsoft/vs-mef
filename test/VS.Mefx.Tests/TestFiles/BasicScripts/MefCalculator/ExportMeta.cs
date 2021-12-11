@@ -3,17 +3,16 @@
 
 namespace MefCalculator
 {
-    using System.Composition;
+    using System.ComponentModel.Composition;
 
-    [Export]
     public class ExportMeta
     {
-        [Export("MetadataTest")]
+        [Export("MetdadataTest")]
         [ExportMetadata("Value", 5)]
-        public int ExportOne { get; } = 5;
+        public int ExportOne { get; set; } = 5;
 
-        [Export("MetadataTest")]
+        [Export("MetdadataTest")]
         [ExportMetadata("Value", 7)]
-        public string ExportTwo { get; } = "7";
+        public string ExportTwo { get; set; } = "7";
     }
 }

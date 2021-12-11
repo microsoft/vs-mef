@@ -1,6 +1,6 @@
---exporter MefCalculator.MefCalculatorInterfaces+IOperation --directory TestFiles/Basic
-Exporting parts for MefCalculator.MefCalculatorInterfaces+IOperation:
+--exporter MefCalculator.IOperation --directory TestFiles/Basic
+Exporting parts for MefCalculator.IOperation:
 ExtendedOperations.Modulo
-MefCalculator.MefCalculatorInterfaces+Add
-MefCalculator.MefCalculatorInterfaces+Subtract
+MefCalculator.Add
+MefCalculator.Subtract
 ***

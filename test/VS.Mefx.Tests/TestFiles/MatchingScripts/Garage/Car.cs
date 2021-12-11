@@ -4,16 +4,13 @@
 namespace Garage
 {
     using System;
+    using System.Composition;
 
+    [Export]
     public class Car
     {
         protected string? Name { get; set; }
 
         protected int? Year { get; set; }
-
-        public void PrintInfo()
-        {
-            Console.WriteLine("Name: " + this.Name + ", Year: " + this.Year);
-        }
     }
 }

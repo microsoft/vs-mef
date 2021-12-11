@@ -31,15 +31,15 @@ namespace VS.Mefx.Commands
         private bool UsingRegex { get; set; }
 
         /// <summary>
-        /// Gets or sets a <see cref="TextWriter"/> to output text to the user.
+        /// Gets or sets a <see cref="CLIOptions"/> of the input arguments passed by the user.
         /// </summary>
-        private TextWriter Output { get; set; }
+        private CLIOptions Options { get; set; }
 
         public WhiteList(CLIOptions options)
         {
             // Read and process the whitelist file, if one is present
+            this.Options = options;
             this.UsingRegex = options.UseRegex;
-            this.Output = options.Writer;
             if (this.UsingRegex)
             {
                 this.WhiteListExpressions = new HashSet<Regex>();
@@ -105,7 +105,7 @@ namespace VS.Mefx.Commands
                     CultureInfo.CurrentCulture,
                     Strings.MissingFileMessage,
                     fileName);
-                this.Output.WriteLine(missingFile);
+                this.Options.ErrorWriter.WriteLine(missingFile);
                 return;
             }
 
@@ -132,7 +132,7 @@ namespace VS.Mefx.Commands
                     CultureInfo.CurrentCulture,
                     Strings.ErrorMessage,
                     error.Message);
-                this.Output.WriteLine(errorMessage);
+                this.Options.ErrorWriter.WriteLine(errorMessage);
             }
         }
     }

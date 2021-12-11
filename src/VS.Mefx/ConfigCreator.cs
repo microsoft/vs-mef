@@ -28,6 +28,11 @@ namespace VS.Mefx
         private static readonly string[] ValidExtensions = { "dll", "exe", "cache" };
 
         /// <summary>
+        /// List of substrings to look for in that should be ignored.
+        /// </summary>
+        private static readonly string[] InvalidFileStrings = { "System." };
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ConfigCreator"/> class.
         /// </summary>
         /// <param name="options">The arguments inputted by the user.</param>
@@ -143,6 +148,7 @@ namespace VS.Mefx
             var nugetDiscover = new AttributedPartDiscovery(customResolver, isNonPublicSupported: true);
             var netDiscover = new AttributedPartDiscoveryV1(customResolver);
             PartDiscovery discovery = PartDiscovery.Combine(customResolver, netDiscover, nugetDiscover);
+
             if (this.AssemblyPaths.Count() > 0)
             {
                 var parts = await discovery.CreatePartsAsync(this.AssemblyPaths);
@@ -184,31 +190,44 @@ namespace VS.Mefx
         {
             fileName = fileName.Trim();
             int extensionIndex = fileName.LastIndexOf('.');
-            bool isSucessful = false;
-            if (extensionIndex >= 0)
-            {
-                string extension = fileName.Substring(extensionIndex + 1);
-                if (ValidExtensions.Contains(extension))
-                {
-                    string fullPath = Path.GetFullPath(Path.Combine(folderPath, fileName));
-                    if (File.Exists(fullPath))
-                    {
-                        bool isCacheFile = extension.Equals(ValidExtensions[ValidExtensions.Length - 1]);
-                        if (isCacheFile)
-                        {
-                            this.CachePaths.Add(fullPath);
-                        }
-                        else
-                        {
-                            this.AssemblyPaths.Add(fullPath);
-                        }
 
-                        isSucessful = true;
-                    }
+            if (extensionIndex < 0 || extensionIndex >= fileName.Length)
+            {
+                return false;
+            }
+
+            string extension = fileName.Substring(extensionIndex + 1);
+            if (!ValidExtensions.Contains(extension))
+            {
+                return false;
+            }
+
+            string fullPath = Path.GetFullPath(Path.Combine(folderPath, fileName));
+            if (!File.Exists(fullPath))
+            {
+                return false;
+            }
+
+            string fileNameWithoutExt = fileName.Substring(0, extensionIndex);
+            for (int i = 0; i < InvalidFileStrings.Length; i++)
+            {
+                if (fileNameWithoutExt.Contains(InvalidFileStrings[i]))
+                {
+                    return false;
                 }
             }
 
-            return isSucessful;
+            bool isCacheFile = extension.Equals(ValidExtensions[ValidExtensions.Length - 1]);
+            if (isCacheFile)
+            {
+                this.CachePaths.Add(fullPath);
+            }
+            else
+            {
+                this.AssemblyPaths.Add(fullPath);
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -245,11 +264,11 @@ namespace VS.Mefx
             {
                 try
                 {
-                    // this.Options.ErrorWriter.WriteLine("Calling ReadCache for " + filePath + " on " + DateTimeOffset.Now.ToUnixTimeMilliseconds());
                     using (FileStream inputStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
                         CachedCatalog catalogReader = new CachedCatalog();
                         ComposableCatalog cacheParts = await catalogReader.LoadAsync(inputStream, discovery.Resolver);
+
                         if (this.Catalog == null)
                         {
                             this.Catalog = cacheParts;
@@ -259,8 +278,6 @@ namespace VS.Mefx
                             this.Catalog = this.Catalog.AddCatalog(cacheParts);
                         }
                     }
-
-                    // this.Options.ErrorWriter.WriteLine("Finished ReadCache for " + filePath + " on " + DateTimeOffset.Now.ToUnixTimeMilliseconds());
                 }
                 catch (Exception error)
                 {
@@ -295,7 +312,7 @@ namespace VS.Mefx
                 try
                 {
                     CachedCatalog cacheWriter = new CachedCatalog();
-                    using (var fileWriter = File.Create(filePath))
+                    using (var fileWriter = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write))
                     {
                         await cacheWriter.SaveAsync(this.Catalog, fileWriter);
                         string cacheSaved = string.Format(
@@ -355,7 +372,7 @@ namespace VS.Mefx
             /// <summary>
             /// Gets a Load Context to see when loading the assemblies into Mefx.
             /// </summary>
-            private static AssemblyLoadContext Context { get; } = new AssemblyLoadContext("Mefx");
+            private static readonly AssemblyLoadContext Context = new AssemblyLoadContext("Mefx");
 
             /// <summary>
             /// Gets or sets an dictionary to keep track of the loaded dictionaries.

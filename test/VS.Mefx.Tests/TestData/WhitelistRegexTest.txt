@@ -1,7 +1,7 @@
 --rejected all --whitelist TestFiles/Basic/expected.txt --regex --directory TestFiles/Basic
 Listing all the rejection issues
 Errors in level 3
-[Whitelisted] ExtendedOperations.Modulo
+ExtendedOperations.Modulo
 Errors in level 2
 [Whitelisted] ExtendedOperations.ChainOne
 Errors in level 1

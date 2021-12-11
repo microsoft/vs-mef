@@ -2,7 +2,7 @@
   "profiles": {
     "VS.Mefx": {
       "commandName": "Project",
-      "commandLineArgs": "--parts --directory TestFiles/Matching",
+      "commandLineArgs": "--parts --file TestFiles/Garage.cache",
       "workingDirectory": "C:\\Users\\Pankaj\\Documents\\Github Repos\\vs-mef\\test\\VS.Mefx.Tests"
     },
     "WSL 2": {

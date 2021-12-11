@@ -4,5 +4,6 @@ CarOne.FirstCar
 CarOne.InvalidType
 CarOne.MoreMetadata
 CarTwo.SecondCar
+Garage.Car
 User.Importer
 ***

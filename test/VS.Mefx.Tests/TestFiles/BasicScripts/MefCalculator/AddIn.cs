@@ -3,7 +3,7 @@
 
 namespace MefCalculator
 {
-    using System.Composition;
+    using System.ComponentModel.Composition;
 
     [Export]
     public class AddIn

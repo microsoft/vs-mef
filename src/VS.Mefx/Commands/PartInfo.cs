@@ -138,7 +138,6 @@ namespace VS.Mefx.Commands
             this.WriteLines(exportOutputs);
             List<string> importOutputs = new List<string>();
 
-            // Print details about the parts/type the current part imports
             foreach (var import in definition.Imports)
             {
                 string importName = import.ImportDefinition.ContractName;

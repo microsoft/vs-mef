@@ -6,11 +6,12 @@ CarOne.MoreMetadata
 CarTwo.SecondCar
 ExtendedOperations.ChainOne
 ExtendedOperations.Modulo
+Garage.Car
+MefCalculator.Add
 MefCalculator.AddIn
 MefCalculator.ExportMeta
 MefCalculator.ExportTest
 MefCalculator.ImportTest
-MefCalculator.MefCalculatorInterfaces+Add
-MefCalculator.MefCalculatorInterfaces+Subtract
+MefCalculator.Subtract
 User.Importer
 ***

@@ -3,14 +3,13 @@
 
 namespace ExtendedOperations
 {
-    using System.Composition;
+    using System.ComponentModel.Composition;
+    using MefCalculator;
 
     [Export]
     public class ChainOne
     {
-        public string ChainName { get; } = "First Chain";
-
         [Import]
-        public MefCalculator.AddIn? Adder { get; }
+        public AddIn? Adder { get; set; }
     }
 }
