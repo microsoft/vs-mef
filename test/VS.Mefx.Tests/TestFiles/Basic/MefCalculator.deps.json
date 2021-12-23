@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "MefCalculator/17.1.18-alpha": {
+      "MefCalculator/17.1.19-alpha": {
         "dependencies": {
           "Microsoft.CodeAnalysis.NetAnalyzers": "5.0.3",
           "Microsoft.NETFramework.ReferenceAssemblies": "1.0.2",
@@ -67,7 +67,7 @@
     }
   },
   "libraries": {
-    "MefCalculator/17.1.18-alpha": {
+    "MefCalculator/17.1.19-alpha": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

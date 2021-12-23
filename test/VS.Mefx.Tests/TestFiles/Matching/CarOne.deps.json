@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "CarOne/17.1.18-alpha": {
+      "CarOne/17.1.19-alpha": {
         "dependencies": {
           "Garage": "1.0.0",
           "Microsoft.CodeAnalysis.NetAnalyzers": "5.0.3",
@@ -77,7 +77,7 @@
     }
   },
   "libraries": {
-    "CarOne/17.1.18-alpha": {
+    "CarOne/17.1.19-alpha": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

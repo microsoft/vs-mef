@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "CarTwo/17.1.18-alpha": {
+      "CarTwo/17.1.19-alpha": {
         "dependencies": {
           "Garage": "1.0.0",
           "Microsoft.CodeAnalysis.NetAnalyzers": "5.0.3",
@@ -77,7 +77,7 @@
     }
   },
   "libraries": {
-    "CarTwo/17.1.18-alpha": {
+    "CarTwo/17.1.19-alpha": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

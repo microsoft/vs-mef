@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "ExtendedOperations/17.1.18-alpha": {
+      "ExtendedOperations/17.1.19-alpha": {
         "dependencies": {
           "MefCalculator": "1.0.0",
           "Microsoft.CodeAnalysis.NetAnalyzers": "5.0.3",
@@ -77,7 +77,7 @@
     }
   },
   "libraries": {
-    "ExtendedOperations/17.1.18-alpha": {
+    "ExtendedOperations/17.1.19-alpha": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
