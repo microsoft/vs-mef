@@ -159,7 +159,7 @@ namespace VS.Mefx.Tests
 
         private class TestGetter : DataAttribute
         {
-            private static string validFileExtension = "txt";
+            private static string validFileExtension = ".txt";
 
             public static string UpdateFolder =
                 string.Format("..{0}..{0}..{0}..{0}test{0}VS.Mefx.Tests{0}TestData",
