@@ -213,12 +213,22 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                     continue;
                 }
 
+                bool parameterMismatch = false;
                 for (int i = 0; i < parameters.Length; i++)
                 {
-                    if (!parameterTypes[i].Equals(parameters[i].ParameterType))
+                    // The TypeRef.Equals(Type) method calls TypeRef.Get(Type), which doesn't support generic type parameters.
+                    // We don't support generic type parameters appearing in importing constructors anyway, so if this
+                    // is a generic type parameter, disqualify this candidate entirely and skip the Equals check that would throw.
+                    if (parameters[i].ParameterType.IsGenericParameter || !parameterTypes[i].Equals(parameters[i].ParameterType))
                     {
-                        continue;
+                        parameterMismatch = true;
+                        break;
                     }
+                }
+
+                if (parameterMismatch)
+                {
+                    continue;
                 }
 
                 return member;
