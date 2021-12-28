@@ -1,4 +1,4 @@
---match CarOne.MoreMetadata User.Importer --directory TestFiles/Matching
+--match CarOne.MoreMetadata User.Importer --file Garage.dll CarOne.dll CarTwo.dll User.dll
 Find matches from CarOne.MoreMetadata to User.Importer
 Performing matching for importing field NewerCar
 Considering exporting field CarOne.MoreMetadata

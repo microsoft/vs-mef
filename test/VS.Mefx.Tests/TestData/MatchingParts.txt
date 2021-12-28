@@ -1,4 +1,4 @@
---parts --directory TestFiles/Matching
+--parts --file Garage.dll CarOne.dll CarTwo.dll User.dll
 Parts in the Catalog are
 CarOne.FirstCar
 CarOne.InvalidType

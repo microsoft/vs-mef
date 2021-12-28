@@ -1,4 +1,4 @@
---parts --directory TestFiles/Basic TestFiles/Matching
+--parts --file ExtendedOperations.dll MefCalculator.dll Garage.dll CarOne.dll CarTwo.dll User.dll
 Parts in the Catalog are
 CarOne.FirstCar
 CarOne.InvalidType

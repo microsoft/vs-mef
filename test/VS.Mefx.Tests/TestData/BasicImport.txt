@@ -1,4 +1,4 @@
---importer ExtendedOperations.ChainOne --directory TestFiles/Basic
+--importer ExtendedOperations.ChainOne --file ExtendedOperations.dll MefCalculator.dll
 Importing parts for ExtendedOperations.ChainOne:
 ExtendedOperations.Modulo
 ***

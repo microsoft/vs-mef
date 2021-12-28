@@ -1,4 +1,4 @@
---match MefCalculator.ExportMeta MefCalculator.ImportTest --match-exports ExportOne ExportTwo --directory TestFiles/Basic
+--match MefCalculator.ExportMeta MefCalculator.ImportTest --match-exports ExportOne ExportTwo --file ExtendedOperations.dll MefCalculator.dll
 Find matches from MefCalculator.ExportMeta to MefCalculator.ImportTest
 Performing matching for importing field FailingField
 Considering exporting field ExportOne

@@ -21,7 +21,7 @@ namespace VS.Mefx.Tests
     public class TestRunner
     {
         private const bool TestOverride = false;
-        private const bool IgnoreHelperFacts = false;
+        private const bool IgnoreHelperFacts = true;
         private const string SkipLabel = IgnoreHelperFacts ? "Debugging" : null;
 
         private readonly ITestOutputHelper output;
@@ -146,7 +146,7 @@ namespace VS.Mefx.Tests
         [Fact(Skip = SkipLabel)]
         public async Task RunSampleTest()
         {
-            string command = "--parts --file TestFiles/Garage.cache";
+            string command = "--parts --file TestData/Garage.cache";
             string[] result = await RunCommand(command.Split(" "));
             this.PrintCommandResult(result);
         }
@@ -154,12 +154,13 @@ namespace VS.Mefx.Tests
         [Fact(Skip = SkipLabel)]
         public async Task Playground()
         {
-            await this.Runner("MatchTypeTest.txt");
+            await this.Runner("ReadMultipleDirectories.txt");
         }
 
         private class TestGetter : DataAttribute
         {
-            private static string validFileExtension = ".txt";
+            private static readonly string ValidFileExtension = ".txt";
+            private static readonly string[] FilesToIgnore = { "BasicWhitelist.txt" };
 
             public static string UpdateFolder =
                 string.Format("..{0}..{0}..{0}..{0}test{0}VS.Mefx.Tests{0}TestData",
@@ -215,7 +216,7 @@ namespace VS.Mefx.Tests
                     foreach (var fileInfo in dirInfo.EnumerateFiles())
                     {
                         string fileName = fileInfo.Name;
-                        if (fileName.Contains(validFileExtension))
+                        if (fileName.Contains(ValidFileExtension) && !FilesToIgnore.Contains(fileName))
                         {
                             this.TestFilePaths.Add(fileName);
                         }

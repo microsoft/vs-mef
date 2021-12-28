@@ -1,4 +1,4 @@
---rejected all --directory TestFiles/Basic
+--rejected all --file ExtendedOperations.dll MefCalculator.dll
 Listing all the rejection issues
 Errors in level 3
 ExtendedOperations.Modulo

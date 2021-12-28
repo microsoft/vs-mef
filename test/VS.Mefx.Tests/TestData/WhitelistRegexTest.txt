@@ -1,4 +1,4 @@
---rejected all --whitelist TestFiles/Basic/expected.txt --regex --directory TestFiles/Basic
+--rejected all --whitelist TestData/BasicWhitelist.txt --regex --file ExtendedOperations.dll MefCalculator.dll
 Listing all the rejection issues
 Errors in level 3
 ExtendedOperations.Modulo

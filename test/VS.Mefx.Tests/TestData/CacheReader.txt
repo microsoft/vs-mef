@@ -1,4 +1,0 @@
---parts --file TestFiles/Garage.cache
-Parts in the Catalog are
-Garage.Car
-***

@@ -1,4 +1,4 @@
---exporter MefCalculator.IOperation --directory TestFiles/Basic
+--exporter MefCalculator.IOperation --file ExtendedOperations.dll MefCalculator.dll
 Exporting parts for MefCalculator.IOperation:
 ExtendedOperations.Modulo
 MefCalculator.Add

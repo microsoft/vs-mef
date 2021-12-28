@@ -2,8 +2,8 @@
   "profiles": {
     "VS.Mefx": {
       "commandName": "Project",
-      "commandLineArgs": "--parts --file TestData/Garage.cache",
-      "workingDirectory": "C:\\Users\\Pankaj\\Documents\\Github Repos\\vs-mef\\bin\\Tests\\Debug\\net5.0"
+      "commandLineArgs": "--parts --directory TestData",
+      "workingDirectory": "C:\\Users\\Pankaj\\Documents\\Github Repos\\vs-mef\\bin\\Tests\\Debug\\netcoreapp3.1"
     },
     "WSL 2": {
       "commandName": "WSL2",
