@@ -71,7 +71,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VS.Mefx.Tests", "test\VS.Me
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MefCalculator", "test\VS.Mefx.Tests\TestFiles\BasicScripts\MefCalculator\MefCalculator.csproj", "{C3FAC4A8-610C-4694-91F7-45C7D3B3BE0F}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TestProjects", "TestProjects", "{FDF383ED-AFFB-4FFD-833C-159114A986EC}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Mefx Test Projects", "Mefx Test Projects", "{FDF383ED-AFFB-4FFD-833C-159114A986EC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtendedOperations", "test\VS.Mefx.Tests\TestFiles\BasicScripts\ExtendedOperations\ExtendedOperations.csproj", "{315236EC-7A3E-4762-8447-3F82B410847D}"
 EndProject
