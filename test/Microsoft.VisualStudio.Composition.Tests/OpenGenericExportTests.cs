@@ -256,5 +256,41 @@ namespace Microsoft.VisualStudio.Composition.Tests
         internal class InternalUseful<T> : Useful<T> { }
 
         #endregion
+
+        #region ImportingConstructor with a generic type argument as a parameter
+
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V2Compat, typeof(OpenGenericExportWithSeveralCtors<>), typeof(SimpleExport))]
+        public void ImportingConstructorWithGenericTypeArgumentSelection(IContainer container)
+        {
+            OpenGenericExportWithSeveralCtors<int> export = container.GetExportedValue<OpenGenericExportWithSeveralCtors<int>>();
+            Assert.NotNull(export);
+        }
+
+        [Export]
+        [MefV1.Export]
+        [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class OpenGenericExportWithSeveralCtors<T>
+        {
+            public OpenGenericExportWithSeveralCtors(T arg)
+            {
+            }
+
+            [ImportingConstructor]
+            [MefV1.ImportingConstructor]
+            public OpenGenericExportWithSeveralCtors(SimpleExport arg1)
+            {
+            }
+
+            public OpenGenericExportWithSeveralCtors(string one, int two)
+            {
+            }
+        }
+
+        [Export]
+        [MefV1.Export]
+        [MefV1.PartCreationPolicy(MefV1.CreationPolicy.NonShared)]
+        public class SimpleExport { }
+
+        #endregion
     }
 }

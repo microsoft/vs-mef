@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="codeBasePath">The path to the assembly to load. May be null.</param>
         /// <returns>The loaded assembly. Never <c>null</c>.</returns>
         /// <exception cref="Exception">May be thrown if the assembly cannot be found or fails to load.</exception>
-        Assembly LoadAssembly(string assemblyFullName, string codeBasePath);
+        Assembly LoadAssembly(string assemblyFullName, string? codeBasePath);
 
         /// <summary>
         /// Loads an assembly with the specified name.

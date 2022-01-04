@@ -51,6 +51,54 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Fact]
+        public async Task AssembliesLoadedViaIAssemblyLoader()
+        {
+            LoggingAssemblyLoader assemblyLoader = new();
+            NoOpDiscovery discovery = new(new Resolver(assemblyLoader));
+            string mockAssemblyPath = typeof(PartDiscoveryTests).Assembly.Location;
+            await discovery.CreatePartsAsync(new string[] { mockAssemblyPath });
+            Assert.Equal(new[] { mockAssemblyPath }, assemblyLoader.AttemptedAssemblyPaths);
+        }
+
+        [Fact]
+        public async Task DiscoveriesCombinedWithResolver()
+        {
+            LoggingAssemblyLoader assemblyLoader = new();
+            Resolver assemblyResolver = new(assemblyLoader);
+            PartDiscovery combined = PartDiscovery.Combine(assemblyResolver, TestUtilities.V2Discovery, TestUtilities.V1Discovery);
+            Assert.Same(assemblyResolver, combined.Resolver);
+            string testAssemblyPath = typeof(PartDiscoveryTests).Assembly.Location;
+            await combined.CreatePartsAsync(new string[] { testAssemblyPath });
+            Assert.Equal(new[] { testAssemblyPath }, assemblyLoader.AttemptedAssemblyPaths);
+        }
+
+        [Fact]
+        public void Combine_JustOneButWithDifferentResolver()
+        {
+            LoggingAssemblyLoader assemblyLoader = new();
+            Resolver assemblyResolver = new(assemblyLoader);
+            PartDiscovery combined = PartDiscovery.Combine(assemblyResolver, TestUtilities.V1Discovery);
+            Assert.NotSame(TestUtilities.V1Discovery, combined);
+            Assert.Same(assemblyResolver, combined.Resolver);
+        }
+
+        [Fact]
+        public void Combine_JustOneButWithSameResolver()
+        {
+            PartDiscovery combined = PartDiscovery.Combine(TestUtilities.V1Discovery.Resolver, TestUtilities.V1Discovery);
+            Assert.Same(TestUtilities.V1Discovery, combined);
+        }
+
+        [Fact]
+        public void Combine_NullArgs()
+        {
+            Assert.Throws<ArgumentNullException>("resolver", () => PartDiscovery.Combine(resolver: null!, TestUtilities.V1Discovery));
+            Assert.Throws<ArgumentNullException>("discoveryMechanisms", () => PartDiscovery.Combine(resolver: Resolver.DefaultInstance, null!));
+            Assert.Throws<ArgumentException>("discoveryMechanisms", () => PartDiscovery.Combine(resolver: Resolver.DefaultInstance, new PartDiscovery[] { null! }));
+            Assert.Throws<ArgumentException>("discoveryMechanisms", () => PartDiscovery.Combine(resolver: Resolver.DefaultInstance, TestUtilities.V1Discovery, null!));
+        }
+
+        [Fact]
         public async Task Combined_CreatePartsAsync_AssemblyPathEnumerable()
         {
             var discovery = PartDiscovery.Combine(TestUtilities.V2Discovery, TestUtilities.V1Discovery);
@@ -136,6 +184,31 @@ namespace Microsoft.VisualStudio.Composition.Tests
             }
         }
 
+        private class LoggingAssemblyLoader : IAssemblyLoader
+        {
+            internal List<string?> AttemptedAssemblyPaths { get; } = new();
+
+            public Assembly LoadAssembly(string assemblyFullName, string? codeBasePath)
+            {
+                lock (this.AttemptedAssemblyPaths)
+                {
+                    this.AttemptedAssemblyPaths.Add(codeBasePath);
+                }
+
+                throw new NotImplementedException();
+            }
+
+            public Assembly LoadAssembly(AssemblyName assemblyName)
+            {
+                lock (this.AttemptedAssemblyPaths)
+                {
+                    this.AttemptedAssemblyPaths.Add(assemblyName.CodeBase);
+                }
+
+                throw new NotImplementedException();
+            }
+        }
+
         private class SketchyPartDiscovery : PartDiscovery
         {
             internal SketchyPartDiscovery()
@@ -178,7 +251,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
         private class NoOpDiscovery : PartDiscovery
         {
             internal NoOpDiscovery()
-                : base(TestUtilities.Resolver)
+                : this(TestUtilities.Resolver)
+            {
+            }
+
+            internal NoOpDiscovery(Resolver resolver)
+                : base(resolver)
             {
             }
 

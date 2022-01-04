@@ -10,9 +10,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading;
-    using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     internal partial class RuntimeExportProviderFactory : IFaultReportingExportProviderFactory
@@ -374,7 +371,7 @@ namespace Microsoft.VisualStudio.Composition
                     {
                         IEnumerable<TypeRef> typeArgs = typeArgsObject is LazyMetadataWrapper.TypeArraySubstitution
                             ? ((LazyMetadataWrapper.TypeArraySubstitution)typeArgsObject).TypeRefArray
-                            : ((Type[])typeArgsObject).Select(t => TypeRef.Get(t, part.TypeRef.Resolver));
+                            : ReflectionHelpers.TypesToTypeRefs((Type[])typeArgsObject, part.TypeRef.Resolver);
 
                         return part.TypeRef.MakeGenericTypeRef(typeArgs.ToImmutableArray());
                     }
@@ -532,19 +529,21 @@ namespace Microsoft.VisualStudio.Composition
                         return null;
                     }
 
-                    var constructedPartType = GetPartConstructedTypeRef(this.partDefinition, this.importMetadata);
+                    var constructedPartTypeRef = GetPartConstructedTypeRef(this.partDefinition, this.importMetadata);
                     var ctorArgs = this.partDefinition.ImportingConstructorArguments
                         .Select(import => this.OwningExportProvider.GetValueForImportSite(this, import).Value).ToArray();
-                    MethodBase? importingConstructor = this.partDefinition.ImportingConstructorOrFactoryMethod!;
-                    if (importingConstructor.ContainsGenericParameters)
+                    MethodBase? importingConstructorOrFactoryMethod = this.partDefinition.ImportingConstructorOrFactoryMethod!;
+                    if (importingConstructorOrFactoryMethod.ContainsGenericParameters)
                     {
-                        // TODO: fix this to find the precise match, including cases where the matching constructor includes a generic type parameter.
-                        importingConstructor = constructedPartType.Resolve().GetTypeInfo().DeclaredConstructors.First(ctor => true);
+                        MethodBase? importingConstructorOrFactoryMethodOnClosedGeneric = ReflectionHelpers.MapOpenGenericMemberToClosedGeneric(
+                            importingConstructorOrFactoryMethod,
+                            constructedPartTypeRef.Resolve().GetTypeInfo()) ?? throw ReflectionHelpers.ThrowUnsupportedImportingConstructor(importingConstructorOrFactoryMethod);
+                        importingConstructorOrFactoryMethod = importingConstructorOrFactoryMethodOnClosedGeneric;
                     }
 
                     try
                     {
-                        object? part = importingConstructor.Instantiate(ctorArgs);
+                        object? part = importingConstructorOrFactoryMethod.Instantiate(ctorArgs);
                         return part;
                     }
                     catch (TargetInvocationException ex)

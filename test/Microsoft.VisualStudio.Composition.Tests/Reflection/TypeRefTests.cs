@@ -58,6 +58,7 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
         }
 
         [Fact]
+        [Trait("Category", "SkipWhenLiveUnitTesting")]
         public void ThrowTypeLoadExceptionWhenArgIsNull()
         {
             var testGuid = new Guid("00000000-0000-0000-0000-000000000001");

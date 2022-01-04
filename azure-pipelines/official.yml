@@ -3,6 +3,7 @@ trigger:
   branches:
     include:
     - main
+    - 'v1*'
     - 'validate/*'
   paths:
     exclude:
@@ -15,6 +16,7 @@ schedules:
   branches:
     include:
     - main
+    - 'v1*'
 
 parameters:
 - name: SignTypeSelection
@@ -44,7 +46,7 @@ stages:
   jobs:
   - template: build.yml
     parameters:
-      windowsPool: VSEngSS-MicroBuild2019
+      windowsPool: VSEngSS-MicroBuild2019-1ES
       includeMacOS: ${{ parameters.includeMacOS }}
 
 - stage: symbol_archive
@@ -52,7 +54,7 @@ stages:
   condition: and(succeeded(), eq(dependencies.Build.outputs['Windows.SetPipelineVariables.SignType'], 'Real'))
   jobs:
   - job: archive
-    pool: VSEng-ReleasePool
+    pool: VSEng-ReleasePool-1ES
     steps:
     - download: current
       artifact: Variables-Windows

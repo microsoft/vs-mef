@@ -130,7 +130,7 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             /// <inheritdoc />
-            public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
+            public Assembly LoadAssembly(string assemblyFullName, string? codeBasePath)
             {
                 var assembly = this.inner.LoadAssembly(assemblyFullName, codeBasePath);
                 this.resolver.NotifyAssemblyLoaded(assembly, null);

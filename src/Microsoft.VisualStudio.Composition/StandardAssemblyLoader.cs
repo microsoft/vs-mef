@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         /// <inheritdoc />
-        public Assembly LoadAssembly(string assemblyFullName, string codeBasePath)
+        public Assembly LoadAssembly(string assemblyFullName, string? codeBasePath)
         {
             Requires.NotNullOrEmpty(assemblyFullName, nameof(assemblyFullName));
 
