@@ -53,11 +53,9 @@ Microsoft.VisualStudio.Composition.ComposablePartDefinition.ToString(System.IO.T
 Microsoft.VisualStudio.Composition.ComposablePartDefinition.Type.get -> System.Type!
 Microsoft.VisualStudio.Composition.ComposablePartDefinition.TypeRef.get -> Microsoft.VisualStudio.Composition.Reflection.TypeRef!
 Microsoft.VisualStudio.Composition.ComposedPart
-Microsoft.VisualStudio.Composition.ComposedPart.ComposedPart(Microsoft.VisualStudio.Composition.ComposablePartDefinition! definition, System.Collections.Generic.IReadOnlyDictionary<Microsoft.VisualStudio.Composition.ImportDefinitionBinding!, System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.ExportDefinitionBinding!>!>! satisfyingExports, System.Collections.Immutable.IImmutableSet<string!>! requiredSharingBoundaries) -> void
 Microsoft.VisualStudio.Composition.ComposedPart.Definition.get -> Microsoft.VisualStudio.Composition.ComposablePartDefinition!
 Microsoft.VisualStudio.Composition.ComposedPart.GetImportingConstructorImports() -> System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<Microsoft.VisualStudio.Composition.ImportDefinitionBinding!, System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.ExportDefinitionBinding!>!>>!
 Microsoft.VisualStudio.Composition.ComposedPart.RequiredSharingBoundaries.get -> System.Collections.Immutable.IImmutableSet<string!>!
-Microsoft.VisualStudio.Composition.ComposedPart.SatisfyingExports.get -> System.Collections.Generic.IReadOnlyDictionary<Microsoft.VisualStudio.Composition.ImportDefinitionBinding!, System.Collections.Generic.IReadOnlyList<Microsoft.VisualStudio.Composition.ExportDefinitionBinding!>!>!
 Microsoft.VisualStudio.Composition.ComposedPart.Validate(System.Collections.Generic.IReadOnlyDictionary<System.Type!, Microsoft.VisualStudio.Composition.ExportDefinitionBinding!>! metadataViews) -> System.Collections.Generic.IEnumerable<Microsoft.VisualStudio.Composition.ComposedPartDiagnostic!>!
 Microsoft.VisualStudio.Composition.ComposedPartDiagnostic
 Microsoft.VisualStudio.Composition.ComposedPartDiagnostic.ComposedPartDiagnostic(Microsoft.VisualStudio.Composition.ComposedPart! part, string! formattedMessage) -> void
