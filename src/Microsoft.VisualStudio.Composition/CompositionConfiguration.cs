@@ -174,7 +174,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 var finalCatalog = ComposableCatalog.Create(catalog.Resolver).AddParts(salvagedPartDefinitions);
 
-                // We want the first errors to come first so we need to invert the current stack 
+                // We want the first found errors to come out of the stack first, so we need to invert the current stack.
                 var compositionErrors = ImmutableStack.CreateRange(stackedErrors);
 
                 var configuration = new CompositionConfiguration(
