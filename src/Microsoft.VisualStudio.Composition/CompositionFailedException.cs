@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.Composition
         /// The errors that occurred during composition.
         /// <inheritdoc cref="CompositionConfiguration.CompositionErrors" path="/remarks"/>
         /// </param>
-        public CompositionFailedException(string? message, IImmutableQueue<IReadOnlyCollection<ComposedPartDiagnostic>> errors)
+        public CompositionFailedException(string? message, IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> errors)
             : this(message)
         {
             Requires.NotNull(errors, nameof(errors));
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.Composition
         /// This collection is not serialized via the <see cref="ISerializable"/> interface.
         /// Refer to <see cref="ErrorsAsString"/> for a serialized form of these errors.
         /// </remarks>
-        public IImmutableQueue<IReadOnlyCollection<ComposedPartDiagnostic>>? Errors { get; private set; }
+        public IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>>? Errors { get; private set; }
 
         /// <summary>
         /// Gets a string representation of the compositional errors that are described in <see cref="Errors"/>

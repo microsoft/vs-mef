@@ -18,7 +18,9 @@ namespace Microsoft.VisualStudio.Composition
     [DebuggerDisplay("{" + nameof(Definition) + "." + nameof(ComposablePartDefinition.Type) + ".Name}")]
     public class ComposedPart
     {
-        public ComposedPart(ComposablePartDefinition definition, ImmutableDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExports, IImmutableSet<string> requiredSharingBoundaries)
+        private ImmutableDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExports;
+
+        public ComposedPart(ComposablePartDefinition definition, IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> satisfyingExports, IImmutableSet<string> requiredSharingBoundaries)
         {
             Requires.NotNull(definition, nameof(definition));
             Requires.NotNull(satisfyingExports, nameof(satisfyingExports));
@@ -31,7 +33,7 @@ namespace Microsoft.VisualStudio.Composition
 #endif
 
             this.Definition = definition;
-            this.SatisfyingExports = satisfyingExports;
+            this.satisfyingExports = ImmutableDictionary.CreateRange(satisfyingExports);
             this.RequiredSharingBoundaries = requiredSharingBoundaries;
         }
 
@@ -40,7 +42,18 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets a map of this part's imports, and the exports which satisfy them.
         /// </summary>
-        public ImmutableDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> SatisfyingExports { get; private set; }
+        public IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> SatisfyingExports
+        {
+            get
+            {
+                return this.satisfyingExports;
+            }
+
+            private set
+            {
+                this.satisfyingExports = ImmutableDictionary.CreateRange(value);
+            }
+        }
 
         /// <summary>
         /// Gets the set of sharing boundaries that this part must be instantiated within.
@@ -56,8 +69,8 @@ namespace Microsoft.VisualStudio.Composition
                 Assumes.NotNull(this.Definition.ImportingConstructorImports);
                 foreach (var import in this.Definition.ImportingConstructorImports)
                 {
-                    var key = this.SatisfyingExports.Keys.Single(k => k.ImportDefinition == import.ImportDefinition);
-                    yield return new KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>(key, this.SatisfyingExports[key]);
+                    var key = this.satisfyingExports.Keys.Single(k => k.ImportDefinition == import.ImportDefinition);
+                    yield return new KeyValuePair<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>>(key, this.satisfyingExports[key]);
                 }
             }
         }
@@ -82,7 +95,7 @@ namespace Microsoft.VisualStudio.Composition
                     GetDiagnosticLocation(import));
             }
 
-            foreach (var pair in this.SatisfyingExports)
+            foreach (var pair in this.satisfyingExports)
             {
                 var importDefinition = pair.Key.ImportDefinition;
                 switch (importDefinition.Cardinality)
@@ -161,54 +174,58 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         /// <summary>
-        /// Checks whether this part contains an import with <see cref="ImportCardinality.ExactlyOne"/> cardinality that has been invalidated,
-        /// which would invalidate this part as well.
+        /// Find and removes any invalidated parts binded with an <see cref="ImportCardinality.ExactlyOne"/> from the <see cref="SatisfyingExports"/> dictionary.
         /// </summary>
-        /// <param name="invalidPartDefnitionsSet">The set of definitions for the invalidated parts.</param>
+        /// <param name="invalidPartDefinitionsSet">The set of definitions for the invalidated parts.</param>
         /// <returns>The set of <see cref="ComposedPartDiagnostic"/> with the encountered errors.</returns>
-        public IEnumerable<ComposedPartDiagnostic> CheckForInvalidatedParts(ImmutableHashSet<ComposablePartDefinition> invalidPartDefnitionsSet)
+        internal ComposedPartDiagnostic[] RemoveInvalidParts(ICollection<ComposablePartDefinition> invalidPartDefinitionsSet)
         {
-            foreach (var pair in this.SatisfyingExports)
+            List<ComposedPartDiagnostic>? errorsFound = null;
+
+            foreach (var pair in this.satisfyingExports)
             {
                 var importDefinition = pair.Key.ImportDefinition;
 
-                bool invalidExportFound = false;
-
-                List<ExportDefinitionBinding> newSatisfyingExports = new List<ExportDefinitionBinding>();
+                List<ExportDefinitionBinding>? invalidExports = null;
 
                 foreach (var export in pair.Value)
                 {
                     // If the part is invalid it should be removed from the satisfying exports.
-                    if (invalidPartDefnitionsSet.Contains(export.PartDefinition))
+                    if (invalidPartDefinitionsSet.Contains(export.PartDefinition))
                     {
-                        // Signal that we found an export to remove so that the dictionary is updated
-                        invalidExportFound = true;
-
-                        switch (importDefinition.Cardinality)
+                        if (invalidExports is null)
                         {
-                            // Only report error if the cardinality is exactly one
-                            // For mutiple or optional we just remove the satisfying export
-                            case ImportCardinality.ExactlyOne:
-                                yield return new ComposedPartDiagnostic(
-                                    this,
-                                    Strings.RequiredImportHasBeenInvalidated,
-                                    GetDiagnosticLocation(pair.Key),
-                                    GetImportConstraints(pair.Key.ImportDefinition));
+                            invalidExports = new List<ExportDefinitionBinding>();
+                        }
 
-                                break;
+                        invalidExports.Add(export);
+
+                        // Only report error if the cardinality is exactly one.
+                        // For multiple or optional we just remove the satisfying export.
+                        if (importDefinition.Cardinality == ImportCardinality.ExactlyOne)
+                        {
+                            if (errorsFound is null)
+                            {
+                                errorsFound = new List<ComposedPartDiagnostic>();
+                            }
+
+                            errorsFound.Add(new ComposedPartDiagnostic(
+                                this,
+                                Strings.RequiredImportHasBeenInvalidated,
+                                GetDiagnosticLocation(pair.Key),
+                                GetImportConstraints(pair.Key.ImportDefinition)));
                         }
                     }
-                    else
-                    {
-                        newSatisfyingExports.Add(export);
-                    }
                 }
 
-                if (invalidExportFound)
+                if (invalidExports is not null)
                 {
-                    this.SatisfyingExports = this.SatisfyingExports.Remove(pair.Key).Add(pair.Key, newSatisfyingExports);
+                    var validExports = this.satisfyingExports[pair.Key].Where(exp => !invalidExports.Contains(exp)).ToList();
+                    this.satisfyingExports = this.satisfyingExports.SetItem(pair.Key, validExports);
                 }
             }
+
+            return errorsFound is not null ? errorsFound.ToArray() : Array.Empty<ComposedPartDiagnostic>();
         }
 
         private static string GetImportConstraints(ImportDefinition importDefinition)

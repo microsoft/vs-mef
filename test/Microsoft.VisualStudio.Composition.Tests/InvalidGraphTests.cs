@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             if (v3Container != null)
             {
                 var rootCauses = v3Container.Configuration.CompositionErrors.Peek();
-                var secondOrder = v3Container.Configuration.CompositionErrors.Dequeue().Peek();
+                var secondOrder = v3Container.Configuration.CompositionErrors.Pop().Peek();
                 Assert.Equal(typeof(PartWithMissingImport), rootCauses.Single().Parts.Single().Definition.Type);
                 Assert.Equal(typeof(PartThatRequiresPartWithMissingImport), secondOrder.Single().Parts.Single().Definition.Type);
             }

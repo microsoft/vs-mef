@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Composition
 
         private ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides;
 
-        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposedPart> parts, IReadOnlyDictionary<Type, ExportDefinitionBinding> metadataViewsAndProviders, IImmutableQueue<IReadOnlyCollection<ComposedPartDiagnostic>> compositionErrors, ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides)
+        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposedPart> parts, IReadOnlyDictionary<Type, ExportDefinitionBinding> metadataViewsAndProviders, IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> compositionErrors, ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides)
         {
             Requires.NotNull(catalog, nameof(catalog));
             Requires.NotNull(parts, nameof(parts));
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.Composition
         /// and detecting additional errors gets a deeper element in the stack.
         /// Therefore the 'root cause' of all failures is generally found in the topmost stack element.
         /// </remarks>
-        public IImmutableQueue<IReadOnlyCollection<ComposedPartDiagnostic>> CompositionErrors { get; private set; }
+        public IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> CompositionErrors { get; private set; }
 
         internal Resolver Resolver => this.Catalog.Resolver;
 
@@ -150,46 +150,49 @@ namespace Microsoft.VisualStudio.Composition
                 var salvagedPartDefinitions = catalog.Parts;
 
                 List<ComposedPartDiagnostic> previousErrors = errors;
-                ImmutableQueue<IReadOnlyCollection<ComposedPartDiagnostic>> compositionErrors = ImmutableQueue<IReadOnlyCollection<ComposedPartDiagnostic>>.Empty;
+                Stack<IReadOnlyCollection<ComposedPartDiagnostic>> stackedErrors = new Stack<IReadOnlyCollection<ComposedPartDiagnostic>>();
 
                 // While we still find errors we validate the exports so that we remove all dependency failures
                 while (previousErrors.Count > 0)
                 {
-                    compositionErrors = compositionErrors.Enqueue(previousErrors);
+                    stackedErrors.Push(previousErrors);
 
                     // Get the salvaged parts
-                    var invalidParts = previousErrors.SelectMany(error => error.Parts);
+                    var invalidParts = previousErrors.SelectMany(error => error.Parts).ToList();
                     salvagedParts = salvagedParts.Except(invalidParts);
-                    var invalidPartDefnitionsSet = ImmutableHashSet.CreateRange(invalidParts.Select(p => p.Definition));
-                    salvagedPartDefinitions = salvagedPartDefinitions.Except(invalidPartDefnitionsSet);
+                    var invalidPartDefinitionsSet = new HashSet<ComposablePartDefinition>(invalidParts.Select(p => p.Definition));
+                    salvagedPartDefinitions = salvagedPartDefinitions.Except(invalidPartDefinitionsSet);
 
                     // Empty the list so that we create a new one only with the new set of errors
                     previousErrors = new List<ComposedPartDiagnostic>();
 
                     foreach (var part in salvagedParts)
                     {
-                        previousErrors.AddRange(part.CheckForInvalidatedParts(invalidPartDefnitionsSet));
+                        previousErrors.AddRange(part.RemoveInvalidParts(invalidPartDefinitionsSet));
                     }
                 }
 
                 var finalCatalog = ComposableCatalog.Create(catalog.Resolver).AddParts(salvagedPartDefinitions);
 
+                // We want the first errors to come first so we need to invert the current stack 
+                var compositionErrors = ImmutableStack.CreateRange(stackedErrors);
+
                 var configuration = new CompositionConfiguration(
-                                finalCatalog,
-                                salvagedParts,
-                                metadataViewsAndProviders,
-                                compositionErrors,
-                                sharingBoundaryOverrides);
+                    finalCatalog,
+                    salvagedParts,
+                    metadataViewsAndProviders,
+                    compositionErrors,
+                    sharingBoundaryOverrides);
 
                 return configuration;
             }
 
             return new CompositionConfiguration(
-                                catalog,
-                                parts,
-                                metadataViewsAndProviders,
-                                ImmutableQueue<IReadOnlyCollection<ComposedPartDiagnostic>>.Empty,
-                                sharingBoundaryOverrides);
+                catalog,
+                parts,
+                metadataViewsAndProviders,
+                ImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>>.Empty,
+                sharingBoundaryOverrides);
         }
 
         private static ImmutableDictionary<Type, ExportDefinitionBinding> GetMetadataViewProvidersMap(ComposableCatalog customizedCatalog)
