@@ -42,18 +42,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets a map of this part's imports, and the exports which satisfy them.
         /// </summary>
-        public IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> SatisfyingExports
-        {
-            get
-            {
-                return this.satisfyingExports;
-            }
-
-            private set
-            {
-                this.satisfyingExports = ImmutableDictionary.CreateRange(value);
-            }
-        }
+        public IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> SatisfyingExports => this.satisfyingExports;
 
         /// <summary>
         /// Gets the set of sharing boundaries that this part must be instantiated within.
@@ -174,11 +163,12 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         /// <summary>
+        /// Removes satisfying exports coming from the given set of parts from this part's imports.
         /// Find and removes any invalidated parts binded with an <see cref="ImportCardinality.ExactlyOne"/> from the <see cref="SatisfyingExports"/> dictionary.
         /// </summary>
-        /// <param name="invalidPartDefinitionsSet">The set of definitions for the invalidated parts.</param>
+        /// <param name="parts">The parts whose exports should not be imported by this part.</param>
         /// <returns>The set of <see cref="ComposedPartDiagnostic"/> with the encountered errors.</returns>
-        internal ComposedPartDiagnostic[] RemoveInvalidParts(ICollection<ComposablePartDefinition> invalidPartDefinitionsSet)
+        internal ComposedPartDiagnostic[] RemoveSatisfyingExports(ICollection<ComposablePartDefinition> parts)
         {
             List<ComposedPartDiagnostic>? errorsFound = null;
 
@@ -191,12 +181,9 @@ namespace Microsoft.VisualStudio.Composition
                 foreach (var export in pair.Value)
                 {
                     // If the part is invalid it should be removed from the satisfying exports.
-                    if (invalidPartDefinitionsSet.Contains(export.PartDefinition))
+                    if (parts.Contains(export.PartDefinition))
                     {
-                        if (invalidExports is null)
-                        {
-                            invalidExports = new List<ExportDefinitionBinding>();
-                        }
+                        invalidExports ??= new List<ExportDefinitionBinding>();
 
                         invalidExports.Add(export);
 
@@ -204,10 +191,7 @@ namespace Microsoft.VisualStudio.Composition
                         // For multiple or optional we just remove the satisfying export.
                         if (importDefinition.Cardinality == ImportCardinality.ExactlyOne)
                         {
-                            if (errorsFound is null)
-                            {
-                                errorsFound = new List<ComposedPartDiagnostic>();
-                            }
+                            errorsFound ??= new List<ComposedPartDiagnostic>();
 
                             errorsFound.Add(new ComposedPartDiagnostic(
                                 this,

@@ -159,6 +159,13 @@ namespace Microsoft.VisualStudio.Composition
 
                     // Get the salvaged parts
                     var invalidParts = previousErrors.SelectMany(error => error.Parts).ToList();
+
+                    if (invalidParts.Count == 0)
+                    {
+                        // If we can't identify the faulty parts but we still have errors, we have to just throw.
+                        throw new CompositionFailedException(Strings.FailStableComposition, ImmutableStack.Create<IReadOnlyCollection<ComposedPartDiagnostic>>(errors));
+                    }
+
                     salvagedParts = salvagedParts.Except(invalidParts);
                     var invalidPartDefinitionsSet = new HashSet<ComposablePartDefinition>(invalidParts.Select(p => p.Definition));
                     salvagedPartDefinitions = salvagedPartDefinitions.Except(invalidPartDefinitionsSet);
@@ -168,7 +175,7 @@ namespace Microsoft.VisualStudio.Composition
 
                     foreach (var part in salvagedParts)
                     {
-                        previousErrors.AddRange(part.RemoveInvalidParts(invalidPartDefinitionsSet));
+                        previousErrors.AddRange(part.RemoveSatisfyingExports(invalidPartDefinitionsSet));
                     }
                 }
 
