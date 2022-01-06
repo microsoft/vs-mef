@@ -4,23 +4,15 @@
 namespace Microsoft.VisualStudio.Composition
 {
     using System;
-    using System.CodeDom;
-    using System.CodeDom.Compiler;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
     using System.Linq;
-    using System.Linq.Expressions;
-    using System.Reflection;
     using System.Runtime.CompilerServices;
-    using System.Text;
-    using System.Threading.Tasks;
-    using System.Xml;
     using System.Xml.Linq;
     using Microsoft.VisualStudio.Composition.Reflection;
-    using Task = System.Threading.Tasks.Task;
 
     public class CompositionConfiguration
     {
@@ -150,19 +142,56 @@ namespace Microsoft.VisualStudio.Composition
             // Detect loops of all non-shared parts.
             errors.AddRange(FindLoops(parts));
 
+            // If errors are found, re-validate the salvaged parts in case there are parts whose dependencies are affected by the initial errors
             if (errors.Count > 0)
             {
-                var invalidParts = ImmutableHashSet.CreateRange(errors.SelectMany(error => error.Parts).Select(p => p.Definition));
-                if (invalidParts.IsEmpty)
+                // Set salvaged parts to current catalog in case there are no errors
+                var salvagedParts = parts;
+                var salvagedPartDefinitions = catalog.Parts;
+
+                List<ComposedPartDiagnostic> previousErrors = errors;
+                Stack<IReadOnlyCollection<ComposedPartDiagnostic>> stackedErrors = new Stack<IReadOnlyCollection<ComposedPartDiagnostic>>();
+
+                // While we still find errors we validate the exports so that we remove all dependency failures
+                while (previousErrors.Count > 0)
                 {
-                    // If we can't identify the faulty parts but we still have errors, we have to just throw.
-                    throw new CompositionFailedException(Strings.FailStableComposition, ImmutableStack.Create<IReadOnlyCollection<ComposedPartDiagnostic>>(errors));
+                    stackedErrors.Push(previousErrors);
+
+                    // Get the salvaged parts
+                    var invalidParts = previousErrors.SelectMany(error => error.Parts).ToList();
+
+                    if (invalidParts.Count == 0)
+                    {
+                        // If we can't identify the faulty parts but we still have errors, we have to just throw.
+                        throw new CompositionFailedException(Strings.FailStableComposition, ImmutableStack.Create<IReadOnlyCollection<ComposedPartDiagnostic>>(errors));
+                    }
+
+                    salvagedParts = salvagedParts.Except(invalidParts);
+                    var invalidPartDefinitionsSet = new HashSet<ComposablePartDefinition>(invalidParts.Select(p => p.Definition));
+                    salvagedPartDefinitions = salvagedPartDefinitions.Except(invalidPartDefinitionsSet);
+
+                    // Empty the list so that we create a new one only with the new set of errors
+                    previousErrors = new List<ComposedPartDiagnostic>();
+
+                    foreach (var part in salvagedParts)
+                    {
+                        previousErrors.AddRange(part.RemoveSatisfyingExports(invalidPartDefinitionsSet));
+                    }
                 }
 
-                var salvagedParts = catalog.Parts.Except(invalidParts);
-                var salvagedCatalog = ComposableCatalog.Create(catalog.Resolver).AddParts(salvagedParts);
-                var configuration = Create(salvagedCatalog);
-                return configuration.WithErrors(errors);
+                var finalCatalog = ComposableCatalog.Create(catalog.Resolver).AddParts(salvagedPartDefinitions);
+
+                // We want the first found errors to come out of the stack first, so we need to invert the current stack.
+                var compositionErrors = ImmutableStack.CreateRange(stackedErrors);
+
+                var configuration = new CompositionConfiguration(
+                    finalCatalog,
+                    salvagedParts,
+                    metadataViewsAndProviders,
+                    compositionErrors,
+                    sharingBoundaryOverrides);
+
+                return configuration;
             }
 
             return new CompositionConfiguration(
@@ -245,13 +274,6 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             throw new CompositionFailedException(Strings.ErrorsInComposition, this.CompositionErrors);
-        }
-
-        internal CompositionConfiguration WithErrors(IReadOnlyCollection<ComposedPartDiagnostic> errors)
-        {
-            Requires.NotNull(errors, nameof(errors));
-
-            return new CompositionConfiguration(this.Catalog, this.Parts, this.MetadataViewsAndProviders, this.CompositionErrors.Push(errors), this.effectiveSharingBoundaryOverrides);
         }
 
         /// <summary>
@@ -510,7 +532,7 @@ namespace Microsoft.VisualStudio.Composition
         [DebuggerDisplay("{" + nameof(PartDefinition) + "." + nameof(ComposablePartDefinition.Type) + ".Name}")]
         private class PartBuilder
         {
-            internal PartBuilder(ComposablePartDefinition partDefinition, IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> importedParts)
+            internal PartBuilder(ComposablePartDefinition partDefinition, ImmutableDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> importedParts)
             {
                 Requires.NotNull(partDefinition, nameof(partDefinition));
                 Requires.NotNull(importedParts, nameof(importedParts));
@@ -543,7 +565,7 @@ namespace Microsoft.VisualStudio.Composition
             /// <summary>
             /// Gets the set of parts imported by this one.
             /// </summary>
-            public IReadOnlyDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> SatisfyingExports { get; private set; }
+            public ImmutableDictionary<ImportDefinitionBinding, IReadOnlyList<ExportDefinitionBinding>> SatisfyingExports { get; private set; }
 
             public void ApplySharingBoundary()
             {

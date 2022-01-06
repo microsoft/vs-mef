@@ -350,4 +350,8 @@
     <value>{0}.{1} (in {2})</value>
     <comment>{0} is the full type name (namespace + type), {1} is the member name, {2} is the assembly that the type is located in.</comment>
   </data>
+  <data name="RequiredImportHasBeenInvalidated" xml:space="preserve">
+    <value>{0}: expected exactly 1 export matching constraints:
+{1} but the matching part has been invalidated.</value>
+  </data>
 </root>

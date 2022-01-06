@@ -557,7 +557,19 @@ namespace Microsoft.VisualStudio.Composition {
                 return ResourceManager.GetString("ReflectionTypeLoadExceptionWhileEnumeratingTypes", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0}: expected exactly 1 export matching constraints:
+        ///{1} but the matching part has been invalidated..
+        /// </summary>
+        internal static string RequiredImportHasBeenInvalidated
+        {
+            get
+            {
+                return ResourceManager.GetString("RequiredImportHasBeenInvalidated", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Scanning MEF assemblies....
         /// </summary>
