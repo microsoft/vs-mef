@@ -59,9 +59,10 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var v3Container = container as TestUtilities.V3ContainerWrapper;
             if (v3Container != null)
             {
-                var rootCauses = v3Container.Configuration.CompositionErrors.Peek().ToArray();
-                Assert.Equal(typeof(PartWithMissingImport), rootCauses[0].Parts.Single().Definition.Type);
-                Assert.Equal(typeof(PartThatRequiresPartWithMissingImport), rootCauses[1].Parts.Single().Definition.Type);
+                var rootCauses = v3Container.Configuration.CompositionErrors.Peek();
+                var secondOrder = v3Container.Configuration.CompositionErrors.Dequeue().Peek();
+                Assert.Equal(typeof(PartWithMissingImport), rootCauses.Single().Parts.Single().Definition.Type);
+                Assert.Equal(typeof(PartThatRequiresPartWithMissingImport), secondOrder.Single().Parts.Single().Definition.Type);
             }
         }
 

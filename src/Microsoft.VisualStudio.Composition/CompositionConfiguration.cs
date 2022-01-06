@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Composition
 
         private ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides;
 
-        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposedPart> parts, IReadOnlyDictionary<Type, ExportDefinitionBinding> metadataViewsAndProviders, IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> compositionErrors, ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides)
+        private CompositionConfiguration(ComposableCatalog catalog, ISet<ComposedPart> parts, IReadOnlyDictionary<Type, ExportDefinitionBinding> metadataViewsAndProviders, IImmutableQueue<IReadOnlyCollection<ComposedPartDiagnostic>> compositionErrors, ImmutableDictionary<ComposablePartDefinition, string> effectiveSharingBoundaryOverrides)
         {
             Requires.NotNull(catalog, nameof(catalog));
             Requires.NotNull(parts, nameof(parts));
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.Composition
         /// and detecting additional errors gets a deeper element in the stack.
         /// Therefore the 'root cause' of all failures is generally found in the topmost stack element.
         /// </remarks>
-        public IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> CompositionErrors { get; private set; }
+        public IImmutableQueue<IReadOnlyCollection<ComposedPartDiagnostic>> CompositionErrors { get; private set; }
 
         internal Resolver Resolver => this.Catalog.Resolver;
 
@@ -150,10 +150,13 @@ namespace Microsoft.VisualStudio.Composition
                 var salvagedPartDefinitions = catalog.Parts;
 
                 List<ComposedPartDiagnostic> previousErrors = errors;
+                ImmutableQueue<IReadOnlyCollection<ComposedPartDiagnostic>> compositionErrors = ImmutableQueue<IReadOnlyCollection<ComposedPartDiagnostic>>.Empty;
 
                 // While we still find errors we validate the exports so that we remove all dependency failures
                 while (previousErrors.Count > 0)
                 {
+                    compositionErrors = compositionErrors.Enqueue(previousErrors);
+
                     // Get the salvaged parts
                     var invalidParts = previousErrors.SelectMany(error => error.Parts);
                     salvagedParts = salvagedParts.Except(invalidParts);
@@ -167,9 +170,6 @@ namespace Microsoft.VisualStudio.Composition
                     {
                         previousErrors.AddRange(part.CheckForInvalidatedParts(invalidPartDefnitionsSet));
                     }
-
-                    // Add errors to final error list
-                    errors.AddRange(previousErrors);
                 }
 
                 var finalCatalog = ComposableCatalog.Create(catalog.Resolver).AddParts(salvagedPartDefinitions);
@@ -178,17 +178,17 @@ namespace Microsoft.VisualStudio.Composition
                                 finalCatalog,
                                 salvagedParts,
                                 metadataViewsAndProviders,
-                                ImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>>.Empty,
+                                compositionErrors,
                                 sharingBoundaryOverrides);
 
-                return configuration.WithErrors(errors);
+                return configuration;
             }
 
             return new CompositionConfiguration(
                                 catalog,
                                 parts,
                                 metadataViewsAndProviders,
-                                ImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>>.Empty,
+                                ImmutableQueue<IReadOnlyCollection<ComposedPartDiagnostic>>.Empty,
                                 sharingBoundaryOverrides);
         }
 
@@ -264,13 +264,6 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             throw new CompositionFailedException(Strings.ErrorsInComposition, this.CompositionErrors);
-        }
-
-        internal CompositionConfiguration WithErrors(IReadOnlyCollection<ComposedPartDiagnostic> errors)
-        {
-            Requires.NotNull(errors, nameof(errors));
-
-            return new CompositionConfiguration(this.Catalog, this.Parts, this.MetadataViewsAndProviders, this.CompositionErrors.Push(errors), this.effectiveSharingBoundaryOverrides);
         }
 
         /// <summary>

@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Composition
             return assemblyName;
         }
 
-        internal static void WriteErrors(TextWriter textWriter, IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> errorStack)
+        internal static void WriteErrors(TextWriter textWriter, IImmutableQueue<IReadOnlyCollection<ComposedPartDiagnostic>> errorStack)
         {
             int level = 1;
             foreach (IReadOnlyCollection<ComposedPartDiagnostic> errors in errorStack)

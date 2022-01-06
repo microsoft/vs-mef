@@ -66,7 +66,6 @@ Microsoft.VisualStudio.Composition.ComposedPartDiagnostic.Message.get -> string!
 Microsoft.VisualStudio.Composition.ComposedPartDiagnostic.Parts.get -> System.Collections.Generic.IReadOnlyCollection<Microsoft.VisualStudio.Composition.ComposedPart!>!
 Microsoft.VisualStudio.Composition.CompositionConfiguration
 Microsoft.VisualStudio.Composition.CompositionConfiguration.Catalog.get -> Microsoft.VisualStudio.Composition.ComposableCatalog!
-Microsoft.VisualStudio.Composition.CompositionConfiguration.CompositionErrors.get -> System.Collections.Immutable.IImmutableStack<System.Collections.Generic.IReadOnlyCollection<Microsoft.VisualStudio.Composition.ComposedPartDiagnostic!>!>!
 Microsoft.VisualStudio.Composition.CompositionConfiguration.CreateDgml() -> System.Xml.Linq.XDocument!
 Microsoft.VisualStudio.Composition.CompositionConfiguration.CreateExportProviderFactory() -> Microsoft.VisualStudio.Composition.IExportProviderFactory!
 Microsoft.VisualStudio.Composition.CompositionConfiguration.GetEffectiveSharingBoundary(Microsoft.VisualStudio.Composition.ComposablePartDefinition! partDefinition) -> string?
@@ -77,9 +76,7 @@ Microsoft.VisualStudio.Composition.CompositionConstants
 Microsoft.VisualStudio.Composition.CompositionFailedException
 Microsoft.VisualStudio.Composition.CompositionFailedException.CompositionFailedException() -> void
 Microsoft.VisualStudio.Composition.CompositionFailedException.CompositionFailedException(string? message) -> void
-Microsoft.VisualStudio.Composition.CompositionFailedException.CompositionFailedException(string? message, System.Collections.Immutable.IImmutableStack<System.Collections.Generic.IReadOnlyCollection<Microsoft.VisualStudio.Composition.ComposedPartDiagnostic!>!>! errors) -> void
 Microsoft.VisualStudio.Composition.CompositionFailedException.CompositionFailedException(string? message, System.Exception? innerException) -> void
-Microsoft.VisualStudio.Composition.CompositionFailedException.Errors.get -> System.Collections.Immutable.IImmutableStack<System.Collections.Generic.IReadOnlyCollection<Microsoft.VisualStudio.Composition.ComposedPartDiagnostic!>!>?
 Microsoft.VisualStudio.Composition.CreationPolicy
 Microsoft.VisualStudio.Composition.CreationPolicy.Any = 0 -> Microsoft.VisualStudio.Composition.CreationPolicy
 Microsoft.VisualStudio.Composition.CreationPolicy.NonShared = 2 -> Microsoft.VisualStudio.Composition.CreationPolicy
