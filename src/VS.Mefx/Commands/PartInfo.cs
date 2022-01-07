@@ -235,9 +235,9 @@ namespace VS.Mefx.Commands
         {
             var importingParts = this.GetContractImporters(contractName);
             string importPreview = string.Format(
-                        CultureInfo.CurrentCulture,
-                        Strings.ImportingContractsFormat,
-                        contractName);
+                CultureInfo.CurrentCulture,
+                Strings.ImportingContractsFormat,
+                contractName);
             this.Options.Writer.WriteLine(importPreview);
             List<string> importOutputs = new List<string>();
             foreach (var part in importingParts)

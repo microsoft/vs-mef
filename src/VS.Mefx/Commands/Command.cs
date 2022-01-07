@@ -5,6 +5,7 @@ namespace VS.Mefx.Commands
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using Microsoft.VisualStudio.Composition;
 
     /// <summary>
@@ -29,27 +30,32 @@ namespace VS.Mefx.Commands
         /// <param name="lines">The lines to output to the user.</param>
         protected void WriteLines(List<string> lines)
         {
-            lines.Sort();
-            lines.ForEach(line => this.Options.Writer.WriteLine(line));
+            IEnumerable<string> sortedLines = lines.OrderBy(line => line);
+            foreach (string line in sortedLines)
+            {
+                this.Options.Writer.WriteLine(line);
+            }
         }
 
         /// <summary>
         /// Gets the composable catalog and configuration.
         /// </summary>
-        protected ConfigCreator Creator { get; private set; } // Stores the catalog and config information for the input files.
+        protected ConfigCreator Creator { get; }
 
         /// <summary>
         /// Gets the command line arguments passed in by the user.
         /// </summary>
-        protected CLIOptions Options { get; private set; } // The command line arguments specified by the user.
+        protected CLIOptions Options { get; }
 
         /// <summary>
         /// Method to get the name of the given its definition.
         /// </summary>
         /// <param name="part"> The defintion of the part whose name we want.</param>
         /// <param name="verboseLabel"> Label to add before the verbose description of the part.</param>
-        /// <returns> A string representing either the simple or verbose name of the part based
-        ///          on if verbose was specified as an input argument.</returns>
+        /// <returns>
+        /// A string representing either the simple or verbose name of the part based on if
+        /// verbose was specified as an input argument.
+        /// </returns>
         protected string GetName(ComposablePartDefinition part, string verboseLabel = "")
         {
             if (part == null)

@@ -21,7 +21,7 @@ namespace VS.Mefx.Tests
     public class TestRunner
     {
         private const bool TestOverride = false;
-        private const bool IgnoreHelperFacts = true;
+        private const bool IgnoreHelperFacts = false;
         private const string SkipLabel = IgnoreHelperFacts ? "Debugging" : null;
 
         private readonly ITestOutputHelper output;
@@ -146,7 +146,7 @@ namespace VS.Mefx.Tests
         [Fact(Skip = SkipLabel)]
         public async Task RunSampleTest()
         {
-            string command = "--parts --file TestData/Garage.cache";
+            string command = "--rejected all --file ExtendedOperations.dll MefCalculator.dll";
             string[] result = await RunCommand(command.Split(" "));
             this.PrintCommandResult(result);
         }

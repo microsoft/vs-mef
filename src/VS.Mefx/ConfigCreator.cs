@@ -37,7 +37,6 @@ namespace VS.Mefx
         /// <param name="options">The arguments inputted by the user.</param>
         internal ConfigCreator(CLIOptions options)
         {
-            this.CachePaths = new List<string>();
             this.Options = options;
 
             // Add all the files in the input argument to the list of paths
@@ -111,42 +110,40 @@ namespace VS.Mefx
         /// <summary>
         /// Gets the paths to the assembly files we want to read.
         /// </summary>
-        internal List<string> AssemblyPaths { get; } = new();
+        internal List<string> AssemblyPaths { get; } = new List<string>();
 
         /// <summary>
         /// Gets the paths to the cache files we want to read.
         /// </summary>
-        internal List<string> CachePaths { get; } = new();
+        internal List<string> CachePaths { get; } = new List<string>();
 
         /// <summary>
         /// Method to get the details about a part, i.e. the part Definition, given its name.
         /// </summary>
         /// <param name="partName"> The name of the part we want to get details about.</param>
-        /// <returns><see cref="ComposablePartDefinition"/> associated with the given part if it is
-        /// present in the catalog and null otherwise.</returns>
+        /// <returns>
+        /// <see cref="ComposablePartDefinition"/> associated with the given part if it is
+        /// present in the catalog and null otherwise.
+        /// </returns>
         internal ComposablePartDefinition? GetPart(string partName)
         {
-            if (!this.PartInformation.ContainsKey(partName))
-            {
-                return null;
-            }
-
-            return this.PartInformation[partName];
+            this.PartInformation.TryGetValue(partName, out ComposablePartDefinition? partDefinition);
+            return partDefinition;
         }
 
         /// <summary>
         /// Method to intialize the catalog and configuration objects from the input files.
         /// </summary>
         /// <returns>A Task object when all the assembly have between loaded in and configured.</returns>
-        internal async Task Initialize()
+        internal async Task InitializeAsync()
         {
-            CustomAssemblyLoader customLoader = new CustomAssemblyLoader(this.Options.ErrorWriter);
+            CustomAssemblyLoader customLoader = new CustomAssemblyLoader();
             Resolver customResolver = new(customLoader);
             var nugetDiscover = new AttributedPartDiscovery(customResolver, isNonPublicSupported: true);
             var netDiscover = new AttributedPartDiscoveryV1(customResolver);
             PartDiscovery discovery = PartDiscovery.Combine(customResolver, netDiscover, nugetDiscover);
 
-            if (this.AssemblyPaths.Count() > 0)
+            if (this.AssemblyPaths.Any())
             {
                 var parts = await discovery.CreatePartsAsync(this.AssemblyPaths);
                 this.Catalog = ComposableCatalog.Create(discovery.Resolver).AddParts(parts);
@@ -154,7 +151,7 @@ namespace VS.Mefx
 
             if (this.CachePaths.Count > 0)
             {
-                await this.ReadCacheFiles(discovery);
+                await this.ReadCacheFilesAsync(discovery);
             }
 
             this.PrintDiscoveryErrors();
@@ -172,7 +169,7 @@ namespace VS.Mefx
                     }
                 }
 
-                await this.SaveToCache();
+                await this.SaveToCacheAsync();
             }
         }
 
@@ -242,7 +239,7 @@ namespace VS.Mefx
             }
 
             IEnumerable<DirectoryInfo> subFolders = currentDir.EnumerateDirectories();
-            if (subFolders.Count() > 0)
+            if (subFolders.Any())
             {
                 foreach (DirectoryInfo subFolder in subFolders)
                 {
@@ -255,7 +252,7 @@ namespace VS.Mefx
         /// Method to read the input parts stored in cache files and add them to the existing Catalog.
         /// </summary>
         /// <param name="discovery">Part Discovery object to use when discovering parts in assembly.</param>
-        private async Task ReadCacheFiles(PartDiscovery discovery)
+        private async Task ReadCacheFilesAsync(PartDiscovery discovery)
         {
             foreach (string filePath in this.CachePaths)
             {
@@ -290,7 +287,7 @@ namespace VS.Mefx
         /// <summary>
         /// Method to store the parts read from the input files into a cache for future use.
         /// </summary>
-        private async Task SaveToCache()
+        private async Task SaveToCacheAsync()
         {
             if (this.Catalog == null ||
                 this.OutputCacheFile == null ||
@@ -348,7 +345,7 @@ namespace VS.Mefx
             if (this.Catalog != null)
             {
                 var discoveryErrors = this.Catalog.DiscoveredParts.DiscoveryErrors;
-                if (discoveryErrors.Count() > 0)
+                if (discoveryErrors.Any())
                 {
                     this.Options.ErrorWriter.WriteLine(Strings.DiscoveryErrors);
                     discoveryErrors.ForEach(error => this.Options.ErrorWriter.WriteLine(error));
@@ -358,14 +355,6 @@ namespace VS.Mefx
 
         private class CustomAssemblyLoader : IAssemblyLoader
         {
-            public CustomAssemblyLoader(TextWriter writer)
-            {
-                this.LoadedAssemblies = new Dictionary<string, Assembly>();
-                this.Writer = writer;
-            }
-
-            private const bool DEBUG = false;
-
             /// <summary>
             /// Gets a Load Context to see when loading the assemblies into Mefx.
             /// </summary>
@@ -375,11 +364,7 @@ namespace VS.Mefx
             /// Gets or sets an dictionary to keep track of the loaded dictionaries.
             /// </summary>
             private Dictionary<string, Assembly> LoadedAssemblies { get; set; }
-
-            /// <summary>
-            /// Gets or sets a writer to use when outputting information to the user.
-            /// </summary>
-            private TextWriter Writer { get; set; }
+                = new Dictionary<string, Assembly>();
 
             /// <summary>
             /// Loads the assembly with the specified name and path.
@@ -407,13 +392,6 @@ namespace VS.Mefx
             /// <returns>The loaded assembly with the given assemblyName.</returns>
             public Assembly LoadAssembly(AssemblyName assemblyName)
             {
-                if (DEBUG)
-                {
-#pragma warning disable CS0162 // Unreachable code detected
-                    this.Writer.WriteLine("Call to load assembly " + assemblyName.Name + " at " + DateTime.Now);
-#pragma warning restore CS0162 // Unreachable code detected
-                }
-
                 // Try to read using the path first and use assemblyName as backup
                 if (assemblyName.CodeBase != null)
                 {
@@ -435,28 +413,12 @@ namespace VS.Mefx
                 lock (this.LoadedAssemblies)
                 {
                     path = new Uri(path.Trim()).LocalPath;
-
-                    if (DEBUG)
-                    {
-#pragma warning disable CS0162 // Unreachable code detected
-                        this.Writer.WriteLine("LoadingUsingPath with path: " + path);
-#pragma warning restore CS0162 // Unreachable code detected
-                    }
-
                     if (this.LoadedAssemblies.ContainsKey(path))
                     {
                         return this.LoadedAssemblies[path];
                     }
 
                     Assembly current = Context.LoadFromAssemblyPath(path);
-
-                    if (DEBUG)
-                    {
-#pragma warning disable CS0162 // Unreachable code detected
-                        this.Writer.WriteLine("Loaded assembly has value of " + current);
-#pragma warning restore CS0162 // Unreachable code detected
-                    }
-
                     this.LoadedAssemblies.Add(path, current);
                     return current;
                 }

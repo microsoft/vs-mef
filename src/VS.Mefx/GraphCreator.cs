@@ -15,14 +15,14 @@ namespace VS.Mefx
     /// </summary>
     internal class GraphCreator
     {
-        private static readonly string WhiteListLabel = Strings.WhitelistLabel;
-        private static readonly string NormalNodeLabel = "Error";
-        private static readonly string EdgeLabel = "Edge";
-        private static readonly string NodeColor = "#00FFFF";
-        private static readonly string EdgeThickness = "3";
-        private static readonly string ContainerString = "Expanded";
-        private static readonly string ContainerLabel = "Contains";
-        private static readonly string ContainerStart = "Part: ";
+        private const string WhiteListLabel = "[Whitelisted]";
+        private const string NormalNodeLabel = "Error";
+        private const string EdgeLabel = "Edge";
+        private const string NodeColor = "#00FFFF";
+        private const string EdgeThickness = "3";
+        private const string ContainerString = "Expanded";
+        private const string ContainerLabel = "Contains";
+        private const string ContainerStart = "Part: ";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="GraphCreator"/> class.
@@ -85,13 +85,13 @@ namespace VS.Mefx
 
         internal static string GetNodeName(PartNode current)
         {
-            if (current.HasExports())
+            if (current.HasExports)
             {
-                return ContainerStart + current.GetName();
+                return ContainerStart + current.Name;
             }
             else
             {
-                return current.GetName();
+                return current.Name;
             }
         }
 
@@ -141,7 +141,7 @@ namespace VS.Mefx
             {
                 Id = nodeName,
                 Category = current.IsWhiteListed ? WhiteListLabel : NormalNodeLabel,
-                Group = current.HasExports() ? ContainerString : null,
+                Group = current.HasExports ? ContainerString : null,
             };
             convertered.Properties.Add("Level", current.Level.ToString());
             return convertered;
@@ -176,7 +176,7 @@ namespace VS.Mefx
             }
 
             // Create containers for the parts that have exports for the current part
-            if (current.HasExports())
+            if (current.HasExports)
             {
                 string sourceName = GetNodeName(current);
                 foreach (var exportName in current.ExportingContracts)
@@ -199,8 +199,8 @@ namespace VS.Mefx
         /// <returns> A boolean indicating if the specified edge should be included in the graph or not.</returns>
         private bool ValidEdge(PartNode source, PartEdge edge)
         {
-            string sourceName = source.GetName();
-            string targetName = edge.Target.GetName();
+            string sourceName = source.Name;
+            string targetName = edge.Target.Name;
             return this.RejectionGraph.ContainsKey(sourceName)
                 && this.RejectionGraph.ContainsKey(targetName);
         }

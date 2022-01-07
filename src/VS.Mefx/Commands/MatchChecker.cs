@@ -35,10 +35,10 @@ namespace VS.Mefx.Commands
                 return;
             }
 
-            if (this.Options.MatchParts.Count() == 2)
+            if (this.Options.MatchParts.Count == 2)
             {
-                string exportPartName = this.Options.MatchParts.ElementAt(0).Trim();
-                string importPartName = this.Options.MatchParts.ElementAt(1).Trim();
+                string exportPartName = this.Options.MatchParts[0].Trim();
+                string importPartName = this.Options.MatchParts[1].Trim();
                 string matchPreview = string.Format(
                         CultureInfo.CurrentCulture,
                         Strings.MatchingPartsFormat,
@@ -207,7 +207,7 @@ namespace VS.Mefx.Commands
         /// Method to output to the user if the given exports satisfy the import requirements.
         /// </summary>
         /// <param name="import">The ImportDefintion we want to match against.</param>
-        /// <param name="matchingExports">A list of ExportDefinitions that we want to match against the import.</param>
+        /// <param name="matchingExports">The ExportDefinitions that we want to match against the import.</param>
         private void PerformDefinitionChecking(ImportDefinition import, List<PartExport> matchingExports)
         {
             int total = 0;
@@ -229,9 +229,9 @@ namespace VS.Mefx.Commands
                     for (int i = 0; i < result.Messages.Count; i++)
                     {
                         string failedConstraint = string.Format(
-                        CultureInfo.CurrentCulture,
-                        Strings.FailedConstraintIdentifer,
-                        i + 1);
+                            CultureInfo.CurrentCulture,
+                            Strings.FailedConstraintIdentifer,
+                            i + 1);
                         this.Options.Writer.WriteLine(failedConstraint);
                         this.Options.Writer.WriteLine(result.Messages.ElementAt(i));
                     }
@@ -407,7 +407,7 @@ namespace VS.Mefx.Commands
             /// <summary>
             /// Name of key to use when getting type of a given export.
             /// </summary>
-            private static readonly string TypeKey = "ExportTypeIdentity";
+            private const string TypeKey = "ExportTypeIdentity";
 
             internal PartExport(ExportDefinition details, string field)
             {

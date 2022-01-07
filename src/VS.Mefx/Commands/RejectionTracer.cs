@@ -24,15 +24,14 @@ namespace VS.Mefx.Commands
         internal RejectionTracer(ConfigCreator derivedInfo, CLIOptions arguments)
             : base(derivedInfo, arguments)
         {
-            this.RejectionGraph = new Dictionary<string, PartNode>();
             this.GenerateNodeGraph();
         }
 
         /// <summary>
-        /// Gets or sets all the nodes in the rejectionGraph, which is a graph representation of
+        /// Gets all the nodes in the rejectionGraph, which is a graph representation of
         /// the error stack provided by the config.
         /// </summary>
-        private Dictionary<string, PartNode> RejectionGraph { get; set; }
+        private Dictionary<string, PartNode> RejectionGraph { get; } = new Dictionary<string, PartNode>();
 
         /// <summary>
         /// Gets or sets the number of levels present in the overall graph where the level value
@@ -110,7 +109,7 @@ namespace VS.Mefx.Commands
             foreach (var nodePair in this.RejectionGraph)
             {
                 var node = nodePair.Value;
-                var currentNodeName = node.GetName();
+                var currentNodeName = node.Name;
                 var nodeDefinition = node.Part;
 
                 // Get the imports for the current part to update the pointers associated with the current node
@@ -283,7 +282,7 @@ namespace VS.Mefx.Commands
                     PartNode current = currentLevelNodes.Dequeue();
                     if (saveGraph)
                     {
-                        relevantNodes.Add(current.GetName(), current);
+                        relevantNodes.Add(current.Name, current);
                     }
 
                     errorMessages.Add(this.GetNodeDetail(current));

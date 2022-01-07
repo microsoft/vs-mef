@@ -74,7 +74,7 @@ namespace VS.Mefx
                 Writer = normalOutput,
                 ErrorWriter = errorOutput,
             };
-            await RunOptions(options);
+            await RunOptionsAsync(options);
         }
 
         public static async Task Runner(TextWriter output, TextWriter error, string[] args)
@@ -88,10 +88,10 @@ namespace VS.Mefx
         /// <summary>
         /// Performs the operations and commands specified in the input arguments.
         /// </summary>
-        private static async Task RunOptions(CLIOptions options)
+        private static async Task RunOptionsAsync(CLIOptions options)
         {
             ConfigCreator creator = new ConfigCreator(options);
-            await creator.Initialize();
+            await creator.InitializeAsync();
             if (creator.Catalog == null || creator.Config == null)
             {
                 options.ErrorWriter.WriteLine(Strings.NoPartsMessage);
