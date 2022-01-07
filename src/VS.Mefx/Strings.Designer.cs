@@ -115,6 +115,15 @@ namespace VS.Mefx {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to DNE.
+        /// </summary>
+        internal static string DoesNotExists {
+            get {
+                return ResourceManager.GetString("DoesNotExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Caught following error: {0}.
         /// </summary>
         internal static string ErrorMessage {
@@ -327,15 +336,6 @@ namespace VS.Mefx {
         internal static string NoRejectionMessage {
             get {
                 return ResourceManager.GetString("NoRejectionMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to null.
-        /// </summary>
-        internal static string NullText {
-            get {
-                return ResourceManager.GetString("NullText", resourceCulture);
             }
         }
         

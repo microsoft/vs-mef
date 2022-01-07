@@ -21,7 +21,7 @@ namespace VS.Mefx.Commands
         /// </summary>
         /// <param name="derivedInfo">The catalog and config associated with the input files.</param>
         /// <param name="arguments">The arguments specified by the user.</param>
-        public RejectionTracer(ConfigCreator derivedInfo, CLIOptions arguments)
+        internal RejectionTracer(ConfigCreator derivedInfo, CLIOptions arguments)
             : base(derivedInfo, arguments)
         {
             this.RejectionGraph = new Dictionary<string, PartNode>();
@@ -43,7 +43,7 @@ namespace VS.Mefx.Commands
         /// <summary>
         /// Method to read the input arguments and perform rejection tracing for the requested parts.
         /// </summary>
-        public void PerformRejectionTracing()
+        internal void PerformRejectionTracing()
         {
             if (this.Options.RejectedDetails == null || this.Options.RejectedDetails.Count == 0)
             {

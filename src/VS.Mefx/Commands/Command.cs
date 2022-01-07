@@ -17,7 +17,7 @@ namespace VS.Mefx.Commands
         /// </summary>
         /// <param name="derivedInfo">The ConfigCreator for the input files.</param>
         /// <param name="arguments">The command line arguments from the user.</param>
-        public Command(ConfigCreator derivedInfo, CLIOptions arguments)
+        internal Command(ConfigCreator derivedInfo, CLIOptions arguments)
         {
             this.Creator = derivedInfo;
             this.Options = arguments;
@@ -54,7 +54,7 @@ namespace VS.Mefx.Commands
         {
             if (part == null)
             {
-                return Strings.NullText;
+                return Strings.DoesNotExists;
             }
 
             Type partType = part.Type;

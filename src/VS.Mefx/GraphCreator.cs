@@ -28,7 +28,7 @@ namespace VS.Mefx
         /// Initializes a new instance of the <see cref="GraphCreator"/> class.
         /// </summary>
         /// <param name="graph">A dictionary of the parts to include in the rejection graph.</param>
-        public GraphCreator(Dictionary<string, PartNode> graph)
+        internal GraphCreator(Dictionary<string, PartNode> graph)
         {
             this.RejectionGraph = graph;
 
@@ -69,7 +69,7 @@ namespace VS.Mefx
         /// Method to get the rejection DGML.
         /// </summary>
         /// <returns>A directed graph visualizing the part rejections.</returns>
-        public DirectedGraph GetGraph()
+        internal DirectedGraph GetGraph()
         {
             return this.Dgml;
         }
@@ -78,12 +78,12 @@ namespace VS.Mefx
         /// Method to save the generated graph to an output file.
         /// </summary>
         /// <param name="outputFilePath"> The complete path of the file to which we want to save the DGML graph.</param>
-        public void SaveGraph(string outputFilePath)
+        internal void SaveGraph(string outputFilePath)
         {
             this.Dgml.WriteToFile(outputFilePath);
         }
 
-        private static string GetNodeName(PartNode current)
+        internal static string GetNodeName(PartNode current)
         {
             if (current.HasExports())
             {

@@ -19,7 +19,7 @@ namespace VS.Mefx.Commands
         /// </summary>
         /// <param name="derivedInfo">ConfigCreator for input parts.</param>
         /// <param name="arguments">Input arguments specified by the user.</param>
-        public PartInfo(ConfigCreator derivedInfo, CLIOptions arguments)
+        internal PartInfo(ConfigCreator derivedInfo, CLIOptions arguments)
             : base(derivedInfo, arguments)
         {
         }
@@ -28,7 +28,7 @@ namespace VS.Mefx.Commands
         /// Method to the read the arguments to the input options and output the requested info
         /// to the user.
         /// </summary>
-        public void PrintRequestedInfo()
+        internal void PrintRequestedInfo()
         {
             // Listing all the parts present in the input files/folders.
             if (this.Options.ListParts)

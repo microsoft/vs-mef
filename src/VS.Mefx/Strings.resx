@@ -135,6 +135,9 @@
   <data name="DiscoveryErrors" xml:space="preserve">
     <value>Encountered following errors when finding parts:</value>
   </data>
+  <data name="DoesNotExists" xml:space="preserve">
+    <value>DNE</value>
+  </data>
   <data name="ErrorMessage" xml:space="preserve">
     <value>Caught following error: {0}</value>
   </data>
@@ -206,9 +209,6 @@
   </data>
   <data name="NoRejectionMessage" xml:space="preserve">
     <value>No Rejection issues associated with {0}</value>
-  </data>
-  <data name="NullText" xml:space="preserve">
-    <value>null</value>
   </data>
   <data name="PartDetailFormat" xml:space="preserve">
     <value>Printing out details for part {0}</value>

@@ -13,7 +13,7 @@ namespace VS.Mefx.Commands
         /// </summary>
         /// <param name="other">The Node at the tail of the edge.</param>
         /// <param name="description">The label associated with the node.</param>
-        public PartEdge(PartNode other, string description)
+        internal PartEdge(PartNode other, string description)
         {
             this.Target = other;
             this.Label = description;
@@ -22,11 +22,11 @@ namespace VS.Mefx.Commands
         /// <summary>
         /// Gets the node at the tail of the edge.
         /// </summary>
-        public PartNode Target { get; private set; }
+        internal PartNode Target { get; private set; }
 
         /// <summary>
         /// Gets the label associated with the given node.
         /// </summary>
-        public string Label { get; private set; }
+        internal string Label { get; private set; }
     }
 }

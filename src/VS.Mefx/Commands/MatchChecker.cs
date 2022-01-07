@@ -20,7 +20,7 @@ namespace VS.Mefx.Commands
         /// </summary>
         /// <param name="derivedInfo">ConfigCreator for the specified input parts.</param>
         /// <param name="arguments">Input arguments specified by the user.</param>
-        public MatchChecker(ConfigCreator derivedInfo, CLIOptions arguments)
+        internal MatchChecker(ConfigCreator derivedInfo, CLIOptions arguments)
             : base(derivedInfo, arguments)
         {
         }
@@ -28,7 +28,7 @@ namespace VS.Mefx.Commands
         /// <summary>
         /// Method to perform matching on the input options and output the result to the user.
         /// </summary>
-        public void PerformMatching()
+        internal void PerformMatching()
         {
             if (this.Options.MatchParts == null || this.Options.MatchParts.Count == 0)
             {
@@ -97,7 +97,7 @@ namespace VS.Mefx.Commands
         {
             if (constraint == null || export == null)
             {
-                return Strings.NullText;
+                return Strings.DoesNotExists;
             }
 
             string constraintString = constraint.ToString()!;
@@ -131,7 +131,7 @@ namespace VS.Mefx.Commands
                 if (exportDetails.Metadata.ContainsKey(keyName))
                 {
                     var keyValue = exportDetails.Metadata[keyName];
-                    pairValue = keyValue != null ? keyValue.ToString()! : Strings.NullText;
+                    pairValue = keyValue != null ? keyValue.ToString()! : Strings.DoesNotExists;
                 }
 
                 actualValue = string.Format(
@@ -391,15 +391,15 @@ namespace VS.Mefx.Commands
 
         private class ImporterStorer
         {
-            public ImporterStorer(ImportDefinition import, string importingField)
+            internal ImporterStorer(ImportDefinition import, string importingField)
             {
                 this.Import = import;
                 this.ImportingField = importingField;
             }
 
-            public ImportDefinition Import { get; private set; }
+            internal ImportDefinition Import { get; private set; }
 
-            public string ImportingField { get; private set; }
+            internal string ImportingField { get; private set; }
         }
 
         private class PartExport
@@ -409,7 +409,7 @@ namespace VS.Mefx.Commands
             /// </summary>
             private static readonly string TypeKey = "ExportTypeIdentity";
 
-            public PartExport(ExportDefinition details, string field)
+            internal PartExport(ExportDefinition details, string field)
             {
                 this.ExportDetails = details;
                 this.ExportingField = field;
@@ -423,24 +423,24 @@ namespace VS.Mefx.Commands
                 this.ExportingType = exportType;
             }
 
-            public ExportDefinition ExportDetails { get; private set; }
+            internal ExportDefinition ExportDetails { get; private set; }
 
-            public string ExportingField { get; private set; }
+            internal string ExportingField { get; private set; }
 
-            public string ExportingType { get; private set; }
+            internal string ExportingType { get; private set; }
         }
 
         private class MatchResult
         {
-            public MatchResult()
+            internal MatchResult()
             {
                 this.SucessfulMatch = true;
                 this.Messages = new List<string>();
             }
 
-            public bool SucessfulMatch { get; set; }
+            internal bool SucessfulMatch { get; set; }
 
-            public List<string> Messages { get; set; }
+            internal List<string> Messages { get; set; }
         }
     }
 }

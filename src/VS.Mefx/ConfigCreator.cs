@@ -10,7 +10,6 @@ namespace VS.Mefx
     using System.Linq;
     using System.Reflection;
     using System.Runtime.Loader;
-    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition;
 
@@ -36,11 +35,9 @@ namespace VS.Mefx
         /// Initializes a new instance of the <see cref="ConfigCreator"/> class.
         /// </summary>
         /// <param name="options">The arguments inputted by the user.</param>
-        public ConfigCreator(CLIOptions options)
+        internal ConfigCreator(CLIOptions options)
         {
-            this.AssemblyPaths = new List<string>();
             this.CachePaths = new List<string>();
-            this.PartInformation = new Dictionary<string, ComposablePartDefinition>();
             this.Options = options;
 
             // Add all the files in the input argument to the list of paths
@@ -94,32 +91,32 @@ namespace VS.Mefx
         /// <summary>
         /// Gets the catalog that stores information about the imported parts.
         /// </summary>
-        public ComposableCatalog? Catalog { get; private set; }
+        internal ComposableCatalog? Catalog { get; private set; }
 
         /// <summary>
         /// Gets configuration information associated with the imported parts.
         /// </summary>
-        public CompositionConfiguration? Config { get; private set; }
+        internal CompositionConfiguration? Config { get; private set; }
 
         /// <summary>
-        /// Gets or sets a dictionary storing parts indexed by thier parts name for easy lookup.
+        /// Gets a dictionary storing parts indexed by thier parts name for easy lookup.
         /// </summary>
-        public Dictionary<string, ComposablePartDefinition> PartInformation { get; set; }
+        internal Dictionary<string, ComposablePartDefinition> PartInformation { get; } = new();
 
         /// <summary>
         /// Gets or sets the path of the cache file to store the processed parts.
         /// </summary>
-        private string? OutputCacheFile { get; set; }
+        internal string? OutputCacheFile { get; set; }
 
         /// <summary>
-        /// Gets or sets the paths to the assembly files we want to read.
+        /// Gets the paths to the assembly files we want to read.
         /// </summary>
-        private List<string> AssemblyPaths { get; set; }
+        internal List<string> AssemblyPaths { get; } = new();
 
         /// <summary>
-        /// Gets or sets the paths to the cache files we want to read.
+        /// Gets the paths to the cache files we want to read.
         /// </summary>
-        private List<string> CachePaths { get; set; }
+        internal List<string> CachePaths { get; } = new();
 
         /// <summary>
         /// Method to get the details about a part, i.e. the part Definition, given its name.
@@ -127,7 +124,7 @@ namespace VS.Mefx
         /// <param name="partName"> The name of the part we want to get details about.</param>
         /// <returns><see cref="ComposablePartDefinition"/> associated with the given part if it is
         /// present in the catalog and null otherwise.</returns>
-        public ComposablePartDefinition? GetPart(string partName)
+        internal ComposablePartDefinition? GetPart(string partName)
         {
             if (!this.PartInformation.ContainsKey(partName))
             {
@@ -141,7 +138,7 @@ namespace VS.Mefx
         /// Method to intialize the catalog and configuration objects from the input files.
         /// </summary>
         /// <returns>A Task object when all the assembly have between loaded in and configured.</returns>
-        public async Task Initialize()
+        internal async Task Initialize()
         {
             CustomAssemblyLoader customLoader = new CustomAssemblyLoader(this.Options.ErrorWriter);
             Resolver customResolver = new(customLoader);

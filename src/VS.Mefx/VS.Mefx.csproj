@@ -3,15 +3,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
-    <Nullable>enable</Nullable>
-    <AnalysisLevel>latest</AnalysisLevel>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>Mefx</ToolCommandName>
-    <PackageOutputPath>..\..\</PackageOutputPath>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Description>A diagnostic tool to understand catalogs, compositions and diagnose issues in them.</Description>
   </PropertyGroup>
   
   <ItemGroup>
@@ -19,7 +13,6 @@
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="OpenSoftware.DgmlBuilder" Version="1.15.0" />
     <PackageReference Include="System.CommandLine.DragonFruit" Version="0.3.0-alpha.21216.1" />
-    <PackageReference Include="Nullable" Version="1.3.0" PrivateAssets="all" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.354" PrivateAssets="all" />
   </ItemGroup>
   

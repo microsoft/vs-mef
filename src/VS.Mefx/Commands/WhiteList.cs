@@ -12,7 +12,7 @@ namespace VS.Mefx.Commands
     internal class WhiteList
     {
         // Constants associated with the Regex's for the expressions specified in the whitelist
-        private static readonly TimeSpan MaxRegexTime = new TimeSpan(0, 0, 5);
+        private static readonly TimeSpan MaxRegexTime = TimeSpan.FromSeconds(5);
         private static readonly RegexOptions RegexOptions = RegexOptions.IgnoreCase;
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace VS.Mefx.Commands
         /// </summary>
         private CLIOptions Options { get; set; }
 
-        public WhiteList(CLIOptions options)
+        internal WhiteList(CLIOptions options)
         {
             // Read and process the whitelist file, if one is present
             this.Options = options;
@@ -61,7 +61,7 @@ namespace VS.Mefx.Commands
         /// </summary>
         /// <param name="partName">The name of the part we want to check.</param>
         /// <returns> A boolean indicating if the specified part was included in the whitelist or not.</returns>
-        public bool IsWhiteListed(string partName)
+        internal bool IsWhiteListed(string partName)
         {
             if (!this.UsingRegex)
             {
