@@ -653,14 +653,12 @@ namespace Microsoft.VisualStudio.Composition
         private class CombinedPartDiscovery : PartDiscovery
         {
             private readonly IReadOnlyList<PartDiscovery> discoveryMechanisms;
-            private Dictionary<string, IEnumerable<Type>> loadedTypes;
 
             internal CombinedPartDiscovery(Resolver resolver, IReadOnlyList<PartDiscovery> discoveryMechanisms)
                 : base(resolver)
             {
                 Requires.NotNull(discoveryMechanisms, nameof(discoveryMechanisms));
                 this.discoveryMechanisms = discoveryMechanisms;
-                this.loadedTypes = new Dictionary<string, IEnumerable<Type>>();
             }
 
             protected override ComposablePartDefinition? CreatePart(Type partType, bool typeExplicitlyRequested)

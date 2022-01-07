@@ -3,7 +3,26 @@ A Composition Analysis Tool for VS-MEF
 
 ## Command Options Summary
 
-![A image of all the command Options](images/Options.jpg)
+```
+Options:
+  --verbose                        An option to toggle the detail level of the output. [default: False]
+  --file <file>                    Specify files from which we want to load parts from. [default: ]
+  --directory <directory>          Specify folders from which we want to load parts from. [default: ]
+  --parts                          An boolean to toggle if we want to print out all the parts. [default: False]
+  --detail <detail>                Specify the parts we want to get more information about. [default: ]
+  --importer <importer>            List the parts who import the specified contract name(s). [default: ]
+  --exporter <exporter>            List the parts who export the specified contract name(s). [default: ]
+  --rejected <rejected>            List the rejection causes for a given part (use all to list every rejection error). [default: ]
+  --graph <graph>                  Specify path to directory to save the rejection DGML file. [default: ]
+  --whitelist <whitelist>          A file which lists the parts we expect to be rejected. [default: ]
+  --regex                          Treat the text in the whitelist file as regular expressions. [default: False]
+  --cache <cache>                  Specify the name of the output file to store the loaded parts. [default: ]
+  --match <match>                  Check relationship between given part which are provided in order: ExportPart ImportPart. [default: ]
+  --match-exports <match-exports>  List of fields in the export part that we want to consider. [default: ]
+  --match-imports <match-imports>  List of fields in the import part that we want to consider. [default: ]
+  --version                        Show version information
+  -?, -h, --help                   Show help and usage information
+```
 
 ## Part Information Getter 
 
