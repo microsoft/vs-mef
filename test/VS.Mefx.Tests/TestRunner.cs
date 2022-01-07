@@ -151,12 +151,6 @@ namespace VS.Mefx.Tests
             this.PrintCommandResult(result);
         }
 
-        [Fact(Skip = SkipLabel)]
-        public async Task Playground()
-        {
-            await this.Runner("ReadMultipleDirectories.txt");
-        }
-
         private class TestGetter : DataAttribute
         {
             private static readonly string ValidFileExtension = ".txt";
