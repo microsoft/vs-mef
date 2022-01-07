@@ -479,3 +479,16 @@ static Microsoft.VisualStudio.Composition.Reflection.TypeRef.Get(Microsoft.Visua
 static Microsoft.VisualStudio.Composition.Reflection.TypeRef.Get(Microsoft.VisualStudio.Composition.Resolver! resolver, System.Reflection.AssemblyName! assemblyName, int metadataToken, string! fullName, Microsoft.VisualStudio.Composition.Reflection.TypeRefFlags typeFlags, int genericTypeParameterCount, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef!> genericTypeArguments, bool shallow, System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.Composition.Reflection.TypeRef!> baseTypes, Microsoft.VisualStudio.Composition.Reflection.TypeRef? elementTypeRef) -> Microsoft.VisualStudio.Composition.Reflection.TypeRef!
 Microsoft.VisualStudio.Composition.ExportProvider.GetExportedValues(System.Type! type, string? contractName) -> System.Collections.Generic.IEnumerable<object?>!
 Microsoft.VisualStudio.Composition.ExportProvider.GetExports(System.Type! type, System.Type! metadataViewType, string? contractName) -> System.Collections.Generic.IEnumerable<System.Lazy<object?, object!>!>!
+Microsoft.VisualStudio.Composition.CompositionFailedException.CompositionFailedException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
+Microsoft.VisualStudio.Composition.CompositionFailedException.ErrorsAsString.get -> string?
+Microsoft.VisualStudio.Composition.DiscoveryProgress.DiscoveryProgress() -> void
+Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExport(Microsoft.VisualStudio.Composition.Export! export) -> void
+Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExport<T>(System.Lazy<T>! export) -> void
+Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExports(System.Collections.Generic.IEnumerable<Microsoft.VisualStudio.Composition.Export!>! exports) -> void
+Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExports<T, TMetadataView>(System.Collections.Generic.IEnumerable<System.Lazy<T, TMetadataView>!>! exports) -> void
+Microsoft.VisualStudio.Composition.ExportProvider.ReleaseExports<T>(System.Collections.Generic.IEnumerable<System.Lazy<T>!>! exports) -> void
+Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint.MetadatumRequirement.MetadatumRequirement() -> void
+Microsoft.VisualStudio.Composition.PartDiscoveryException.PartDiscoveryException(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
+override Microsoft.VisualStudio.Composition.CompositionFailedException.GetObjectData(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
+override Microsoft.VisualStudio.Composition.PartDiscoveryException.GetObjectData(System.Runtime.Serialization.SerializationInfo! info, System.Runtime.Serialization.StreamingContext context) -> void
+static Microsoft.VisualStudio.Composition.PartDiscovery.Combine(Microsoft.VisualStudio.Composition.Resolver! resolver, params Microsoft.VisualStudio.Composition.PartDiscovery![]! discoveryMechanisms) -> Microsoft.VisualStudio.Composition.PartDiscovery!
