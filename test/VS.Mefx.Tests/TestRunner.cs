@@ -21,7 +21,7 @@ namespace VS.Mefx.Tests
     public class TestRunner
     {
         private const bool TestOverride = false;
-        private const bool IgnoreHelperFacts = false;
+        private const bool IgnoreHelperFacts = true;
         private const string SkipLabel = IgnoreHelperFacts ? "Debugging" : null;
 
         private readonly ITestOutputHelper output;
