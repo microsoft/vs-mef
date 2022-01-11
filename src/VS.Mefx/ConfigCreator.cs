@@ -9,7 +9,6 @@ namespace VS.Mefx
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Runtime.Loader;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition;
 
@@ -137,8 +136,7 @@ namespace VS.Mefx
         /// <returns>A Task object when all the assembly have between loaded in and configured.</returns>
         internal async Task InitializeAsync()
         {
-            CustomAssemblyLoader customLoader = new CustomAssemblyLoader();
-            Resolver customResolver = new(customLoader);
+            Resolver customResolver = Resolver.DefaultInstance;
             var nugetDiscover = new AttributedPartDiscovery(customResolver, isNonPublicSupported: true);
             var netDiscover = new AttributedPartDiscoveryV1(customResolver);
             PartDiscovery discovery = PartDiscovery.Combine(customResolver, netDiscover, nugetDiscover);
@@ -349,100 +347,6 @@ namespace VS.Mefx
                 {
                     this.Options.ErrorWriter.WriteLine(Strings.DiscoveryErrors);
                     discoveryErrors.ForEach(error => this.Options.ErrorWriter.WriteLine(error));
-                }
-            }
-        }
-
-        private class CustomAssemblyLoader : IAssemblyLoader
-        {
-            /// <summary>
-            /// Gets a Load Context to see when loading the assemblies into Mefx.
-            /// </summary>
-            private static readonly AssemblyLoadContext Context = new AssemblyLoadContext("Mefx");
-
-            /// <summary>
-            /// Gets or sets an dictionary to keep track of the loaded dictionaries.
-            /// </summary>
-            private Dictionary<string, Assembly> LoadedAssemblies { get; set; }
-                = new Dictionary<string, Assembly>();
-
-            /// <summary>
-            /// Loads the assembly with the specified name and path.
-            /// </summary>
-            /// <param name="assemblyFullName">The name of the assembly to load.</param>
-            /// <param name="codeBasePath">The path of the assembly to load.</param>
-            /// <returns>The loaded assembly at the given codePath.</returns>
-            public Assembly LoadAssembly(string assemblyFullName, string? codeBasePath)
-            {
-                // Try to read using the path first and use assemblyName as backup
-                if (codeBasePath != null)
-                {
-                    return this.LoadUsingPath(codeBasePath);
-                }
-                else
-                {
-                    return this.LoadUsingName(new AssemblyName(assemblyFullName));
-                }
-            }
-
-            /// <summary>
-            /// Loads the assembly with the assemblyName.
-            /// </summary>
-            /// <param name="assemblyName">The <see cref="AssemblyName"/> to read the assembly for.</param>
-            /// <returns>The loaded assembly with the given assemblyName.</returns>
-            public Assembly LoadAssembly(AssemblyName assemblyName)
-            {
-                // Try to read using the path first and use assemblyName as backup
-                if (assemblyName.CodeBase != null)
-                {
-                    return this.LoadUsingPath(assemblyName.CodeBase);
-                }
-                else
-                {
-                    return this.LoadUsingName(assemblyName);
-                }
-            }
-
-            /// <summary>
-            /// Method to load an assembly using the given path name.
-            /// </summary>
-            /// <param name="path">A string representing the path to the assembly.</param>
-            /// <returns>The assembly at the specified input path.</returns>
-            private Assembly LoadUsingPath(string path)
-            {
-                lock (this.LoadedAssemblies)
-                {
-                    path = new Uri(path.Trim()).LocalPath;
-                    if (this.LoadedAssemblies.ContainsKey(path))
-                    {
-                        return this.LoadedAssemblies[path];
-                    }
-
-                    Assembly current = Context.LoadFromAssemblyPath(path);
-                    this.LoadedAssemblies.Add(path, current);
-                    return current;
-                }
-            }
-
-            /// <summary>
-            /// Method to load an assembly using the specified assembly name.
-            /// </summary>
-            /// <param name="assemblyInfo">The <see cref="AssemblyName"/> to load.</param>
-            /// <returns>The assembly that matches the specified assembly name.</returns>
-            private Assembly LoadUsingName(AssemblyName assemblyInfo)
-            {
-                string assemblyName = assemblyInfo.FullName.Trim();
-
-                lock (this.LoadedAssemblies)
-                {
-                    if (this.LoadedAssemblies.ContainsKey(assemblyName))
-                    {
-                        return this.LoadedAssemblies[assemblyName];
-                    }
-
-                    Assembly current = Context.LoadFromAssemblyName(assemblyInfo);
-                    this.LoadedAssemblies.Add(assemblyName, current);
-                    return current;
                 }
             }
         }

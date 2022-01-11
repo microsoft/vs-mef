@@ -21,7 +21,7 @@ namespace VS.Mefx.Tests
     public class TestRunner
     {
         private const bool TestOverride = false;
-        private const bool IgnoreHelperFacts = true;
+        private const bool IgnoreHelperFacts = false;
         private const string SkipLabel = IgnoreHelperFacts ? "Debugging" : null;
 
         private readonly ITestOutputHelper output;
@@ -148,7 +148,7 @@ namespace VS.Mefx.Tests
         {
             string command = "--verbose --rejected ExtendedOperations.Modulo " +
                 "--file ExtendedOperations.dll MefCalculator.dll";
-            string[] result = await RunCommand(command.Split(" "));
+            string[] result = await RunCommand(command.Split(' '));
             this.PrintCommandResult(result);
         }
 
