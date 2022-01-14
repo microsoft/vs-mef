@@ -507,6 +507,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";RequiredImportHasBeenInvalidated" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{0}: expected exactly 1 export matching constraints:]D;]A;{1} but the matching part has been invalidated.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{0}: previsto esattamente 1 vincolo corrispondente all'esportazione:]D;]A;{1} ma la parte corrispondente è stata invalidata.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ScanningMEFAssemblies" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Scanning MEF assemblies...]]></Val>
