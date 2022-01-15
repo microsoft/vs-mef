@@ -342,11 +342,11 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} is expected only on imports of ExportFactory&lt;T&gt;..
+        ///   Looks up a localized string similar to {0} is expected only on imports of System.Composition.ExportFactory&lt;T&gt; or System.Composition.ExportFactory&lt;T, TMetadata&gt;, but found {1} instead..
         /// </summary>
-        internal static string IsExpectedOnlyOnImportsOfExportFactoryOfT {
+        internal static string IsExpectedOnlyOnImportsOfExportFactoryOfTV2 {
             get {
-                return ResourceManager.GetString("IsExpectedOnlyOnImportsOfExportFactoryOfT", resourceCulture);
+                return ResourceManager.GetString("IsExpectedOnlyOnImportsOfExportFactoryOfTV2", resourceCulture);
             }
         }
         

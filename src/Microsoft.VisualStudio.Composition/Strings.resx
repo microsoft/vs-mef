@@ -282,8 +282,8 @@
   <data name="ImportConstraintTypeNotSupported" xml:space="preserve">
     <value>The import constraint type {0} is not supported.</value>
   </data>
-  <data name="IsExpectedOnlyOnImportsOfExportFactoryOfT" xml:space="preserve">
-    <value>{0} is expected only on imports of ExportFactory&lt;T&gt;.</value>
+  <data name="IsExpectedOnlyOnImportsOfExportFactoryOfTV2" xml:space="preserve">
+    <value>{0} is expected only on imports of System.Composition.ExportFactory&lt;T&gt; or System.Composition.ExportFactory&lt;T, TMetadata&gt;, but found {1} instead.</value>
   </data>
   <data name="IsExportFactoryExpectedTrue" xml:space="preserve">
     <value>IsExportFactory is expected to be true.</value>

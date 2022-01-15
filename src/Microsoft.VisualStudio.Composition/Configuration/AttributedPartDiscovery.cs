@@ -301,7 +301,7 @@ namespace Microsoft.VisualStudio.Composition
             var sharingBoundaryAttribute = member.GetFirstAttribute<SharingBoundaryAttribute>();
             if (sharingBoundaryAttribute != null)
             {
-                Verify.Operation(importingType.IsExportFactoryTypeV2(), Strings.IsExpectedOnlyOnImportsOfExportFactoryOfT, typeof(SharingBoundaryAttribute).Name);
+                Verify.Operation(importingType.IsExportFactoryTypeV2(), Strings.IsExpectedOnlyOnImportsOfExportFactoryOfTV2, typeof(SharingBoundaryAttribute).Name, importingType.FullName);
                 sharingBoundaries = sharingBoundaries.Union(sharingBoundaryAttribute.SharingBoundaryNames);
             }
 
