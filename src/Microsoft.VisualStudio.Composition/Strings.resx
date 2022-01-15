@@ -354,4 +354,7 @@
     <value>{0}: expected exactly 1 export matching constraints:
 {1} but the matching part has been invalidated.</value>
   </data>
+  <data name="ErrorWhileScanningMember" xml:space="preserve">
+    <value>Error occurred while scanning member: "{0}"</value>
+  </data>
 </root>

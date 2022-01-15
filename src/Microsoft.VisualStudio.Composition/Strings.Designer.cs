@@ -178,6 +178,15 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error occurred while scanning member: &quot;{0}&quot;.
+        /// </summary>
+        internal static string ErrorWhileScanningMember {
+            get {
+                return ResourceManager.GetString("ErrorWhileScanningMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Import &quot;{0}&quot; could not be satisfied..
         /// </summary>
         internal static string ErrorWhileSettingImport {
