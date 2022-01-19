@@ -10,7 +10,6 @@
 
 namespace Microsoft.VisualStudio.Composition {
     using System;
-    using System.Reflection;
     
     
     /// <summary>
@@ -20,7 +19,7 @@ namespace Microsoft.VisualStudio.Composition {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Strings {
@@ -40,7 +39,7 @@ namespace Microsoft.VisualStudio.Composition {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.VisualStudio.Composition.Strings", typeof(Strings).GetTypeInfo().Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.VisualStudio.Composition.Strings", typeof(Strings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -175,6 +174,15 @@ namespace Microsoft.VisualStudio.Composition {
         internal static string ErrorsInComposition {
             get {
                 return ResourceManager.GetString("ErrorsInComposition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error occurred while scanning member: &quot;{0}&quot;.
+        /// </summary>
+        internal static string ErrorWhileScanningMember {
+            get {
+                return ResourceManager.GetString("ErrorWhileScanningMember", resourceCulture);
             }
         }
         
@@ -343,11 +351,11 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} is expected only on imports of ExportFactory&lt;T&gt;..
+        ///   Looks up a localized string similar to {0} is expected only on imports of System.Composition.ExportFactory&lt;T&gt; or System.Composition.ExportFactory&lt;T, TMetadata&gt;, but found {1} instead..
         /// </summary>
-        internal static string IsExpectedOnlyOnImportsOfExportFactoryOfT {
+        internal static string IsExpectedOnlyOnImportsOfExportFactoryOfTV2 {
             get {
-                return ResourceManager.GetString("IsExpectedOnlyOnImportsOfExportFactoryOfT", resourceCulture);
+                return ResourceManager.GetString("IsExpectedOnlyOnImportsOfExportFactoryOfTV2", resourceCulture);
             }
         }
         
@@ -557,19 +565,17 @@ namespace Microsoft.VisualStudio.Composition {
                 return ResourceManager.GetString("ReflectionTypeLoadExceptionWhileEnumeratingTypes", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to {0}: expected exactly 1 export matching constraints:
         ///{1} but the matching part has been invalidated..
         /// </summary>
-        internal static string RequiredImportHasBeenInvalidated
-        {
-            get
-            {
+        internal static string RequiredImportHasBeenInvalidated {
+            get {
                 return ResourceManager.GetString("RequiredImportHasBeenInvalidated", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Scanning MEF assemblies....
         /// </summary>
@@ -607,7 +613,7 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type of metadata view is unsupported..
+        ///   Looks up a localized string similar to The type {0} is an unsupported type of metadata view..
         /// </summary>
         internal static string TypeOfMetadataViewUnsupported {
             get {

@@ -8,10 +8,9 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.Composition;
     using System.Diagnostics.CodeAnalysis;
+    using System.Globalization;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     public class AttributedPartDiscovery : PartDiscovery
@@ -142,32 +141,46 @@ namespace Microsoft.VisualStudio.Composition
 
             foreach (var member in declaredProperties)
             {
-                var importAttribute = member.GetFirstAttribute<ImportAttribute>();
-                var importManyAttribute = member.GetFirstAttribute<ImportManyAttribute>();
-                Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", Strings.MemberContainsBothImportAndImportMany, member.Name);
-
-                var importConstraints = GetImportConstraints(member);
-                ImportDefinition? importDefinition;
-                if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, importConstraints, out importDefinition))
+                try
                 {
-                    var importDefinitionBinding = new ImportDefinitionBinding(
-                        importDefinition,
-                        TypeRef.Get(partType, this.Resolver),
-                        MemberRef.Get(member, this.Resolver),
-                        TypeRef.Get(member.PropertyType, this.Resolver),
-                        TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, member.PropertyType), this.Resolver));
-                    imports.Add(importDefinitionBinding);
+                    var importAttribute = member.GetFirstAttribute<ImportAttribute>();
+                    var importManyAttribute = member.GetFirstAttribute<ImportManyAttribute>();
+                    Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", Strings.MemberContainsBothImportAndImportMany, member.Name);
+
+                    var importConstraints = GetImportConstraints(member);
+                    ImportDefinition? importDefinition;
+                    if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, importConstraints, out importDefinition))
+                    {
+                        var importDefinitionBinding = new ImportDefinitionBinding(
+                            importDefinition,
+                            TypeRef.Get(partType, this.Resolver),
+                            MemberRef.Get(member, this.Resolver),
+                            TypeRef.Get(member.PropertyType, this.Resolver),
+                            TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, member.PropertyType), this.Resolver));
+                        imports.Add(importDefinitionBinding);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw ThrowErrorScanningMember(member, ex);
                 }
             }
 
             MethodInfo? onImportsSatisfied = null;
             foreach (var method in partTypeInfo.GetMethods(this.PublicVsNonPublicFlags | BindingFlags.Instance))
             {
-                if (method.IsAttributeDefined<OnImportsSatisfiedAttribute>())
+                try
                 {
-                    Verify.Operation(method.GetParameters().Length == 0, Strings.OnImportsSatisfiedTakeNoParameters);
-                    Verify.Operation(onImportsSatisfied == null, Strings.OnlyOneOnImportsSatisfiedMethodIsSupported);
-                    onImportsSatisfied = method;
+                    if (method.IsAttributeDefined<OnImportsSatisfiedAttribute>())
+                    {
+                        Verify.Operation(method.GetParameters().Length == 0, Strings.OnImportsSatisfiedTakeNoParameters);
+                        Verify.Operation(onImportsSatisfied == null, Strings.OnlyOneOnImportsSatisfiedMethodIsSupported);
+                        onImportsSatisfied = method;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    throw ThrowErrorScanningMember(method, ex);
                 }
             }
 
@@ -209,6 +222,8 @@ namespace Microsoft.VisualStudio.Composition
                 importingConstructorParameters.ToImmutable(),
                 partCreationPolicy,
                 assemblyNamesForMetadataAttributes);
+
+            static Exception ThrowErrorScanningMember(MemberInfo member, Exception ex) => throw new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.ErrorWhileScanningMember, member.Name), ex);
         }
 
         public override bool IsExportFactoryType(Type type)
@@ -301,7 +316,7 @@ namespace Microsoft.VisualStudio.Composition
             var sharingBoundaryAttribute = member.GetFirstAttribute<SharingBoundaryAttribute>();
             if (sharingBoundaryAttribute != null)
             {
-                Verify.Operation(importingType.IsExportFactoryTypeV2(), Strings.IsExpectedOnlyOnImportsOfExportFactoryOfT, typeof(SharingBoundaryAttribute).Name);
+                Verify.Operation(importingType.IsExportFactoryTypeV2(), Strings.IsExpectedOnlyOnImportsOfExportFactoryOfTV2, typeof(SharingBoundaryAttribute).Name, importingType.FullName);
                 sharingBoundaries = sharingBoundaries.Union(sharingBoundaryAttribute.SharingBoundaryNames);
             }
 
