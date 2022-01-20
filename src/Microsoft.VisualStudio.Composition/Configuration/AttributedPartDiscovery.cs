@@ -166,8 +166,9 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
+            // MEFv2 is willing to find `internal` OnImportsSatisfied methods, so we should too regardless of our NonPublic flag.
             MethodInfo? onImportsSatisfied = null;
-            foreach (var method in partTypeInfo.GetMethods(this.PublicVsNonPublicFlags | BindingFlags.Instance))
+            foreach (var method in partTypeInfo.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 try
                 {

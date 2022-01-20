@@ -4,11 +4,7 @@
 namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
-    using System.Collections.Generic;
     using System.Composition;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
@@ -190,6 +186,50 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 Assumes.NotNull(Container);
                 var self = Container.GetExportedValue<PartThatQueriesForItself>();
                 Assert.Same(this, self);
+            }
+        }
+
+        #endregion
+
+        #region Non-public OnImportsSatisfied methods
+
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V2Compat, typeof(ClassWithInternalOnImportsSatisfiedMethod))]
+        public void InternalOnImportsSatisfiedMethodIsObserved(IContainer container)
+        {
+            var export = container.GetExportedValue<ClassWithInternalOnImportsSatisfiedMethod>();
+            Assert.True(export.WasImportsSatisfiedMethodRun);
+        }
+
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V3EmulatingV2WithNonPublic, typeof(ClassWithPrivateOnImportsSatisfiedMethod))]
+        public void PrivateOnImportsSatisfiedMethodIsObserved(IContainer container)
+        {
+            var export = container.GetExportedValue<ClassWithPrivateOnImportsSatisfiedMethod>();
+            Assert.True(export.WasImportsSatisfiedMethodRun);
+        }
+
+        [Export]
+        internal class ClassWithInternalOnImportsSatisfiedMethod
+        {
+            internal bool WasImportsSatisfiedMethodRun { get; private set; }
+
+            [OnImportsSatisfied]
+            internal void PrivateImportsSatisfiedMethod()
+            {
+                this.WasImportsSatisfiedMethodRun = true;
+            }
+        }
+
+        [Export]
+        internal class ClassWithPrivateOnImportsSatisfiedMethod
+        {
+            internal bool WasImportsSatisfiedMethodRun { get; private set; }
+
+            [OnImportsSatisfied]
+            private void PrivateImportsSatisfiedMethod()
+            {
+                this.WasImportsSatisfiedMethodRun = true;
             }
         }
 
