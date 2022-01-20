@@ -61,7 +61,8 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            var declaredProperties = partTypeInfo.GetProperties(BindingFlags.Instance | this.PublicVsNonPublicFlags);
+            BindingFlags instanceLocal = BindingFlags.DeclaredOnly | BindingFlags.Instance | this.PublicVsNonPublicFlags;
+            var declaredProperties = partTypeInfo.GetProperties(instanceLocal);
             var exportingProperties = from member in declaredProperties
                                       from export in member.GetAttributes<ExportAttribute>()
                                       where member.GetMethod != null // MEFv2 quietly omits exporting properties with no getter
@@ -107,7 +108,6 @@ namespace Microsoft.VisualStudio.Composition
 
             var exportsOnType = ImmutableList.CreateBuilder<ExportDefinition>();
             var exportsOnMembers = ImmutableDictionary.CreateBuilder<MemberRef, IReadOnlyCollection<ExportDefinition>>();
-            var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
 
             foreach (var export in exportsByMember)
             {
@@ -139,30 +139,42 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            foreach (var member in declaredProperties)
+            var imports = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
+            AddImportsFromMembers(declaredProperties, partTypeRef, imports);
+            Type? baseType = partTypeInfo.BaseType;
+            while (baseType != null && baseType != typeof(object))
             {
-                try
-                {
-                    var importAttribute = member.GetFirstAttribute<ImportAttribute>();
-                    var importManyAttribute = member.GetFirstAttribute<ImportManyAttribute>();
-                    Requires.Argument(!(importAttribute != null && importManyAttribute != null), "partType", Strings.MemberContainsBothImportAndImportMany, member.Name);
+                AddImportsFromMembers(baseType.GetProperties(instanceLocal), partTypeRef, imports);
+                baseType = baseType.GetTypeInfo().BaseType;
+            }
 
-                    var importConstraints = GetImportConstraints(member);
-                    ImportDefinition? importDefinition;
-                    if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, importConstraints, out importDefinition))
-                    {
-                        var importDefinitionBinding = new ImportDefinitionBinding(
-                            importDefinition,
-                            TypeRef.Get(partType, this.Resolver),
-                            MemberRef.Get(member, this.Resolver),
-                            TypeRef.Get(member.PropertyType, this.Resolver),
-                            TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, member.PropertyType), this.Resolver));
-                        imports.Add(importDefinitionBinding);
-                    }
-                }
-                catch (Exception ex)
+            void AddImportsFromMembers(PropertyInfo[] declaredProperties, TypeRef partTypeRef, IList<ImportDefinitionBinding> imports)
+            {
+                foreach (var member in declaredProperties)
                 {
-                    throw ThrowErrorScanningMember(member, ex);
+                    try
+                    {
+                        var importAttribute = member.GetFirstAttribute<ImportAttribute>();
+                        var importManyAttribute = member.GetFirstAttribute<ImportManyAttribute>();
+                        Requires.Argument(!(importAttribute != null && importManyAttribute != null), nameof(partType), Strings.MemberContainsBothImportAndImportMany, member.Name);
+
+                        var importConstraints = GetImportConstraints(member);
+                        ImportDefinition? importDefinition;
+                        if (this.TryCreateImportDefinition(ReflectionHelpers.GetMemberType(member), member, importConstraints, out importDefinition))
+                        {
+                            var importDefinitionBinding = new ImportDefinitionBinding(
+                                importDefinition,
+                                partTypeRef,
+                                MemberRef.Get(member, this.Resolver),
+                                TypeRef.Get(member.PropertyType, this.Resolver),
+                                TypeRef.Get(GetImportingSiteTypeWithoutCollection(importDefinition, member.PropertyType), this.Resolver));
+                            imports.Add(importDefinitionBinding);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ThrowErrorScanningMember(member, ex);
+                    }
                 }
             }
 
