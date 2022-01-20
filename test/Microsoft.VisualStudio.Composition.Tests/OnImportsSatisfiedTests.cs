@@ -218,7 +218,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [Trait("Access", "NonPublic")]
-        [MefFact(CompositionEngines.V3EmulatingV2WithNonPublic, typeof(ClassWithPrivateOnImportsSatisfiedMethodDerived), Skip = "Not yet passing.")]
+        [MefFact(CompositionEngines.V3EmulatingV2WithNonPublic, typeof(ClassWithPrivateOnImportsSatisfiedMethodDerived))]
         public void PrivateOnImportsSatisfiedMethodOnBaseIsObserved(IContainer container)
         {
             var export = container.GetExportedValue<ClassWithPrivateOnImportsSatisfiedMethodDerived>();

@@ -168,20 +168,26 @@ namespace Microsoft.VisualStudio.Composition
 
             // MEFv2 is willing to find `internal` OnImportsSatisfied methods, so we should too regardless of our NonPublic flag.
             var onImportsSatisfied = ImmutableList.CreateBuilder<MethodRef>();
-            foreach (var method in partTypeInfo.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+            Type? currentType = partTypeInfo;
+            while (currentType is object && currentType != typeof(object))
             {
-                try
+                foreach (var method in currentType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
                 {
-                    if (method.IsAttributeDefined<OnImportsSatisfiedAttribute>())
+                    try
                     {
-                        Verify.Operation(method.GetParameters().Length == 0, Strings.OnImportsSatisfiedTakeNoParameters);
-                        onImportsSatisfied.Add(MethodRef.Get(method, this.Resolver));
+                        if (method.IsAttributeDefined<OnImportsSatisfiedAttribute>())
+                        {
+                            Verify.Operation(method.GetParameters().Length == 0, Strings.OnImportsSatisfiedTakeNoParameters);
+                            onImportsSatisfied.Add(MethodRef.Get(method, this.Resolver));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ThrowErrorScanningMember(method, ex);
                     }
                 }
-                catch (Exception ex)
-                {
-                    throw ThrowErrorScanningMember(method, ex);
-                }
+
+                currentType = currentType.GetTypeInfo().BaseType;
             }
 
             var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
