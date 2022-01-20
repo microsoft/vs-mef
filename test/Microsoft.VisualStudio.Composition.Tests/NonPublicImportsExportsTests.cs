@@ -90,11 +90,32 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.Equal("Hi", importer.ImportedString);
         }
 
-        [MefFact(CompositionEngines.V1Compat, typeof(PublicExport), typeof(ExportWithPrivateImportingProperty))]
+        [MefFact(CompositionEngines.V1Compat | CompositionEngines.V3EmulatingV2WithNonPublic, typeof(PublicExport), typeof(ExportWithPrivateImportingProperty))]
         public void PrivateImportingProperty(IContainer container)
         {
             var result = container.GetExportedValue<ExportWithPrivateImportingProperty>();
             Assert.NotNull(result.InternalAccessor);
+        }
+
+        [MefFact(CompositionEngines.V2Compat, typeof(PublicExport), typeof(ExportWithPrivateImportingProperty))]
+        public void PrivateImportingPropertyV2(IContainer container)
+        {
+            var result = container.GetExportedValue<ExportWithPrivateImportingProperty>();
+            Assert.Null(result.InternalAccessor);
+        }
+
+        [MefFact(CompositionEngines.V1Compat, typeof(ExportWithPrivateImportingPropertyDerived), typeof(PublicExport))]
+        public void PrivateImportingPropertyInBaseClassV1(IContainer container)
+        {
+            var export = container.GetExportedValue<ExportWithPrivateImportingPropertyDerived>();
+            Assert.NotNull(export.InternalAccessor);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV2WithNonPublic, typeof(ExportWithPrivateImportingPropertyDerived), typeof(PublicExport))]
+        public void PrivateImportingPropertyInBaseClassV2(IContainer container)
+        {
+            var export = container.GetExportedValue<ExportWithPrivateImportingPropertyDerived>();
+            Assert.NotNull(export.InternalAccessor);
         }
 
         [MefFact(CompositionEngines.V1Compat, typeof(PublicExport), typeof(ExportWithPrivateImportingPropertySetter))]
@@ -529,15 +550,23 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PublicExport { }
 
         [MefV1.Export]
+        [MefV2.Export, MefV2.Shared]
         public class ExportWithPrivateImportingProperty
         {
             [MefV1.Import]
+            [MefV2.Import]
             private PublicExport ImportingProperty { get; set; } = null!;
 
             internal PublicExport InternalAccessor
             {
                 get { return this.ImportingProperty; }
             }
+        }
+
+        [MefV1.Export]
+        [MefV2.Export, MefV2.Shared]
+        internal class ExportWithPrivateImportingPropertyDerived : ExportWithPrivateImportingProperty
+        {
         }
 
         public class ExportWithPrivateImportingPropertySetterBase
