@@ -230,7 +230,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     ImmutableDictionary.Create<MemberRef, IReadOnlyCollection<ExportDefinition>>(),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     null,
-                    default(MethodRef),
+                    ImmutableList.Create<MethodRef>(),
                     default(MethodRef),
                     ImmutableList.Create<ImportDefinitionBinding>(),
                     CreationPolicy.Any,

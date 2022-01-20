@@ -166,22 +166,28 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            MethodInfo? onImportsSatisfied = null;
-            foreach (var method in partTypeInfo.GetMethods(this.PublicVsNonPublicFlags | BindingFlags.Instance))
+            // MEFv2 is willing to find `internal` OnImportsSatisfied methods, so we should too regardless of our NonPublic flag.
+            var onImportsSatisfied = ImmutableList.CreateBuilder<MethodRef>();
+            Type? currentType = partTypeInfo;
+            while (currentType is object && currentType != typeof(object))
             {
-                try
+                foreach (var method in currentType.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
                 {
-                    if (method.IsAttributeDefined<OnImportsSatisfiedAttribute>())
+                    try
                     {
-                        Verify.Operation(method.GetParameters().Length == 0, Strings.OnImportsSatisfiedTakeNoParameters);
-                        Verify.Operation(onImportsSatisfied == null, Strings.OnlyOneOnImportsSatisfiedMethodIsSupported);
-                        onImportsSatisfied = method;
+                        if (method.IsAttributeDefined<OnImportsSatisfiedAttribute>())
+                        {
+                            Verify.Operation(method.GetParameters().Length == 0, Strings.OnImportsSatisfiedTakeNoParameters);
+                            onImportsSatisfied.Add(MethodRef.Get(method, this.Resolver));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ThrowErrorScanningMember(method, ex);
                     }
                 }
-                catch (Exception ex)
-                {
-                    throw ThrowErrorScanningMember(method, ex);
-                }
+
+                currentType = currentType.GetTypeInfo().BaseType;
             }
 
             var importingConstructorParameters = ImmutableList.CreateBuilder<ImportDefinitionBinding>();
@@ -217,11 +223,12 @@ namespace Microsoft.VisualStudio.Composition
                 exportsOnMembers.ToImmutable(),
                 imports.ToImmutable(),
                 sharingBoundary,
-                MethodRef.Get(onImportsSatisfied, this.Resolver),
+                onImportsSatisfied.ToImmutable(),
                 MethodRef.Get(importingCtor, this.Resolver),
                 importingConstructorParameters.ToImmutable(),
                 partCreationPolicy,
-                assemblyNamesForMetadataAttributes);
+                isSharingBoundaryInferred: false,
+                extraInputAssemblies: assemblyNamesForMetadataAttributes);
 
             static Exception ThrowErrorScanningMember(MemberInfo member, Exception ex) => throw new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.ErrorWhileScanningMember, member.Name), ex);
         }

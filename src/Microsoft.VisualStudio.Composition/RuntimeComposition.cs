@@ -189,7 +189,7 @@ namespace Microsoft.VisualStudio.Composition
                 part.GetImportingConstructorImports().Select(kvp => CreateRuntimeImport(kvp.Key, kvp.Value, part.Resolver)).ToImmutableArray(),
                 part.Definition.ImportingMembers.Select(idb => CreateRuntimeImport(idb, part.SatisfyingExports[idb], part.Resolver)).ToImmutableArray(),
                 part.Definition.ExportDefinitions.Select(ed => CreateRuntimeExport(ed.Value, part.Definition.TypeRef, ed.Key, part.Resolver)).ToImmutableArray(),
-                part.Definition.OnImportsSatisfiedRef,
+                part.Definition.OnImportsSatisfiedMethodRefs,
                 part.Definition.IsShared ? configuration.GetEffectiveSharingBoundary(part.Definition) : null);
             return runtimePart;
         }
@@ -261,7 +261,7 @@ namespace Microsoft.VisualStudio.Composition
                 IReadOnlyList<RuntimeImport> importingConstructorArguments,
                 IReadOnlyList<RuntimeImport> importingMembers,
                 IReadOnlyList<RuntimeExport> exports,
-                MethodRef? onImportsSatisfied,
+                IReadOnlyList<MethodRef> onImportsSatisfiedMethods,
                 string? sharingBoundary)
             {
                 this.TypeRef = type;
@@ -269,7 +269,7 @@ namespace Microsoft.VisualStudio.Composition
                 this.ImportingConstructorArguments = importingConstructorArguments;
                 this.ImportingMembers = importingMembers;
                 this.Exports = exports;
-                this.OnImportsSatisfiedRef = onImportsSatisfied;
+                this.OnImportsSatisfiedMethodRefs = onImportsSatisfiedMethods;
                 this.SharingBoundary = sharingBoundary;
             }
 
@@ -285,15 +285,13 @@ namespace Microsoft.VisualStudio.Composition
 
             public IReadOnlyList<RuntimeExport> Exports { get; set; }
 
-            public MethodRef? OnImportsSatisfiedRef { get; private set; }
-
             public string? SharingBoundary { get; private set; }
 
             public bool IsShared => this.SharingBoundary != null;
 
             public bool IsInstantiable => this.ImportingConstructorOrFactoryMethodRef != null;
 
-            public MethodInfo? OnImportsSatisfied => (MethodInfo?)this.OnImportsSatisfiedRef?.MethodBase;
+            public IReadOnlyList<MethodRef> OnImportsSatisfiedMethodRefs { get; }
 
             private string? DebuggerDisplay => this.TypeRef.FullName;
 
@@ -313,7 +311,7 @@ namespace Microsoft.VisualStudio.Composition
                     && this.ImportingConstructorArguments.SequenceEqual(other.ImportingConstructorArguments)
                     && ByValueEquality.EquivalentIgnoreOrder<RuntimeImport>().Equals(this.ImportingMembers, other.ImportingMembers)
                     && ByValueEquality.EquivalentIgnoreOrder<RuntimeExport>().Equals(this.Exports, other.Exports)
-                    && EqualityComparer<MethodRef?>.Default.Equals(this.OnImportsSatisfiedRef, other.OnImportsSatisfiedRef)
+                    && this.OnImportsSatisfiedMethodRefs.SequenceEqual(other.OnImportsSatisfiedMethodRefs, EqualityComparer<MethodRef?>.Default)
                     && this.SharingBoundary == other.SharingBoundary;
                 return result;
             }

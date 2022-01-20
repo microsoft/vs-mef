@@ -7,38 +7,29 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Diagnostics;
-    using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
-    using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     [DebuggerDisplay("{" + nameof(Type) + ".Name}")]
     public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>
     {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ComposablePartDefinition"/> class.
-        /// </summary>
-        /// <param name="partType">Type of the part.</param>
-        /// <param name="metadata">The metadata discovered on the part.</param>
-        /// <param name="exportedTypes">The exported types.</param>
-        /// <param name="exportingMembers">The exporting members.</param>
-        /// <param name="importingMembers">The importing members.</param>
-        /// <param name="sharingBoundary">The sharing boundary that this part is shared within.</param>
-        /// <param name="onImportsSatisfied">The method to invoke after satisfying imports, if any.</param>
-        /// <param name="importingConstructorRef">The constructor to invoke to construct the part.</param>
-        /// <param name="importingConstructorImports">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
-        /// <param name="partCreationPolicy">The creation policy for this part.</param>
-        /// <param name="isSharingBoundaryInferred">A value indicating whether the part does not have an explicit sharing boundary, and therefore can obtain its sharing boundary based on its imports.</param>
-        public ComposablePartDefinition(TypeRef partType, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers, IEnumerable<ImportDefinitionBinding> importingMembers, string? sharingBoundary, MethodRef? onImportsSatisfied, MethodRef? importingConstructorRef, IReadOnlyList<ImportDefinitionBinding>? importingConstructorImports, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred = false)
+        /// <inheritdoc cref="ComposablePartDefinition(TypeRef, IReadOnlyDictionary{string, object?}, IReadOnlyCollection{ExportDefinition}, IReadOnlyDictionary{MemberRef, IReadOnlyCollection{ExportDefinition}}, IEnumerable{ImportDefinitionBinding}, string?, IReadOnlyList{MethodRef}, MethodRef?, IReadOnlyList{ImportDefinitionBinding}?, CreationPolicy, bool, IEnumerable{AssemblyName})" />
+        public ComposablePartDefinition(TypeRef partType, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers, IEnumerable<ImportDefinitionBinding> importingMembers, string? sharingBoundary, IReadOnlyList<MethodRef> onImportsSatisfiedMethods, MethodRef? importingConstructorRef, IReadOnlyList<ImportDefinitionBinding>? importingConstructorImports, CreationPolicy partCreationPolicy)
+            : this(partType, metadata, exportedTypes, exportingMembers, importingMembers, sharingBoundary, onImportsSatisfiedMethods, importingConstructorRef, importingConstructorImports, partCreationPolicy, isSharingBoundaryInferred: false)
+        {
+        }
+
+        /// <inheritdoc cref="ComposablePartDefinition(TypeRef, IReadOnlyDictionary{string, object?}, IReadOnlyCollection{ExportDefinition}, IReadOnlyDictionary{MemberRef, IReadOnlyCollection{ExportDefinition}}, IEnumerable{ImportDefinitionBinding}, string?, IReadOnlyList{MethodRef}, MethodRef?, IReadOnlyList{ImportDefinitionBinding}?, CreationPolicy, bool, IEnumerable{AssemblyName})" />
+        public ComposablePartDefinition(TypeRef partType, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers, IEnumerable<ImportDefinitionBinding> importingMembers, string? sharingBoundary, IReadOnlyList<MethodRef> onImportsSatisfiedMethods, MethodRef? importingConstructorRef, IReadOnlyList<ImportDefinitionBinding>? importingConstructorImports, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred)
         {
             Requires.NotNull(partType, nameof(partType));
             Requires.NotNull(metadata, nameof(metadata));
             Requires.NotNull(exportedTypes, nameof(exportedTypes));
             Requires.NotNull(exportingMembers, nameof(exportingMembers));
             Requires.NotNull(importingMembers, nameof(importingMembers));
+            Requires.NotNull(onImportsSatisfiedMethods, nameof(onImportsSatisfiedMethods));
 
             this.TypeRef = partType;
             this.Metadata = metadata;
@@ -46,7 +37,7 @@ namespace Microsoft.VisualStudio.Composition
             this.ExportingMembers = exportingMembers;
             this.ImportingMembers = ImmutableHashSet.CreateRange(importingMembers);
             this.SharingBoundary = sharingBoundary;
-            this.OnImportsSatisfiedRef = onImportsSatisfied;
+            this.OnImportsSatisfiedMethodRefs = onImportsSatisfiedMethods;
             this.ImportingConstructorOrFactoryRef = importingConstructorRef;
             this.ImportingConstructorImports = importingConstructorImports;
             this.CreationPolicy = partCreationPolicy;
@@ -63,14 +54,14 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="exportingMembers">The exporting members.</param>
         /// <param name="importingMembers">The importing members.</param>
         /// <param name="sharingBoundary">The sharing boundary that this part is shared within.</param>
-        /// <param name="onImportsSatisfied">The method to invoke after satisfying imports, if any.</param>
+        /// <param name="onImportsSatisfiedMethods">The method to invoke after satisfying imports, if any.</param>
         /// <param name="importingConstructorRef">The constructor to invoke to construct the part.</param>
         /// <param name="importingConstructorImports">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
         /// <param name="partCreationPolicy">The creation policy for this part.</param>
-        /// <param name="extraInputAssemblies">A sequence of extra assemblies to be added to the set for <see cref="GetInputAssemblies(ISet{AssemblyName})"/>.</param>
         /// <param name="isSharingBoundaryInferred">A value indicating whether the part does not have an explicit sharing boundary, and therefore can obtain its sharing boundary based on its imports.</param>
-        public ComposablePartDefinition(TypeRef partType, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers, IEnumerable<ImportDefinitionBinding> importingMembers, string? sharingBoundary, MethodRef? onImportsSatisfied, MethodRef? importingConstructorRef, IReadOnlyList<ImportDefinitionBinding>? importingConstructorImports, CreationPolicy partCreationPolicy, IEnumerable<AssemblyName> extraInputAssemblies, bool isSharingBoundaryInferred = false)
-            : this(partType, metadata, exportedTypes, exportingMembers, importingMembers, sharingBoundary, onImportsSatisfied, importingConstructorRef, importingConstructorImports, partCreationPolicy, isSharingBoundaryInferred)
+        /// <param name="extraInputAssemblies">A sequence of extra assemblies to be added to the set for <see cref="GetInputAssemblies(ISet{AssemblyName})"/>.</param>
+        public ComposablePartDefinition(TypeRef partType, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers, IEnumerable<ImportDefinitionBinding> importingMembers, string? sharingBoundary, IReadOnlyList<MethodRef> onImportsSatisfiedMethods, MethodRef? importingConstructorRef, IReadOnlyList<ImportDefinitionBinding>? importingConstructorImports, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred, IEnumerable<AssemblyName> extraInputAssemblies)
+            : this(partType, metadata, exportedTypes, exportingMembers, importingMembers, sharingBoundary, onImportsSatisfiedMethods, importingConstructorRef, importingConstructorImports, partCreationPolicy, isSharingBoundaryInferred)
         {
             Requires.NotNull(extraInputAssemblies, nameof(extraInputAssemblies));
             this.ExtraInputAssemblies = extraInputAssemblies;
@@ -118,12 +109,13 @@ namespace Microsoft.VisualStudio.Composition
         /// </remarks>
         public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
-        public MethodInfo? OnImportsSatisfied
-        {
-            get { return (MethodInfo?)this.OnImportsSatisfiedRef?.MethodBase; }
-        }
+        /// <inheritdoc cref="OnImportsSatisfiedMethodRefs" />
+        public IEnumerable<MethodInfo> OnImportsSatisfiedMethods => this.OnImportsSatisfiedMethodRefs.Select(m => (MethodInfo)m.MethodBase);
 
-        public MethodRef? OnImportsSatisfiedRef { get; private set; }
+        /// <summary>
+        /// Gets the list of methods to invoke after imports are satisfied.
+        /// </summary>
+        public IReadOnlyList<MethodRef> OnImportsSatisfiedMethodRefs { get; private set; }
 
         /// <summary>
         /// Gets the types exported on the part itself.
@@ -224,7 +216,7 @@ namespace Microsoft.VisualStudio.Composition
                 && this.SharingBoundary == other.SharingBoundary
                 && this.IsSharingBoundaryInferred == other.IsSharingBoundaryInferred
                 && this.CreationPolicy == other.CreationPolicy
-                && EqualityComparer<MethodRef?>.Default.Equals(this.OnImportsSatisfiedRef, other.OnImportsSatisfiedRef)
+                && this.OnImportsSatisfiedMethodRefs.SequenceEqual(other.OnImportsSatisfiedMethodRefs, EqualityComparer<MethodRef?>.Default)
                 && ByValueEquality.EquivalentIgnoreOrder<ExportDefinition>().Equals(this.ExportedTypes, other.ExportedTypes)
                 && ByValueEquality.Dictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>(ByValueEquality.EquivalentIgnoreOrder<ExportDefinition>()).Equals(this.ExportingMembers, other.ExportingMembers)
                 && EqualityComparer<MethodRef?>.Default.Equals(this.ImportingConstructorOrFactoryRef, other.ImportingConstructorOrFactoryRef)
@@ -252,7 +244,14 @@ namespace Microsoft.VisualStudio.Composition
             indentingWriter.WriteLine("SharingBoundary: {0}", this.SharingBoundary.SpecifyIfNull());
             indentingWriter.WriteLine("IsSharingBoundaryInferred: {0}", this.IsSharingBoundaryInferred);
             indentingWriter.WriteLine("CreationPolicy: {0}", this.CreationPolicy);
-            indentingWriter.WriteLine("OnImportsSatisfied: {0}", this.OnImportsSatisfied.SpecifyIfNull());
+            indentingWriter.WriteLine("OnImportsSatisfied:");
+            using (indentingWriter.Indent())
+            {
+                foreach (MethodRef method in this.OnImportsSatisfiedMethodRefs)
+                {
+                    indentingWriter.WriteLine(method);
+                }
+            }
 
             indentingWriter.WriteLine("ExportedTypes:");
             using (indentingWriter.Indent())
@@ -339,7 +338,11 @@ namespace Microsoft.VisualStudio.Composition
                 import.GetInputAssemblies(assemblies);
             }
 
-            this.OnImportsSatisfiedRef?.GetInputAssemblies(assemblies);
+            foreach (var method in this.OnImportsSatisfiedMethodRefs)
+            {
+                method.GetInputAssemblies(assemblies);
+            }
+
             this.ImportingConstructorOrFactoryRef?.GetInputAssemblies(assemblies);
         }
     }

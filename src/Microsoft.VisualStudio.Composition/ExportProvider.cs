@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Composition
             ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
             ImmutableList<ImportDefinitionBinding>.Empty,
             string.Empty,
-            default(MethodRef),
+            ImmutableList<MethodRef>.Empty,
             default(MethodRef),
             null,
             CreationPolicy.Shared,

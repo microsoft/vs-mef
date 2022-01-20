@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 part.ExportingMembers.Select(this.Scramble).ToDictionary(kv => kv.Key, kv => kv.Value),
                 part.ImportingMembers.Select(this.Scramble).ToList(),
                 part.SharingBoundary,
-                this.Scramble(part.OnImportsSatisfiedRef),
+                part.OnImportsSatisfiedMethodRefs.Select<MethodRef, MethodRef>(this.Scramble).ToList(),
                 this.Scramble(part.ImportingConstructorOrFactoryRef),
                 part.ImportingConstructorImports?.Select(this.Scramble).ToList(),
                 part.CreationPolicy,

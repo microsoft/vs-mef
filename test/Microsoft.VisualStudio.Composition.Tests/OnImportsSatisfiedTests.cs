@@ -4,11 +4,7 @@
 namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
-    using System.Collections.Generic;
     using System.Composition;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
@@ -191,6 +187,126 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 var self = Container.GetExportedValue<PartThatQueriesForItself>();
                 Assert.Same(this, self);
             }
+        }
+
+        #endregion
+
+        #region Non-public OnImportsSatisfied methods
+
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V2Compat, typeof(ClassWithInternalOnImportsSatisfiedMethod))]
+        public void InternalOnImportsSatisfiedMethodIsObserved(IContainer container)
+        {
+            var export = container.GetExportedValue<ClassWithInternalOnImportsSatisfiedMethod>();
+            Assert.Equal(1, export.ImportsSatisfiedMethodRunCount);
+        }
+
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V2Compat, typeof(ClassWithInternalOnImportsSatisfiedMethodDerived))]
+        public void InternalOnImportsSatisfiedMethodOnBaseIsObserved(IContainer container)
+        {
+            var export = container.GetExportedValue<ClassWithInternalOnImportsSatisfiedMethodDerived>();
+            Assert.Equal(1, export.ImportsSatisfiedMethodRunCount);
+        }
+
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V3EmulatingV2WithNonPublic, typeof(ClassWithPrivateOnImportsSatisfiedMethod))]
+        public void PrivateOnImportsSatisfiedMethodIsObserved(IContainer container)
+        {
+            var export = container.GetExportedValue<ClassWithPrivateOnImportsSatisfiedMethod>();
+            Assert.Equal(1, export.ImportsSatisfiedMethodRunCount);
+        }
+
+        [Trait("Access", "NonPublic")]
+        [MefFact(CompositionEngines.V3EmulatingV2WithNonPublic, typeof(ClassWithPrivateOnImportsSatisfiedMethodDerived))]
+        public void PrivateOnImportsSatisfiedMethodOnBaseIsObserved(IContainer container)
+        {
+            var export = container.GetExportedValue<ClassWithPrivateOnImportsSatisfiedMethodDerived>();
+            Assert.Equal(1, export.ImportsSatisfiedMethodRunCount);
+        }
+
+        [Export]
+        internal class ClassWithInternalOnImportsSatisfiedMethod
+        {
+            internal int ImportsSatisfiedMethodRunCount { get; private set; }
+
+            [OnImportsSatisfied]
+            internal void PrivateImportsSatisfiedMethod()
+            {
+                this.ImportsSatisfiedMethodRunCount++;
+            }
+        }
+
+        [Export]
+        internal class ClassWithInternalOnImportsSatisfiedMethodDerived : ClassWithInternalOnImportsSatisfiedMethod
+        {
+        }
+
+        [Export]
+        internal class ClassWithPrivateOnImportsSatisfiedMethod
+        {
+            internal int ImportsSatisfiedMethodRunCount { get; private set; }
+
+            [OnImportsSatisfied]
+            private void PrivateImportsSatisfiedMethod()
+            {
+                this.ImportsSatisfiedMethodRunCount++;
+            }
+        }
+
+        [Export]
+        internal class ClassWithPrivateOnImportsSatisfiedMethodDerived : ClassWithPrivateOnImportsSatisfiedMethod
+        {
+        }
+
+        #endregion
+
+        #region Test for attributes applied to multiple methods
+
+        [MefFact(CompositionEngines.V2Compat, typeof(ClassWithTwoOnImportsSatisfiedMethods))]
+        public void TwoOnImportsSatisfiedMethodAreObserved(IContainer container)
+        {
+            var export = container.GetExportedValue<ClassWithTwoOnImportsSatisfiedMethods>();
+            Assert.Equal(1, export.ImportsSatisfiedMethodRunCount1);
+            Assert.Equal(1, export.ImportsSatisfiedMethodRunCount2);
+        }
+
+        [MefFact(CompositionEngines.V2Compat, typeof(DerivedClassWithTwoMoreOnImportsSatisfiedMethods))]
+        public void OnImportsSatisfiedMethodAreObservedAcrossTypeHierarchy(IContainer container)
+        {
+            var export = container.GetExportedValue<DerivedClassWithTwoMoreOnImportsSatisfiedMethods>();
+            Assert.Equal(1, export.ImportsSatisfiedMethodRunCount1);
+            Assert.Equal(1, export.ImportsSatisfiedMethodRunCount2);
+            Assert.Equal(1, export.ImportsSatisfiedMethodRunCount3);
+            Assert.Equal(1, export.ImportsSatisfiedMethodRunCount4);
+        }
+
+        [Export]
+        internal class ClassWithTwoOnImportsSatisfiedMethods
+        {
+            internal int ImportsSatisfiedMethodRunCount1 { get; private set; }
+
+            internal int ImportsSatisfiedMethodRunCount2 { get; private set; }
+
+            [OnImportsSatisfied]
+            internal void InternalImportsSatisfiedMethod1() => this.ImportsSatisfiedMethodRunCount1++;
+
+            [OnImportsSatisfied]
+            public void PublicImportsSatisfiedMethod2() => this.ImportsSatisfiedMethodRunCount2++;
+        }
+
+        [Export]
+        internal class DerivedClassWithTwoMoreOnImportsSatisfiedMethods : ClassWithTwoOnImportsSatisfiedMethods
+        {
+            internal int ImportsSatisfiedMethodRunCount3 { get; private set; }
+
+            internal int ImportsSatisfiedMethodRunCount4 { get; private set; }
+
+            [OnImportsSatisfied]
+            internal void InternalImportsSatisfiedMethod3() => this.ImportsSatisfiedMethodRunCount3++;
+
+            [OnImportsSatisfied]
+            public void PublicImportsSatisfiedMethod4() => this.ImportsSatisfiedMethodRunCount4++;
         }
 
         #endregion

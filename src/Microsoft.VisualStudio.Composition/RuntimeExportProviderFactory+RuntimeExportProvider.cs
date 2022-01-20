@@ -592,15 +592,18 @@ namespace Microsoft.VisualStudio.Composition
 
                 protected override void InvokeOnImportsSatisfied()
                 {
-                    if (this.partDefinition.OnImportsSatisfied != null)
+                    if (this.partDefinition.OnImportsSatisfiedMethodRefs.Count > 0)
                     {
-                        try
+                        foreach (MethodRef method in this.partDefinition.OnImportsSatisfiedMethodRefs)
                         {
-                            this.partDefinition.OnImportsSatisfied.Invoke(this.Value, EmptyObjectArray);
-                        }
-                        catch (TargetInvocationException ex)
-                        {
-                            throw this.PrepareExceptionForFaultedPart(ex);
+                            try
+                            {
+                                method.MethodBase.Invoke(this.Value, EmptyObjectArray);
+                            }
+                            catch (TargetInvocationException ex)
+                            {
+                                throw this.PrepareExceptionForFaultedPart(ex);
+                            }
                         }
                     }
                 }
