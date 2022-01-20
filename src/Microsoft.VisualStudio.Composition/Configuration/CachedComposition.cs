@@ -195,7 +195,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
 
                     this.Write(part.ImportingMembers, this.Write);
-                    this.Write(part.OnImportsSatisfiedRef);
+                    this.Write(part.OnImportsSatisfiedMethodRefs, this.Write);
                     this.Write(part.SharingBoundary);
                 }
             }
@@ -217,7 +217,7 @@ namespace Microsoft.VisualStudio.Composition
                     }
 
                     var importingMembers = this.ReadList(this.reader, this.readRuntimeImportDelegate);
-                    var onImportsSatisfied = this.ReadMethodRef();
+                    IReadOnlyList<MethodRef> onImportsSatisfiedMethods = this.ReadList(this.reader, this.ReadMethodRef)!;
                     var sharingBoundary = this.ReadString();
 
                     return new RuntimeComposition.RuntimePart(
@@ -226,7 +226,7 @@ namespace Microsoft.VisualStudio.Composition
                         importingCtorArguments,
                         importingMembers,
                         exports!,
-                        onImportsSatisfied,
+                        onImportsSatisfiedMethods,
                         sharingBoundary);
                 }
             }

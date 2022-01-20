@@ -118,7 +118,7 @@ namespace Microsoft.VisualStudio.Composition
 
                     this.Write(partDefinition.ImportingMembers, this.Write);
                     this.Write(partDefinition.SharingBoundary);
-                    this.Write(partDefinition.OnImportsSatisfiedRef);
+                    this.Write(partDefinition.OnImportsSatisfiedMethodRefs, this.Write);
                     if (partDefinition.ImportingConstructorOrFactoryRef == null)
                     {
                         this.writer!.Write(false);
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.Composition
 
                     var importingMembers = this.ReadList(this.readImportDefinitionBindingDelegate);
                     var sharingBoundary = this.ReadString();
-                    var onImportsSatisfied = this.ReadMethodRef();
+                    IReadOnlyList<MethodRef> onImportsSatisfiedMethods = this.ReadList(this.ReadMethodRef)!;
 
                     MethodRef? importingConstructor = default(MethodRef);
                     IReadOnlyList<ImportDefinitionBinding>? importingConstructorImports = null;
@@ -173,7 +173,7 @@ namespace Microsoft.VisualStudio.Composition
                         exportingMembers,
                         importingMembers,
                         sharingBoundary,
-                        onImportsSatisfied,
+                        onImportsSatisfiedMethods,
                         importingConstructor,
                         importingConstructorImports,
                         creationPolicy,

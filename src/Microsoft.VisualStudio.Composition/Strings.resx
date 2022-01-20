@@ -300,9 +300,6 @@
   <data name="OnImportsSatisfiedTakeNoParameters" xml:space="preserve">
     <value>OnImportsSatisfied method should take no parameters.</value>
   </data>
-  <data name="OnlyOneOnImportsSatisfiedMethodIsSupported" xml:space="preserve">
-    <value>Only one OnImportsSatisfied method is supported.</value>
-  </data>
   <data name="OnlySupportedOnWriteOperations" xml:space="preserve">
     <value>Only supported on write operations.</value>
   </data>

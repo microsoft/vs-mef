@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.Composition
                 ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Empty,
                 ImmutableList<ImportDefinitionBinding>.Empty,
                 string.Empty,
-                default(MethodRef),
+                ImmutableList<MethodRef>.Empty,
                 MethodRef.Get(providerType.GetTypeInfo().GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Single(c => c.GetParameters().Length == 0), resolver),
                 ImmutableList<ImportDefinitionBinding>.Empty,
                 CreationPolicy.Shared,

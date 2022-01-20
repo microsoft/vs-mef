@@ -211,12 +211,12 @@ namespace Microsoft.VisualStudio.Composition
                 exportsOnMembers,
                 imports.ToImmutable(),
                 partCreationPolicy != CreationPolicy.NonShared ? string.Empty : null,
-                MethodRef.Get(onImportsSatisfied, this.Resolver),
+                onImportsSatisfied is object ? ImmutableList.Create(MethodRef.Get(onImportsSatisfied, this.Resolver)) : ImmutableList<MethodRef>.Empty,
                 MethodRef.Get(importingCtor, this.Resolver),
                 importingCtor != null ? importingConstructorParameters.ToImmutable() : null, // some MEF parts are only for metadata
                 partCreationPolicy,
-                assemblyNamesForMetadataAttributes,
-                partCreationPolicy != CreationPolicy.NonShared);
+                partCreationPolicy != CreationPolicy.NonShared,
+                assemblyNamesForMetadataAttributes);
         }
 
         private void AddImportsFromMembers(PropertyInfo[] declaredProperties, FieldInfo[] declaredFields, TypeRef partTypeRef, IList<ImportDefinitionBinding> imports)

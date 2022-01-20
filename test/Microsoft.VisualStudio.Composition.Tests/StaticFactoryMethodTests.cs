@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 staticFactoryPart.ExportingMembers,
                 staticFactoryPart.ImportingMembers,
                 staticFactoryPart.SharingBoundary,
-                staticFactoryPart.OnImportsSatisfiedRef,
+                staticFactoryPart.OnImportsSatisfiedMethodRefs,
                 staticFactoryMethodRef,
                 staticFactoryPart.ImportingConstructorImports.Take(1).ToList(),
                 staticFactoryPart.CreationPolicy,

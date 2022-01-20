@@ -167,7 +167,7 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             // MEFv2 is willing to find `internal` OnImportsSatisfied methods, so we should too regardless of our NonPublic flag.
-            MethodInfo? onImportsSatisfied = null;
+            var onImportsSatisfied = ImmutableList.CreateBuilder<MethodRef>();
             foreach (var method in partTypeInfo.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
                 try
@@ -175,8 +175,7 @@ namespace Microsoft.VisualStudio.Composition
                     if (method.IsAttributeDefined<OnImportsSatisfiedAttribute>())
                     {
                         Verify.Operation(method.GetParameters().Length == 0, Strings.OnImportsSatisfiedTakeNoParameters);
-                        Verify.Operation(onImportsSatisfied == null, Strings.OnlyOneOnImportsSatisfiedMethodIsSupported);
-                        onImportsSatisfied = method;
+                        onImportsSatisfied.Add(MethodRef.Get(method, this.Resolver));
                     }
                 }
                 catch (Exception ex)
@@ -218,11 +217,12 @@ namespace Microsoft.VisualStudio.Composition
                 exportsOnMembers.ToImmutable(),
                 imports.ToImmutable(),
                 sharingBoundary,
-                MethodRef.Get(onImportsSatisfied, this.Resolver),
+                onImportsSatisfied.ToImmutable(),
                 MethodRef.Get(importingCtor, this.Resolver),
                 importingConstructorParameters.ToImmutable(),
                 partCreationPolicy,
-                assemblyNamesForMetadataAttributes);
+                isSharingBoundaryInferred: false,
+                extraInputAssemblies: assemblyNamesForMetadataAttributes);
 
             static Exception ThrowErrorScanningMember(MemberInfo member, Exception ex) => throw new PartDiscoveryException(string.Format(CultureInfo.CurrentCulture, Strings.ErrorWhileScanningMember, member.Name), ex);
         }

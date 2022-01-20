@@ -486,15 +486,6 @@ namespace Microsoft.VisualStudio.Composition {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Only one OnImportsSatisfied method is supported..
-        /// </summary>
-        internal static string OnlyOneOnImportsSatisfiedMethodIsSupported {
-            get {
-                return ResourceManager.GetString("OnlyOneOnImportsSatisfiedMethodIsSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Only supported on write operations..
         /// </summary>
         internal static string OnlySupportedOnWriteOperations {
