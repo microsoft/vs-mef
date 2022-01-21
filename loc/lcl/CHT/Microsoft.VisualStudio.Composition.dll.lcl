@@ -111,6 +111,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ErrorWhileScanningMember" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error occurred while scanning member: "{0}"]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[掃描成員時發生錯誤: "{0}"]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ErrorWhileSettingImport" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Import "{0}" could not be satisfied.]]></Val>
@@ -291,11 +300,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";IsExpectedOnlyOnImportsOfExportFactoryOfT" ItemType="0" PsrId="211" Leaf="true">
+      <Item ItemId=";IsExpectedOnlyOnImportsOfExportFactoryOfTV2" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[{0} is expected only on imports of ExportFactory<T>.]]></Val>
+          <Val><![CDATA[{0} is expected only on imports of System.Composition.ExportFactory<T> or System.Composition.ExportFactory<T, TMetadata>, but found {1} instead.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[只有在匯入 ExportFactory<T> 時才需要 {0}。]]></Val>
+            <Val><![CDATA[只有在匯入 System.Composition.ExportFactory<T> 或 System.Composition.ExportFactory<T、TMetadata>時，才需要 {0}，但卻找到 {1}。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
