@@ -111,6 +111,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ErrorWhileScanningMember" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error occurred while scanning member: "{0}"]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Ocorreu um erro ao verificar o membro: “{0}”]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ErrorWhileSettingImport" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Import "{0}" could not be satisfied.]]></Val>
@@ -291,11 +300,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";IsExpectedOnlyOnImportsOfExportFactoryOfT" ItemType="0" PsrId="211" Leaf="true">
+      <Item ItemId=";IsExpectedOnlyOnImportsOfExportFactoryOfTV2" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[{0} is expected only on imports of ExportFactory<T>.]]></Val>
+          <Val><![CDATA[{0} is expected only on imports of System.Composition.ExportFactory<T> or System.Composition.ExportFactory<T, TMetadata>, but found {1} instead.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0} é esperado somente em importações da FábricaDeExportação<T>.]]></Val>
+            <Val><![CDATA[{0} é esperado somente em importações de System.Composition.ExportFactory<T> ou System.Composition.ExportFactory<T, TMetadata>, mas encontrou {1} em vez disso.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
