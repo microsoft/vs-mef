@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp3.1;net6.0</TargetFrameworks>
+    <TargetFramework>net6.0</TargetFramework>
     <PackAsTool>true</PackAsTool>
     <AssemblyName>vsmefx</AssemblyName>
     <ToolCommandName>vsmefx</ToolCommandName>
