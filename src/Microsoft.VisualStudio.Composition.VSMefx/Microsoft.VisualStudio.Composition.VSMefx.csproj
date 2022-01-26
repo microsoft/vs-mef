@@ -4,7 +4,9 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp3.1;net6.0</TargetFrameworks>
     <PackAsTool>true</PackAsTool>
+    <AssemblyName>vsmefx</AssemblyName>
     <ToolCommandName>vsmefx</ToolCommandName>
+    <PackageId>$(MSBuildProjectName)</PackageId>
     <Description>A diagnostic tool to understand catalogs, compositions and diagnose issues in them.</Description>
   </PropertyGroup>
 
