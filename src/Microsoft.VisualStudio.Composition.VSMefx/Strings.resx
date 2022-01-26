@@ -217,10 +217,10 @@
     <value>Parts in the Catalog are </value>
   </data>
   <data name="SavedCacheMessage" xml:space="preserve">
-    <value>Saved cache of current catalog to {0}</value>
+    <value>Saved cache of current catalog to "{0}".</value>
   </data>
   <data name="SavedGraphMessage" xml:space="preserve">
-    <value>Saved rejection graph to {0}</value>
+    <value>Saved rejection graph to "{0}".</value>
   </data>
   <data name="TypeFormat" xml:space="preserve">
     <value>[Type - {0}]</value>

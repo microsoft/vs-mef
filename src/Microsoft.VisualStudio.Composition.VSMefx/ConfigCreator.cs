@@ -8,7 +8,6 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
     using System.Globalization;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition;
 
@@ -17,13 +16,15 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
     /// </summary>
     internal class ConfigCreator
     {
+        private const string CacheExtension = ".cache";
+
         /// <summary>
         /// List of file extensions that are considered valid when trying to find input files.
         /// </summary>
         /// <remarks>
         /// Ensure that the cache extension remains last since the program operates on that assumption.
         /// </remarks>
-        private static readonly string[] ValidExtensions = { "dll", "exe", "cache" };
+        private static readonly string[] ValidExtensions = { ".dll", ".exe", CacheExtension };
 
         /// <summary>
         /// List of substrings to look for in that should be ignored.
@@ -45,7 +46,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
                 IEnumerable<string> files = this.Options.Files;
                 foreach (string file in files)
                 {
-                    if (!this.AddFile(currentFolder, file))
+                    if (!this.AddFile(currentFolder, file.Trim()))
                     {
                         string missingFileMessage = string.Format(
                             CultureInfo.CurrentCulture,
@@ -78,7 +79,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
                 }
             }
 
-            this.OutputCacheFile = options.CacheFile;
+            this.OutputCacheFile = options.CacheFile?.Trim();
         }
 
         /// <summary>
@@ -175,42 +176,33 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
         /// Method to add a given file to the list of all the assembly paths.
         /// A file is added to the list of path if it contains a valid extension and actually exists.
         /// </summary>
-        /// <param name="folderPath">Path to the folder where the file is located.</param>
+        /// <param name="basePath">Path to the folder that should be used as a base path if <paramref name="fileName"/> is relative.</param>
         /// <param name="fileName">Name of file we want to read parts from.</param>
         /// <returns> A boolean indicating if the file was added to the list of paths.</returns>
-        private bool AddFile(string folderPath, string fileName)
+        private bool AddFile(string basePath, string fileName)
         {
-            fileName = fileName.Trim();
-            int extensionIndex = fileName.LastIndexOf('.');
-
-            if (extensionIndex < 0 || extensionIndex >= fileName.Length)
-            {
-                return false;
-            }
-
-            string extension = fileName.Substring(extensionIndex + 1);
+            string extension = Path.GetExtension(fileName);
             if (!ValidExtensions.Contains(extension))
             {
                 return false;
             }
 
-            string fullPath = Path.GetFullPath(Path.Combine(folderPath, fileName));
+            string fullPath = Path.GetFullPath(Path.Combine(basePath, fileName));
             if (!File.Exists(fullPath))
             {
                 return false;
             }
 
-            string fileNameWithoutExt = fileName.Substring(0, extensionIndex);
+            string fileNameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
             for (int i = 0; i < InvalidFileStrings.Length; i++)
             {
-                if (fileNameWithoutExt.Contains(InvalidFileStrings[i]))
+                if (fileNameWithoutExt.StartsWith(InvalidFileStrings[i], StringComparison.OrdinalIgnoreCase))
                 {
                     return false;
                 }
             }
 
-            bool isCacheFile = extension.Equals(ValidExtensions[ValidExtensions.Length - 1]);
-            if (isCacheFile)
+            if (extension == CacheExtension)
             {
                 this.CachePaths.Add(fullPath);
             }
@@ -225,24 +217,18 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
         /// <summary>
         /// Method to add valid files from the current folder and its subfolders to the list of paths.
         /// </summary>
-        /// <param name="currentPath">The complete path to the folder we want to add files from.</param>
-        private void SearchFolder(string currentPath)
+        /// <param name="path">The complete path to the folder we want to add files from.</param>
+        private void SearchFolder(string path)
         {
-            DirectoryInfo currentDir = new DirectoryInfo(currentPath);
-            var files = currentDir.EnumerateFiles();
-            foreach (var file in files)
+            DirectoryInfo currentDir = new DirectoryInfo(path);
+            foreach (FileInfo file in currentDir.EnumerateFiles())
             {
-                string name = file.Name;
-                this.AddFile(currentPath, name);
+                this.AddFile(path, file.FullName);
             }
 
-            IEnumerable<DirectoryInfo> subFolders = currentDir.EnumerateDirectories();
-            if (subFolders.Any())
+            foreach (DirectoryInfo subFolder in currentDir.EnumerateDirectories())
             {
-                foreach (DirectoryInfo subFolder in subFolders)
-                {
-                    this.SearchFolder(subFolder.FullName);
-                }
+                this.SearchFolder(subFolder.FullName);
             }
         }
 
@@ -294,25 +280,19 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
                 return;
             }
 
-            string fileName = this.OutputCacheFile.Trim();
-            int extensionIndex = fileName.LastIndexOf('.');
-            string cacheExtension = ValidExtensions[ValidExtensions.Length - 1];
-            if (extensionIndex >= 0 && fileName.Substring(extensionIndex + 1).Equals(cacheExtension))
+            string fileName = this.OutputCacheFile;
+            if (string.Equals(Path.GetExtension(fileName), CacheExtension, StringComparison.OrdinalIgnoreCase))
             {
-                string filePath = Path.Combine(Directory.GetCurrentDirectory(), fileName);
-                filePath = Path.GetFullPath(filePath);
                 try
                 {
                     CachedCatalog cacheWriter = new CachedCatalog();
-                    using (var fileWriter = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write))
-                    {
-                        await cacheWriter.SaveAsync(this.Catalog, fileWriter);
-                        string cacheSaved = string.Format(
+                    using var fileWriter = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write);
+                    await cacheWriter.SaveAsync(this.Catalog, fileWriter);
+                    string cacheSaved = string.Format(
                         CultureInfo.CurrentCulture,
                         Strings.SavedCacheMessage,
                         fileName);
-                        this.Options.Writer.WriteLine(cacheSaved);
-                    }
+                    this.Options.Writer.WriteLine(cacheSaved);
                 }
                 catch (Exception error)
                 {
@@ -343,7 +323,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
             if (this.Catalog != null)
             {
                 var discoveryErrors = this.Catalog.DiscoveredParts.DiscoveryErrors;
-                if (discoveryErrors.Any())
+                if (!discoveryErrors.IsEmpty)
                 {
                     this.Options.ErrorWriter.WriteLine(Strings.DiscoveryErrors);
                     discoveryErrors.ForEach(error => this.Options.ErrorWriter.WriteLine(error));

@@ -358,7 +358,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Saved cache of current catalog to {0}.
+        ///   Looks up a localized string similar to Saved cache of current catalog to &quot;{0}&quot;..
         /// </summary>
         internal static string SavedCacheMessage {
             get {
@@ -367,7 +367,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Saved rejection graph to {0}.
+        ///   Looks up a localized string similar to Saved rejection graph to &quot;{0}&quot;..
         /// </summary>
         internal static string SavedGraphMessage {
             get {

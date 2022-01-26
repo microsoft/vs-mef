@@ -23,15 +23,15 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
         /// A command line application to diagonse composition failures in MEF applications.
         /// </summary>
         /// <param name="verbose">An boolean option to toggle the detail level of the text output.</param>
-        /// <param name="file">Specify files from which we want to load parts from.</param>
-        /// <param name="directory">Specify folders from which we want to load parts from.</param>
-        /// <param name="parts">An boolean to toggle if we want to print out all the parts.</param>
+        /// <param name="file">Paths to assemblies (.dll or .exe) to include in the MEF catalog, or the path to a cache file written previously with the <paramref name="cache"/> switch.</param>
+        /// <param name="directory">Paths to folders to search for assemblies carrying MEF parts or cache files.</param>
+        /// <param name="parts">Prints a list of discovered parts.</param>
         /// <param name="detail">Specify the parts we want to get more information about.</param>
         /// <param name="importer">List the parts who import the specified contract name(s).</param>
         /// <param name="exporter">List the parts who export the specified contract name(s).</param>
         /// <param name="rejected">List the rejection causes for a given part (use all to list every rejection error).</param>
         /// <param name="graph">Specify path to directory to save the rejection DGML file.</param>
-        /// <param name="whitelist">A file which lists the parts we expect to be rejected.</param>
+        /// <param name="expectedRejection">The path to a file which lists the parts we expect to be rejected.</param>
         /// <param name="regex">Treat the text in the whitelist file as regular expressions.</param>
         /// <param name="cache">Specify the name of the output file to store the loaded parts.</param>
         /// <param name="match">Check relationship between given part which are provided in order: ExportPart ImportPart.</param>
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
             List<string>? exporter = null,
             List<string>? rejected = null,
             string graph = "",
-            string whitelist = "",
+            string expectedRejection = "",
             bool regex = false,
             string cache = "",
             List<string>? match = null,
@@ -65,7 +65,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
                 ExportDetails = exporter,
                 RejectedDetails = rejected,
                 GraphPath = graph,
-                WhiteListFile = whitelist,
+                WhiteListFile = expectedRejection,
                 UseRegex = regex,
                 CacheFile = cache,
                 MatchParts = match,
