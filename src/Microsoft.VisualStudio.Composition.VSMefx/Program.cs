@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace VS.Mefx
+namespace Microsoft.VisualStudio.Composition.VSMefx
 {
     using System;
     using System.Collections.Generic;
@@ -9,7 +9,7 @@ namespace VS.Mefx
     using System.IO;
     using System.Reflection;
     using System.Threading.Tasks;
-    using VS.Mefx.Commands;
+    using Microsoft.VisualStudio.Composition.VSMefx.Commands;
 
     /// <summary>
     /// Main class that process and runs the user's command.

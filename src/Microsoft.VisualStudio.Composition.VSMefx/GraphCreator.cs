@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace VS.Mefx
+namespace Microsoft.VisualStudio.Composition.VSMefx
 {
     using System;
     using System.Collections.Generic;
+    using Microsoft.VisualStudio.Composition.VSMefx.Commands;
     using OpenSoftware.DgmlTools;
     using OpenSoftware.DgmlTools.Builders;
     using OpenSoftware.DgmlTools.Model;
-    using VS.Mefx.Commands;
 
     /// <summary>
     /// Class to create and save a graph assocaited with the rejection errors.

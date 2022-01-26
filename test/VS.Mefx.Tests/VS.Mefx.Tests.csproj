@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\VS.Mefx\VS.Mefx.csproj" />
+    <ProjectReference Include="..\..\src\Microsoft.VisualStudio.Composition.VSMefx\Microsoft.VisualStudio.Composition.VSMefx.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,5 +33,5 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  
+
 </Project>

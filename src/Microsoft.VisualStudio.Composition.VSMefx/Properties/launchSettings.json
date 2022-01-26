@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Microsoft.VisualStudio.Composition.VSMefx": {
+      "commandName": "Project",
+      "commandLineArgs": "-?"
+    }
+  }
+}

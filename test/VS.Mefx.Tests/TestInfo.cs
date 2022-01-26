@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace VS.Mefx.Tests
+namespace Microsoft.VisualStudio.Composition.VSMefx.Tests
 {
     using System;
     using System.Collections.Generic;

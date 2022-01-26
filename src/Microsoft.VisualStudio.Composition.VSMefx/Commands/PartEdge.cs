@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace VS.Mefx.Commands
+namespace Microsoft.VisualStudio.Composition.VSMefx.Commands
 {
     /// <summary>
     /// A class to represent a simple edge between nodes.

@@ -57,7 +57,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{34FA3DAA-1
 		test\Directory.Build.targets = test\Directory.Build.targets
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VS.Mefx", "src\VS.Mefx\VS.Mefx.csproj", "{6C73C7D0-819F-4194-AE36-FF86F248EC9E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.VSMefx", "src\Microsoft.VisualStudio.Composition.VSMefx\Microsoft.VisualStudio.Composition.VSMefx.csproj", "{6C73C7D0-819F-4194-AE36-FF86F248EC9E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VS.Mefx.Tests", "test\VS.Mefx.Tests\VS.Mefx.Tests.csproj", "{E4487CD4-05EA-4FFA-A527-86BDEF0BDBF7}"
 	ProjectSection(ProjectDependencies) = postProject
