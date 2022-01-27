@@ -8,6 +8,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
     using System.Globalization;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition;
 
@@ -137,7 +138,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
         /// <returns>A Task object when all the assembly have between loaded in and configured.</returns>
         internal async Task InitializeAsync()
         {
-            Resolver customResolver = Resolver.DefaultInstance;
+            Resolver customResolver = new Resolver(new LoadUsingPathFirst());
             var nugetDiscover = new AttributedPartDiscovery(customResolver, isNonPublicSupported: true);
             var netDiscover = new AttributedPartDiscoveryV1(customResolver);
             PartDiscovery discovery = PartDiscovery.Combine(customResolver, netDiscover, nugetDiscover);
@@ -328,6 +329,80 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
                     this.Options.ErrorWriter.WriteLine(Strings.DiscoveryErrors);
                     discoveryErrors.ForEach(error => this.Options.ErrorWriter.WriteLine(error));
                 }
+            }
+        }
+
+        internal class LoadUsingPathFirst : IAssemblyLoader
+        {
+            private readonly Dictionary<string, Assembly> loadedAssemblies =
+                new Dictionary<string, Assembly>();
+
+            public Assembly LoadAssembly(string assemblyFullName, string? codeBasePath)
+            {
+                if (codeBasePath != null)
+                {
+                    return this.LoadUsingPath(codeBasePath);
+                }
+                else
+                {
+                    return this.LoadAssembly(new AssemblyName(assemblyFullName));
+                }
+            }
+
+            public Assembly LoadAssembly(AssemblyName assemblyName)
+            {
+                if (assemblyName.CodeBase != null)
+                {
+                    return this.LoadUsingPath(assemblyName.CodeBase);
+                }
+                else
+                {
+                    return this.LoadUsingAssemblyName(assemblyName);
+                }
+            }
+
+            public Assembly LoadUsingPath(string codeBasePath)
+            {
+                string filePath = new Uri(codeBasePath.Trim()).LocalPath;
+
+                if (this.loadedAssemblies.ContainsKey(filePath))
+                {
+                    lock (this.loadedAssemblies)
+                    {
+                        return this.loadedAssemblies[filePath];
+                    }
+                }
+
+                Assembly loadedAssembly = Assembly.LoadFrom(filePath);
+
+                lock (this.loadedAssemblies)
+                {
+                    this.loadedAssemblies.Add(filePath, loadedAssembly);
+                }
+
+                return loadedAssembly;
+            }
+
+            public Assembly LoadUsingAssemblyName(AssemblyName assemblyName)
+            {
+                string assemblyFullName = assemblyName.FullName;
+
+                if (this.loadedAssemblies.ContainsKey(assemblyFullName))
+                {
+                    lock (this.loadedAssemblies)
+                    {
+                        return this.loadedAssemblies[assemblyFullName];
+                    }
+                }
+
+                Assembly loadedAssembly = Assembly.Load(assemblyName);
+
+                lock (this.loadedAssemblies)
+                {
+                    this.loadedAssemblies.Add(assemblyFullName, loadedAssembly);
+                }
+
+                return loadedAssembly;
             }
         }
     }

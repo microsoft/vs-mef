@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx.Tests
 
         [Theory]
         [TestGetter]
-        private async Task Runner(string fileName)
+        private async Task AllTestRunner(string fileName)
         {
             try
             {
@@ -155,7 +155,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx.Tests
         [Fact(Skip = SkipLabel)]
         public async Task Playground()
         {
-            await this.Runner("BasicRejectSpecificVerbose.txt");
+            await this.AllTestRunner("BasicRejectSpecificVerbose.txt");
         }
 
         private class TestGetter : DataAttribute
