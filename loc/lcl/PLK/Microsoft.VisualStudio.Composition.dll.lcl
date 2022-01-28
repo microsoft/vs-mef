@@ -111,6 +111,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ErrorWhileScanningMember" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error occurred while scanning member: "{0}"]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Wystąpił błąd podczas skanowania członka: „{0}”]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ErrorWhileSettingImport" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Import "{0}" could not be satisfied.]]></Val>
@@ -291,11 +300,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";IsExpectedOnlyOnImportsOfExportFactoryOfT" ItemType="0" PsrId="211" Leaf="true">
+      <Item ItemId=";IsExpectedOnlyOnImportsOfExportFactoryOfTV2" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[{0} is expected only on imports of ExportFactory<T>.]]></Val>
+          <Val><![CDATA[{0} is expected only on imports of System.Composition.ExportFactory<T> or System.Composition.ExportFactory<T, TMetadata>, but found {1} instead.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Element {0} jest oczekiwany tylko w przypadku importów elementu ExportFactory<T>.]]></Val>
+            <Val><![CDATA[{0} jest oczekiwane tylko w przypadku importu elementu System.Composition.ExportFactory< T> lub System.Composition.ExportFactory< T, TMetadata>, zamiast tego znaleziono {1}.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -422,15 +431,6 @@
           <Val><![CDATA[OnImportsSatisfied method should take no parameters.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Metoda OnImportsSatisfied nie powinna przyjmować parametrów.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";OnlyOneOnImportsSatisfiedMethodIsSupported" ItemType="0" PsrId="211" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Only one OnImportsSatisfied method is supported.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Obsługiwana jest tylko jedna metoda OnImportsSatisfied.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
