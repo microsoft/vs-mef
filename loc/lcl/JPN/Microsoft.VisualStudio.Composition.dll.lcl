@@ -111,6 +111,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ErrorWhileScanningMember" ItemType="0" PsrId="211" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Error occurred while scanning member: "{0}"]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[メンバーのスキャン中にエラーが発生しました: "{0}"]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";ErrorWhileSettingImport" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Import "{0}" could not be satisfied.]]></Val>
@@ -291,11 +300,11 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";IsExpectedOnlyOnImportsOfExportFactoryOfT" ItemType="0" PsrId="211" Leaf="true">
+      <Item ItemId=";IsExpectedOnlyOnImportsOfExportFactoryOfTV2" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[{0} is expected only on imports of ExportFactory<T>.]]></Val>
+          <Val><![CDATA[{0} is expected only on imports of System.Composition.ExportFactory<T> or System.Composition.ExportFactory<T, TMetadata>, but found {1} instead.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[{0} は、ExportFactory<T> をインポートする場合にのみ必要です。]]></Val>
+            <Val><![CDATA[{0}は、System.Composition.ExportFactory<T> または System.Composition.ExportFactory<T, TMetadata> のインポートでのみ必要ですが、代わりに {1} が見つかりました。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -422,15 +431,6 @@
           <Val><![CDATA[OnImportsSatisfied method should take no parameters.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[OnImportsSatisfied メソッドは、パラメーターを取りません。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";OnlyOneOnImportsSatisfiedMethodIsSupported" ItemType="0" PsrId="211" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Only one OnImportsSatisfied method is supported.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[サポートされている OnImportsSatisfied メソッドは 1 つだけです。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
