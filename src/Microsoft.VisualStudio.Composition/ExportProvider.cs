@@ -1202,6 +1202,8 @@ namespace Microsoft.VisualStudio.Composition
                 // If this very thread is already executing a step on this part, then we have some
                 // form of reentrancy going on. In which case, the general policy seems to be that
                 // we return an incompletely initialized part.
+                // This check evaluates to true when ANOTHER thread is busy preparing this part (or no thread at all),
+                // in which case we DO need to ensure the Final state is reached before returning.
                 if (this.executingStepThreadId != Environment.CurrentManagedThreadId)
                 {
                     this.MoveToState(PartLifecycleState.Final);
@@ -1643,16 +1645,14 @@ namespace Microsoft.VisualStudio.Composition
                 lock (this.syncObject)
                 {
                     // Keep sleeping until the state reaches the one required by our caller.
-                    while (this.State < state)
+                    // Monitor.Wait releases the lock and sleeps until someone holding the lock calls Monitor.PulseAll.
+                    // We sleep with timeout for reasons given below. But we keep waiting again until we actually are pulsed
+                    // or the condition we require is met (since we might miss the pulse if we timed out before it occurred).
+                    while (this.State < state && !Monitor.Wait(this.syncObject, TimeSpan.FromSeconds(3)))
                     {
-                        // Monitor.Wait releases the lock and sleeps until someone holding the lock calls Monitor.PulseAll.
-                        // We sleep with timeout for reasons given below. But we keep waiting again until we actually are pulsed.
-                        while (!Monitor.Wait(this.syncObject, TimeSpan.FromSeconds(3)))
-                        {
-                            // This area intentionally left blank. It exists so that managed debuggers
-                            // can avoid a non-responding state temporarily to get out of optimized/native
-                            // frames on the top of the stack so the debugger can actually be useful.
-                        }
+                        // This area intentionally left blank. It exists so that managed debuggers
+                        // can avoid a non-responding state temporarily to get out of optimized/native
+                        // frames on the top of the stack so the debugger can actually be useful.
                     }
                 }
             }
