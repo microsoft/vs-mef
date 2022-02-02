@@ -28,6 +28,16 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
         internal List<string>? Folders { get; set; }
 
         /// <summary>
+        /// Gets or sets the path to an .exe.config or .dll.config file that can help resolve assembly references.
+        /// </summary>
+        internal string? ConfigFile { get; set; }
+
+        /// <summary>
+        /// Gets or sets the path to the directory to consider the base directory for relative paths in <see cref="ConfigFile"/>. If unspecified, the directory containing <see cref="ConfigFile"/> will be used.
+        /// </summary>
+        internal string? BaseDir { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the program should list all the parts.
         /// </summary>
         internal bool ListParts { get; set; }

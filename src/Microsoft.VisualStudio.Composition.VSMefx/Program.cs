@@ -25,6 +25,8 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
         /// <param name="verbose">An boolean option to toggle the detail level of the text output.</param>
         /// <param name="file">Paths to assemblies (.dll or .exe) to include in the MEF catalog, or the path to a cache file written previously with the <paramref name="cache"/> switch.</param>
         /// <param name="directory">Paths to folders to search for assemblies carrying MEF parts or cache files.</param>
+        /// <param name="configFile">The path to an .exe.config or .dll.config file that can help resolve assembly references.</param>
+        /// <param name="baseDir">The path to the directory to consider the base directory for relative paths in <paramref name="configFile"/>. If unspecified, the directory containing <paramref name="configFile"/> will be used.</param>
         /// <param name="parts">Prints a list of discovered parts.</param>
         /// <param name="detail">Specify the parts we want to get more information about.</param>
         /// <param name="importer">List the parts who import the specified contract name(s).</param>
@@ -41,6 +43,8 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
             bool verbose = false,
             List<string>? file = null,
             List<string>? directory = null,
+            string? configFile = null,
+            string? baseDir = null,
             bool parts = false,
             List<string>? detail = null,
             List<string>? importer = null,
@@ -59,6 +63,8 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
                 Verbose = verbose,
                 Files = file,
                 Folders = directory,
+                ConfigFile = configFile,
+                BaseDir = baseDir,
                 ListParts = parts,
                 PartDetails = detail,
                 ImportDetails = importer,

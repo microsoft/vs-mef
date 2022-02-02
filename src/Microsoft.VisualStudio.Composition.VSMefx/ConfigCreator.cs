@@ -9,8 +9,10 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Runtime.Loader;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition;
+    using Nerdbank.NetStandardBridge;
 
     /// <summary>
     /// Class to store the catalog and config information for input assemblies.
@@ -138,7 +140,14 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
         /// <returns>A Task object when all the assembly have between loaded in and configured.</returns>
         internal async Task InitializeAsync()
         {
-            Resolver customResolver = new Resolver(new LoadUsingPathFirst());
+            var alc = new AssemblyLoadContext("scan");
+            if (!string.IsNullOrWhiteSpace(this.Options.ConfigFile))
+            {
+                NetFrameworkAssemblyResolver assemblyLoader = new(this.Options.ConfigFile, this.Options.BaseDir);
+                assemblyLoader.HookupResolver(alc);
+            }
+
+            Resolver customResolver = new Resolver(new LoadUsingPathFirst(alc));
             var nugetDiscover = new AttributedPartDiscovery(customResolver, isNonPublicSupported: true);
             var netDiscover = new AttributedPartDiscoveryV1(customResolver);
             PartDiscovery discovery = PartDiscovery.Combine(customResolver, netDiscover, nugetDiscover);
@@ -332,10 +341,15 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
             }
         }
 
-        internal class LoadUsingPathFirst : IAssemblyLoader
+        private class LoadUsingPathFirst : IAssemblyLoader
         {
-            private readonly Dictionary<string, Assembly> loadedAssemblies =
-                new Dictionary<string, Assembly>();
+            private readonly Dictionary<string, Assembly> loadedAssemblies = new();
+            private readonly AssemblyLoadContext assemblyLoadContext;
+
+            public LoadUsingPathFirst(AssemblyLoadContext assemblyLoadContext)
+            {
+                this.assemblyLoadContext = assemblyLoadContext;
+            }
 
             public Assembly LoadAssembly(string assemblyFullName, string? codeBasePath)
             {
@@ -361,7 +375,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
                 }
             }
 
-            public Assembly LoadUsingPath(string codeBasePath)
+            private Assembly LoadUsingPath(string codeBasePath)
             {
                 string filePath = new Uri(codeBasePath.Trim()).LocalPath;
 
@@ -373,7 +387,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
                     }
                 }
 
-                Assembly loadedAssembly = Assembly.LoadFrom(filePath);
+                Assembly loadedAssembly = this.assemblyLoadContext.LoadFromAssemblyPath(filePath);
 
                 lock (this.loadedAssemblies)
                 {
@@ -383,7 +397,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
                 return loadedAssembly;
             }
 
-            public Assembly LoadUsingAssemblyName(AssemblyName assemblyName)
+            private Assembly LoadUsingAssemblyName(AssemblyName assemblyName)
             {
                 string assemblyFullName = assemblyName.FullName;
 
@@ -395,7 +409,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
                     }
                 }
 
-                Assembly loadedAssembly = Assembly.Load(assemblyName);
+                Assembly loadedAssembly = this.assemblyLoadContext.LoadFromAssemblyName(assemblyName);
 
                 lock (this.loadedAssemblies)
                 {
