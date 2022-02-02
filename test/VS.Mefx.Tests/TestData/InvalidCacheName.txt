@@ -1,0 +1,3 @@
+--cache Random.cash --file ExtendedOperations.dll MefCalculator.dll
+***
+Invalid file name of Random.cash

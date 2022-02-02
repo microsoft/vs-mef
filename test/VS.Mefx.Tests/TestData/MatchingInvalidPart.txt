@@ -1,0 +1,4 @@
+--match MefCalculator.ImportTest Part.DNE --file ExtendedOperations.dll MefCalculator.dll
+Find matches from MefCalculator.ImportTest to Part.DNE
+***
+Couldn't find part with name Part.DNE

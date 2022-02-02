@@ -1,0 +1,11 @@
+--parts --file ExtendedOperations.dll MefCalculator.dll
+Parts in the Catalog are
+ExtendedOperations.ChainOne
+ExtendedOperations.Modulo
+MefCalculator.Add
+MefCalculator.AddIn
+MefCalculator.ExportMeta
+MefCalculator.ExportTest
+MefCalculator.ImportTest
+MefCalculator.Subtract
+***

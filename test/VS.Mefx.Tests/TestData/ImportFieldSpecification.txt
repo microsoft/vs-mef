@@ -1,0 +1,6 @@
+--match CarOne.FirstCar User.Importer --match-imports NewerCar --file Garage.dll CarOne.dll CarTwo.dll User.dll
+Find matches from CarOne.FirstCar to User.Importer
+Performing matching for importing field NewerCar
+Considering exporting field CarOne.FirstCar
+Export matches all import constraints
+***

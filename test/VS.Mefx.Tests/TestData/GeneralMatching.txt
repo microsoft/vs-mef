@@ -1,0 +1,10 @@
+--match CarOne.FirstCar User.Importer --file Garage.dll CarOne.dll CarTwo.dll User.dll
+Find matches from CarOne.FirstCar to User.Importer
+Performing matching for importing field NewerCar
+Considering exporting field CarOne.FirstCar
+Export matches all import constraints
+Performing matching for importing field UsedCar
+Considering exporting field CarOne.FirstCar
+Failed Constraint #1
+Expected: [Metadata - Key: Type, Value: Used], Found: [Metadata - Key: Type, Value: No such key]
+***

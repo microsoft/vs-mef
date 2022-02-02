@@ -1,0 +1,9 @@
+--rejected ExtendedOperations.Modulo --file ExtendedOperations.dll MefCalculator.dll
+Printing rejection trace for ExtendedOperations.Modulo
+Errors in level 3
+ExtendedOperations.Modulo
+Errors in level 2
+ExtendedOperations.ChainOne
+Errors in level 1
+MefCalculator.AddIn
+***

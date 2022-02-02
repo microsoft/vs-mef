@@ -1,0 +1,3 @@
+--exporter NoSuchContract --file ExtendedOperations.dll MefCalculator.dll
+Exporting parts for NoSuchContract:
+***

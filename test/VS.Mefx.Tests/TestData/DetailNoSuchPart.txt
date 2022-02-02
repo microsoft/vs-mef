@@ -1,0 +1,4 @@
+--detail NonExistantPart --directory TestFiles/Basic
+***
+Couldn't find directory TestFiles/Basic
+Couldn't find any parts in the input files and folders

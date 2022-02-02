@@ -1,0 +1,4 @@
+--rejected MefCalculator.MefCalculatorInterfaces+Add --file ExtendedOperations.dll MefCalculator.dll
+Printing rejection trace for MefCalculator.MefCalculatorInterfaces+Add
+***
+No Rejection issues associated with MefCalculator.MefCalculatorInterfaces+Add

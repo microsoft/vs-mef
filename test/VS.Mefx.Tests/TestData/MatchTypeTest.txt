@@ -1,0 +1,11 @@
+--match CarOne.InvalidType User.Importer --match-exports CarOne.InvalidType --file Garage.dll CarOne.dll CarTwo.dll User.dll
+Find matches from CarOne.InvalidType to User.Importer
+Performing matching for importing field NewerCar
+Considering exporting field CarOne.InvalidType
+Failed Constraint #1
+Expected: [Contract Name - Garage.Car], Found: [Contract Name - CarOne.InvalidType]
+Performing matching for importing field UsedCar
+Considering exporting field CarOne.InvalidType
+Failed Constraint #1
+Expected: [Contract Name - Garage.Car], Found: [Contract Name - CarOne.InvalidType]
+***

@@ -1,0 +1,9 @@
+--parts --file Garage.dll CarOne.dll CarTwo.dll User.dll
+Parts in the Catalog are
+CarOne.FirstCar
+CarOne.InvalidType
+CarOne.MoreMetadata
+CarTwo.SecondCar
+Garage.Car
+User.Importer
+***

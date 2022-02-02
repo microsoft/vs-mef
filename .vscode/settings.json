@@ -4,5 +4,9 @@
   "files.trimFinalNewlines": true,
   "omnisharp.enableEditorConfigSupport": true,
   "omnisharp.enableImportCompletion": true,
-  "omnisharp.enableRoslynAnalyzers": true
+  "omnisharp.enableRoslynAnalyzers": true,
+  "cSpell.words": [
+    "dgml",
+    "vsmefx"
+  ]
 }

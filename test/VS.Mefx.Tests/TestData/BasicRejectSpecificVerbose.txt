@@ -1,0 +1,18 @@
+--verbose --rejected ExtendedOperations.Modulo --file ExtendedOperations.dll MefCalculator.dll
+Printing rejection trace for ExtendedOperations.Modulo
+Errors in level 3
+ExtendedOperations.Modulo.AddInput: expected exactly 1 export matching constraints:
+Contract name: ExtendedOperations.ChainOne
+TypeIdentityName: ExtendedOperations.ChainOne
+but the matching part has been invalidated.
+Errors in level 2
+ExtendedOperations.ChainOne.Adder: expected exactly 1 export matching constraints:
+Contract name: MefCalculator.AddIn
+TypeIdentityName: MefCalculator.AddIn
+but the matching part has been invalidated.
+Errors in level 1
+MefCalculator.AddIn.FieldOne: expected exactly 1 export matching constraints:
+Contract name: ChainOne
+TypeIdentityName: System.String
+but found 0.
+***

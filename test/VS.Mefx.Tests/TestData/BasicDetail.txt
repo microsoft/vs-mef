@@ -1,0 +1,7 @@
+--detail MefCalculator.ImportTest --file ExtendedOperations.dll MefCalculator.dll
+Printing out details for part MefCalculator.ImportTest
+[Export] Field: MefCalculator.ImportTest, Contract Name: MefCalculator.ImportTest
+[Import] Field: FailingField, Contract Name: MissingField
+[Import] Field: IntInput, Contract Name: System.Nullable(System.Int32)
+[Import] Field: Operations, Contract Name: MefCalculator.IOperation
+***
