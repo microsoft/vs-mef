@@ -9,7 +9,9 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
     using System.IO;
     using System.Linq;
     using System.Reflection;
+#if NETCOREAPP
     using System.Runtime.Loader;
+#endif
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition;
     using Nerdbank.NetStandardBridge;
@@ -140,6 +142,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
         /// <returns>A Task object when all the assembly have between loaded in and configured.</returns>
         internal async Task InitializeAsync()
         {
+#if NETCOREAPP
             var alc = new AssemblyLoadContext("scan");
             if (!string.IsNullOrWhiteSpace(this.Options.ConfigFile))
             {
@@ -147,10 +150,20 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
                 assemblyLoader.HookupResolver(alc);
             }
 
-            Resolver customResolver = new Resolver(new LoadUsingPathFirst(alc));
-            var nugetDiscover = new AttributedPartDiscovery(customResolver, isNonPublicSupported: true);
-            var netDiscover = new AttributedPartDiscoveryV1(customResolver);
-            PartDiscovery discovery = PartDiscovery.Combine(customResolver, netDiscover, nugetDiscover);
+            Resolver resolver = new Resolver(new LoadUsingPathFirst(alc));
+#else
+            if (!string.IsNullOrWhiteSpace(this.Options.ConfigFile))
+            {
+                NetFrameworkAssemblyResolver assemblyLoader = new(this.Options.ConfigFile!, this.Options.BaseDir);
+                assemblyLoader.HookupResolver();
+            }
+
+            Resolver resolver = Resolver.DefaultInstance;
+#endif
+
+            var nugetDiscover = new AttributedPartDiscovery(resolver, isNonPublicSupported: true);
+            var netDiscover = new AttributedPartDiscoveryV1(resolver);
+            PartDiscovery discovery = PartDiscovery.Combine(resolver, netDiscover, nugetDiscover);
 
             if (this.AssemblyPaths.Any())
             {
@@ -341,6 +354,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
             }
         }
 
+#if NETCOREAPP
         private class LoadUsingPathFirst : IAssemblyLoader
         {
             private readonly Dictionary<string, Assembly> loadedAssemblies = new();
@@ -419,5 +433,6 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
                 return loadedAssembly;
             }
         }
+#endif
     }
 }

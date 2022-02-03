@@ -60,6 +60,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.VisualStudio.Composition.VSMefx", "src\Microsoft.VisualStudio.Composition.VSMefx\Microsoft.VisualStudio.Composition.VSMefx.csproj", "{6C73C7D0-819F-4194-AE36-FF86F248EC9E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "VSMefx Test Projects", "VSMefx Test Projects", "{FDF383ED-AFFB-4FFD-833C-159114A986EC}"
+	ProjectSection(SolutionItems) = preProject
+		test\VS.Mefx.Tests\TestFiles\Directory.Build.props = test\VS.Mefx.Tests\TestFiles\Directory.Build.props
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MefCalculator", "test\VS.Mefx.Tests\TestFiles\BasicScripts\MefCalculator\MefCalculator.csproj", "{6D3C3E5B-EAAE-4FF7-B486-2D4C6BABA15A}"
 EndProject
