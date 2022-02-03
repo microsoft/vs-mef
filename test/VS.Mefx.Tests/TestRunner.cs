@@ -161,7 +161,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx.Tests
         private class TestGetter : DataAttribute
         {
             private static readonly string ValidFileExtension = ".txt";
-            private static readonly string[] FilesToIgnore = { "BasicWhitelist.txt" };
+            private static readonly string[] FilesToIgnore = { "BasicRejectionExpectedList.txt" };
 
             public static string UpdateFolder =
                 string.Format("..{0}..{0}..{0}..{0}test{0}VS.Mefx.Tests{0}TestData",

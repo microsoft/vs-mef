@@ -15,7 +15,6 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
     /// </summary>
     internal class GraphCreator
     {
-        private const string WhiteListLabel = "[Whitelisted]";
         private const string NormalNodeLabel = "Error";
         private const string EdgeLabel = "Edge";
         private const string NodeColor = "#00FFFF";
@@ -47,7 +46,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
             };
             StyleBuilder[] styleCreator =
             {
-                new StyleBuilder<Node>(WhiteListedNode),
+                new StyleBuilder<Node>(RejectionExpectedNode),
                 new StyleBuilder<Link>(EdgeStyle),
             };
             var builder = new DgmlBuilder
@@ -96,15 +95,15 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
         }
 
         /// <summary>
-        /// Returns a Style object that sets the background of whitelisted nodes to white.
+        /// Returns a Style object that sets the background of nodes expected to be rejected to white.
         /// </summary>
         /// <param name="node">The node to create the style for.</param>
-        /// <returns>The Style object for a whitelisted node.</returns>
-        private static Style WhiteListedNode(Node node)
+        /// <returns>The Style object for the node.</returns>
+        private static Style RejectionExpectedNode(Node node)
         {
             return new Style
             {
-                GroupLabel = WhiteListLabel,
+                GroupLabel = Strings.RejectionExpectedLabel,
                 Setter = new List<Setter>
                 {
                     new Setter { Property = "Background", Value = NodeColor },
@@ -140,7 +139,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
             Node convertered = new Node
             {
                 Id = nodeName,
-                Category = current.IsWhiteListed ? WhiteListLabel : NormalNodeLabel,
+                Category = current.IsRejectionExpected ? Strings.RejectionExpectedLabel : NormalNodeLabel,
                 Group = current.HasExports ? ContainerString : null,
             };
             convertered.Properties.Add("Level", current.Level.ToString());

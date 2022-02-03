@@ -69,7 +69,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx.Commands
         private void GenerateNodeGraph()
         {
             // Get the error stack from the composition configuration
-            var whiteListChecker = new WhiteList(this.Options);
+            var expectedRejectionsChecker = new ExpectedRejections(this.Options);
             CompositionConfiguration config = this.Creator.Config!;
             var errors = config.CompositionErrors;
             int levelNumber = 1;
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx.Commands
                     }
 
                     PartNode currentNode = new PartNode(definition, element.Message, levelNumber);
-                    currentNode.SetWhiteListed(whiteListChecker.IsWhiteListed(currentName));
+                    currentNode.IsRejectionExpected = expectedRejectionsChecker.IsRejectionExpected(currentName);
                     this.RejectionGraph.Add(currentName, currentNode);
                 }
 
@@ -323,9 +323,9 @@ namespace Microsoft.VisualStudio.Composition.VSMefx.Commands
         private string GetNodeDetail(PartNode current)
         {
             string startMessage;
-            if (current.IsWhiteListed)
+            if (current.IsRejectionExpected)
             {
-                startMessage = Strings.WhitelistLabel;
+                startMessage = Strings.RejectionExpectedLabel;
             }
             else
             {

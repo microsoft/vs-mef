@@ -216,6 +216,9 @@
   <data name="PartsDescription" xml:space="preserve">
     <value>Parts in the Catalog are </value>
   </data>
+  <data name="RejectionExpectedLabel" xml:space="preserve">
+    <value>[Rejection expected] </value>
+  </data>
   <data name="SavedCacheMessage" xml:space="preserve">
     <value>Saved cache of current catalog to "{0}".</value>
   </data>
@@ -227,8 +230,5 @@
   </data>
   <data name="VerbosePartLabel" xml:space="preserve">
     <value>[Part]</value>
-  </data>
-  <data name="WhitelistLabel" xml:space="preserve">
-    <value>[Whitelisted] </value>
   </data>
 </root>

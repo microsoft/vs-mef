@@ -33,8 +33,8 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
         /// <param name="exporter">List the parts who export the specified contract name(s).</param>
         /// <param name="rejected">List the rejection causes for a given part (use all to list every rejection error).</param>
         /// <param name="graph">Specify path to directory to save the rejection DGML file.</param>
-        /// <param name="expectedRejection">The path to a file which lists the parts we expect to be rejected.</param>
-        /// <param name="regex">Treat the text in the whitelist file as regular expressions.</param>
+        /// <param name="expectedRejectionsFile">The path to a file which lists the parts we expect to be rejected.</param>
+        /// <param name="regex">Treat the text in the expected rejections file as regular expressions.</param>
         /// <param name="cache">Specify the name of the output file to store the loaded parts.</param>
         /// <param name="match">Check relationship between given part which are provided in order: ExportPart ImportPart.</param>
         /// <param name="matchExports">List of fields in the export part that we want to consider.</param>
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
             List<string>? exporter = null,
             List<string>? rejected = null,
             string graph = "",
-            string expectedRejection = "",
+            string expectedRejectionsFile = "",
             bool regex = false,
             string cache = "",
             List<string>? match = null,
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
                 ExportDetails = exporter,
                 RejectedDetails = rejected,
                 GraphPath = graph,
-                WhiteListFile = expectedRejection,
+                ExpectedRejectionsFile = expectedRejectionsFile,
                 UseRegex = regex,
                 CacheFile = cache,
                 MatchParts = match,

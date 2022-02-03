@@ -358,6 +358,15 @@ namespace Microsoft.VisualStudio.Composition.VSMefx {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Rejection expected] .
+        /// </summary>
+        internal static string RejectionExpectedLabel {
+            get {
+                return ResourceManager.GetString("RejectionExpectedLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Saved cache of current catalog to &quot;{0}&quot;..
         /// </summary>
         internal static string SavedCacheMessage {
@@ -390,15 +399,6 @@ namespace Microsoft.VisualStudio.Composition.VSMefx {
         internal static string VerbosePartLabel {
             get {
                 return ResourceManager.GetString("VerbosePartLabel", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Whitelisted] .
-        /// </summary>
-        internal static string WhitelistLabel {
-            get {
-                return ResourceManager.GetString("WhitelistLabel", resourceCulture);
             }
         }
     }
