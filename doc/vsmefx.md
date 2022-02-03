@@ -18,23 +18,25 @@ Use the `-?` parameter to get usage docs.
 
 ```
 Options:
-  --verbose                        An option to toggle the detail level of the output. [default: False]
-  --file <file>                    Specify files from which we want to load parts from. [default: ]
-  --directory <directory>          Specify folders from which we want to load parts from. [default: ]
-  --parts                          An boolean to toggle if we want to print out all the parts. [default: False]
-  --detail <detail>                Specify the parts we want to get more information about. [default: ]
-  --importer <importer>            List the parts who import the specified contract name(s). [default: ]
-  --exporter <exporter>            List the parts who export the specified contract name(s). [default: ]
-  --rejected <rejected>            List the rejection causes for a given part (use all to list every rejection error). [default: ]
-  --graph <graph>                  Specify path to directory to save the rejection DGML file. [default: ]
-  --whitelist <whitelist>          A file which lists the parts we expect to be rejected. [default: ]
-  --regex                          Treat the text in the whitelist file as regular expressions. [default: False]
-  --cache <cache>                  Specify the name of the output file to store the loaded parts. [default: ]
-  --match <match>                  Check relationship between given part which are provided in order: ExportPart ImportPart. [default: ]
-  --match-exports <match-exports>  List of fields in the export part that we want to consider. [default: ]
-  --match-imports <match-imports>  List of fields in the import part that we want to consider. [default: ]
-  --version                        Show version information
-  -?, -h, --help                   Show help and usage information
+  --verbose                                              An boolean option to toggle the detail level of the text output. [default: False]
+  --file <file>                                          Paths to assemblies (.dll or .exe) to include in the MEF catalog, or the path to a cache file written previously with the  switch. [default: ]
+  --directory <directory>                                Paths to folders to search for assemblies carrying MEF parts or cache files. [default: ]
+  --config-file <config-file>                            The path to an .exe.config or .dll.config file that can help resolve assembly references. [default: ]
+  --base-dir <base-dir>                                  The path to the directory to consider the base directory for relative paths in . If unspecified, the directory containing  will be used. [default: ]
+  --parts                                                Prints a list of discovered parts. [default: False]
+  --detail <detail>                                      Specify the parts we want to get more information about. [default: ]
+  --importer <importer>                                  List the parts who import the specified contract name(s). [default: ]
+  --exporter <exporter>                                  List the parts who export the specified contract name(s). [default: ]
+  --rejected <rejected>                                  List the rejection causes for a given part (use all to list every rejection error). [default: ]
+  --graph <graph>                                        Specify path to directory to save the rejection DGML file. [default: ]
+  --expected-rejections-file <expected-rejections-file>  The path to a file which lists the parts we expect to be rejected. [default: ]
+  --regex                                                Treat the text in the expected rejections file as regular expressions. [default: False]
+  --cache <cache>                                        Specify the name of the output file to store the loaded parts. [default: ]
+  --match <match>                                        Check relationship between given part which are provided in order: ExportPart ImportPart. [default: ]
+  --match-exports <match-exports>                        List of fields in the export part that we want to consider. [default: ]
+  --match-imports <match-imports>                        List of fields in the import part that we want to consider. [default: ]
+  --version                                              Show version information
+  -?, -h, --help                                         Show help and usage information
 ```
 
 ## Part Information Getter
@@ -163,15 +165,15 @@ Comparing this output to the previous output, we see that vsmefx automatically f
 
 ![DGML Graph for specific rejection](images/Modulo_Trace.jpg)
 
-## Whitelisting
+## Allowing parts rejection
 
-The whitelist options allows you to a specify a text file that lists parts that are expected to be rejected. For example, let us say that we have a file named expected.txt which contains the text "ExtendedOperations.ChainOne" and we run the command from above with this as the whitelist:
+The `--expected-rejections-file` option allows you to a specify a text file that lists parts that are expected to be rejected. For example, let us say that we have a file named expected.txt which contains the text "ExtendedOperations.ChainOne" and we run the command from above with this as the rejection list:
 
 ```
---verbose --graph . --rejected ExtendedOperations.Modulo  --file MefCalculator.dll --directory Extensions --whitelist expected.txt
+--verbose --graph . --rejected ExtendedOperations.Modulo  --file MefCalculator.dll --directory Extensions --expected-rejections-file expected.txt
 ```
 
-Currently, all vsmefx does with the whitelist file is indicated to the user which parts have been whitelisted in both the textual and visual outputs. Rather than automatically removing parts which may introduce additional confusion, vsmefx instead tries to make it to clear the user which parts have been whitelisted and let them decide how to best go about fixing this error with the above information in mind.
+Currently, all vsmefx does with the expected rejections file is indicate to the user which parts are expected to be rejected in both the textual and visual outputs. Rather than automatically removing parts which may introduce additional confusion, vsmefx instead tries to make it to clear the user which parts are expected to be rejected and let them decide how to best go about fixing this error with the above information in mind.
 
 Thus, the output of the above command is:
 
@@ -185,7 +187,7 @@ ExtendedOperations.Modulo.addInput: expected exactly 1 export matching constrain
 but found 0.
 
 Errors in Level 2
-[Whitelisted] ExtendedOperations.ChainOne.Adder: expected exactly 1 export matching constraints:
+[Rejection expected] ExtendedOperations.ChainOne.Adder: expected exactly 1 export matching constraints:
     Contract name: MefCalculator.AddIn
     TypeIdentityName: MefCalculator.AddIn
 but found 0.
@@ -199,11 +201,11 @@ but found 0.
 Saved rejection graph to <Path to Output Folder>\ExtendedOperations_Modulo.dgml
 ```
 
-Additionally, vsmefx also allows the user to treat the lines in the whitelist files as regular expression through the `--regex` option. For example, if we wanted to whitelist all the parts from the ExtendedOperations project, we could modify the line in expected.txt to contain the line "ExtendedOperations\\..*" and include the `--regex` option in our command.
+Additionally, vsmefx also allows the user to treat the lines in the rejection files as regular expression through the `--regex` option. For example, if we wanted to expect rejection for all the parts from the ExtendedOperations project, we could modify the line in expected.txt to contain the line "ExtendedOperations\\..*" and include the `--regex` option in our command.
 
-In the DGML file, vsmefx indicates which parts have been whitelisted by changing the color of the nodes associated with the whitelisted parts to blue which easily allows users to distinguish between whitelisted parts and non whitelisted parts. Thus, the DGML file produced by the above command looks like:
+In the DGML file, vsmefx indicates which parts expect rejection by changing the color of the nodes associated with these parts to blue which easily allows users to distinguish between parts that were unexpectedly rejected vs. expectedly rejected. Thus, the DGML file produced by the above command looks like:
 
-![DGML Graph with whitelisting](images/WhitelistExample.jpg)
+![DGML Graph with expected rejections](images/ExpectedRejectionExample.jpg)
 
 ## General Matching
 

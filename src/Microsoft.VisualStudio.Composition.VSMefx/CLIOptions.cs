@@ -68,12 +68,12 @@ namespace Microsoft.VisualStudio.Composition.VSMefx
         internal string? GraphPath { get; set; }
 
         /// <summary>
-        /// Gets or sets the name of the whitelist file to use.
+        /// Gets or sets the name of the file to read expected rejections from.
         /// </summary>
-        internal string? WhiteListFile { get; set; }
+        internal string? ExpectedRejectionsFile { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether to treat the whitelist file text as regex.
+        /// Gets or sets a value indicating whether to treat the expected rejections file text as regex.
         /// </summary>
         internal bool UseRegex { get; set; }
 

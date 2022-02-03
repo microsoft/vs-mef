@@ -9,24 +9,24 @@ namespace Microsoft.VisualStudio.Composition.VSMefx.Commands
     using System.IO;
     using System.Text.RegularExpressions;
 
-    internal class WhiteList
+    internal class ExpectedRejections
     {
-        // Constants associated with the Regex's for the expressions specified in the whitelist
+        // Constants associated with the Regex's for the expressions specified in the expected rejections list
         private static readonly TimeSpan MaxRegexTime = TimeSpan.FromSeconds(5);
         private static readonly RegexOptions RegexOptions = RegexOptions.IgnoreCase;
 
         /// <summary>
-        /// Gets or sets a list of regex expression when doing whitelisting using regex.
+        /// Gets or sets a list of regex expression when doing expected rejection checks using regex.
         /// </summary>
-        private HashSet<Regex>? WhiteListExpressions { get; set; }
+        private HashSet<Regex>? Expressions { get; set; }
 
         /// <summary>
-        /// Gets or sets part names to whitelisting when not whitelisting.
+        /// Gets or sets the names of parts names expect rejection from.
         /// </summary>
-        private HashSet<string>? WhiteListParts { get; set; }
+        private HashSet<string>? Parts { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether we are using regex while whitelisting.
+        /// Gets or sets a value indicating whether we are using regex while testing for expected rejections.
         /// </summary>
         private bool UsingRegex { get; set; }
 
@@ -35,45 +35,45 @@ namespace Microsoft.VisualStudio.Composition.VSMefx.Commands
         /// </summary>
         private CLIOptions Options { get; set; }
 
-        internal WhiteList(CLIOptions options)
+        internal ExpectedRejections(CLIOptions options)
         {
-            // Read and process the whitelist file, if one is present
+            // Read and process the expected rejections file, if one is present
             this.Options = options;
             this.UsingRegex = options.UseRegex;
             if (this.UsingRegex)
             {
-                this.WhiteListExpressions = new HashSet<Regex>();
+                this.Expressions = new HashSet<Regex>();
             }
             else
             {
-                this.WhiteListParts = new HashSet<string>();
+                this.Parts = new HashSet<string>();
             }
 
-            if (options.WhiteListFile != null && options.WhiteListFile.Length > 0)
+            if (options.ExpectedRejectionsFile != null && options.ExpectedRejectionsFile.Length > 0)
             {
                 string currentFolder = Directory.GetCurrentDirectory();
-                this.ReadWhiteListFile(currentFolder, options.WhiteListFile);
+                this.ReadExpectedRejectionsFile(currentFolder, options.ExpectedRejectionsFile);
             }
         }
 
         /// <summary>
-        /// Method to check if a given part is present in the whitelist or not.
+        /// Checks whether a given part is present in the list of parts expected to be rejected.
         /// </summary>
         /// <param name="partName">The name of the part we want to check.</param>
-        /// <returns> A boolean indicating if the specified part was included in the whitelist or not.</returns>
-        internal bool IsWhiteListed(string partName)
+        /// <returns>A boolean value.</returns>
+        internal bool IsRejectionExpected(string partName)
         {
             if (!this.UsingRegex)
             {
-                return this.WhiteListParts == null ? false : this.WhiteListParts.Contains(partName);
+                return this.Parts == null ? false : this.Parts.Contains(partName);
             }
 
-            if (this.WhiteListExpressions == null)
+            if (this.Expressions == null)
             {
                 return false;
             }
 
-            foreach (Regex test in this.WhiteListExpressions)
+            foreach (Regex test in this.Expressions)
             {
                 try
                 {
@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.Composition.VSMefx.Commands
         /// </summary>
         /// <param name = "currentFolder">The complete path to the folder that the file is present in.</param>
         /// <param name = "fileName">The relative path to the file from the current folder.</param>
-        private void ReadWhiteListFile(string currentFolder, string fileName)
+        private void ReadExpectedRejectionsFile(string currentFolder, string fileName)
         {
             string filePath = Path.Combine(currentFolder, fileName.Trim());
             if (!File.Exists(filePath))
@@ -115,14 +115,14 @@ namespace Microsoft.VisualStudio.Composition.VSMefx.Commands
                 foreach (string description in lines)
                 {
                     string name = description.Trim();
-                    if (this.UsingRegex && this.WhiteListExpressions != null)
+                    if (this.UsingRegex && this.Expressions != null)
                     {
                         string pattern = @"^" + name + @"$";
-                        this.WhiteListExpressions.Add(new Regex(pattern, RegexOptions, MaxRegexTime));
+                        this.Expressions.Add(new Regex(pattern, RegexOptions, MaxRegexTime));
                     }
-                    else if (this.WhiteListParts != null)
+                    else if (this.Parts != null)
                     {
-                        this.WhiteListParts.Add(name);
+                        this.Parts.Add(name);
                     }
                 }
             }

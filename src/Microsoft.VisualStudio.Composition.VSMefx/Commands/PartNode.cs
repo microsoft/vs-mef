@@ -20,10 +20,10 @@ namespace Microsoft.VisualStudio.Composition.VSMefx.Commands
         internal PartNode(ComposablePartDefinition definition, string message, int currLevel)
         {
             this.Part = definition;
-            this.IsWhiteListed = false;
+            this.IsRejectionExpected = false;
             this.VerboseMessages.Add(message);
             this.Level = currLevel;
-            this.IsWhiteListed = false;
+            this.IsRejectionExpected = false;
 
             this.ExportingContracts = new List<string>();
             foreach (var export in this.Part.ExportDefinitions)
@@ -61,9 +61,9 @@ namespace Microsoft.VisualStudio.Composition.VSMefx.Commands
         internal int Level { get; private set; }
 
         /// <summary>
-        /// Gets a value indicating whether the current node has been whitelisted by the user.
+        /// Gets or sets a value indicating whether the current node is expected by the user to be rejected.
         /// </summary>
-        internal bool IsWhiteListed { get; private set; }
+        internal bool IsRejectionExpected { get; set; }
 
         /// <summary>
         /// Gets the name of contracts exported by the part other than itself.
@@ -95,12 +95,6 @@ namespace Microsoft.VisualStudio.Composition.VSMefx.Commands
         /// <param name="description">Label to use when visualizing the edge.</param>
         internal void AddParent(PartNode node, string description = "")
             => this.RejectsCaused.Add(new PartEdge(node, description));
-
-        /// <summary>
-        /// Method to update the whitelisted propert of the current node.
-        /// </summary>
-        /// <param name="value">New value of the whitelist property.</param>
-        internal void SetWhiteListed(bool value) => this.IsWhiteListed = value;
 
         /// <summary>
         /// Method to add error message to display as output.
