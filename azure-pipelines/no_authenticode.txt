@@ -1,0 +1,3 @@
+*\nerdbank.netstandardbridge.dll,oss
+*\opensoftware.dgmlbuilder.dll,oss
+*\tools\*\dotnettoolsettings.xml,microbuild does not yet sign this
