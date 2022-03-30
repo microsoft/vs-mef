@@ -286,7 +286,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
-                return this.GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker);
+                return this.GetExportedValueHelper(import, export, exportingRuntimePart, constructedType, importingPartTracker);
             }
 
             /// <summary>
@@ -298,15 +298,14 @@ namespace Microsoft.VisualStudio.Composition
             /// where it captures "this" in the closure for exportedValue, resulting in a memory leak
             /// which caused one of our GC unit tests to fail.
             /// </remarks>
-            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker? importingPartTracker)
+            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker? importingPartTracker)
             {
                 Requires.NotNull(import, nameof(import));
                 Requires.NotNull(export, nameof(export));
                 Requires.NotNull(exportingRuntimePart, nameof(exportingRuntimePart));
-                Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
                 Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
 
-                PartLifecycleTracker partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, originalPartTypeRef, constructedPartTypeRef, importingPartTracker);
+                PartLifecycleTracker partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedPartTypeRef, importingPartTracker);
 
                 Func<object?> exportedValue = ConstructLazyExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
 
