@@ -298,14 +298,14 @@ namespace Microsoft.VisualStudio.Composition
             /// where it captures "this" in the closure for exportedValue, resulting in a memory leak
             /// which caused one of our GC unit tests to fail.
             /// </remarks>
-            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker? importingPartTracker)
+            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef constructedType, RuntimePartLifecycleTracker? importingPartTracker)
             {
                 Requires.NotNull(import, nameof(import));
                 Requires.NotNull(export, nameof(export));
                 Requires.NotNull(exportingRuntimePart, nameof(exportingRuntimePart));
-                Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
+                Requires.NotNull(constructedType, nameof(constructedType));
 
-                PartLifecycleTracker partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedPartTypeRef, importingPartTracker);
+                PartLifecycleTracker partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker);
 
                 Func<object?> exportedValue = ConstructLazyExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
 
