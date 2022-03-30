@@ -305,13 +305,10 @@ namespace Microsoft.VisualStudio.Composition
                 Requires.NotNull(exportingRuntimePart, nameof(exportingRuntimePart));
                 Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
                 Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
-                PartLifecycleTracker partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, originalPartTypeRef, constructedPartTypeRef, importingPartTracker);
-                var faultCallback = this.faultCallback;
 
-                Func<object?> exportedValue = () =>
-                {
-                    return ConstructExportedValue(import, export, importingPartTracker, partLifecycle, faultCallback);
-                };
+                PartLifecycleTracker partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, originalPartTypeRef, constructedPartTypeRef, importingPartTracker);
+
+                Func<object?> exportedValue = ConstructLazyExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
 
                 return new ExportedValueConstructor(partLifecycle, exportedValue);
             }
@@ -334,6 +331,20 @@ namespace Microsoft.VisualStudio.Composition
                     import.Metadata,
                     nonSharedInstanceRequired,
                     nonSharedPartOwner);
+            }
+
+            /// <summary>
+            /// Called from <see cref="GetExportedValueHelper(RuntimeComposition.RuntimeImport, RuntimeComposition.RuntimeExport, RuntimeComposition.RuntimePart, TypeRef, TypeRef, RuntimePartLifecycleTracker?)"/>
+            /// only, as an assisting method. See remarks.
+            /// </summary>
+            /// <remarks>
+            /// This method is separate from its one caller to avoid a csc.exe compiler bug
+            /// where it captures "this" in the closure for exportedValue, resulting in a memory leak
+            /// which caused one of our GC unit tests to fail.
+            /// </remarks>
+            private static Func<object?> ConstructLazyExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, PartLifecycleTracker partLifecycle, ReportFaultCallback? faultCallback)
+            {
+                return () => ConstructExportedValue(import, export, importingPartTracker, partLifecycle, faultCallback);
             }
 
             private static object? ConstructExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, PartLifecycleTracker partLifecycle, ReportFaultCallback? faultCallback)
