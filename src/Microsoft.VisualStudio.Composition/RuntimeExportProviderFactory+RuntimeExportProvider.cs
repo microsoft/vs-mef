@@ -269,43 +269,50 @@ namespace Microsoft.VisualStudio.Composition
 
             private Func<object?> GetLazyExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker)
             {
-                Requires.NotNull(import, nameof(import));
-                Requires.NotNull(export, nameof(export));
-
-                var exportingRuntimePart = this.composition.GetPart(export);
-
-                // Special case importing of ExportProvider
-                if (exportingRuntimePart.TypeRef.Equals(ExportProvider.ExportProviderPartDefinition.TypeRef))
-                {
-                    return () => this.NonDisposableWrapper.Value;
-                }
-
-                var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
-
-                PartLifecycleTracker partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker);
-
-                return ConstructLazyExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
+                return (Func<object?>)this.GetExportedValue(import, export, importingPartTracker, lazy: true, out _)!;
             }
 
             private object? GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, out PartLifecycleTracker? partLifecycle)
+            {
+                return this.GetExportedValue(import, export, importingPartTracker, lazy: false, out partLifecycle);
+            }
+
+            private object? GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, bool lazy, out PartLifecycleTracker? partLifecycle)
             {
                 Requires.NotNull(import, nameof(import));
                 Requires.NotNull(export, nameof(export));
 
                 var exportingRuntimePart = this.composition.GetPart(export);
 
-                // Special case importing of ExportProvider
-                if (exportingRuntimePart.TypeRef.Equals(ExportProvider.ExportProviderPartDefinition.TypeRef))
+                if (this.TryHandleGetExportProvider(exportingRuntimePart, lazy, out object? exportProvider))
                 {
                     partLifecycle = null;
-                    return this.NonDisposableWrapper.Value;
+                    return exportProvider;
                 }
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
                 partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker);
 
-                return ConstructExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
+                return lazy ? ConstructLazyExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback) :
+                              ConstructExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
+            }
+
+            private bool TryHandleGetExportProvider(RuntimeComposition.RuntimePart exportingRuntimePart, bool lazy, out object? exportProvider)
+            {
+                Requires.NotNull(exportingRuntimePart, nameof(exportingRuntimePart));
+
+                // Special case importing of ExportProvider
+                if (exportingRuntimePart.TypeRef.Equals(ExportProvider.ExportProviderPartDefinition.TypeRef))
+                {
+                    exportProvider = lazy ? () => this.NonDisposableWrapper.Value :
+                                                  this.NonDisposableWrapper.Value;
+
+                    return true;
+                }
+
+                exportProvider = null;
+                return false;
             }
 
             private PartLifecycleTracker GetOrCreateValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker? importingPartTracker)
@@ -329,7 +336,7 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             /// <summary>
-            /// Called from <see cref="GetLazyExportedValue(RuntimeComposition.RuntimeImport, RuntimeComposition.RuntimeExport, RuntimePartLifecycleTracker?)"/>
+            /// Called from <see cref="GetExportedValue(RuntimeComposition.RuntimeImport, RuntimeComposition.RuntimeExport, RuntimePartLifecycleTracker?, bool, out PartLifecycleTracker?)"/>
             /// only, as an assisting method. See remarks.
             /// </summary>
             /// <remarks>
