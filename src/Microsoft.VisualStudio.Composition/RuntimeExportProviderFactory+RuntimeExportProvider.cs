@@ -305,17 +305,7 @@ namespace Microsoft.VisualStudio.Composition
                 Requires.NotNull(exportingRuntimePart, nameof(exportingRuntimePart));
                 Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
                 Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
-
-                bool nonSharedInstanceRequired = !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired;
-                Requires.Argument(importingPartTracker is object || !nonSharedInstanceRequired, nameof(importingPartTracker), "Value required for non-shared parts.");
-                RuntimePartLifecycleTracker? nonSharedPartOwner = nonSharedInstanceRequired && importingPartTracker!.IsNonShared && !import.IsExportFactory ? importingPartTracker : null;
-                PartLifecycleTracker partLifecycle = this.GetOrCreateValue(
-                    originalPartTypeRef,
-                    constructedPartTypeRef,
-                    exportingRuntimePart.SharingBoundary,
-                    import.Metadata,
-                    nonSharedInstanceRequired,
-                    nonSharedPartOwner);
+                PartLifecycleTracker partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, originalPartTypeRef, constructedPartTypeRef, importingPartTracker);
                 var faultCallback = this.faultCallback;
 
                 Func<object?> exportedValue = () =>
@@ -324,6 +314,26 @@ namespace Microsoft.VisualStudio.Composition
                 };
 
                 return new ExportedValueConstructor(partLifecycle, exportedValue);
+            }
+
+            private PartLifecycleTracker GetOrCreateValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker? importingPartTracker)
+            {
+                Requires.NotNull(import, nameof(import));
+                Requires.NotNull(exportingRuntimePart, nameof(exportingRuntimePart));
+                Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
+                Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
+
+                bool nonSharedInstanceRequired = !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired;
+                Requires.Argument(importingPartTracker is object || !nonSharedInstanceRequired, nameof(importingPartTracker), "Value required for non-shared parts.");
+                RuntimePartLifecycleTracker? nonSharedPartOwner = nonSharedInstanceRequired && importingPartTracker!.IsNonShared && !import.IsExportFactory ? importingPartTracker : null;
+
+                return this.GetOrCreateValue(
+                    originalPartTypeRef,
+                    constructedPartTypeRef,
+                    exportingRuntimePart.SharingBoundary,
+                    import.Metadata,
+                    nonSharedInstanceRequired,
+                    nonSharedPartOwner);
             }
 
             private static object? ConstructExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, PartLifecycleTracker partLifecycle, ReportFaultCallback? faultCallback)
