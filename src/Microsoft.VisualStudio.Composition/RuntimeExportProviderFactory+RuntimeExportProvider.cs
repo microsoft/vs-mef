@@ -320,39 +320,48 @@ namespace Microsoft.VisualStudio.Composition
 
                 Func<object?> exportedValue = () =>
                 {
-                    try
-                    {
-                        bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(import.IsLazy, import.ImportingParameterRef != null);
-                        if (!fullyInitializedValueIsRequired && importingPartTracker != null && !import.IsExportFactory)
-                        {
-                            importingPartTracker.ReportPartiallyInitializedImport(partLifecycle);
-                        }
-
-                        if (export.MemberRef != null)
-                        {
-                            object? part = export.Member!.IsStatic()
-                                ? null
-                                : (fullyInitializedValueIsRequired
-                                    ? partLifecycle.GetValueReadyToExpose()
-                                    : partLifecycle.GetValueReadyToRetrieveExportingMembers());
-                            return GetValueFromMember(part, export.Member!, import.ImportingSiteElementType, export.ExportedValueTypeRef.Resolve());
-                        }
-                        else
-                        {
-                            return fullyInitializedValueIsRequired
-                                ? partLifecycle.GetValueReadyToExpose()
-                                : partLifecycle.GetValueReadyToRetrieveExportingMembers();
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        // Let the MEF host know that an exception has been thrown while resolving an exported value
-                        faultCallback?.Invoke(e, import, export);
-                        throw;
-                    }
+                    return ConstructExportedValue(import, export, importingPartTracker, partLifecycle, faultCallback);
                 };
 
                 return new ExportedValueConstructor(partLifecycle, exportedValue);
+            }
+
+            private static object? ConstructExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, PartLifecycleTracker partLifecycle, ReportFaultCallback? faultCallback)
+            {
+                Requires.NotNull(import, nameof(import));
+                Requires.NotNull(export, nameof(export));
+                Requires.NotNull(partLifecycle, nameof(partLifecycle));
+
+                try
+                {
+                    bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(import.IsLazy, import.ImportingParameterRef != null);
+                    if (!fullyInitializedValueIsRequired && importingPartTracker != null && !import.IsExportFactory)
+                    {
+                        importingPartTracker.ReportPartiallyInitializedImport(partLifecycle);
+                    }
+
+                    if (export.MemberRef != null)
+                    {
+                        object? part = export.Member!.IsStatic()
+                            ? null
+                            : (fullyInitializedValueIsRequired
+                                ? partLifecycle.GetValueReadyToExpose()
+                                : partLifecycle.GetValueReadyToRetrieveExportingMembers());
+                        return GetValueFromMember(part, export.Member!, import.ImportingSiteElementType, export.ExportedValueTypeRef.Resolve());
+                    }
+                    else
+                    {
+                        return fullyInitializedValueIsRequired
+                            ? partLifecycle.GetValueReadyToExpose()
+                            : partLifecycle.GetValueReadyToRetrieveExportingMembers();
+                    }
+                }
+                catch (Exception e)
+                {
+                    // Let the MEF host know that an exception has been thrown while resolving an exported value
+                    faultCallback?.Invoke(e, import, export);
+                    throw;
+                }
             }
 
             /// <summary>
