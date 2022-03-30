@@ -286,25 +286,6 @@ namespace Microsoft.VisualStudio.Composition
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
-                return this.GetExportedValueHelper(import, export, exportingRuntimePart, constructedType, importingPartTracker);
-            }
-
-            /// <summary>
-            /// Called from <see cref="GetExportedValue(RuntimeComposition.RuntimeImport, RuntimeComposition.RuntimeExport, RuntimePartLifecycleTracker)"/>
-            /// only, as an assisting method. See remarks.
-            /// </summary>
-            /// <remarks>
-            /// This method is separate from its one caller to avoid a csc.exe compiler bug
-            /// where it captures "this" in the closure for exportedValue, resulting in a memory leak
-            /// which caused one of our GC unit tests to fail.
-            /// </remarks>
-            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef constructedType, RuntimePartLifecycleTracker? importingPartTracker)
-            {
-                Requires.NotNull(import, nameof(import));
-                Requires.NotNull(export, nameof(export));
-                Requires.NotNull(exportingRuntimePart, nameof(exportingRuntimePart));
-                Requires.NotNull(constructedType, nameof(constructedType));
-
                 PartLifecycleTracker partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker);
 
                 Func<object?> exportedValue = ConstructLazyExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
