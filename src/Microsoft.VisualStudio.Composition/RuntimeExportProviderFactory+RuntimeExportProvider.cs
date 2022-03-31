@@ -84,8 +84,7 @@ namespace Microsoft.VisualStudio.Composition
                 RuntimeComposition.RuntimeExport? metadataViewProviderExport;
                 if (this.composition.MetadataViewsAndProviders.TryGetValue(TypeRef.Get(metadataView, this.Resolver), out metadataViewProviderExport))
                 {
-                    var export = this.GetExportedValue(MetadataViewProviderImport, metadataViewProviderExport, importingPartTracker: null);
-                    var result = (IMetadataViewProvider?)export.ValueConstructor();
+                    var result = (IMetadataViewProvider?)this.GetExportedValue(MetadataViewProviderImport, metadataViewProviderExport, importingPartTracker: null, out _);
                     Assumes.NotNull(result);
                     return result;
                 }
@@ -236,11 +235,9 @@ namespace Microsoft.VisualStudio.Composition
                         return value;
                     }
 
-                    ExportedValueConstructor exportedValueConstructor = this.GetExportedValue(import, export, importingPartTracker);
-
                     object? importedValue = import.IsLazy
-                        ? lazyFactory!(exportedValueConstructor.ValueConstructor, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
-                        : exportedValueConstructor.ValueConstructor();
+                        ? lazyFactory!(this.GetLazyExportedValue(import, export, importingPartTracker), this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
+                        : this.GetExportedValue(import, export, importingPartTracker, out _);
                     return importedValue;
                 }
             }
@@ -259,10 +256,9 @@ namespace Microsoft.VisualStudio.Composition
                     RuntimeExportProvider scope = newSharingScope
                         ? new RuntimeExportProvider(this.composition, this, sharingBoundaries)
                         : this;
-                    var exportedValueConstructor = scope.GetExportedValue(import, export, importingPartTracker);
-                    exportedValueConstructor.ExportingPart!.GetValueReadyToExpose();
-                    object? constructedValue = exportedValueConstructor.ValueConstructor();
-                    var disposableValue = newSharingScope ? scope : exportedValueConstructor.ExportingPart as IDisposable;
+                    object? constructedValue = scope.GetExportedValue(import, export, importingPartTracker, out PartLifecycleTracker? partLifecycle);
+                    partLifecycle!.GetValueReadyToExpose();
+                    var disposableValue = newSharingScope ? scope : partLifecycle as IDisposable;
                     return new KeyValuePair<object?, IDisposable?>(constructedValue, disposableValue);
                 };
                 Type? exportFactoryType = import.ImportingSiteTypeWithoutCollection!;
@@ -271,37 +267,63 @@ namespace Microsoft.VisualStudio.Composition
                 return this.CreateExportFactory(importingSiteElementType, sharingBoundaries, valueFactory, exportFactoryType, exportMetadata);
             }
 
-            private ExportedValueConstructor GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker)
+            private Func<object?> GetLazyExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker)
+            {
+                return (Func<object?>)this.GetExportedValue(import, export, importingPartTracker, lazy: true, out _)!;
+            }
+
+            private object? GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, out PartLifecycleTracker? partLifecycle)
+            {
+                return this.GetExportedValue(import, export, importingPartTracker, lazy: false, out partLifecycle);
+            }
+
+            private object? GetExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, bool lazy, out PartLifecycleTracker? partLifecycle)
             {
                 Requires.NotNull(import, nameof(import));
                 Requires.NotNull(export, nameof(export));
 
                 var exportingRuntimePart = this.composition.GetPart(export);
 
-                // Special case importing of ExportProvider
-                if (exportingRuntimePart.TypeRef.Equals(ExportProvider.ExportProviderPartDefinition.TypeRef))
+                if (this.TryHandleGetExportProvider(exportingRuntimePart, lazy, out object? exportProvider))
                 {
-                    return new ExportedValueConstructor(null, () => this.NonDisposableWrapper.Value);
+                    partLifecycle = null;
+                    return exportProvider;
                 }
 
                 var constructedType = GetPartConstructedTypeRef(exportingRuntimePart, import.Metadata);
 
-                return this.GetExportedValueHelper(import, export, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker);
+                partLifecycle = this.GetOrCreateValue(import, exportingRuntimePart, exportingRuntimePart.TypeRef, constructedType, importingPartTracker);
+
+                return lazy ? ConstructLazyExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback) :
+                              ConstructExportedValue(import, export, importingPartTracker, partLifecycle, this.faultCallback);
+
+                static Func<object?> ConstructLazyExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, PartLifecycleTracker partLifecycle, ReportFaultCallback? faultCallback)
+                {
+                    // Avoid inlining this method into its parent to avoid non-lazy path from paying for capture allocation
+                    return () => ConstructExportedValue(import, export, importingPartTracker, partLifecycle, faultCallback);
+                }
             }
 
-            /// <summary>
-            /// Called from <see cref="GetExportedValue(RuntimeComposition.RuntimeImport, RuntimeComposition.RuntimeExport, RuntimePartLifecycleTracker)"/>
-            /// only, as an assisting method. See remarks.
-            /// </summary>
-            /// <remarks>
-            /// This method is separate from its one caller to avoid a csc.exe compiler bug
-            /// where it captures "this" in the closure for exportedValue, resulting in a memory leak
-            /// which caused one of our GC unit tests to fail.
-            /// </remarks>
-            private ExportedValueConstructor GetExportedValueHelper(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker? importingPartTracker)
+            private bool TryHandleGetExportProvider(RuntimeComposition.RuntimePart exportingRuntimePart, bool lazy, out object? exportProvider)
+            {
+                Requires.NotNull(exportingRuntimePart, nameof(exportingRuntimePart));
+
+                // Special case importing of ExportProvider
+                if (exportingRuntimePart.TypeRef.Equals(ExportProvider.ExportProviderPartDefinition.TypeRef))
+                {
+                    exportProvider = lazy ? () => this.NonDisposableWrapper.Value :
+                                                  this.NonDisposableWrapper.Value;
+
+                    return true;
+                }
+
+                exportProvider = null;
+                return false;
+            }
+
+            private PartLifecycleTracker GetOrCreateValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimePart exportingRuntimePart, TypeRef originalPartTypeRef, TypeRef constructedPartTypeRef, RuntimePartLifecycleTracker? importingPartTracker)
             {
                 Requires.NotNull(import, nameof(import));
-                Requires.NotNull(export, nameof(export));
                 Requires.NotNull(exportingRuntimePart, nameof(exportingRuntimePart));
                 Requires.NotNull(originalPartTypeRef, nameof(originalPartTypeRef));
                 Requires.NotNull(constructedPartTypeRef, nameof(constructedPartTypeRef));
@@ -309,50 +331,52 @@ namespace Microsoft.VisualStudio.Composition
                 bool nonSharedInstanceRequired = !exportingRuntimePart.IsShared || import.IsNonSharedInstanceRequired;
                 Requires.Argument(importingPartTracker is object || !nonSharedInstanceRequired, nameof(importingPartTracker), "Value required for non-shared parts.");
                 RuntimePartLifecycleTracker? nonSharedPartOwner = nonSharedInstanceRequired && importingPartTracker!.IsNonShared && !import.IsExportFactory ? importingPartTracker : null;
-                PartLifecycleTracker partLifecycle = this.GetOrCreateValue(
+
+                return this.GetOrCreateValue(
                     originalPartTypeRef,
                     constructedPartTypeRef,
                     exportingRuntimePart.SharingBoundary,
                     import.Metadata,
                     nonSharedInstanceRequired,
                     nonSharedPartOwner);
-                var faultCallback = this.faultCallback;
+            }
 
-                Func<object?> exportedValue = () =>
+            private static object? ConstructExportedValue(RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, RuntimePartLifecycleTracker? importingPartTracker, PartLifecycleTracker partLifecycle, ReportFaultCallback? faultCallback)
+            {
+                Requires.NotNull(import, nameof(import));
+                Requires.NotNull(export, nameof(export));
+                Requires.NotNull(partLifecycle, nameof(partLifecycle));
+
+                try
                 {
-                    try
+                    bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(import.IsLazy, import.ImportingParameterRef != null);
+                    if (!fullyInitializedValueIsRequired && importingPartTracker != null && !import.IsExportFactory)
                     {
-                        bool fullyInitializedValueIsRequired = IsFullyInitializedExportRequiredWhenSettingImport(import.IsLazy, import.ImportingParameterRef != null);
-                        if (!fullyInitializedValueIsRequired && importingPartTracker != null && !import.IsExportFactory)
-                        {
-                            importingPartTracker.ReportPartiallyInitializedImport(partLifecycle);
-                        }
+                        importingPartTracker.ReportPartiallyInitializedImport(partLifecycle);
+                    }
 
-                        if (export.MemberRef != null)
-                        {
-                            object? part = export.Member!.IsStatic()
-                                ? null
-                                : (fullyInitializedValueIsRequired
-                                    ? partLifecycle.GetValueReadyToExpose()
-                                    : partLifecycle.GetValueReadyToRetrieveExportingMembers());
-                            return GetValueFromMember(part, export.Member!, import.ImportingSiteElementType, export.ExportedValueTypeRef.Resolve());
-                        }
-                        else
-                        {
-                            return fullyInitializedValueIsRequired
+                    if (export.MemberRef != null)
+                    {
+                        object? part = export.Member!.IsStatic()
+                            ? null
+                            : (fullyInitializedValueIsRequired
                                 ? partLifecycle.GetValueReadyToExpose()
-                                : partLifecycle.GetValueReadyToRetrieveExportingMembers();
-                        }
+                                : partLifecycle.GetValueReadyToRetrieveExportingMembers());
+                        return GetValueFromMember(part, export.Member!, import.ImportingSiteElementType, export.ExportedValueTypeRef.Resolve());
                     }
-                    catch (Exception e)
+                    else
                     {
-                        // Let the MEF host know that an exception has been thrown while resolving an exported value
-                        faultCallback?.Invoke(e, import, export);
-                        throw;
+                        return fullyInitializedValueIsRequired
+                            ? partLifecycle.GetValueReadyToExpose()
+                            : partLifecycle.GetValueReadyToRetrieveExportingMembers();
                     }
-                };
-
-                return new ExportedValueConstructor(partLifecycle, exportedValue);
+                }
+                catch (Exception e)
+                {
+                    // Let the MEF host know that an exception has been thrown while resolving an exported value
+                    faultCallback?.Invoke(e, import, export);
+                    throw;
+                }
             }
 
             /// <summary>
@@ -452,22 +476,6 @@ namespace Microsoft.VisualStudio.Composition
                 public bool ValueShouldBeSet { get; private set; }
 
                 public object? Value { get; private set; }
-            }
-
-            private struct ExportedValueConstructor
-            {
-                public ExportedValueConstructor(PartLifecycleTracker? exportingPart, Func<object?> valueConstructor)
-                    : this()
-                {
-                    Requires.NotNull(valueConstructor, nameof(valueConstructor));
-
-                    this.ExportingPart = exportingPart;
-                    this.ValueConstructor = valueConstructor;
-                }
-
-                public Func<object?> ValueConstructor { get; private set; }
-
-                public PartLifecycleTracker? ExportingPart { get; private set; }
             }
 
             [DebuggerDisplay("{" + nameof(partDefinition) + "." + nameof(RuntimeComposition.RuntimePart.TypeRef) + "." + nameof(TypeRef.ResolvedType) + ".FullName,nq} ({State})")]
