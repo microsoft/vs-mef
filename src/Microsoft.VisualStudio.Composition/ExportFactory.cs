@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Composition
             if (type != null && type.GetTypeInfo().IsGenericType)
             {
                 var typeDefinition = type.GetGenericTypeDefinition();
-                if (typeDefinition.FullName?.StartsWith(ExportFactoryV1FullName) ?? false)
+                if (typeDefinition.FullName?.StartsWith(ExportFactoryV1FullName, StringComparison.Ordinal) ?? false)
                 {
                     return true;
                 }
@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.Composition
                 int arity = type.GenericTypeParameterCount + type.GenericTypeArguments.Length;
                 if (arity > 0 && arity <= 2)
                 {
-                    if (type.FullName?.StartsWith(ExportFactoryV1FullName) ?? false)
+                    if (type.FullName?.StartsWith(ExportFactoryV1FullName, StringComparison.Ordinal) ?? false)
                     {
                         return true;
                     }
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.Composition
             if (type != null && type.GetTypeInfo().IsGenericType)
             {
                 var typeDefinition = type.GetGenericTypeDefinition();
-                if (typeDefinition.FullName?.StartsWith(ExportFactoryV2FullName) ?? false)
+                if (typeDefinition.FullName?.StartsWith(ExportFactoryV2FullName, StringComparison.Ordinal) ?? false)
                 {
                     return true;
                 }
@@ -74,7 +74,7 @@ namespace Microsoft.VisualStudio.Composition
                 int arity = type.GenericTypeParameterCount + type.GenericTypeArguments.Length;
                 if (arity > 0 && arity <= 2)
                 {
-                    if (type.FullName?.StartsWith(ExportFactoryV2FullName) ?? false)
+                    if (type.FullName?.StartsWith(ExportFactoryV2FullName, StringComparison.Ordinal) ?? false)
                     {
                         return true;
                     }
