@@ -69,11 +69,11 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
+        internal void GetInputAssemblies(ISet<AssemblyName> assemblies, Func<Assembly, AssemblyName> nameGetter)
         {
             Requires.NotNull(assemblies, nameof(assemblies));
 
-            ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata);
+            ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata, nameGetter);
         }
     }
 }

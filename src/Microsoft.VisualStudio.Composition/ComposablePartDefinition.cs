@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="importingConstructorImports">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
         /// <param name="partCreationPolicy">The creation policy for this part.</param>
         /// <param name="isSharingBoundaryInferred">A value indicating whether the part does not have an explicit sharing boundary, and therefore can obtain its sharing boundary based on its imports.</param>
-        /// <param name="extraInputAssemblies">A sequence of extra assemblies to be added to the set for <see cref="GetInputAssemblies(ISet{AssemblyName})"/>.</param>
+        /// <param name="extraInputAssemblies">A sequence of extra assemblies to be added to the set for <see cref="GetInputAssemblies(ISet{AssemblyName}, Func{Assembly, AssemblyName})"/>.</param>
         public ComposablePartDefinition(TypeRef partType, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<ExportDefinition> exportedTypes, IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers, IEnumerable<ImportDefinitionBinding> importingMembers, string? sharingBoundary, IReadOnlyList<MethodRef> onImportsSatisfiedMethods, MethodRef? importingConstructorRef, IReadOnlyList<ImportDefinitionBinding>? importingConstructorImports, CreationPolicy partCreationPolicy, bool isSharingBoundaryInferred, IEnumerable<AssemblyName> extraInputAssemblies)
             : this(partType, metadata, exportedTypes, exportingMembers, importingMembers, sharingBoundary, onImportsSatisfiedMethods, importingConstructorRef, importingConstructorImports, partCreationPolicy, isSharingBoundaryInferred)
         {
@@ -308,9 +308,10 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
+        internal void GetInputAssemblies(ISet<AssemblyName> assemblies, Func<Assembly, AssemblyName> nameRetriever)
         {
             Requires.NotNull(assemblies, nameof(assemblies));
+            Requires.NotNull(nameRetriever, nameof(nameRetriever));
 
             foreach (var inputAssembly in this.ExtraInputAssemblies)
             {
@@ -318,10 +319,10 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             this.TypeRef.GetInputAssemblies(assemblies);
-            ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata);
+            ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata, nameRetriever);
             foreach (var export in this.ExportedTypes)
             {
-                export.GetInputAssemblies(assemblies);
+                export.GetInputAssemblies(assemblies, nameRetriever);
             }
 
             foreach (var exportingMember in this.ExportingMembers)
@@ -329,13 +330,13 @@ namespace Microsoft.VisualStudio.Composition
                 exportingMember.Key.GetInputAssemblies(assemblies);
                 foreach (var export in exportingMember.Value)
                 {
-                    export.GetInputAssemblies(assemblies);
+                    export.GetInputAssemblies(assemblies, nameRetriever);
                 }
             }
 
             foreach (var import in this.Imports)
             {
-                import.GetInputAssemblies(assemblies);
+                import.GetInputAssemblies(assemblies, nameRetriever);
             }
 
             foreach (var method in this.OnImportsSatisfiedMethodRefs)

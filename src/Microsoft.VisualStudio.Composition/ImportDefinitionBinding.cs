@@ -209,11 +209,12 @@ namespace Microsoft.VisualStudio.Composition
             indentingWriter.WriteLine("ImportingSiteType: {0}", this.ImportingSiteType);
         }
 
-        internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
+        internal void GetInputAssemblies(ISet<AssemblyName> assemblies, Func<Assembly, AssemblyName> nameRetriever)
         {
             Requires.NotNull(assemblies, nameof(assemblies));
+            Requires.NotNull(nameRetriever, nameof(nameRetriever));
 
-            this.ImportDefinition.GetInputAssemblies(assemblies);
+            this.ImportDefinition.GetInputAssemblies(assemblies, nameRetriever);
             this.ComposablePartTypeRef.GetInputAssemblies(assemblies);
             this.ImportingMemberRef?.GetInputAssemblies(assemblies);
             this.ImportingParameterRef?.GetInputAssemblies(assemblies);

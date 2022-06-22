@@ -155,13 +155,28 @@ namespace Microsoft.VisualStudio.Composition
 
         public IReadOnlyCollection<AssemblyName> GetInputAssemblies()
         {
+            var assemblyCache = new Dictionary<Assembly, AssemblyName>();
+
             var inputAssemblies = ImmutableHashSet.CreateBuilder(ByValueEquality.AssemblyName);
             foreach (var part in this.Parts)
             {
-                part.GetInputAssemblies(inputAssemblies);
+                part.GetInputAssemblies(inputAssemblies, GetAssemblyName);
             }
 
             return inputAssemblies.ToImmutable();
+
+            AssemblyName GetAssemblyName(Assembly assembly)
+            {
+                // Assembly.GetName() is non-trivial to calculate and adds up when asking
+                // for the same set of assemblies over and over again, so cache the retrieval
+                if (!assemblyCache.TryGetValue(assembly, out AssemblyName? assemblyName))
+                {
+                    assemblyName = assembly.GetName();
+                    assemblyCache.Add(assembly, assemblyName);
+                }
+
+                return assemblyName;
+            }
         }
 
         public bool Equals(ComposableCatalog? other)
