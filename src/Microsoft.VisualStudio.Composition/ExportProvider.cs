@@ -675,7 +675,7 @@ namespace Microsoft.VisualStudio.Composition
             if (method != null)
             {
                 // If the method came from a property, return the result of the property getter rather than return the delegate.
-                if (method.IsSpecialName && method.GetParameters().Length == 0 && method.Name.StartsWith("get_"))
+                if (method.IsSpecialName && method.GetParameters().Length == 0 && method.Name.StartsWith("get_", StringComparison.Ordinal))
                 {
                     return method.Invoke(exportingPart, EmptyObjectArray);
                 }

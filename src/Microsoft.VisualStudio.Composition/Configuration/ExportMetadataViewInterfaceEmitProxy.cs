@@ -48,7 +48,7 @@ namespace Microsoft.VisualStudio.Composition
                 if (method != null)
                 {
                     return method.IsSpecialName
-                        && method.Name.StartsWith("get_");
+                        && method.Name.StartsWith("get_", StringComparison.Ordinal);
                 }
 
                 return false;
