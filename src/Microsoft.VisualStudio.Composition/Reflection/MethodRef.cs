@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// Gets the string to display in the debugger watch window for this value.
         /// </summary>
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        internal virtual string DebuggerDisplay => $"{this.DeclaringType.FullName}.{this.Name}({string.Join(", ", this.ParameterTypes.Select(p => p.FullName))})";
+        internal virtual string DebuggerDisplay => this.ToString();
 
         public MethodRef(TypeRef declaringType, int metadataToken, string name, bool isStatic, ImmutableArray<TypeRef> parameterTypes, ImmutableArray<TypeRef> genericMethodArguments)
             : base(declaringType, metadataToken, isStatic)
@@ -104,5 +104,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         public override int GetHashCode() => this.DeclaringType.GetHashCode() + this.Name.GetHashCode();
 
         public bool Equals(MethodRef? other) => this.Equals((MemberRef?)other);
+
+        public override string ToString() => $"{this.DeclaringType.FullName}.{this.Name}({string.Join(", ", this.ParameterTypes.Select(p => p.FullName))})";
     }
 }
