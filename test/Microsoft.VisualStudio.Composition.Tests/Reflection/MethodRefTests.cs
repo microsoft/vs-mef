@@ -46,5 +46,13 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
             var methodRef = new MethodRef(TypeRef.Get(this.GetType(), Resolver.DefaultInstance), methodInfo.MetadataToken, methodInfo.Name, methodInfo.IsStatic, ImmutableArray<TypeRef>.Empty, ImmutableArray<TypeRef>.Empty);
             Assert.Same(methodInfo, methodRef.MethodBase);
         }
+
+        [Fact]
+        public void ToString_Override()
+        {
+            MethodInfo methodInfo = this.GetType().GetTypeInfo().GetMethod(nameof(this.ToString_Override))!;
+            var methodRef = new MethodRef(TypeRef.Get(this.GetType(), Resolver.DefaultInstance), methodInfo.MetadataToken, methodInfo.Name, methodInfo.IsStatic, ImmutableArray<TypeRef>.Empty, ImmutableArray<TypeRef>.Empty);
+            Assert.Equal("Microsoft.VisualStudio.Composition.Tests.Reflection.MethodRefTests.ToString_Override()", methodRef.ToString());
+        }
     }
 }
