@@ -707,10 +707,11 @@ namespace Microsoft.VisualStudio.Composition
             throw new NotSupportedException("Cannot instantiate with unsupported importing constructor of type: " + ctorOrFactoryMethod.GetType().Name);
         }
 
-        internal static void GetInputAssembliesFromMetadata(ISet<AssemblyName> assemblies, IReadOnlyDictionary<string, object?> metadata)
+        internal static void GetInputAssembliesFromMetadata(ISet<AssemblyName> assemblies, IReadOnlyDictionary<string, object?> metadata, Func<Assembly, AssemblyName> nameRetriever)
         {
             Requires.NotNull(assemblies, nameof(assemblies));
             Requires.NotNull(metadata, nameof(metadata));
+            Requires.NotNull(nameRetriever, nameof(nameRetriever));
 
             // Get the underlying metadata (should not load the assembly)
             metadata = LazyMetadataWrapper.TryUnwrap(metadata);
@@ -737,7 +738,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
                 else if (valueAsType != null)
                 {
-                    GetTypeAndBaseTypeAssemblies(assemblies, valueAsType);
+                    GetTypeAndBaseTypeAssemblies(assemblies, valueAsType, nameRetriever);
                 }
                 else if (value.GetType().IsArray)
                 {
@@ -752,23 +753,23 @@ namespace Microsoft.VisualStudio.Composition
                             var objType = obj as Type;
                             if (objType != null)
                             {
-                                GetTypeAndBaseTypeAssemblies(assemblies, objType);
+                                GetTypeAndBaseTypeAssemblies(assemblies, objType, nameRetriever);
                             }
                             else
                             {
-                                GetTypeAndBaseTypeAssemblies(assemblies, obj.GetType());
+                                GetTypeAndBaseTypeAssemblies(assemblies, obj.GetType(), nameRetriever);
                             }
                         }
                     }
                     else
                     {
                         // Array is full of primitives. We can just use value's assembly data
-                        GetTypeAndBaseTypeAssemblies(assemblies, value.GetType());
+                        GetTypeAndBaseTypeAssemblies(assemblies, value.GetType(), nameRetriever);
                     }
                 }
                 else
                 {
-                    GetTypeAndBaseTypeAssemblies(assemblies, value.GetType());
+                    GetTypeAndBaseTypeAssemblies(assemblies, value.GetType(), nameRetriever);
                 }
             }
         }
@@ -806,19 +807,20 @@ namespace Microsoft.VisualStudio.Composition
             return name;
         }
 
-        private static void GetTypeAndBaseTypeAssemblies(ISet<AssemblyName> assemblies, Type type)
+        private static void GetTypeAndBaseTypeAssemblies(ISet<AssemblyName> assemblies, Type type, Func<Assembly, AssemblyName> nameRetriever)
         {
             Requires.NotNull(assemblies, nameof(assemblies));
             Requires.NotNull(type, nameof(type));
+            Requires.NotNull(nameRetriever, nameof(nameRetriever));
 
             foreach (var baseType in type.EnumTypeAndBaseTypes())
             {
-                assemblies.Add(baseType.GetTypeInfo().Assembly.GetName());
+                assemblies.Add(nameRetriever(baseType.GetTypeInfo().Assembly));
             }
 
             foreach (var iface in type.GetTypeInfo().GetInterfaces())
             {
-                assemblies.Add(iface.GetTypeInfo().Assembly.GetName());
+                assemblies.Add(nameRetriever(iface.GetTypeInfo().Assembly));
             }
         }
 

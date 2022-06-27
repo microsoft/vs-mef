@@ -130,12 +130,13 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        internal void GetInputAssemblies(ISet<AssemblyName> assemblies)
+        internal void GetInputAssemblies(ISet<AssemblyName> assemblies, Func<Assembly, AssemblyName> nameRetriever)
         {
             Requires.NotNull(assemblies, nameof(assemblies));
+            Requires.NotNull(nameRetriever, nameof(nameRetriever));
 
             // TODO: consider the assembly dependencies brought in by constraints.
-            ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata);
+            ReflectionHelpers.GetInputAssembliesFromMetadata(assemblies, this.Metadata, nameRetriever);
         }
     }
 }
