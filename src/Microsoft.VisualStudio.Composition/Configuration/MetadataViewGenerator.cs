@@ -19,6 +19,8 @@ namespace Microsoft.VisualStudio.Composition
     using System.Reflection;
     using System.Reflection.Emit;
     using System.Security;
+    using System.Security.Cryptography;
+    using System.Text;
     using System.Threading;
     using Microsoft.VisualStudio.Composition.Reflection;
 
@@ -94,10 +96,32 @@ namespace Microsoft.VisualStudio.Composition
 
         public delegate object MetadataViewFactory(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultMetadata);
 
-        private static AssemblyBuilder CreateProxyAssemblyBuilder()
+        private static AssemblyBuilder CreateProxyAssemblyBuilder(ImmutableHashSet<AssemblyName> assemblies)
         {
-            var proxyAssemblyName = new AssemblyName(string.Format(CultureInfo.InvariantCulture, "MetadataViewProxies_{0}", Guid.NewGuid()));
+            var proxyAssemblyName = new AssemblyName(string.Format(CultureInfo.InvariantCulture, "MetadataViewProxies_{0}", GenerateGuidFromAssemblies(assemblies)));
             return AssemblyBuilder.DefineDynamicAssembly(proxyAssemblyName, AssemblyBuilderAccess.Run);
+        }
+
+        private static Guid GenerateGuidFromAssemblies(ImmutableHashSet<AssemblyName> assemblies)
+        {
+            // To make dll load and JIT comparisons between builds easier, we generate a
+            // consistent name for the proxy assembly based on the input assemblies involved.
+            using var algorithm = SHA256.Create();
+
+            foreach (AssemblyName name in assemblies.OrderBy(a => a.FullName, StringComparer.Ordinal))
+            {
+                var bytes = Encoding.Unicode.GetBytes(name.FullName!);
+                algorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
+            }
+
+            algorithm.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+
+            // SHA256 produces 32-bytes hash but we need only 16-bytes of them to produce a GUID,
+            // this is not used for cryptographic purposes so we just grab the first half.
+            var guidBytes = new byte[16];
+            Array.Copy(algorithm.Hash, guidBytes, guidBytes.Length);
+
+            return new Guid(guidBytes);
         }
 
         /// <summary>
@@ -117,7 +141,7 @@ namespace Microsoft.VisualStudio.Composition
             var skipVisibilityCheckAssemblies = SkipClrVisibilityChecks.GetSkipVisibilityChecksRequirements(viewType);
             if (!TransparentProxyModuleBuilderByVisibilityCheck.TryGetValue(skipVisibilityCheckAssemblies, out ModuleBuilder? moduleBuilder))
             {
-                var assemblyBuilder = CreateProxyAssemblyBuilder();
+                var assemblyBuilder = CreateProxyAssemblyBuilder(skipVisibilityCheckAssemblies);
                 moduleBuilder = assemblyBuilder.DefineDynamicModule("MetadataViewProxiesModule");
                 var skipClrVisibilityChecks = new SkipClrVisibilityChecks(assemblyBuilder, moduleBuilder);
                 skipClrVisibilityChecks.SkipVisibilityChecksFor(skipVisibilityCheckAssemblies);
