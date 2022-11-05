@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition.Analyzers
     /// Creates a diagnostic when `[Import]` is applied to a property with no setter.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public class VSMEF001PropertyMustHaveSetter : DiagnosticAnalyzer
+    public sealed class VSMEF001PropertyMustHaveSetter : DiagnosticAnalyzer
     {
         /// <summary>
         /// The ID for diagnostics reported by this analyzer.
@@ -40,25 +40,25 @@ namespace Microsoft.VisualStudio.Composition.Analyzers
         public override void Initialize(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
-            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.ReportDiagnostics);
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
-            context.RegisterCompilationStartAction(compilationContext =>
+            context.RegisterCompilationStartAction(context =>
             {
                 // Only scan further if the compilation references the assemblies that define the attributes we'll be looking for.
-                if (compilationContext.Compilation.ReferencedAssemblyNames.Any(i => string.Equals(i.Name, "System.ComponentModel.Composition", StringComparison.OrdinalIgnoreCase) || string.Equals(i.Name, "System.Composition.AttributedModel", StringComparison.OrdinalIgnoreCase)))
+                if (context.Compilation.ReferencedAssemblyNames.Any(i => string.Equals(i.Name, "System.ComponentModel.Composition", StringComparison.OrdinalIgnoreCase) || string.Equals(i.Name, "System.Composition.AttributedModel", StringComparison.OrdinalIgnoreCase)))
                 {
-                    INamedTypeSymbol? mefV1ImportAttribute = compilationContext.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ImportAttribute");
-                    INamedTypeSymbol? mefV2ImportAttribute = compilationContext.Compilation.GetTypeByMetadataName("System.Composition.ImportAttribute");
+                    INamedTypeSymbol? mefV1ImportAttribute = context.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ImportAttribute");
+                    INamedTypeSymbol? mefV2ImportAttribute = context.Compilation.GetTypeByMetadataName("System.Composition.ImportAttribute");
                     compilationContext.RegisterSymbolAction(
-                        symbolContext => this.AnalyzePropertyDeclaration(symbolContext, mefV1ImportAttribute, mefV2ImportAttribute),
+                        context => this.AnalyzePropertyDeclaration(context, mefV1ImportAttribute, mefV2ImportAttribute),
                         SymbolKind.Property);
                 }
             });
         }
 
-        private void AnalyzePropertyDeclaration(SymbolAnalysisContext symbolContext, INamedTypeSymbol mefV1ImportAttribute, INamedTypeSymbol mefV2ImportAttribute)
+        private static void AnalyzePropertyDeclaration(SymbolAnalysisContext context, INamedTypeSymbol mefV1ImportAttribute, INamedTypeSymbol mefV2ImportAttribute)
         {
-            var property = (IPropertySymbol)symbolContext.Symbol;
+            var property = (IPropertySymbol)context.Symbol;
 
             // If this property defines a setter, they aren't a candidate for a diagnostic.
             if (property.SetMethod is object)
@@ -76,10 +76,10 @@ namespace Microsoft.VisualStudio.Composition.Analyzers
             foreach (var attributeData in property.GetAttributes())
             {
                 // Does this property have an Import attribute?
-                if (Equals(attributeData.AttributeClass, mefV1ImportAttribute) ||
-                    Equals(attributeData.AttributeClass, mefV2ImportAttribute))
+                if (SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV1ImportAttribute) ||
+                    SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV2ImportAttribute))
                 {
-                    symbolContext.ReportDiagnostic(Diagnostic.Create(Descriptor, location));
+                    context.ReportDiagnostic(Diagnostic.Create(Descriptor, location));
                 }
             }
         }
