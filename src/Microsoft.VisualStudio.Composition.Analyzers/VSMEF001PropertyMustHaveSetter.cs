@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Composition.Analyzers
                     INamedTypeSymbol? mefV1ImportAttribute = context.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ImportAttribute");
                     INamedTypeSymbol? mefV2ImportAttribute = context.Compilation.GetTypeByMetadataName("System.Composition.ImportAttribute");
                     context.RegisterSymbolAction(
-                        context => this.AnalyzePropertyDeclaration(context, mefV1ImportAttribute, mefV2ImportAttribute),
+                        context => AnalyzePropertyDeclaration(context, mefV1ImportAttribute, mefV2ImportAttribute),
                         SymbolKind.Property);
                 }
             });
