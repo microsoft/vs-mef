@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.Composition.Analyzers
                 {
                     INamedTypeSymbol? mefV1ImportAttribute = context.Compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ImportAttribute");
                     INamedTypeSymbol? mefV2ImportAttribute = context.Compilation.GetTypeByMetadataName("System.Composition.ImportAttribute");
-                    compilationContext.RegisterSymbolAction(
+                    context.RegisterSymbolAction(
                         context => this.AnalyzePropertyDeclaration(context, mefV1ImportAttribute, mefV2ImportAttribute),
                         SymbolKind.Property);
                 }
@@ -76,8 +76,8 @@ namespace Microsoft.VisualStudio.Composition.Analyzers
             foreach (var attributeData in property.GetAttributes())
             {
                 // Does this property have an Import attribute?
-                if (SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV1ImportAttribute) ||
-                    SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV2ImportAttribute))
+                if (Equals(attributeData.AttributeClass, mefV1ImportAttribute) ||
+                    Equals(attributeData.AttributeClass, mefV2ImportAttribute))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, location));
                 }
