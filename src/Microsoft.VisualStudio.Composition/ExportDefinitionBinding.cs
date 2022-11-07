@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.Composition
         public ComposablePartDefinition PartDefinition { get; private set; }
 
         /// <summary>
-        /// Gets the member with the ExportAttribute applied. <c>null</c> when the export is on the type itself.
+        /// Gets the member with the ExportAttribute applied. <see langword="null"/> when the export is on the type itself.
         /// </summary>
         public MemberInfo? ExportingMember
         {
@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         /// <summary>
-        /// Gets the member with the ExportAttribute applied. The return value is <c>null</c>
+        /// Gets the member with the ExportAttribute applied. The return value is <see langword="null"/>
         /// when the export is on the type itself.
         /// </summary>
         public MemberRef? ExportingMemberRef { get; private set; }

@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="sharingBoundary">The sharing boundary that this part is shared within.</param>
         /// <param name="onImportsSatisfiedMethods">The method to invoke after satisfying imports, if any.</param>
         /// <param name="importingConstructorRef">The constructor to invoke to construct the part.</param>
-        /// <param name="importingConstructorImports">The importing arguments taken by the importing constructor. <c>null</c> if the part cannot be instantiated.</param>
+        /// <param name="importingConstructorImports">The importing arguments taken by the importing constructor. <see langword="null"/> if the part cannot be instantiated.</param>
         /// <param name="partCreationPolicy">The creation policy for this part.</param>
         /// <param name="isSharingBoundaryInferred">A value indicating whether the part does not have an explicit sharing boundary, and therefore can obtain its sharing boundary based on its imports.</param>
         /// <param name="extraInputAssemblies">A sequence of extra assemblies to be added to the set for <see cref="GetInputAssemblies(ISet{AssemblyName}, Func{Assembly, AssemblyName})"/>.</param>
@@ -85,11 +85,11 @@ namespace Microsoft.VisualStudio.Composition
         /// Gets a value indicating whether the sharing boundary must be inferred from what is imported.
         /// </summary>
         /// <remarks>
-        /// This is <c>true</c> when the part was discovered by MEFv1 attributes, since these attributes do not have
+        /// This is <see langword="true"/> when the part was discovered by MEFv1 attributes, since these attributes do not have
         /// a way to convey a sharing boundary.
-        /// This is <c>false</c> when the part is discovered by MEFv2 attributes, which have a SharedAttribute(string) that they can use
+        /// This is <see langword="false"/> when the part is discovered by MEFv2 attributes, which have a SharedAttribute(string) that they can use
         /// to specify the value.
-        /// When this is <c>true</c>, the <see cref="SharingBoundary"/> property is set to <see cref="string.Empty"/>.
+        /// When this is <see langword="true"/>, the <see cref="SharingBoundary"/> property is set to <see cref="string.Empty"/>.
         /// </remarks>
         public bool IsSharingBoundaryInferred { get; private set; }
 
@@ -159,7 +159,7 @@ namespace Microsoft.VisualStudio.Composition
 
         /// <summary>
         /// Gets the list of parameters on the importing constructor,
-        /// or <c>null</c> if the part cannot be instantiated.
+        /// or <see langword="null"/> if the part cannot be instantiated.
         /// </summary>
         public IReadOnlyList<ImportDefinitionBinding>? ImportingConstructorImports { get; private set; }
 

@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         /// <param name="partType">The type to reflect over.</param>
         /// <returns>A new instance of <see cref="ComposablePartDefinition"/> if <paramref name="partType"/>
-        /// represents a MEF part; otherwise <c>null</c>.</returns>
+        /// represents a MEF part; otherwise <see langword="null"/>.</returns>
         public ComposablePartDefinition? CreatePart(Type partType)
         {
             return this.CreatePart(partType, true);
@@ -378,9 +378,9 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Creates an array that contains the contents of a prior array (if any) and one additional element.
         /// </summary>
-        /// <param name="priorArray">The previous version of the array. May be <c>null</c>. This will not be modified by this method.</param>
-        /// <param name="value">The value to add to the array. May be <c>null</c>.</param>
-        /// <param name="elementType">The element type for the array, if it is created fresh. May be <c>null</c>.</param>
+        /// <param name="priorArray">The previous version of the array. May be <see langword="null"/>. This will not be modified by this method.</param>
+        /// <param name="value">The value to add to the array. May be <see langword="null"/>.</param>
+        /// <param name="elementType">The element type for the array, if it is created fresh. May be <see langword="null"/>.</param>
         /// <returns>A new array.</returns>
         protected static Array AddElement(Array? priorArray, object? value, Type? elementType)
         {
@@ -416,7 +416,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="partType">The type to reflect over.</param>
         /// <param name="typeExplicitlyRequested">A value indicating whether this type was explicitly requested for inclusion in the catalog.</param>
         /// <returns>A new instance of <see cref="ComposablePartDefinition"/> if <paramref name="partType"/>
-        /// represents a MEF part; otherwise <c>null</c>.</returns>
+        /// represents a MEF part; otherwise <see langword="null"/>.</returns>
         protected abstract ComposablePartDefinition? CreatePart(Type partType, bool typeExplicitlyRequested);
 
         /// <summary>
@@ -433,7 +433,7 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         /// <param name="collectionType">The value from ImportingSiteType.</param>
         /// <param name="elementType">The value from ImportingSiteTypeWithoutCollection.</param>
-        /// <returns><c>true</c> if the collection is creatable; <c>false</c> otherwise.</returns>
+        /// <returns><see langword="true"/> if the collection is creatable; <see langword="false"/> otherwise.</returns>
         internal static bool IsImportManyCollectionTypeCreateable(Type collectionType, Type elementType)
         {
             Requires.NotNull(collectionType, nameof(collectionType));
@@ -463,7 +463,7 @@ namespace Microsoft.VisualStudio.Composition
         /// Gets the Type of the interface that serves as a metadata view for a given import.
         /// </summary>
         /// <param name="receivingType">The type of the importing member or parameter, without its ImportMany collection if it had one.</param>
-        /// <returns>The metadata view, <see cref="IDictionary{String, Object}"/>, or <c>null</c> if there is none.</returns>
+        /// <returns>The metadata view, <see cref="IDictionary{String, Object}"/>, or <see langword="null"/> if there is none.</returns>
         private static Type? GetMetadataType(Type receivingType)
         {
             Requires.NotNull(receivingType, nameof(receivingType));

@@ -131,7 +131,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// based only on metadata that describes this member, assuming the declaring types are equal.
         /// </summary>
         /// <param name="other">The instance to compare with. This may be assumed to always be an instance of the same type.</param>
-        /// <returns><c>true</c> if the local metadata on the member are equal; <c>false</c> otherwise.</returns>
+        /// <returns><see langword="true"/> if the local metadata on the member are equal; <see langword="false"/> otherwise.</returns>
         protected abstract bool EqualsByTypeLocalMetadata(MemberRef other);
 
         protected abstract MemberInfo Resolve();

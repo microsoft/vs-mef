@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Composition
         /// or a <see cref="Lazy{T, TMetadata}"/> (as opposed to not a Lazy type at all).
         /// </summary>
         /// <param name="type">The type to be tested.</param>
-        /// <returns><c>true</c> if <paramref name="type"/> is some Lazy type; <c>false</c> otherwise.</returns>
+        /// <returns><see langword="true"/> if <paramref name="type"/> is some Lazy type; <see langword="false"/> otherwise.</returns>
         internal static bool IsAnyLazyType(this Type type)
         {
             if (type?.GetTypeInfo().IsGenericType ?? false)
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Composition
         /// or a <see cref="Lazy{T, TMetadata}"/> (as opposed to not a Lazy type at all).
         /// </summary>
         /// <param name="typeRef">The type to be tested.</param>
-        /// <returns><c>true</c> if <paramref name="typeRef"/> is some Lazy type; <c>false</c> otherwise.</returns>
+        /// <returns><see langword="true"/> if <paramref name="typeRef"/> is some Lazy type; <see langword="false"/> otherwise.</returns>
         internal static bool IsAnyLazyType(this TypeRef typeRef)
         {
             if (typeRef?.IsGenericType ?? false)

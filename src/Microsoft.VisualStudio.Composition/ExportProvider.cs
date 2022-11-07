@@ -511,11 +511,11 @@ namespace Microsoft.VisualStudio.Composition
         /// Gets a value indicating whether an import with the given characteristics must be initially satisfied
         /// with a fully pre-initialized export.
         /// </summary>
-        /// <param name="isLazy"><c>true</c> if the import is a Lazy{T} style import; <c>false</c> otherwise.</param>
-        /// <param name="isImportingConstructorArgument"><c>true</c> if the import appears in an importing constructor; <c>false</c> otherwise.</param>
+        /// <param name="isLazy"><see langword="true"/> if the import is a Lazy{T} style import; <see langword="false"/> otherwise.</param>
+        /// <param name="isImportingConstructorArgument"><see langword="true"/> if the import appears in an importing constructor; <see langword="false"/> otherwise.</param>
         /// <returns>
-        /// <c>true</c> if the export must have its imports transitively satisfied and OnImportsSatisfied methods invoked
-        /// prior to being exposed to the receiver; <c>false</c> if the export can be partially initialized when the receiver
+        /// <see langword="true"/> if the export must have its imports transitively satisfied and OnImportsSatisfied methods invoked
+        /// prior to being exposed to the receiver; <see langword="false"/> if the export can be partially initialized when the receiver
         /// first observes it.
         /// </returns>
         private protected static bool IsFullyInitializedExportRequiredWhenSettingImport(bool isLazy, bool isImportingConstructorArgument)
@@ -645,8 +645,8 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets the value from some member of a part.
         /// </summary>
-        /// <param name="exportingPart">The instance of the part to extract the value from. May be <c>null</c> for static exports.</param>
-        /// <param name="exportingMember">The member exporting the value. May be <c>null</c> for exporting the type/instance itself.</param>
+        /// <param name="exportingPart">The instance of the part to extract the value from. May be <see langword="null"/> for static exports.</param>
+        /// <param name="exportingMember">The member exporting the value. May be <see langword="null"/> for exporting the type/instance itself.</param>
         /// <param name="importingSiteElementType">The type of the importing member, with ImportMany collections and Lazy/ExportFactory stripped away.</param>
         /// <param name="exportedValueType">The contractually exported value type.</param>
         /// <returns>The value of the member.</returns>
@@ -1155,7 +1155,7 @@ namespace Microsoft.VisualStudio.Composition
             }
 
             /// <summary>
-            /// Gets or sets the instantiated part, if applicable and after it has been created. Otherwise <c>null</c>.
+            /// Gets or sets the instantiated part, if applicable and after it has been created. Otherwise <see langword="null"/>.
             /// </summary>
             public object? Value
             {
@@ -1501,8 +1501,8 @@ namespace Microsoft.VisualStudio.Composition
             /// </summary>
             /// <param name="nextState">The step that is expected to be the next appropriate one.</param>
             /// <returns>
-            /// <c>true</c> if <paramref name="nextState"/> is one step beyond the current <see cref="State"/>.
-            /// <c>false</c> if this MEF part has advanced to or beyond that step already.
+            /// <see langword="true"/> if <paramref name="nextState"/> is one step beyond the current <see cref="State"/>.
+            /// <see langword="false"/> if this MEF part has advanced to or beyond that step already.
             /// </returns>
             /// <exception cref="InvalidOperationException">
             /// Thrown if this part is not yet ready for this step because that is a sign of a bug in the caller.
@@ -1553,7 +1553,7 @@ namespace Microsoft.VisualStudio.Composition
             /// <param name="visitedNodes">
             /// Used in the recursive call to avoid loops leading to stack overflows.
             /// It also identifies all related parts so they can be "stamped" as being transitively initialized.
-            /// This MUST be <c>null</c> for non-recursive calls.
+            /// This MUST be <see langword="null"/> for non-recursive calls.
             /// </param>
             private void MoveToStateTransitively(PartLifecycleState requiredState, HashSet<PartLifecycleTracker>? visitedNodes = null)
             {
@@ -1617,7 +1617,7 @@ namespace Microsoft.VisualStudio.Composition
             /// Indicates that a new stage of initialization has been reached.
             /// </summary>
             /// <param name="newState">The new state.</param>
-            /// <returns><c>true</c> if the new state actually represents an advancement over the prior state.</returns>
+            /// <returns><see langword="true"/> if the new state actually represents an advancement over the prior state.</returns>
             private bool UpdateState(PartLifecycleState newState)
             {
                 lock (this.syncObject)

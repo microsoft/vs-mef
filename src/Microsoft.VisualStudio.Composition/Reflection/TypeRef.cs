@@ -249,9 +249,9 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// <summary>
         /// Gets a TypeRef that represents a given Type instance.
         /// </summary>
-        /// <param name="type">The Type to represent. May be <c>null</c> to get a <c>null</c> result.</param>
+        /// <param name="type">The Type to represent. May be <see langword="null"/> to get a <see langword="null"/> result.</param>
         /// <param name="resolver">The resolver to use to reconstitute <paramref name="type"/> or derivatives later.</param>
-        /// <returns>An instance of TypeRef if <paramref name="type"/> is not <c>null</c>; otherwise <c>null</c>.</returns>
+        /// <returns>An instance of TypeRef if <paramref name="type"/> is not <see langword="null"/>; otherwise <see langword="null"/>.</returns>
         [return: NotNullIfNotNull("type")]
         public static TypeRef? Get(Type? type, Resolver resolver)
         {

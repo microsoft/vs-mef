@@ -89,13 +89,13 @@ namespace Microsoft.VisualStudio.Composition.AppHost
         /// <summary>
         /// Gets or sets a value indicating whether to continue when errors occur while scanning MEF assemblies.
         /// </summary>
-        /// <value>The default is <c>false</c>, causing build failure.</value>
+        /// <value>The default is <see langword="false"/>, causing build failure.</value>
         public bool ContinueOnDiscoveryErrors { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to continue when errors occur while composing the graph.
         /// </summary>
-        /// <value>The default is <c>false</c>, causing build failure.</value>
+        /// <value>The default is <see langword="false"/>, causing build failure.</value>
         public bool ContinueOnCompositionErrors { get; set; }
 
         [Required]

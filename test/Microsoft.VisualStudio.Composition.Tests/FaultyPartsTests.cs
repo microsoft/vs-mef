@@ -96,7 +96,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var level1 = configuration.CompositionErrors.Peek();
             var error = level1.Single();
             this.Logger.WriteLine(error.Message);
-            Assert.Contains(typeof(IServiceProvider).FullName, error.Message);
+            Assert.Contains(typeof(IServiceProvider).FullName!, error.Message);
         }
 
         [Fact]
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var level1 = configuration.CompositionErrors.Peek();
             var error = level1.Single();
             this.Logger.WriteLine(error.Message);
-            Assert.Contains(typeof(IServiceProvider).FullName, error.Message);
+            Assert.Contains(typeof(IServiceProvider).FullName!, error.Message);
             Assert.Contains(CustomContractName, error.Message);
         }
 
@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var level1 = configuration.CompositionErrors.Peek();
             var error = level1.Single();
             this.Logger.WriteLine(error.Message);
-            Assert.Contains(typeof(IServiceProvider).FullName, error.Message);
+            Assert.Contains(typeof(IServiceProvider).FullName!, error.Message);
         }
 
         [Fact]
@@ -133,7 +133,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var level1 = configuration.CompositionErrors.Peek();
             var error = level1.Single();
             this.Logger.WriteLine(error.Message);
-            Assert.Contains(typeof(IServiceProvider).FullName, error.Message);
+            Assert.Contains(typeof(IServiceProvider).FullName!, error.Message);
             Assert.Contains(CustomContractName, error.Message);
         }
 
@@ -144,7 +144,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var error = composition.Catalog.DiscoveredParts.DiscoveryErrors.Single();
             this.Logger.WriteLine(error.ToString());
             var rootCause = TestUtilities.GetInnermostException(error);
-            Assert.Contains(typeof(IServiceProvider).FullName, rootCause.Message);
+            Assert.Contains(typeof(IServiceProvider).FullName!, rootCause.Message);
             Assert.Contains(typeof(ImportManyAttribute).Name, rootCause.Message);
         }
 

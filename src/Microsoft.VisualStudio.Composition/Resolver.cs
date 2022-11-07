@@ -51,8 +51,8 @@ namespace Microsoft.VisualStudio.Composition
         /// if that assembly has been loaded with this <see cref="Resolver"/>.
         /// </summary>
         /// <param name="assemblyName">The name of the assembly to look up.</param>
-        /// <param name="assemblyId">Receives the metadata from the assembly, if it has been loaded by this <see cref="Resolver"/>; otherwise <c>null</c>.</param>
-        /// <returns><c>true</c> if the metadata was found; <c>false</c> otherwise.</returns>
+        /// <param name="assemblyId">Receives the metadata from the assembly, if it has been loaded by this <see cref="Resolver"/>; otherwise <see langword="null"/>.</param>
+        /// <returns><see langword="true"/> if the metadata was found; <see langword="false"/> otherwise.</returns>
         internal bool TryGetAssemblyId(AssemblyName assemblyName, [NotNullWhen(true)] out StrongAssemblyIdentity? assemblyId)
         {
             lock (this.loadedAssemblyStrongIdentities)

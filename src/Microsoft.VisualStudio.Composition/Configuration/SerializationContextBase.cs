@@ -810,7 +810,7 @@ namespace Microsoft.VisualStudio.Composition
         /// Prepares the object for referential sharing in the serialization stream.
         /// </summary>
         /// <param name="value">The value that may be serialized more than once.</param>
-        /// <returns><c>true</c> if the object should be serialized; otherwise <c>false</c>.</returns>
+        /// <returns><see langword="true"/> if the object should be serialized; otherwise <see langword="false"/>.</returns>
         protected bool TryPrepareSerializeReusableObject([NotNullWhen(true)] object? value)
         {
             uint id;
@@ -847,7 +847,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <typeparam name="T">The type of deserialized object to retrieve.</typeparam>
         /// <param name="id">Receives the ID of the object.</param>
         /// <param name="value">Receives the value of the object, if available.</param>
-        /// <returns><c>true</c> if the caller should deserialize the object; <c>false</c> if the object is in <paramref name="value"/>.</returns>
+        /// <returns><see langword="true"/> if the caller should deserialize the object; <see langword="false"/> if the object is in <paramref name="value"/>.</returns>
         protected bool TryPrepareDeserializeReusableObject<T>(out uint id, out T? value)
             where T : class
         {
