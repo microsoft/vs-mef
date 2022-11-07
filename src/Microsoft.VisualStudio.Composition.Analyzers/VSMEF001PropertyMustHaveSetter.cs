@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition.Analyzers
     /// Creates a diagnostic when `[Import]` is applied to a property with no setter.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
-    public sealed class VSMEF001PropertyMustHaveSetter : DiagnosticAnalyzer
+    public class VSMEF001PropertyMustHaveSetter : DiagnosticAnalyzer
     {
         /// <summary>
         /// The ID for diagnostics reported by this analyzer.
