@@ -6,9 +6,35 @@
     <MicroBuildVersion>2.0.87</MicroBuildVersion>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="DiffPlex" Version="1.7.1" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="1.1.1" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Workspaces" version="4.0.1" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="2.10.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.3" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" Version="1.1.1" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" version="4.0.1" />
+    <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.3.2" />
     <PackageVersion Include="Microsoft.VisualStudio.Internal.MicroBuild.NonShipping" Version="$(MicroBuildVersion)" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.2.32" />
+    <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.0.53" />
+    <PackageVersion Include="Nerdbank.MSBuildExtension" Version="0.1.17-beta" />
+    <PackageVersion Include="Nerdbank.NetStandardBridge" Version="1.1.9-alpha" />
+    <PackageVersion Include="OpenSoftware.DgmlBuilder" Version="2.0.0" />
+    <PackageVersion Include="System.CommandLine.DragonFruit" Version="0.3.0-alpha.21216.1" />
+    <PackageVersion Include="System.ComponentModel.Composition" Version="6.0.0" />
+    <PackageVersion Include="System.Composition.AttributedModel" Version="6.0.0" />
+    <PackageVersion Include="System.Composition" Version="6.0.0" />
+    <PackageVersion Include="System.Reflection.Emit" Version="4.7.0" />
+    <PackageVersion Include="System.Reflection.Metadata" Version="5.0.0" />
+    <PackageVersion Include="System.Reflection.TypeExtensions" Version="4.7.0" />
+    <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
+    <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
+    <PackageVersion Include="xunit.extensibility.execution" Version="2.4.2" />
+    <PackageVersion Include="xunit.runner.console" Version="2.4.1" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
+    <PackageVersion Include="Xunit.SkippableFact" Version="1.4.13" />
     <PackageVersion Include="xunit" Version="2.4.2" />
   </ItemGroup>
   <!-- The following PackageVersion and PackageReference items should be consolidated to GlobalPackageReference items
@@ -29,7 +55,6 @@
     <PackageReference Include="CSharpIsNullAnalyzer" PrivateAssets="all" />
     <PackageReference Include="DotNetAnalyzers.DocumentationAnalyzers" PrivateAssets="all" />
     <PackageReference Include="Nerdbank.GitVersioning" PrivateAssets="all" />
-    <PackageReference Include="Nullable" PrivateAssets="all" />
     <PackageReference Include="StyleCop.Analyzers.Unstable" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>

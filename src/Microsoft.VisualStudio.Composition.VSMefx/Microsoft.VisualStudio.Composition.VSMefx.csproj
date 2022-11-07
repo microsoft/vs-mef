@@ -13,10 +13,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="OpenSoftware.DgmlBuilder" Version="2.0.0" />
-    <PackageReference Include="System.CommandLine.DragonFruit" Version="0.3.0-alpha.21216.1" />
-    <PackageReference Include="Nerdbank.NetStandardBridge" Version="1.1.9-alpha" />
+    <PackageReference Include="Microsoft.CSharp" />
+    <PackageReference Include="OpenSoftware.DgmlBuilder" />
+    <PackageReference Include="System.CommandLine.DragonFruit" />
+    <PackageReference Include="Nerdbank.NetStandardBridge" />
   </ItemGroup>
 
   <ItemGroup>
