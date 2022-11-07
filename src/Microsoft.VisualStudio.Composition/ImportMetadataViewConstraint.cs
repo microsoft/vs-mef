@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.Composition
 
         /// <summary>
         /// Gets the <see cref="Composition.Resolver"/> to use.
-        /// May be <c>null</c> if <see cref="Requirements"/> is empty.
+        /// May be <see langword="null"/> if <see cref="Requirements"/> is empty.
         /// </summary>
         public Resolver? Resolver { get; }
 

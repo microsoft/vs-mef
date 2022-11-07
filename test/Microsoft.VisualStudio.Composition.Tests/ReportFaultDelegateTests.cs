@@ -91,7 +91,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     Assert.NotNull(export);
                     Assert.NotNull(ex.InnerException);
 
-                    Assert.IsType(testCase.ExpectedBaseExceptionType, ex);
+                    Assert.IsType(testCase.ExpectedBaseExceptionType!, ex);
                     Assert.Equal(testCase.ExpectedInnerException, ex.InnerException);
 
                     timesCallbackIsCalled++;
@@ -110,7 +110,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 }
                 catch (Exception e) when (!(e is XunitException))
                 {
-                    Assert.IsType(testCase.ExpectedBaseExceptionType, e);
+                    Assert.IsType(testCase.ExpectedBaseExceptionType!, e);
                     Assert.Equal(exceptionPassedToCallback, e);
                 }
             }

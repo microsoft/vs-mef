@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.Composition
         /// Gets the metadata from an assembly at the specified path.
         /// </summary>
         /// <param name="assemblyFile">The path to the assembly to read metadata from.</param>
-        /// <param name="assemblyName">The assembly name, if already known; otherwise <c>null</c>.</param>
+        /// <param name="assemblyName">The assembly name, if already known; otherwise <see langword="null"/>.</param>
         /// <returns>The assembly metadata.</returns>
         /// <exception cref="FileNotFoundException">Thrown if <paramref name="assemblyFile"/> does not refer to an existing file.</exception>
         public static StrongAssemblyIdentity CreateFrom(string assemblyFile, AssemblyName? assemblyName)

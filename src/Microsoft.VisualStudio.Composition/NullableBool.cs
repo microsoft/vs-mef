@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.Composition
         internal bool HasValue => this.state != 0;
 
         /// <summary>
-        /// Gets or sets a value indicating whether the boolean value is <c>true</c>.
+        /// Gets or sets a value indicating whether the boolean value is <see langword="true"/>.
         /// </summary>
         internal bool Value
         {

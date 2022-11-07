@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.Composition
             /// Extracts the ImportDefinition for the T in an ExportFactory{T} import, if applicable.
             /// </summary>
             /// <param name="definition">The ImportDefinition which may be an ExportFactory.</param>
-            /// <returns>The import definition that describes the created part, or <c>null</c> if the import definition isn't an ExportFactory.</returns>
+            /// <returns>The import definition that describes the created part, or <see langword="null"/> if the import definition isn't an ExportFactory.</returns>
             private static MefV1.Primitives.ImportDefinition? GetExportFactoryProductImportDefinitionIfApplicable(MefV1.Primitives.ImportDefinition definition)
             {
                 return ReflectionModelServices.IsExportFactoryImportDefinition(definition)

@@ -186,8 +186,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// Tests whether we can safely use fast reflection on the assembly that defines the given type.
         /// </summary>
         /// <param name="typeRef">The reference to a type that needs to be reflected over.</param>
-        /// <param name="manifest">Receives the manifest of the assembly that defines the type. May be <c>null</c> when fast reflection must not be used.</param>
-        /// <returns><c>true</c> if it is safe to use fast reflection; <c>false</c> otherwise.</returns>
+        /// <param name="manifest">Receives the manifest of the assembly that defines the type. May be <see langword="null"/> when fast reflection must not be used.</param>
+        /// <returns><see langword="true"/> if it is safe to use fast reflection; <see langword="false"/> otherwise.</returns>
         internal static bool TryUseFastReflection(TypeRef typeRef, out Module manifest)
         {
             manifest = typeRef.Resolver.GetManifest(typeRef.AssemblyName);
@@ -243,7 +243,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// </summary>
         /// <param name="typeRef">The <see cref="TypeRef"/> that may have been cached, possibly against a different build of the assembly.</param>
         /// <param name="manifest">The manifest from the assembly that defines the referenced type.</param>
-        /// <returns><c>true</c> if the currently loaded assembly is the same build as the one that was cached.</returns>
+        /// <returns><see langword="true"/> if the currently loaded assembly is the same build as the one that was cached.</returns>
         private static bool IsStrongAssemblyIdentityMatch(TypeRef typeRef, Module manifest)
         {
             Requires.NotNull(typeRef, nameof(typeRef));
