@@ -5,10 +5,11 @@
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.CSharp" Condition="'$(TargetFramework)'=='net472'" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DiffPlex" />
+    <PackageReference Include="Microsoft.CodeCoverage" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Nullable" PrivateAssets="all" />
     <PackageReference Include="System.ValueTuple" />
