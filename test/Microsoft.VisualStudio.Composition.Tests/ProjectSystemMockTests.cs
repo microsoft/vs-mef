@@ -173,6 +173,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
 
             public Lazy<object, IDictionary<string, object>>[] GetApplicableExtensions()
             {
+                Verify.Operation(this.Capabilities is not null, $"Set {nameof(this.Capabilities)} first.");
                 return this.Extensions.Where(export => this.Capabilities.Contains(export.Metadata["ProjectCapabilityRequires"])).ToArray();
             }
 

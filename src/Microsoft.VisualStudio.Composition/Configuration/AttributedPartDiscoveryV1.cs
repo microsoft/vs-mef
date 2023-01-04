@@ -283,8 +283,8 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(importingType, nameof(importingType));
             Requires.NotNull(member, nameof(member));
 
-            ImportAttribute importAttribute = member.GetFirstAttribute<ImportAttribute>();
-            ImportManyAttribute importManyAttribute = member.GetFirstAttribute<ImportManyAttribute>();
+            ImportAttribute? importAttribute = member.GetFirstAttribute<ImportAttribute>();
+            ImportManyAttribute? importManyAttribute = member.GetFirstAttribute<ImportManyAttribute>();
 
             // Importing constructors get implied attributes on their parameters.
             if (importAttribute == null && importManyAttribute == null && member is ParameterInfo)

@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.Composition
             // SHA256 produces 32-bytes hash but we need only 16-bytes of them to produce a GUID,
             // this is not used for cryptographic purposes so we just grab the first half.
             var guidBytes = new byte[16];
-            Array.Copy(algorithm.Hash, guidBytes, guidBytes.Length);
+            Array.Copy(algorithm.Hash!, guidBytes, guidBytes.Length);
 
             return new Guid(guidBytes);
         }

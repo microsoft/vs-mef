@@ -33,12 +33,12 @@ namespace Microsoft.VisualStudio.Composition
                     new XAttribute("Layout", layout)));
             if (direction != null)
             {
-                dgml.Root.Add(new XAttribute("GraphDirection", direction));
+                dgml.Root!.Add(new XAttribute("GraphDirection", direction));
             }
 
             nodes = new XElement(XName.Get("Nodes", Namespace));
             links = new XElement(XName.Get("Links", Namespace));
-            dgml.Root.Add(nodes);
+            dgml.Root!.Add(nodes);
             dgml.Root.Add(links);
             dgml.WithCategories(Category("Contains", isContainment: true));
             return dgml;
@@ -47,6 +47,7 @@ namespace Microsoft.VisualStudio.Composition
         private static XElement GetRootElement(this XDocument document, XName name)
         {
             Requires.NotNull(document, nameof(document));
+            Requires.Argument(document.Root is not null, nameof(document), $"{nameof(document.Root)} must not be null.");
             Requires.NotNull(name, nameof(name));
 
             var container = document.Root.Element(name);
@@ -141,7 +142,12 @@ namespace Microsoft.VisualStudio.Composition
 
         internal static XElement Link(XElement source, XElement target, string? label)
         {
-            return Link(source.Attribute("Id").Value, target.Attribute("Id").Value, label);
+            XAttribute? sourceId = source.Attribute("Id");
+            XAttribute? targetId = target.Attribute("Id");
+            Requires.Argument(sourceId is not null, nameof(source), "Id attribute is missing.");
+            Requires.Argument(targetId is not null, nameof(target), "Id attribute is missing.");
+
+            return Link(sourceId.Value, targetId.Value, label);
         }
 
         internal static XDocument WithLink(this XDocument document, XElement link)
@@ -226,7 +232,10 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(node, nameof(node));
             Requires.NotNullOrEmpty(containerId, nameof(containerId));
 
-            document.WithLink(Link(containerId, node.Attribute("Id").Value, null).WithCategories("Contains"));
+            XAttribute? nodeId = node.Attribute("Id");
+            Requires.Argument(nodeId is not null, nameof(node), "Id attribute is missing.");
+
+            document.WithLink(Link(containerId, nodeId.Value, null).WithCategories("Contains"));
             return node;
         }
 
@@ -260,6 +269,7 @@ namespace Microsoft.VisualStudio.Composition
         internal static XDocument WithStyle(this XDocument document, string categoryId, IEnumerable<KeyValuePair<string, string?>> properties, string targetType = "Node")
         {
             Requires.NotNull(document, nameof(document));
+            Requires.Argument(document.Root is not null, nameof(document), $"{nameof(document.Root)} must not be null.");
             Requires.NotNullOrEmpty(categoryId, nameof(categoryId));
             Requires.NotNull(properties, nameof(properties));
             Requires.NotNullOrEmpty(targetType, nameof(targetType));
@@ -277,7 +287,7 @@ namespace Microsoft.VisualStudio.Composition
                 new XElement(
                     XName.Get("Condition", Namespace),
                     new XAttribute("Expression", "HasCategory('" + categoryId + "')")));
-            style.Add(properties.Select(p => new XElement(XName.Get("Setter", Namespace), new XAttribute("Property", p.Key), new XAttribute("Value", p.Value))));
+            style.Add(properties.Select(p => new XElement(XName.Get("Setter", Namespace), new XAttribute("Property", p.Key), new XAttribute("Value", p.Value ?? string.Empty))));
 
             container.Add(style);
 

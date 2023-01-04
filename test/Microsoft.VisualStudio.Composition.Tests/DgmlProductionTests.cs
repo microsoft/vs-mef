@@ -34,13 +34,13 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 typeof(Exporter),
                 typeof(Importer));
 
-            var nodes = dgml.Root.Element(XName.Get("Nodes", Namespace)).Elements(XName.Get("Node", Namespace));
-            var links = dgml.Root.Element(XName.Get("Links", Namespace)).Elements(XName.Get("Link", Namespace));
-            var exportingPartNode = nodes.Single(e => e.Attribute("Label").Value.Contains("Exporter"));
-            var importingPartNode = nodes.Single(e => e.Attribute("Label").Value.Contains("Importer"));
+            var nodes = dgml.Root!.Element(XName.Get("Nodes", Namespace))!.Elements(XName.Get("Node", Namespace));
+            var links = dgml.Root.Element(XName.Get("Links", Namespace))!.Elements(XName.Get("Link", Namespace));
+            var exportingPartNode = nodes.Single(e => e.Attribute("Label")!.Value.Contains("Exporter"));
+            var importingPartNode = nodes.Single(e => e.Attribute("Label")!.Value.Contains("Importer"));
             var link = links.Single();
-            Assert.Equal(exportingPartNode.Attribute("Id").Value, link.Attribute("Source").Value);
-            Assert.Equal(importingPartNode.Attribute("Id").Value, link.Attribute("Target").Value);
+            Assert.Equal(exportingPartNode.Attribute("Id")!.Value, link.Attribute("Source")!.Value);
+            Assert.Equal(importingPartNode.Attribute("Id")!.Value, link.Attribute("Target")!.Value);
         }
 
         [Export(typeof(IEquatable<Exporter>))]
@@ -70,14 +70,14 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 typeof(Root),
                 typeof(PartInScope1));
 
-            var nodes = dgml.Root.Element(XName.Get("Nodes", Namespace)).Elements(XName.Get("Node", Namespace));
-            var links = dgml.Root.Element(XName.Get("Links", Namespace)).Elements(XName.Get("Link", Namespace));
+            var nodes = dgml.Root!.Element(XName.Get("Nodes", Namespace))!.Elements(XName.Get("Node", Namespace));
+            var links = dgml.Root.Element(XName.Get("Links", Namespace))!.Elements(XName.Get("Link", Namespace));
 
-            var partInScope1Node = nodes.Single(e => e.Attribute("Id").Value.Contains("PartInScope1"));
-            var scopeContainerNode = nodes.Single(e => e.Attribute("Id").Value == "Scope1");
-            Assert.Contains("Scope1", scopeContainerNode.Attribute("Label").Value);
+            var partInScope1Node = nodes.Single(e => e.Attribute("Id")!.Value.Contains("PartInScope1"));
+            var scopeContainerNode = nodes.Single(e => e.Attribute("Id")!.Value == "Scope1");
+            Assert.Contains("Scope1", scopeContainerNode.Attribute("Label")!.Value);
 
-            var scopeLink = links.Single(l => l.Attribute("Source").Value == scopeContainerNode.Attribute("Id").Value && l.Attribute("Target").Value == partInScope1Node.Attribute("Id").Value);
+            var scopeLink = links.Single(l => l.Attribute("Source")!.Value == scopeContainerNode.Attribute("Id")!.Value && l.Attribute("Target")!.Value == partInScope1Node.Attribute("Id")!.Value);
         }
 
         [Export]

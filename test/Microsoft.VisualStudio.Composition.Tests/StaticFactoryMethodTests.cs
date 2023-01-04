@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 staticFactoryPart.SharingBoundary,
                 staticFactoryPart.OnImportsSatisfiedMethodRefs,
                 staticFactoryMethodRef,
-                staticFactoryPart.ImportingConstructorImports.Take(1).ToList(),
+                staticFactoryPart.ImportingConstructorImports?.Take(1).ToList(),
                 staticFactoryPart.CreationPolicy,
                 staticFactoryPart.IsSharingBoundaryInferred);
 

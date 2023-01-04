@@ -37,11 +37,12 @@ namespace Microsoft.VisualStudio.Composition
 
         public object CreateProxy(IReadOnlyDictionary<string, object?> metadata, IReadOnlyDictionary<string, object?> defaultValues, Type metadataViewType)
         {
-            return FindConstructor(metadataViewType.GetTypeInfo())
-                .Invoke(new object[] { ImmutableDictionary.CreateRange(metadata) });
+            ConstructorInfo? ctor = FindConstructor(metadataViewType.GetTypeInfo());
+            Requires.Argument(ctor is not null, nameof(metadataViewType), "No public constructor with the required signature found.");
+            return ctor.Invoke(new object[] { ImmutableDictionary.CreateRange(metadata) });
         }
 
-        private static ConstructorInfo FindConstructor(TypeInfo metadataType)
+        private static ConstructorInfo? FindConstructor(TypeInfo metadataType)
         {
             Requires.NotNull(metadataType, nameof(metadataType));
 

@@ -425,7 +425,7 @@ static Microsoft.VisualStudio.Composition.PartDiscovery.GetContractName(System.T
 static Microsoft.VisualStudio.Composition.PartDiscovery.GetElementTypeFromMany(System.Type! type) -> System.Type!
 static Microsoft.VisualStudio.Composition.PartDiscovery.GetExportTypeIdentityConstraints(System.Type! contractType) -> System.Collections.Immutable.ImmutableHashSet<Microsoft.VisualStudio.Composition.IImportSatisfiabilityConstraint!>!
 static Microsoft.VisualStudio.Composition.PartDiscovery.GetImportMetadataForGenericTypeImport(System.Type! contractType) -> System.Collections.Immutable.ImmutableDictionary<string!, object?>!
-static Microsoft.VisualStudio.Composition.PartDiscovery.GetImportingConstructor<TImportingConstructorAttribute>(System.Type! type, bool publicOnly) -> System.Reflection.ConstructorInfo!
+static Microsoft.VisualStudio.Composition.PartDiscovery.GetImportingConstructor<TImportingConstructorAttribute>(System.Type! type, bool publicOnly) -> System.Reflection.ConstructorInfo?
 static Microsoft.VisualStudio.Composition.PartDiscovery.GetImportingSiteTypeWithoutCollection(Microsoft.VisualStudio.Composition.ImportDefinition! importDefinition, System.Type! importingSiteType) -> System.Type!
 static Microsoft.VisualStudio.Composition.PartDiscovery.GetTypeIdentityFromImportingType(System.Type! type, bool importMany) -> System.Type!
 static Microsoft.VisualStudio.Composition.Reflection.MemberRef.Get(System.Reflection.MemberInfo! member, Microsoft.VisualStudio.Composition.Resolver! resolver) -> Microsoft.VisualStudio.Composition.Reflection.MemberRef?
