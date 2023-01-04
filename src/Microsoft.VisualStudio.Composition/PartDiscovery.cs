@@ -287,7 +287,7 @@ namespace Microsoft.VisualStudio.Composition
                 : importingSiteType;
         }
 
-        protected static ConstructorInfo GetImportingConstructor<TImportingConstructorAttribute>(Type type, bool publicOnly)
+        protected static ConstructorInfo? GetImportingConstructor<TImportingConstructorAttribute>(Type type, bool publicOnly)
             where TImportingConstructorAttribute : Attribute
         {
             Requires.NotNull(type, nameof(type));
@@ -564,7 +564,7 @@ namespace Microsoft.VisualStudio.Composition
                             exceptions.Add(partDiscoveryException);
                         }
 
-                        types = ex.Types.Where(t => t != null).ToList();
+                        types = ex.Types.Where(t => t != null)!.ToList<Type>();
                     }
                     catch (Exception ex)
                     {

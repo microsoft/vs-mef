@@ -24,13 +24,13 @@ namespace Microsoft.VisualStudio.Composition
             return (T[])attributeProvider.GetCustomAttributes(typeof(T), inherit);
         }
 
-        public static T GetFirstAttribute<T>(this ICustomAttributeProvider attributeProvider)
+        public static T? GetFirstAttribute<T>(this ICustomAttributeProvider attributeProvider)
             where T : class
         {
             return GetAttributes<T>(attributeProvider).FirstOrDefault();
         }
 
-        public static T GetFirstAttribute<T>(this ICustomAttributeProvider attributeProvider, bool inherit)
+        public static T? GetFirstAttribute<T>(this ICustomAttributeProvider attributeProvider, bool inherit)
             where T : class
         {
             return GetAttributes<T>(attributeProvider, inherit).FirstOrDefault();

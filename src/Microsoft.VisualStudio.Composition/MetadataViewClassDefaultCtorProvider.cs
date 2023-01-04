@@ -42,7 +42,9 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(metadataViewType, nameof(metadataViewType));
 
             TypeInfo typeInfo = metadataViewType.GetTypeInfo();
-            var view = FindConstructor(typeInfo).Invoke(Type.EmptyTypes);
+            ConstructorInfo? ctor = FindConstructor(typeInfo);
+            Requires.Argument(ctor is not null, nameof(metadataViewType), "No public default constructor found.");
+            object view = ctor.Invoke(Type.EmptyTypes);
 
             foreach (var propertyInfo in metadataViewType.EnumProperties().WherePublicInstance())
             {
@@ -55,7 +57,7 @@ namespace Microsoft.VisualStudio.Composition
             return view;
         }
 
-        private static ConstructorInfo FindConstructor(TypeInfo metadataType)
+        private static ConstructorInfo? FindConstructor(TypeInfo metadataType)
         {
             Requires.NotNull(metadataType, nameof(metadataType));
 

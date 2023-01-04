@@ -67,7 +67,7 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
 
             var loadedAssemblyName = new AssemblyName(loadSystemAssembly.FullName!)
             {
-                CodeBase = loadSystemAssembly.CodeBase,
+                CodeBase = loadSystemAssembly.Location,
             };
             var assemblyIdentity = new StrongAssemblyIdentity(loadedAssemblyName, testGuid);
 
