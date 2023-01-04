@@ -22,9 +22,9 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.3" />
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" Version="1.1.1" />
     <PackageVersion Include="DiffPlex" Version="1.7.1" />
-    <PackageVersion Include="Microsoft.CodeCoverage" Version="17.5.0-preview-20221201-01" />
+    <PackageVersion Include="Microsoft.CodeCoverage" Version="17.5.0-release-20221220-01" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.4.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Internal.MicroBuild.NonShipping" Version="$(MicroBuildVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.4.27" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.0.53" />
