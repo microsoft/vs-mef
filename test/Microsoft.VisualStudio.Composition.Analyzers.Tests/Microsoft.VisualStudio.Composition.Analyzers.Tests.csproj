@@ -6,6 +6,7 @@
          issue if we were to share a directory with vs-mef tests that makes testing unstable. -->
     <BaseOutputPath>$(MSBuildThisFileDirectory)..\..\bin\Tests\Microsoft.VisualStudio.Composition.Analyzers.Tests</BaseOutputPath>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
   <ItemGroup>
