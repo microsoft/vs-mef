@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<LCX SchemaVersion="6.0" Name="D:\a\_work\1\s\bin\Microsoft.VisualStudio.Composition.Analyzers\Release\netstandard2.0\Microsoft.VisualStudio.Composition.Analyzers.dll" PsrId="211" SrcCul="en-US" xmlns="http://schemas.microsoft.com/locstudio/2006/6/lcx" TgtCul="ja-JP">
+<LCX SchemaVersion="6.0" Name="D:\a\_work\1\s\bin\Microsoft.VisualStudio.Composition.Analyzers\Release\netstandard2.0\Microsoft.VisualStudio.Composition.Analyzers.dll" PsrId="211" FileType="1" SrcCul="en-US" TgtCul="ja-JP" xmlns="http://schemas.microsoft.com/locstudio/2006/6/lcx">
   <OwnedComments>
     <Cmt Name="Dev" />
     <Cmt Name="LcxAdmin" />
@@ -15,12 +15,18 @@
       <Item ItemId=";VSMEF001_MessageFormat" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[A property with an [ImportAttribute]5D; must define a setter so the export can be set on the property.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[[ImportAttribute]5D; を持つプロパティでは、エクスポートをプロパティに設定できるようにセッターを定義する必要があります。]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";VSMEF001_Title" ItemType="0" PsrId="211" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Importing property must have setter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[プロパティのインポートには setter が必要です]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -31,18 +37,27 @@
     <Item ItemId=";Comments" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
         <Val><![CDATA[Analyzers for MEF consumers to help identify common errors in MEF parts.]]></Val>
+        <Tgt Cat="Text" Stat="Loc" Orig="New">
+          <Val><![CDATA[MEF 部分の一般的なエラーを識別するのに役立つ MEF コンシューマー用アナライザー。]]></Val>
+        </Tgt>
       </Str>
       <Disp Icon="Str" />
     </Item>
     <Item ItemId=";CompanyName" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
         <Val><![CDATA[Microsoft]]></Val>
+        <Tgt Cat="Text" Stat="Loc" Orig="New">
+          <Val><![CDATA[Microsoft]]></Val>
+        </Tgt>
       </Str>
       <Disp Icon="Str" />
     </Item>
     <Item ItemId=";FileDescription" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
         <Val><![CDATA[Microsoft.VisualStudio.Composition.Analyzers]]></Val>
+        <Tgt Cat="Text" Stat="Loc" Orig="New">
+          <Val><![CDATA[Microsoft.VisualStudio.Composition.Analyzers]]></Val>
+        </Tgt>
       </Str>
       <Disp Icon="Str" />
     </Item>
@@ -55,6 +70,9 @@
     <Item ItemId=";LegalCopyright" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
         <Val><![CDATA[© Microsoft Corporation. All rights reserved.]]></Val>
+        <Tgt Cat="Text" Stat="Loc" Orig="New">
+          <Val><![CDATA[(C) Microsoft Corporation. All rights reserved.]]></Val>
+        </Tgt>
       </Str>
       <Disp Icon="Str" />
     </Item>
@@ -67,6 +85,9 @@
     <Item ItemId=";ProductName" ItemType="0" PsrId="211" Leaf="true">
       <Str Cat="Text">
         <Val><![CDATA[Microsoft.VisualStudio.Composition.Analyzers]]></Val>
+        <Tgt Cat="Text" Stat="Loc" Orig="New">
+          <Val><![CDATA[Microsoft.VisualStudio.Composition.Analyzers]]></Val>
+        </Tgt>
       </Str>
       <Disp Icon="Str" />
     </Item>
