@@ -4,7 +4,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
 
-    <MicroBuildVersion>2.0.93</MicroBuildVersion>
+    <MicroBuildVersion>2.0.107</MicroBuildVersion>
     <RoslynVersionForAnalyzers>2.10.0</RoslynVersionForAnalyzers>
     <RoslynVersionForAnalyzerTests>4.0.1</RoslynVersionForAnalyzerTests>
   </PropertyGroup>
