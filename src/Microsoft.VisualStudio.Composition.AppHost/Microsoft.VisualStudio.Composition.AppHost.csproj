@@ -5,10 +5,15 @@
     <Description>Adds a VS MEF system with a pre-computed, cached MEF graph.</Description>
     <NoWarn>$(NoWarn),NU5128</NoWarn>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+    <IncludeSymbols>false</IncludeSymbols>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="ExportProviderFactory.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Remove="ExportProviderFactory.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="Readme.txt" Pack="true" PackagePath="Readme.txt" />
   </ItemGroup>
   <ItemGroup>
