@@ -46,7 +46,8 @@ stages:
 
 - stage: Build
   variables:
-    MSBuildTreatWarningsAsErrors: true
+    #MSBuildTreatWarningsAsErrors: true # disable till we switch from old ibcmerge data to optprof
+    TreatWarningsAsErrors: true # on while MSBuildTreatWarningsAsErrors is disabled
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
     BuildConfiguration: Release
     NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages
