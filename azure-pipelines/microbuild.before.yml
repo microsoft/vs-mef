@@ -14,7 +14,7 @@ steps:
     branch: rel/d15.8
   displayName: 🔧 Install MicroBuild IBCMerge Plugin
 
-- task: MicroBuildSigningPlugin@3
+- task: MicroBuildSigningPlugin@4
   inputs:
     signType: $(SignType)
     zipSources: false
