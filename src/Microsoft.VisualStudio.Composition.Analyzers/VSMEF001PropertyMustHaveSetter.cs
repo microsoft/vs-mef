@@ -56,7 +56,7 @@ namespace Microsoft.VisualStudio.Composition.Analyzers
             });
         }
 
-        private static void AnalyzePropertyDeclaration(SymbolAnalysisContext context, INamedTypeSymbol mefV1ImportAttribute, INamedTypeSymbol mefV2ImportAttribute)
+        private static void AnalyzePropertyDeclaration(SymbolAnalysisContext context, INamedTypeSymbol? mefV1ImportAttribute, INamedTypeSymbol? mefV2ImportAttribute)
         {
             var property = (IPropertySymbol)context.Symbol;
 
@@ -76,8 +76,8 @@ namespace Microsoft.VisualStudio.Composition.Analyzers
             foreach (var attributeData in property.GetAttributes())
             {
                 // Does this property have an Import attribute?
-                if (Equals(attributeData.AttributeClass, mefV1ImportAttribute) ||
-                    Equals(attributeData.AttributeClass, mefV2ImportAttribute))
+                if (SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV1ImportAttribute) ||
+                    SymbolEqualityComparer.Default.Equals(attributeData.AttributeClass, mefV2ImportAttribute))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, location));
                 }
