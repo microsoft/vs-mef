@@ -1,7 +1,7 @@
 # This is a list of AzDO account names or email addresses.
 # Add your team DL and/or whoever should be notified of insertion PRs.
 $contacts = ,$env:BUILD_REQUESTEDFOREMAIL
-$contacts += 'Andrew Arnott','tamccormick@microsoft.com'
+$contacts += 'Andrew Arnott','anva@microsoft.com'
 
 if (Test-Path "$PSScriptRoot\TeamEmail.ps1") {
     $contacts += & "$PSScriptRoot\TeamEmail.ps1"
