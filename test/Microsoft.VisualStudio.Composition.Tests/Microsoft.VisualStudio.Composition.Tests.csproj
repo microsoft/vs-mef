@@ -5,13 +5,9 @@
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CSharp" Condition="'$(TargetFramework)'=='net472'" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="DiffPlex" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Nullable" PrivateAssets="all" />
-    <PackageReference Include="System.ValueTuple" />
     <PackageReference Include="xunit.extensibility.execution" />
     <PackageReference Include="xunit.runner.console" />
     <PackageReference Include="xunit.runner.visualstudio" />
