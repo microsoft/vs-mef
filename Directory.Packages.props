@@ -52,7 +52,7 @@
     <PackageVersion Update="System.Reflection.Metadata" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <GlobalPackageReference Include="CSharpIsNullAnalyzer" Version="0.1.329" />
+    <GlobalPackageReference Include="CSharpIsNullAnalyzer" Version="0.1.495" />
     <GlobalPackageReference Include="DotNetAnalyzers.DocumentationAnalyzers" Version="1.0.0-beta.59" />
     <GlobalPackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" />
     <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.6.128" />
