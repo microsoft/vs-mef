@@ -4,7 +4,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
 
-    <MicroBuildVersion>2.0.117</MicroBuildVersion>
+    <MicroBuildVersion>2.0.125</MicroBuildVersion>
     <CodeAnalysisVersionForAnalyzers>3.11.0</CodeAnalysisVersionForAnalyzers>
     <CodeAnalysisVersion>4.4.0</CodeAnalysisVersion>
     <CodefixTestingVersion>1.1.1</CodefixTestingVersion>
@@ -20,7 +20,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" version="$(CodeAnalysisVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis" Version="$(CodeAnalysisVersion)" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.6.2" />
     <PackageVersion Include="Microsoft.VisualStudio.Internal.MicroBuild.NonShipping" Version="$(MicroBuildVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.4.27" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.6.11" />
@@ -52,10 +52,10 @@
     <PackageVersion Update="System.Reflection.Metadata" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <GlobalPackageReference Include="CSharpIsNullAnalyzer" Version="0.1.329" />
+    <GlobalPackageReference Include="CSharpIsNullAnalyzer" Version="0.1.495" />
     <GlobalPackageReference Include="DotNetAnalyzers.DocumentationAnalyzers" Version="1.0.0-beta.59" />
     <GlobalPackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" />
-    <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.6.128" />
+    <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.6.133" />
     <GlobalPackageReference Include="StyleCop.Analyzers.Unstable" Version="1.2.0.435" />
   </ItemGroup>
   <ItemGroup>

@@ -1,3 +1,5 @@
+$MacroName = 'MicrosoftVisualStudioCompositionVersion'
+$SampleProject = "$PSScriptRoot\..\..\src\Microsoft.VisualStudio.Composition"
 [string]::join(',',(@{
-    ('MicrosoftVisualStudioCompositionVersion') = & { (dotnet tool run nbgv get-version --project "$PSScriptRoot\..\..\src\Microsoft.VisualStudio.Composition" --format json | ConvertFrom-Json).AssemblyVersion };
+    ($MacroName) = & { (dotnet tool run nbgv -- get-version --project $SampleProject --format json | ConvertFrom-Json).AssemblyVersion };
 }.GetEnumerator() |% { "$($_.key)=$($_.value)" }))
