@@ -35,9 +35,7 @@
     <PackageVersion Include="System.Composition" Version="7.0.0" />
     <PackageVersion Include="System.Reflection.Emit" Version="4.7.0" />
     <PackageVersion Include="System.Reflection.Metadata" Version="7.0.0" />
-    <PackageVersion Include="System.Reflection.TypeExtensions" Version="4.7.0" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="7.0.0" />
-    <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
     <PackageVersion Include="xunit.extensibility.execution" Version="2.4.2" />
     <PackageVersion Include="xunit.runner.console" Version="2.4.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
