@@ -3,10 +3,11 @@
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "omnisharp.enableEditorConfigSupport": true,
-  "omnisharp.enableImportCompletion": true,
   "omnisharp.enableRoslynAnalyzers": true,
   "cSpell.words": [
     "dgml",
     "vsmefx"
-  ]
+  ],
+  "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+  "dotnet.defaultSolution": "Microsoft.VisualStudio.Composition.sln"
 }
