@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             try
             {
                 container.GetExportedValue<Func<string, string, bool>>("Method");
-                Assert.False(true, "Expected exception not thrown.");
+                Assert.Fail("Expected exception not thrown.");
             }
             catch (MefV1.ImportCardinalityMismatchException) { }
             catch (Microsoft.VisualStudio.Composition.CompositionFailedException) { } // V2/V3

@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             try
             {
                 configuration.ThrowOnErrors();
-                Assert.True(false, "Expected exception not thrown.");
+                Assert.Fail("Expected exception not thrown.");
             }
             catch (CompositionFailedException ex)
             {

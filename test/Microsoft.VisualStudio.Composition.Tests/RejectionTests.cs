@@ -75,7 +75,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             try
             {
                 var expectFailure = exports[0].ImportOfBrokenPart.Value;
-                Assert.False(true, "Some type of composition exception was expected here.");
+                Assert.Fail("Some type of composition exception was expected here.");
             }
             catch (CompositionFailedException)
             {

@@ -126,7 +126,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     else if (message is TestPassed)
                     {
                         var passedMessage = (TestPassed)message;
-                        message = new TestFailed(passedMessage.Test, passedMessage.ExecutionTime, passedMessage.Output, new AssertActualExpectedException(false, true, "Expected invalid configuration but no exception thrown."));
+                        message = new TestFailed(passedMessage.Test, passedMessage.ExecutionTime, passedMessage.Output, new XunitException("Expected invalid configuration but no exception thrown."));
                         this.InvertedSuccesses++;
                     }
                 }

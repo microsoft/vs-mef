@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public void LazyImportMany(IContainer container)
         {
             var lazyImport = container.GetExportedValue<ExportWithListOfLazyImport>();
-            Assert.Equal(1, lazyImport.AnotherExports.Count);
+            Assert.Single(lazyImport.AnotherExports);
             Assert.Equal(0, AnotherExport.ConstructionCount);
             Assert.False(lazyImport.AnotherExports[0].IsValueCreated);
             AnotherExport anotherExport = lazyImport.AnotherExports[0].Value;

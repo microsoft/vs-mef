@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             ComposablePartDefinition? result = this.DiscoveryService.CreatePart(typeof(NonSharedPart));
             Assert.NotNull(result);
-            Assert.Equal(1, result!.ExportedTypes.Count);
+            Assert.Single(result!.ExportedTypes);
             Assert.Empty(result.ImportingMembers);
             Assert.False(result.IsShared);
         }
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             ComposablePartDefinition? result = this.DiscoveryService.CreatePart(typeof(SharedPart));
             Assert.NotNull(result);
-            Assert.Equal(1, result!.ExportedTypes.Count);
+            Assert.Single(result!.ExportedTypes);
             Assert.Empty(result.ImportingMembers);
             Assert.True(result.IsShared);
         }
