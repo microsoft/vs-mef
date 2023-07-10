@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             public UninstantiatedNonSharedPart()
             {
-                Assert.False(true, "This should never be instantiated.");
+                Assert.Fail("This should never be instantiated.");
             }
 
             public void Dispose()
@@ -176,7 +176,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             try
             {
                 container.GetExportedValue<ThrowingPart>();
-                Assert.False(true, "An exception should have been thrown.");
+                Assert.Fail("An exception should have been thrown.");
             }
             catch { }
 

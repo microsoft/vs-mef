@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableIList>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(0, extendable.Extensions.Count);
+            Assert.Empty(extendable.Extensions);
         }
 
         [MefFact(CompositionEngines.V2Compat, typeof(ExtendableIList), typeof(ExtensionOne))]
@@ -112,7 +112,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var extendable = container.GetExportedValue<ExtendableIList>();
             Assert.NotNull(extendable);
             Assert.NotNull(extendable.Extensions);
-            Assert.Equal(1, extendable.Extensions.Count);
+            Assert.Single(extendable.Extensions);
             Assert.IsAssignableFrom<ExtensionOne>(extendable.Extensions.Single());
         }
 

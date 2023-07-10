@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             var catalog = ComposableCatalog.Create(discovery.Resolver).AddParts(
                 await discovery.CreatePartsAsync(typeof(NonExportingType), typeof(ExportingType)));
-            Assert.Equal(1, catalog.Parts.Count);
+            Assert.Single(catalog.Parts);
             Assert.Equal(typeof(ExportingType), catalog.Parts.Single().Type);
         }
 
@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public void GetAssemblyInputs_Empty()
         {
-            Assert.Equal(0, TestUtilities.EmptyCatalog.GetInputAssemblies().Count);
+            Assert.Empty(TestUtilities.EmptyCatalog.GetInputAssemblies());
         }
 
         [Theory]

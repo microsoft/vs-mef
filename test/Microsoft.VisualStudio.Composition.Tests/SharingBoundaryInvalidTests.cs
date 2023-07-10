@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 // But that's not really a tenable prospect and it's harder to reason over anyway.
                 // It makes sense that MEFv2 didn't allow this.
                 root.Factory.CreateExport();
-                Assert.False(true, "Expected exception not thrown.");
+                Assert.Fail("Expected exception not thrown.");
             }
             catch (CompositionFailedException) { }
             catch (System.Composition.Hosting.CompositionFailedException) { }

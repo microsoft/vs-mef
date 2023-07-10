@@ -310,7 +310,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             try
             {
                 action();
-                Assert.False(true, "Expected exception not thrown.");
+                Assert.Fail("Expected exception not thrown.");
             }
             catch (CompositionFailedException ex)
             {

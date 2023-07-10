@@ -171,7 +171,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             public SharedRootPartOnlyImportedFromChildScope()
             {
-                Assert.False(true, "This type should ever be constructed. It should be imported lazily and never constructed as part of a GC test.");
+                Assert.Fail("This type should ever be constructed. It should be imported lazily and never constructed as part of a GC test.");
             }
         }
 

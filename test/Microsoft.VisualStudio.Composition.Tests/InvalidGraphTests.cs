@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             try
             {
                 var throws = part.ImportOfUncreatablePart.Value;
-                Assert.False(true, "Expected exception not thrown.");
+                Assert.Fail("Expected exception not thrown.");
             }
             catch (CompositionFailedException) { }
             catch (MefV1.CompositionException) { }
@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             try
             {
                 var throws = part.LazyImportOfUncreatablePart.Value;
-                Assert.False(true, "Expected exception not thrown.");
+                Assert.Fail("Expected exception not thrown.");
             }
             catch (CompositionFailedException) { }
             catch (MefV1.CompositionException) { }
