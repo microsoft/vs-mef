@@ -5,8 +5,8 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
 
     <MicroBuildVersion>2.0.137</MicroBuildVersion>
-    <CodeAnalysisVersionForAnalyzers>3.11.0</CodeAnalysisVersionForAnalyzers>
-    <CodeAnalysisVersion>4.6.0</CodeAnalysisVersion>
+    <CodeAnalysisVersionForAnalyzers>4.7.0</CodeAnalysisVersionForAnalyzers>
+    <CodeAnalysisVersion>4.7.0</CodeAnalysisVersion>
     <CodefixTestingVersion>1.1.1</CodefixTestingVersion>
   </PropertyGroup>
   <ItemGroup>
