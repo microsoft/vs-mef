@@ -62,7 +62,7 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
         public void ThrowTypeLoadExceptionWhenArgIsNull()
         {
             var testGuid = new Guid("00000000-0000-0000-0000-000000000001");
-            var loadSystemAssembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(assembly => assembly.FullName!.Contains("mscorlib"));
+            var loadSystemAssembly = typeof(Dictionary<,>).Assembly;
             Assert.NotNull(loadSystemAssembly);
 
             var loadedAssemblyName = new AssemblyName(loadSystemAssembly.FullName!)
