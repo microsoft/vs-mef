@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected Dictionary<object, uint>? serializingObjectTable;
 
-        protected Dictionary<uint, object>? deserializingObjectTable;
+        protected object[]? deserializingObjectTable;
 
 #if TRACESERIALIZATION || TRACESTATS
         protected readonly IndentingTextWriter trace;
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.Composition
             // This reduces GC pressure and time spent resizing the object table during deserialization.
             int objectTableCapacity = reader.ReadInt32();
             int objectTableSafeCapacity = Math.Min(objectTableCapacity, 1000000); // protect against OOM in case of data corruption.
-            this.deserializingObjectTable = new Dictionary<uint, object>(objectTableSafeCapacity);
+            this.deserializingObjectTable = new object[objectTableSafeCapacity + 1];
 #if TRACESERIALIZATION || TRACESTATS
             this.trace = new IndentingTextWriter(new StreamWriter(File.OpenWrite(Environment.ExpandEnvironmentVariables(@"%TEMP%\VS-MEF.read.log"))));
 #endif
@@ -863,9 +863,8 @@ namespace Microsoft.VisualStudio.Composition
                 return false;
             }
 
-            object? valueObject;
-            bool result = !this.deserializingObjectTable.TryGetValue(id, out valueObject);
-            value = (T?)valueObject;
+            value = (T?)this.deserializingObjectTable[id];
+            bool result = value is null;
 
 #if TRACESERIALIZATION
             this.trace.WriteLine((result ? "Start" : "Reuse") + $" object {id}.");
@@ -876,7 +875,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected void OnDeserializedReusableObject(uint id, object value)
         {
-            this.deserializingObjectTable.Add(id, value);
+            this.deserializingObjectTable[id] = value;
         }
 
         protected void WriteObject(object? value)
