@@ -397,7 +397,7 @@ namespace Microsoft.VisualStudio.Composition
                             {
                                 if (result.ContainsKey(property.Name))
                                 {
-                                    string memberName = member.MemberType.HasFlag(MemberTypes.TypeInfo) || member.MemberType.HasFlag(MemberTypes.NestedType)
+                                    string memberName = (member.MemberType & (MemberTypes.TypeInfo | MemberTypes.NestedType)) != 0
                                         ? ((TypeInfo)member).FullName!
                                         : $"{member.DeclaringType?.FullName}.{member.Name}";
 

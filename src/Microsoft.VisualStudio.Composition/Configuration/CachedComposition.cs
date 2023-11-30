@@ -281,14 +281,14 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     var flags = (RuntimeImportFlags)this.reader!.ReadByte();
                     var cardinality =
-                        flags.HasFlag(RuntimeImportFlags.CardinalityOneOrZero) ? ImportCardinality.OneOrZero :
-                        flags.HasFlag(RuntimeImportFlags.CardinalityExactlyOne) ? ImportCardinality.ExactlyOne :
+                        (flags & RuntimeImportFlags.CardinalityOneOrZero) == RuntimeImportFlags.CardinalityOneOrZero ? ImportCardinality.OneOrZero :
+                        (flags & RuntimeImportFlags.CardinalityExactlyOne) == RuntimeImportFlags.CardinalityExactlyOne ? ImportCardinality.ExactlyOne :
                         ImportCardinality.ZeroOrMore;
-                    bool isExportFactory = flags.HasFlag(RuntimeImportFlags.IsExportFactory);
+                    bool isExportFactory = (flags & RuntimeImportFlags.IsExportFactory) == RuntimeImportFlags.IsExportFactory;
 
                     MemberRef? importingMember = default(MemberRef);
                     ParameterRef? importingParameter = default(ParameterRef);
-                    if (flags.HasFlag(RuntimeImportFlags.IsParameter))
+                    if ((flags & RuntimeImportFlags.IsParameter) == RuntimeImportFlags.IsParameter)
                     {
                         importingParameter = this.ReadParameterRef();
                     }
@@ -313,7 +313,7 @@ namespace Microsoft.VisualStudio.Composition
                             importingSiteTypeWithoutCollectionRef,
                             cardinality,
                             satisfyingExports!,
-                            flags.HasFlag(RuntimeImportFlags.IsNonSharedInstanceRequired),
+                            (flags & RuntimeImportFlags.IsNonSharedInstanceRequired) == RuntimeImportFlags.IsNonSharedInstanceRequired,
                             isExportFactory,
                             metadata,
                             exportFactorySharingBoundaries!)
@@ -323,7 +323,7 @@ namespace Microsoft.VisualStudio.Composition
                             importingSiteTypeWithoutCollectionRef,
                             cardinality,
                             satisfyingExports!,
-                            flags.HasFlag(RuntimeImportFlags.IsNonSharedInstanceRequired),
+                            (flags & RuntimeImportFlags.IsNonSharedInstanceRequired) == RuntimeImportFlags.IsNonSharedInstanceRequired,
                             isExportFactory,
                             metadata,
                             exportFactorySharingBoundaries!);
