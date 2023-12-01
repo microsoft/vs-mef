@@ -47,6 +47,7 @@ namespace Microsoft.VisualStudio.Composition
         private readonly Func<TypeRef?> readTypeRefDelegate;
 
         private readonly ImmutableDictionary<string, object?>.Builder metadataBuilder = ImmutableDictionary.CreateBuilder<string, object?>();
+        private readonly Stack<ImmutableArray<TypeRef?>.Builder> typeRefBuilders = new Stack<ImmutableArray<TypeRef?>.Builder>();
 
         private readonly byte[] guidBuffer = new byte[128 / 8];
 
@@ -223,8 +224,8 @@ namespace Microsoft.VisualStudio.Composition
                     var metadataToken = this.ReadCompressedMetadataToken(MetadataTokenType.Method);
                     var name = this.ReadString();
                     var isStatic = this.ReadCompressedUInt() != 0;
-                    var parameterTypes = this.ReadImmutableArray(this.reader, this.readTypeRefDelegate);
-                    var genericMethodArguments = this.ReadImmutableArray(this.reader, this.readTypeRefDelegate);
+                    var parameterTypes = this.ReadTypeRefImmutableArray(this.reader, this.readTypeRefDelegate);
+                    var genericMethodArguments = this.ReadTypeRefImmutableArray(this.reader, this.readTypeRefDelegate);
                     return new MethodRef(declaringType, metadataToken, name, isStatic, parameterTypes!, genericMethodArguments!);
                 }
                 else
@@ -476,12 +477,12 @@ namespace Microsoft.VisualStudio.Composition
                     var fullName = this.ReadString();
                     var flags = (TypeRefFlags)this.ReadCompressedUInt();
                     int genericTypeParameterCount = (int)this.ReadCompressedUInt();
-                    var genericTypeArguments = this.ReadImmutableArray(this.reader, this.readTypeRefDelegate);
+                    var genericTypeArguments = this.ReadTypeRefImmutableArray(this.reader, this.readTypeRefDelegate);
 
                     var shallow = this.ReadCompressedUInt() != 0;
                     var baseTypes = shallow
                         ? ImmutableArray<TypeRef?>.Empty
-                        : this.ReadImmutableArray(this.reader, this.readTypeRefDelegate);
+                        : this.ReadTypeRefImmutableArray(this.reader, this.readTypeRefDelegate);
 
                     var hasElementType = this.ReadCompressedUInt() != 0;
                     var elementType = hasElementType
@@ -660,11 +661,6 @@ namespace Microsoft.VisualStudio.Composition
 
         protected IReadOnlyList<T> ReadList<T>(BinaryReader reader, Func<T> itemReader)
         {
-            return this.ReadImmutableArray<T>(reader, itemReader);
-        }
-
-        protected ImmutableArray<T> ReadImmutableArray<T>(BinaryReader reader, Func<T> itemReader)
-        {
             using (this.Trace(typeof(T).Name, isArray: true))
             {
                 uint count = this.ReadCompressedUInt();
@@ -677,16 +673,62 @@ namespace Microsoft.VisualStudio.Composition
 
                 if (count == 0)
                 {
-                    return ImmutableArray<T>.Empty;
+                    return Array.Empty<T>();
                 }
 
-                ImmutableArray<T>.Builder list = ImmutableArray.CreateBuilder<T>((int)count);
+                var list = new T[count];
+                for (int i = 0; i < list.Length; i++)
+                {
+                    list[i] = itemReader();
+                }
+
+                return list;
+            }
+        }
+
+        protected ImmutableArray<TypeRef?> ReadTypeRefImmutableArray(BinaryReader reader, Func<TypeRef?> itemReader)
+        {
+            using (this.Trace(typeof(TypeRef).Name, isArray: true))
+            {
+                uint count = this.ReadCompressedUInt();
+
+                switch (count)
+                {
+                    case 0:
+                        return ImmutableArray<TypeRef?>.Empty;
+                    case 1:
+                        return ImmutableArray.Create(itemReader());
+                    case 2:
+                        return ImmutableArray.Create(itemReader(), itemReader());
+                    case 3:
+                        return ImmutableArray.Create(itemReader(), itemReader(), itemReader());
+                    case 4:
+                        return ImmutableArray.Create(itemReader(), itemReader(), itemReader(), itemReader());
+                }
+
+                if (count > 0xffff)
+                {
+                    // Probably either file corruption or a bug in serialization.
+                    // Let's not take untold amounts of memory by throwing out suspiciously large lengths.
+                    throw new NotSupportedException();
+                }
+
+                // Larger arrays need to use a builder to prevent duplicate array allocations.
+                // Reuse builders to save on GC pressure
+                ImmutableArray<TypeRef?>.Builder builder = this.typeRefBuilders.Count > 0 ? this.typeRefBuilders.Pop() : ImmutableArray.CreateBuilder<TypeRef?>();
+
+                builder.Capacity = (int)count;
                 for (int i = 0; i < count; i++)
                 {
-                    list.Add(itemReader());
+                    builder.Add(itemReader());
                 }
 
-                return list.MoveToImmutable();
+                ImmutableArray<TypeRef?> result = builder.MoveToImmutable();
+
+                // Place builder back in cache
+                this.typeRefBuilders.Push(builder);
+
+                return result;
             }
         }
 
