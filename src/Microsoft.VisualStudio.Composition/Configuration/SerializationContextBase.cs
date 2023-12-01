@@ -660,11 +660,6 @@ namespace Microsoft.VisualStudio.Composition
 
         protected IReadOnlyList<T> ReadList<T>(BinaryReader reader, Func<T> itemReader)
         {
-            return this.ReadImmutableArray<T>(reader, itemReader);
-        }
-
-        protected ImmutableArray<T> ReadImmutableArray<T>(BinaryReader reader, Func<T> itemReader)
-        {
             using (this.Trace(typeof(T).Name, isArray: true))
             {
                 uint count = this.ReadCompressedUInt();
@@ -677,16 +672,48 @@ namespace Microsoft.VisualStudio.Composition
 
                 if (count == 0)
                 {
-                    return ImmutableArray<T>.Empty;
+                    return Array.Empty<T>();
                 }
 
-                ImmutableArray<T>.Builder list = ImmutableArray.CreateBuilder<T>((int)count);
-                for (int i = 0; i < count; i++)
+                var list = new T[count];
+                for (int i = 0; i < list.Length; i++)
                 {
-                    list.Add(itemReader());
+                    list[i] = itemReader();
                 }
 
-                return list.MoveToImmutable();
+                return list;
+            }
+        }
+
+        protected ImmutableArray<T> ReadImmutableArray<T>(BinaryReader reader, Func<T> itemReader)
+        {
+            using (this.Trace(typeof(T).Name, isArray: true))
+            {
+                uint count = this.ReadCompressedUInt();
+
+                switch (count)
+                {
+                    case 0:
+                        return ImmutableArray<T>.Empty;
+                    case 1:
+                        return ImmutableArray.Create(itemReader());
+                    case 2:
+                        return ImmutableArray.Create(itemReader(), itemReader());
+                    case 3:
+                        return ImmutableArray.Create(itemReader(), itemReader(), itemReader());
+                    case 4:
+                        return ImmutableArray.Create(itemReader(), itemReader(), itemReader(), itemReader());
+                    default:
+                        if (count > 0xffff)
+                        {
+                            // Probably either file corruption or a bug in serialization.
+                            // Let's not take untold amounts of memory by throwing out suspiciously large lengths.
+                            throw new NotSupportedException();
+                        }
+
+                        IEnumerable<T> items = Enumerable.Range(1, (int)count).Select(i => itemReader());
+                        return ImmutableArray.CreateRange(items);
+                }
             }
         }
 
