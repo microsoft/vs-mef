@@ -148,7 +148,7 @@ namespace Microsoft.VisualStudio.Composition
                 {
                     try
                     {
-                        return new Assembly[] { this.Resolver.AssemblyLoader.LoadAssembly(Utilities.GetAssemblyNameWithCodebasePath(path)) };
+                        return new Assembly[] { this.Resolver.AssemblyLoader.LoadAssembly(AssemblyName.GetAssemblyName(path).FullName, path) };
                     }
                     catch (Exception ex)
                     {

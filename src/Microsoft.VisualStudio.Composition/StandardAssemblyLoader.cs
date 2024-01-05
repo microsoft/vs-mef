@@ -3,9 +3,11 @@
 
 namespace Microsoft.VisualStudio.Composition
 {
-    using System;
     using System.Collections.Generic;
     using System.Reflection;
+#if NET
+    using System.Runtime.Loader;
+#endif
 
     /// <summary>
     /// A typical .NET Framework implementation of the <see cref="IAssemblyLoader"/> interface.
@@ -48,6 +50,26 @@ namespace Microsoft.VisualStudio.Composition
             if (!string.IsNullOrEmpty(codeBasePath))
             {
                 assemblyName.CodeBase = codeBasePath;
+
+#if NET
+                // On Core CLR, Assembly.Load(AssemblyName) doesn't respect the CodeBase property,
+                // so we have to use AssemblyLoadContext.LoadFromAssemblyPath instead.
+                // But we'll only resort to that if the ALC doesn't already have a preferred location from which to load the assembly.
+                try
+                {
+                    return this.LoadAssembly(assemblyName);
+                }
+                catch
+                {
+                    // Now that the ALC failed to find the assembly, try to load it from the code base path.
+                    AssemblyLoadContext alc = AssemblyLoadContext.CurrentContextualReflectionContext ?? AssemblyLoadContext.GetLoadContext(Assembly.GetExecutingAssembly())!;
+                    Assembly assembly = alc.LoadFromAssemblyPath(codeBasePath);
+                    lock (this.loadedAssemblies)
+                    {
+                        this.loadedAssemblies[assemblyName] = assembly;
+                    }
+                }
+#endif
             }
 
             return this.LoadAssembly(assemblyName);
