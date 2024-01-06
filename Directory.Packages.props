@@ -6,8 +6,8 @@
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
 
     <MicroBuildVersion>2.0.146</MicroBuildVersion>
-    <CodeAnalysisVersionForAnalyzers>3.11.0</CodeAnalysisVersionForAnalyzers>
-    <CodeAnalysisVersion>4.7.0</CodeAnalysisVersion>
+    <CodeAnalysisVersionForAnalyzers>4.8.0</CodeAnalysisVersionForAnalyzers>
+    <CodeAnalysisVersion>4.8.0</CodeAnalysisVersion>
     <CodefixTestingVersion>1.1.1</CodefixTestingVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -47,8 +47,8 @@
     <!-- Analyzers need to use older references to work in existing C# compilers. -->
     <PackageVersion Update="Microsoft.CodeAnalysis" Version="$(CodeAnalysisVersionForAnalyzers)" />
     <PackageVersion Update="Microsoft.CodeAnalysis.CSharp" Version="$(CodeAnalysisVersionForAnalyzers)" />
-    <PackageVersion Update="System.Collections.Immutable" Version="6.0.0" />
-    <PackageVersion Update="System.Reflection.Metadata" Version="6.0.0" />
+    <PackageVersion Update="System.Collections.Immutable" Version="7.0.0" />
+    <PackageVersion Update="System.Reflection.Metadata" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="CSharpIsNullAnalyzer" Version="0.1.495" />
