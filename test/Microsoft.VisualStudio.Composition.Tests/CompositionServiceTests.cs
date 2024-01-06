@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public CompositionServiceImportingPart SomePropertyThatImports { get; set; } = null!;
         }
 
-#region Sharing boundary tests
+        #region Sharing boundary tests
 
         [MefFact(CompositionEngines.V3EmulatingV2, typeof(RootPart), typeof(AnotherRootPart), typeof(SubScopedPart), typeof(AnotherSubScopedPart), Skip = "Not important, and not obtainable for now.")]
         public void CompositionServiceSharedWithinRootScope(IContainer container)
@@ -187,9 +187,9 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public ICompositionService CompositionService { get; set; } = null!;
         }
 
-#endregion
+        #endregion
 
-#region Crossing Scope LifeTime Test
+        #region Crossing Scope LifeTime Test
 
         [MefFact(CompositionEngines.V2Compat, typeof(RootScopePart), typeof(RootScopeSecondPart), typeof(SubScopedBPart))]
         public void PartsInRootScopeStaysAlive(IContainer container)
@@ -239,7 +239,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             public RootScopeSecondPart Root { get; set; } = null!;
         }
 
-#endregion
+        #endregion
 
     }
 }

@@ -105,6 +105,6 @@ namespace Microsoft.VisualStudio.Composition
             base.GetObjectData(info, context);
 
             info.AddValue(nameof(this.ErrorsAsString), this.ErrorsAsString);
-       }
+        }
     }
 }

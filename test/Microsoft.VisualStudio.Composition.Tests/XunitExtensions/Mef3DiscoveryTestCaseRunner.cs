@@ -8,7 +8,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using DiffPlex;
@@ -17,9 +16,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using Xunit;
     using Xunit.Abstractions;
     using Xunit.Sdk;
-
-// StyleCop.Analyzers 1.x doesn't support tuple literals
-#pragma warning disable SA1009 // Closing parenthesis must be spaced correctly
 
     public class Mef3DiscoveryTestCaseRunner : XunitTestCaseRunner
     {

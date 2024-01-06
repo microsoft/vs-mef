@@ -107,7 +107,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [MefV1.Export(typeof(TEmbedded))]
         public class PartThatExportsEmbeddedType : TEmbedded
         {
-            public IVsTask CheckForRetargetAsync([ComAliasName("Microsoft.VisualStudio.Shell.Interop.RETARGET_CHECK_OPTIONS")]uint dwFlags)
+            public IVsTask CheckForRetargetAsync([ComAliasName("Microsoft.VisualStudio.Shell.Interop.RETARGET_CHECK_OPTIONS")] uint dwFlags)
             {
                 throw new NotImplementedException();
             }
@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                 throw new NotImplementedException();
             }
 
-            public IVsTask RetargetAsync(IVsOutputWindowPane logger, [ComAliasName("Microsoft.VisualStudio.Shell.Interop.RETARGET_OPTIONS")]uint dwFlags, IVsProjectTargetChange target, [ComAliasName("OLE.LPCOLESTR")]string szProjectBackupLoaction)
+            public IVsTask RetargetAsync(IVsOutputWindowPane logger, [ComAliasName("Microsoft.VisualStudio.Shell.Interop.RETARGET_OPTIONS")] uint dwFlags, IVsProjectTargetChange target, [ComAliasName("OLE.LPCOLESTR")] string szProjectBackupLoaction)
             {
                 throw new NotImplementedException();
             }

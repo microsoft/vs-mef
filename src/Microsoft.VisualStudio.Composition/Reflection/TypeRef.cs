@@ -447,5 +447,5 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 return true;
             }
         }
-   }
+    }
 }
