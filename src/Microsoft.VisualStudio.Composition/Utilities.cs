@@ -17,22 +17,6 @@ namespace Microsoft.VisualStudio.Composition
     {
         private const string CompositionErrorHeaderFormat = "----- CompositionError level {0} ------";
 
-        /// <summary>
-        /// Creates an <see cref="AssemblyName"/> that is guaranteed to have its <see cref="AssemblyName.CodeBase"/> property set.
-        /// </summary>
-        /// <param name="path">The path to the assembly to get the name for.</param>
-        /// <returns>An initialized <see cref="AssemblyName"/> instance.</returns>
-        internal static AssemblyName GetAssemblyNameWithCodebasePath(string path)
-        {
-            AssemblyName assemblyName = AssemblyName.GetAssemblyName(path);
-
-            // .NET Framework sets this, but .NET Core does not.
-            // .NET Core also *ignores* this even if set, by default. But a custom AssemblyLoadContext resolver could honor it if we preserve it.
-            assemblyName.CodeBase = path;
-
-            return assemblyName;
-        }
-
         internal static void WriteErrors(TextWriter textWriter, IImmutableStack<IReadOnlyCollection<ComposedPartDiagnostic>> errorStack)
         {
             int level = 1;
