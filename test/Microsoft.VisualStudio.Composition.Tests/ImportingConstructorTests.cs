@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithAllowDefaultImportingConstructor
         {
             [ImportingConstructor, MefV1.ImportingConstructor]
-            public PartWithAllowDefaultImportingConstructor([Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]RandomExport export)
+            public PartWithAllowDefaultImportingConstructor([Import(AllowDefault = true), MefV1.Import(AllowDefault = true)] RandomExport export)
             {
                 this.ConstructorArg = export;
             }
@@ -151,7 +151,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithAllowDefaultStructImportingConstructor
         {
             [ImportingConstructor, MefV1.ImportingConstructor]
-            public PartWithAllowDefaultStructImportingConstructor([Import(AllowDefault = true), MefV1.Import(AllowDefault = true)]int export)
+            public PartWithAllowDefaultStructImportingConstructor([Import(AllowDefault = true), MefV1.Import(AllowDefault = true)] int export)
             {
                 this.ConstructorArg = export;
             }
@@ -163,7 +163,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         public class PartWithAllowDefaultNonPublicStructImportingConstructor
         {
             [MefV1.ImportingConstructor]
-            internal PartWithAllowDefaultNonPublicStructImportingConstructor([MefV1.Import(AllowDefault = true)]NonPublicStruct export)
+            internal PartWithAllowDefaultNonPublicStructImportingConstructor([MefV1.Import(AllowDefault = true)] NonPublicStruct export)
             {
                 this.ConstructorArg = export;
             }
