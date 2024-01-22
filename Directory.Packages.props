@@ -47,7 +47,7 @@
     <!-- Analyzers need to use older references to work in existing C# compilers. -->
     <PackageVersion Update="Microsoft.CodeAnalysis" Version="$(CodeAnalysisVersionForAnalyzers)" />
     <PackageVersion Update="Microsoft.CodeAnalysis.CSharp" Version="$(CodeAnalysisVersionForAnalyzers)" />
-    <PackageVersion Update="System.Collections.Immutable" Version="6.0.0" />
+    <PackageVersion Update="System.Collections.Immutable" Version="8.0.0" />
     <PackageVersion Update="System.Reflection.Metadata" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
