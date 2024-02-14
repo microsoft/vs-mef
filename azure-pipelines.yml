@@ -24,10 +24,7 @@ parameters:
   default: true
 
 variables:
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-  BuildConfiguration: Release
-  codecov_token: bfce293b-9f33-43bb-be7f-c1a4ed2b518d
-  NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
+- template: /azure-pipelines/BuildStageVariables.yml@self
 
 jobs:
 - template: azure-pipelines/build.yml
