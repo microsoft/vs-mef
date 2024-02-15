@@ -1,7 +1,7 @@
 {
   "tsaVersion": "TsaV2",
   "codebase": "NewOrUpdate",
-  "codebaseName": "LibraryName",
+  "codebaseName": "Microsoft.VisualStudio.Composition",
   "tsaStamp": "DevDiv",
   "tsaEnvironment": "PROD",
   "notificationAliases": [
@@ -12,8 +12,8 @@
   ],
   "instanceUrl": "https://devdiv.visualstudio.com",
   "projectName": "DevDiv",
-  "areaPath": "DevDiv\\VS Core",
+  "areaPath": "DevDiv\\VS Core\\Extensibility\\VS MEF",
   "iterationPath": "DevDiv",
   "alltools": true,
-  "repositoryName": "Library.Template"
+  "repositoryName": "vs-mef"
 }
