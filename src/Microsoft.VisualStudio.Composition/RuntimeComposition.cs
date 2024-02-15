@@ -322,7 +322,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             private NullableBool isLazy;
             private Type? importingSiteElementType;
-            private Func<Func<object?>, object, object>? lazyFactory;
+            private Func<AssemblyName, Func<object?>, object, object>? lazyFactory;
             private ParameterInfo? importingParameter;
             private MemberInfo? importingMember;
             private volatile bool isMetadataTypeInitialized;
@@ -457,7 +457,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            internal Func<Func<object?>, object, object>? LazyFactory
+            internal Func<AssemblyName, Func<object?>, object, object>? LazyFactory
             {
                 get
                 {
