@@ -52,6 +52,8 @@
   </ItemGroup>
   <ItemGroup>
     <GlobalPackageReference Include="CSharpIsNullAnalyzer" Version="0.1.495" />
+    <GlobalPackageReference Include="IsExternalInit" Version="1.0.3" />
+    <GlobalPackageReference Include="Required" Version="1.0.0" />
     <GlobalPackageReference Include="DotNetAnalyzers.DocumentationAnalyzers" Version="1.0.0-beta.59" />
     <GlobalPackageReference Include="Microsoft.VisualStudio.Internal.MicroBuild.VisualStudio" Version="$(MicroBuildVersion)" />
     <GlobalPackageReference Include="Nerdbank.GitVersioning" Version="3.6.133" />

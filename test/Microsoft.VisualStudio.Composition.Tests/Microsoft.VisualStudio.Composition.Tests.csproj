@@ -20,6 +20,7 @@
     <Compile Include="..\..\src\Microsoft.VisualStudio.Composition\ArrayRental`1.cs">
       <Link>ArrayRental`1.cs</Link>
     </Compile>
+    <Compile Include="..\..\src\Microsoft.VisualStudio.Composition\ComposedLazy.cs" Link="ComposedLazy.cs" />
     <Compile Include="..\..\src\Microsoft.VisualStudio.Composition\CompressedUInt.cs">
       <Link>CompressedUInt.cs</Link>
     </Compile>

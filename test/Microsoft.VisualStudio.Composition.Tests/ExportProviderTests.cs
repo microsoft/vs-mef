@@ -8,6 +8,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System.Collections.Immutable;
     using System.Composition;
     using System.Linq;
+    using System.Reflection;
     using System.Runtime.CompilerServices;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
@@ -245,6 +246,34 @@ namespace Microsoft.VisualStudio.Composition.Tests
             GC.Collect();
             Assert.False(part1.IsAlive);
             Assert.False(part2.IsAlive);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1)]
+        public void TryGetExportingAssemblyName_GetExports(IContainer container)
+        {
+            var ep = container.GetExportedValue<ExportProvider>();
+            Lazy<IFoo> lazy = ep.GetExports<IFoo>().First();
+
+            Assert.True(ExportProvider.TryGetExportingAssemblyName(lazy, out AssemblyName? assemblyName));
+            Assert.Equal(this.GetType().Assembly.GetName().FullName, assemblyName.FullName);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1)]
+        public void TryGetExportingAssemblyName_GetExportsWithMetadata(IContainer container)
+        {
+            var ep = container.GetExportedValue<ExportProvider>();
+            Lazy<IFoo, SubNS1.IMetadata> lazy = ep.GetExports<IFoo, SubNS1.IMetadata>().First();
+
+            Assert.True(ExportProvider.TryGetExportingAssemblyName(lazy, out AssemblyName? assemblyName));
+            Assert.Equal(this.GetType().Assembly.GetName().FullName, assemblyName.FullName);
+        }
+
+        [MefFact(CompositionEngines.V3EmulatingV1)]
+        public void TryGetExportingAssemblyName_UnownedLazy(IContainer container)
+        {
+            var ep = container.GetExportedValue<ExportProvider>();
+            Assert.False(ExportProvider.TryGetExportingAssemblyName(new Lazy<bool>(() => true), out AssemblyName? assemblyName));
+            Assert.Null(assemblyName);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <param name="exportType">The type of values created by the Func{object} value factories. Null is interpreted to be <c>typeof(object)</c>.</param>
         /// <param name="metadataViewType">The type of metadata passed to the lazy factory. Null is interpreted to be <c>typeof(IDictionary{string, object})</c>.</param>
         /// <returns>A function that takes a Func{object} value factory and metadata, and produces a Lazy{T, TMetadata} instance.</returns>
-        internal static Func<Func<object?>, object, object> CreateStronglyTypedLazyFactory(Type? exportType, Type? metadataViewType)
+        internal static Func<AssemblyName, Func<object?>, object, object> CreateStronglyTypedLazyFactory(Type? exportType, Type? metadataViewType)
         {
             MethodInfo genericMethod;
             if (metadataViewType != null)
@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.Composition
                 genericMethod = CreateStronglyTypedLazyOfTValue.MakeGenericMethod(exportType ?? DefaultExportedValueType);
             }
 
-            return (Func<Func<object?>, object, object>)genericMethod.CreateDelegate(typeof(Func<Func<object?>, object, object>));
+            return (Func<AssemblyName, Func<object?>, object, object>)genericMethod.CreateDelegate(typeof(Func<AssemblyName, Func<object?>, object, object>));
         }
 
         internal static Func<T> AsFunc<T>(this Lazy<T> lazy)
@@ -110,19 +110,19 @@ namespace Microsoft.VisualStudio.Composition
             return lazy.Value;
         }
 
-        private static Lazy<T> CreateStronglyTypedLazyOfT<T>(Func<object> funcOfObject, object metadata)
+        private static Lazy<T> CreateStronglyTypedLazyOfT<T>(AssemblyName assemblyName, Func<object> funcOfObject, object metadata)
         {
             Requires.NotNull(funcOfObject, nameof(funcOfObject));
 
-            return new Lazy<T>(funcOfObject.As<T>());
+            return new ComposedLazy<T>(assemblyName, funcOfObject.As<T>());
         }
 
-        private static Lazy<T, TMetadata> CreateStronglyTypedLazyOfTM<T, TMetadata>(Func<object> funcOfObject, object metadata)
+        private static Lazy<T, TMetadata> CreateStronglyTypedLazyOfTM<T, TMetadata>(AssemblyName assemblyName, Func<object> funcOfObject, object metadata)
         {
             Requires.NotNull(funcOfObject, nameof(funcOfObject));
             Requires.NotNullAllowStructs(metadata, nameof(metadata));
 
-            return new Lazy<T, TMetadata>(funcOfObject.As<T>(), (TMetadata)metadata);
+            return new ComposedLazy<T, TMetadata>(assemblyName, funcOfObject.As<T>(), (TMetadata)metadata);
         }
     }
 }

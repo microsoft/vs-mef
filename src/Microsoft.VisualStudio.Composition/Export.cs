@@ -6,6 +6,7 @@ namespace Microsoft.VisualStudio.Composition
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Reflection;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     public class Export
@@ -48,6 +49,9 @@ namespace Microsoft.VisualStudio.Composition
         /// This may incur a value construction cost upon first retrieval.
         /// </remarks>
         public object? Value => this.ValueFilter(this.exportedValueGetter.Value);
+
+        /// <inheritdoc cref="IComposedLazy.AssemblyName"/>
+        internal AssemblyName? ExportingAssemblyName { get; init; }
 
         internal virtual object? ValueFilter(object? lazyValue) => lazyValue;
 

@@ -117,7 +117,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 Requires.NotNull(import, nameof(import));
 
-                Func<Func<object?>, object, object>? lazyFactory = import.LazyFactory;
+                Func<AssemblyName, Func<object?>, object, object>? lazyFactory = import.LazyFactory;
                 var exports = import.SatisfyingExports;
                 if (import.Cardinality == ImportCardinality.ZeroOrMore)
                 {
@@ -212,7 +212,7 @@ namespace Microsoft.VisualStudio.Composition
                 }
             }
 
-            private object? GetValueForImportElement(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Func<Func<object?>, object, object>? lazyFactory)
+            private object? GetValueForImportElement(RuntimePartLifecycleTracker importingPartTracker, RuntimeComposition.RuntimeImport import, RuntimeComposition.RuntimeExport export, Func<AssemblyName, Func<object?>, object, object>? lazyFactory)
             {
                 if (import.IsExportFactory)
                 {
@@ -230,13 +230,13 @@ namespace Microsoft.VisualStudio.Composition
                         // This is importing itself.
                         object? part = importingPartTracker.Value;
                         object? value = import.IsLazy
-                            ? lazyFactory!(() => part, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
+                            ? lazyFactory!(export.DeclaringTypeRef.AssemblyName, () => part, this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
                             : part;
                         return value;
                     }
 
                     object? importedValue = import.IsLazy
-                        ? lazyFactory!(this.GetLazyExportedValue(import, export, importingPartTracker), this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
+                        ? lazyFactory!(export.DeclaringTypeRef.AssemblyName, this.GetLazyExportedValue(import, export, importingPartTracker), this.GetStrongTypedMetadata(export.Metadata, import.MetadataType ?? LazyServices.DefaultMetadataViewType))
                         : this.GetExportedValue(import, export, importingPartTracker, out _);
                     return importedValue;
                 }

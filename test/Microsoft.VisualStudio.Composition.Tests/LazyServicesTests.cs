@@ -4,10 +4,7 @@
 namespace Microsoft.VisualStudio.Composition.Tests
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    using System.Reflection;
     using Xunit;
 
     public class LazyServicesTests
@@ -24,16 +21,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public void StrongTypeLazyWrapperFactory()
         {
-            Func<Func<object>, object, object> factory = LazyServices.CreateStronglyTypedLazyFactory(typeof(string), null);
+            Func<AssemblyName, Func<object>, object, object> factory = LazyServices.CreateStronglyTypedLazyFactory(typeof(string), null);
             bool executed = false;
+            AssemblyName expectedName = this.GetType().Assembly.GetName();
             var lazy = (Lazy<string>)factory(
+                expectedName,
                 () =>
                 {
                     executed = true;
                     return "hi";
                 },
                 5);
-            Assert.IsType<Lazy<string>>(lazy);
+            Assert.IsAssignableFrom<Lazy<string>>(lazy);
             Assert.False(executed);
             Assert.Equal("hi", lazy.Value);
             Assert.True(executed);
@@ -42,9 +41,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [Fact]
         public void StrongTypeLazyWrapperFactoryWithMetadata()
         {
-            Func<Func<object>, object, object> factory = LazyServices.CreateStronglyTypedLazyFactory(typeof(string), typeof(int));
+            Func<AssemblyName, Func<object>, object, object> factory = LazyServices.CreateStronglyTypedLazyFactory(typeof(string), typeof(int));
             bool executed = false;
+            AssemblyName expectedName = this.GetType().Assembly.GetName();
             var lazy = (Lazy<string, int>)factory(
+                expectedName,
                 () =>
                 {
                     executed = true;

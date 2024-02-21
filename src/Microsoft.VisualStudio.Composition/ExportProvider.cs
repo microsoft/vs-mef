@@ -230,6 +230,19 @@ namespace Microsoft.VisualStudio.Composition
 
         protected internal Resolver Resolver { get; }
 
+        /// <summary>
+        /// Gets the assembly that declares a given export.
+        /// </summary>
+        /// <typeparam name="T">The type of exported value.</typeparam>
+        /// <param name="export">The lazy export.</param>
+        /// <param name="assemblyName">Receives the name of the assembly that declares the given <paramref name="export"/>, if known.</param>
+        /// <returns>A value indicating whether <paramref name="assemblyName"/> was set to the declaring assembly.</returns>
+        public static bool TryGetExportingAssemblyName<T>(Lazy<T> export, [NotNullWhen(true)] out AssemblyName? assemblyName)
+        {
+            assemblyName = (export as IComposedLazy)?.AssemblyName;
+            return assemblyName is not null;
+        }
+
         public Lazy<T> GetExport<T>()
         {
             return this.GetExport<T>(null);
@@ -357,8 +370,8 @@ namespace Microsoft.VisualStudio.Composition
             {
                 exports = filteredExportInfos.Select(
                     fe => fe.HasNonSharedLifetime
-                        ? new NonSharedExport(fe.Definition, fe.ExportedValueGetter)
-                        : new Export(fe.Definition, () => fe.ExportedValueGetter().Value));
+                        ? new NonSharedExport(fe.Definition, fe.ExportedValueGetter) { ExportingAssemblyName = fe.ExportingAssemblyName }
+                        : new Export(fe.Definition, () => fe.ExportedValueGetter().Value) { ExportingAssemblyName = fe.ExportingAssemblyName });
             }
 
             var exportsSnapshot = exports.ToArray(); // avoid repeating all the foregoing work each time this sequence is enumerated.
@@ -560,7 +573,10 @@ namespace Microsoft.VisualStudio.Composition
                 };
             }
 
-            return new ExportInfo(importDefinition.ContractName, exportMetadata, memberValueFactory, nonSharedInstanceRequired);
+            return new ExportInfo(importDefinition.ContractName, exportMetadata, memberValueFactory, nonSharedInstanceRequired)
+            {
+                ExportingAssemblyName = originalPartTypeRef.AssemblyName,
+            };
         }
 
         protected object CreateExportFactory(Type importingSiteElementType, IReadOnlyCollection<string> sharingBoundaries, Func<KeyValuePair<object?, IDisposable?>> valueFactory, Type exportFactoryType, IReadOnlyDictionary<string, object?> exportMetadata)
@@ -627,7 +643,10 @@ namespace Microsoft.VisualStudio.Composition
             return new Export(
                 exportFactoryTypeIdentity,
                 exportFactoryMetadata,
-                exportFactoryCreator);
+                exportFactoryCreator)
+            {
+                ExportingAssemblyName = exportInfo.ExportingAssemblyName,
+            };
         }
 
         protected object GetStrongTypedMetadata(IReadOnlyDictionary<string, object?> metadata, Type metadataType)
@@ -894,11 +913,11 @@ namespace Microsoft.VisualStudio.Composition
                 Func<T> factory = () => CastValueTo<T>(export.Value)!; // may be null, but C# 8 doesn't allow us to indiciate `T?` when T is unconstrained.
                 if (export is NonSharedExport disposableExport)
                 {
-                    return new NonSharedLazy<T, TMetadataView>(factory, metadata, disposableExport);
+                    return new NonSharedLazy<T, TMetadataView>(factory, metadata, disposableExport, export.ExportingAssemblyName);
                 }
                 else
                 {
-                    return new Lazy<T, TMetadataView>(factory, metadata);
+                    return new ComposedLazy<T, TMetadataView>(export.ExportingAssemblyName, factory, metadata);
                 }
             }
 
@@ -1038,6 +1057,8 @@ namespace Microsoft.VisualStudio.Composition
             /// </summary>
             public bool HasNonSharedLifetime { get; }
 
+            internal required AssemblyName ExportingAssemblyName { get; init; }
+
             private string DebuggerDisplay => this.Definition.ContractName;
 
             internal ExportInfo CloseGenericExport(Type[] genericTypeArguments)
@@ -1053,7 +1074,10 @@ namespace Microsoft.VisualStudio.Composition
                 string contractName = this.Definition.ContractName == openGenericExportTypeIdentity
                     ? closedTypeIdentity : this.Definition.ContractName;
 
-                return new ExportInfo(contractName, metadata, this.ExportedValueGetter, this.HasNonSharedLifetime);
+                return new ExportInfo(contractName, metadata, this.ExportedValueGetter, this.HasNonSharedLifetime)
+                {
+                    ExportingAssemblyName = this.ExportingAssemblyName,
+                };
             }
         }
 

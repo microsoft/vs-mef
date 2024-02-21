@@ -6,9 +6,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
     using System;
     using System.Collections.Generic;
     using System.Composition;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    using System.Reflection;
     using Xunit;
     using MefV1 = System.ComponentModel.Composition;
 
@@ -193,6 +191,18 @@ namespace Microsoft.VisualStudio.Composition.Tests
         {
             [Import, MefV1.Import]
             public AnotherExport Link { get; set; } = null!;
+        }
+
+        #endregion
+
+        #region TryGetExportingAssemblyName from imported lazy
+
+        [MefFact(CompositionEngines.V3EmulatingV2, typeof(ExportWithListOfLazyImport), typeof(AnotherExport))]
+        public void TryGetExportingAssemblyName(IContainer container)
+        {
+            var part = container.GetExportedValue<ExportWithListOfLazyImport>();
+            Assert.True(ExportProvider.TryGetExportingAssemblyName(part.AnotherExports[0], out AssemblyName? assemblyName));
+            Assert.Equal(typeof(AnotherExport).Assembly.GetName().FullName, assemblyName.FullName);
         }
 
         #endregion
