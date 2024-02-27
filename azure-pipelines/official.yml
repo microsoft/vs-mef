@@ -20,11 +20,18 @@ schedules:
     - main
 
 parameters:
+# As an entrypoint pipeline yml file, all parameters here show up in the Queue Run dialog.
+# If any paramaters should NOT be queue-time options, they should be removed from here
+# and references to them in this file replaced with hard-coded values.
 - name: RealSign
   displayName: Real sign?
   type: boolean
   default: false
-- name: includeMacOS
+# - name: ShouldSkipOptimize # Uncomment this and references to it below when setting EnableOptProf to true in build.yml.
+#   displayName: Skip OptProf optimization
+#   type: boolean
+#   default: false
+- name: EnableMacOSBuild
   displayName: Build on macOS
   type: boolean
   default: false # macOS is often bogged down in Azure Pipelines
@@ -39,7 +46,7 @@ parameters:
 - name: EnableAPIScan
   displayName: Include APIScan with Compliance tools
   type: boolean
-  default: true
+  default: false # enable in individual repos only AFTER updating TSAOptions.json with your own values
 
 resources:
   repositories:
@@ -62,6 +69,8 @@ extends:
           exclusionsFile: $(System.DefaultWorkingDirectory)\azure-pipelines\PoliCheckExclusions.xml
         suppression:
           suppressionFile: $(System.DefaultWorkingDirectory)\azure-pipelines\falsepositives.gdnsuppress
+        sbom:
+          enabled: ${{ or(parameters.RealSign, eq(variables['Build.Reason'],'Schedule')) }} # Disable the generation for SBOMs for artifacts in unsigned builds since it's slow
       stages:
       - stage: Build
         variables:
@@ -69,20 +78,21 @@ extends:
         jobs:
         - template: /azure-pipelines/build.yml@self
           parameters:
+            Is1ESPT: true
             RealSign: ${{ or(parameters.RealSign, eq(variables['Build.Reason'],'Schedule')) }}
-            EnableCompliance: ${{ parameters.EnableCompliance }}
-            EnableAPIScan: ${{ parameters.EnableAPIScan }}
+            # ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
+            EnableAPIScan: ${{ and(parameters.EnableCompliance, parameters.EnableAPIScan, ne(variables['Build.Reason'], 'pullRequest')) }}
             windowsPool: VSEngSS-MicroBuild2022-1ES
             linuxPool:
               name: AzurePipelines-EO
               demands:
-              - ImageOverride -equals AzurePipelinesUbuntu20.04compliantGPT
+              - ImageOverride -equals 1ESPT-Ubuntu22.04
               os: Linux
             macOSPool:
               name: Azure Pipelines
               vmImage: macOS-12
               os: macOS
-            includeMacOS: ${{ parameters.includeMacOS }}
+            EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}
             RunTests: ${{ parameters.RunTests }}
       - template: /azure-pipelines/prepare-insertion-stages.yml@self
         parameters:
@@ -101,20 +111,21 @@ extends:
         jobs:
         - template: /azure-pipelines/build.yml@self
           parameters:
+            Is1ESPT: true
             RealSign: ${{ or(parameters.RealSign, eq(variables['Build.Reason'],'Schedule')) }}
-            EnableCompliance: ${{ parameters.EnableCompliance }}
-            EnableAPIScan: ${{ parameters.EnableAPIScan }}
+            # ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
+            EnableAPIScan: ${{ and(parameters.EnableCompliance, parameters.EnableAPIScan, ne(variables['Build.Reason'], 'pullRequest')) }}
             windowsPool: VSEngSS-MicroBuild2022-1ES
             linuxPool:
               name: AzurePipelines-EO
               demands:
-              - ImageOverride -equals AzurePipelinesUbuntu20.04compliantGPT
+              - ImageOverride -equals 1ESPT-Ubuntu22.04
               os: Linux
             macOSPool:
               name: Azure Pipelines
               vmImage: macOS-12
               os: macOS
-            includeMacOS: ${{ parameters.includeMacOS }}
+            EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}
             RunTests: ${{ parameters.RunTests }}
       - template: /azure-pipelines/prepare-insertion-stages.yml@self
         parameters:
