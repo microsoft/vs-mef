@@ -7,20 +7,9 @@ parameters:
   type: boolean
 
 steps:
-# We use VSBuild instead of "dotnet build" on Windows where the MicroBuild IBCMerge task has to run.
-- task: VSBuild@1
-  displayName: 🛠 Build Visual Studio solution
-  inputs:
-    msbuildArgs: /t:build,pack /m /bl:"$(Build.ArtifactStagingDirectory)/build_logs/msbuild.binlog"
-    platform: Any CPU
-    configuration: $(BuildConfiguration)
-  env:
-    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-  condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
 
 - script: dotnet build -t:build,pack --no-restore -c $(BuildConfiguration) -warnaserror /bl:"$(Build.ArtifactStagingDirectory)/build_logs/build.binlog"
   displayName: 🛠 dotnet build
-  condition: and(succeeded(), ne(variables['Agent.OS'], 'Windows_NT'))
 
 - ${{ if not(parameters.IsOptProf) }}:
   - powershell: azure-pipelines/dotnet-test-cloud.ps1 -Configuration $(BuildConfiguration) -Agent $(Agent.JobName) -PublishResults
