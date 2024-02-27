@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net472</TargetFrameworks>
-
+    <MicroBuild_LocalizeOutputAssembly>false</MicroBuild_LocalizeOutputAssembly>
     <Description>Adds a VS MEF system with a pre-computed, cached MEF graph.</Description>
     <NoWarn>$(NoWarn),NU5128</NoWarn>
     <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
