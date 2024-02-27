@@ -52,7 +52,7 @@ if ($env:IsOptProf) {
         exit $LASTEXITCODE
     }
 
-    $result["$CoreXTPackages"] = (Get-ChildItem "$CoreXTPackages\LibraryName.VSInsertionMetadata.$InsertionMetadataVersion.nupkg");
+    $result["$CoreXTPackages"] = (Get-ChildItem "$CoreXTPackages\Microsoft.VisualStudio.Composition.VSInsertionMetadata.$InsertionMetadataVersion.nupkg");
 }
 
 $result
