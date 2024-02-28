@@ -37,4 +37,5 @@
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+  <Import Project="..\OptProf.targets" />
 </Project>
