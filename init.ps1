@@ -37,8 +37,6 @@
     The environment is configured to build pseudo-loc for JPN only, but may be used to build
     all languages with shipping-style loc by using the `/p:loctype=full,loclanguages=vs`
     when building.
-.PARAMETER IBCMerge
-    Install the MicroBuild IBCMerge plugin for building optimized assemblies on desktop machines.
 .PARAMETER Setup
     Install the MicroBuild setup plugin for building VSIXv3 packages.
 .PARAMETER OptProf
@@ -68,8 +66,6 @@ Param (
     [switch]$Signing,
     [Parameter()]
     [switch]$Localization,
-    [Parameter()]
-    [switch]$IBCMerge,
     [Parameter()]
     [switch]$Setup,
     [Parameter()]
@@ -158,12 +154,6 @@ try {
         $EnvVars['LocLanguages'] = "JPN"
     }
 
-    if ($IBCMerge) {
-        Write-Host "Installing MicroBuild IBCMerge plugin" -ForegroundColor $HeaderColor
-        & "$toolsPath\Install-NuGetPackage.ps1" MicroBuild.Plugins.IBCMerge -source $MicroBuildPackageSource -FallbackSources $VSPackageSource -Verbosity $nugetVerbosity
-        $env:IBCMergeBranch = "master"
-    }
-    
     if ($SBOM) {
         Write-Host "Installing MicroBuild SBOM plugin" -ForegroundColor $HeaderColor
         & $InstallNuGetPkgScriptPath MicroBuild.Plugins.Sbom -source $MicroBuildPackageSource -Verbosity $nugetVerbosity

@@ -3,4 +3,3 @@ variables:
   BuildConfiguration: Release
   NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
   codecov_token: bfce293b-9f33-43bb-be7f-c1a4ed2b518d
-  TreatWarningsAsErrors: true # on till IBCMerge is removed and we can add -warnaserror to the dotnet.yml file.
