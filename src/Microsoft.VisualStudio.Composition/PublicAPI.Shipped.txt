@@ -92,8 +92,8 @@ Microsoft.VisualStudio.Composition.DiscoveredParts.ThrowOnErrors() -> Microsoft.
 Microsoft.VisualStudio.Composition.DiscoveryProgress
 Microsoft.VisualStudio.Composition.DiscoveryProgress.CompletedSteps.get -> int
 Microsoft.VisualStudio.Composition.DiscoveryProgress.Completion.get -> float
-Microsoft.VisualStudio.Composition.DiscoveryProgress.DiscoveryProgress(int completedSteps, int totalSteps, string! status) -> void
-Microsoft.VisualStudio.Composition.DiscoveryProgress.Status.get -> string!
+Microsoft.VisualStudio.Composition.DiscoveryProgress.DiscoveryProgress(int completedSteps, int totalSteps, string? status) -> void
+Microsoft.VisualStudio.Composition.DiscoveryProgress.Status.get -> string?
 Microsoft.VisualStudio.Composition.DiscoveryProgress.TotalSteps.get -> int
 Microsoft.VisualStudio.Composition.Export
 Microsoft.VisualStudio.Composition.Export.Definition.get -> Microsoft.VisualStudio.Composition.ExportDefinition!
