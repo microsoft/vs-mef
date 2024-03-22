@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Composition
 
     public struct DiscoveryProgress
     {
-        public DiscoveryProgress(int completedSteps, int totalSteps, string status)
+        public DiscoveryProgress(int completedSteps, int totalSteps, string? status)
             : this()
         {
             this.CompletedSteps = completedSteps;
@@ -28,6 +28,6 @@ namespace Microsoft.VisualStudio.Composition
             get { return this.TotalSteps > 0 ? ((float)this.CompletedSteps / this.TotalSteps) : 0; }
         }
 
-        public string Status { get; private set; }
+        public string? Status { get; private set; }
     }
 }
