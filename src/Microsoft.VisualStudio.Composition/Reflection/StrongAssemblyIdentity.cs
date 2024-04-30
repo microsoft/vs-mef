@@ -6,17 +6,70 @@ namespace Microsoft.VisualStudio.Composition
     using System;
     using System.Diagnostics;
     using System.IO;
+    using MessagePack;
     using System.Reflection;
     using System.Reflection.Metadata;
     using System.Reflection.PortableExecutable;
+    using MessagePack.Formatters;
+
 
     /// <summary>
     /// Metadata about a <see cref="Assembly"/> that is used to determine if
     /// two assemblies are equivalent.
     /// </summary>
     [DebuggerDisplay("{" + nameof(Name) + "}")]
+    //[MessagePackObject]
+    [MessagePackFormatter(typeof(StrongAssemblyIdentityFormatter))]
+
     public class StrongAssemblyIdentity : IEquatable<StrongAssemblyIdentity>
     {
+
+        class StrongAssemblyIdentityFormatter : IMessagePackFormatter<StrongAssemblyIdentity>
+        {
+            public void Serialize(ref MessagePackWriter writer, StrongAssemblyIdentity value, MessagePackSerializerOptions options)
+            {
+                options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value.Mvid, options);
+
+
+                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.FullName.ToString(), options);
+                //options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.Name.ToString(), options);
+                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.Version.ToString(), options);
+                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.CultureName.ToString(), options);
+                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.ProcessorArchitecture.ToString(), options);
+                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.Flags.ToString(), options);
+                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.CodeBase.ToString(), options);
+
+
+
+                //    options.Resolver.GetFormatterWithVerify<AssemblyName>().Serialize(ref writer, value.Name, options);
+
+
+            }
+
+            public StrongAssemblyIdentity Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+            {
+
+                var Mvid = options.Resolver.GetFormatterWithVerify<Guid>().Deserialize(ref reader, options);
+
+                var FullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+
+                AssemblyName assemblyName = new AssemblyName(FullName);
+                //assemblyName.Name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                assemblyName.Version = new Version(options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options));
+                assemblyName.CultureName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                assemblyName.ProcessorArchitecture = (ProcessorArchitecture)Enum.Parse(typeof(ProcessorArchitecture), options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options));
+                assemblyName.Flags = (AssemblyNameFlags)Enum.Parse(typeof(AssemblyNameFlags), options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options));
+
+                assemblyName.CodeBase = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+
+
+
+
+
+                return new StrongAssemblyIdentity(assemblyName, Mvid);
+            }
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="StrongAssemblyIdentity"/> class.
         /// </summary>
@@ -32,12 +85,14 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets the assembly's full name.
         /// </summary>
+     //   [Key(0)]
         public AssemblyName Name { get; }
 
         /// <summary>
         /// Gets the MVID for the assembly's manifest module. This is a unique identifier that represents individual
         /// builds of an assembly.
         /// </summary>
+       // [Key(1)]
         public Guid Mvid { get; }
 
         /// <summary>

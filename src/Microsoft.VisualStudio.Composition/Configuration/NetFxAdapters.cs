@@ -10,12 +10,14 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.ComponentModel.Composition.ReflectionModel;
     using System.Linq;
+    using MessagePack;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
     using MefV1 = System.ComponentModel.Composition;
 
+    [MessagePackObject]
     public static class NetFxAdapters
     {
         private static readonly ComposablePartDefinition CompositionServicePart;
@@ -300,10 +302,13 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private class ImportConstraint : IImportSatisfiabilityConstraint
+        [MessagePackObject]
+        internal class ImportConstraint : IImportSatisfiabilityConstraint
         {
+            [Key(0)]
             private readonly MefV1.Primitives.ImportDefinition definition;
 
+            [SerializationConstructor]
             internal ImportConstraint(MefV1.Primitives.ImportDefinition definition)
             {
                 Requires.NotNull(definition, nameof(definition));

@@ -7,12 +7,14 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using MessagePack;
     using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
+    [MessagePackObject(true)]
     public class PropertyRef : MemberRef, IEquatable<PropertyRef>
     {
         /// <summary>
@@ -42,23 +44,28 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.PropertyTypeRef = propertyTypeRef;
         }
 
-        public PropertyRef(PropertyInfo propertyInfo, Resolver resolver)
-            : base(propertyInfo, resolver)
+        public PropertyRef(PropertyInfo memberInfo, Resolver resolver)
+            : base(memberInfo, resolver)
         {
-            this.getMethodMetadataToken = propertyInfo.GetMethod?.MetadataToken;
-            this.setMethodMetadataToken = propertyInfo.SetMethod?.MetadataToken;
-            this.Name = propertyInfo.Name;
-            this.PropertyTypeRef = TypeRef.Get(propertyInfo.PropertyType, resolver);
+            this.getMethodMetadataToken = memberInfo.GetMethod?.MetadataToken;
+            this.setMethodMetadataToken = memberInfo.SetMethod?.MetadataToken;
+            this.Name = memberInfo.Name;
+            this.PropertyTypeRef = TypeRef.Get(memberInfo.PropertyType, resolver);
         }
 
+       // [Key(6)]
         public PropertyInfo PropertyInfo => (PropertyInfo)this.MemberInfo;
 
+     //   [Key(7)]
         public TypeRef PropertyTypeRef { get; }
 
+      //  [Key(8)]
         public int? GetMethodMetadataToken => this.getMethodMetadataToken;
 
+      //  [Key(9)]
         public int? SetMethodMetadataToken => this.setMethodMetadataToken;
 
+      //  [Key(10)]
         public override string Name { get; }
 
         internal override void GetInputAssemblies(ISet<AssemblyName> assemblies) => this.DeclaringType?.GetInputAssemblies(assemblies);

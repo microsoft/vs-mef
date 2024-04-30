@@ -19,6 +19,8 @@
     <PackageReference Include="System.Reflection.Emit" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
     <PackageReference Include="System.Reflection.Metadata" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" />
+    <PackageReference Include="MessagePack" PrivateAssets="compile" />
+    <PackageReference Include="MessagePackAnalyzer" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include="PublicAPI.Shipped.txt" />

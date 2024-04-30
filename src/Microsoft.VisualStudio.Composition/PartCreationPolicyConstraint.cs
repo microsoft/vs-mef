@@ -8,6 +8,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.IO;
     using System.Linq;
+    using MessagePack;
     using System.Text;
     using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ namespace Microsoft.VisualStudio.Composition
     /// A constraint that may be included in an <see cref="ImportDefinition"/> that only matches
     /// exports whose parts have a compatible <see cref="CreationPolicy"/>.
     /// </summary>
+    [MessagePackObject]
     public class PartCreationPolicyConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
         /// <summary>
@@ -27,11 +29,12 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public static readonly PartCreationPolicyConstraint NonSharedPartRequired = new PartCreationPolicyConstraint(CreationPolicy.NonShared);
 
-        private PartCreationPolicyConstraint(CreationPolicy creationPolicy)
+        private PartCreationPolicyConstraint(CreationPolicy requiredCreationPolicy)
         {
-            this.RequiredCreationPolicy = creationPolicy;
+            this.RequiredCreationPolicy = requiredCreationPolicy;
         }
 
+        [Key(0)]
         public CreationPolicy RequiredCreationPolicy { get; private set; }
 
         /// <summary>

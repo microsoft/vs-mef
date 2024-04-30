@@ -7,14 +7,19 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using MessagePack;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
+    [MessagePackObject(true)]
     public class ImportDefinitionBinding : IEquatable<ImportDefinitionBinding>
     {
+        [IgnoreMember]
         private bool? isLazy;
+
+        [IgnoreMember]
 
         private TypeRef? importingSiteElementTypeRef;
 
@@ -24,20 +29,20 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public ImportDefinitionBinding(
             ImportDefinition importDefinition,
-            TypeRef composablePartType,
-            MemberRef importingMember,
+            TypeRef composablePartTypeRef,
+            MemberRef importingMemberRef,
             TypeRef importingSiteTypeRef,
             TypeRef importingSiteTypeWithoutCollectionRef)
         {
             Requires.NotNull(importDefinition, nameof(importDefinition));
-            Requires.NotNull(composablePartType, nameof(composablePartType));
-            Requires.NotNull(importingMember, nameof(importingMember));
+            Requires.NotNull(composablePartTypeRef, nameof(composablePartTypeRef));
+            Requires.NotNull(importingMemberRef, nameof(importingMemberRef));
             Requires.NotNull(importingSiteTypeRef, nameof(importingSiteTypeRef));
             Requires.NotNull(importingSiteTypeWithoutCollectionRef, nameof(importingSiteTypeWithoutCollectionRef));
 
             this.ImportDefinition = importDefinition;
-            this.ComposablePartTypeRef = composablePartType;
-            this.ImportingMemberRef = importingMember;
+            this.ComposablePartTypeRef = composablePartTypeRef;
+            this.ImportingMemberRef = importingMemberRef;
             this.ImportingSiteTypeRef = importingSiteTypeRef;
             this.ImportingSiteTypeWithoutCollectionRef = importingSiteTypeWithoutCollectionRef;
         }
@@ -48,20 +53,20 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public ImportDefinitionBinding(
             ImportDefinition importDefinition,
-            TypeRef composablePartType,
-            ParameterRef importingConstructorParameter,
+            TypeRef composablePartTypeRef,
+            ParameterRef importingParameterRef,
             TypeRef importingSiteTypeRef,
             TypeRef importingSiteTypeWithoutCollectionRef)
         {
             Requires.NotNull(importDefinition, nameof(importDefinition));
-            Requires.NotNull(composablePartType, nameof(composablePartType));
-            Requires.NotNull(importingConstructorParameter, nameof(importingConstructorParameter));
+            Requires.NotNull(composablePartTypeRef, nameof(composablePartTypeRef));
+            Requires.NotNull(importingParameterRef, nameof(importingParameterRef));
             Requires.NotNull(importingSiteTypeRef, nameof(importingSiteTypeRef));
             Requires.NotNull(importingSiteTypeWithoutCollectionRef, nameof(importingSiteTypeWithoutCollectionRef));
 
             this.ImportDefinition = importDefinition;
-            this.ComposablePartTypeRef = composablePartType;
-            this.ImportingParameterRef = importingConstructorParameter;
+            this.ComposablePartTypeRef = composablePartTypeRef;
+            this.ImportingParameterRef = importingParameterRef;
             this.ImportingSiteTypeRef = importingSiteTypeRef;
             this.ImportingSiteTypeWithoutCollectionRef = importingSiteTypeWithoutCollectionRef;
         }
@@ -69,24 +74,34 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets the definition for this import.
         /// </summary>
+
+       // [Key(0)]
         public ImportDefinition ImportDefinition { get; private set; }
 
         /// <summary>
         /// Gets the member this import is found on. Null for importing constructors.
         /// </summary>
+        //[Key(1)] we need to  use the custome serilizer to seralize this property keeping ignore for now - Ankit TODO ths is onverting a MemberInfo object to a string and back is not straightforward because MemberInfo is an abstract class representing various types of members like fields, properties, methods, etc., and there's no single string representation that encapsulates all of its properties.
+        [IgnoreMember] 
         public MemberInfo? ImportingMember => this.ImportingMemberRef?.MemberInfo;
 
         /// <summary>
         /// Gets the member this import is found on. Null for importing constructors.
         /// </summary>
+      //  [Key(2)]
         public MemberRef? ImportingMemberRef { get; private set; }
 
+        //[Key(3)]
+        [IgnoreMember] // no public constructor and can be derived from ImportingParameterRef
         public ParameterInfo? ImportingParameter => this.ImportingParameterRef?.ParameterInfo;
 
+      //  [Key(4)]
         public ParameterRef? ImportingParameterRef { get; private set; }
 
+     //   [Key(5)]
         public Type ComposablePartType => this.ComposablePartTypeRef.ResolvedType;
 
+     //   [Key(6)]
         public TypeRef ComposablePartTypeRef { get; private set; }
 
         /// <summary>
@@ -94,6 +109,7 @@ namespace Microsoft.VisualStudio.Composition
         /// This includes any Lazy, ExportFactory or collection wrappers.
         /// </summary>
         /// <value>Never null.</value>
+      //  [Key(7)]
         public Type ImportingSiteType => this.ImportingSiteTypeRef.Resolve();
 
         /// <summary>
@@ -101,15 +117,19 @@ namespace Microsoft.VisualStudio.Composition
         /// This includes any Lazy, ExportFactory or collection wrappers.
         /// </summary>
         /// <value>Never null.</value>
+      //  [Key(8)]
         public TypeRef ImportingSiteTypeRef { get; }
 
+     //   [Key(9)]
         public TypeRef ImportingSiteTypeWithoutCollectionRef { get; }
 
+     //   [Key(10)]
         public Type ImportingSiteTypeWithoutCollection => this.ImportingSiteTypeWithoutCollectionRef.ResolvedType;
 
         /// <summary>
         /// Gets the type of the member, with the ImportMany collection and Lazy/ExportFactory stripped off, when present.
         /// </summary>
+     //   [Key(11)]
         public TypeRef ImportingSiteElementTypeRef
         {
             get
@@ -126,8 +146,10 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets the type of the member, with the ImportMany collection and Lazy/ExportFactory stripped off, when present.
         /// </summary>
+     //   [Key(12)]
         public Type? ImportingSiteElementType => this.ImportingSiteElementTypeRef?.Resolve();
 
+    //    [Key(13)]
         public bool IsLazy
         {
             get
@@ -141,6 +163,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+    //    [Key(14)]
         public Type? MetadataType
         {
             get
@@ -158,11 +181,13 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+     //   [Key(15)]
         public bool IsExportFactory
         {
             get { return this.ImportingSiteTypeWithoutCollectionRef.IsExportFactoryType(); }
         }
 
+     //   [Key(16)]
         public Type? ExportFactoryType
         {
             get { return this.IsExportFactory ? this.ImportingSiteTypeWithoutCollection : null; }

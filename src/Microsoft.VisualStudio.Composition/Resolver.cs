@@ -9,16 +9,20 @@ namespace Microsoft.VisualStudio.Composition
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.Linq;
+    using MessagePack;
     using System.Reflection;
     using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
 
+    [MessagePackObject]
     public class Resolver
     {
         /// <summary>
         /// A <see cref="Resolver"/> instance that may be used where customizing assembly loading is not necessary.
         /// </summary>
+        ///[IgnoreMember]
+        [Key(0)]
         public static readonly Resolver DefaultInstance = new Resolver(new StandardAssemblyLoader());
 
         /// <summary>
@@ -28,8 +32,10 @@ namespace Microsoft.VisualStudio.Composition
         /// This is for efficiency to avoid duplicates where convenient to do so.
         /// It is not intended as a guarantee of reference equality across equivalent TypeRef instances.
         /// </remarks>
+        //[IgnoreMember]
         internal readonly Dictionary<Type, WeakReference<Reflection.TypeRef>> InstanceCache = new Dictionary<Type, WeakReference<Reflection.TypeRef>>();
 
+       // [IgnoreMember]
         internal readonly Dictionary<Assembly, AssemblyName> NormalizedAssemblyCache = new Dictionary<Assembly, AssemblyName>();
 
         /// <summary>
@@ -37,6 +43,7 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         private readonly Dictionary<AssemblyName, StrongAssemblyIdentity> loadedAssemblyStrongIdentities = new Dictionary<AssemblyName, StrongAssemblyIdentity>(ByValueEquality.AssemblyName);
 
+       // [SerializationConstructor]
         public Resolver(IAssemblyLoader assemblyLoader)
         {
             Requires.NotNull(assemblyLoader, nameof(assemblyLoader));
@@ -44,6 +51,15 @@ namespace Microsoft.VisualStudio.Composition
             this.AssemblyLoader = assemblyLoader;
         }
 
+       // [SerializationConstructor]
+        public Resolver()
+        {
+            //Requires.NotNull(assemblyLoader, nameof(assemblyLoader));
+            throw new ArgumentNullException("assemblyLoader"); // work around to fix text 
+           // this.AssemblyLoader = assemblyLoader;
+        }
+
+        // [Key(0)]
         internal IAssemblyLoader AssemblyLoader { get; }
 
         /// <summary>
@@ -106,16 +122,19 @@ namespace Microsoft.VisualStudio.Composition
         /// An <see cref="IAssemblyLoader"/> that wraps another, and notifies its creator
         /// whenever an assembly is loaded.
         /// </summary>
-        private class AssemblyLoaderWrapper : IAssemblyLoader
+        [MessagePackObject]
+        internal class AssemblyLoaderWrapper : IAssemblyLoader
         {
             /// <summary>
             /// The <see cref="Resolver"/> that created this instance.
             /// </summary>
+            [Key(0)]
             private readonly Resolver resolver;
 
             /// <summary>
             /// The inner <see cref="IAssemblyLoader"/> to use.
             /// </summary>
+            [Key(1)]
             private readonly IAssemblyLoader inner;
 
             /// <summary>
@@ -123,6 +142,7 @@ namespace Microsoft.VisualStudio.Composition
             /// </summary>
             /// <param name="resolver">The <see cref="Resolver"/> that created this instance.</param>
             /// <param name="inner">The inner <see cref="IAssemblyLoader"/> to use.</param>
+            [SerializationConstructor]
             internal AssemblyLoaderWrapper(Resolver resolver, IAssemblyLoader inner)
             {
                 this.resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));

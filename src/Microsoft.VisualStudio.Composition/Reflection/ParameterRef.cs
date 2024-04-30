@@ -7,9 +7,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using MessagePack;
     using System.Reflection;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
+    [MessagePackObject(true)]
     public class ParameterRef : IEquatable<ParameterRef>
     {
         /// <summary>
@@ -23,6 +25,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// </summary>
         private ParameterInfo? cachedParameterInfo;
 
+        //[SerializationConstructor]
         public ParameterRef(MethodRef method, int parameterIndex)
         {
             Requires.NotNull(method, nameof(method));
@@ -41,19 +44,25 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.ParameterIndex = parameterInfo.Position;
         }
 
+       // [Key(0)]
         public MethodRef Method { get; }
 
+      //  [Key(1)]
         public ParameterInfo? ParameterInfo => this.cachedParameterInfo ?? (this.cachedParameterInfo = this.Resolve());
 
+     //   [Key(2)]
         public TypeRef DeclaringType => this.Method.DeclaringType;
 
+    //    [Key(3)]
         public int MethodMetadataToken => this.Method.MetadataToken;
 
         /// <summary>
         /// Gets a 0-based index describing which parameter in the method this references.
         /// </summary>
+    //    [Key(4)]
         public int ParameterIndex { get; }
 
+      //  [Key(5)]
         public AssemblyName AssemblyName => this.DeclaringType.AssemblyName;
 
         internal Resolver Resolver => this.DeclaringType.Resolver;

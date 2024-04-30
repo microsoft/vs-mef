@@ -8,10 +8,17 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using MessagePack;
     using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
+
+    [Union(0, typeof(FieldRef))]
+    [Union(1, typeof(MethodRef))]
+    [Union(2, typeof(PropertyRef))]
+    [MessagePackObject(true)]
+   // [MessagePackFormatter(typeof(StrongAssemblyIdentityFormatter))]
 
     public abstract class MemberRef : IEquatable<MemberRef>
     {
@@ -38,14 +45,14 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.IsStatic = isStatic;
         }
 
-        protected MemberRef(TypeRef declaringType, MemberInfo memberInfo)
+        protected MemberRef(TypeRef declaringType, MemberInfo cachedMemberInfo)
         {
             Requires.NotNull(declaringType, nameof(declaringType));
-            Requires.NotNull(memberInfo, nameof(memberInfo));
+            Requires.NotNull(cachedMemberInfo, nameof(cachedMemberInfo));
 
             this.DeclaringType = declaringType;
-            this.cachedMemberInfo = memberInfo;
-            this.IsStatic = memberInfo.IsStatic();
+            this.cachedMemberInfo = cachedMemberInfo;
+            this.IsStatic = cachedMemberInfo.IsStatic();
         }
 
         protected MemberRef(MemberInfo memberInfo, Resolver resolver)
@@ -55,16 +62,23 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         {
         }
 
+       // [Key(0)]
         public TypeRef DeclaringType { get; }
 
+      //  [Key(1)]
         public AssemblyName AssemblyName => this.DeclaringType.AssemblyName;
 
+      //  [Key(2)]
         public abstract string Name { get; }
 
+      //  [Key(3)]
         public bool IsStatic { get; }
 
+      //  [Key(4)]
         public int MetadataToken => this.metadataToken ?? this.cachedMemberInfo?.GetMetadataTokenSafe() ?? 0;
 
+        //[Key(5)]
+        [IgnoreMember] //// TODO Ankit ignoer it
         public MemberInfo MemberInfo => this.cachedMemberInfo ?? (this.cachedMemberInfo = this.Resolve());
 
         internal MemberInfo? MemberInfoNoResolve => this.cachedMemberInfo;

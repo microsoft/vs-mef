@@ -7,12 +7,17 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
+    using MessagePack;
     using System.Text;
     using System.Threading.Tasks;
 
+    [MessagePackObject]
     public class DiscoveredParts
     {
+        [Key(0)]
         public static readonly DiscoveredParts Empty = new DiscoveredParts(ImmutableHashSet.Create<ComposablePartDefinition>(), ImmutableList.Create<PartDiscoveryException>());
+
+        [SerializationConstructor]
 
         public DiscoveredParts(IEnumerable<ComposablePartDefinition> parts, IEnumerable<PartDiscoveryException> discoveryErrors)
         {
@@ -23,8 +28,10 @@ namespace Microsoft.VisualStudio.Composition
             this.DiscoveryErrors = ImmutableList.CreateRange(discoveryErrors);
         }
 
+        [Key(1)]
         public ImmutableHashSet<ComposablePartDefinition> Parts { get; private set; }
 
+        [Key(2)]
         public ImmutableList<PartDiscoveryException> DiscoveryErrors { get; private set; }
 
         /// <summary>

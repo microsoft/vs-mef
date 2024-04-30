@@ -10,6 +10,11 @@ namespace Microsoft.VisualStudio.Composition
     using System.Text;
     using System.Threading.Tasks;
 
+    [MessagePack.Union(0, typeof(ExportMetadataValueImportConstraint))]
+    [MessagePack.Union(1, typeof(ExportTypeIdentityConstraint))]
+    [MessagePack.Union(2, typeof(ImportMetadataViewConstraint))]
+    [MessagePack.Union(3, typeof(PartCreationPolicyConstraint))]
+
     internal interface IDescriptiveToString
     {
         void ToString(TextWriter writer);

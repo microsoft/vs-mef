@@ -9,11 +9,13 @@ namespace Microsoft.VisualStudio.Composition
     using System.ComponentModel;
     using System.IO;
     using System.Linq;
+    using MessagePack;
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
+    [MessagePackObject]
     public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
         private static readonly ImportMetadataViewConstraint EmptyInstance = new ImportMetadataViewConstraint(ImmutableDictionary<string, MetadatumRequirement>.Empty, resolver: null);
@@ -21,26 +23,29 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportMetadataViewConstraint"/> class.
         /// </summary>
-        /// <param name="metadataNamesAndTypes">The metadata names and requirements.</param>
-        /// <param name="resolver">A resolver to use when handling <see cref="TypeRef"/> objects. Must not be null unless <paramref name="metadataNamesAndTypes"/> is empty.</param>
-        public ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> metadataNamesAndTypes, Resolver? resolver)
+        /// <param name="requirements">The metadata names and requirements.</param>
+        /// <param name="resolver">A resolver to use when handling <see cref="TypeRef"/> objects. Must not be null unless <paramref name="requirements"/> is empty.</param>
+        [SerializationConstructor]
+        public ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> requirements, Resolver? resolver)
         {
-            Requires.NotNull(metadataNamesAndTypes, nameof(metadataNamesAndTypes));
-            if (metadataNamesAndTypes.Count > 0)
+            Requires.NotNull(requirements, nameof(requirements));
+            if (requirements.Count > 0)
             {
                 Requires.NotNull(resolver!, nameof(resolver));
             }
 
-            this.Requirements = ImmutableDictionary.CreateRange(metadataNamesAndTypes);
+            this.Requirements = ImmutableDictionary.CreateRange(requirements);
             this.Resolver = resolver;
         }
 
+        [Key(0)]
         public ImmutableDictionary<string, MetadatumRequirement> Requirements { get; private set; }
 
         /// <summary>
         /// Gets the <see cref="Composition.Resolver"/> to use.
         /// May be <see langword="null"/> if <see cref="Requirements"/> is empty.
         /// </summary>
+        [Key(1)]
         public Resolver? Resolver { get; }
 
         /// <summary>
@@ -195,19 +200,25 @@ namespace Microsoft.VisualStudio.Composition
             return ImmutableDictionary<string, MetadatumRequirement>.Empty;
         }
 
+        [MessagePackObject]
         public struct MetadatumRequirement
         {
-            public MetadatumRequirement(TypeRef valueType, bool required)
+            [SerializationConstructor]
+
+            public MetadatumRequirement(TypeRef metadatumValueTypeRef, bool isMetadataumValueRequired)
                 : this()
             {
-                this.MetadatumValueTypeRef = valueType;
-                this.IsMetadataumValueRequired = required;
+                this.MetadatumValueTypeRef = metadatumValueTypeRef;
+                this.IsMetadataumValueRequired = isMetadataumValueRequired;
             }
 
+            [Key(0)]
             public TypeRef MetadatumValueTypeRef { get; private set; }
 
+            [IgnoreMember]
             public Type MetadatumValueType => this.MetadatumValueTypeRef.Resolve();
 
+            [Key(1)]
             public bool IsMetadataumValueRequired { get; private set; }
         }
     }

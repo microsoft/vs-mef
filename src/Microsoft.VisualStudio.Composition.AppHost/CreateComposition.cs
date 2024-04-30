@@ -515,7 +515,7 @@ namespace Microsoft.VisualStudio.Composition.AppHost
             }
         }
 
-        private class AssemblyLoader : IAssemblyLoader
+        internal class AssemblyLoader : IAssemblyLoader
         {
             private readonly Dictionary<string, string> assemblyNamesToPaths = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             private readonly CreateComposition task;

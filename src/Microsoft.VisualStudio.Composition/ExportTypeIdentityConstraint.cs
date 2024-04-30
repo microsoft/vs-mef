@@ -8,24 +8,28 @@ namespace Microsoft.VisualStudio.Composition
     using System.Collections.Immutable;
     using System.IO;
     using System.Linq;
+    using MessagePack;
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
 
+    [MessagePackObject]
     public class ExportTypeIdentityConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
-        public ExportTypeIdentityConstraint(Type typeIdentity)
+        public ExportTypeIdentityConstraint(Type typeRequested)
         {
-            Requires.NotNull(typeIdentity, nameof(typeIdentity));
-            this.TypeIdentityName = ContractNameServices.GetTypeIdentity(typeIdentity);
+            Requires.NotNull(typeRequested, nameof(typeRequested));
+            this.TypeIdentityName = ContractNameServices.GetTypeIdentity(typeRequested);
         }
 
+        [SerializationConstructor]
         public ExportTypeIdentityConstraint(string typeIdentityName)
         {
             Requires.NotNullOrEmpty(typeIdentityName, nameof(typeIdentityName));
             this.TypeIdentityName = typeIdentityName;
         }
 
+        [Key(0)]
         public string TypeIdentityName { get; private set; }
 
         public static ImmutableDictionary<string, object?> GetExportMetadata(Type type)

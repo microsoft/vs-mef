@@ -5,6 +5,7 @@ namespace Microsoft.VisualStudio.Composition
 {
     using System.Collections.Generic;
     using System.Reflection;
+    using MessagePack;
 #if NET
     using System.Runtime.Loader;
 #endif
@@ -12,6 +13,8 @@ namespace Microsoft.VisualStudio.Composition
     /// <summary>
     /// A typical .NET Framework implementation of the <see cref="IAssemblyLoader"/> interface.
     /// </summary>
+
+    [MessagePackObject]
     internal class StandardAssemblyLoader : IAssemblyLoader
     {
         /// <summary>

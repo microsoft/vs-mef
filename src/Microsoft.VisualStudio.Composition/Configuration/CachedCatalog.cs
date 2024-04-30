@@ -4,6 +4,7 @@
 namespace Microsoft.VisualStudio.Composition
 {
     using System;
+    using System.Buffers;
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Globalization;
@@ -12,47 +13,210 @@ namespace Microsoft.VisualStudio.Composition
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using MessagePack;
+    using MessagePack.Resolvers;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     public class CachedCatalog
     {
         protected static readonly Encoding TextEncoding = Encoding.UTF8;
 
-        public Task SaveAsync(ComposableCatalog catalog, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        //public Task SaveAsync(ComposableCatalog catalog, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        //{
+        //    Requires.NotNull(catalog, nameof(catalog));
+        //    Requires.NotNull(cacheStream, nameof(cacheStream));
+
+        //    return Task.Run(() =>
+        //    {
+        //        using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
+        //        {
+        //            using (var context = new SerializationContext(writer, catalog.Parts.Count * 4, catalog.Resolver))
+        //            {
+        //                context.Write(catalog);
+        //                context.FinalizeObjectTableCapacity();
+        //            }
+        //        }
+        //    });
+        //}
+
+        //public Task<ComposableCatalog> LoadAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
+        //{
+        //    Requires.NotNull(cacheStream, nameof(cacheStream));
+        //    Requires.NotNull(resolver, nameof(resolver));
+
+        //    return Task.Run(() =>
+        //    {
+        //        using (var reader = new BinaryReader(cacheStream, TextEncoding, leaveOpen: true))
+        //        {
+        //            using (var context = new SerializationContext(reader, resolver))
+        //            {
+        //                var catalog = context.ReadComposableCatalog();
+        //                return catalog;
+        //            }
+        //        }
+        //    });
+        //}
+
+
+        //SerializeAsync
+        public async Task SaveAsync(ComposableCatalog catalog, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(catalog, nameof(catalog));
             Requires.NotNull(cacheStream, nameof(cacheStream));
+            //MessagePackSerializer.DefaultOptions = MessagePack.Resolvers.ContractlessStandardResolver.Options;
 
-            return Task.Run(() =>
-            {
-                using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
-                {
-                    using (var context = new SerializationContext(writer, catalog.Parts.Count * 4, catalog.Resolver))
-                    {
-                        context.Write(catalog);
-                        context.FinalizeObjectTableCapacity();
-                    }
-                }
-            });
+            //var options = new MessagePackSerializerOptions(MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+
+
+
+            //var options = new MessagePackSerializerOptions(MessagePack.Resolvers.DynamicObjectResolverAllowPrivate.Instance);
+            //  await MessagePackSerializer.SerializeAsync(cacheStream, catalog, MessagePackSerializerOptions.Standard, cancellationToken);
+
+            //var ii = catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition.ExportConstraints.First();
+
+            //if (ii is ImportMetadataViewConstraint)
+            //{
+            //    var  uu =  (ImportMetadataViewConstraint)ii;
+            //    MessagePackSerializer.Serialize(cacheStream, uu.Resolver, options);
+            //}
+            //else
+            //{
+            //    var uu = (ImportMetadataViewConstraint)ii;
+
+            //    var lastIndex = catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition.ExportConstraints.Last();
+
+            //    MessagePackSerializer.Serialize(cacheStream, uu.Resolver, options);
+            //}
+
+
+            //if (catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition.ExportConstraints.Last() is Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint)
+            //{
+            //    var tttt = ((Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint)catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition.ExportConstraints.Last()).Resolver;
+            //    var res = MessagePackSerializer.Serialize(tttt, options);
+
+            //}
+            //else if(catalog.DiscoveredParts.Parts.Last().Imports.First().ImportDefinition.ExportConstraints.First() is Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint)
+            //{
+            //    var tttt = ((Microsoft.VisualStudio.Composition.ImportMetadataViewConstraint)catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition.ExportConstraints.First()).Resolver;
+
+            //    var res = MessagePackSerializer.Serialize(tttt, options);
+
+            //}
+
+            //var res2 = MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition.ExportConstraints, options);
+
+            //MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition.Cardinality, options);
+            //MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition.ExportFactorySharingBoundaries, options);
+            //MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition.Metadata, options);
+            //MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition.ContractName, options);
+            //MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition.ExportConstraints, options);
+            //MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition., options);
+
+            //var ImportDefinition = catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition;
+            // MessagePackSerializer.Serialize(ImportDefinition, options);
+
+
+            //MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition, options);
+
+
+            //var res2 = MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition, options);
+
+
+            //var ImportDefinition = catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition;
+            //MessagePackSerializer.Serialize(ImportDefinition, options);
+
+            ///
+
+            // var ImportDefinition = catalog.DiscoveredParts.Parts.First().Imports.First().ComposablePartType;
+
+
+            var options = new MessagePackSerializerOptions(MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+        //     options = new MessagePackSerializerOptions(MessagePack.Resolvers.StandardResolverAllowPrivate.Instance);
+           // options = new MessagePackSerializerOptions(MessagePack.Resolvers.ContractlessStandardResolverAllowPrivate.Instance);
+
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ComposablePartTypeRef, options);
+
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ComposablePartTypeRef, options);
+
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportDefinition, options);
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ComposablePartType, options);
+
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ExportFactoryType, options);
+
+            
+
+            //MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportingMember, options); //todo Ankit ignore MemberInfo
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportingMemberRef, options);
+
+            //MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportingParameter, options); can be ignore as it can be accessed from other propes
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportingParameterRef, options);
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportingSiteElementType, options);
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportingSiteElementTypeRef, options);
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportingSiteType, options);
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportingSiteTypeRef, options);
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportingSiteTypeWithoutCollection, options);
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportingSiteTypeWithoutCollectionRef, options);
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().IsExportFactory, options);
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().IsLazy, options);
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().MetadataType, options);
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First(), options);
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports, options);
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First(), options);
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts, options);
+
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts, options);
+
+            MessagePackSerializer.Serialize(catalog, options);
+
+            var filestream = new FileStream(@"C:\bTemp\test.txt", FileMode.Create);
+            await MessagePackSerializer.SerializeAsync(filestream, catalog, options, cancellationToken);
+            filestream.Dispose();
+
+
+            //using (FileStream fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
+            //{
+            //    // Create a StreamWriter using the FileStream
+            //    using (StreamWriter streamWriter = new StreamWriter(fileStream, Encoding.UTF8))
+            //    {
+            //        // Write data to the file
+            //        streamWriter.WriteLine(data);
+            //    }
+            //}
+
+
+            await MessagePackSerializer.SerializeAsync(cacheStream, catalog, options, cancellationToken);
+
+            //await MessagePackSerializer.SerializeAsync(cacheStream, catalog, options, cancellationToken);
+
         }
 
-        public Task<ComposableCatalog> LoadAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
+        //DeserializeAsync
+        public async Task<ComposableCatalog> LoadAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.NotNull(resolver, nameof(resolver));
 
-            return Task.Run(() =>
-            {
-                using (var reader = new BinaryReader(cacheStream, TextEncoding, leaveOpen: true))
-                {
-                    using (var context = new SerializationContext(reader, resolver))
-                    {
-                        var catalog = context.ReadComposableCatalog();
-                        return catalog;
-                    }
-                }
-            });
+            ComposableCatalog catalog = await MessagePackSerializer.DeserializeAsync<ComposableCatalog>(cacheStream, MessagePackSerializerOptions.Standard, cancellationToken);
+
+            return catalog;
         }
+
 
         private class SerializationContext : SerializationContextBase
         {

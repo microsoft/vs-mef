@@ -9,12 +9,14 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Linq;
+    using MessagePack;
     using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
+    [MessagePackObject(true)]
     public class MethodRef : MemberRef, IEquatable<MethodRef>
     {
         /// <summary>
@@ -66,16 +68,21 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.GenericMethodArguments = ImmutableArray<TypeRef>.Empty;
         }
 
+       // [Key(6)]
         public MethodBase MethodBase => (MethodBase)this.MemberInfo;
 
+       // [Key(7)]
         public MethodBase? MethodBaseNoResolve => (MethodBase?)this.MemberInfoNoResolve;
 
         protected override MemberInfo Resolve() => ResolverExtensions.Resolve(this);
 
+      //  [Key(8)]
         public override string Name { get; }
 
+     //   [Key(9)]
         public ImmutableArray<TypeRef> ParameterTypes { get; }
 
+     //   [Key(10)]
         public ImmutableArray<TypeRef> GenericMethodArguments { get; }
 
         [return: NotNullIfNotNull("method")]
