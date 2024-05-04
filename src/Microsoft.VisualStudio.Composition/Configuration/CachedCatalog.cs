@@ -135,7 +135,7 @@ namespace Microsoft.VisualStudio.Composition
            // options = new MessagePackSerializerOptions(MessagePack.Resolvers.ContractlessStandardResolverAllowPrivate.Instance);
 
 
-            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ComposablePartTypeRef, options);
+            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ComposablePartTypeRef, options); //here
 
 
             MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ComposablePartTypeRef, options);
@@ -151,7 +151,103 @@ namespace Microsoft.VisualStudio.Composition
 
             //MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportingMember, options); //todo Ankit ignore MemberInfo
 
-            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportingMemberRef, options);
+            var ty = MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportingMemberRef, options);
+            var convertedBack = MessagePackSerializer.Deserialize<MemberRef?>(ty, options);
+            var strin = MessagePackSerializer.ConvertToJson(ty);
+
+            foreach (ComposablePartDefinition yuParts in catalog.Parts)
+            {
+                TestSerializeDeseriaizeTest(yuParts.Metadata, "Metadata");
+
+                TestSerializeDeseriaizeTest(yuParts.ExportedTypes, "ExportedTypes");
+
+                TestSerializeDeseriaizeTest(yuParts.ExportingMembers, "ExportingMembers");
+
+                TestSerializeDeseriaizeTest(yuParts.OnImportsSatisfiedMethodRefs, "OnImportsSatisfiedMethodRefs");
+
+                TestSerializeDeseriaizeTest(yuParts.SharingBoundary, "SharingBoundary");
+
+                TestSerializeDeseriaizeTest(yuParts.ImportingMembers, "ImportingMembers");
+
+                TestSerializeDeseriaizeTest(yuParts.ImportingConstructorImports, "ImportingConstructorImports");
+
+                TestSerializeDeseriaizeTest(yuParts.ImportingConstructorOrFactoryRef, "ImportingConstructorOrFactoryRef");
+
+                TestSerializeDeseriaizeTest(yuParts.ImportingConstructorOrFactoryRef, "ImportingConstructorOrFactoryRef");
+
+                TestSerializeDeseriaizeTest(yuParts.TypeRef, "TypeRef");
+
+                TestSerializeDeseriaizeTest(yuParts, "Parts");
+
+                foreach (ImportDefinitionBinding ImportingMembers in yuParts.ImportingMembers)
+                {
+                    TestSerializeDeseriaizeTest(ImportingMembers, "ImportingMembers");
+                }
+
+                foreach (ImportDefinitionBinding yu in yuParts.ImportingConstructorImports)
+                {
+                    TestSerializeDeseriaizeTest<ImportDefinitionBinding?>(yu, "ImportingConstructorImports - ImportDefinitionBinding");
+                }
+
+                foreach (MethodRef onImportsSatisfiedMethods in yuParts.OnImportsSatisfiedMethodRefs)
+                {
+                    TestSerializeDeseriaizeTest(onImportsSatisfiedMethods, "OnImportsSatisfiedMethodRefs");
+                }
+
+                foreach (var yu in yuParts.Imports)
+                {
+                    var ty2 = MessagePackSerializer.Serialize(yu.ImportingMemberRef, options);
+                    var convertedBack2 = MessagePackSerializer.Deserialize<MemberRef?>(ty2, options);
+                    var strin22 = MessagePackSerializer.ConvertToJson(ty2);
+                }
+
+            }
+
+
+            TestSerializeDeseriaizeTest(catalog.Resolver, "Resolver");            
+
+
+            foreach (ComposablePartDefinition yuParts in catalog.DiscoveredParts.Parts)
+            {
+                foreach (var yu in yuParts.Imports)
+                {
+                    var ty2 = MessagePackSerializer.Serialize(yu.ImportingMemberRef, options);
+                    var convertedBack2 = MessagePackSerializer.Deserialize<MemberRef?>(ty2, options);
+                    var strin22 = MessagePackSerializer.ConvertToJson(ty2);
+                }
+
+                foreach (ImportDefinitionBinding yu in yuParts.ImportingConstructorImports)
+                {
+                    TestSerializeDeseriaizeTest<ImportDefinitionBinding?>(yu, "ImportingConstructorImports - ImportDefinitionBinding");
+                }
+
+                foreach (ImportDefinitionBinding ImportingMembers in yuParts.ImportingMembers)
+                {
+                    TestSerializeDeseriaizeTest(ImportingMembers, "ImportingMembers");
+                }
+
+                foreach (MethodRef onImportsSatisfiedMethods in yuParts.OnImportsSatisfiedMethodRefs)
+                {
+                    TestSerializeDeseriaizeTest(onImportsSatisfiedMethods, "OnImportsSatisfiedMethodRefs");
+                }
+
+                TestSerializeDeseriaizeTest(yuParts.ImportingConstructorOrFactoryRef, "ImportingConstructorOrFactoryRef");
+
+                TestSerializeDeseriaizeTest(yuParts.SharingBoundary, "SharingBoundary");
+
+                TestSerializeDeseriaizeTest(yuParts.Metadata, "Metadata");
+
+
+                TestSerializeDeseriaizeTest(yuParts.ExportingMembers, "ExportingMembers");
+
+                TestSerializeDeseriaizeTest(yuParts.ExportedTypes, "ExportedTypes");
+
+                TestSerializeDeseriaizeTest(yuParts.TypeRef, "TypeRef");
+
+                TestSerializeDeseriaizeTest(yuParts, "Parts");
+            }
+
+
 
             //MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().ImportingParameter, options); can be ignore as it can be accessed from other propes
 
@@ -172,7 +268,8 @@ namespace Microsoft.VisualStudio.Composition
 
             MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First().MetadataType, options);
 
-            MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First(), options);
+            var ty1 = MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports.First(), options);
+            var strin2 = MessagePackSerializer.ConvertToJson(ty1);
 
             MessagePackSerializer.Serialize(catalog.DiscoveredParts.Parts.First().Imports, options);
 
@@ -204,6 +301,14 @@ namespace Microsoft.VisualStudio.Composition
 
             //await MessagePackSerializer.SerializeAsync(cacheStream, catalog, options, cancellationToken);
 
+            void TestSerializeDeseriaizeTest<T>(T objectToDesrialize, string name)
+            {
+                var temp3 = MessagePackSerializer.Serialize(objectToDesrialize, options);
+                var convertedBackTemp2 = MessagePackSerializer.Deserialize<T?>(temp3, options);
+                var strinTemp = MessagePackSerializer.ConvertToJson(temp3);
+
+            }
+
         }
 
         //DeserializeAsync
@@ -212,7 +317,11 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.NotNull(resolver, nameof(resolver));
 
-            ComposableCatalog catalog = await MessagePackSerializer.DeserializeAsync<ComposableCatalog>(cacheStream, MessagePackSerializerOptions.Standard, cancellationToken);
+            Microsoft.VisualStudio.Composition.MapperTEst.Resolver = resolver;
+
+            var options = new MessagePackSerializerOptions(MessagePack.Resolvers.ContractlessStandardResolver.Instance);
+
+            ComposableCatalog catalog = await MessagePackSerializer.DeserializeAsync<ComposableCatalog>(cacheStream, options, cancellationToken);
 
             return catalog;
         }

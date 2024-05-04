@@ -11,7 +11,9 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using MessagePack;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-    [MessagePackObject(true)]
+    //    [MessagePackObject(true)]
+    [MessagePackFormatter(typeof(MemberRefFormatter<FieldRef>))]
+
     public class FieldRef : MemberRef, IEquatable<FieldRef>
     {
         /// <summary>

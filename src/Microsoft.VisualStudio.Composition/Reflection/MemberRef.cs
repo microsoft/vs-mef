@@ -13,12 +13,181 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
+    using MessagePack.Formatters;
+    using System.Collections.Immutable;
 
-    [Union(0, typeof(FieldRef))]
-    [Union(1, typeof(MethodRef))]
-    [Union(2, typeof(PropertyRef))]
-    [MessagePackObject(true)]
-   // [MessagePackFormatter(typeof(StrongAssemblyIdentityFormatter))]
+
+    //[Union(0, typeof(FieldRef))]
+    //[Union(1, typeof(MethodRef))]
+    //[Union(2, typeof(PropertyRef))]
+    //[MessagePackObject(true)]
+
+    public class MemberRefFormatter<T> : IMessagePackFormatter<T>
+        where T : MemberRef
+    {
+        public enum MemberRefType
+        {
+            Other = 0,
+            Field,
+            Property,
+            Method,
+        }
+
+        public void Serialize(ref MessagePackWriter writer, T value, MessagePackSerializerOptions options)
+        {
+            
+
+            switch (value)
+            {
+                case FieldRef fieldRef:
+                    options.Resolver.GetFormatterWithVerify<MemberRefType>().Serialize(ref writer, MemberRefType.Field, options);
+
+                    SerializefieldRef(ref writer, fieldRef, options);
+                    break;
+                case PropertyRef propertyRef:
+                    options.Resolver.GetFormatterWithVerify<MemberRefType>().Serialize(ref writer, MemberRefType.Property, options);
+
+                    SerializemethodPropertyRef(ref writer, propertyRef, options);
+
+                    break;
+                case MethodRef methodRef:
+                    options.Resolver.GetFormatterWithVerify<MemberRefType>().Serialize(ref writer, MemberRefType.Method, options);
+
+                    SerializeMethodRef(ref writer, methodRef, options);
+
+                    break;
+                default:
+                    // this.writer.Write((byte)0)
+                    options.Resolver.GetFormatterWithVerify<MemberRefType>().Serialize(ref writer, MemberRefType.Other, options);
+                    // ;
+                    break;
+            }
+
+
+            void SerializefieldRef(ref MessagePackWriter writer, FieldRef value, MessagePackSerializerOptions options)
+            {
+
+                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringType, options);
+                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.FieldTypeRef, options);
+                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
+                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
+                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsStatic, options);
+            }
+
+            void SerializeMethodRef(ref MessagePackWriter writer, MethodRef value, MessagePackSerializerOptions options)
+            {
+
+
+
+                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringType, options);
+                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
+                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
+                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsStatic, options);
+                options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>().Serialize(ref writer, value.ParameterTypes, options);
+                options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>().Serialize(ref writer, value.GenericMethodArguments, options);
+            }
+
+            void SerializemethodPropertyRef(ref MessagePackWriter writer, PropertyRef value, MessagePackSerializerOptions options)
+            {
+
+
+                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringType, options);
+                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.PropertyTypeRef, options);
+                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
+                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
+                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsStatic, options);
+                options.Resolver.GetFormatterWithVerify<int?>().Serialize(ref writer, value.SetMethodMetadataToken, options);
+                options.Resolver.GetFormatterWithVerify<int?>().Serialize(ref writer, value.GetMethodMetadataToken, options);
+            }
+
+
+        }
+    
+
+
+            //    options.Resolver.GetFormatterWithVerify<AssemblyName>().Serialize(ref writer, value.Name, options);
+
+
+
+
+
+        public T Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+            MemberRefType kind = options.Resolver.GetFormatterWithVerify<MemberRefType>().Deserialize(ref reader, options);
+
+            switch (kind)
+            {
+                case MemberRefType.Other:
+                    return default(MemberRef) as T;
+                case MemberRefType.Field:
+                    return ReadFieldRef(ref reader, options);
+                case MemberRefType.Property:
+                    return ReadPropertyRef(ref reader, options);
+                case MemberRefType.Method:
+                    return ReadMethodRef(ref reader, options);
+                default:
+                    throw new NotSupportedException();
+            }
+
+
+            T ReadFieldRef(ref MessagePackReader reader, MessagePackSerializerOptions options)
+            {
+                var declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+                var fieldType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+                var metadataToken = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+                var name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                var isStatic = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
+
+                var value = new FieldRef(declaringType, fieldType, metadataToken, name, isStatic);
+
+                return value as T;
+            }
+
+            T ReadPropertyRef(ref MessagePackReader reader, MessagePackSerializerOptions options)
+            {
+                var declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+                var propertyType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+                var metadataToken = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+                var name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                var isStatic = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
+                var setter = options.Resolver.GetFormatterWithVerify<int?>().Deserialize(ref reader, options);
+                var getter = options.Resolver.GetFormatterWithVerify<int?>().Deserialize(ref reader, options);
+               
+
+                var value = new PropertyRef(
+                        declaringType,
+                        propertyType,
+                        metadataToken,
+                        getter,
+                        setter,
+                        name,
+                        isStatic);
+                return value as T;
+            }
+
+            T ReadMethodRef(ref MessagePackReader reader, MessagePackSerializerOptions options)
+            {
+
+                var declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+                var metadataToken = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+                var name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                var isStatic = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
+                var parameterTypes = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>().Deserialize(ref reader, options);
+                var genericMethodArguments = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>().Deserialize(ref reader, options);
+
+                var value = new MethodRef(declaringType, metadataToken, name, isStatic, parameterTypes, genericMethodArguments);
+
+                return value as T;
+
+
+            }
+
+        }
+    }
+
+
+
+    [MessagePackFormatter(typeof(MemberRefFormatter<MemberRef>))]
 
     public abstract class MemberRef : IEquatable<MemberRef>
     {

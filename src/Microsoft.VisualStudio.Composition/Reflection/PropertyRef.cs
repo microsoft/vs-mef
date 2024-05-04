@@ -12,9 +12,15 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
+    using MessagePack.Formatters;
+
+   
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-    [MessagePackObject(true)]
+    //[MessagePackObject(true)]
+
+    [MessagePackFormatter(typeof(MemberRefFormatter<PropertyRef>))]
+
     public class PropertyRef : MemberRef, IEquatable<PropertyRef>
     {
         /// <summary>

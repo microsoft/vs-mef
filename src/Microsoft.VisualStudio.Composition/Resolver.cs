@@ -14,15 +14,52 @@ namespace Microsoft.VisualStudio.Composition
     using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
+    using MessagePack.Formatters;
 
-    [MessagePackObject]
+    //[MessagePackObject(true)]
+
+    public static class MapperTEst
+    {
+        public static Resolver Resolver { get; set; }
+    }
+
+    [MessagePackFormatter(typeof(ComposableResolverFormatter))]
+
     public class Resolver
     {
+
+        class ComposableResolverFormatter : IMessagePackFormatter<Resolver>
+        {
+            public Resolver Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+            {
+                //var ComposablePartDefinition = options.Resolver.GetFormatterWithVerify<IImmutableSet<ComposablePartDefinition>>().Deserialize(ref reader, options);
+                //var Resolver = options.Resolver.GetFormatterWithVerify<Resolver>().Deserialize(ref reader, options);
+
+                ////  var parts = this.ReadList(this.ReadComposablePartDefinition);
+
+                //var obj = ComposableCatalog.Create(Resolver).AddParts(ComposablePartDefinition);
+
+                return MapperTEst.Resolver;
+            }
+
+            public void Serialize(ref MessagePackWriter writer, Resolver value, MessagePackSerializerOptions options)
+            {
+
+                if(MapperTEst.Resolver == null) { MapperTEst.Resolver = value; }
+
+              //  options.Resolver.GetFormatterWithVerify<IAssemblyLoader>().Serialize(ref writer, value.AssemblyLoader, options);
+                //options.Resolver.GetFormatterWithVerify<IAssemblyLoader>().Serialize(ref writer, value., options);
+                //options.Resolver.GetFormatterWithVerify<IAssemblyLoader>().Serialize(ref writer, value.AssemblyLoader, options);
+
+
+            }
+        }
+
         /// <summary>
         /// A <see cref="Resolver"/> instance that may be used where customizing assembly loading is not necessary.
         /// </summary>
         ///[IgnoreMember]
-        [Key(0)]
+       // [Key(0)]
         public static readonly Resolver DefaultInstance = new Resolver(new StandardAssemblyLoader());
 
         /// <summary>
@@ -51,13 +88,13 @@ namespace Microsoft.VisualStudio.Composition
             this.AssemblyLoader = assemblyLoader;
         }
 
-       // [SerializationConstructor]
-        public Resolver()
-        {
-            //Requires.NotNull(assemblyLoader, nameof(assemblyLoader));
-            throw new ArgumentNullException("assemblyLoader"); // work around to fix text 
-           // this.AssemblyLoader = assemblyLoader;
-        }
+       //// [SerializationConstructor]
+       // public Resolver()
+       // {
+       //     //Requires.NotNull(assemblyLoader, nameof(assemblyLoader));
+       //     throw new ArgumentNullException("assemblyLoader"); // work around to fix text 
+       //    // this.AssemblyLoader = assemblyLoader;
+       // }
 
         // [Key(0)]
         internal IAssemblyLoader AssemblyLoader { get; }
@@ -122,19 +159,19 @@ namespace Microsoft.VisualStudio.Composition
         /// An <see cref="IAssemblyLoader"/> that wraps another, and notifies its creator
         /// whenever an assembly is loaded.
         /// </summary>
-        [MessagePackObject]
+        [MessagePackObject(true)]
         internal class AssemblyLoaderWrapper : IAssemblyLoader
         {
             /// <summary>
             /// The <see cref="Resolver"/> that created this instance.
             /// </summary>
-            [Key(0)]
+          //  [Key(0)]
             private readonly Resolver resolver;
 
             /// <summary>
             /// The inner <see cref="IAssemblyLoader"/> to use.
             /// </summary>
-            [Key(1)]
+          //  [Key(1)]
             private readonly IAssemblyLoader inner;
 
             /// <summary>
@@ -142,7 +179,7 @@ namespace Microsoft.VisualStudio.Composition
             /// </summary>
             /// <param name="resolver">The <see cref="Resolver"/> that created this instance.</param>
             /// <param name="inner">The inner <see cref="IAssemblyLoader"/> to use.</param>
-            [SerializationConstructor]
+          //  [SerializationConstructor]
             internal AssemblyLoaderWrapper(Resolver resolver, IAssemblyLoader inner)
             {
                 this.resolver = resolver ?? throw new ArgumentNullException(nameof(resolver));

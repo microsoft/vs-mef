@@ -8,19 +8,51 @@ namespace Microsoft.VisualStudio.Composition
     using MessagePack;
 #if NET
     using System.Runtime.Loader;
+    using MessagePack.Formatters;
 #endif
 
     /// <summary>
     /// A typical .NET Framework implementation of the <see cref="IAssemblyLoader"/> interface.
     /// </summary>
+    ///
+    //public class StandardAssemblyLoaderFormatter : MessagePack.Formatters.IMessagePackFormatter<StandardAssemblyLoader>
+    //{
+    //    /// <inheritdoc/>
+    //    public StandardAssemblyLoader Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+    //    {
+    //        //var ComposablePartDefinition = options.Resolver.GetFormatterWithVerify<IImmutableSet<ComposablePartDefinition>>().Deserialize(ref reader, options);
+    //        //var Resolver = options.Resolver.GetFormatterWithVerify<Resolver>().Deserialize(ref reader, options);
 
-    [MessagePackObject]
+    //        ////  var parts = this.ReadList(this.ReadComposablePartDefinition);
+
+    //        //var obj = ComposableCatalog.Create(Resolver).AddParts(ComposablePartDefinition);
+
+    //        return null;
+    //    }
+
+    //    /// <inheritdoc/>
+    //    public void Serialize(ref MessagePackWriter writer, StandardAssemblyLoader value, MessagePackSerializerOptions options)
+    //    {
+
+    //        options.Resolver.GetFormatterWithVerify<Dictionary<AssemblyName, Assembly>>().Serialize(ref writer, value.loadedAssemblies, options);
+
+    //        //options.Resolver.GetFormatterWithVerify<IAssemblyLoader>().Serialize(ref writer, value., options);
+    //        //options.Resolver.GetFormatterWithVerify<IAssemblyLoader>().Serialize(ref writer, value.AssemblyLoader, options);
+
+
+    //    }
+   // }
+
+    [MessagePackObject(true)]
+    //[MessagePackFormatter(typeof(StandardAssemblyLoaderFormatter))]  // fix access issue so we changed from internal to public
     internal class StandardAssemblyLoader : IAssemblyLoader
     {
+
+
         /// <summary>
         /// A cache of assembly names to loaded assemblies.
         /// </summary>
-        private readonly Dictionary<AssemblyName, Assembly> loadedAssemblies = new Dictionary<AssemblyName, Assembly>(ByValueEquality.AssemblyName);
+        internal readonly Dictionary<AssemblyName, Assembly> loadedAssemblies = new Dictionary<AssemblyName, Assembly>(ByValueEquality.AssemblyName);
 
         /// <inheritdoc />
         public Assembly LoadAssembly(AssemblyName assemblyName)

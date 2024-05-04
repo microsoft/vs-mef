@@ -81,7 +81,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
                 options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Serialize(ref writer, value.AssemblyId, options);
                 options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
-
                 options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.FullName, options);
                 options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Serialize(ref writer, value.TypeFlags, options);
                 options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.GenericTypeParameterCount, options);
@@ -99,6 +98,9 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                     options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ElementTypeRef, options);
                 }
 
+                options.Resolver.GetFormatterWithVerify<Resolver>().Serialize(ref writer, value.Resolver, options);
+
+
 
             }
 
@@ -107,21 +109,26 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
 
                 var assemblyId = options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Deserialize(ref reader, options);
-                int MetadataTokenInt = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
-                var MetadataTokenValue = MetadataTokenInt | (uint)MetadataTokenType.Type;
-                var fullname = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-                var typeFlags = options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Deserialize(ref reader, options);
+                int metadataToken = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+                var fullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                var flags = options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Deserialize(ref reader, options);
                 var genericTypeParameterCount = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
-
                 var genericTypeArguments = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>().Deserialize(ref reader, options);
-
                 var shallow = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
-                var baseTypes = shallow ? ImmutableArray<TypeRef>.Empty : options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>().Deserialize(ref reader, options);
-                var elementType = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options) == 0 ? null : options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+                var baseTypes = !shallow ? options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>().Deserialize(ref reader, options)
+                    : ImmutableArray<TypeRef?>.Empty;
 
-                TypeRef ool = null;
+                var hasElementType = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options) != 0;
 
-                return ool;
+                var elementType = hasElementType
+                       ? options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options)
+                       : null;
+
+                var resolver = options.Resolver.GetFormatterWithVerify<Resolver>().Deserialize(ref reader, options);
+                var value = TypeRef.Get(resolver, assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments!, shallow, baseTypes!, elementType);
+
+
+                return value;
 
                 // var value = TypeRef.Get(options.Resolver, assemblyId, MetadataTokenValue, fullname, typeFlags, genericTypeParameterCount, genericTypeArguments, shallow, baseTypes, elementType);
 
@@ -391,7 +398,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             }
         }
 
-        [IgnoreMember]
+        //[IgnoreMember]
         internal Resolver Resolver => this.resolver;
 
         /// <summary>

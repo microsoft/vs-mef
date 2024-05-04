@@ -12,14 +12,100 @@ namespace Microsoft.VisualStudio.Composition
     using System.Text;
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Composition.Reflection;
+    using MessagePack.Formatters;
 
-    [MessagePackObject(true)]
+
+    public class ImportDefinitionBindingFormatter : IMessagePackFormatter<ImportDefinitionBinding>
+    {
+        public void Serialize(ref MessagePackWriter writer, ImportDefinitionBinding value, MessagePackSerializerOptions options)
+        {
+
+            if (value.ImportingMemberRef == null)
+            {
+                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, false, options);
+
+                options.Resolver.GetFormatterWithVerify<ParameterRef?>().Serialize(ref writer, value.ImportingParameterRef, options);
+            }
+            else
+            {
+                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, true, options);
+
+                options.Resolver.GetFormatterWithVerify<MemberRef?>().Serialize(ref writer, value.ImportingMemberRef, options);
+
+            }
+
+
+            options.Resolver.GetFormatterWithVerify<Type>().Serialize(ref writer, value.ComposablePartType, options);
+            options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ComposablePartTypeRef, options);
+            options.Resolver.GetFormatterWithVerify<Type?>().Serialize(ref writer, value.ExportFactoryType, options);
+            options.Resolver.GetFormatterWithVerify<ImportDefinition>().Serialize(ref writer, value.ImportDefinition, options);
+           // options.Resolver.GetFormatterWithVerify<MemberInfo?>().Serialize(ref writer, value.ImportingMember, options);
+            //options.Resolver.GetFormatterWithVerify<ParameterInfo?>().Serialize(ref writer, value.ImportingParameter, options);
+            options.Resolver.GetFormatterWithVerify<Type>().Serialize(ref writer, value.ImportingSiteType, options);
+            options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ImportingSiteTypeRef, options);
+            options.Resolver.GetFormatterWithVerify<Type>().Serialize(ref writer, value.ImportingSiteTypeWithoutCollection, options);
+            options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ImportingSiteTypeWithoutCollectionRef, options);
+            options.Resolver.GetFormatterWithVerify<Type>().Serialize(ref writer, value.ImportingSiteElementType, options);
+            options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ImportingSiteElementTypeRef, options);
+            options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsExportFactory, options);
+            options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsLazy, options);
+            options.Resolver.GetFormatterWithVerify<Type>().Serialize(ref writer, value.MetadataType, options);
+
+
+          
+        }
+
+        public ImportDefinitionBinding Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+            var isMember = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
+            ParameterRef? importingParameterRef = null;
+            MemberRef? importingMemberRef = null;
+            if (!isMember)
+            {
+                importingParameterRef = options.Resolver.GetFormatterWithVerify<ParameterRef?>().Deserialize(ref reader, options);
+            }
+            else
+            {
+                importingMemberRef = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options);
+            }
+
+
+            var composablePartType = options.Resolver.GetFormatterWithVerify<Type>().Deserialize(ref reader, options);
+                var composablePartTypeRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+            var exportFactoryType = options.Resolver.GetFormatterWithVerify<Type?>().Deserialize(ref reader, options);
+            var importDefinition = options.Resolver.GetFormatterWithVerify<ImportDefinition>().Deserialize(ref reader, options);
+            //var importingMember = options.Resolver.GetFormatterWithVerify<MemberInfo?>().Deserialize(ref reader, options);
+            //var importingParameter = options.Resolver.GetFormatterWithVerify<ParameterInfo?>().Deserialize(ref reader, options);
+
+            var importingSiteType = options.Resolver.GetFormatterWithVerify<Type>().Deserialize(ref reader, options);
+            var importingSiteTypeRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+            var importingSiteTypeWithoutCollection = options.Resolver.GetFormatterWithVerify<Type>().Deserialize(ref reader, options);
+            var importingSiteTypeWithoutCollectionRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+            var importingSiteElementType = options.Resolver.GetFormatterWithVerify<Type>().Deserialize(ref reader, options);
+            var importingSiteElementTypeRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+            var isExportFactory = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
+            var isLazy = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
+            var metadataType = options.Resolver.GetFormatterWithVerify<Type>().Deserialize(ref reader, options);
+
+            if(isMember)
+                return new ImportDefinitionBinding(importDefinition, importingSiteElementTypeRef, importingMemberRef, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
+            else
+                return new ImportDefinitionBinding(importDefinition, importingSiteElementTypeRef, importingParameterRef, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
+
+
+        }
+    }
+
+
+    //[MessagePackObject(false)]
+    [MessagePackFormatter(typeof(ImportDefinitionBindingFormatter))]
+
     public class ImportDefinitionBinding : IEquatable<ImportDefinitionBinding>
     {
-        [IgnoreMember]
+      //  [IgnoreMember]
         private bool? isLazy;
 
-        [IgnoreMember]
+      //  [IgnoreMember]
 
         private TypeRef? importingSiteElementTypeRef;
 
@@ -75,33 +161,33 @@ namespace Microsoft.VisualStudio.Composition
         /// Gets the definition for this import.
         /// </summary>
 
-       // [Key(0)]
+     //   [Key(0)]
         public ImportDefinition ImportDefinition { get; private set; }
 
         /// <summary>
         /// Gets the member this import is found on. Null for importing constructors.
         /// </summary>
         //[Key(1)] we need to  use the custome serilizer to seralize this property keeping ignore for now - Ankit TODO ths is onverting a MemberInfo object to a string and back is not straightforward because MemberInfo is an abstract class representing various types of members like fields, properties, methods, etc., and there's no single string representation that encapsulates all of its properties.
-        [IgnoreMember] 
+      //  [IgnoreMember] 
         public MemberInfo? ImportingMember => this.ImportingMemberRef?.MemberInfo;
 
         /// <summary>
         /// Gets the member this import is found on. Null for importing constructors.
         /// </summary>
-      //  [Key(2)]
+       // [Key(2)]
         public MemberRef? ImportingMemberRef { get; private set; }
 
         //[Key(3)]
         [IgnoreMember] // no public constructor and can be derived from ImportingParameterRef
         public ParameterInfo? ImportingParameter => this.ImportingParameterRef?.ParameterInfo;
 
-      //  [Key(4)]
+       // [Key(4)]
         public ParameterRef? ImportingParameterRef { get; private set; }
 
-     //   [Key(5)]
+      //  [Key(5)]
         public Type ComposablePartType => this.ComposablePartTypeRef.ResolvedType;
 
-     //   [Key(6)]
+       // [Key(6)]
         public TypeRef ComposablePartTypeRef { get; private set; }
 
         /// <summary>
@@ -120,10 +206,10 @@ namespace Microsoft.VisualStudio.Composition
       //  [Key(8)]
         public TypeRef ImportingSiteTypeRef { get; }
 
-     //   [Key(9)]
+       // [Key(9)]
         public TypeRef ImportingSiteTypeWithoutCollectionRef { get; }
 
-     //   [Key(10)]
+      //  [Key(10)]
         public Type ImportingSiteTypeWithoutCollection => this.ImportingSiteTypeWithoutCollectionRef.ResolvedType;
 
         /// <summary>
@@ -149,7 +235,7 @@ namespace Microsoft.VisualStudio.Composition
      //   [Key(12)]
         public Type? ImportingSiteElementType => this.ImportingSiteElementTypeRef?.Resolve();
 
-    //    [Key(13)]
+     //   [Key(13)]
         public bool IsLazy
         {
             get
@@ -163,7 +249,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-    //    [Key(14)]
+     //   [Key(14)]
         public Type? MetadataType
         {
             get

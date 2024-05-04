@@ -16,7 +16,8 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Threading.Tasks;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-    [MessagePackObject(true)]
+    //[MessagePackObject(true)]
+    [MessagePackFormatter(typeof(MemberRefFormatter<MethodRef>))]
     public class MethodRef : MemberRef, IEquatable<MethodRef>
     {
         /// <summary>
