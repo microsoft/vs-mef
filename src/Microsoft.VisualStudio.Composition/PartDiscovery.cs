@@ -528,7 +528,9 @@ namespace Microsoft.VisualStudio.Composition
             {
                 try
                 {
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks -- this isn't really a foreign task
                     await aggregatingBlock.Completion.ConfigureAwait(false);
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
                     tcs.SetResult(new DiscoveredParts(parts.ToImmutable(), errors.ToImmutable()));
                 }
                 catch (Exception ex)
@@ -592,7 +594,9 @@ namespace Microsoft.VisualStudio.Composition
             {
                 try
                 {
+#pragma warning disable VSTHRD003 // Avoid awaiting foreign Tasks -- this isn't really a foreign task
                     var parts = await tuple.Item2.ConfigureAwait(false);
+#pragma warning restore VSTHRD003 // Avoid awaiting foreign Tasks
                     tcs.SetResult(parts.Merge(new DiscoveredParts(Enumerable.Empty<ComposablePartDefinition>(), exceptions)));
                 }
                 catch (Exception ex)

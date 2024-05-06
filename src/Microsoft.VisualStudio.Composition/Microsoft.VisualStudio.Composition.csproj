@@ -17,8 +17,8 @@
     <PackageReference Include="System.ComponentModel.Composition" />
     <PackageReference Include="System.Composition" />
     <PackageReference Include="System.Reflection.Emit" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
-    <PackageReference Include="System.Reflection.Metadata" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" />
+    <PackageReference Include="System.Reflection.Metadata" Condition="'$(TargetFrameworkIdentifier)'!='.NETCoreApp'" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Condition="'$(TargetFrameworkIdentifier)'!='.NETCoreApp'" />
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include="PublicAPI.Shipped.txt" />
