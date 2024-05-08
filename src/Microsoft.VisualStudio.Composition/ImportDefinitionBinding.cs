@@ -37,6 +37,8 @@ namespace Microsoft.VisualStudio.Composition
 
             options.Resolver.GetFormatterWithVerify<Type>().Serialize(ref writer, value.ComposablePartType, options);
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ComposablePartTypeRef, options);
+
+
             options.Resolver.GetFormatterWithVerify<Type?>().Serialize(ref writer, value.ExportFactoryType, options);
             options.Resolver.GetFormatterWithVerify<ImportDefinition>().Serialize(ref writer, value.ImportDefinition, options);
            // options.Resolver.GetFormatterWithVerify<MemberInfo?>().Serialize(ref writer, value.ImportingMember, options);
@@ -71,7 +73,8 @@ namespace Microsoft.VisualStudio.Composition
 
 
             var composablePartType = options.Resolver.GetFormatterWithVerify<Type>().Deserialize(ref reader, options);
-                var composablePartTypeRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+            var composablePartTypeRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+
             var exportFactoryType = options.Resolver.GetFormatterWithVerify<Type?>().Deserialize(ref reader, options);
             var importDefinition = options.Resolver.GetFormatterWithVerify<ImportDefinition>().Deserialize(ref reader, options);
             //var importingMember = options.Resolver.GetFormatterWithVerify<MemberInfo?>().Deserialize(ref reader, options);
@@ -87,10 +90,16 @@ namespace Microsoft.VisualStudio.Composition
             var isLazy = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
             var metadataType = options.Resolver.GetFormatterWithVerify<Type>().Deserialize(ref reader, options);
 
-            if(isMember)
-                return new ImportDefinitionBinding(importDefinition, importingSiteElementTypeRef, importingMemberRef, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
+            if (isMember)
+            {
+                // return new ImportDefinitionBinding(importDefinition, importingSiteElementTypeRef, importingMemberRef, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
+                return new ImportDefinitionBinding(importDefinition, composablePartTypeRef, importingMemberRef, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
+            }
             else
-                return new ImportDefinitionBinding(importDefinition, importingSiteElementTypeRef, importingParameterRef, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
+            {
+                //   return new ImportDefinitionBinding(importDefinition, importingSiteElementTypeRef, importingParameterRef, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
+                return new ImportDefinitionBinding(importDefinition, composablePartTypeRef, importingParameterRef, importingSiteTypeRef, importingSiteTypeWithoutCollectionRef);
+            }
 
 
         }

@@ -981,31 +981,42 @@ namespace Microsoft.VisualStudio.Composition
                         this.Write(ObjectType.UInt16);
                         this.writer.Write((ushort)value);
                     }
+
                     else if (valueType == typeof(byte))
                     {
                         this.Write(ObjectType.Byte);
                         this.writer.Write((byte)value);
                     }
+
+
                     else if (valueType == typeof(sbyte))
                     {
                         this.Write(ObjectType.SByte);
                         this.writer.Write((sbyte)value);
                     }
+
+
                     else if (valueType == typeof(float))
                     {
                         this.Write(ObjectType.Single);
                         this.writer.Write((float)value);
                     }
+
+
                     else if (valueType == typeof(double))
                     {
                         this.Write(ObjectType.Double);
                         this.writer.Write((double)value);
                     }
+
+
                     else if (valueType == typeof(char))
                     {
                         this.Write(ObjectType.Char);
                         this.writer.Write((char)value);
                     }
+
+
                     else if (valueType == typeof(Guid))
                     {
                         this.Write(ObjectType.Guid);
@@ -1016,16 +1027,24 @@ namespace Microsoft.VisualStudio.Composition
                         this.Write(ObjectType.CreationPolicy);
                         this.writer.Write((byte)(CreationPolicy)value);
                     }
+
+
                     else if (typeof(Type).GetTypeInfo().IsAssignableFrom(valueType))
                     {
                         this.Write(ObjectType.Type);
                         this.Write(TypeRef.Get((Type)value, this.Resolver));
+
+
                     }
+
+
                     else if (typeof(TypeRef) == valueType)
                     {
                         this.Write(ObjectType.TypeRef);
                         this.Write((TypeRef)value);
                     }
+
+
                     else if (typeof(LazyMetadataWrapper.Enum32Substitution) == valueType)
                     {
                         var substValue = (LazyMetadataWrapper.Enum32Substitution)value;
@@ -1033,12 +1052,17 @@ namespace Microsoft.VisualStudio.Composition
                         this.Write(substValue.EnumType);
                         this.writer.Write(substValue.RawValue);
                     }
+
+
                     else if (typeof(LazyMetadataWrapper.TypeSubstitution) == valueType)
                     {
                         var substValue = (LazyMetadataWrapper.TypeSubstitution)value;
                         this.Write(ObjectType.TypeSubstitution);
                         this.Write(substValue.TypeRef);
                     }
+
+
+
                     else if (typeof(LazyMetadataWrapper.TypeArraySubstitution) == valueType)
                     {
                         var substValue = (LazyMetadataWrapper.TypeArraySubstitution)value;
@@ -1075,6 +1099,7 @@ namespace Microsoft.VisualStudio.Composition
                         return false;
                     case ObjectType.Int64:
                         return this.reader.ReadInt64();
+
                     case ObjectType.UInt64:
                         return this.reader.ReadUInt64();
                     case ObjectType.Int32:

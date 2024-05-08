@@ -35,6 +35,8 @@ namespace Microsoft.VisualStudio.Composition
         public string ContractName { get; private set; }
 
         [Key(1)]
+        [MessagePackFormatter(typeof(MetadataFormatter))]
+
         public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
         public override bool Equals(object? obj)

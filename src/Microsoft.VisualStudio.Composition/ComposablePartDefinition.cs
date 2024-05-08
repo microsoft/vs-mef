@@ -12,6 +12,312 @@ namespace Microsoft.VisualStudio.Composition
     using MessagePack;
     using System.Reflection;
     using Microsoft.VisualStudio.Composition.Reflection;
+    using MessagePack.Formatters;
+
+    public class MetadataFormatter : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
+    {
+        public IReadOnlyDictionary<string, object?> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        {
+            ImmutableDictionary<string, object?>.Builder builder = ImmutableDictionary.CreateBuilder<string, object?>();
+
+            var count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+            var metadata = ImmutableDictionary<string, object?>.Empty;
+
+            if (count > 0)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    string key = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                                        
+                    object? value = ReadObject(ref reader);
+
+
+                    builder.Add(key, value);
+                }
+
+                metadata = builder.ToImmutable();
+                builder.Clear(); // clean up for the next user.
+            }
+
+            var resolve = MapperTEst.Resolver;
+
+            return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue, resolve);
+
+            object? ReadObject(ref MessagePackReader reader2)
+            {
+                ObjectType objectType1 = (ObjectType)options.Resolver.GetFormatterWithVerify<byte>().Deserialize(ref reader2, options);
+
+                object inputObject = null;
+
+
+                switch (objectType1)
+                {
+                    case ObjectType.Null:
+                        inputObject = null;
+                        break;
+                    case ObjectType.Array:
+                        Type elementType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader2, options).Resolve();
+
+                        var arrayLenght = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader2, options);
+                        var list = Array.CreateInstance(elementType, (int)count);
+                        for (int i = 0; i < list.Length; i++)
+                        {
+                           // object? value = options.Resolver.GetFormatterWithVerify<object?>().Deserialize(ref reader2, options);
+                            var valueToSet = ReadObject(ref reader2);
+                            list.SetValue(valueToSet, i);
+                        }
+
+                        inputObject = list;
+                        // to be check we need to fix the write
+                        break;
+                    case ObjectType.BoolTrue:
+                        inputObject = true;
+                        break;
+                    case ObjectType.BoolFalse:
+                        inputObject = false;
+                        break;
+                    case ObjectType.UInt64:
+                        inputObject = options.Resolver.GetFormatterWithVerify<ulong>().Deserialize(ref reader2, options);
+                        break;
+                    case ObjectType.Int32:
+                        inputObject = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader2, options);
+                        break;
+                    case ObjectType.UInt32:
+                        inputObject = options.Resolver.GetFormatterWithVerify<uint>().Deserialize(ref reader2, options);
+                        break;
+                    case ObjectType.Int16:
+                        inputObject = options.Resolver.GetFormatterWithVerify<short>().Deserialize(ref reader2, options);
+                        break;
+                    case ObjectType.UInt16:
+                        inputObject = options.Resolver.GetFormatterWithVerify<ushort>().Deserialize(ref reader2, options);
+                        break;
+                    case ObjectType.Byte:
+                        inputObject = options.Resolver.GetFormatterWithVerify<byte>().Deserialize(ref reader2, options);
+                        break;
+                    case ObjectType.SByte:
+                        inputObject = options.Resolver.GetFormatterWithVerify<sbyte>().Deserialize(ref reader2, options);
+                        break;
+                    case ObjectType.Single:
+                        inputObject = options.Resolver.GetFormatterWithVerify<float>().Deserialize(ref reader2, options);
+                        break;
+                    case ObjectType.Double:
+                        inputObject = options.Resolver.GetFormatterWithVerify<double>().Deserialize(ref reader2, options);
+                        break;
+                    case ObjectType.String:
+                        inputObject = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader2, options);
+                        break;
+                    case ObjectType.Char:
+                        inputObject = options.Resolver.GetFormatterWithVerify<char>().Deserialize(ref reader2, options);
+                        break;
+                    case ObjectType.Guid:
+                        inputObject = options.Resolver.GetFormatterWithVerify<Guid>().Deserialize(ref reader2, options);
+                        break;
+                    case ObjectType.CreationPolicy:
+                        inputObject = (CreationPolicy)options.Resolver.GetFormatterWithVerify<byte>().Deserialize(ref reader2, options);
+                        break;
+
+                    case ObjectType.Type:
+                        inputObject = options.Resolver.GetFormatterWithVerify<TypeRef?>().Deserialize(ref reader2, options).Resolve();
+                        break;
+                    case ObjectType.TypeRef:
+                        inputObject = options.Resolver.GetFormatterWithVerify<TypeRef?>().Deserialize(ref reader2, options);
+                        break;
+
+                    case ObjectType.Enum32Substitution:
+                        TypeRef? enumType = options.Resolver.GetFormatterWithVerify<TypeRef?>().Deserialize(ref reader2, options);
+                        int rawValue = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader2, options);
+                        inputObject = new LazyMetadataWrapper.Enum32Substitution(enumType, rawValue);
+                        break;
+
+                    case ObjectType.TypeSubstitution:
+                        TypeRef? typeRef = options.Resolver.GetFormatterWithVerify<TypeRef?>().Deserialize(ref reader2, options);
+                        inputObject = new LazyMetadataWrapper.TypeSubstitution(typeRef);
+                        break;
+
+                    case ObjectType.TypeArraySubstitution:
+                        IReadOnlyList<TypeRef?> typeRefArray = options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef?>>().Deserialize(ref reader2, options);
+                        inputObject = new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray!, MapperTEst.Resolver);
+                        break;
+
+                    case ObjectType.BinaryFormattedObject:
+                         //to do binary fomratter
+                        break;
+
+                }
+
+
+                return inputObject;
+
+            }
+
+        }
+
+        public void Serialize(ref MessagePackWriter writer, IReadOnlyDictionary<string, object?> value, MessagePackSerializerOptions options)
+        {
+            //MapperTEst.Resolver
+            options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.Count(), options);
+            foreach (KeyValuePair<string, object?> item in value)
+            {
+                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, item.Key, options);
+                //options.Resolver.GetFormatterWithVerify<object?>().Serialize(ref writer, item.Value, options);
+                WriteObjectType(ref writer, item.Value);
+
+            }
+
+            void WriteObjectType(ref MessagePackWriter writer, object? value)
+            {
+                switch (value.GetType())
+                {
+                    case Type T when T.IsArray:
+                        Array array = (Array)value;
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.Array, options);
+
+                        TypeRef? elementTypeRef = TypeRef.Get(T.GetElementType(), MapperTEst.Resolver);                        
+                        options.Resolver.GetFormatterWithVerify<TypeRef?>().Serialize(ref writer, elementTypeRef, options);
+                        //check the call protected void Write(Array list, Action<object> itemWriter)
+                        // WriteObjectType(ref writer, array);
+
+                        options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, array.Length, options);
+                       // options.Resolver.GetFormatterWithVerify<object>().Serialize(ref writer, value, options);
+
+                        foreach (var item in array)
+                        {
+                            WriteObjectType(ref writer, item);
+                        }
+
+                        break;
+                    case Type T when T == typeof(bool):
+                        var valueobject = ((bool)value ? ObjectType.BoolTrue : ObjectType.BoolFalse);
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)valueobject, options);
+                        options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, (bool)value, options);
+                        break;
+                    case Type T when T == typeof(string):
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.String, options);
+                        options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, (string)value, options);
+                        break;
+                    case Type T when T == typeof(long):
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.Int64, options);
+                        options.Resolver.GetFormatterWithVerify<long>().Serialize(ref writer, (long)value, options);
+                        break;
+                    case Type T when T == typeof(ulong):
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.UInt64, options);
+                        options.Resolver.GetFormatterWithVerify<ulong>().Serialize(ref writer, (ulong)value, options);
+                        break;
+
+                    case Type T when T == typeof(int):
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.Int32, options);
+                        options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, (int)value, options);
+                        break;
+
+                    case Type T when T == typeof(uint):
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.UInt32, options);
+                        options.Resolver.GetFormatterWithVerify<uint>().Serialize(ref writer, (uint)value, options);
+                        break;
+
+                    case Type T when T == typeof(short):
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.Int16, options);
+                        options.Resolver.GetFormatterWithVerify<short>().Serialize(ref writer, (short)value, options);
+                        break;
+                    case Type T when T == typeof(ushort):
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.UInt16, options);
+                        options.Resolver.GetFormatterWithVerify<ushort>().Serialize(ref writer, (ushort)value, options);
+                        break;
+                    case Type T when T == typeof(byte):
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.Byte, options);
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)value, options);
+                        break;
+                    case Type T when T == typeof(sbyte):
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.SByte, options);
+                        options.Resolver.GetFormatterWithVerify<sbyte>().Serialize(ref writer, (sbyte)value, options);
+                        break;
+                    case Type T when T == typeof(float):
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.Single, options);
+                        options.Resolver.GetFormatterWithVerify<float>().Serialize(ref writer, (float)value, options);
+                        break;
+
+                    case Type T when T == typeof(double):
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.Double, options);
+                        options.Resolver.GetFormatterWithVerify<double>().Serialize(ref writer, (double)value, options);
+                        break;
+                    case Type T when T == typeof(char):
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.Char, options);
+                        options.Resolver.GetFormatterWithVerify<char>().Serialize(ref writer, (char)value, options);
+                        break;
+                    case Type T when T == typeof(Guid):
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.Guid, options);
+                        options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, (Guid)value, options);
+                        break;
+                    case Type T when T == typeof(CreationPolicy):
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.CreationPolicy, options);
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)(CreationPolicy)value, options);
+                        break;
+                    case Type T when typeof(Type).GetTypeInfo().IsAssignableFrom(T):
+                        var typeValue = TypeRef.Get((Type)value, MapperTEst.Resolver);
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.Type, options);
+                        options.Resolver.GetFormatterWithVerify<TypeRef?>().Serialize(ref writer, typeValue, options);
+                        break;
+                    case Type T when T == typeof(TypeRef):
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.TypeRef, options);
+                        options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, (TypeRef)value, options);
+                        break;
+
+                    case Type T when typeof(LazyMetadataWrapper.Enum32Substitution) == T:
+                        var substValue = (LazyMetadataWrapper.Enum32Substitution)value;
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.Enum32Substitution, options);
+                        options.Resolver.GetFormatterWithVerify<TypeRef?>().Serialize(ref writer, substValue.EnumType, options);
+                        options.Resolver.GetFormatterWithVerify<int?>().Serialize(ref writer, substValue.RawValue, options);
+                        break;
+
+
+                    case Type T when typeof(LazyMetadataWrapper.TypeSubstitution) == T:
+                        var substValue2 = (LazyMetadataWrapper.TypeSubstitution)value;
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.TypeSubstitution, options);
+                        options.Resolver.GetFormatterWithVerify<TypeRef?>().Serialize(ref writer, substValue2.TypeRef, options);
+                        break;
+
+                    case Type T when typeof(LazyMetadataWrapper.TypeArraySubstitution) == T:
+                        var substValue3 = (LazyMetadataWrapper.TypeArraySubstitution)value;
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.TypeArraySubstitution, options);
+                        options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef>>().Serialize(ref writer, substValue3.TypeRefArray, options);
+                        break;
+
+                    default:
+                        // work on this we need to remove this
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)ObjectType.BinaryFormattedObject, options);
+                        options.Resolver.GetFormatterWithVerify<object>().Serialize(ref writer, value, options);
+                        break;
+                }
+            }
+        }
+
+        enum ObjectType : byte
+        {
+            Null,
+            String,
+            CreationPolicy,
+            Type,
+            Array,
+            BinaryFormattedObject,
+            TypeRef,
+            BoolTrue,
+            BoolFalse,
+            Int32,
+            Char,
+            Guid,
+            Enum32Substitution,
+            TypeSubstitution,
+            TypeArraySubstitution,
+            Single,
+            Double,
+            UInt16,
+            Int64,
+            UInt64,
+            Int16,
+            UInt32,
+            Byte,
+            SByte,
+        }
+    }
 
     [DebuggerDisplay("{" + nameof(Type) + ".Name}")]
     [MessagePackObject(true)]
@@ -116,7 +422,9 @@ namespace Microsoft.VisualStudio.Composition
         /// This metadata has no effect on composition, but may be useful if the host
         /// wishes to filter a catalog based on part metadata prior to creating a composition.
         /// </remarks>
-     //   [Key(7)]
+        //   [Key(7)]
+        [MessagePackFormatter(typeof(MetadataFormatter))]
+
         public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
         /// <inheritdoc cref="OnImportsSatisfiedMethodRefs" />

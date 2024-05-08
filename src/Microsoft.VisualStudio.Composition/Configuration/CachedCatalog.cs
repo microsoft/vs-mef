@@ -209,6 +209,9 @@ namespace Microsoft.VisualStudio.Composition
 
             foreach (ComposablePartDefinition yuParts in catalog.DiscoveredParts.Parts)
             {
+              //  yuParts.ExportedTypes
+
+
                 foreach (var yu in yuParts.Imports)
                 {
                     var ty2 = MessagePackSerializer.Serialize(yu.ImportingMemberRef, options);
@@ -224,6 +227,7 @@ namespace Microsoft.VisualStudio.Composition
                 foreach (ImportDefinitionBinding ImportingMembers in yuParts.ImportingMembers)
                 {
                     TestSerializeDeseriaizeTest(ImportingMembers, "ImportingMembers");
+                   // ImportingMembers.ComposablePartType
                 }
 
                 foreach (MethodRef onImportsSatisfiedMethods in yuParts.OnImportsSatisfiedMethodRefs)

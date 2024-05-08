@@ -29,6 +29,7 @@ namespace Microsoft.VisualStudio.Composition
             public void Serialize(ref MessagePackWriter writer, StrongAssemblyIdentity value, MessagePackSerializerOptions options)
             {
                 options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value.Mvid, options);
+               // options.Resolver.GetFormatterWithVerify<byte[]>().Serialize(ref writer, value.Mvid.ToByteArray(), options);
 
 
                 options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.FullName.ToString(), options);
@@ -49,7 +50,9 @@ namespace Microsoft.VisualStudio.Composition
             public StrongAssemblyIdentity Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
 
-                var Mvid = options.Resolver.GetFormatterWithVerify<Guid>().Deserialize(ref reader, options);
+                 var Mvid = options.Resolver.GetFormatterWithVerify<Guid>().Deserialize(ref reader, options);
+                //var MvidBytes = options.Resolver.GetFormatterWithVerify<byte[]>().Deserialize(ref reader, options);
+                //var Mvid = new Guid(MvidBytes);
 
                 var FullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
 
