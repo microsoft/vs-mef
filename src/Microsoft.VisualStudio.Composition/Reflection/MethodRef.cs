@@ -13,8 +13,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
+    using MessagePack;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
+    [MessagePackFormatter(typeof(MemberRefFormatter<MethodRef>))]
     public class MethodRef : MemberRef, IEquatable<MethodRef>
     {
         /// <summary>
@@ -74,8 +76,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public override string Name { get; }
 
+        [MessagePackFormatter(typeof(CollectionFormatter<TypeRef>))]
         public ImmutableArray<TypeRef> ParameterTypes { get; }
 
+        [MessagePackFormatter(typeof(CollectionFormatter<TypeRef>))]
         public ImmutableArray<TypeRef> GenericMethodArguments { get; }
 
         [return: NotNullIfNotNull("method")]

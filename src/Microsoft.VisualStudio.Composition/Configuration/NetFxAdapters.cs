@@ -13,9 +13,11 @@ namespace Microsoft.VisualStudio.Composition
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using MessagePack;
     using Microsoft.VisualStudio.Composition.Reflection;
     using MefV1 = System.ComponentModel.Composition;
 
+    [MessagePackObject]
     public static class NetFxAdapters
     {
         private static readonly ComposablePartDefinition CompositionServicePart;
@@ -300,7 +302,8 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        private class ImportConstraint : IImportSatisfiabilityConstraint
+        [MessagePackFormatter(typeof(ImportSatisfiabilityConstraintFormatter))]
+        internal class ImportConstraint : IImportSatisfiabilityConstraint
         {
             private readonly MefV1.Primitives.ImportDefinition definition;
 

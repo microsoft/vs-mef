@@ -70,10 +70,11 @@ namespace Microsoft.VisualStudio.Composition.Tests
             // Round-trip serialization to make sure the result is equivalent.
             var cacheManager = new CachedComposition();
             var ms = new MemoryStream();
-            await cacheManager.SaveAsync(runtimeComposition, ms);
+            await cacheManager.SaveAsync(runtimeComposition, ms);// convert to string and check once 
             output.WriteLine("Cache file size: {0}", ms.Length);
             ms.Position = 0;
             var deserializedRuntimeComposition = await cacheManager.LoadRuntimeCompositionAsync(ms, Resolver);
+
             Assert.Equal(runtimeComposition, deserializedRuntimeComposition);
 
             return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();

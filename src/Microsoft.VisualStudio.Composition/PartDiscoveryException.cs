@@ -5,11 +5,13 @@ namespace Microsoft.VisualStudio.Composition
 {
     using System;
     using System.Runtime.Serialization;
+    using MessagePack;
 
     /// <summary>
     /// An exception that may be thrown during MEF part discovery.
     /// </summary>
     [Serializable]
+    [MessagePackObject(true)]
     public class PartDiscoveryException : Exception
     {
         /// <summary>
@@ -53,11 +55,13 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets or sets the path to the assembly involved in the failure.
         /// </summary>
+        [Key(0)]
         public string? AssemblyPath { get; set; }
 
         /// <summary>
         /// Gets or sets the type where .NET Reflection failed.
         /// </summary>
+        [Key(1)]
         public Type? ScannedType { get; set; }
 
         /// <inheritdoc/>

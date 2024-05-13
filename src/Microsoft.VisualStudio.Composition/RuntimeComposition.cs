@@ -13,8 +13,10 @@ namespace Microsoft.VisualStudio.Composition
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using MessagePack;
     using Microsoft.VisualStudio.Composition.Reflection;
 
+    [MessagePackFormatter(typeof(RuntimeCompositionFormatter))]
     public class RuntimeComposition : IEquatable<RuntimeComposition>
     {
         private readonly ImmutableHashSet<RuntimePart> parts;
@@ -62,6 +64,7 @@ namespace Microsoft.VisualStudio.Composition
                 e => (IReadOnlyCollection<RuntimeExport>)e.ToImmutableArray());
         }
 
+        [MessagePackFormatter(typeof(CollectionFormatter<RuntimePart>))]
         public IReadOnlyCollection<RuntimePart> Parts
         {
             get { return this.parts; }
@@ -253,6 +256,7 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
+        [MessagePackFormatter(typeof(RuntimePartFormatter))]
         public class RuntimePart : IEquatable<RuntimePart>
         {
             public RuntimePart(
@@ -272,17 +276,19 @@ namespace Microsoft.VisualStudio.Composition
                 this.OnImportsSatisfiedMethodRefs = onImportsSatisfiedMethods;
                 this.SharingBoundary = sharingBoundary;
             }
-
             public TypeRef TypeRef { get; private set; }
 
             public MethodRef? ImportingConstructorOrFactoryMethodRef { get; private set; }
 
             public MethodBase? ImportingConstructorOrFactoryMethod => this.ImportingConstructorOrFactoryMethodRef?.MethodBase;
 
+            [MessagePackFormatter(typeof(CollectionFormatter<RuntimeImport>))]
             public IReadOnlyList<RuntimeImport> ImportingConstructorArguments { get; private set; }
 
+            [MessagePackFormatter(typeof(CollectionFormatter<RuntimeImport>))]
             public IReadOnlyList<RuntimeImport> ImportingMembers { get; private set; }
 
+            [MessagePackFormatter(typeof(CollectionFormatter<RuntimeExport>))]
             public IReadOnlyList<RuntimeExport> Exports { get; set; }
 
             public string? SharingBoundary { get; private set; }
@@ -291,6 +297,7 @@ namespace Microsoft.VisualStudio.Composition
 
             public bool IsInstantiable => this.ImportingConstructorOrFactoryMethodRef != null;
 
+            [MessagePackFormatter(typeof(CollectionFormatter<MethodRef>))]
             public IReadOnlyList<MethodRef> OnImportsSatisfiedMethodRefs { get; }
 
             private string? DebuggerDisplay => this.TypeRef.FullName;
@@ -318,6 +325,7 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         [DebuggerDisplay("{" + nameof(ImportingSiteElementType) + "}")]
+        [MessagePackFormatter(typeof(RuntimeImportFormatter))]
         public class RuntimeImport : IEquatable<RuntimeImport>
         {
             private NullableBool isLazy;
@@ -377,6 +385,7 @@ namespace Microsoft.VisualStudio.Composition
 
             public bool IsNonSharedInstanceRequired { get; private set; }
 
+            [MessagePackFormatter(typeof(ObjectFormatter))]
             public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
             public Type? ExportFactory
@@ -494,6 +503,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+        [MessagePackFormatter(typeof(RuntimeExportFormatter))]
         public class RuntimeExport : IEquatable<RuntimeExport>
         {
             private MemberInfo? member;
@@ -553,6 +563,7 @@ namespace Microsoft.VisualStudio.Composition
                 get { return this.ExportedValueTypeRef.ResolvedType; }
             }
 
+            [MessagePackFormatter(typeof(ObjectFormatter))]
             public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
             public MemberInfo? Member => this.member ?? (this.member = this.MemberRef?.MemberInfo);

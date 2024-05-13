@@ -12,7 +12,9 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
+    using MessagePack;
 
+    [MessagePackFormatter(typeof(MemberRefFormatter<MemberRef>))]
     public abstract class MemberRef : IEquatable<MemberRef>
     {
         /// <summary>
@@ -38,14 +40,14 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.IsStatic = isStatic;
         }
 
-        protected MemberRef(TypeRef declaringType, MemberInfo memberInfo)
+        protected MemberRef(TypeRef declaringType, MemberInfo cachedMemberInfo)
         {
             Requires.NotNull(declaringType, nameof(declaringType));
-            Requires.NotNull(memberInfo, nameof(memberInfo));
+            Requires.NotNull(cachedMemberInfo, nameof(cachedMemberInfo));
 
             this.DeclaringType = declaringType;
-            this.cachedMemberInfo = memberInfo;
-            this.IsStatic = memberInfo.IsStatic();
+            this.cachedMemberInfo = cachedMemberInfo;
+            this.IsStatic = cachedMemberInfo.IsStatic();
         }
 
         protected MemberRef(MemberInfo memberInfo, Resolver resolver)
@@ -65,6 +67,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public int MetadataToken => this.metadataToken ?? this.cachedMemberInfo?.GetMetadataTokenSafe() ?? 0;
 
+        [IgnoreMember]
         public MemberInfo MemberInfo => this.cachedMemberInfo ?? (this.cachedMemberInfo = this.Resolve());
 
         internal MemberInfo? MemberInfoNoResolve => this.cachedMemberInfo;

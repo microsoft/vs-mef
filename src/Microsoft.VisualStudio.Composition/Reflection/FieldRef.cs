@@ -7,8 +7,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Reflection;
+    using MessagePack;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
+    [MessagePackFormatter(typeof(MemberRefFormatter<FieldRef>))]
     public class FieldRef : MemberRef, IEquatable<FieldRef>
     {
         /// <summary>

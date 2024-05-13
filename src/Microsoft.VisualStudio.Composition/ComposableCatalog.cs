@@ -13,7 +13,10 @@ namespace Microsoft.VisualStudio.Composition
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using MessagePack;
     using Microsoft.VisualStudio.Composition.Reflection;
+
+    [MessagePackFormatter(typeof(ComposableCatalogFormatter))]
 
     public class ComposableCatalog : IEquatable<ComposableCatalog>
     {
@@ -32,6 +35,13 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         private ImmutableHashSet<TypeRef> typesBackingParts;
 
+        private DiscoveredParts discoveredParts;
+
+        private Resolver resolver;
+
+
+        [SerializationConstructor]
+
         private ComposableCatalog(ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, ImmutableHashSet<TypeRef> typesBackingParts, DiscoveredParts discoveredParts, Resolver resolver)
         {
             Requires.NotNull(parts, nameof(parts));
@@ -43,8 +53,8 @@ namespace Microsoft.VisualStudio.Composition
             this.parts = parts;
             this.exportsByContract = exportsByContract;
             this.typesBackingParts = typesBackingParts;
-            this.DiscoveredParts = discoveredParts;
-            this.Resolver = resolver;
+            this.discoveredParts = discoveredParts;
+            this.resolver = resolver;
         }
 
         /// <summary>
@@ -58,9 +68,16 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets the parts that were added to the catalog via a <see cref="PartDiscovery"/> class.
         /// </summary>
-        public DiscoveredParts DiscoveredParts { get; private set; }
+        public DiscoveredParts DiscoveredParts
+        {
+            get { return this.discoveredParts; }
+            private set { this.discoveredParts = value; }
+        }
 
-        internal Resolver Resolver { get; }
+        internal Resolver Resolver
+        {
+            get { return this.resolver; }
+        }
 
         public static ComposableCatalog Create(Resolver resolver)
         {

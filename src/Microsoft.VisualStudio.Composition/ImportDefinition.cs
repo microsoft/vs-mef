@@ -12,8 +12,10 @@ namespace Microsoft.VisualStudio.Composition
     using System.Reflection;
     using System.Text;
     using System.Threading.Tasks;
+    using MessagePack;
 
     [DebuggerDisplay("{" + nameof(ContractName) + ",nq} ({Cardinality})")]
+    [MessagePackObject(keyAsPropertyName: true)]
     public class ImportDefinition : IEquatable<ImportDefinition>
     {
         private readonly ImmutableList<IImportSatisfiabilityConstraint> exportConstraints;
@@ -22,17 +24,17 @@ namespace Microsoft.VisualStudio.Composition
         /// Initializes a new instance of the <see cref="ImportDefinition"/> class
         /// based on MEF v2 attributes.
         /// </summary>
-        public ImportDefinition(string contractName, ImportCardinality cardinality, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints, IReadOnlyCollection<string> exportFactorySharingBoundaries)
+        public ImportDefinition(string contractName, ImportCardinality cardinality, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<IImportSatisfiabilityConstraint> exportConstraints, IReadOnlyCollection<string> exportFactorySharingBoundaries)
         {
             Requires.NotNullOrEmpty(contractName, nameof(contractName));
             Requires.NotNull(metadata, nameof(metadata));
-            Requires.NotNull(additionalConstraints, nameof(additionalConstraints));
+            Requires.NotNull(exportConstraints, nameof(exportConstraints));
             Requires.NotNull(exportFactorySharingBoundaries, nameof(exportFactorySharingBoundaries));
 
             this.ContractName = contractName;
             this.Cardinality = cardinality;
             this.Metadata = metadata; // don't clone metadata as that will defeat lazy assembly loads when metadata values would require it.
-            this.exportConstraints = additionalConstraints.ToImmutableList();
+            this.exportConstraints = exportConstraints.ToImmutableList();
             this.ExportFactorySharingBoundaries = exportFactorySharingBoundaries.ToImmutableHashSet();
         }
 
@@ -40,8 +42,8 @@ namespace Microsoft.VisualStudio.Composition
         /// Initializes a new instance of the <see cref="ImportDefinition"/> class
         /// based on MEF v1 attributes.
         /// </summary>
-        public ImportDefinition(string contractName, ImportCardinality cardinality, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<IImportSatisfiabilityConstraint> additionalConstraints)
-            : this(contractName, cardinality, metadata, additionalConstraints, ImmutableHashSet.Create<string>())
+        public ImportDefinition(string contractName, ImportCardinality cardinality, IReadOnlyDictionary<string, object?> metadata, IReadOnlyCollection<IImportSatisfiabilityConstraint> exportConstraints)
+            : this(contractName, cardinality, metadata, exportConstraints, ImmutableHashSet.Create<string>())
         {
         }
 
@@ -52,8 +54,10 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets the sharing boundaries created when the export factory is used.
         /// </summary>
+        [MessagePackFormatter(typeof(CollectionFormatter<string>))] //Ankit I chnaged after looking at the ObjectFormatter
         public IReadOnlyCollection<string> ExportFactorySharingBoundaries { get; private set; }
 
+        [MessagePackFormatter(typeof(ObjectFormatter))] //Ankit I chnaged after looking at the ObjectFormatter
         public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
         public IReadOnlyCollection<IImportSatisfiabilityConstraint> ExportConstraints

@@ -15,6 +15,8 @@ namespace Microsoft.VisualStudio.Composition
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using MessagePack;
+    using MessagePack.Resolvers;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     public class CachedComposition : ICompositionCacheManager, IRuntimeCompositionCacheManager
@@ -35,38 +37,51 @@ namespace Microsoft.VisualStudio.Composition
             });
         }
 
-        public Task SaveAsync(RuntimeComposition composition, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task SaveAsync(RuntimeComposition composition, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(composition, nameof(composition));
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.Argument(cacheStream.CanWrite, "cacheStream", Strings.WritableStreamRequired);
 
-            return Task.Run(() =>
-            {
-                using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
-                {
-                    var context = new SerializationContext(writer, composition.Parts.Count * 5, composition.Resolver);
-                    context.Write(composition);
-                    context.FinalizeObjectTableCapacity();
-                }
-            });
+            var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
+
+            ResolverFormatterContainer.Resolver = composition.Resolver; 
+
+            await MessagePackSerializer.SerializeAsync(cacheStream, composition, options, cancellationToken);
+
+            //return Task.Run(() =>
+            //{
+            //    using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
+            //    {
+            //        var context = new SerializationContext(writer, composition.Parts.Count * 5, composition.Resolver);
+            //        context.Write(composition);
+            //        context.FinalizeObjectTableCapacity();
+            //    }
+            //});
         }
 
-        public Task<RuntimeComposition> LoadRuntimeCompositionAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<RuntimeComposition> LoadRuntimeCompositionAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.Argument(cacheStream.CanRead, "cacheStream", Strings.ReadableStreamRequired);
             Requires.NotNull(resolver, nameof(resolver));
 
-            return Task.Run(() =>
-            {
-                using (var reader = new BinaryReader(cacheStream, TextEncoding, leaveOpen: true))
-                {
-                    var context = new SerializationContext(reader, resolver);
-                    var runtimeComposition = context.ReadRuntimeComposition();
-                    return runtimeComposition;
-                }
-            });
+            ResolverFormatterContainer.Resolver = resolver;
+
+            var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
+
+            var runtimeComposition = await MessagePackSerializer.DeserializeAsync<RuntimeComposition>(cacheStream, options, cancellationToken);
+            return runtimeComposition;
+
+            //return Task.Run(() =>
+            //{
+            //    using (var reader = new BinaryReader(cacheStream, TextEncoding, leaveOpen: true))
+            //    {
+            //        var context = new SerializationContext(reader, resolver);
+            //        var runtimeComposition = context.ReadRuntimeComposition();
+            //        return runtimeComposition;
+            //    }
+            //});
         }
 
         public async Task<IExportProviderFactory> LoadExportProviderFactoryAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
@@ -197,6 +212,8 @@ namespace Microsoft.VisualStudio.Composition
                     this.Write(part.ImportingMembers, this.Write);
                     this.Write(part.OnImportsSatisfiedMethodRefs, this.Write);
                     this.Write(part.SharingBoundary);
+
+
                 }
             }
 

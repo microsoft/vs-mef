@@ -11,8 +11,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
+    using MessagePack;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
+    [MessagePackFormatter(typeof(MemberRefFormatter<PropertyRef>))]
     public class PropertyRef : MemberRef, IEquatable<PropertyRef>
     {
         /// <summary>
@@ -42,13 +44,13 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.PropertyTypeRef = propertyTypeRef;
         }
 
-        public PropertyRef(PropertyInfo propertyInfo, Resolver resolver)
-            : base(propertyInfo, resolver)
+        public PropertyRef(PropertyInfo memberInfo, Resolver resolver)
+            : base(memberInfo, resolver)
         {
-            this.getMethodMetadataToken = propertyInfo.GetMethod?.MetadataToken;
-            this.setMethodMetadataToken = propertyInfo.SetMethod?.MetadataToken;
-            this.Name = propertyInfo.Name;
-            this.PropertyTypeRef = TypeRef.Get(propertyInfo.PropertyType, resolver);
+            this.getMethodMetadataToken = memberInfo.GetMethod?.MetadataToken;
+            this.setMethodMetadataToken = memberInfo.SetMethod?.MetadataToken;
+            this.Name = memberInfo.Name;
+            this.PropertyTypeRef = TypeRef.Get(memberInfo.PropertyType, resolver);
         }
 
         public PropertyInfo PropertyInfo => (PropertyInfo)this.MemberInfo;

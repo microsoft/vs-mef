@@ -9,12 +9,14 @@ namespace Microsoft.VisualStudio.Composition
     using System.Reflection;
     using System.Reflection.Metadata;
     using System.Reflection.PortableExecutable;
+    using MessagePack;
 
     /// <summary>
     /// Metadata about a <see cref="Assembly"/> that is used to determine if
     /// two assemblies are equivalent.
     /// </summary>
     [DebuggerDisplay("{" + nameof(Name) + "}")]
+    [MessagePackFormatter(typeof(StrongAssemblyIdentityFormatter))]
     public class StrongAssemblyIdentity : IEquatable<StrongAssemblyIdentity>
     {
         /// <summary>

@@ -8,8 +8,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Reflection;
+    using MessagePack;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
+    [MessagePackObject(true)]
     public class ParameterRef : IEquatable<ParameterRef>
     {
         /// <summary>

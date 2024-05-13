@@ -9,6 +9,8 @@ namespace Microsoft.VisualStudio.Composition
     using System.Globalization;
     using System.IO;
     using System.Linq;
+    using MessagePack;
+    using MessagePack.Resolvers;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -18,40 +20,25 @@ namespace Microsoft.VisualStudio.Composition
     {
         protected static readonly Encoding TextEncoding = Encoding.UTF8;
 
-        public Task SaveAsync(ComposableCatalog catalog, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task SaveAsync(ComposableCatalog catalog, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(catalog, nameof(catalog));
             Requires.NotNull(cacheStream, nameof(cacheStream));
 
-            return Task.Run(() =>
-            {
-                using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
-                {
-                    using (var context = new SerializationContext(writer, catalog.Parts.Count * 4, catalog.Resolver))
-                    {
-                        context.Write(catalog);
-                        context.FinalizeObjectTableCapacity();
-                    }
-                }
-            });
+            var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
+            await MessagePackSerializer.SerializeAsync(cacheStream, catalog, options, cancellationToken);
         }
 
-        public Task<ComposableCatalog> LoadAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<ComposableCatalog> LoadAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.NotNull(resolver, nameof(resolver));
 
-            return Task.Run(() =>
-            {
-                using (var reader = new BinaryReader(cacheStream, TextEncoding, leaveOpen: true))
-                {
-                    using (var context = new SerializationContext(reader, resolver))
-                    {
-                        var catalog = context.ReadComposableCatalog();
-                        return catalog;
-                    }
-                }
-            });
+            ResolverFormatterContainer.Resolver = resolver;
+            var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
+            ComposableCatalog catalog = await MessagePackSerializer.DeserializeAsync<ComposableCatalog>(cacheStream, options, cancellationToken);
+
+            return catalog;
         }
 
         private class SerializationContext : SerializationContextBase

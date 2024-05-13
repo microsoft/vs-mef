@@ -9,7 +9,9 @@ namespace Microsoft.VisualStudio.Composition
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
+    using MessagePack;
 
+    [MessagePackFormatter(typeof(ImportSatisfiabilityConstraintFormatter))]
     public class ExportMetadataValueImportConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
         public ExportMetadataValueImportConstraint(string name, object? value)
@@ -21,7 +23,7 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         public string Name { get; private set; }
-
+        
         public object? Value { get; private set; }
 
         public bool IsSatisfiedBy(ExportDefinition exportDefinition)
