@@ -13,8 +13,8 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public RuntimeComposition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            IReadOnlyCollection<RuntimePart> parts = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimePart>>().Deserialize(ref reader, options);
-
+            //IReadOnlyCollection<RuntimePart> parts = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimePart>>().Deserialize(ref reader, options);
+            var parts = CollectionFormatter<RuntimePart>.DeserializeCollection(ref reader, options);
             int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
             ImmutableDictionary<TypeRef, RuntimeExport>.Builder builder = ImmutableDictionary.CreateBuilder<TypeRef, RuntimeComposition.RuntimeExport>();
 
@@ -34,7 +34,8 @@ namespace Microsoft.VisualStudio.Composition
 
         public void Serialize(ref MessagePackWriter writer, RuntimeComposition value, MessagePackSerializerOptions options)
         {
-            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimePart>>().Serialize(ref writer, value.Parts, options);
+            CollectionFormatter<RuntimePart>.SerializeCollection(ref writer, value.Parts, options);
+            //options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimePart>>().Serialize(ref writer, value.Parts, options);
 
             // can be optimize helper method
             options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataViewsAndProviders.Count(), options);

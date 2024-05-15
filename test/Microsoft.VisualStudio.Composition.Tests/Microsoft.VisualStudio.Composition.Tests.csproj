@@ -58,4 +58,41 @@
       <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition=" '%(FileName)' == 'Microsoft.VisualStudio.Composition.MissingAssemblyTests' " />
     </ItemGroup>
   </Target>
+  <ItemGroup>
+    <!-- Include must be the fully qualified .NET type name of the Attribute to create. -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <!-- _Parameter1, _Parameter2, etc. correspond to the
+        matching parameter of a constructor of that .NET attribute type -->
+      <_Parameter1>MessagePack, PublicKey=0024000004800000940000000602000000240000525341310004000001000100293894d4e8ad2b53afbea4e949ef54c2a388b08b5ebd143c811da82f22aa20c839ed1c0b4da83e7195e8c1dbe1bf3934e4e8fd7fb93f893439106fbf055a97c7fac0f7f8c39e58e78371dc0e3825e5b9d7e2afff0372f03c4d67ff7df0dbfb58dcadeb1044840de152bf8270de7fc54255ace8efd026c16311760d1a2570c3e8
+       </_Parameter1>    
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <!-- _Parameter1, _Parameter2, etc. correspond to the
+        matching parameter of a constructor of that .NET attribute type -->
+      <_Parameter1>
+        MessagePack.Resolvers.DynamicEnumResolver, PublicKey=null
+      </_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <!-- _Parameter1, _Parameter2, etc. correspond to the
+        matching parameter of a constructor of that .NET attribute type -->
+      <_Parameter1>
+        MessagePack.Resolvers.DynamicUnionResolver, PublicKey=null
+      </_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <!-- _Parameter1, _Parameter2, etc. correspond to the
+        matching parameter of a constructor of that .NET attribute type -->
+      <_Parameter1>
+        MessagePack.Resolvers.DynamicObjectResolver PublicKey=null
+      </_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <!-- _Parameter1, _Parameter2, etc. correspond to the
+        matching parameter of a constructor of that .NET attribute type -->
+      <_Parameter1>
+        Microsoft.VisualStudio.Composition, PublicKey=002400000480000094000000060200000024000052534131000400000100010007d1fa57c4aed9f0a32e84aa0faefd0de9e8fd6aec8f87fb03766c834c99921eb23be79ad9d5dcc1dd9ad236132102900b723cf980957fc4e177108fc607774f29e8320e92ea05ece4e821c0a5efe8f1645c4c0c93c1ab99285d622caa652c1dfad63d745d6f2de5f17e5eaf0fc4963d261c8a12436518206dc093344d5ad293
+      </_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 </Project>

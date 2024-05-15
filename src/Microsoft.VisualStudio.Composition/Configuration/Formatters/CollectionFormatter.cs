@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        internal static IReadOnlyCollection<T> DeserializeCollection(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        internal static IReadOnlyList<T> DeserializeCollection(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
 
@@ -40,13 +40,31 @@ namespace Microsoft.VisualStudio.Composition
                 return Array.Empty<T>();
             }
 
-            var list = new T[count];
-            for (int i = 0; i < list.Length; i++)
+            var collection = new List<T>(count);
+            for (int i = 0; i < count; i++)
             {
-                list[i] = options.Resolver.GetFormatterWithVerify<T>().Deserialize(ref reader, options);
+                collection.Add(options.Resolver.GetFormatterWithVerify<T>().Deserialize(ref reader, options));
             }
 
-            return list;
+            return collection;
         }
+
+        //internal static IReadOnlyList<T> DeserializeCollection2(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        //{
+        //    int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+
+        //    if (count == 0)
+        //    {
+        //        return Array.Empty<T>();
+        //    }
+
+        //    var list = new T[count];
+        //    for (int i = 0; i < list.Length; i++)
+        //    {
+        //        list[i] = options.Resolver.GetFormatterWithVerify<T>().Deserialize(ref reader, options);
+        //    }
+
+        //    return list;
+        //}
     }
 }

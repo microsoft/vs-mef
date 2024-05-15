@@ -14,7 +14,8 @@ namespace Microsoft.VisualStudio.Composition
     using Microsoft.VisualStudio.Composition.Reflection;
 
     [DebuggerDisplay("{" + nameof(Type) + ".Name}")]
-    [MessagePackObject(true)]
+    //[MessagePackObject(true)]
+    [MessagePackFormatter(typeof(ComposablePartDefinitionFormatter))]
     public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>
     {
         /// <inheritdoc cref="ComposablePartDefinition(TypeRef, IReadOnlyDictionary{string, object?}, IReadOnlyCollection{ExportDefinition}, IReadOnlyDictionary{MemberRef, IReadOnlyCollection{ExportDefinition}}, IEnumerable{ImportDefinitionBinding}, string?, IReadOnlyList{MethodRef}, MethodRef?, IReadOnlyList{ImportDefinitionBinding}?, CreationPolicy, bool, IEnumerable{AssemblyName})" />

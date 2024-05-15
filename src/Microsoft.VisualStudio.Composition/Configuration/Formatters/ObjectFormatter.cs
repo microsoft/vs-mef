@@ -164,7 +164,8 @@ namespace Microsoft.VisualStudio.Composition
                     case Type objectType when typeof(LazyMetadataWrapper.TypeArraySubstitution) == objectType:
                         var typeArraySubstitutionValue = (LazyMetadataWrapper.TypeArraySubstitution)value;
                         options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.TypeArraySubstitution, options);
-                        options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef>>().Serialize(ref messagePackWriter, typeArraySubstitutionValue.TypeRefArray, options);
+                        CollectionFormatter<TypeRef?>.SerializeCollection(ref messagePackWriter, typeArraySubstitutionValue.TypeRefArray, options);
+                        //options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef>>().Serialize(ref messagePackWriter, typeArraySubstitutionValue.TypeRefArray, options);
                         break;
 
                     default:
@@ -310,7 +311,8 @@ namespace Microsoft.VisualStudio.Composition
                         break;
 
                     case ObjectType.TypeArraySubstitution:
-                        IReadOnlyList<TypeRef?> typeRefArray = options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef?>>().Deserialize(ref messagePackReader, options);
+                        var typeRefArray = CollectionFormatter<TypeRef?>.DeserializeCollection(ref messagePackReader, options);
+                        //IReadOnlyList<TypeRef?> typeRefArray = options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef?>>().Deserialize(ref messagePackReader, options);
                         response = new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray!, ResolverFormatterContainer.Resolver);
                         break;
 

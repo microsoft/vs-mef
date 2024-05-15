@@ -45,9 +45,16 @@ namespace Microsoft.VisualStudio.Composition
 
             var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
 
-            ResolverFormatterContainer.Resolver = composition.Resolver; 
+            ResolverFormatterContainer.Resolver = composition.Resolver;
 
-            await MessagePackSerializer.SerializeAsync(cacheStream, composition, options, cancellationToken);
+            await Task.Run(() =>
+            {
+                MessagePackSerializer.Serialize(cacheStream, composition, options);
+
+            });
+
+            //            await MessagePackSerializer.SerializeAsync(cacheStream, composition, options, cancellationToken);
+           // await MessagePackSerializer.SerializeAsync(cacheStream, composition, options, cancellationToken);
 
             //return Task.Run(() =>
             //{

@@ -762,8 +762,8 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Value1,
             Value2,
         }
-
-        internal enum MetadataEnumNonPublic
+        //ankit to check with nadrew 
+        public enum MetadataEnumNonPublic
         {
             Value1,
             Value2,

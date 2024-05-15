@@ -15,13 +15,13 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     [MessagePackFormatter(typeof(TypeRefObjectFormatter))]
+
     public class TypeRef : IEquatable<TypeRef>, IEquatable<Type>
     {
         /// <summary>
         /// Gets the string to display in the debugger watch window for this value.
         /// </summary>
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-        [IgnoreMember]
         private string DebuggerDisplay => this.FullName + (this.IsArray ? "[]" : string.Empty);
 
         private static readonly IEqualityComparer<AssemblyName> AssemblyNameComparer = ByValueEquality.AssemblyNameNoFastCheck;
@@ -83,24 +83,24 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.ElementTypeRef = elementTypeRef ?? this;
         }
 
-        private TypeRef(Resolver resolver, Type resolvedType, bool shallow = false)
+        private TypeRef(Resolver resolver, Type type, bool shallow = false)
         {
             Requires.NotNull(resolver, nameof(resolver));
-            Requires.NotNull(resolvedType, nameof(resolvedType));
+            Requires.NotNull(type, nameof(type));
 
             this.resolver = resolver;
-            this.resolvedType = resolvedType;
-            this.AssemblyName = resolver.GetNormalizedAssemblyName(resolvedType.GetTypeInfo().Assembly);
-            this.assemblyId = resolver.GetStrongAssemblyIdentity(resolvedType.GetTypeInfo().Assembly, this.AssemblyName);
-            this.TypeFlags |= resolvedType.IsArray ? TypeRefFlags.Array : TypeRefFlags.None;
-            this.TypeFlags |= resolvedType.GetTypeInfo().IsValueType ? TypeRefFlags.IsValueType : TypeRefFlags.None;
+            this.resolvedType = type;
+            this.AssemblyName = resolver.GetNormalizedAssemblyName(type.GetTypeInfo().Assembly);
+            this.assemblyId = resolver.GetStrongAssemblyIdentity(type.GetTypeInfo().Assembly, this.AssemblyName);
+            this.TypeFlags |= type.IsArray ? TypeRefFlags.Array : TypeRefFlags.None;
+            this.TypeFlags |= type.GetTypeInfo().IsValueType ? TypeRefFlags.IsValueType : TypeRefFlags.None;
 
-            this.ElementTypeRef = PartDiscovery.TryGetElementTypeFromMany(resolvedType, out var elementType)
+            this.ElementTypeRef = PartDiscovery.TryGetElementTypeFromMany(type, out var elementType)
                 ? TypeRef.Get(elementType, resolver)
                 : this;
 
             var arrayElementType = this.ArrayElementType;
-            Requires.Argument(!arrayElementType.IsGenericParameter, nameof(resolvedType), "Generic parameters are not supported.");
+            Requires.Argument(!arrayElementType.IsGenericParameter, nameof(type), "Generic parameters are not supported.");
             this.MetadataToken = arrayElementType.GetTypeInfo().MetadataToken;
             this.FullName = (arrayElementType.GetTypeInfo().IsGenericType ? arrayElementType.GetGenericTypeDefinition() : arrayElementType).FullName ?? throw Assumes.NotReachable();
             this.GenericTypeParameterCount = arrayElementType.GetTypeInfo().GenericTypeParameters.Length;
@@ -132,7 +132,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public int GenericTypeParameterCount { get; private set; }
 
-        [MessagePackFormatter(typeof(CollectionFormatter<TypeRef>))]
         public ImmutableArray<TypeRef> GenericTypeArguments { get; private set; }
 
         /// <summary>
@@ -147,7 +146,6 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// This list will only be populated if this instance was created with shallow set to false.
         /// The collection is ordered bottom-up for types with the implemented interfaces appended at the end.
         /// </remarks>
-        [MessagePackFormatter(typeof(CollectionFormatter<TypeRef>))]
         public ImmutableArray<TypeRef> BaseTypes
         {
             get

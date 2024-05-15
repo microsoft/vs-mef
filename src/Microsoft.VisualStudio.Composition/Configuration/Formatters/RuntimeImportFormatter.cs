@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Composition
             TypeRef importingSiteTypeWithoutCollectionRef =
     cardinality == ImportCardinality.ZeroOrMore ? options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options) : importingSiteTypeRef;
 
-            var satisfyingExports = CollectionFormatter<RuntimeExport>.DeserializeCollection(ref reader, options).ToImmutableList();
+            var satisfyingExports = CollectionFormatter<RuntimeExport>.DeserializeCollection(ref reader, options);
             //var satisfyingExports = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeExport>>().Deserialize(ref reader, options);
             var metadata = ObjectFormatter.DeserializeObject(ref reader, options);
             //options.Resolver.GetFormatterWithVerify<IReadOnlyDictionary<string, object?>>().Deserialize(ref reader, options);

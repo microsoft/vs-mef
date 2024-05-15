@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(catalog, nameof(catalog));
             Requires.NotNull(cacheStream, nameof(cacheStream));
+            ResolverFormatterContainer.Resolver = catalog.Resolver;
 
             var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
             await MessagePackSerializer.SerializeAsync(cacheStream, catalog, options, cancellationToken);
