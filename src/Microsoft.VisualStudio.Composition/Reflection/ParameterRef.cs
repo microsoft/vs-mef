@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using MessagePack;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-    [MessagePackObject(true)]
+    [MessagePackFormatter(typeof(ParameterRefFormatter))]
     public class ParameterRef : IEquatable<ParameterRef>
     {
         /// <summary>

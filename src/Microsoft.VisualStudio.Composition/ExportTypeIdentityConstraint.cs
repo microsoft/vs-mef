@@ -16,10 +16,10 @@ namespace Microsoft.VisualStudio.Composition
     [MessagePackFormatter(typeof(ImportSatisfiabilityConstraintFormatter))]
     public class ExportTypeIdentityConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
-        public ExportTypeIdentityConstraint(Type typeRequested)
+        public ExportTypeIdentityConstraint(Type typeIdentity)
         {
-            Requires.NotNull(typeRequested, nameof(typeRequested));
-            this.TypeIdentityName = ContractNameServices.GetTypeIdentity(typeRequested);
+            Requires.NotNull(typeIdentity, nameof(typeIdentity));
+            this.TypeIdentityName = ContractNameServices.GetTypeIdentity(typeIdentity);
         }
 
         public ExportTypeIdentityConstraint(string typeIdentityName)

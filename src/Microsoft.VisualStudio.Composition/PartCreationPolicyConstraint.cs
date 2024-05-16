@@ -29,9 +29,9 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public static readonly PartCreationPolicyConstraint NonSharedPartRequired = new PartCreationPolicyConstraint(CreationPolicy.NonShared);
 
-        private PartCreationPolicyConstraint(CreationPolicy requiredCreationPolicy)
+        private PartCreationPolicyConstraint(CreationPolicy creationPolicy)
         {
-            this.RequiredCreationPolicy = requiredCreationPolicy;
+            this.RequiredCreationPolicy = creationPolicy;
         }
 
         public CreationPolicy RequiredCreationPolicy { get; private set; }

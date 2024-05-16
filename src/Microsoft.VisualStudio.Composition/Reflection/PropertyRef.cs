@@ -44,13 +44,13 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             this.PropertyTypeRef = propertyTypeRef;
         }
 
-        public PropertyRef(PropertyInfo memberInfo, Resolver resolver)
-            : base(memberInfo, resolver)
+        public PropertyRef(PropertyInfo propertyInfo, Resolver resolver)
+                   : base(propertyInfo, resolver)
         {
-            this.getMethodMetadataToken = memberInfo.GetMethod?.MetadataToken;
-            this.setMethodMetadataToken = memberInfo.SetMethod?.MetadataToken;
-            this.Name = memberInfo.Name;
-            this.PropertyTypeRef = TypeRef.Get(memberInfo.PropertyType, resolver);
+            this.getMethodMetadataToken = propertyInfo.GetMethod?.MetadataToken;
+            this.setMethodMetadataToken = propertyInfo.SetMethod?.MetadataToken;
+            this.Name = propertyInfo.Name;
+            this.PropertyTypeRef = TypeRef.Get(propertyInfo.PropertyType, resolver);
         }
 
         public PropertyInfo PropertyInfo => (PropertyInfo)this.MemberInfo;

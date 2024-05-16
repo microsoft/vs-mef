@@ -33,14 +33,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// The types that are represented in this catalog.
         /// </summary>
-        private ImmutableHashSet<TypeRef> typesBackingParts;
-
-        private DiscoveredParts discoveredParts;
-
-        private Resolver resolver;
-
-
-        [SerializationConstructor]
+        private ImmutableHashSet<TypeRef> typesBackingParts;        
 
         private ComposableCatalog(ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, ImmutableHashSet<TypeRef> typesBackingParts, DiscoveredParts discoveredParts, Resolver resolver)
         {
@@ -53,8 +46,8 @@ namespace Microsoft.VisualStudio.Composition
             this.parts = parts;
             this.exportsByContract = exportsByContract;
             this.typesBackingParts = typesBackingParts;
-            this.discoveredParts = discoveredParts;
-            this.resolver = resolver;
+            this.DiscoveredParts = discoveredParts;
+            this.Resolver = resolver;
         }
 
         /// <summary>
@@ -68,16 +61,9 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets the parts that were added to the catalog via a <see cref="PartDiscovery"/> class.
         /// </summary>
-        public DiscoveredParts DiscoveredParts
-        {
-            get { return this.discoveredParts; }
-            private set { this.discoveredParts = value; }
-        }
+        public DiscoveredParts DiscoveredParts { get; private set; }
 
-        internal Resolver Resolver
-        {
-            get { return this.resolver; }
-        }
+        internal Resolver Resolver { get; }
 
         public static ComposableCatalog Create(Resolver resolver)
         {

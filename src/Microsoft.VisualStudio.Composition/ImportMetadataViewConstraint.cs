@@ -23,17 +23,17 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Initializes a new instance of the <see cref="ImportMetadataViewConstraint"/> class.
         /// </summary>
-        /// <param name="requirements">The metadata names and requirements.</param>
-        /// <param name="resolver">A resolver to use when handling <see cref="TypeRef"/> objects. Must not be null unless <paramref name="requirements"/> is empty.</param>
-        public ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> requirements, Resolver? resolver)
+        /// <param name="metadataNamesAndTypes">The metadata names and requirements.</param>
+        /// <param name="resolver">A resolver to use when handling <see cref="TypeRef"/> objects. Must not be null unless <paramref name="metadataNamesAndTypes"/> is empty.</param>
+        public ImportMetadataViewConstraint(IReadOnlyDictionary<string, MetadatumRequirement> metadataNamesAndTypes, Resolver? resolver)
         {
-            Requires.NotNull(requirements, nameof(requirements));
-            if (requirements.Count > 0)
+            Requires.NotNull(metadataNamesAndTypes, nameof(metadataNamesAndTypes));
+            if (metadataNamesAndTypes.Count > 0)
             {
                 Requires.NotNull(resolver!, nameof(resolver));
             }
 
-            this.Requirements = ImmutableDictionary.CreateRange(requirements);
+            this.Requirements = ImmutableDictionary.CreateRange(metadataNamesAndTypes);
             this.Resolver = resolver;
         }
 

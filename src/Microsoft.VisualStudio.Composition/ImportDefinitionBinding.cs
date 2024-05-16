@@ -26,20 +26,20 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public ImportDefinitionBinding(
             ImportDefinition importDefinition,
-            TypeRef composablePartTypeRef,
-            MemberRef importingMemberRef,
+            TypeRef composablePartType,
+            MemberRef importingMember,
             TypeRef importingSiteTypeRef,
             TypeRef importingSiteTypeWithoutCollectionRef)
         {
             Requires.NotNull(importDefinition, nameof(importDefinition));
-            Requires.NotNull(composablePartTypeRef, nameof(composablePartTypeRef));
-            Requires.NotNull(importingMemberRef, nameof(importingMemberRef));
+            Requires.NotNull(composablePartType, nameof(composablePartType));
+            Requires.NotNull(importingMember, nameof(importingMember));
             Requires.NotNull(importingSiteTypeRef, nameof(importingSiteTypeRef));
             Requires.NotNull(importingSiteTypeWithoutCollectionRef, nameof(importingSiteTypeWithoutCollectionRef));
 
             this.ImportDefinition = importDefinition;
-            this.ComposablePartTypeRef = composablePartTypeRef;
-            this.ImportingMemberRef = importingMemberRef;
+            this.ComposablePartTypeRef = composablePartType;
+            this.ImportingMemberRef = importingMember;
             this.ImportingSiteTypeRef = importingSiteTypeRef;
             this.ImportingSiteTypeWithoutCollectionRef = importingSiteTypeWithoutCollectionRef;
         }
@@ -50,20 +50,20 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public ImportDefinitionBinding(
             ImportDefinition importDefinition,
-            TypeRef composablePartTypeRef,
-            ParameterRef importingParameterRef,
+            TypeRef composablePartType,
+            ParameterRef importingConstructorParameter,
             TypeRef importingSiteTypeRef,
             TypeRef importingSiteTypeWithoutCollectionRef)
         {
             Requires.NotNull(importDefinition, nameof(importDefinition));
-            Requires.NotNull(composablePartTypeRef, nameof(composablePartTypeRef));
-            Requires.NotNull(importingParameterRef, nameof(importingParameterRef));
+            Requires.NotNull(composablePartType, nameof(composablePartType));
+            Requires.NotNull(importingConstructorParameter, nameof(importingConstructorParameter));
             Requires.NotNull(importingSiteTypeRef, nameof(importingSiteTypeRef));
             Requires.NotNull(importingSiteTypeWithoutCollectionRef, nameof(importingSiteTypeWithoutCollectionRef));
 
             this.ImportDefinition = importDefinition;
-            this.ComposablePartTypeRef = composablePartTypeRef;
-            this.ImportingParameterRef = importingParameterRef;
+            this.ComposablePartTypeRef = composablePartType;
+            this.ImportingParameterRef = importingConstructorParameter;
             this.ImportingSiteTypeRef = importingSiteTypeRef;
             this.ImportingSiteTypeWithoutCollectionRef = importingSiteTypeWithoutCollectionRef;
         }
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public MemberRef? ImportingMemberRef { get; private set; }
 
-        [IgnoreMember]
+       // [IgnoreMember]
         public ParameterInfo? ImportingParameter => this.ImportingParameterRef?.ParameterInfo;
 
         public ParameterRef? ImportingParameterRef { get; private set; }
