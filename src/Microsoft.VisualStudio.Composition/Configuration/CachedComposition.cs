@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(configuration, nameof(configuration));
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.Argument(cacheStream.CanWrite, "cacheStream", Strings.WritableStreamRequired);
-
+            //Test commit
             return Task.Run(async delegate
             {
                 var compositionRuntime = RuntimeComposition.CreateRuntimeComposition(configuration);
