@@ -12,17 +12,25 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public ParameterRef Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            MethodRef method = options.Resolver.GetFormatterWithVerify<MethodRef>().Deserialize(ref reader, options);
-            int parameterIndex = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
-            var value = new ParameterRef(method, parameterIndex);
+            if (MessagePackFormatterContext.TryPrepareDeserializeReusableObject(out uint id, out ParameterRef? value, ref reader, options))
+            {
+                MethodRef method = options.Resolver.GetFormatterWithVerify<MethodRef>().Deserialize(ref reader, options);
+                int parameterIndex = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+                value = new ParameterRef(method, parameterIndex);
 
-            return value;
+                MessagePackFormatterContext.OnDeserializedReusableObject(id, value);
+            }
+
+            return value;            
         }
 
         public void Serialize(ref MessagePackWriter writer, ParameterRef value, MessagePackSerializerOptions options)
         {
-            options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value.Method, options);
-            options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.ParameterIndex, options);
+            if (MessagePackFormatterContext.TryPrepareSerializeReusableObject(value, ref writer, options))
+            {
+                options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value.Method, options);
+                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.ParameterIndex, options);
+            }
         }
     }
 }

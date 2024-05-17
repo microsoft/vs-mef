@@ -43,15 +43,22 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.Argument(cacheStream.CanWrite, "cacheStream", Strings.WritableStreamRequired);
 
-            var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
-
-            ResolverFormatterContainer.Resolver = composition.Resolver;
-
-            await Task.Run(() =>
+            using (var context = new MessagePackFormatterContext(composition.Parts.Count * 5))
             {
-                MessagePackSerializer.Serialize(cacheStream, composition, options);
+                var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
 
-            });
+                ResolverFormatterContainer.Resolver = composition.Resolver; // move this to contructor of MessagePackFormatterContext
+
+                await MessagePackSerializer.SerializeAsync(cacheStream, composition, options);
+
+                //await Task.Run(() =>
+                //{
+                //    MessagePackSerializer.SerializeAsync(cacheStream, composition, options);
+
+                //});
+            }
+
+
 
             //            await MessagePackSerializer.SerializeAsync(cacheStream, composition, options, cancellationToken);
            // await MessagePackSerializer.SerializeAsync(cacheStream, composition, options, cancellationToken);
@@ -73,12 +80,18 @@ namespace Microsoft.VisualStudio.Composition
             Requires.Argument(cacheStream.CanRead, "cacheStream", Strings.ReadableStreamRequired);
             Requires.NotNull(resolver, nameof(resolver));
 
-            ResolverFormatterContainer.Resolver = resolver;
 
-            var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
 
-            var runtimeComposition = await MessagePackSerializer.DeserializeAsync<RuntimeComposition>(cacheStream, options, cancellationToken);
-            return runtimeComposition;
+            using (var context = new MessagePackFormatterContext())
+            {
+                ResolverFormatterContainer.Resolver = resolver;
+
+                var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
+
+                var runtimeComposition = await MessagePackSerializer.DeserializeAsync<RuntimeComposition>(cacheStream, options, cancellationToken);
+                return runtimeComposition;
+            }
+
 
             //return Task.Run(() =>
             //{

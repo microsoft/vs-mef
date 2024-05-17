@@ -24,10 +24,13 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(catalog, nameof(catalog));
             Requires.NotNull(cacheStream, nameof(cacheStream));
-            ResolverFormatterContainer.Resolver = catalog.Resolver;
+            using (var context = new MessagePackFormatterContext(catalog.Parts.Count * 4))
+            {
+                ResolverFormatterContainer.Resolver = catalog.Resolver;
 
-            var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
-            await MessagePackSerializer.SerializeAsync(cacheStream, catalog, options, cancellationToken);
+                var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
+                await MessagePackSerializer.SerializeAsync(cacheStream, catalog, options, cancellationToken);
+            }
         }
 
         public async Task<ComposableCatalog> LoadAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
@@ -35,11 +38,14 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.NotNull(resolver, nameof(resolver));
 
-            ResolverFormatterContainer.Resolver = resolver;
-            var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
-            ComposableCatalog catalog = await MessagePackSerializer.DeserializeAsync<ComposableCatalog>(cacheStream, options, cancellationToken);
+            using (var context = new MessagePackFormatterContext())
+            {
+                ResolverFormatterContainer.Resolver = resolver;
+                var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
+                ComposableCatalog catalog = await MessagePackSerializer.DeserializeAsync<ComposableCatalog>(cacheStream, options, cancellationToken);
 
-            return catalog;
+                return catalog;
+            }
         }
 
         private class SerializationContext : SerializationContextBase

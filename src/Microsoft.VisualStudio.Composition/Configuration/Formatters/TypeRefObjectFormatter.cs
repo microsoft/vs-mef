@@ -3,6 +3,7 @@
 namespace Microsoft.VisualStudio.Composition
 {
     using System.Collections.Immutable;
+    using System.Reflection;
     using MessagePack;
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
@@ -12,54 +13,63 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public TypeRef Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            StrongAssemblyIdentity assemblyId = options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Deserialize(ref reader, options);
-            int metadataToken = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
-            string fullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-            TypeRefFlags flags = options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Deserialize(ref reader, options);
-            int genericTypeParameterCount = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
-            ImmutableArray<TypeRef?> genericTypeArguments = ReadTypeRefImmutableArray(ref reader, options); //todo
-            bool shallow = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
-            ImmutableArray<TypeRef?> baseTypes = !shallow ? ReadTypeRefImmutableArray(ref reader, options)
-                : ImmutableArray<TypeRef?>.Empty; //todo
 
-            bool hasElementType = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options) != 0;
 
-            TypeRef? elementType = hasElementType
-                   ? options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options)
-                   : null;
+            if (MessagePackFormatterContext.TryPrepareDeserializeReusableObject(out uint id, out TypeRef? value, ref reader, options))
+            {
+                StrongAssemblyIdentity assemblyId = options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Deserialize(ref reader, options);
+                int metadataToken = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+                string fullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                TypeRefFlags flags = options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Deserialize(ref reader, options);
+                int genericTypeParameterCount = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+                ImmutableArray<TypeRef?> genericTypeArguments = ReadTypeRefImmutableArray(ref reader, options); //todo
+                bool shallow = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
+                ImmutableArray<TypeRef?> baseTypes = !shallow ? ReadTypeRefImmutableArray(ref reader, options)
+                    : ImmutableArray<TypeRef?>.Empty; //todo
 
-            Resolver resolver = options.Resolver.GetFormatterWithVerify<Resolver>().Deserialize(ref reader, options);
+                bool hasElementType = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options) != 0;
 
-            var value = TypeRef.Get(resolver, assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments!, shallow, baseTypes!, elementType);
+                TypeRef? elementType = hasElementType
+                       ? options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options)
+                       : null;
 
+                // Resolver resolver = options.Resolver.GetFormatterWithVerify<Resolver>().Deserialize(ref reader, options);
+
+                value = TypeRef.Get(ResolverFormatterContainer.Resolver, assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments!, shallow, baseTypes!, elementType);
+
+                MessagePackFormatterContext.OnDeserializedReusableObject(id, value);
+            }
 
             return value;
         }
 
         public void Serialize(ref MessagePackWriter writer, TypeRef value, MessagePackSerializerOptions options)
         {
-            options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Serialize(ref writer, value.AssemblyId, options);
-            options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
-            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.FullName, options);
-            options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Serialize(ref writer, value.TypeFlags, options);
-            options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.GenericTypeParameterCount, options);            
-            CollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.GenericTypeArguments, options); //todo
-            options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsShallow, options);
-
-            if (!value.IsShallow)
+            if (MessagePackFormatterContext.TryPrepareSerializeReusableObject(value, ref writer, options))
             {
-                //options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>().Serialize(ref writer, value.BaseTypes, options); //tdo
-                CollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.BaseTypes, options); //todo
+                options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Serialize(ref writer, value.AssemblyId, options);
+                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
+                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.FullName, options);
+                options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Serialize(ref writer, value.TypeFlags, options);
+                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.GenericTypeParameterCount, options);
+                CollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.GenericTypeArguments, options); //todo
+                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsShallow, options);
+
+                if (!value.IsShallow)
+                {
+                    //options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>().Serialize(ref writer, value.BaseTypes, options); //tdo
+                    CollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.BaseTypes, options); //todo
+                }
+
+                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.ElementTypeRef.Equals(value) ? 0 : 1, options);
+
+                if (!value.ElementTypeRef.Equals(value))
+                {
+                    options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ElementTypeRef, options);
+                }
+
+                // options.Resolver.GetFormatterWithVerify<Resolver>().Serialize(ref writer, value.Resolver, options);
             }
-
-            options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.ElementTypeRef.Equals(value) ? 0 : 1, options);
-
-            if (!value.ElementTypeRef.Equals(value))
-            {
-                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ElementTypeRef, options);
-            }
-
-            options.Resolver.GetFormatterWithVerify<Resolver>().Serialize(ref writer, value.Resolver, options);
         }
 
         internal static ImmutableArray<TypeRef?> ReadTypeRefImmutableArray(ref MessagePackReader reader, MessagePackSerializerOptions options)
