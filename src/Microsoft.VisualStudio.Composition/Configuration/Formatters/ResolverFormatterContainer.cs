@@ -15,12 +15,13 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public Resolver Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            return ResolverFormatterContainer.Resolver;
+            return options.CompositionResolver();
+           // return ResolverFormatterContainer.Resolver;
         }
 
         public void Serialize(ref MessagePackWriter writer, Resolver value, MessagePackSerializerOptions options)
         {
-            ResolverFormatterContainer.Resolver ??= value;
+            //ResolverFormatterContainer.Resolver ??= value;
         }
     }
 
@@ -49,10 +50,17 @@ namespace Microsoft.VisualStudio.Composition
             return messagePackFormatterContext.TryPrepareSerializeReusableObject(value, ref writer, options);
         }
 
+        public static Resolver CompositionResolver(this MessagePackSerializerOptions option)
+        {
+            MessagePackFormatterContext messagePackFormatterContext = option as MessagePackFormatterContext;
+            return messagePackFormatterContext.CompositionResolver;
+        }
     }
 
     internal class MessagePackFormatterContext : MessagePackSerializerOptions, IDisposable
     {
+        public Resolver CompositionResolver { get; }
+
         static IFormatterResolver GetIFormatterResolver(IFormatterResolver resolver)
         {
             return CompositeResolver.Create(
@@ -66,19 +74,22 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         /// Read
-        public MessagePackFormatterContext(IFormatterResolver resolver)
+        public MessagePackFormatterContext(IFormatterResolver resolver, Resolver compositionResolver)
             : base(GetIFormatterResolver(resolver))
         {
             //deserializingObjectTable2 = new Dictionary<uint, object?>(); //c heck manual ax count  1000000
             deserializingObjectTable2 = new ConcurrentDictionary<uint, object?>(); //c heck manual ax count  1000000
+            this.CompositionResolver = compositionResolver;
         }        
 
         //writer
-        public MessagePackFormatterContext(int estimatedObjectCount, IFormatterResolver resolver)
+        public MessagePackFormatterContext(int estimatedObjectCount, IFormatterResolver resolver, Resolver compositionResolver)
             : base(GetIFormatterResolver(resolver))
         {
             //  serializingObjectTable = new Dictionary<object, uint>(estimatedObjectCount, SmartInterningEqualityComparer.Default);
             serializingObjectTable = new ConcurrentDictionary<object, uint>( SmartInterningEqualityComparer.Default);
+            this.CompositionResolver = compositionResolver;
+
         }
 
         //static Dictionary<object, uint>? serializingObjectTable;

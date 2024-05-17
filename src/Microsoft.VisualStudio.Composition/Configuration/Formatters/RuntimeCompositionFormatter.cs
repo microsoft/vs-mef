@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders = builder.ToImmutable();
 
-                var response = RuntimeComposition.CreateRuntimeComposition(parts, metadataViewsAndProviders, ResolverFormatterContainer.Resolver);
+                var response = RuntimeComposition.CreateRuntimeComposition(parts, metadataViewsAndProviders, options.CompositionResolver());
 
                 return response;
           //  }                      

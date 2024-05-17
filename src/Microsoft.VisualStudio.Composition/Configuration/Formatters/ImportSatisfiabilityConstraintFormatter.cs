@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.Composition
                         requirements.Add(name, new ImportMetadataViewConstraint.MetadatumRequirement(valueTypeRef, isRequired));
                     }
 
-                    return new ImportMetadataViewConstraint(requirements.ToImmutable(), ResolverFormatterContainer.Resolver);
+                    return new ImportMetadataViewConstraint(requirements.ToImmutable(), options.CompositionResolver());
 
                 case ConstraintTypes.ExportTypeIdentityConstraint:
                     string? exportTypeIdentity = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);

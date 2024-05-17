@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.Composition
             //}
 
             var composablePartDefinition = CollectionFormatter<ComposablePartDefinition>.DeserializeCollection(ref reader, options);
-            return ComposableCatalog.Create(ResolverFormatterContainer.Resolver).AddParts(composablePartDefinition);
+            return ComposableCatalog.Create(options.CompositionResolver()).AddParts(composablePartDefinition);
 
 
         }

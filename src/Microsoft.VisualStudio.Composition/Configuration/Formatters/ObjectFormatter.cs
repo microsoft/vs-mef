@@ -29,7 +29,16 @@ namespace Microsoft.VisualStudio.Composition
         {
             options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.Count(), options);
 
-            foreach (KeyValuePair<string, object?> item in value)
+            // Special case certain values to avoid defeating lazy load later.
+            // Check out the ReadMetadata below, how it wraps the return value.
+            IReadOnlyDictionary<string, object?> serializedMetadata;
+
+            // Unwrap the metadata if its an instance of LazyMetaDataWrapper, the wrapper may end up
+            // implicitly resolving TypeRefs to Types which is undesirable.
+            value = LazyMetadataWrapper.TryUnwrap(value);
+            serializedMetadata = new LazyMetadataWrapper(value.ToImmutableDictionary(), LazyMetadataWrapper.Direction.ToSubstitutedValue, options.CompositionResolver());
+
+            foreach (KeyValuePair<string, object?> item in serializedMetadata)
             {
                 options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, item.Key, options);
 
@@ -51,7 +60,7 @@ namespace Microsoft.VisualStudio.Composition
                         var array = (Array)value;
                         options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectFormatter.ObjectType.Array, options);
 
-                        TypeRef? elementTypeRef = TypeRef.Get(objectType.GetElementType(), ResolverFormatterContainer.Resolver);
+                        TypeRef? elementTypeRef = TypeRef.Get(objectType.GetElementType(), options.CompositionResolver());
                         options.Resolver.GetFormatterWithVerify<TypeRef?>().Serialize(ref messagePackWriter, elementTypeRef, options);
 
                         options.Resolver.GetFormatterWithVerify<int>().Serialize(ref messagePackWriter, array.Length, options);
@@ -138,7 +147,7 @@ namespace Microsoft.VisualStudio.Composition
                         break;
 
                     case Type objectType when typeof(Type).GetTypeInfo().IsAssignableFrom(objectType):
-                        TypeRef typeRefValue = TypeRef.Get((Type)value, ResolverFormatterContainer.Resolver);
+                        TypeRef typeRefValue = TypeRef.Get((Type)value, options.CompositionResolver());
                         options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.Type, options);
                         options.Resolver.GetFormatterWithVerify<TypeRef?>().Serialize(ref messagePackWriter, typeRefValue, options);
                         break;
@@ -198,7 +207,7 @@ namespace Microsoft.VisualStudio.Composition
                 builder.Clear();
             }
 
-            return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue, ResolverFormatterContainer.Resolver);
+            return new LazyMetadataWrapper(metadata, LazyMetadataWrapper.Direction.ToOriginalValue, options.CompositionResolver());
 
             object? DeserializeObject(ref MessagePackReader messagePackReader)
             {
@@ -313,7 +322,7 @@ namespace Microsoft.VisualStudio.Composition
                     case ObjectType.TypeArraySubstitution:
                         var typeRefArray = CollectionFormatter<TypeRef?>.DeserializeCollection(ref messagePackReader, options);
                         //IReadOnlyList<TypeRef?> typeRefArray = options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef?>>().Deserialize(ref messagePackReader, options);
-                        response = new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray!, ResolverFormatterContainer.Resolver);
+                        response = new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray!, options.CompositionResolver());
                         break;
 
                     case ObjectType.BinaryFormattedObject:

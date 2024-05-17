@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 // Resolver resolver = options.Resolver.GetFormatterWithVerify<Resolver>().Deserialize(ref reader, options);
 
-                value = TypeRef.Get(ResolverFormatterContainer.Resolver, assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments!, shallow, baseTypes!, elementType);
+                value = TypeRef.Get(options.CompositionResolver(), assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments!, shallow, baseTypes!, elementType);
 
                 options.OnDeserializedReusableObject(id, value);
             }

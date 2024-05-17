@@ -47,12 +47,12 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.Argument(cacheStream.CanWrite, "cacheStream", Strings.WritableStreamRequired);
 
-            using (var context = new MessagePackFormatterContext(composition.Parts.Count * 5, ContractlessStandardResolver.Instance))
+            using (var context = new MessagePackFormatterContext(composition.Parts.Count * 5, ContractlessStandardResolver.Instance, composition.Resolver))
             {
                 //   var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
                
 
-                ResolverFormatterContainer.Resolver = composition.Resolver; // move this to contructor of MessagePackFormatterContext
+                //ResolverFormatterContainer.Resolver = composition.Resolver; // move this to contructor of MessagePackFormatterContext
 
                 await MessagePackSerializer.SerializeAsync(cacheStream, composition, context);
 
@@ -87,9 +87,8 @@ namespace Microsoft.VisualStudio.Composition
 
 
 
-            using (var context = new MessagePackFormatterContext(ContractlessStandardResolver.Instance))
+            using (var context = new MessagePackFormatterContext(ContractlessStandardResolver.Instance, resolver))
             {
-                ResolverFormatterContainer.Resolver = resolver;
 
             //    var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
 
