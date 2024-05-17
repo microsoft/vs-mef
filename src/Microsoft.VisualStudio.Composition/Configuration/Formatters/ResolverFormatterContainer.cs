@@ -28,17 +28,41 @@ namespace Microsoft.VisualStudio.Composition
         public static Resolver Resolver { get; set; } // set this with MessagePackFormatterContext contructoer
     }
 
-    internal class MessagePackFormatterContext : IDisposable
+    public static class MessagePackSerializerOptionsExt
+    {
+        public static bool TryPrepareDeserializeReusableObject<T>(this MessagePackSerializerOptions option, out uint id, out T? value, ref MessagePackReader reader, MessagePackSerializerOptions options) where T : class
+        {
+            MessagePackFormatterContext messagePackFormatterContext = option as MessagePackFormatterContext;
+            return messagePackFormatterContext.TryPrepareDeserializeReusableObject(out id, out value, ref reader, options);
+        }
+
+        public static void OnDeserializedReusableObject(this MessagePackSerializerOptions option, uint id, object value)
+        {
+            MessagePackFormatterContext messagePackFormatterContext = option as MessagePackFormatterContext;
+            messagePackFormatterContext.OnDeserializedReusableObject(id, value);
+        }
+
+        public static bool TryPrepareSerializeReusableObject(this MessagePackSerializerOptions option, object value, ref MessagePackWriter writer, MessagePackSerializerOptions options)
+        {
+            MessagePackFormatterContext messagePackFormatterContext = option as MessagePackFormatterContext;
+            return messagePackFormatterContext.TryPrepareSerializeReusableObject(value, ref writer, options);
+        }
+
+    }
+
+    internal class MessagePackFormatterContext : MessagePackSerializerOptions, IDisposable
     {
         /// Read
-        public MessagePackFormatterContext()
+        public MessagePackFormatterContext(IFormatterResolver resolver)
+            : base(resolver)
         {
             //deserializingObjectTable2 = new Dictionary<uint, object?>(); //c heck manual ax count  1000000
             deserializingObjectTable2 = new ConcurrentDictionary<uint, object?>(); //c heck manual ax count  1000000
         }
 
         //writer
-        public MessagePackFormatterContext(int estimatedObjectCount)
+        public MessagePackFormatterContext(int estimatedObjectCount, IFormatterResolver resolver)
+            : base(resolver)
         {
             //  serializingObjectTable = new Dictionary<object, uint>(estimatedObjectCount, SmartInterningEqualityComparer.Default);
             serializingObjectTable = new ConcurrentDictionary<object, uint>( SmartInterningEqualityComparer.Default);
@@ -48,70 +72,74 @@ namespace Microsoft.VisualStudio.Composition
         //static Dictionary<uint, object?>? deserializingObjectTable2;
 
 
-        static ConcurrentDictionary<object, uint>? serializingObjectTable;
-        static ConcurrentDictionary<uint, object?>? deserializingObjectTable2;
+        ConcurrentDictionary<object, uint>? serializingObjectTable;
+        ConcurrentDictionary<uint, object?>? deserializingObjectTable2;
 
 
-        public static bool TryPrepareDeserializeReusableObject<T>(out uint id, out T? value, ref MessagePackReader reader, MessagePackSerializerOptions options) where T : class
+        public bool TryPrepareDeserializeReusableObject<T>(out uint id, out T? value, ref MessagePackReader reader, MessagePackSerializerOptions options) where T : class
         {
+            // deserializingObjectTable2
+            // If the id is 0 then return false and value is null
+            // If the id is not 0
+            //  and the id is in the deserializingObjectTable2 then return false and value is the object
+            // and the id is not in the deserializingObjectTable2 then return true and value is null, ask to update the table 
             id = options.Resolver.GetFormatterWithVerify<uint>().Deserialize(ref reader, options);
+
             if (id == 0)
             {
                 value = null;
                 return false;
             }
 
-            if(deserializingObjectTable2.ContainsKey(id))
+            if (deserializingObjectTable2.TryGetValue(id, out object? obj))
             {
-                // key is there, re use the sapace
-                value = (T?)deserializingObjectTable2[id];
+                value = (T?)obj;
+                return false;
             }
             else
             {
-                //key is no there, allocates space
-                //deserializingObjectTable2[id] = null;
-                deserializingObjectTable2.TryAdd(id, null);
-
                 value = null;
-            }
 
-            bool result = value is null;
-            return result;
+                // asking to deserialize the object to caller
+                return true;
+            }
         }
 
-        public static void OnDeserializedReusableObject(uint id, object value)
+        public void OnDeserializedReusableObject(uint id, object value)
         {
-            deserializingObjectTable2[id] = value;
+            deserializingObjectTable2.TryAdd(id, value);
+            //deserializingObjectTable2[id] = value;
         }
 
-        public static bool TryPrepareSerializeReusableObject([NotNullWhen(true)] object? value, ref MessagePackWriter writer, MessagePackSerializerOptions options)
+        public bool TryPrepareSerializeReusableObject([NotNullWhen(true)] object? value, ref MessagePackWriter writer, MessagePackSerializerOptions options)
         {
-            uint id;
-            bool result;
-            if (value == null)
+            // Searlize
+            // If the value is Null then log id ==0, and dont serialize the value
+            // if the value if not null
+            // if the value in the serializingObjectTable then log the related Id and dont serialize the value
+            // if the value is not in the serializingObjectTable then log the new Id and ask to serialize the value
+            // Return true when we ask to serialize the value
+
+            if (value is null)
             {
-                id = 0;
-                result = false;
+                options.Resolver.GetFormatterWithVerify<uint>().Serialize(ref writer, 0, options);
+                return false;
             }
-            else if (serializingObjectTable.TryGetValue(value, out id))
+
+            if (serializingObjectTable.TryGetValue(value, out uint id))
             {
+                options.Resolver.GetFormatterWithVerify<uint>().Serialize(ref writer, id, options);
+
                 // The object has already been serialized.
-                result = false;
+                return false;
             }
             else
             {
+                // asking to serialize the object to caller
                 serializingObjectTable.TryAdd(value, id = (uint)serializingObjectTable.Count + 1);
-                result = true;
+                options.Resolver.GetFormatterWithVerify<uint>().Serialize(ref writer, id, options);
+                return true;
             }
-
-#if TRACESERIALIZATION
-            if (id != 0)
-            {
-                this.trace.WriteLine((result ? "Start" : "Reuse") + $" object {id}.");
-            }
-#endif
-            options.Resolver.GetFormatterWithVerify<uint>().Serialize(ref writer, id, options);
-            return result;
         }
 
         public void Dispose()

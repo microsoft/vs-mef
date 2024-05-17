@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public RuntimeExport Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (MessagePackFormatterContext.TryPrepareDeserializeReusableObject(out uint id, out RuntimeExport? value, ref reader, options))
+            if (options.TryPrepareDeserializeReusableObject(out uint id, out RuntimeExport? value, ref reader, options))
             {
                 string contractName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                 TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Composition
                     exportedValueType,
                     metadata);
 
-                MessagePackFormatterContext.OnDeserializedReusableObject(id, value);
+                options.OnDeserializedReusableObject(id, value);
             }
 
             return value;
@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public void Serialize(ref MessagePackWriter writer, RuntimeExport value, MessagePackSerializerOptions options)
         {
-            if (MessagePackFormatterContext.TryPrepareSerializeReusableObject(value, ref writer, options))
+            if (options.TryPrepareSerializeReusableObject(value, ref writer, options))
             {
                 options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.ContractName, options);
                 options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringTypeRef, options);

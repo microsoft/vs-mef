@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Composition
 
 
 
-            if (MessagePackFormatterContext.TryPrepareDeserializeReusableObject(out uint id, out StrongAssemblyIdentity? value, ref reader, options))
+            if (options.TryPrepareDeserializeReusableObject(out uint id, out StrongAssemblyIdentity? value, ref reader, options))
             {
                 Guid mvid = options.Resolver.GetFormatterWithVerify<Guid>().Deserialize(ref reader, options);
                 string fullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Composition
                 assemblyName.CodeBase = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                 value = new StrongAssemblyIdentity(assemblyName, mvid);
 
-                MessagePackFormatterContext.OnDeserializedReusableObject(id, value);
+                options.OnDeserializedReusableObject(id, value);
             }
 
             return value;
@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public void Serialize(ref MessagePackWriter writer, StrongAssemblyIdentity value, MessagePackSerializerOptions options)
         {
-            if (MessagePackFormatterContext.TryPrepareSerializeReusableObject(value, ref writer, options))
+            if (options.TryPrepareSerializeReusableObject(value, ref writer, options))
             {
                 options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value.Mvid, options);
                 options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.FullName, options);

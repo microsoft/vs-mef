@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Composition
         {
 
 
-            if (MessagePackFormatterContext.TryPrepareDeserializeReusableObject(out uint id, out TypeRef? value, ref reader, options))
+            if (options.TryPrepareDeserializeReusableObject(out uint id, out TypeRef? value, ref reader, options))
             {
                 StrongAssemblyIdentity assemblyId = options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Deserialize(ref reader, options);
                 int metadataToken = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 value = TypeRef.Get(ResolverFormatterContainer.Resolver, assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments!, shallow, baseTypes!, elementType);
 
-                MessagePackFormatterContext.OnDeserializedReusableObject(id, value);
+                options.OnDeserializedReusableObject(id, value);
             }
 
             return value;
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public void Serialize(ref MessagePackWriter writer, TypeRef value, MessagePackSerializerOptions options)
         {
-            if (MessagePackFormatterContext.TryPrepareSerializeReusableObject(value, ref writer, options))
+            if (options.TryPrepareSerializeReusableObject(value, ref writer, options))
             {
                 options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Serialize(ref writer, value.AssemblyId, options);
                 options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);

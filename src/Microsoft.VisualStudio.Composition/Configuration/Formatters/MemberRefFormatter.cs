@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Composition
 
             MemberReferenceType DeserializeFieldReference(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
-                if (MessagePackFormatterContext.TryPrepareDeserializeReusableObject(out uint id, out FieldRef? value, ref reader, options))
+                if (options.TryPrepareDeserializeReusableObject(out uint id, out FieldRef? value, ref reader, options))
                 {
 
 
@@ -50,7 +50,7 @@ namespace Microsoft.VisualStudio.Composition
                     value = new FieldRef(declaringType, fieldType, metadataToken, name, isStatic);
                     //return value as MemberReferenceType;
 
-                    MessagePackFormatterContext.OnDeserializedReusableObject(id, value);
+                    options.OnDeserializedReusableObject(id, value);
                 }
 
                 return value as MemberReferenceType;
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.Composition
 
             MemberReferenceType DeserializePropertyReference(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
-                if (MessagePackFormatterContext.TryPrepareDeserializeReusableObject(out uint id, out PropertyRef? value, ref reader, options))
+                if (options.TryPrepareDeserializeReusableObject(out uint id, out PropertyRef? value, ref reader, options))
                 {
 
                     TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
@@ -71,7 +71,7 @@ namespace Microsoft.VisualStudio.Composition
                     int? getter = options.Resolver.GetFormatterWithVerify<int?>().Deserialize(ref reader, options);
 
                     value = new PropertyRef(declaringType, propertyType, metadataToken, getter, setter, name, isStatic);
-                    MessagePackFormatterContext.OnDeserializedReusableObject(id, value);
+                    options.OnDeserializedReusableObject(id, value);
                 }
 
                 return value as MemberReferenceType;
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.Composition
 
             MemberReferenceType DeserializeMethodReference(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
-                if (MessagePackFormatterContext.TryPrepareDeserializeReusableObject(out uint id, out MethodRef? value, ref reader, options))
+                if (options.TryPrepareDeserializeReusableObject(out uint id, out MethodRef? value, ref reader, options))
                 {
                     TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
                     int metadataToken = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.Composition
 
                     value = new MethodRef(declaringType, metadataToken, name, isStatic, parameterTypes!, genericMethodArguments!);
 
-                    MessagePackFormatterContext.OnDeserializedReusableObject(id, value);
+                    options.OnDeserializedReusableObject(id, value);
                 }
 
                 return value as MemberReferenceType;
@@ -128,7 +128,7 @@ namespace Microsoft.VisualStudio.Composition
 
             void SerializeFieldReference(ref MessagePackWriter writer, FieldRef value, MessagePackSerializerOptions options)
             {
-                if (MessagePackFormatterContext.TryPrepareSerializeReusableObject(value, ref writer, options))
+                if (options.TryPrepareSerializeReusableObject(value, ref writer, options))
                 {
                     options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringType, options);
                     options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.FieldTypeRef, options);
@@ -140,7 +140,7 @@ namespace Microsoft.VisualStudio.Composition
 
             void SerializeMethodReference(ref MessagePackWriter writer, MethodRef value, MessagePackSerializerOptions options)
             {
-                if (MessagePackFormatterContext.TryPrepareSerializeReusableObject(value, ref writer, options))
+                if (options.TryPrepareSerializeReusableObject(value, ref writer, options))
                 {
                     options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringType, options);
                     options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
@@ -153,7 +153,7 @@ namespace Microsoft.VisualStudio.Composition
 
             void SerializePropertyReference(ref MessagePackWriter writer, PropertyRef value, MessagePackSerializerOptions options)
             {
-                if (MessagePackFormatterContext.TryPrepareSerializeReusableObject(value, ref writer, options))
+                if (options.TryPrepareSerializeReusableObject(value, ref writer, options))
                 {
                     options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringType, options);
                     options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.PropertyTypeRef, options);

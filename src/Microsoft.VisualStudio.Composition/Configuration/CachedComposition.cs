@@ -43,13 +43,13 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.Argument(cacheStream.CanWrite, "cacheStream", Strings.WritableStreamRequired);
 
-            using (var context = new MessagePackFormatterContext(composition.Parts.Count * 5))
+            using (var context = new MessagePackFormatterContext(composition.Parts.Count * 5, ContractlessStandardResolver.Instance))
             {
-                var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
+             //   var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
 
                 ResolverFormatterContainer.Resolver = composition.Resolver; // move this to contructor of MessagePackFormatterContext
 
-                await MessagePackSerializer.SerializeAsync(cacheStream, composition, options);
+                await MessagePackSerializer.SerializeAsync(cacheStream, composition, context);
 
                 //await Task.Run(() =>
                 //{
@@ -82,13 +82,13 @@ namespace Microsoft.VisualStudio.Composition
 
 
 
-            using (var context = new MessagePackFormatterContext())
+            using (var context = new MessagePackFormatterContext(ContractlessStandardResolver.Instance))
             {
                 ResolverFormatterContainer.Resolver = resolver;
 
-                var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
+            //    var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
 
-                var runtimeComposition = await MessagePackSerializer.DeserializeAsync<RuntimeComposition>(cacheStream, options, cancellationToken);
+                var runtimeComposition = await MessagePackSerializer.DeserializeAsync<RuntimeComposition>(cacheStream, context, cancellationToken);
                 return runtimeComposition;
             }
 
