@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 namespace Microsoft.VisualStudio.Composition
 {
     using System.Collections.Immutable;
@@ -32,6 +33,7 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
+        /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, ImportDefinitionBinding value, MessagePackSerializerOptions options)
         {
             options.Resolver.GetFormatterWithVerify<ImportDefinition>().Serialize(ref writer, value.ImportDefinition, options);

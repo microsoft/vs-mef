@@ -1,5 +1,5 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license. See
+// LICENSE file in the project root for full license information.
 namespace Microsoft.VisualStudio.Composition
 {
     using System.Collections.Immutable;
@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Composition
                 TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
                 MemberRef? member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options);
                 TypeRef exportedValueType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-                IReadOnlyDictionary<string, object?> metadata = ObjectFormatter.DeserializeObject(ref reader, options);  //  options.Resolver.GetFormatterWithVerify<IReadOnlyDictionary<string, object?>>().Deserialize(ref reader, options);
+                IReadOnlyDictionary<string, object?> metadata = ObjectFormatter.DeserializeObject(ref reader, options);
 
                 value = new RuntimeComposition.RuntimeExport(
                     contractName,
@@ -34,6 +34,7 @@ namespace Microsoft.VisualStudio.Composition
             return value;
         }
 
+        /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, RuntimeExport value, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareSerializeReusableObject(value, ref writer, options))

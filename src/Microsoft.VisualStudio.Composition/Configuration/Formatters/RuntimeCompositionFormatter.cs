@@ -1,5 +1,7 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license. See
+// LICENSE file in the project root for full license information. Copyright (c) Microsoft
+// Corporation. All rights reserved. Licensed under the MIT license. See LICENSE file in the project
+// root for full license information.
 namespace Microsoft.VisualStudio.Composition
 {
     using System.Collections.Immutable;
@@ -13,45 +15,33 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public RuntimeComposition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
+            IReadOnlyList<RuntimePart> parts = CollectionFormatter<RuntimePart>.DeserializeCollection(ref reader, options);
+            int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+            ImmutableDictionary<TypeRef, RuntimeExport>.Builder builder = ImmutableDictionary.CreateBuilder<TypeRef, RuntimeComposition.RuntimeExport>();
 
-          //  using (var context = new MessagePackFormatterContext())
-          //  {
-                //IReadOnlyCollection<RuntimePart> parts = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimePart>>().Deserialize(ref reader, options);
-                var parts = CollectionFormatter<RuntimePart>.DeserializeCollection(ref reader, options);
-                int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
-                ImmutableDictionary<TypeRef, RuntimeExport>.Builder builder = ImmutableDictionary.CreateBuilder<TypeRef, RuntimeComposition.RuntimeExport>();
+            for (uint i = 0; i < count; i++)
+            {
+                TypeRef key = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+                RuntimeExport value = options.Resolver.GetFormatterWithVerify<RuntimeExport>().Deserialize(ref reader, options);
+                builder.Add(key, value!);
+            }
 
-                for (uint i = 0; i < count; i++)
-                {
-                    TypeRef key = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-                    RuntimeExport value = options.Resolver.GetFormatterWithVerify<RuntimeExport>().Deserialize(ref reader, options);
-                    builder.Add(key, value!);
-                }
+            IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders = builder.ToImmutable();
 
-                IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders = builder.ToImmutable();
-
-                var response = RuntimeComposition.CreateRuntimeComposition(parts, metadataViewsAndProviders, options.CompositionResolver());
-
-                return response;
-          //  }                      
+            return RuntimeComposition.CreateRuntimeComposition(parts, metadataViewsAndProviders, options.CompositionResolver());
         }
 
+        /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, RuntimeComposition value, MessagePackSerializerOptions options)
         {
-           // using (var context = new MessagePackFormatterContext(value.Parts.Count * 5))
-           // {
-                CollectionFormatter<RuntimePart>.SerializeCollection(ref writer, value.Parts, options);
-                //options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimePart>>().Serialize(ref writer, value.Parts, options);
+            CollectionFormatter<RuntimePart>.SerializeCollection(ref writer, value.Parts, options);
 
-                // can be optimize helper method
-                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataViewsAndProviders.Count(), options);
-                foreach (KeyValuePair<TypeRef, RuntimeExport> item in value.MetadataViewsAndProviders)
-                {
-                    options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, item.Key, options);
-                    options.Resolver.GetFormatterWithVerify<RuntimeExport>().Serialize(ref writer, item.Value, options);
-                }
-
-          //  }
+            options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataViewsAndProviders.Count(), options);
+            foreach (KeyValuePair<TypeRef, RuntimeExport> item in value.MetadataViewsAndProviders)
+            {
+                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, item.Key, options);
+                options.Resolver.GetFormatterWithVerify<RuntimeExport>().Serialize(ref writer, item.Value, options);
+            }
         }
     }
 }

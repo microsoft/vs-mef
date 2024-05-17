@@ -1,5 +1,5 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license. See
+// LICENSE file in the project root for full license information.
 namespace Microsoft.VisualStudio.Composition
 {
     using System.Collections.Immutable;
@@ -20,6 +20,7 @@ namespace Microsoft.VisualStudio.Composition
             return DeserializeObject(ref reader, options);
         }
 
+        /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, IReadOnlyDictionary<string, object?> value, MessagePackSerializerOptions options)
         {
             SerializeObject(ref writer, value, options);
@@ -29,8 +30,8 @@ namespace Microsoft.VisualStudio.Composition
         {
             options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.Count(), options);
 
-            // Special case certain values to avoid defeating lazy load later.
-            // Check out the ReadMetadata below, how it wraps the return value.
+            // Special case certain values to avoid defeating lazy load later. Check out the
+            // ReadMetadata below, how it wraps the return value.
             IReadOnlyDictionary<string, object?> serializedMetadata;
 
             // Unwrap the metadata if its an instance of LazyMetaDataWrapper, the wrapper may end up
@@ -174,18 +175,17 @@ namespace Microsoft.VisualStudio.Composition
                         var typeArraySubstitutionValue = (LazyMetadataWrapper.TypeArraySubstitution)value;
                         options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.TypeArraySubstitution, options);
                         CollectionFormatter<TypeRef?>.SerializeCollection(ref messagePackWriter, typeArraySubstitutionValue.TypeRefArray, options);
-                        //options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef>>().Serialize(ref messagePackWriter, typeArraySubstitutionValue.TypeRefArray, options);
                         break;
 
                     default:
-                        // work on this we need to remove this
                         var typeLessData = MessagePackSerializer.Typeless.Serialize(value);
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.BinaryFormattedObject, options);
+                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.TypeLess, options);
                         options.Resolver.GetFormatterWithVerify<byte[]>().Serialize(ref messagePackWriter, typeLessData, options);
                         break;
                 }
             }
         }
+
         internal static IReadOnlyDictionary<string, object?> DeserializeObject(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             ImmutableDictionary<string, object?>.Builder builder = ImmutableDictionary.CreateBuilder<string, object?>();
@@ -325,7 +325,7 @@ namespace Microsoft.VisualStudio.Composition
                         response = new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray!, options.CompositionResolver());
                         break;
 
-                    case ObjectType.BinaryFormattedObject:
+                    case ObjectType.TypeLess:
                         //to do binary fomratter
                         //response = options.Resolver.GetFormatterWithVerify<object>().Deserialize(ref messagePackReader, options);
                         var typeLessData = options.Resolver.GetFormatterWithVerify<byte[]>().Deserialize(ref messagePackReader, options);
@@ -333,6 +333,7 @@ namespace Microsoft.VisualStudio.Composition
                         response = MessagePackSerializer.Typeless.Deserialize(typeLessData);
 
                         break;
+
                     default:
                         throw new NotSupportedException(string.Format(CultureInfo.CurrentCulture, Strings.UnsupportedFormat, objectType));
                 }
@@ -341,7 +342,6 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-
         private enum ObjectType : byte
         {
             Null,
@@ -349,7 +349,7 @@ namespace Microsoft.VisualStudio.Composition
             CreationPolicy,
             Type,
             Array,
-            BinaryFormattedObject,
+            TypeLess,
             TypeRef,
             BoolTrue,
             BoolFalse,

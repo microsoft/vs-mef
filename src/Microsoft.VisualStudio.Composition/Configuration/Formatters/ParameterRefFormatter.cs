@@ -1,5 +1,5 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license. See
+// LICENSE file in the project root for full license information.
 namespace Microsoft.VisualStudio.Composition
 {
     using System.Collections.Immutable;
@@ -21,9 +21,10 @@ namespace Microsoft.VisualStudio.Composition
                 options.OnDeserializedReusableObject(id, value);
             }
 
-            return value;            
+            return value;
         }
 
+        /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, ParameterRef value, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareSerializeReusableObject(value, ref writer, options))

@@ -1,12 +1,12 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-using Microsoft.VisualStudio.Composition;
-
+﻿// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license. See
+// LICENSE file in the project root for full license information.
 namespace Microsoft.VisualStudio.Composition
 {
     using System.Collections.Immutable;
+    using System.Reflection.PortableExecutable;
     using MessagePack;
     using MessagePack.Formatters;
+    using Microsoft.VisualStudio.Composition;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     public class MemberRefFormatter<MemberReferenceType> : IMessagePackFormatter<MemberReferenceType>
@@ -17,30 +17,19 @@ namespace Microsoft.VisualStudio.Composition
         {
             MemberRefType kind = options.Resolver.GetFormatterWithVerify<MemberRefType>().Deserialize(ref reader, options);
 
-            switch (kind)
+            return kind switch
             {
-                case MemberRefType.Other:
-                    return default(MemberRef) as MemberReferenceType;
-
-                case MemberRefType.Field:
-                    return DeserializeFieldReference(ref reader, options);
-
-                case MemberRefType.Property:
-                    return DeserializePropertyReference(ref reader, options);
-
-                case MemberRefType.Method:
-                    return DeserializeMethodReference(ref reader, options);
-
-                default:
-                    throw new NotSupportedException();
-            }
+                MemberRefType.Other => default(MemberRef) as MemberReferenceType,
+                MemberRefType.Field => DeserializeFieldReference(ref reader, options),
+                MemberRefType.Property => DeserializePropertyReference(ref reader, options),
+                MemberRefType.Method => DeserializeMethodReference(ref reader, options),
+                _ => throw new NotSupportedException(),
+            };
 
             MemberReferenceType DeserializeFieldReference(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
                 if (options.TryPrepareDeserializeReusableObject(out uint id, out FieldRef? value, ref reader, options))
                 {
-
-
                     TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
                     TypeRef fieldType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
                     int metadataToken = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
@@ -48,20 +37,18 @@ namespace Microsoft.VisualStudio.Composition
                     bool isStatic = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
 
                     value = new FieldRef(declaringType, fieldType, metadataToken, name, isStatic);
-                    //return value as MemberReferenceType;
 
+                    // return value as MemberReferenceType;
                     options.OnDeserializedReusableObject(id, value);
                 }
 
                 return value as MemberReferenceType;
-
             }
 
             MemberReferenceType DeserializePropertyReference(ref MessagePackReader reader, MessagePackSerializerOptions options)
             {
                 if (options.TryPrepareDeserializeReusableObject(out uint id, out PropertyRef? value, ref reader, options))
                 {
-
                     TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
                     TypeRef propertyType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
                     int metadataToken = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
@@ -75,8 +62,6 @@ namespace Microsoft.VisualStudio.Composition
                 }
 
                 return value as MemberReferenceType;
-
-               
             }
 
             MemberReferenceType DeserializeMethodReference(ref MessagePackReader reader, MessagePackSerializerOptions options)
@@ -146,8 +131,8 @@ namespace Microsoft.VisualStudio.Composition
                     options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
                     options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
                     options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsStatic, options);
-                    CollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.ParameterTypes, options); //todo
-                    CollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.GenericMethodArguments, options); //todo
+                    CollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.ParameterTypes, options); // todo
+                    CollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.GenericMethodArguments, options); // todo
                 }
             }
 

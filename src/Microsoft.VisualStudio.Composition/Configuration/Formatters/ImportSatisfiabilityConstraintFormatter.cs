@@ -20,12 +20,12 @@ namespace Microsoft.VisualStudio.Composition
                 case ConstraintTypes.ImportMetadataViewConstraint:
                     int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
 
-                    var requirements = ImmutableDictionary.CreateBuilder<string, ImportMetadataViewConstraint.MetadatumRequirement>();
+                    ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>.Builder requirements = ImmutableDictionary.CreateBuilder<string, ImportMetadataViewConstraint.MetadatumRequirement>();
                     for (int i = 0; i < count; i++)
                     {
-                        var name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-                        var valueTypeRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-                        var isRequired = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
+                        string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                        TypeRef valueTypeRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+                        bool isRequired = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
                         requirements.Add(name, new ImportMetadataViewConstraint.MetadatumRequirement(valueTypeRef, isRequired));
                     }
 
@@ -53,6 +53,7 @@ namespace Microsoft.VisualStudio.Composition
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, IImportSatisfiabilityConstraint value, MessagePackSerializerOptions options)
         {
             ConstraintTypes type;
@@ -65,7 +66,7 @@ namespace Microsoft.VisualStudio.Composition
                 var importMetadataViewConstraint = value as ImportMetadataViewConstraint;
                 options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, importMetadataViewConstraint.Requirements.Count, options);
 
-                foreach (var item in importMetadataViewConstraint.Requirements)
+                foreach (KeyValuePair<string, ImportMetadataViewConstraint.MetadatumRequirement> item in importMetadataViewConstraint.Requirements)
                 {
                     options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, item.Key, options);
                     options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, item.Value.MetadatumValueTypeRef, options);
