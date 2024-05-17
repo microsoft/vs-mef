@@ -23,18 +23,22 @@ namespace Microsoft.VisualStudio.Composition
     {
         private static readonly Encoding TextEncoding = Encoding.UTF8;
 
-        public Task SaveAsync(CompositionConfiguration configuration, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task SaveAsync(CompositionConfiguration configuration, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(configuration, nameof(configuration));
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.Argument(cacheStream.CanWrite, "cacheStream", Strings.WritableStreamRequired);
 
-            return Task.Run(async delegate
-            {
-                var compositionRuntime = RuntimeComposition.CreateRuntimeComposition(configuration);
+            var compositionRuntime = RuntimeComposition.CreateRuntimeComposition(configuration);
+            await this.SaveAsync(compositionRuntime, cacheStream, cancellationToken).ConfigureAwait(false);
 
-                await this.SaveAsync(compositionRuntime, cacheStream, cancellationToken).ConfigureAwait(false);
-            });
+
+            //return Task.Run(async delegate
+            //{
+            //    var compositionRuntime = RuntimeComposition.CreateRuntimeComposition(configuration);
+
+            //    await this.SaveAsync(compositionRuntime, cacheStream, cancellationToken).ConfigureAwait(false);
+            //});
         }
 
         public async Task SaveAsync(RuntimeComposition composition, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
@@ -45,7 +49,8 @@ namespace Microsoft.VisualStudio.Composition
 
             using (var context = new MessagePackFormatterContext(composition.Parts.Count * 5, ContractlessStandardResolver.Instance))
             {
-             //   var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
+                //   var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
+               
 
                 ResolverFormatterContainer.Resolver = composition.Resolver; // move this to contructor of MessagePackFormatterContext
 

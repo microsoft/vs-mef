@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Composition
     /// <summary>
     /// A typical .NET Framework implementation of the <see cref="IAssemblyLoader"/> interface.
     /// </summary>
-    [MessagePackObject(true)]
+   // [MessagePackObject(true)]
     internal class StandardAssemblyLoader : IAssemblyLoader
     {
         /// <summary>

@@ -14,8 +14,8 @@ namespace Microsoft.VisualStudio.Composition
     /// Implementations MUST be thread-safe and should be very fast for assemblies
     /// that have already been loaded.
     /// </remarks>
-    [Union(0, typeof(Resolver.AssemblyLoaderWrapper))]
-    [Union(1, typeof(StandardAssemblyLoader))]
+   // [Union(0, typeof(Resolver.AssemblyLoaderWrapper))]
+    //[Union(1, typeof(StandardAssemblyLoader))]
     //[MessagePack.Union(1, typeof(CreateComposition.AssemblyLoader))]
     //[MessagePack.Union(1, typeof(ConfigCreator.LoadUsingPathFirst))]
     public interface IAssemblyLoader

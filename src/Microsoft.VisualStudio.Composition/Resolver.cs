@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Threading.Tasks;
     using MessagePack;
 
-    [MessagePackFormatter(typeof(ResolverFormatter))]
+  //  [MessagePackFormatter(typeof(ResolverFormatter))]
     public class Resolver
     {
         /// <summary>
@@ -108,7 +108,7 @@ namespace Microsoft.VisualStudio.Composition
         /// An <see cref="IAssemblyLoader"/> that wraps another, and notifies its creator
         /// whenever an assembly is loaded.
         /// </summary>
-        [MessagePackObject(true)]
+       // [MessagePackObject(true)]
         internal class AssemblyLoaderWrapper : IAssemblyLoader
         {
             /// <summary>

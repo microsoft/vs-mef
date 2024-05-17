@@ -8,6 +8,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Reflection;
     using MessagePack;
     using MessagePack.Formatters;
+    using MessagePack.Resolvers;
 
     public class ResolverFormatter : IMessagePackFormatter<Resolver>
     {
@@ -52,17 +53,29 @@ namespace Microsoft.VisualStudio.Composition
 
     internal class MessagePackFormatterContext : MessagePackSerializerOptions, IDisposable
     {
+        static IFormatterResolver GetIFormatterResolver(IFormatterResolver resolver)
+        {
+            return CompositeResolver.Create(
+                new IMessagePackFormatter[]
+                {
+                    new IgnoreFormatter<System.Threading.CancellationToken>(),
+                    new IgnoreFormatter<System.Threading.Tasks.Task>(),
+                    //new IgnoreFormatter<System.Threading.Tasks.Task>(),
+                },
+                new[] { resolver });
+        }
+
         /// Read
         public MessagePackFormatterContext(IFormatterResolver resolver)
-            : base(resolver)
+            : base(GetIFormatterResolver(resolver))
         {
             //deserializingObjectTable2 = new Dictionary<uint, object?>(); //c heck manual ax count  1000000
             deserializingObjectTable2 = new ConcurrentDictionary<uint, object?>(); //c heck manual ax count  1000000
-        }
+        }        
 
         //writer
         public MessagePackFormatterContext(int estimatedObjectCount, IFormatterResolver resolver)
-            : base(resolver)
+            : base(GetIFormatterResolver(resolver))
         {
             //  serializingObjectTable = new Dictionary<object, uint>(estimatedObjectCount, SmartInterningEqualityComparer.Default);
             serializingObjectTable = new ConcurrentDictionary<object, uint>( SmartInterningEqualityComparer.Default);
