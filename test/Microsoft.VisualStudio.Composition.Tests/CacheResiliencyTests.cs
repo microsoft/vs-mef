@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [SkippableFact]
-        public void CacheStaleFromRecompiledAssembly()
+        public async Task CacheStaleFromRecompiledAssembly()
         {
             TestUtilities.SkipOnMono("Appdomain issues on mono");
 
@@ -43,6 +43,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             // making fast metadata token based reflection dangerous.
             string pathA = Path.Combine(Environment.CurrentDirectory, @"..\net472\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests.dll");
             string pathB = Path.Combine(Environment.CurrentDirectory, @"..\netstandard2.0\Microsoft.VisualStudio.Composition.AssemblyDiscoveryTests.dll");
+            var test = await Task.Run(() => "Test");
 
             var cacheStream = new MemoryStream();
             int originalMetadataToken;
@@ -112,6 +113,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
                     .AddParts(discoveredParts);
                 var configuration = CompositionConfiguration.Create(catalog);
                 this.cacheManager.SaveAsync(configuration, cacheStream).GetAwaiter().GetResult();
+
                 metadataToken = GetMetadataTokenForDefaultCtor(catalog.Parts.Single(p => p.TypeRef.FullName == typeof(DiscoverablePart1).FullName).Type);
             }
 

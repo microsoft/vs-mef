@@ -23,60 +23,33 @@ namespace Microsoft.VisualStudio.Composition
     {
         private static readonly Encoding TextEncoding = Encoding.UTF8;
 
-        public async Task SaveAsync(CompositionConfiguration configuration, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        public Task SaveAsync(CompositionConfiguration configuration, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(configuration, nameof(configuration));
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.Argument(cacheStream.CanWrite, "cacheStream", Strings.WritableStreamRequired);
 
-            var compositionRuntime = RuntimeComposition.CreateRuntimeComposition(configuration);
-            await this.SaveAsync(compositionRuntime, cacheStream, cancellationToken).ConfigureAwait(false);
-
-
-            //return Task.Run(async delegate
-            //{
-            //    var compositionRuntime = RuntimeComposition.CreateRuntimeComposition(configuration);
-
-            //    await this.SaveAsync(compositionRuntime, cacheStream, cancellationToken).ConfigureAwait(false);
-            //});
+            return Task.Run(async delegate
+            {
+                var compositionRuntime = RuntimeComposition.CreateRuntimeComposition(configuration);
+                await this.SaveAsync(compositionRuntime, cacheStream, cancellationToken).ConfigureAwait(false);
+            });
         }
 
-        public async Task SaveAsync(RuntimeComposition composition, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        public Task SaveAsync(RuntimeComposition composition, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(composition, nameof(composition));
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.Argument(cacheStream.CanWrite, "cacheStream", Strings.WritableStreamRequired);
 
-            using (var context = new MessagePackFormatterContext(composition.Parts.Count * 5, ContractlessStandardResolver.Instance, composition.Resolver))
+
+            return Task.Run(() =>
             {
-                //   var options = new MessagePackSerializerOptions(ContractlessStandardResolver.Instance);
-               
-
-                //ResolverFormatterContainer.Resolver = composition.Resolver; // move this to contructor of MessagePackFormatterContext
-
-                await MessagePackSerializer.SerializeAsync(cacheStream, composition, context);
-
-                //await Task.Run(() =>
-                //{
-                //    MessagePackSerializer.SerializeAsync(cacheStream, composition, options);
-
-                //});
-            }
-
-
-
-            //            await MessagePackSerializer.SerializeAsync(cacheStream, composition, options, cancellationToken);
-           // await MessagePackSerializer.SerializeAsync(cacheStream, composition, options, cancellationToken);
-
-            //return Task.Run(() =>
-            //{
-            //    using (var writer = new BinaryWriter(cacheStream, TextEncoding, leaveOpen: true))
-            //    {
-            //        var context = new SerializationContext(writer, composition.Parts.Count * 5, composition.Resolver);
-            //        context.Write(composition);
-            //        context.FinalizeObjectTableCapacity();
-            //    }
-            //});
+                using (var context = new MessagePackFormatterContext(composition.Parts.Count * 5, ContractlessStandardResolver.Instance, composition.Resolver))
+                {
+                   MessagePackSerializer.Serialize(cacheStream, composition, context, cancellationToken);
+                }
+            });
         }
 
         public async Task<RuntimeComposition> LoadRuntimeCompositionAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))
