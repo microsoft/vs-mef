@@ -1,5 +1,6 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license. See
-// LICENSE file in the project root for full license information.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
 namespace Microsoft.VisualStudio.Composition
 {
     using System.Collections.Immutable;
@@ -13,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public TypeRef Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (options.TryPrepareDeserializeReusableObject(out uint id, out TypeRef? value, ref reader, options))
+            if (options.TryPrepareDeserializeReusableObject(out uint id, out TypeRef? value, ref reader))
             {
                 StrongAssemblyIdentity assemblyId = options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Deserialize(ref reader, options);
                 int metadataToken = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
@@ -22,8 +23,7 @@ namespace Microsoft.VisualStudio.Composition
                 int genericTypeParameterCount = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
                 ImmutableArray<TypeRef?> genericTypeArguments = ReadTypeRefImmutableArray(ref reader, options);
                 bool shallow = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
-                ImmutableArray<TypeRef?> baseTypes = !shallow ? ReadTypeRefImmutableArray(ref reader, options)
-                    : ImmutableArray<TypeRef?>.Empty;
+                ImmutableArray<TypeRef?> baseTypes = !shallow ? ReadTypeRefImmutableArray(ref reader, options) : ImmutableArray<TypeRef?>.Empty;
                 bool hasElementType = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options) != 0;
                 TypeRef? elementType = hasElementType
                        ? options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options)
@@ -40,19 +40,19 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, TypeRef value, MessagePackSerializerOptions options)
         {
-            if (options.TryPrepareSerializeReusableObject(value, ref writer, options))
+            if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
                 options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Serialize(ref writer, value.AssemblyId, options);
                 options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
                 options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.FullName, options);
                 options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Serialize(ref writer, value.TypeFlags, options);
                 options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.GenericTypeParameterCount, options);
-                CollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.GenericTypeArguments, options);
+                MessagePackCollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.GenericTypeArguments, options);
                 options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsShallow, options);
 
                 if (!value.IsShallow)
                 {
-                    CollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.BaseTypes, options);
+                    MessagePackCollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.BaseTypes, options);
                 }
 
                 options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.ElementTypeRef.Equals(value) ? 0 : 1, options);
@@ -67,6 +67,15 @@ namespace Microsoft.VisualStudio.Composition
         internal static ImmutableArray<TypeRef?> ReadTypeRefImmutableArray(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+            //_ = count switch
+            //{
+            //    0 => ImmutableArray<TypeRef?>.Empty,
+            //    1 => ImmutableArray.Create(ReadTypeRef(ref reader, options)),
+            //    2 => ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options)),
+            //    3 => ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options)),
+            //    4 => ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options)),
+            //};
+
             switch (count)
             {
                 case 0:
@@ -98,7 +107,7 @@ namespace Microsoft.VisualStudio.Composition
             // builders to save on GC pressure
             ImmutableArray<TypeRef?>.Builder builder = typeRefBuilders.Count > 0 ? typeRefBuilders.Pop() : ImmutableArray.CreateBuilder<TypeRef?>();
 
-            builder.Capacity = (int)count;
+            builder.Capacity = count;
             for (int i = 0; i < count; i++)
             {
                 builder.Add(ReadTypeRef(ref reader, options));

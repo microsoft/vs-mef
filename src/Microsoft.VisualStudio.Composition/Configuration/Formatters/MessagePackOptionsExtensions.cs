@@ -1,7 +1,5 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license. See
-// LICENSE file in the project root for full license information. Copyright (c) Microsoft
-// Corporation. All rights reserved. Licensed under the MIT license. See LICENSE file in the project
-// root for full license information.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace Microsoft.VisualStudio.Composition
 {
@@ -9,28 +7,28 @@ namespace Microsoft.VisualStudio.Composition
 
     public static class MessagePackOptionsExtensions
     {
-        public static bool TryPrepareDeserializeReusableObject<T>(this MessagePackSerializerOptions option, out uint id, out T? value, ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public static bool TryPrepareDeserializeReusableObject<T>(this MessagePackSerializerOptions option, out uint id, out T? value, ref MessagePackReader reader)
             where T : class
         {
-            MessagePackFormatterContext messagePackFormatterContext = option as MessagePackFormatterContext;
-            return messagePackFormatterContext.TryPrepareDeserializeReusableObject(out id, out value, ref reader, options);
+            var messagePackFormatterContext = (MessagePackSerializerContext)option;
+            return messagePackFormatterContext.TryPrepareDeserializeReusableObject(out id, out value, ref reader, option);
         }
 
         public static void OnDeserializedReusableObject(this MessagePackSerializerOptions option, uint id, object value)
         {
-            MessagePackFormatterContext messagePackFormatterContext = option as MessagePackFormatterContext;
+            var messagePackFormatterContext = (MessagePackSerializerContext)option;
             messagePackFormatterContext.OnDeserializedReusableObject(id, value);
         }
 
-        public static bool TryPrepareSerializeReusableObject(this MessagePackSerializerOptions option, object value, ref MessagePackWriter writer, MessagePackSerializerOptions options)
+        public static bool TryPrepareSerializeReusableObject(this MessagePackSerializerOptions option, object value, ref MessagePackWriter writer)
         {
-            MessagePackFormatterContext messagePackFormatterContext = option as MessagePackFormatterContext;
-            return messagePackFormatterContext.TryPrepareSerializeReusableObject(value, ref writer, options);
+            var messagePackFormatterContext = (MessagePackSerializerContext)option;
+            return messagePackFormatterContext.TryPrepareSerializeReusableObject(value, ref writer, option);
         }
 
         public static Resolver CompositionResolver(this MessagePackSerializerOptions option)
         {
-            MessagePackFormatterContext messagePackFormatterContext = option as MessagePackFormatterContext;
+            var messagePackFormatterContext = (MessagePackSerializerContext)option;
             return messagePackFormatterContext.CompositionResolver;
         }
     }

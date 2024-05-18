@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.Composition
                 e => (IReadOnlyCollection<RuntimeExport>)e.ToImmutableArray());
         }
 
-        [MessagePackFormatter(typeof(CollectionFormatter<RuntimePart>))]
+        [MessagePackFormatter(typeof(MessagePackCollectionFormatter<RuntimePart>))]
         public IReadOnlyCollection<RuntimePart> Parts
         {
             get { return this.parts; }
@@ -282,13 +282,13 @@ namespace Microsoft.VisualStudio.Composition
 
             public MethodBase? ImportingConstructorOrFactoryMethod => this.ImportingConstructorOrFactoryMethodRef?.MethodBase;
 
-            [MessagePackFormatter(typeof(CollectionFormatter<RuntimeImport>))]
+            [MessagePackFormatter(typeof(MessagePackCollectionFormatter<RuntimeImport>))]
             public IReadOnlyList<RuntimeImport> ImportingConstructorArguments { get; private set; }
 
-            [MessagePackFormatter(typeof(CollectionFormatter<RuntimeImport>))]
+            [MessagePackFormatter(typeof(MessagePackCollectionFormatter<RuntimeImport>))]
             public IReadOnlyList<RuntimeImport> ImportingMembers { get; private set; }
 
-            [MessagePackFormatter(typeof(CollectionFormatter<RuntimeExport>))]
+            [MessagePackFormatter(typeof(MessagePackCollectionFormatter<RuntimeExport>))]
             public IReadOnlyList<RuntimeExport> Exports { get; set; }
 
             public string? SharingBoundary { get; private set; }
@@ -297,7 +297,7 @@ namespace Microsoft.VisualStudio.Composition
 
             public bool IsInstantiable => this.ImportingConstructorOrFactoryMethodRef != null;
 
-            [MessagePackFormatter(typeof(CollectionFormatter<MethodRef>))]
+            [MessagePackFormatter(typeof(MessagePackCollectionFormatter<MethodRef>))]
             public IReadOnlyList<MethodRef> OnImportsSatisfiedMethodRefs { get; }
 
             private string? DebuggerDisplay => this.TypeRef.FullName;
@@ -385,7 +385,7 @@ namespace Microsoft.VisualStudio.Composition
 
             public bool IsNonSharedInstanceRequired { get; private set; }
 
-            [MessagePackFormatter(typeof(ObjectFormatter))]
+            [MessagePackFormatter(typeof(MetadataDictionaryFormatter))]
             public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
             public Type? ExportFactory
@@ -563,7 +563,7 @@ namespace Microsoft.VisualStudio.Composition
                 get { return this.ExportedValueTypeRef.ResolvedType; }
             }
 
-            [MessagePackFormatter(typeof(ObjectFormatter))]
+            [MessagePackFormatter(typeof(MetadataDictionaryFormatter))]
             public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
             public MemberInfo? Member => this.member ?? (this.member = this.MemberRef?.MemberInfo);

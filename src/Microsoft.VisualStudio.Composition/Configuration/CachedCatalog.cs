@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.Composition
         {
             Requires.NotNull(catalog, nameof(catalog));
             Requires.NotNull(cacheStream, nameof(cacheStream));
-            using (var context = new MessagePackFormatterContext(catalog.Parts.Count * 4, ContractlessStandardResolver.Instance, catalog.Resolver))
+            using (var context = new MessagePackSerializerContext(catalog.Parts.Count * 4, ContractlessStandardResolver.Instance, catalog.Resolver))
             {
                 await MessagePackSerializer.SerializeAsync(cacheStream, catalog, context, cancellationToken);
             }
@@ -35,10 +35,9 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.NotNull(resolver, nameof(resolver));
 
-            using (var context = new MessagePackFormatterContext(ContractlessStandardResolver.Instance, resolver))
-            {                
+            using (var context = new MessagePackSerializerContext(ContractlessStandardResolver.Instance, resolver))
+            {
                 ComposableCatalog catalog = await MessagePackSerializer.DeserializeAsync<ComposableCatalog>(cacheStream, context, cancellationToken);
-
                 return catalog;
             }
         }

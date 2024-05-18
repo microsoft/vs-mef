@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public ComposableCatalog Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            IReadOnlyList<ComposablePartDefinition> composablePartDefinition = CollectionFormatter<ComposablePartDefinition>.DeserializeCollection(ref reader, options);
+            IReadOnlyList<ComposablePartDefinition> composablePartDefinition = MessagePackCollectionFormatter<ComposablePartDefinition>.DeserializeCollection(ref reader, options);
 
             return ComposableCatalog.Create(options.CompositionResolver()).AddParts(composablePartDefinition);
         }
@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, ComposableCatalog value, MessagePackSerializerOptions options)
         {
-            CollectionFormatter<ComposablePartDefinition>.SerializeCollection(ref writer, value.Parts, options);
+            MessagePackCollectionFormatter<ComposablePartDefinition>.SerializeCollection(ref writer, value.Parts, options);
         }
     }
 }

@@ -1,10 +1,5 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license. See
-// LICENSE file in the project root for full license information. Copyright (c) Microsoft
-// Corporation. All rights reserved. Licensed under the MIT license. See LICENSE file in the project
-// root for full license information. Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license
-// information. Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT
-// license. See LICENSE file in the project root for full license information.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 namespace Microsoft.VisualStudio.Composition
 {
@@ -15,7 +10,7 @@ namespace Microsoft.VisualStudio.Composition
     using MessagePack.Formatters;
     using MessagePack.Resolvers;
 
-    internal class MessagePackFormatterContext : MessagePackSerializerOptions, IDisposable
+    internal class MessagePackSerializerContext : MessagePackSerializerOptions, IDisposable
     {
         public Resolver CompositionResolver { get; }
 
@@ -26,14 +21,14 @@ namespace Microsoft.VisualStudio.Composition
                 ],
                 [resolver]);
 
-        public MessagePackFormatterContext(IFormatterResolver resolver, Resolver compositionResolver)
+        public MessagePackSerializerContext(IFormatterResolver resolver, Resolver compositionResolver)
             : base(GetIFormatterResolver(resolver))
         {
             this.deserializingObjectTable = new ConcurrentDictionary<uint, object?>(); //check manual ax count  1000000
             this.CompositionResolver = compositionResolver;
         }
 
-        public MessagePackFormatterContext(int estimatedObjectCount, IFormatterResolver resolver, Resolver compositionResolver)
+        public MessagePackSerializerContext(int estimatedObjectCount, IFormatterResolver resolver, Resolver compositionResolver)
             : base(GetIFormatterResolver(resolver))
         {
             this.serializingObjectTable = new ConcurrentDictionary<object, uint>(SmartInterningEqualityComparer.Default);

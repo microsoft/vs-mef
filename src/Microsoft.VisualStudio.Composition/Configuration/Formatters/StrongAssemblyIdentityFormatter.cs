@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public StrongAssemblyIdentity Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (options.TryPrepareDeserializeReusableObject(out uint id, out StrongAssemblyIdentity? value, ref reader, options))
+            if (options.TryPrepareDeserializeReusableObject(out uint id, out StrongAssemblyIdentity? value, ref reader))
             {
                 Guid mvid = options.Resolver.GetFormatterWithVerify<Guid>().Deserialize(ref reader, options);
                 string fullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, StrongAssemblyIdentity value, MessagePackSerializerOptions options)
         {
-            if (options.TryPrepareSerializeReusableObject(value, ref writer, options))
+            if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
                 options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value.Mvid, options);
                 options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.FullName, options);

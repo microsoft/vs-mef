@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public ParameterRef Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (options.TryPrepareDeserializeReusableObject(out uint id, out ParameterRef? value, ref reader, options))
+            if (options.TryPrepareDeserializeReusableObject(out uint id, out ParameterRef? value, ref reader))
             {
                 MethodRef method = options.Resolver.GetFormatterWithVerify<MethodRef>().Deserialize(ref reader, options);
                 int parameterIndex = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, ParameterRef value, MessagePackSerializerOptions options)
         {
-            if (options.TryPrepareSerializeReusableObject(value, ref writer, options))
+            if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
                 options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value.Method, options);
                 options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.ParameterIndex, options);

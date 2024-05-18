@@ -13,13 +13,13 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public RuntimeExport Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (options.TryPrepareDeserializeReusableObject(out uint id, out RuntimeExport? value, ref reader, options))
+            if (options.TryPrepareDeserializeReusableObject(out uint id, out RuntimeExport? value, ref reader))
             {
                 string contractName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                 TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
                 MemberRef? member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options);
                 TypeRef exportedValueType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-                IReadOnlyDictionary<string, object?> metadata = ObjectFormatter.DeserializeObject(ref reader, options);
+                IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.DeserializeObject(ref reader, options);
 
                 value = new RuntimeComposition.RuntimeExport(
                     contractName,
@@ -37,13 +37,13 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, RuntimeExport value, MessagePackSerializerOptions options)
         {
-            if (options.TryPrepareSerializeReusableObject(value, ref writer, options))
+            if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
                 options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.ContractName, options);
                 options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringTypeRef, options);
                 options.Resolver.GetFormatterWithVerify<MemberRef?>().Serialize(ref writer, value.MemberRef, options);
                 options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ExportedValueTypeRef, options);
-                ObjectFormatter.SerializeObject(ref writer, value.Metadata, options);
+                MetadataDictionaryFormatter.SerializeObject(ref writer, value.Metadata, options);
             }
         }
     }

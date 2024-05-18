@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Composition
     using MessagePack;
     using MessagePack.Formatters;
 
-    public class CollectionFormatter<T> : IMessagePackFormatter<IReadOnlyCollection<T>>
+    public class MessagePackCollectionFormatter<T> : IMessagePackFormatter<IReadOnlyCollection<T>>
     {
         /// <inheritdoc/>
         public IReadOnlyCollection<T> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)

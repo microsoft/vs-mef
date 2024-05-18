@@ -1,7 +1,5 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license. See
-// LICENSE file in the project root for full license information. Copyright (c) Microsoft
-// Corporation. All rights reserved. Licensed under the MIT license. See LICENSE file in the project
-// root for full license information.
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
 namespace Microsoft.VisualStudio.Composition
 {
     using System.Collections.Immutable;
@@ -15,7 +13,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public RuntimeComposition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            IReadOnlyList<RuntimePart> parts = CollectionFormatter<RuntimePart>.DeserializeCollection(ref reader, options);
+            IReadOnlyList<RuntimePart> parts = MessagePackCollectionFormatter<RuntimePart>.DeserializeCollection(ref reader, options);
             int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
             ImmutableDictionary<TypeRef, RuntimeExport>.Builder builder = ImmutableDictionary.CreateBuilder<TypeRef, RuntimeComposition.RuntimeExport>();
 
@@ -34,7 +32,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, RuntimeComposition value, MessagePackSerializerOptions options)
         {
-            CollectionFormatter<RuntimePart>.SerializeCollection(ref writer, value.Parts, options);
+            MessagePackCollectionFormatter<RuntimePart>.SerializeCollection(ref writer, value.Parts, options);
 
             options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataViewsAndProviders.Count(), options);
             foreach (KeyValuePair<TypeRef, RuntimeExport> item in value.MetadataViewsAndProviders)

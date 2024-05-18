@@ -14,9 +14,9 @@ namespace Microsoft.VisualStudio.Composition
         {
             string contractName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
             ImportCardinality cardinality = options.Resolver.GetFormatterWithVerify<ImportCardinality>().Deserialize(ref reader, options);
-            IReadOnlyDictionary<string, object?> metadata = ObjectFormatter.DeserializeObject(ref reader, options);
-            IReadOnlyList<IImportSatisfiabilityConstraint> constraints = CollectionFormatter<IImportSatisfiabilityConstraint>.DeserializeCollection(ref reader, options);
-            IReadOnlyList<string> sharingBoundaries = CollectionFormatter<string>.DeserializeCollection(ref reader, options);
+            IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.DeserializeObject(ref reader, options);
+            IReadOnlyList<IImportSatisfiabilityConstraint> constraints = MessagePackCollectionFormatter<IImportSatisfiabilityConstraint>.DeserializeCollection(ref reader, options);
+            IReadOnlyList<string> sharingBoundaries = MessagePackCollectionFormatter<string>.DeserializeCollection(ref reader, options);
 
             return new ImportDefinition(contractName, cardinality, metadata, constraints!, sharingBoundaries!);
         }
@@ -26,9 +26,9 @@ namespace Microsoft.VisualStudio.Composition
         {
             options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.ContractName, options);
             options.Resolver.GetFormatterWithVerify<ImportCardinality>().Serialize(ref writer, value.Cardinality, options);
-            ObjectFormatter.SerializeObject(ref writer, value.Metadata, options);
-            CollectionFormatter<IImportSatisfiabilityConstraint>.SerializeCollection(ref writer, value.ExportConstraints, options);
-            CollectionFormatter<string>.SerializeCollection(ref writer, value.ExportFactorySharingBoundaries, options);
+            MetadataDictionaryFormatter.SerializeObject(ref writer, value.Metadata, options);
+            MessagePackCollectionFormatter<IImportSatisfiabilityConstraint>.SerializeCollection(ref writer, value.ExportConstraints, options);
+            MessagePackCollectionFormatter<string>.SerializeCollection(ref writer, value.ExportFactorySharingBoundaries, options);
         }
     }
 }

@@ -76,10 +76,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         public override string Name { get; }
 
-        [MessagePackFormatter(typeof(CollectionFormatter<TypeRef>))]
+        [MessagePackFormatter(typeof(MessagePackCollectionFormatter<TypeRef>))]
         public ImmutableArray<TypeRef> ParameterTypes { get; }
 
-        [MessagePackFormatter(typeof(CollectionFormatter<TypeRef>))]
+        [MessagePackFormatter(typeof(MessagePackCollectionFormatter<TypeRef>))]
         public ImmutableArray<TypeRef> GenericMethodArguments { get; }
 
         [return: NotNullIfNotNull("method")]
