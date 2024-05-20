@@ -196,8 +196,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             var catalogSerialization = new CachedCatalog();
             var ms = new MemoryStream();
             catalogSerialization.SaveAsync(catalog, ms).Wait();
-            //var before = new StringWriter();
-            //catalog.ToString(before);
 
             ms.Position = 0;
             var deserializedCatalog = await catalogSerialization.LoadAsync(ms, TestUtilities.Resolver);

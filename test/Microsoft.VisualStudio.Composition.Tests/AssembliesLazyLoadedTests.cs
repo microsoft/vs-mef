@@ -247,26 +247,12 @@ namespace Microsoft.VisualStudio.Composition.Tests
         [SkippableFact]
         public async Task ComposableAssembliesLazyLoadedWithGenericTypeArg()
         {
-            var testData = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic).Where(p => p.Location.ToLower().Contains("vs-mef")).ToList();            
             SkipOnMono();
-            var testData1 = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic).Where(p => p.Location.ToLower().Contains("vs-mef")).ToList();
-
             var catalog = TestUtilities.EmptyCatalog.AddParts(
                 await TestUtilities.V2Discovery.CreatePartsAsync(typeof(PartImportingOpenGenericExport), typeof(OpenGenericExport<>)));
-
-            var testData2 = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic).Where(p => p.Location.ToLower().Contains("vs-mef")).ToList();
-
             var catalogCache = await this.SaveCatalogAsync(catalog);
-
-            var testData3 = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic).Where(p => p.Location.ToLower().Contains("vs-mef")).ToList();
-
             var configuration = CompositionConfiguration.Create(catalog);
-
-            var testData4 = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic).Where(p => p.Location.ToLower().Contains("vs-mef")).ToList();
-
             var compositionCache = await this.SaveConfigurationAsync(configuration);
-
-            var testData5 = AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.IsDynamic).Where(p => p.Location.ToLower().Contains("vs-mef")).ToList();
 
             // Use a sub-appdomain so we can monitor which assemblies get loaded by our composition engine.
             var appDomain = AppDomain.CreateDomain("Composition Test sub-domain", null, AppDomain.CurrentDomain.SetupInformation);
