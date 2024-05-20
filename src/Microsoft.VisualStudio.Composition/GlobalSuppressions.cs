@@ -3,4 +3,4 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "<Pending>", Scope = "namespaceanddescendants", Target = "Microsoft.VisualStudio.Composition.Formatter")]
+[assembly: SuppressMessage("ApiDesign", "RS0016:Add public types and members to the declared API", Justification = "Mesasgepack formatter types", Scope = "namespaceanddescendants", Target = "Microsoft.VisualStudio.Composition.Formatter")]

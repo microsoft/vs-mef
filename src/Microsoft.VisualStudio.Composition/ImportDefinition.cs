@@ -55,10 +55,8 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// Gets the sharing boundaries created when the export factory is used.
         /// </summary>
-      //  [MessagePackFormatter(typeof(CollectionFormatter<string>))] //Ankit I chnaged after looking at the ObjectFormatter
         public IReadOnlyCollection<string> ExportFactorySharingBoundaries { get; private set; }
 
-      //  [MessagePackFormatter(typeof(ObjectFormatter))] //Ankit I chnaged after looking at the ObjectFormatter
         public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
         public IReadOnlyCollection<IImportSatisfiabilityConstraint> ExportConstraints

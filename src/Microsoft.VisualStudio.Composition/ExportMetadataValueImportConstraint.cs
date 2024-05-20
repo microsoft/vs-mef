@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         public string Name { get; private set; }
-        
+
         public object? Value { get; private set; }
 
         public bool IsSatisfiedBy(ExportDefinition exportDefinition)

@@ -277,6 +277,7 @@ namespace Microsoft.VisualStudio.Composition
                 this.OnImportsSatisfiedMethodRefs = onImportsSatisfiedMethods;
                 this.SharingBoundary = sharingBoundary;
             }
+
             public TypeRef TypeRef { get; private set; }
 
             public MethodRef? ImportingConstructorOrFactoryMethodRef { get; private set; }
