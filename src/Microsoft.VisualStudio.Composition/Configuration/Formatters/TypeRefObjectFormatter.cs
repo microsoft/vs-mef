@@ -83,24 +83,6 @@ namespace Microsoft.VisualStudio.Composition
                 return response.Value;
             }
 
-            //switch (count)
-            //{
-            //    case 0:
-            //        return ImmutableArray<TypeRef?>.Empty;
-
-            //    case 1:
-            //        return ImmutableArray.Create(ReadTypeRef(ref reader, options));
-
-            //    case 2:
-            //        return ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options));
-
-            //    case 3:
-            //        return ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options));
-
-            //    case 4:
-            //        return ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options));
-            //}
-
             if (count > 0xffff)
             {
                 // Probably either file corruption or a bug in serialization. Let's not take untold

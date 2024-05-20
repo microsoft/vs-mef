@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.Composition
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class ParameterRefFormatter : IMessagePackFormatter<ParameterRef>
+    public class ParameterRefFormatter : IMessagePackFormatter<ParameterRef>
     {
         /// <inheritdoc/>
         public ParameterRef Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)

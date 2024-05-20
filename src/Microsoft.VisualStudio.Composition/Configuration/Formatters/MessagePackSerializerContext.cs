@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Composition
     using MessagePack.Formatters;
     using MessagePack.Resolvers;
 
-    internal class MessagePackSerializerContext : MessagePackSerializerOptions, IDisposable
+    public class MessagePackSerializerContext : MessagePackSerializerOptions, IDisposable
     {
         public Resolver CompositionResolver { get; }
 

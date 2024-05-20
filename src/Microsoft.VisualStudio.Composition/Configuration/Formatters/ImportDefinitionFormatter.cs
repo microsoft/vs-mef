@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.Composition
     using MessagePack;
     using MessagePack.Formatters;
 
-    internal class ImportDefinitionFormatter : IMessagePackFormatter<ImportDefinition>
+    public class ImportDefinitionFormatter : IMessagePackFormatter<ImportDefinition>
     {
         /// <inheritdoc/>
         public ImportDefinition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)

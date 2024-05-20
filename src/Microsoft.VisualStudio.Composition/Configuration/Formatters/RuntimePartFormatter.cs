@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Composition
     using Microsoft.VisualStudio.Composition.Reflection;
     using static Microsoft.VisualStudio.Composition.RuntimeComposition;
 
-    internal class RuntimePartFormatter : IMessagePackFormatter<RuntimePart>
+    public class RuntimePartFormatter : IMessagePackFormatter<RuntimePart>
     {
         /// <inheritdoc/>
         public RuntimePart Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)

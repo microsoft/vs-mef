@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Composition
     using Microsoft.VisualStudio.Composition.Reflection;
     using static Microsoft.VisualStudio.Composition.RuntimeComposition;
 
-    internal class RuntimeImportFormatter : IMessagePackFormatter<RuntimeImport>
+    public class RuntimeImportFormatter : IMessagePackFormatter<RuntimeImport>
     {
         public enum RuntimeImportFlags : byte
         {
