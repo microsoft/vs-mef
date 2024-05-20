@@ -25,7 +25,13 @@ resources:
     ref: refs/heads/main
 
 parameters:
-
+# Whether or not to delete the test machines after the run completes.
+- name: testMachineCleanUpStrategy
+  type: string
+  default: delete
+  values:
+  - delete
+  - stop
 # The prefix naming of the OptimizationInputs drop
 - name: optimizationDropPrefix
   type: string
@@ -43,6 +49,7 @@ stages:
     optOptimizationInputsDropName: $(OptimizationInputsDropName)
     previousOptimizationInputsDropName: $(PreviousOptimizationInputsDropName)
     testLabPoolName: VS-Platform
+    testMachineCleanUpStrategy: ${{parameters.testMachineCleanUpStrategy}}
     ##### Step Hooks #####
     preTestMachineConfigurationStepList:
     - download: VisualStudioBuildUnderTest
