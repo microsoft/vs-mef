@@ -67,32 +67,39 @@ namespace Microsoft.VisualStudio.Composition
         internal static ImmutableArray<TypeRef?> ReadTypeRefImmutableArray(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
-            //_ = count switch
-            //{
-            //    0 => ImmutableArray<TypeRef?>.Empty,
-            //    1 => ImmutableArray.Create(ReadTypeRef(ref reader, options)),
-            //    2 => ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options)),
-            //    3 => ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options)),
-            //    4 => ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options)),
-            //};
-
-            switch (count)
+            ImmutableArray<TypeRef?>? response = count switch
             {
-                case 0:
-                    return ImmutableArray<TypeRef?>.Empty;
+                0 => ImmutableArray<TypeRef?>.Empty,
+                1 => ImmutableArray.Create(ReadTypeRef(ref reader, options)),
+                2 => ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options)),
+                3 => ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options)),
+                4 => ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options)),
+                _ => null,
+            };
 
-                case 1:
-                    return ImmutableArray.Create(ReadTypeRef(ref reader, options));
 
-                case 2:
-                    return ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options));
-
-                case 3:
-                    return ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options));
-
-                case 4:
-                    return ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options));
+            if (response is not null)
+            {
+                return response.Value;
             }
+
+            //switch (count)
+            //{
+            //    case 0:
+            //        return ImmutableArray<TypeRef?>.Empty;
+
+            //    case 1:
+            //        return ImmutableArray.Create(ReadTypeRef(ref reader, options));
+
+            //    case 2:
+            //        return ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options));
+
+            //    case 3:
+            //        return ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options));
+
+            //    case 4:
+            //        return ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options));
+            //}
 
             if (count > 0xffff)
             {

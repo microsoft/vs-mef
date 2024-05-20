@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition
         public ComposablePartDefinition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             TypeRef partType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-            IReadOnlyDictionary<string, object?> partMetadata = MetadataDictionaryFormatter.DeserializeObject(ref reader, options); // metadata
+            IReadOnlyDictionary<string, object?> partMetadata = MetadataDictionaryFormatter.DeserializeObject(ref reader, options);
             IReadOnlyList<ExportDefinition> exportedTypes = MessagePackCollectionFormatter<ExportDefinition>.DeserializeCollection(ref reader, options);
             ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Builder exportingMembers = ImmutableDictionary.CreateBuilder<MemberRef, IReadOnlyCollection<ExportDefinition>>();
             int exportedMembersCount = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);

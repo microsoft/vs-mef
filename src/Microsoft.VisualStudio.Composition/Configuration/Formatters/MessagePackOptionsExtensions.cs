@@ -10,25 +10,25 @@ namespace Microsoft.VisualStudio.Composition
         public static bool TryPrepareDeserializeReusableObject<T>(this MessagePackSerializerOptions option, out uint id, out T? value, ref MessagePackReader reader)
             where T : class
         {
-            var messagePackFormatterContext = (MessagePackSerializerContext)option;
+            var messagePackFormatterContext = (MessagePackSerializerContext)option!;
             return messagePackFormatterContext.TryPrepareDeserializeReusableObject(out id, out value, ref reader, option);
         }
 
         public static void OnDeserializedReusableObject(this MessagePackSerializerOptions option, uint id, object value)
         {
-            var messagePackFormatterContext = (MessagePackSerializerContext)option;
+            var messagePackFormatterContext = (MessagePackSerializerContext)option!;
             messagePackFormatterContext.OnDeserializedReusableObject(id, value);
         }
 
         public static bool TryPrepareSerializeReusableObject(this MessagePackSerializerOptions option, object value, ref MessagePackWriter writer)
         {
-            var messagePackFormatterContext = (MessagePackSerializerContext)option;
+            var messagePackFormatterContext = (MessagePackSerializerContext)option!;
             return messagePackFormatterContext.TryPrepareSerializeReusableObject(value, ref writer, option);
         }
 
         public static Resolver CompositionResolver(this MessagePackSerializerOptions option)
         {
-            var messagePackFormatterContext = (MessagePackSerializerContext)option;
+            var messagePackFormatterContext = (MessagePackSerializerContext)option!;
             return messagePackFormatterContext.CompositionResolver;
         }
     }

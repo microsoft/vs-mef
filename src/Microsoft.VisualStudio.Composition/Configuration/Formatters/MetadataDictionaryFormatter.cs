@@ -320,16 +320,12 @@ namespace Microsoft.VisualStudio.Composition
                         break;
 
                     case ObjectType.TypeArraySubstitution:
-                        var typeRefArray = MessagePackCollectionFormatter<TypeRef?>.DeserializeCollection(ref messagePackReader, options);
-                        //IReadOnlyList<TypeRef?> typeRefArray = options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef?>>().Deserialize(ref messagePackReader, options);
+                        IReadOnlyList<TypeRef?> typeRefArray = MessagePackCollectionFormatter<TypeRef?>.DeserializeCollection(ref messagePackReader, options);
                         response = new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray!, options.CompositionResolver());
                         break;
 
                     case ObjectType.TypeLess:
-                        //to do binary fomratter
-                        //response = options.Resolver.GetFormatterWithVerify<object>().Deserialize(ref messagePackReader, options);
                         var typeLessData = options.Resolver.GetFormatterWithVerify<byte[]>().Deserialize(ref messagePackReader, options);
-
                         response = MessagePackSerializer.Typeless.Deserialize(typeLessData);
 
                         break;

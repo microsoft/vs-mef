@@ -37,8 +37,6 @@ namespace Microsoft.VisualStudio.Composition
                     bool isStatic = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
 
                     value = new FieldRef(declaringType, fieldType, metadataToken, name, isStatic);
-
-                    // return value as MemberReferenceType;
                     options.OnDeserializedReusableObject(id, value);
                 }
 
@@ -76,7 +74,6 @@ namespace Microsoft.VisualStudio.Composition
                     ImmutableArray<TypeRef?> genericMethodArguments = TypeRefObjectFormatter.ReadTypeRefImmutableArray(ref reader, options);
 
                     value = new MethodRef(declaringType, metadataToken, name, isStatic, parameterTypes!, genericMethodArguments!);
-
                     options.OnDeserializedReusableObject(id, value);
                 }
 
@@ -131,8 +128,8 @@ namespace Microsoft.VisualStudio.Composition
                     options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
                     options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
                     options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsStatic, options);
-                    MessagePackCollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.ParameterTypes, options); // todo
-                    MessagePackCollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.GenericMethodArguments, options); // todo
+                    MessagePackCollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.ParameterTypes, options);
+                    MessagePackCollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.GenericMethodArguments, options);
                 }
             }
 

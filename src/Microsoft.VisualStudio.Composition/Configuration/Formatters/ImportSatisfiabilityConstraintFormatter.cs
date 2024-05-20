@@ -58,12 +58,11 @@ namespace Microsoft.VisualStudio.Composition
         {
             ConstraintTypes type;
 
-            if (value is ImportMetadataViewConstraint)
+            if (value is ImportMetadataViewConstraint importMetadataViewConstraint)
             {
                 type = ConstraintTypes.ImportMetadataViewConstraint;
                 options.Resolver.GetFormatterWithVerify<ConstraintTypes>().Serialize(ref writer, type, options);
 
-                var importMetadataViewConstraint = value as ImportMetadataViewConstraint;
                 options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, importMetadataViewConstraint.Requirements.Count, options);
 
                 foreach (KeyValuePair<string, ImportMetadataViewConstraint.MetadatumRequirement> item in importMetadataViewConstraint.Requirements)
@@ -73,28 +72,24 @@ namespace Microsoft.VisualStudio.Composition
                     options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, item.Value.IsMetadataumValueRequired, options);
                 }
             }
-            else if (value is ExportTypeIdentityConstraint)
+            else if (value is ExportTypeIdentityConstraint exportTypeIdentityConstraint)
             {
                 type = ConstraintTypes.ExportTypeIdentityConstraint;
                 options.Resolver.GetFormatterWithVerify<ConstraintTypes>().Serialize(ref writer, type, options);
-
-                var exportTypeIdentityConstraint = value as ExportTypeIdentityConstraint;
                 options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, exportTypeIdentityConstraint.TypeIdentityName, options);
             }
-            else if (value is PartCreationPolicyConstraint)
+            else if (value is PartCreationPolicyConstraint partCreationPolicyConstraint)
             {
                 type = ConstraintTypes.PartCreationPolicyConstraint;
                 options.Resolver.GetFormatterWithVerify<ConstraintTypes>().Serialize(ref writer, type, options);
 
-                var partCreationPolicyConstraint = value as PartCreationPolicyConstraint;
                 options.Resolver.GetFormatterWithVerify<CreationPolicy>().Serialize(ref writer, partCreationPolicyConstraint.RequiredCreationPolicy, options);
             }
-            else if (value is ExportMetadataValueImportConstraint)
+            else if (value is ExportMetadataValueImportConstraint exportMetadataValueImportConstraint)
             {
                 type = ConstraintTypes.ExportMetadataValueImportConstraint;
                 options.Resolver.GetFormatterWithVerify<ConstraintTypes>().Serialize(ref writer, type, options);
 
-                var exportMetadataValueImportConstraint = value as ExportMetadataValueImportConstraint;
                 options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, exportMetadataValueImportConstraint.Name, options);
                 options.Resolver.GetFormatterWithVerify<object?>().Serialize(ref writer, exportMetadataValueImportConstraint.Value, options);
             }
