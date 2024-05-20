@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license. See
-// LICENSE file in the project root for full license information.
-namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+namespace Microsoft.VisualStudio.Composition.Formatter
 {
     using System.Collections.Immutable;
     using System.Globalization;
@@ -9,8 +10,7 @@ namespace Microsoft.VisualStudio.Composition
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    //#pragma warning disable CS8602 // possible dereference of null reference
-    //#pragma warning disable CS8604 // null reference as argument
+#pragma warning disable CS3001 // Argument type is not CLS-compliant
 
     public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
     {
@@ -311,12 +311,12 @@ namespace Microsoft.VisualStudio.Composition
                     case ObjectType.Enum32Substitution:
                         TypeRef? enumType = options.Resolver.GetFormatterWithVerify<TypeRef?>().Deserialize(ref messagePackReader, options);
                         int rawValue = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref messagePackReader, options);
-                        response = new LazyMetadataWrapper.Enum32Substitution(enumType, rawValue);
+                        response = new LazyMetadataWrapper.Enum32Substitution(enumType!, rawValue);
                         break;
 
                     case ObjectType.TypeSubstitution:
                         TypeRef? typeRef = options.Resolver.GetFormatterWithVerify<TypeRef?>().Deserialize(ref messagePackReader, options);
-                        response = new LazyMetadataWrapper.TypeSubstitution(typeRef);
+                        response = new LazyMetadataWrapper.TypeSubstitution(typeRef!);
                         break;
 
                     case ObjectType.TypeArraySubstitution:

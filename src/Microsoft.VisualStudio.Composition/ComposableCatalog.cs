@@ -14,6 +14,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Text;
     using System.Threading.Tasks;
     using MessagePack;
+    using Microsoft.VisualStudio.Composition.Formatter;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     [MessagePackFormatter(typeof(ComposableCatalogFormatter))]
@@ -33,7 +34,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <summary>
         /// The types that are represented in this catalog.
         /// </summary>
-        private ImmutableHashSet<TypeRef> typesBackingParts;        
+        private ImmutableHashSet<TypeRef> typesBackingParts;
 
         private ComposableCatalog(ImmutableHashSet<ComposablePartDefinition> parts, ImmutableDictionary<string, ImmutableList<ExportDefinitionBinding>> exportsByContract, ImmutableHashSet<TypeRef> typesBackingParts, DiscoveredParts discoveredParts, Resolver resolver)
         {

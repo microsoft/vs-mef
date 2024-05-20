@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace Microsoft.VisualStudio.Composition
+namespace Microsoft.VisualStudio.Composition.Formatter
 {
     using System.Collections.Immutable;
     using System.Reflection;
@@ -9,10 +9,12 @@ namespace Microsoft.VisualStudio.Composition
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    public class TypeRefObjectFormatter : IMessagePackFormatter<TypeRef>
+#pragma warning disable CS3001 // Argument type is not CLS-compliant
+
+    public class TypeRefObjectFormatter : IMessagePackFormatter<TypeRef?>
     {
         /// <inheritdoc/>
-        public TypeRef Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public TypeRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareDeserializeReusableObject(out uint id, out TypeRef? value, ref reader))
             {
@@ -38,11 +40,11 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, TypeRef value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, TypeRef? value, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
-                options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Serialize(ref writer, value.AssemblyId, options);
+                options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Serialize(ref writer, value!.AssemblyId, options);
                 options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
                 options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.FullName, options);
                 options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Serialize(ref writer, value.TypeFlags, options);
@@ -76,7 +78,6 @@ namespace Microsoft.VisualStudio.Composition
                 4 => ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options)),
                 _ => null,
             };
-
 
             if (response is not null)
             {

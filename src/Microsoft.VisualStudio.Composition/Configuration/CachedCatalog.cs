@@ -9,11 +9,11 @@ namespace Microsoft.VisualStudio.Composition
     using System.Globalization;
     using System.IO;
     using System.Linq;
-    using MessagePack;
-    using MessagePack.Resolvers;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using MessagePack;
+    using MessagePack.Resolvers;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     public class CachedCatalog
@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(resolver, nameof(resolver));
 
             using var context = new MessagePackSerializerContext(ContractlessStandardResolver.Instance, resolver);
-            return await MessagePackSerializer.DeserializeAsync<ComposableCatalog>(cacheStream, context, cancellationToken);            
+            return await MessagePackSerializer.DeserializeAsync<ComposableCatalog>(cacheStream, context, cancellationToken);
         }
 
         private class SerializationContext : SerializationContextBase

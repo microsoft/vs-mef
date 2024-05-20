@@ -9,6 +9,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Diagnostics.CodeAnalysis;
     using System.Reflection;
     using MessagePack;
+    using Microsoft.VisualStudio.Composition.Formatter;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     [MessagePackFormatter(typeof(ParameterRefFormatter))]

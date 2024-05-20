@@ -12,6 +12,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Linq;
     using System.Reflection;
     using MessagePack;
+    using Microsoft.VisualStudio.Composition.Formatter;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     [MessagePackFormatter(typeof(TypeRefObjectFormatter))]

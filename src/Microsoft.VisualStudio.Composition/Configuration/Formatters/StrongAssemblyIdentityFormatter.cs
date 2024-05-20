@@ -1,16 +1,18 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-namespace Microsoft.VisualStudio.Composition
+namespace Microsoft.VisualStudio.Composition.Formatter
 {
     using System.Collections.Immutable;
     using System.Reflection;
     using MessagePack;
     using MessagePack.Formatters;
 
-    public class StrongAssemblyIdentityFormatter : IMessagePackFormatter<StrongAssemblyIdentity>
+#pragma warning disable CS3001 // Argument type is not CLS-compliant
+
+    public class StrongAssemblyIdentityFormatter : IMessagePackFormatter<StrongAssemblyIdentity?>
     {
         /// <inheritdoc/>
-        public StrongAssemblyIdentity Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public StrongAssemblyIdentity? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareDeserializeReusableObject(out uint id, out StrongAssemblyIdentity? value, ref reader))
             {
@@ -28,13 +30,13 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, StrongAssemblyIdentity value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, StrongAssemblyIdentity? value, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
-                options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value.Mvid, options);
+                options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value!.Mvid, options);
                 options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.FullName, options);
-                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.CodeBase.ToString(), options);
+                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.CodeBase!.ToString(), options);
             }
         }
     }

@@ -12,6 +12,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Text;
     using System.Threading.Tasks;
     using MessagePack;
+    using Microsoft.VisualStudio.Composition.Formatter;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
     [MessagePackFormatter(typeof(MemberRefFormatter<PropertyRef>))]

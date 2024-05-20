@@ -11,10 +11,10 @@ namespace Microsoft.VisualStudio.Composition
     using System.Linq;
     using System.Reflection;
     using MessagePack;
+    using Microsoft.VisualStudio.Composition.Formatter;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     [DebuggerDisplay("{" + nameof(Type) + ".Name}")]
-    //[MessagePackObject(true)]
     [MessagePackFormatter(typeof(ComposablePartDefinitionFormatter))]
     public class ComposablePartDefinition : IEquatable<ComposablePartDefinition>
     {

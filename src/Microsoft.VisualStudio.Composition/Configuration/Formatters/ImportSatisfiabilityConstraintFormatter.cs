@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
-namespace Microsoft.VisualStudio.Composition
+namespace Microsoft.VisualStudio.Composition.Formatter
 {
     using System.Collections.Immutable;
     using System.Globalization;
     using MessagePack;
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
+
+#pragma warning disable CS3001 // Argument type is not CLS-compliant
 
     public class ImportSatisfiabilityConstraintFormatter : IMessagePackFormatter<IImportSatisfiabilityConstraint>
     {
@@ -37,7 +39,7 @@ namespace Microsoft.VisualStudio.Composition
 
                 case ConstraintTypes.PartCreationPolicyConstraint:
                     CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
-                    return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy);
+                    return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy)!;
 
                 case ConstraintTypes.ExportMetadataValueImportConstraint:
                     {

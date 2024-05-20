@@ -15,7 +15,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.Threading.Tasks;
     using MessagePack;
 
-  //  [MessagePackFormatter(typeof(ResolverFormatter))]
     public class Resolver
     {
         /// <summary>

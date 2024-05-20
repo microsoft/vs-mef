@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license. See
-// LICENSE file in the project root for full license information.
-namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+namespace Microsoft.VisualStudio.Composition.Formatter
 {
     using System.Collections.Immutable;
     using MessagePack;
@@ -8,10 +9,12 @@ namespace Microsoft.VisualStudio.Composition
     using Microsoft.VisualStudio.Composition.Reflection;
     using static Microsoft.VisualStudio.Composition.RuntimeComposition;
 
-    public class RuntimeExportFormatter : IMessagePackFormatter<RuntimeExport>
+#pragma warning disable CS3001 // Argument type is not CLS-compliant
+
+    public class RuntimeExportFormatter : IMessagePackFormatter<RuntimeExport?>
     {
         /// <inheritdoc/>
-        public RuntimeExport Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public RuntimeExport? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareDeserializeReusableObject(out uint id, out RuntimeExport? value, ref reader))
             {
@@ -35,11 +38,11 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, RuntimeExport value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, RuntimeExport? value, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
-                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.ContractName, options);
+                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value!.ContractName, options);
                 options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringTypeRef, options);
                 options.Resolver.GetFormatterWithVerify<MemberRef?>().Serialize(ref writer, value.MemberRef, options);
                 options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ExportedValueTypeRef, options);

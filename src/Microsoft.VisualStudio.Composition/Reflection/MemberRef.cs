@@ -13,6 +13,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using System.Text;
     using System.Threading.Tasks;
     using MessagePack;
+    using Microsoft.VisualStudio.Composition.Formatter;
 
     [MessagePackFormatter(typeof(MemberRefFormatter<MemberRef>))]
     public abstract class MemberRef : IEquatable<MemberRef>

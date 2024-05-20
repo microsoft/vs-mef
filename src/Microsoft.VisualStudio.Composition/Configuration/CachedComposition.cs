@@ -187,8 +187,6 @@ namespace Microsoft.VisualStudio.Composition
                     this.Write(part.ImportingMembers, this.Write);
                     this.Write(part.OnImportsSatisfiedMethodRefs, this.Write);
                     this.Write(part.SharingBoundary);
-
-
                 }
             }
 

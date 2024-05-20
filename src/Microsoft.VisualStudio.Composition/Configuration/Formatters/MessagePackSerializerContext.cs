@@ -10,7 +10,10 @@ namespace Microsoft.VisualStudio.Composition
     using MessagePack.Formatters;
     using MessagePack.Resolvers;
 
-    public class MessagePackSerializerContext : MessagePackSerializerOptions, IDisposable
+#pragma warning disable CS8602 // possible dereference of null reference
+#pragma warning disable CS8604 // null reference as argument
+
+    internal class MessagePackSerializerContext : MessagePackSerializerOptions, IDisposable
     {
         public Resolver CompositionResolver { get; }
 
@@ -24,7 +27,7 @@ namespace Microsoft.VisualStudio.Composition
         public MessagePackSerializerContext(IFormatterResolver resolver, Resolver compositionResolver)
             : base(GetIFormatterResolver(resolver))
         {
-            this.deserializingObjectTable = new ConcurrentDictionary<uint, object?>(); //check manual ax count  1000000
+            this.deserializingObjectTable = new ConcurrentDictionary<uint, object?>();
             this.CompositionResolver = compositionResolver;
         }
 
@@ -38,7 +41,8 @@ namespace Microsoft.VisualStudio.Composition
         private ConcurrentDictionary<object, uint>? serializingObjectTable;
         private ConcurrentDictionary<uint, object?>? deserializingObjectTable;
 
-        public bool TryPrepareDeserializeReusableObject<T>(out uint id, out T? value, ref MessagePackReader reader, MessagePackSerializerOptions options) where T : class
+        public bool TryPrepareDeserializeReusableObject<T>(out uint id, out T? value, ref MessagePackReader reader, MessagePackSerializerOptions options)
+            where T : class
         {
             id = options.Resolver.GetFormatterWithVerify<uint>().Deserialize(ref reader, options);
 

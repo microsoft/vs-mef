@@ -1,16 +1,19 @@
-﻿// Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license. See
-// LICENSE file in the project root for full license information.
-namespace Microsoft.VisualStudio.Composition
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+namespace Microsoft.VisualStudio.Composition.Formatter
 {
     using System.Collections.Immutable;
     using MessagePack;
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    public class ParameterRefFormatter : IMessagePackFormatter<ParameterRef>
+#pragma warning disable CS3001 // Argument type is not CLS-compliant
+
+    public class ParameterRefFormatter : IMessagePackFormatter<ParameterRef?>
     {
         /// <inheritdoc/>
-        public ParameterRef Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public ParameterRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareDeserializeReusableObject(out uint id, out ParameterRef? value, ref reader))
             {
@@ -25,11 +28,11 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, ParameterRef value, MessagePackSerializerOptions options)
+        public void Serialize(ref MessagePackWriter writer, ParameterRef? value, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
-                options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value.Method, options);
+                options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value!.Method, options);
                 options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.ParameterIndex, options);
             }
         }

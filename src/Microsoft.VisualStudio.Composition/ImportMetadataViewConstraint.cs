@@ -13,6 +13,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Text;
     using System.Threading.Tasks;
     using MessagePack;
+    using Microsoft.VisualStudio.Composition.Formatter;
     using Microsoft.VisualStudio.Composition.Reflection;
 
     [MessagePackFormatter(typeof(ImportSatisfiabilityConstraintFormatter))]

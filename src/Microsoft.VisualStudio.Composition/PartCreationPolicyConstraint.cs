@@ -11,6 +11,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Text;
     using System.Threading.Tasks;
     using MessagePack;
+    using Microsoft.VisualStudio.Composition.Formatter;
 
     /// <summary>
     /// A constraint that may be included in an <see cref="ImportDefinition"/> that only matches
