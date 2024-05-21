@@ -48,6 +48,7 @@ stages:
     displayName: OptProf Profiling Workflow
     optOptimizationInputsDropName: $(OptimizationInputsDropName)
     previousOptimizationInputsDropName: $(PreviousOptimizationInputsDropName)
+    testCaseMaximumRerunAttempts: 3
     testLabPoolName: VS-Platform
     testMachineCleanUpStrategy: ${{parameters.testMachineCleanUpStrategy}}
     ##### Step Hooks #####
