@@ -74,7 +74,6 @@ namespace Microsoft.VisualStudio.Composition.Tests
             output.WriteLine("Cache file size: {0}", ms.Length);
             ms.Position = 0;
             var deserializedRuntimeComposition = await cacheManager.LoadRuntimeCompositionAsync(ms, Resolver);
-
             Assert.Equal(runtimeComposition, deserializedRuntimeComposition);
 
             return runtimeComposition.CreateExportProviderFactory().CreateExportProvider();

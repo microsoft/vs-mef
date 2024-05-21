@@ -107,8 +107,7 @@ namespace Microsoft.VisualStudio.Composition
         /// An <see cref="IAssemblyLoader"/> that wraps another, and notifies its creator
         /// whenever an assembly is loaded.
         /// </summary>
-       // [MessagePackObject(true)]
-        internal class AssemblyLoaderWrapper : IAssemblyLoader
+        private class AssemblyLoaderWrapper : IAssemblyLoader
         {
             /// <summary>
             /// The <see cref="Resolver"/> that created this instance.
