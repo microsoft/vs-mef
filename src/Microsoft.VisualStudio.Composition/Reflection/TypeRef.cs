@@ -23,6 +23,11 @@ namespace Microsoft.VisualStudio.Composition.Reflection
 
         private static readonly IEqualityComparer<AssemblyName> AssemblyNameComparer = ByValueEquality.AssemblyNameNoFastCheck;
 
+        /// <summary>
+        /// A recycled pool of dictionaries used to detect recursion when resolving types.
+        /// </summary>
+        private static ThreadLocal<HashSet<Type>> recursionControl = new(() => new());
+
         private readonly Resolver resolver;
 
         /// <summary>
@@ -85,29 +90,49 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(type, nameof(type));
 
-            this.resolver = resolver;
-            this.resolvedType = type;
-            this.AssemblyName = resolver.GetNormalizedAssemblyName(type.GetTypeInfo().Assembly);
-            this.assemblyId = resolver.GetStrongAssemblyIdentity(type.GetTypeInfo().Assembly, this.AssemblyName);
-            this.TypeFlags |= type.IsArray ? TypeRefFlags.Array : TypeRefFlags.None;
-            this.TypeFlags |= type.GetTypeInfo().IsValueType ? TypeRefFlags.IsValueType : TypeRefFlags.None;
-
-            this.ElementTypeRef = PartDiscovery.TryGetElementTypeFromMany(type, out var elementType)
-                ? TypeRef.Get(elementType, resolver)
-                : this;
-
-            var arrayElementType = this.ArrayElementType;
-            Requires.Argument(!arrayElementType.IsGenericParameter, nameof(type), "Generic parameters are not supported.");
-            this.MetadataToken = arrayElementType.GetTypeInfo().MetadataToken;
-            this.FullName = (arrayElementType.GetTypeInfo().IsGenericType ? arrayElementType.GetGenericTypeDefinition() : arrayElementType).FullName ?? throw Assumes.NotReachable();
-            this.GenericTypeParameterCount = arrayElementType.GetTypeInfo().GenericTypeParameters.Length;
-            this.GenericTypeArguments = arrayElementType.GenericTypeArguments != null && arrayElementType.GenericTypeArguments.Length > 0
-                ? arrayElementType.GenericTypeArguments.Where(t => !(shallow && t.IsGenericParameter)).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray()
-                : ImmutableArray<TypeRef>.Empty;
-
-            if (!shallow)
+            HashSet<Type> recursionControlDictionary = recursionControl.Value!;
+            if (!shallow && !recursionControlDictionary.Add(type))
             {
-                this.baseTypes = arrayElementType.EnumTypeBaseTypesAndInterfaces().Skip(1).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray();
+                throw new PartDiscoveryException.RecursiveTypeException(type, null);
+            }
+
+            try
+            {
+                this.resolver = resolver;
+                this.resolvedType = type;
+                this.AssemblyName = resolver.GetNormalizedAssemblyName(type.GetTypeInfo().Assembly);
+                this.assemblyId = resolver.GetStrongAssemblyIdentity(type.GetTypeInfo().Assembly, this.AssemblyName);
+                this.TypeFlags |= type.IsArray ? TypeRefFlags.Array : TypeRefFlags.None;
+                this.TypeFlags |= type.GetTypeInfo().IsValueType ? TypeRefFlags.IsValueType : TypeRefFlags.None;
+
+                this.ElementTypeRef = PartDiscovery.TryGetElementTypeFromMany(type, out var elementType)
+                    ? TypeRef.Get(elementType, resolver)
+                    : this;
+
+                var arrayElementType = this.ArrayElementType;
+                Requires.Argument(!arrayElementType.IsGenericParameter, nameof(type), "Generic parameters are not supported.");
+                this.MetadataToken = arrayElementType.GetTypeInfo().MetadataToken;
+                this.FullName = (arrayElementType.GetTypeInfo().IsGenericType ? arrayElementType.GetGenericTypeDefinition() : arrayElementType).FullName ?? throw Assumes.NotReachable();
+                this.GenericTypeParameterCount = arrayElementType.GetTypeInfo().GenericTypeParameters.Length;
+                this.GenericTypeArguments = arrayElementType.GenericTypeArguments != null && arrayElementType.GenericTypeArguments.Length > 0
+                    ? arrayElementType.GenericTypeArguments.Where(t => !(shallow && t.IsGenericParameter)).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray()
+                    : ImmutableArray<TypeRef>.Empty;
+
+                if (!shallow)
+                {
+                    this.baseTypes = arrayElementType.EnumTypeBaseTypesAndInterfaces().Skip(1).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray();
+                }
+            }
+            catch (PartDiscoveryException.RecursiveTypeException ex)
+            {
+                throw new PartDiscoveryException.RecursiveTypeException(type, ex);
+            }
+            finally
+            {
+                if (!shallow)
+                {
+                    recursionControlDictionary.Remove(type);
+                }
             }
         }
 
