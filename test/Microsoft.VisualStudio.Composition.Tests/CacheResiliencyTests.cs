@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
         }
 
         [SkippableFact]
-        public async Task CacheStaleFromRecompiledAssembly()
+        public void CacheStaleFromRecompiledAssembly()
         {
             TestUtilities.SkipOnMono("Appdomain issues on mono");
 
