@@ -44,36 +44,7 @@ namespace Microsoft.VisualStudio.Composition.Tests
             Assert.NotNull(export);
         }
 
-        [Fact]
-        public async Task CacheAndReload_RecursiveType()
-        {
-            ComposableCatalog catalog = TestUtilities.EmptyCatalog.AddParts(
-                await TestUtilities.V2Discovery.CreatePartsAsync(typeof(SomeExport), typeof(DirectlyRecursiveType)));
-            var configuration = CompositionConfiguration.Create(catalog);
-            var ms = new MemoryStream();
-            await this.cacheManager.SaveAsync(configuration, ms);
-            configuration = null;
-
-            ms.Position = 0;
-            var exportProviderFactory = await this.cacheManager.LoadExportProviderFactoryAsync(ms, TestUtilities.Resolver);
-            var container = exportProviderFactory.CreateExportProvider();
-
-            SomeExport export = container.GetExportedValue<SomeExport>();
-            Assert.NotNull(export);
-
-            DirectlyRecursiveType recursiveExport = container.GetExportedValue<DirectlyRecursiveType>();
-            Assert.NotNull(recursiveExport);
-        }
-
         [Export]
         public class SomeExport { }
-
-        [Export]
-        private class DirectlyRecursiveType : IEnumerable<DirectlyRecursiveType>
-        {
-            public IEnumerator<DirectlyRecursiveType> GetEnumerator() => throw new NotImplementedException();
-
-            IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
-        }
     }
 }

@@ -233,8 +233,8 @@ Microsoft.VisualStudio.Composition.PartDiscoveryException
 Microsoft.VisualStudio.Composition.PartDiscoveryException.AssemblyPath.get -> string?
 Microsoft.VisualStudio.Composition.PartDiscoveryException.AssemblyPath.set -> void
 Microsoft.VisualStudio.Composition.PartDiscoveryException.PartDiscoveryException() -> void
-Microsoft.VisualStudio.Composition.PartDiscoveryException.PartDiscoveryException(string! message) -> void
-Microsoft.VisualStudio.Composition.PartDiscoveryException.PartDiscoveryException(string! message, System.Exception! innerException) -> void
+Microsoft.VisualStudio.Composition.PartDiscoveryException.PartDiscoveryException(string? message) -> void
+Microsoft.VisualStudio.Composition.PartDiscoveryException.PartDiscoveryException(string? message, System.Exception? innerException) -> void
 Microsoft.VisualStudio.Composition.PartDiscoveryException.ScannedType.get -> System.Type?
 Microsoft.VisualStudio.Composition.PartDiscoveryException.ScannedType.set -> void
 Microsoft.VisualStudio.Composition.Reflection.FieldRef

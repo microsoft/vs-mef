@@ -83,17 +83,25 @@ namespace Microsoft.VisualStudio.Composition.Tests.Reflection
         [Fact]
         public void Get_DirectlyRecursiveType()
         {
-            TypeRef typeRef = TypeRef.Get(typeof(DirectlyRecursiveType), Resolver.DefaultInstance);
-            Assert.NotNull(typeRef);
-            Assert.Same(typeRef, typeRef.ElementTypeRef);
+            PartDiscoveryException ex = Assert.ThrowsAny<PartDiscoveryException>(() => TypeRef.Get(typeof(DirectlyRecursiveType), Resolver.DefaultInstance));
+            Assert.Same(typeof(DirectlyRecursiveType), ex.ScannedType);
         }
 
         [Fact]
         public void Get_IndirectlyRecursiveType()
         {
-            TypeRef typeRef = TypeRef.Get(typeof(IndirectlyRecursiveTypeA), Resolver.DefaultInstance);
-            Assert.NotNull(typeRef);
-            Assert.Same(typeRef, typeRef.ElementTypeRef.ElementTypeRef);
+            PartDiscoveryException ex = Assert.ThrowsAny<PartDiscoveryException>(() => TypeRef.Get(typeof(IndirectlyRecursiveTypeA), Resolver.DefaultInstance));
+            Assert.Same(typeof(IndirectlyRecursiveTypeA), ex.ScannedType);
+
+            Assert.NotNull(ex.InnerException);
+            ex = (PartDiscoveryException)ex.InnerException;
+            Assert.Same(typeof(IndirectlyRecursiveTypeB), ex.ScannedType);
+
+            Assert.NotNull(ex.InnerException);
+            ex = (PartDiscoveryException)ex.InnerException;
+            Assert.Same(typeof(IndirectlyRecursiveTypeA), ex.ScannedType);
+
+            Assert.Null(ex.InnerException);
         }
 
         private void TestAssemblyNameEqualityNotEqual(string assemblyNameV1String, string assemblyNameV2String, string codeBaseV1, string codeBaseV2, Guid mvidV1, Guid mvidV2)

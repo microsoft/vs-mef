@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// <summary>
         /// A recycled pool of dictionaries used to detect recursion when resolving types.
         /// </summary>
-        private static ThreadLocal<Dictionary<Type, TypeRef>> recursionControl = new(() => new());
+        private static ThreadLocal<HashSet<Type>> recursionControl = new(() => new());
 
         private readonly Resolver resolver;
 
@@ -90,10 +90,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
             Requires.NotNull(resolver, nameof(resolver));
             Requires.NotNull(type, nameof(type));
 
-            Dictionary<Type, TypeRef> recursionControlDictionary = recursionControl.Value!;
-            if (!shallow)
+            HashSet<Type> recursionControlDictionary = recursionControl.Value!;
+            if (!shallow && !recursionControlDictionary.Add(type))
             {
-                recursionControlDictionary.Add(type, this);
+                throw new PartDiscoveryException.RecursiveTypeException(type, null);
             }
 
             try
@@ -122,6 +122,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 {
                     this.baseTypes = arrayElementType.EnumTypeBaseTypesAndInterfaces().Skip(1).Select(t => new TypeRef(resolver, t, shallow: true)).ToImmutableArray();
                 }
+            }
+            catch (PartDiscoveryException.RecursiveTypeException ex)
+            {
+                throw new PartDiscoveryException.RecursiveTypeException(type, ex);
             }
             finally
             {
@@ -283,11 +287,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
                 return null;
             }
 
-            if (recursionControl.Value!.TryGetValue(type, out TypeRef? result))
-            {
-                return result;
-            }
-
+            TypeRef? result;
             lock (resolver.InstanceCache)
             {
                 WeakReference<TypeRef>? weakResult;
