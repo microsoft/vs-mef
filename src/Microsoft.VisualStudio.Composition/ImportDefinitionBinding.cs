@@ -84,7 +84,6 @@ namespace Microsoft.VisualStudio.Composition
         /// </summary>
         public MemberRef? ImportingMemberRef { get; private set; }
 
-       // [IgnoreMember]
         public ParameterInfo? ImportingParameter => this.ImportingParameterRef?.ParameterInfo;
 
         public ParameterRef? ImportingParameterRef { get; private set; }
