@@ -65,7 +65,6 @@ namespace Microsoft.VisualStudio.Composition
                 e => (IReadOnlyCollection<RuntimeExport>)e.ToImmutableArray());
         }
 
-        [MessagePackFormatter(typeof(MessagePackCollectionFormatter<RuntimePart>))]
         public IReadOnlyCollection<RuntimePart> Parts
         {
             get { return this.parts; }
@@ -284,13 +283,10 @@ namespace Microsoft.VisualStudio.Composition
 
             public MethodBase? ImportingConstructorOrFactoryMethod => this.ImportingConstructorOrFactoryMethodRef?.MethodBase;
 
-            [MessagePackFormatter(typeof(MessagePackCollectionFormatter<RuntimeImport>))]
             public IReadOnlyList<RuntimeImport> ImportingConstructorArguments { get; private set; }
 
-            [MessagePackFormatter(typeof(MessagePackCollectionFormatter<RuntimeImport>))]
             public IReadOnlyList<RuntimeImport> ImportingMembers { get; private set; }
 
-            [MessagePackFormatter(typeof(MessagePackCollectionFormatter<RuntimeExport>))]
             public IReadOnlyList<RuntimeExport> Exports { get; set; }
 
             public string? SharingBoundary { get; private set; }
@@ -299,7 +295,6 @@ namespace Microsoft.VisualStudio.Composition
 
             public bool IsInstantiable => this.ImportingConstructorOrFactoryMethodRef != null;
 
-            [MessagePackFormatter(typeof(MessagePackCollectionFormatter<MethodRef>))]
             public IReadOnlyList<MethodRef> OnImportsSatisfiedMethodRefs { get; }
 
             private string? DebuggerDisplay => this.TypeRef.FullName;

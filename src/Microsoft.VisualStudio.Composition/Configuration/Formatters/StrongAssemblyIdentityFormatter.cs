@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
 #pragma warning disable CS3001 // Argument type is not CLS-compliant
 
-    public class StrongAssemblyIdentityFormatter : IMessagePackFormatter<StrongAssemblyIdentity?>
+    internal class StrongAssemblyIdentityFormatter : IMessagePackFormatter<StrongAssemblyIdentity?>
     {
         public static readonly StrongAssemblyIdentityFormatter Instance = new();
 

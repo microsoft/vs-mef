@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
 #pragma warning disable CS3001 // Argument type is not CLS-compliant
 
-    public class ImportDefinitionBindingFormatter : IMessagePackFormatter<ImportDefinitionBinding>
+    internal class ImportDefinitionBindingFormatter : IMessagePackFormatter<ImportDefinitionBinding>
     {
         public static readonly ImportDefinitionBindingFormatter Instance = new();
 

@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
 #pragma warning disable CS3001 // Argument type is not CLS-compliant
 
-    public class ImportSatisfiabilityConstraintFormatter : IMessagePackFormatter<IImportSatisfiabilityConstraint>
+    internal class ImportSatisfiabilityConstraintFormatter : IMessagePackFormatter<IImportSatisfiabilityConstraint>
     {
         public static readonly ImportSatisfiabilityConstraintFormatter Instance = new();
 

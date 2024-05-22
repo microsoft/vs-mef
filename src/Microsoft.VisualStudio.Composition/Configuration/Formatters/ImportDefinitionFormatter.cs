@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
 #pragma warning disable CS3001 // Argument type is not CLS-compliant
 
-    public class ImportDefinitionFormatter : IMessagePackFormatter<ImportDefinition>
+    internal class ImportDefinitionFormatter : IMessagePackFormatter<ImportDefinition>
     {
         public static readonly ImportDefinitionFormatter Instance = new();
 
@@ -24,9 +24,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             string contractName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
             ImportCardinality cardinality = options.Resolver.GetFormatterWithVerify<ImportCardinality>().Deserialize(ref reader, options);
             IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.DeserializeObject(ref reader, options);
-            IReadOnlyList<IImportSatisfiabilityConstraint> constraints = MessagePackCollectionFormatter<IImportSatisfiabilityConstraint>.DeserializeCollection(ref reader, options);
-            IReadOnlyList<string> sharingBoundaries = MessagePackCollectionFormatter<string>.DeserializeCollection(ref reader, options);
-
+            IReadOnlyList<IImportSatisfiabilityConstraint> constraints = options.Resolver.GetFormatterWithVerify<IReadOnlyList<IImportSatisfiabilityConstraint>>().Deserialize(ref reader, options);
+            IReadOnlyList<string> sharingBoundaries = options.Resolver.GetFormatterWithVerify<IReadOnlyList<string>>().Deserialize(ref reader, options);
             return new ImportDefinition(contractName, cardinality, metadata, constraints!, sharingBoundaries!);
         }
 
@@ -36,8 +35,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.ContractName, options);
             options.Resolver.GetFormatterWithVerify<ImportCardinality>().Serialize(ref writer, value.Cardinality, options);
             MetadataDictionaryFormatter.SerializeObject(ref writer, value.Metadata, options);
-            MessagePackCollectionFormatter<IImportSatisfiabilityConstraint>.SerializeCollection(ref writer, value.ExportConstraints, options);
-            MessagePackCollectionFormatter<string>.SerializeCollection(ref writer, value.ExportFactorySharingBoundaries, options);
+            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<IImportSatisfiabilityConstraint>>().Serialize(ref writer, value.ExportConstraints, options);
+            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Serialize(ref writer, value.ExportFactorySharingBoundaries, options);
         }
     }
 }

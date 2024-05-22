@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
 #pragma warning disable CS3001 // Argument type is not CLS-compliant
 
-    public class TypeRefObjectFormatter : IMessagePackFormatter<TypeRef?>
+    internal class TypeRefObjectFormatter : IMessagePackFormatter<TypeRef?>
     {
         public static readonly TypeRefObjectFormatter Instance = new();
 

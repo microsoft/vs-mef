@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
 #pragma warning disable CS3001 // Argument type is not CLS-compliant
 
-    public class MessagePackCollectionFormatter<TCollectionType> : IMessagePackFormatter<IReadOnlyCollection<TCollectionType>>
+    internal class MessagePackCollectionFormatter<TCollectionType> : IMessagePackFormatter<IReadOnlyCollection<TCollectionType>>
     {
         public static readonly MessagePackCollectionFormatter<TCollectionType> Instance = new();
 
@@ -29,15 +29,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public void Serialize(ref MessagePackWriter writer, IReadOnlyCollection<TCollectionType> value, MessagePackSerializerOptions options)
         {
             SerializeCollection(ref writer, value, options);
-        }
-
-        internal static void SerializeCollection(ref MessagePackWriter writer, IReadOnlyCollection<TCollectionType> value, MessagePackSerializerOptions options)
-        {
-            options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.Count(), options);
-            foreach (TCollectionType item in value)
-            {
-                options.Resolver.GetFormatterWithVerify<TCollectionType>().Serialize(ref writer, item, options);
-            }
         }
 
         internal static IReadOnlyList<TCollectionType> DeserializeCollection(ref MessagePackReader reader, MessagePackSerializerOptions options)
@@ -58,6 +49,15 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             }
 
             return collection;
+        }
+
+        internal static void SerializeCollection(ref MessagePackWriter writer, IReadOnlyCollection<TCollectionType> value, MessagePackSerializerOptions options)
+        {
+            options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.Count(), options);
+            foreach (TCollectionType item in value)
+            {
+                options.Resolver.GetFormatterWithVerify<TCollectionType>().Serialize(ref writer, item, options);
+            }
         }
     }
 }

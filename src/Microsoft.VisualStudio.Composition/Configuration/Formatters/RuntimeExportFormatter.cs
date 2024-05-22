@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
 #pragma warning disable CS3001 // Argument type is not CLS-compliant
 
-    public class RuntimeExportFormatter : IMessagePackFormatter<RuntimeExport?>
+    internal class RuntimeExportFormatter : IMessagePackFormatter<RuntimeExport?>
     {
         public static readonly RuntimeExportFormatter Instance = new();
 

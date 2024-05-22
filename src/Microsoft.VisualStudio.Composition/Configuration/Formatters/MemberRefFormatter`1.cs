@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     /// A formatter for serializing and deserializing <see cref="MemberRef"/> and its derived types using MessagePack.
     /// </summary>
     /// <typeparam name="TMemberReferenceType">The type of the member reference to serialize and deserialize.</typeparam>
-    public class MemberRefFormatter<TMemberReferenceType> : IMessagePackFormatter<TMemberReferenceType?>
+    internal class MemberRefFormatter<TMemberReferenceType> : IMessagePackFormatter<TMemberReferenceType?>
         where TMemberReferenceType : MemberRef
     {
         public static readonly MemberRefFormatter<TMemberReferenceType> Instance = new();
@@ -176,31 +176,31 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 options.Resolver.GetFormatterWithVerify<int?>().Serialize(ref writer, value.GetMethodMetadataToken, options);
             }
         }
+    }
+
+    /// <summary>
+    /// The possible types of member references.
+    /// </summary>
+    public enum MemberRefType
+    {
+        /// <summary>
+        /// Represents a member reference of a type other than field, property, or method.
+        /// </summary>
+        Other,
 
         /// <summary>
-        /// The possible types of member references.
+        /// Represents a member reference of a field.
         /// </summary>
-        public enum MemberRefType
-        {
-            /// <summary>
-            /// Represents a member reference of a type other than field, property, or method.
-            /// </summary>
-            Other,
+        Field,
 
-            /// <summary>
-            /// Represents a member reference of a field.
-            /// </summary>
-            Field,
+        /// <summary>
+        /// Represents a member reference of a property.
+        /// </summary>
+        Property,
 
-            /// <summary>
-            /// Represents a member reference of a property.
-            /// </summary>
-            Property,
-
-            /// <summary>
-            /// Represents a member reference of a method.
-            /// </summary>
-            Method,
-        }
+        /// <summary>
+        /// Represents a member reference of a method.
+        /// </summary>
+        Method,
     }
 }

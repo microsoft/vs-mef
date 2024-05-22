@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
 #pragma warning disable CS3001 // Argument type is not CLS-compliant
 
-    public class RuntimeCompositionFormatter : IMessagePackFormatter<RuntimeComposition>
+    internal class RuntimeCompositionFormatter : IMessagePackFormatter<RuntimeComposition>
     {
         public static readonly RuntimeCompositionFormatter Instance = new();
 
@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         public RuntimeComposition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            IReadOnlyList<RuntimePart> parts = MessagePackCollectionFormatter<RuntimePart>.DeserializeCollection(ref reader, options);
+            IReadOnlyList<RuntimePart> parts = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimePart>>().Deserialize(ref reader, options);
             int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
             ImmutableDictionary<TypeRef, RuntimeExport>.Builder builder = ImmutableDictionary.CreateBuilder<TypeRef, RuntimeComposition.RuntimeExport>();
 
@@ -40,8 +40,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, RuntimeComposition value, MessagePackSerializerOptions options)
         {
-            MessagePackCollectionFormatter<RuntimePart>.SerializeCollection(ref writer, value.Parts, options);
-
+            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimePart>>().Serialize(ref writer, value.Parts, options);
             options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataViewsAndProviders.Count(), options);
             foreach (KeyValuePair<TypeRef, RuntimeExport> item in value.MetadataViewsAndProviders)
             {

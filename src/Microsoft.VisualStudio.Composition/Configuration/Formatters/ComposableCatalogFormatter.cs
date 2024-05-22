@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
 #pragma warning disable CS3001 // Argument type is not CLS-compliant
 
-    public class ComposableCatalogFormatter : IMessagePackFormatter<ComposableCatalog>
+    internal class ComposableCatalogFormatter : IMessagePackFormatter<ComposableCatalog>
     {
         public static readonly ComposableCatalogFormatter Instance = new();
 
@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         public ComposableCatalog Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            IReadOnlyList<ComposablePartDefinition> composablePartDefinition = MessagePackCollectionFormatter<ComposablePartDefinition>.DeserializeCollection(ref reader, options);
+            IReadOnlyList<ComposablePartDefinition> composablePartDefinition = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ComposablePartDefinition>>().Deserialize(ref reader, options);
 
             return ComposableCatalog.Create(options.CompositionResolver()).AddParts(composablePartDefinition);
         }
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, ComposableCatalog value, MessagePackSerializerOptions options)
         {
-            MessagePackCollectionFormatter<ComposablePartDefinition>.SerializeCollection(ref writer, value.Parts, options);
+            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ComposablePartDefinition>>().Serialize(ref writer, value.Parts, options);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
 #pragma warning disable CS3001 // Argument type is not CLS-compliant
 
-    public class RuntimeImportFormatter : IMessagePackFormatter<RuntimeImport>
+    internal class RuntimeImportFormatter : IMessagePackFormatter<RuntimeImport>
     {
         public static readonly RuntimeImportFormatter Instance = new();
 
@@ -54,7 +54,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             TypeRef importingSiteTypeWithoutCollectionRef =
     cardinality == ImportCardinality.ZeroOrMore ? options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options) : importingSiteTypeRef;
 
-            IReadOnlyList<RuntimeExport> satisfyingExports = MessagePackCollectionFormatter<RuntimeExport>.DeserializeCollection(ref reader, options);
+            IReadOnlyList<RuntimeExport> satisfyingExports = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeExport>>().Deserialize(ref reader, options);
             IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.DeserializeObject(ref reader, options);
             IReadOnlyCollection<string?> exportFactorySharingBoundaries = isExportFactory
                 ? options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Deserialize(ref reader, options)
@@ -119,7 +119,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 }
             }
 
-            MessagePackCollectionFormatter<RuntimeExport>.SerializeCollection(ref writer, value.SatisfyingExports, options);
+            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeExport>>().Serialize(ref writer, value.SatisfyingExports, options);
+
             MetadataDictionaryFormatter.SerializeObject(ref writer, value.Metadata, options);
             if (value.IsExportFactory)
             {

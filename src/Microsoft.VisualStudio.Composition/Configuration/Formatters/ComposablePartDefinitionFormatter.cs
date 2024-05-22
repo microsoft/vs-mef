@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
 #pragma warning disable CS3001 // Argument type is not CLS-compliant
 
-    public class ComposablePartDefinitionFormatter : IMessagePackFormatter<ComposablePartDefinition>
+    internal class ComposablePartDefinitionFormatter : IMessagePackFormatter<ComposablePartDefinition>
     {
         public static readonly ComposablePartDefinitionFormatter Instance = new();
 
@@ -23,21 +23,22 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
             TypeRef partType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
             IReadOnlyDictionary<string, object?> partMetadata = MetadataDictionaryFormatter.DeserializeObject(ref reader, options);
-            IReadOnlyList<ExportDefinition> exportedTypes = MessagePackCollectionFormatter<ExportDefinition>.DeserializeCollection(ref reader, options);
+            IReadOnlyList<ExportDefinition> exportedTypes = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ExportDefinition>>().Deserialize(ref reader, options);
+
             ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Builder exportingMembers = ImmutableDictionary.CreateBuilder<MemberRef, IReadOnlyCollection<ExportDefinition>>();
             int exportedMembersCount = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
 
             for (int i = 0; i < exportedMembersCount; i++)
             {
                 MemberRef member = options.Resolver.GetFormatterWithVerify<MemberRef>().Deserialize(ref reader, options);
-                IReadOnlyList<ExportDefinition> exports = MessagePackCollectionFormatter<ExportDefinition>.DeserializeCollection(ref reader, options);
+                IReadOnlyList<ExportDefinition> exports = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ExportDefinition>>().Deserialize(ref reader, options);
 
                 exportingMembers.Add(member, exports);
             }
 
-            IReadOnlyList<ImportDefinitionBinding> importingMembers = MessagePackCollectionFormatter<ImportDefinitionBinding>.DeserializeCollection(ref reader, options);
+            IReadOnlyList<ImportDefinitionBinding> importingMembers = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ImportDefinitionBinding>>().Deserialize(ref reader, options);
             string? sharingBoundary = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
-            IReadOnlyList<MethodRef> onImportsSatisfiedMethods = MessagePackCollectionFormatter<MethodRef>.DeserializeCollection(ref reader, options);
+            IReadOnlyList<MethodRef> onImportsSatisfiedMethods = options.Resolver.GetFormatterWithVerify<IReadOnlyList<MethodRef>>().Deserialize(ref reader, options);
 
             var importingConstructor = default(MethodRef);
             IReadOnlyList<ImportDefinitionBinding>? importingConstructorImports = null;
@@ -45,7 +46,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             if (options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options))
             {
                 importingConstructor = options.Resolver.GetFormatterWithVerify<MethodRef?>().Deserialize(ref reader, options);
-                importingConstructorImports = MessagePackCollectionFormatter<ImportDefinitionBinding?>.DeserializeCollection(ref reader, options)!;
+                importingConstructorImports = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ImportDefinitionBinding?>>().Deserialize(ref reader, options)!;
             }
 
             CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
@@ -70,17 +71,19 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.TypeRef, options);
             MetadataDictionaryFormatter.SerializeObject(ref writer, value.Metadata, options);
-            MessagePackCollectionFormatter<ExportDefinition>.SerializeCollection(ref writer, value.ExportedTypes, options);
+            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ExportDefinition>>().Serialize(ref writer, value.ExportedTypes, options);
+
             options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.ExportingMembers.Count(), options);
             foreach (KeyValuePair<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMember in value.ExportingMembers)
             {
                 options.Resolver.GetFormatterWithVerify<MemberRef>().Serialize(ref writer, exportingMember.Key, options);
-                MessagePackCollectionFormatter<ExportDefinition>.SerializeCollection(ref writer, exportingMember.Value, options);
+                options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ExportDefinition>>().Serialize(ref writer, exportingMember.Value, options);
             }
 
-            MessagePackCollectionFormatter<ImportDefinitionBinding>.SerializeCollection(ref writer, value.ImportingMembers, options);
+            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ImportDefinitionBinding>>().Serialize(ref writer, value.ImportingMembers, options);
+
             options.Resolver.GetFormatterWithVerify<string?>().Serialize(ref writer, value.SharingBoundary, options);
-            MessagePackCollectionFormatter<MethodRef>.SerializeCollection(ref writer, value.OnImportsSatisfiedMethodRefs, options);
+            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<MethodRef>>().Serialize(ref writer, value.OnImportsSatisfiedMethodRefs, options);
 
             if (value.ImportingConstructorOrFactoryRef is null)
             {
@@ -90,7 +93,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, true, options);
                 options.Resolver.GetFormatterWithVerify<MethodRef?>().Serialize(ref writer, value.ImportingConstructorOrFactoryRef, options);
-                MessagePackCollectionFormatter<ImportDefinitionBinding?>.SerializeCollection(ref writer, value.ImportingConstructorImports!, options);
+                options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ImportDefinitionBinding?>>().Serialize(ref writer, value.ImportingConstructorImports!, options);
             }
 
             options.Resolver.GetFormatterWithVerify<CreationPolicy>().Serialize(ref writer, value.CreationPolicy, options);

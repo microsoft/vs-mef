@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
 #pragma warning disable CS3001 // Argument type is not CLS-compliant
 
-    public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
+    internal class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
     {
         public static readonly MetadataDictionaryFormatter Instance = new();
 
@@ -180,7 +180,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                     case Type objectType when typeof(LazyMetadataWrapper.TypeArraySubstitution) == objectType:
                         var typeArraySubstitutionValue = (LazyMetadataWrapper.TypeArraySubstitution)value;
                         options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.TypeArraySubstitution, options);
-                        MessagePackCollectionFormatter<TypeRef?>.SerializeCollection(ref messagePackWriter, typeArraySubstitutionValue.TypeRefArray, options);
+                        options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<TypeRef?>>().Serialize(ref messagePackWriter, typeArraySubstitutionValue.TypeRefArray, options);
+
                         break;
 
                     default:
@@ -326,14 +327,13 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                         break;
 
                     case ObjectType.TypeArraySubstitution:
-                        IReadOnlyList<TypeRef?> typeRefArray = MessagePackCollectionFormatter<TypeRef?>.DeserializeCollection(ref messagePackReader, options);
+                        IReadOnlyList<TypeRef?> typeRefArray = options.Resolver.GetFormatterWithVerify<IReadOnlyList<TypeRef?>>().Deserialize(ref messagePackReader, options);
                         response = new LazyMetadataWrapper.TypeArraySubstitution(typeRefArray!, options.CompositionResolver());
                         break;
 
                     case ObjectType.TypeLess:
                         var typeLessData = options.Resolver.GetFormatterWithVerify<byte[]>().Deserialize(ref messagePackReader, options);
                         response = MessagePackSerializer.Typeless.Deserialize(typeLessData);
-
                         break;
 
                     default:

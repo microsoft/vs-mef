@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
 #pragma warning disable CS3001 // Argument type is not CLS-compliant
 
-    public class ParameterRefFormatter : IMessagePackFormatter<ParameterRef?>
+    internal class ParameterRefFormatter : IMessagePackFormatter<ParameterRef?>
     {
         public static readonly ParameterRefFormatter Instance = new();
 

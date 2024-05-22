@@ -28,11 +28,9 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         [Key(0)]
-        [MessagePackFormatter(typeof(MessagePackCollectionFormatter<ComposablePartDefinition>))]
         public ImmutableHashSet<ComposablePartDefinition> Parts { get; private set; }
 
         [Key(1)]
-        [MessagePackFormatter(typeof(MessagePackCollectionFormatter<PartDiscoveryException>))]
         public ImmutableList<PartDiscoveryException> DiscoveryErrors { get; private set; }
 
         /// <summary>

@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Composition
 
     [DebuggerDisplay("{" + nameof(ContractName) + ",nq}")]
 
-    [MessagePackObject]
+    [MessagePackFormatter(typeof(ExportDefinitionFormatter))]
     public class ExportDefinition : IEquatable<ExportDefinition>
     {
         public ExportDefinition(string contractName, IReadOnlyDictionary<string, object?> metadata)
@@ -33,11 +33,8 @@ namespace Microsoft.VisualStudio.Composition
             this.Metadata = metadata;
         }
 
-        [Key(0)]
         public string ContractName { get; private set; }
 
-        [Key(1)]
-        [MessagePackFormatter(typeof(MetadataDictionaryFormatter))]
         public IReadOnlyDictionary<string, object?> Metadata { get; private set; }
 
         public override bool Equals(object? obj)
