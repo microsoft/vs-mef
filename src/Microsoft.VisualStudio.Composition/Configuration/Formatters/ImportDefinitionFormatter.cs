@@ -8,8 +8,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack;
     using MessagePack.Formatters;
 
-#pragma warning disable CS3001 // Argument type is not CLS-compliant
-
     internal class ImportDefinitionFormatter : IMessagePackFormatter<ImportDefinition>
     {
         public static readonly ImportDefinitionFormatter Instance = new();

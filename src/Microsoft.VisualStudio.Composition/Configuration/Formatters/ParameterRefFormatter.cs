@@ -8,8 +8,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-#pragma warning disable CS3001 // Argument type is not CLS-compliant
-
     internal class ParameterRefFormatter : IMessagePackFormatter<ParameterRef?>
     {
         public static readonly ParameterRefFormatter Instance = new();

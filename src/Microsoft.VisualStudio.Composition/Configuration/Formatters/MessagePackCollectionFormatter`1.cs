@@ -9,8 +9,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack;
     using MessagePack.Formatters;
 
-#pragma warning disable CS3001 // Argument type is not CLS-compliant
-
     internal class MessagePackCollectionFormatter<TCollectionType> : IMessagePackFormatter<IReadOnlyCollection<TCollectionType>>
     {
         public static readonly MessagePackCollectionFormatter<TCollectionType> Instance = new();

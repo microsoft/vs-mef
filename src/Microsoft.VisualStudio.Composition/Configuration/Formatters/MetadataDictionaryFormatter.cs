@@ -10,8 +10,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-#pragma warning disable CS3001 // Argument type is not CLS-compliant
-
     internal class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
     {
         public static readonly MetadataDictionaryFormatter Instance = new();

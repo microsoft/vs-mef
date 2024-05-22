@@ -10,7 +10,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using Microsoft.VisualStudio.Composition;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-#pragma warning disable CS3001 // Argument type is not CLS-compliant
 #pragma warning disable RS0041 // No oblivious reference types
 
     /// <summary>

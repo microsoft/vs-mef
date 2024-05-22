@@ -8,8 +8,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using Microsoft.VisualStudio.Composition.Reflection;
     using static Microsoft.VisualStudio.Composition.RuntimeComposition;
 
-#pragma warning disable CS3001 // Argument type is not CLS-compliant
-
     internal class RuntimeCompositionFormatter : IMessagePackFormatter<RuntimeComposition>
     {
         public static readonly RuntimeCompositionFormatter Instance = new();

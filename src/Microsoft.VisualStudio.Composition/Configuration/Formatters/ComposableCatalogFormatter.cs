@@ -7,8 +7,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack;
     using MessagePack.Formatters;
 
-#pragma warning disable CS3001 // Argument type is not CLS-compliant
-
     internal class ComposableCatalogFormatter : IMessagePackFormatter<ComposableCatalog>
     {
         public static readonly ComposableCatalogFormatter Instance = new();
