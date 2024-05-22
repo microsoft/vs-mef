@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public ComposablePartDefinition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             TypeRef partType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-            IReadOnlyDictionary<string, object?> partMetadata = MetadataDictionaryFormatter.DeserializeObject(ref reader, options);
+            IReadOnlyDictionary<string, object?> partMetadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
             IReadOnlyList<ExportDefinition> exportedTypes = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ExportDefinition>>().Deserialize(ref reader, options);
 
             ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Builder exportingMembers = ImmutableDictionary.CreateBuilder<MemberRef, IReadOnlyCollection<ExportDefinition>>();
@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public void Serialize(ref MessagePackWriter writer, ComposablePartDefinition value, MessagePackSerializerOptions options)
         {
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.TypeRef, options);
-            MetadataDictionaryFormatter.SerializeObject(ref writer, value.Metadata, options);
+            MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ExportDefinition>>().Serialize(ref writer, value.ExportedTypes, options);
 
             options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.ExportingMembers.Count(), options);

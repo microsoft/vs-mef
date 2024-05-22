@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
                 MemberRef? member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options);
                 TypeRef exportedValueType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-                IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.DeserializeObject(ref reader, options);
+                IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
 
                 value = new RuntimeComposition.RuntimeExport(
                     contractName,
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringTypeRef, options);
                 options.Resolver.GetFormatterWithVerify<MemberRef?>().Serialize(ref writer, value.MemberRef, options);
                 options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ExportedValueTypeRef, options);
-                MetadataDictionaryFormatter.SerializeObject(ref writer, value.Metadata, options);
+                MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
             }
         }
     }

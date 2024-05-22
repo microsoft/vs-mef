@@ -22,17 +22,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         public IReadOnlyCollection<TCollectionType> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            return DeserializeCollection(ref reader, options);
-        }
-
-        /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, IReadOnlyCollection<TCollectionType> value, MessagePackSerializerOptions options)
-        {
-            SerializeCollection(ref writer, value, options);
-        }
-
-        internal static IReadOnlyList<TCollectionType> DeserializeCollection(ref MessagePackReader reader, MessagePackSerializerOptions options)
-        {
             int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
 
             if (count == 0)
@@ -51,7 +40,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             return collection;
         }
 
-        internal static void SerializeCollection(ref MessagePackWriter writer, IReadOnlyCollection<TCollectionType> value, MessagePackSerializerOptions options)
+        /// <inheritdoc/>
+        public void Serialize(ref MessagePackWriter writer, IReadOnlyCollection<TCollectionType> value, MessagePackSerializerOptions options)
         {
             options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.Count(), options);
             foreach (TCollectionType item in value)

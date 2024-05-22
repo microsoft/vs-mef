@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition
         public ExportDefinition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             string contractName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-            IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.DeserializeObject(ref reader, options);
+            IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
 
             return new ExportDefinition(contractName, metadata);
         }
@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Composition
         public void Serialize(ref MessagePackWriter writer, ExportDefinition value, MessagePackSerializerOptions options)
         {
             options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.ContractName, options);
-            MetadataDictionaryFormatter.SerializeObject(ref writer, value.Metadata, options);
+            MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
         }
     }
 }

@@ -55,12 +55,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.FullName, options);
                 options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Serialize(ref writer, value.TypeFlags, options);
                 options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.GenericTypeParameterCount, options);
-                MessagePackCollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.GenericTypeArguments, options);
+                MessagePackCollectionFormatter<TypeRef>.Instance.Serialize(ref writer, value.GenericTypeArguments, options);
                 options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsShallow, options);
 
                 if (!value.IsShallow)
                 {
-                    MessagePackCollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.BaseTypes, options);
+                    MessagePackCollectionFormatter<TypeRef>.Instance.Serialize(ref writer, value.BaseTypes, options);
                 }
 
                 options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.ElementTypeRef.Equals(value) ? 0 : 1, options);

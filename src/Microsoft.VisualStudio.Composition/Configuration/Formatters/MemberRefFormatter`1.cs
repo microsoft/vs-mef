@@ -152,8 +152,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
                 options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
                 options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsStatic, options);
-                MessagePackCollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.ParameterTypes, options);
-                MessagePackCollectionFormatter<TypeRef>.SerializeCollection(ref writer, value.GenericMethodArguments, options);
+                MessagePackCollectionFormatter<TypeRef>.Instance.Serialize(ref writer, value.ParameterTypes, options);
+                MessagePackCollectionFormatter<TypeRef>.Instance.Serialize(ref writer, value.GenericMethodArguments, options);
             }
         }
 

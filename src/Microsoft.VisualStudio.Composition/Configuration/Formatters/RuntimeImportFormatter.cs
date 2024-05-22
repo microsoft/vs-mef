@@ -55,7 +55,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     cardinality == ImportCardinality.ZeroOrMore ? options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options) : importingSiteTypeRef;
 
             IReadOnlyList<RuntimeExport> satisfyingExports = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeExport>>().Deserialize(ref reader, options);
-            IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.DeserializeObject(ref reader, options);
+            IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
             IReadOnlyCollection<string?> exportFactorySharingBoundaries = isExportFactory
                 ? options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Deserialize(ref reader, options)
                 : ImmutableList<string>.Empty;
@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeExport>>().Serialize(ref writer, value.SatisfyingExports, options);
 
-            MetadataDictionaryFormatter.SerializeObject(ref writer, value.Metadata, options);
+            MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
             if (value.IsExportFactory)
             {
                 options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Serialize(ref writer, value.ExportFactorySharingBoundaries, options);

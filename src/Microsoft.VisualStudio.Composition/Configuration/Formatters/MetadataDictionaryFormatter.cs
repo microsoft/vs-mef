@@ -21,18 +21,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public IReadOnlyDictionary<string, object?> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
-        {
-            return DeserializeObject(ref reader, options);
-        }
-
-        /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, IReadOnlyDictionary<string, object?> value, MessagePackSerializerOptions options)
-        {
-            SerializeObject(ref writer, value, options);
-        }
-
-        internal static void SerializeObject(ref MessagePackWriter writer, IReadOnlyDictionary<string, object?> value, MessagePackSerializerOptions options)
         {
             options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.Count, options);
 
@@ -193,7 +182,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             }
         }
 
-        internal static IReadOnlyDictionary<string, object?> DeserializeObject(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        public IReadOnlyDictionary<string, object?> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             ImmutableDictionary<string, object?>.Builder builder = ImmutableDictionary.CreateBuilder<string, object?>();
 
