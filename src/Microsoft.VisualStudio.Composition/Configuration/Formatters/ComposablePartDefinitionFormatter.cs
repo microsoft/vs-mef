@@ -12,6 +12,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
     public class ComposablePartDefinitionFormatter : IMessagePackFormatter<ComposablePartDefinition>
     {
+        public static readonly ComposablePartDefinitionFormatter Instance = new();
+
+        private ComposablePartDefinitionFormatter()
+        {
+        }
+
         /// <inheritdoc/>
         public ComposablePartDefinition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {

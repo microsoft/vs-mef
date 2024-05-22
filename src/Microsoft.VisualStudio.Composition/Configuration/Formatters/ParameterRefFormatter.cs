@@ -12,6 +12,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
     public class ParameterRefFormatter : IMessagePackFormatter<ParameterRef?>
     {
+        public static readonly ParameterRefFormatter Instance = new();
+
+        private ParameterRefFormatter()
+        {
+        }
+
         /// <inheritdoc/>
         public ParameterRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {

@@ -11,7 +11,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using Microsoft.VisualStudio.Composition.Reflection;
 
 #pragma warning disable CS3001 // Argument type is not CLS-compliant
-#pragma warning disable SA1649 // File name should match first type name
 #pragma warning disable RS0041 // No oblivious reference types
 
     /// <summary>
@@ -21,6 +20,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     public class MemberRefFormatter<TMemberReferenceType> : IMessagePackFormatter<TMemberReferenceType?>
         where TMemberReferenceType : MemberRef
     {
+        public static readonly MemberRefFormatter<TMemberReferenceType> Instance = new();
+
+        private MemberRefFormatter()
+        {
+        }
+
         /// <inheritdoc/>
         public TMemberReferenceType? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {

@@ -13,6 +13,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
     public class TypeRefObjectFormatter : IMessagePackFormatter<TypeRef?>
     {
+        public static readonly TypeRefObjectFormatter Instance = new();
+
+        private TypeRefObjectFormatter()
+        {
+        }
+
         /// <inheritdoc/>
         public TypeRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {

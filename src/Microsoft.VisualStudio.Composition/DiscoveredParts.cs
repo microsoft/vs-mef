@@ -15,7 +15,6 @@ namespace Microsoft.VisualStudio.Composition
     [MessagePackObject]
     public class DiscoveredParts
     {
-        [Key(0)]
         public static readonly DiscoveredParts Empty = new DiscoveredParts(ImmutableHashSet.Create<ComposablePartDefinition>(), ImmutableList.Create<PartDiscoveryException>());
 
         [SerializationConstructor]
@@ -28,11 +27,11 @@ namespace Microsoft.VisualStudio.Composition
             this.DiscoveryErrors = ImmutableList.CreateRange(discoveryErrors);
         }
 
-        [Key(1)]
+        [Key(0)]
         [MessagePackFormatter(typeof(MessagePackCollectionFormatter<ComposablePartDefinition>))]
         public ImmutableHashSet<ComposablePartDefinition> Parts { get; private set; }
 
-        [Key(2)]
+        [Key(1)]
         [MessagePackFormatter(typeof(MessagePackCollectionFormatter<PartDiscoveryException>))]
         public ImmutableList<PartDiscoveryException> DiscoveryErrors { get; private set; }
 

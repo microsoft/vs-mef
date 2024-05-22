@@ -12,6 +12,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
     public class ImportDefinitionFormatter : IMessagePackFormatter<ImportDefinition>
     {
+        public static readonly ImportDefinitionFormatter Instance = new();
+
+        private ImportDefinitionFormatter()
+        {
+        }
+
         /// <inheritdoc/>
         public ImportDefinition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {

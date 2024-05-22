@@ -20,12 +20,16 @@ namespace Microsoft.VisualStudio.Composition
     {
         protected static readonly Encoding TextEncoding = Encoding.UTF8;
 
-        public async Task SaveAsync(ComposableCatalog catalog, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
+        public Task SaveAsync(ComposableCatalog catalog, Stream cacheStream, CancellationToken cancellationToken = default(CancellationToken))
         {
             Requires.NotNull(catalog, nameof(catalog));
             Requires.NotNull(cacheStream, nameof(cacheStream));
-            using var context = new MessagePackSerializerContext(catalog.Parts.Count * 4, ContractlessStandardResolver.Instance, catalog.Resolver);
-            await MessagePackSerializer.SerializeAsync(cacheStream, catalog, context, cancellationToken);
+
+            return Task.Run(() =>
+            {
+                using var context = new MessagePackSerializerContext(catalog.Parts.Count * 4, ContractlessStandardResolver.Instance, catalog.Resolver);
+                MessagePackSerializer.Serialize(cacheStream, catalog, context, cancellationToken);
+            });
         }
 
         public async Task<ComposableCatalog> LoadAsync(Stream cacheStream, Resolver resolver, CancellationToken cancellationToken = default(CancellationToken))

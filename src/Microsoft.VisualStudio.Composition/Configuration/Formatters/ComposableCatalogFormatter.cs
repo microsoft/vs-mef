@@ -11,6 +11,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
     public class ComposableCatalogFormatter : IMessagePackFormatter<ComposableCatalog>
     {
+        public static readonly ComposableCatalogFormatter Instance = new();
+
+        private ComposableCatalogFormatter()
+        {
+        }
+
         /// <inheritdoc/>
         public ComposableCatalog Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {

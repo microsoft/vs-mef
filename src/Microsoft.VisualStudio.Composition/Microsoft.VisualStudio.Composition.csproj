@@ -9,7 +9,9 @@
       <PrivateAssets>none</PrivateAssets>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>    
+  <ItemGroup>
+    <PackageReference Include="MessagePack" PrivateAssets="compile" />
+    <PackageReference Include="MessagePackAnalyzer" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" />
@@ -19,8 +21,6 @@
     <PackageReference Include="System.Reflection.Emit" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
     <PackageReference Include="System.Reflection.Metadata" Condition="'$(TargetFrameworkIdentifier)'!='.NETCoreApp'" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Condition="'$(TargetFrameworkIdentifier)'!='.NETCoreApp'" />
-    <PackageReference Include="MessagePack" PrivateAssets="compile" />
-    <PackageReference Include="MessagePackAnalyzer" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include="PublicAPI.Shipped.txt" />

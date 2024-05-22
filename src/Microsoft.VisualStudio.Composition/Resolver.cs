@@ -13,7 +13,6 @@ namespace Microsoft.VisualStudio.Composition
     using System.Runtime.CompilerServices;
     using System.Text;
     using System.Threading.Tasks;
-    using MessagePack;
 
     public class Resolver
     {

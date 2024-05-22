@@ -13,6 +13,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
     public class RuntimeExportFormatter : IMessagePackFormatter<RuntimeExport?>
     {
+        public static readonly RuntimeExportFormatter Instance = new();
+
+        private RuntimeExportFormatter()
+        {
+        }
+
         /// <inheritdoc/>
         public RuntimeExport? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {

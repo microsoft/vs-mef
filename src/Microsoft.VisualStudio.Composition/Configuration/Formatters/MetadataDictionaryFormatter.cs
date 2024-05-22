@@ -14,6 +14,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
     public class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
     {
+        public static readonly MetadataDictionaryFormatter Instance = new();
+
+        private MetadataDictionaryFormatter()
+        {
+        }
+
         /// <inheritdoc/>
         public IReadOnlyDictionary<string, object?> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
@@ -28,7 +34,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
         internal static void SerializeObject(ref MessagePackWriter writer, IReadOnlyDictionary<string, object?> value, MessagePackSerializerOptions options)
         {
-            options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.Count(), options);
+            options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.Count, options);
 
             // Special case certain values to avoid defeating lazy load later. Check out the
             // ReadMetadata below, how it wraps the return value.

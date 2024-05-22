@@ -12,6 +12,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
     public class ImportSatisfiabilityConstraintFormatter : IMessagePackFormatter<IImportSatisfiabilityConstraint>
     {
+        public static readonly ImportSatisfiabilityConstraintFormatter Instance = new();
+
+        private ImportSatisfiabilityConstraintFormatter()
+        {
+        }
+
         /// <inheritdoc/>
         public IImportSatisfiabilityConstraint Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {

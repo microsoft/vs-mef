@@ -11,6 +11,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
     public class StrongAssemblyIdentityFormatter : IMessagePackFormatter<StrongAssemblyIdentity?>
     {
+        public static readonly StrongAssemblyIdentityFormatter Instance = new();
+
+        private StrongAssemblyIdentityFormatter()
+        {
+        }
+
         /// <inheritdoc/>
         public StrongAssemblyIdentity? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {

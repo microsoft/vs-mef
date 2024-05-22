@@ -18,7 +18,6 @@ namespace Microsoft.VisualStudio.Composition
     using Microsoft.VisualStudio.Composition.Reflection;
     using MefV1 = System.ComponentModel.Composition;
 
-    [MessagePackObject]
     public static class NetFxAdapters
     {
         private static readonly ComposablePartDefinition CompositionServicePart;

@@ -12,6 +12,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
     public class RuntimeCompositionFormatter : IMessagePackFormatter<RuntimeComposition>
     {
+        public static readonly RuntimeCompositionFormatter Instance = new();
+
+        private RuntimeCompositionFormatter()
+        {
+        }
+
         /// <inheritdoc/>
         public RuntimeComposition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {

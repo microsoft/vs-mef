@@ -13,6 +13,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
     public class RuntimeImportFormatter : IMessagePackFormatter<RuntimeImport>
     {
+        public static readonly RuntimeImportFormatter Instance = new();
+
+        private RuntimeImportFormatter()
+        {
+        }
+
         public enum RuntimeImportFlags : byte
         {
             None = 0x00,
