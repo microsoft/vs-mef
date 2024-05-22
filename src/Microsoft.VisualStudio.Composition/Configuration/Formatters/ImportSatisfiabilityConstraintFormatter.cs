@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             }
         }
 
-        public enum ConstraintTypes
+        internal enum ConstraintTypes
         {
             ImportMetadataViewConstraint,
             ExportTypeIdentityConstraint,

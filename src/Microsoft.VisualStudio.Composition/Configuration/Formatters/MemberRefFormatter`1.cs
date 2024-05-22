@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     /// <summary>
     /// The possible types of member references.
     /// </summary>
-    public enum MemberRefType
+    internal enum MemberRefType
     {
         /// <summary>
         /// Represents a member reference of a type other than field, property, or method.
