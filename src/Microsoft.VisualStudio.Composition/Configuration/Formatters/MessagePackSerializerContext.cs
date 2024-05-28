@@ -27,19 +27,13 @@ namespace Microsoft.VisualStudio.Composition
         public MessagePackSerializerContext(IFormatterResolver resolver, Resolver compositionResolver)
             : base(GetIFormatterResolver(resolver))
         {
-            this.deserializingObjectTable = new ConcurrentDictionary<uint, object?>();
+            this.deserializingObjectTable = new Dictionary<uint, object?>();
+            this.serializingObjectTable = new Dictionary<object, uint>(SmartInterningEqualityComparer.Default);
             this.CompositionResolver = compositionResolver;
         }
 
-        public MessagePackSerializerContext(int estimatedObjectCount, IFormatterResolver resolver, Resolver compositionResolver)
-            : base(GetIFormatterResolver(resolver))
-        {
-            this.serializingObjectTable = new ConcurrentDictionary<object, uint>(SmartInterningEqualityComparer.Default);
-            this.CompositionResolver = compositionResolver;
-        }
-
-        private ConcurrentDictionary<object, uint>? serializingObjectTable;
-        private ConcurrentDictionary<uint, object?>? deserializingObjectTable;
+        private Dictionary<object, uint>? serializingObjectTable;
+        private Dictionary<uint, object?>? deserializingObjectTable;
 
         public bool TryPrepareDeserializeReusableObject<T>(out uint id, out T? value, ref MessagePackReader reader, MessagePackSerializerOptions options)
             where T : class
@@ -69,7 +63,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public void OnDeserializedReusableObject(uint id, object value)
         {
-            this.deserializingObjectTable.TryAdd(id, value);
+            this.deserializingObjectTable.Add(id, value);
         }
 
         public bool TryPrepareSerializeReusableObject([NotNullWhen(true)] object? value, ref MessagePackWriter writer, MessagePackSerializerOptions options)
@@ -90,7 +84,7 @@ namespace Microsoft.VisualStudio.Composition
             else
             {
                 // asking to serialize the object to caller
-                this.serializingObjectTable.TryAdd(value, id = (uint)this.serializingObjectTable.Count + 1);
+                this.serializingObjectTable.Add(value, id = (uint)this.serializingObjectTable.Count + 1);
                 options.Resolver.GetFormatterWithVerify<uint>().Serialize(ref writer, id, options);
                 return true;
             }

@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         public RuntimeImport Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            var flags = (RuntimeImportFlags)options.Resolver.GetFormatterWithVerify<byte>().Deserialize(ref reader, options);
+            var flags = (RuntimeImportFlags)reader.ReadByte();
             ImportCardinality cardinality =
               (flags & RuntimeImportFlags.CardinalityOneOrZero) == RuntimeImportFlags.CardinalityOneOrZero ? ImportCardinality.OneOrZero :
               (flags & RuntimeImportFlags.CardinalityExactlyOne) == RuntimeImportFlags.CardinalityExactlyOne ? ImportCardinality.ExactlyOne :
@@ -48,9 +48,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 importingMember = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options);
             }
 
-            TypeRef importingSiteTypeRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+
+            TypeRef importingSiteTypeRef = typeRefFormatter.Deserialize(ref reader, options);
             TypeRef importingSiteTypeWithoutCollectionRef =
-    cardinality == ImportCardinality.ZeroOrMore ? options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options) : importingSiteTypeRef;
+    cardinality == ImportCardinality.ZeroOrMore ? typeRefFormatter.Deserialize(ref reader, options) : importingSiteTypeRef;
 
             IReadOnlyList<RuntimeExport> satisfyingExports = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeExport>>().Deserialize(ref reader, options);
             IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
@@ -92,7 +94,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 value.Cardinality == ImportCardinality.ExactlyOne ? RuntimeImportFlags.CardinalityExactlyOne :
                 value.Cardinality == ImportCardinality.OneOrZero ? RuntimeImportFlags.CardinalityOneOrZero : 0;
 
-            options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref writer, (byte)flags, options);
+            writer.Write((byte)flags);
 
             if (value.ImportingMemberRef is null)
             {
@@ -103,11 +105,13 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 options.Resolver.GetFormatterWithVerify<MemberRef?>().Serialize(ref writer, value.ImportingMemberRef, options);
             }
 
-            options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ImportingSiteTypeRef, options);
+            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+
+            typeRefFormatter.Serialize(ref writer, value.ImportingSiteTypeRef, options);
 
             if (value.Cardinality == ImportCardinality.ZeroOrMore)
             {
-                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ImportingSiteTypeWithoutCollectionRef, options);
+                typeRefFormatter.Serialize(ref writer, value.ImportingSiteTypeWithoutCollectionRef, options);
             }
             else
             {

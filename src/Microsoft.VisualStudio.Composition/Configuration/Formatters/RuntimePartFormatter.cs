@@ -24,20 +24,24 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             IReadOnlyList<RuntimeComposition.RuntimeImport> importingCtorArguments = ImmutableList<RuntimeComposition.RuntimeImport>.Empty;
 
             TypeRef typeRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-            IReadOnlyList<RuntimeExport> exports = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeExport>>().Deserialize(ref reader, options);
 
-            bool hasCtor = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
+            IMessagePackFormatter<IReadOnlyList<RuntimeExport>> runtimeExportFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeExport>>();
+            IReadOnlyList<RuntimeExport> exports = runtimeExportFormatter.Deserialize(ref reader, options);
+
+            IMessagePackFormatter<IReadOnlyList<RuntimeImport>> runtimeImportFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeImport>>();
+
+            bool hasCtor = reader.ReadBoolean();
 
             if (hasCtor)
             {
                 importingCtor = options.Resolver.GetFormatterWithVerify<MethodRef?>().Deserialize(ref reader, options);
-                importingCtorArguments = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeImport>>().Deserialize(ref reader, options);
+                importingCtorArguments = runtimeImportFormatter.Deserialize(ref reader, options);
             }
 
-            IReadOnlyList<RuntimeImport> importingMembers = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimeImport>>().Deserialize(ref reader, options);
+            IReadOnlyList<RuntimeImport> importingMembers = runtimeImportFormatter.Deserialize(ref reader, options);
             IReadOnlyList<MethodRef> onImportsSatisfiedMethods = options.Resolver.GetFormatterWithVerify<IReadOnlyList<MethodRef>>().Deserialize(ref reader, options);
 
-            string sharingBoundary = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+            string sharingBoundary = reader.ReadString()!;
 
             return new RuntimeComposition.RuntimePart(
                       typeRef,
@@ -55,22 +59,24 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.TypeRef, options);
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeExport>>().Serialize(ref writer, value.Exports, options);
 
+            IMessagePackFormatter<IReadOnlyCollection<RuntimeImport>> runtimeImportFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeImport>>();
+
             if (value.ImportingConstructorOrFactoryMethodRef is null)
             {
-                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, false, options);
+                writer.Write(false);
             }
             else
             {
-                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, true, options);
+                writer.Write(true);
                 options.Resolver.GetFormatterWithVerify<MethodRef?>().Serialize(ref writer, value.ImportingConstructorOrFactoryMethodRef, options);
 
-                options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeImport>>().Serialize(ref writer, value.ImportingConstructorArguments, options);
+                runtimeImportFormatter.Serialize(ref writer, value.ImportingConstructorArguments, options);
             }
 
-            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeImport>>().Serialize(ref writer, value.ImportingMembers, options);
+            runtimeImportFormatter.Serialize(ref writer, value.ImportingMembers, options);
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<MethodRef>>().Serialize(ref writer, value.OnImportsSatisfiedMethodRefs, options);
 
-            options.Resolver.GetFormatterWithVerify<string?>().Serialize(ref writer, value.SharingBoundary, options);
+            writer.Write(value.SharingBoundary);
         }
     }
 }

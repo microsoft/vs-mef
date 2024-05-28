@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             if (options.TryPrepareDeserializeReusableObject(out uint id, out ParameterRef? value, ref reader))
             {
                 MethodRef method = options.Resolver.GetFormatterWithVerify<MethodRef>().Deserialize(ref reader, options);
-                int parameterIndex = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+                int parameterIndex = reader.ReadInt32();
                 value = new ParameterRef(method, parameterIndex);
 
                 options.OnDeserializedReusableObject(id, value);
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
                 options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value!.Method, options);
-                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.ParameterIndex, options);
+                writer.Write(value.ParameterIndex);
             }
         }
     }

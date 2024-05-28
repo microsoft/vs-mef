@@ -43,11 +43,13 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
             if (options.TryPrepareDeserializeReusableObject(out uint id, out FieldRef? value, ref reader))
             {
-                TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-                TypeRef fieldType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-                int metadataToken = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
-                string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-                bool isStatic = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
+                IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+
+                TypeRef declaringType = typeRefFormatter.Deserialize(ref reader, options);
+                TypeRef fieldType = typeRefFormatter.Deserialize(ref reader, options);
+                int metadataToken = reader.ReadInt32();
+                string name = reader.ReadString()!;
+                bool isStatic = reader.ReadBoolean();
 
                 value = new FieldRef(declaringType, fieldType, metadataToken, name, isStatic);
                 options.OnDeserializedReusableObject(id, value);
@@ -60,13 +62,24 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
             if (options.TryPrepareDeserializeReusableObject(out uint id, out PropertyRef? value, ref reader))
             {
-                TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-                TypeRef propertyType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-                int metadataToken = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
-                string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-                bool isStatic = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
-                int? setter = options.Resolver.GetFormatterWithVerify<int?>().Deserialize(ref reader, options);
-                int? getter = options.Resolver.GetFormatterWithVerify<int?>().Deserialize(ref reader, options);
+                IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+
+                TypeRef declaringType = typeRefFormatter.Deserialize(ref reader, options);
+                TypeRef propertyType = typeRefFormatter.Deserialize(ref reader, options);
+                int metadataToken = reader.ReadInt32();
+                string name = reader.ReadString()!;
+                bool isStatic = reader.ReadBoolean();
+                int? setter = null;
+                int? getter = null;
+                if (reader.ReadBoolean())
+                {
+                    setter = reader.ReadInt32();
+                }
+
+                if (reader.ReadBoolean())
+                {
+                    getter = reader.ReadInt32();
+                }
 
                 value = new PropertyRef(declaringType, propertyType, metadataToken, getter, setter, name, isStatic);
                 options.OnDeserializedReusableObject(id, value);
@@ -80,9 +93,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             if (options.TryPrepareDeserializeReusableObject(out uint id, out MethodRef? value, ref reader))
             {
                 TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-                int metadataToken = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
-                string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-                bool isStatic = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
+
+                int metadataToken = reader.ReadInt32();
+                string name = reader.ReadString()!;
+                bool isStatic = reader.ReadBoolean();
+
                 ImmutableArray<TypeRef?> parameterTypes = TypeRefObjectFormatter.ReadTypeRefImmutableArray(ref reader, options);
                 ImmutableArray<TypeRef?> genericMethodArguments = TypeRefObjectFormatter.ReadTypeRefImmutableArray(ref reader, options);
 
@@ -129,11 +144,13 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
-                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringType, options);
-                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.FieldTypeRef, options);
-                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
-                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
-                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsStatic, options);
+                IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+
+                typeRefFormatter.Serialize(ref writer, value.DeclaringType, options);
+                typeRefFormatter.Serialize(ref writer, value.FieldTypeRef, options);
+                writer.Write(value.MetadataToken);
+                writer.Write(value.Name);
+                writer.Write(value.IsStatic);
             }
         }
 
@@ -147,10 +164,14 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
-                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringType, options);
-                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
-                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
-                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsStatic, options);
+                IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+
+                typeRefFormatter.Serialize(ref writer, value.DeclaringType, options);
+
+                writer.Write(value.MetadataToken);
+                writer.Write(value.Name);
+                writer.Write(value.IsStatic);
+
                 MessagePackCollectionFormatter<TypeRef>.Instance.Serialize(ref writer, value.ParameterTypes, options);
                 MessagePackCollectionFormatter<TypeRef>.Instance.Serialize(ref writer, value.GenericMethodArguments, options);
             }
@@ -166,13 +187,33 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
-                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringType, options);
-                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.PropertyTypeRef, options);
-                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
-                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
-                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsStatic, options);
-                options.Resolver.GetFormatterWithVerify<int?>().Serialize(ref writer, value.SetMethodMetadataToken, options);
-                options.Resolver.GetFormatterWithVerify<int?>().Serialize(ref writer, value.GetMethodMetadataToken, options);
+                IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+
+                typeRefFormatter.Serialize(ref writer, value.DeclaringType, options);
+                typeRefFormatter.Serialize(ref writer, value.PropertyTypeRef, options);
+
+                writer.Write(value.MetadataToken);
+                writer.Write(value.Name);
+                writer.Write(value.IsStatic);
+                if (value.SetMethodMetadataToken.HasValue)
+                {
+                    writer.Write(true);
+                    writer.Write(value.SetMethodMetadataToken.Value);
+                }
+                else
+                {
+                    writer.Write(false);
+                }
+
+                if (value.GetMethodMetadataToken.HasValue)
+                {
+                    writer.Write(true);
+                    writer.Write(value.GetMethodMetadataToken.Value);
+                }
+                else
+                {
+                    writer.Write(false);
+                }
             }
         }
     }

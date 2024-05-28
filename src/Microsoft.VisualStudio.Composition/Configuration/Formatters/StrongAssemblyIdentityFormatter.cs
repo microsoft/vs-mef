@@ -21,12 +21,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             if (options.TryPrepareDeserializeReusableObject(out uint id, out StrongAssemblyIdentity? value, ref reader))
             {
                 Guid mvid = options.Resolver.GetFormatterWithVerify<Guid>().Deserialize(ref reader, options);
-                string fullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                string fullName = reader.ReadString()!;
 
                 var assemblyName = new AssemblyName(fullName);
-                assemblyName.CodeBase = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                assemblyName.CodeBase = reader.ReadString()!;
                 value = new StrongAssemblyIdentity(assemblyName, mvid);
-
                 options.OnDeserializedReusableObject(id, value);
             }
 
@@ -39,8 +38,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
                 options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value!.Mvid, options);
-                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.FullName, options);
-                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.CodeBase!.ToString(), options);
+                writer.Write(value.Name.FullName);
+                writer.Write(value.Name.CodeBase!.ToString());
             }
         }
     }

@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         public IReadOnlyCollection<TCollectionType> Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+            int count = reader.ReadInt32();
 
             if (count == 0)
             {
@@ -41,10 +41,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, IReadOnlyCollection<TCollectionType> value, MessagePackSerializerOptions options)
         {
-            options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.Count(), options);
+            writer.Write(value.Count);
+            IMessagePackFormatter<TCollectionType> tCollectionTypeFormatter = options.Resolver.GetFormatterWithVerify<TCollectionType>();
+
             foreach (TCollectionType item in value)
             {
-                options.Resolver.GetFormatterWithVerify<TCollectionType>().Serialize(ref writer, item, options);
+                tCollectionTypeFormatter.Serialize(ref writer, item, options);
             }
         }
     }

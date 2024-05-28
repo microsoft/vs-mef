@@ -10,10 +10,16 @@ namespace Microsoft.VisualStudio.Composition
 
     internal class ExportDefinitionFormatter : IMessagePackFormatter<ExportDefinition>
     {
+        public static readonly ExportDefinitionFormatter Instance = new();
+
+        private ExportDefinitionFormatter()
+        {
+        }
+
         /// <inheritdoc/>
         public ExportDefinition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            string contractName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+            string contractName = reader.ReadString()!;
             IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
 
             return new ExportDefinition(contractName, metadata);
@@ -21,7 +27,7 @@ namespace Microsoft.VisualStudio.Composition
 
         public void Serialize(ref MessagePackWriter writer, ExportDefinition value, MessagePackSerializerOptions options)
         {
-            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.ContractName, options);
+            writer.Write(value.ContractName);
             MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
         }
     }

@@ -20,13 +20,16 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public RuntimeComposition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             IReadOnlyList<RuntimePart> parts = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimePart>>().Deserialize(ref reader, options);
-            int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+            int count = reader.ReadInt32();
             ImmutableDictionary<TypeRef, RuntimeExport>.Builder builder = ImmutableDictionary.CreateBuilder<TypeRef, RuntimeComposition.RuntimeExport>();
+
+            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+            IMessagePackFormatter<RuntimeExport> exportFormatter = options.Resolver.GetFormatterWithVerify<RuntimeExport>();
 
             for (uint i = 0; i < count; i++)
             {
-                TypeRef key = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-                RuntimeExport value = options.Resolver.GetFormatterWithVerify<RuntimeExport>().Deserialize(ref reader, options);
+                TypeRef key = typeRefFormatter.Deserialize(ref reader, options);
+                RuntimeExport value = exportFormatter.Deserialize(ref reader, options);
                 builder.Add(key, value!);
             }
 
@@ -39,11 +42,15 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public void Serialize(ref MessagePackWriter writer, RuntimeComposition value, MessagePackSerializerOptions options)
         {
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimePart>>().Serialize(ref writer, value.Parts, options);
-            options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataViewsAndProviders.Count(), options);
+            writer.Write(value.MetadataViewsAndProviders.Count);
+
+            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+            IMessagePackFormatter<RuntimeExport> exportFormatter = options.Resolver.GetFormatterWithVerify<RuntimeExport>();
+
             foreach (KeyValuePair<TypeRef, RuntimeExport> item in value.MetadataViewsAndProviders)
             {
-                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, item.Key, options);
-                options.Resolver.GetFormatterWithVerify<RuntimeExport>().Serialize(ref writer, item.Value, options);
+                typeRefFormatter.Serialize(ref writer, item.Key, options);
+                exportFormatter.Serialize(ref writer, item.Value, options);
             }
         }
     }

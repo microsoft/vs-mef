@@ -19,18 +19,20 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         public ImportDefinition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            string contractName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+            string contractName = reader.ReadString()!;
             ImportCardinality cardinality = options.Resolver.GetFormatterWithVerify<ImportCardinality>().Deserialize(ref reader, options);
             IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
+
             IReadOnlyList<IImportSatisfiabilityConstraint> constraints = options.Resolver.GetFormatterWithVerify<IReadOnlyList<IImportSatisfiabilityConstraint>>().Deserialize(ref reader, options);
             IReadOnlyList<string> sharingBoundaries = options.Resolver.GetFormatterWithVerify<IReadOnlyList<string>>().Deserialize(ref reader, options);
+
             return new ImportDefinition(contractName, cardinality, metadata, constraints!, sharingBoundaries!);
         }
 
         /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, ImportDefinition value, MessagePackSerializerOptions options)
         {
-            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.ContractName, options);
+            writer.Write(value.ContractName);
             options.Resolver.GetFormatterWithVerify<ImportCardinality>().Serialize(ref writer, value.Cardinality, options);
             MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<IImportSatisfiabilityConstraint>>().Serialize(ref writer, value.ExportConstraints, options);

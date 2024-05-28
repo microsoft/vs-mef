@@ -23,20 +23,19 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             if (options.TryPrepareDeserializeReusableObject(out uint id, out TypeRef? value, ref reader))
             {
                 StrongAssemblyIdentity assemblyId = options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Deserialize(ref reader, options);
-                int metadataToken = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
-                string fullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                int metadataToken = reader.ReadInt32();
+                string fullName = reader.ReadString()!;
                 TypeRefFlags flags = options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Deserialize(ref reader, options);
-                int genericTypeParameterCount = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+                int genericTypeParameterCount = reader.ReadInt32();
                 ImmutableArray<TypeRef?> genericTypeArguments = ReadTypeRefImmutableArray(ref reader, options);
-                bool shallow = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
+                bool shallow = reader.ReadBoolean();
                 ImmutableArray<TypeRef?> baseTypes = !shallow ? ReadTypeRefImmutableArray(ref reader, options) : ImmutableArray<TypeRef?>.Empty;
-                bool hasElementType = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options) != 0;
+                bool hasElementType = reader.ReadInt32() != 0;
                 TypeRef? elementType = hasElementType
                        ? options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options)
                        : null;
 
                 value = TypeRef.Get(options.CompositionResolver(), assemblyId, metadataToken, fullName, flags, genericTypeParameterCount, genericTypeArguments!, shallow, baseTypes!, elementType);
-
                 options.OnDeserializedReusableObject(id, value);
             }
 
@@ -49,19 +48,19 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
                 options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Serialize(ref writer, value!.AssemblyId, options);
-                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.MetadataToken, options);
-                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.FullName, options);
+                writer.Write(value.MetadataToken);
+                writer.Write(value.FullName);
                 options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Serialize(ref writer, value.TypeFlags, options);
-                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.GenericTypeParameterCount, options);
+                writer.Write(value.GenericTypeParameterCount);
                 MessagePackCollectionFormatter<TypeRef>.Instance.Serialize(ref writer, value.GenericTypeArguments, options);
-                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsShallow, options);
+                writer.Write(value.IsShallow);
 
                 if (!value.IsShallow)
                 {
                     MessagePackCollectionFormatter<TypeRef>.Instance.Serialize(ref writer, value.BaseTypes, options);
                 }
 
-                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.ElementTypeRef.Equals(value) ? 0 : 1, options);
+                writer.Write(value.ElementTypeRef.Equals(value) ? 0 : 1);
 
                 if (!value.ElementTypeRef.Equals(value))
                 {

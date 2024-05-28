@@ -8,6 +8,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
+#pragma warning disable CS8604 // Possible null reference argument.
+
     internal class ImportSatisfiabilityConstraintFormatter : IMessagePackFormatter<IImportSatisfiabilityConstraint>
     {
         public static readonly ImportSatisfiabilityConstraintFormatter Instance = new();
@@ -24,30 +26,38 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             switch (type)
             {
                 case ConstraintTypes.ImportMetadataViewConstraint:
-                    int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
-
-                    ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>.Builder requirements = ImmutableDictionary.CreateBuilder<string, ImportMetadataViewConstraint.MetadatumRequirement>();
-                    for (int i = 0; i < count; i++)
                     {
-                        string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-                        TypeRef valueTypeRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-                        bool isRequired = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
-                        requirements.Add(name, new ImportMetadataViewConstraint.MetadatumRequirement(valueTypeRef, isRequired));
+                        int count = reader.ReadInt32();
+
+                        ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>.Builder requirements = ImmutableDictionary.CreateBuilder<string, ImportMetadataViewConstraint.MetadatumRequirement>();
+                        IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+
+                        for (int i = 0; i < count; i++)
+                        {
+                            string name = reader.ReadString()!;
+                            TypeRef valueTypeRef = typeRefFormatter.Deserialize(ref reader, options);
+                            bool isRequired = reader.ReadBoolean();
+                            requirements.Add(name, new ImportMetadataViewConstraint.MetadatumRequirement(valueTypeRef, isRequired));
+                        }
+
+                        return new ImportMetadataViewConstraint(requirements.ToImmutable(), options.CompositionResolver());
                     }
 
-                    return new ImportMetadataViewConstraint(requirements.ToImmutable(), options.CompositionResolver());
-
                 case ConstraintTypes.ExportTypeIdentityConstraint:
-                    string? exportTypeIdentity = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
-                    return new ExportTypeIdentityConstraint(exportTypeIdentity);
+                    {
+                        string? exportTypeIdentity = reader.ReadString();
+                        return new ExportTypeIdentityConstraint(exportTypeIdentity);
+                    }
 
                 case ConstraintTypes.PartCreationPolicyConstraint:
-                    CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
-                    return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy)!;
+                    {
+                        CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
+                        return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy)!;
+                    }
 
                 case ConstraintTypes.ExportMetadataValueImportConstraint:
                     {
-                        string? name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                        string? name = reader.ReadString();
                         object? value = options.Resolver.GetFormatterWithVerify<object?>().Deserialize(ref reader, options);
                         return new ExportMetadataValueImportConstraint(name, value);
                     }
@@ -63,40 +73,42 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public void Serialize(ref MessagePackWriter writer, IImportSatisfiabilityConstraint value, MessagePackSerializerOptions options)
         {
             ConstraintTypes type;
+            IMessagePackFormatter<ConstraintTypes> constraintTypesFormatter = options.Resolver.GetFormatterWithVerify<ConstraintTypes>();
 
             if (value is ImportMetadataViewConstraint importMetadataViewConstraint)
             {
                 type = ConstraintTypes.ImportMetadataViewConstraint;
-                options.Resolver.GetFormatterWithVerify<ConstraintTypes>().Serialize(ref writer, type, options);
+                constraintTypesFormatter.Serialize(ref writer, type, options);
 
-                options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, importMetadataViewConstraint.Requirements.Count, options);
+                writer.Write(importMetadataViewConstraint.Requirements.Count);
+                IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 
                 foreach (KeyValuePair<string, ImportMetadataViewConstraint.MetadatumRequirement> item in importMetadataViewConstraint.Requirements)
                 {
-                    options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, item.Key, options);
-                    options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, item.Value.MetadatumValueTypeRef, options);
-                    options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, item.Value.IsMetadataumValueRequired, options);
+                    writer.Write(item.Key);
+                    typeRefFormatter.Serialize(ref writer, item.Value.MetadatumValueTypeRef, options);
+                    writer.Write(item.Value.IsMetadataumValueRequired);
                 }
             }
             else if (value is ExportTypeIdentityConstraint exportTypeIdentityConstraint)
             {
                 type = ConstraintTypes.ExportTypeIdentityConstraint;
-                options.Resolver.GetFormatterWithVerify<ConstraintTypes>().Serialize(ref writer, type, options);
-                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, exportTypeIdentityConstraint.TypeIdentityName, options);
+                constraintTypesFormatter.Serialize(ref writer, type, options);
+                writer.Write(exportTypeIdentityConstraint.TypeIdentityName);
             }
             else if (value is PartCreationPolicyConstraint partCreationPolicyConstraint)
             {
                 type = ConstraintTypes.PartCreationPolicyConstraint;
-                options.Resolver.GetFormatterWithVerify<ConstraintTypes>().Serialize(ref writer, type, options);
+                constraintTypesFormatter.Serialize(ref writer, type, options);
 
                 options.Resolver.GetFormatterWithVerify<CreationPolicy>().Serialize(ref writer, partCreationPolicyConstraint.RequiredCreationPolicy, options);
             }
             else if (value is ExportMetadataValueImportConstraint exportMetadataValueImportConstraint)
             {
                 type = ConstraintTypes.ExportMetadataValueImportConstraint;
-                options.Resolver.GetFormatterWithVerify<ConstraintTypes>().Serialize(ref writer, type, options);
+                constraintTypesFormatter.Serialize(ref writer, type, options);
 
-                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, exportMetadataValueImportConstraint.Name, options);
+                writer.Write(exportMetadataValueImportConstraint.Name);
                 options.Resolver.GetFormatterWithVerify<object?>().Serialize(ref writer, exportMetadataValueImportConstraint.Value, options);
             }
             else

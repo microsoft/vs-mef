@@ -20,13 +20,15 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public ImportDefinitionBinding Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             ImportDefinition importDefinition = options.Resolver.GetFormatterWithVerify<ImportDefinition>().Deserialize(ref reader, options);
-            TypeRef part = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-            TypeRef importingSiteTypeRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-            TypeRef importingSiteTypeWithoutCollectionRef = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+
+            TypeRef part = typeRefFormatter.Deserialize(ref reader, options);
+            TypeRef importingSiteTypeRef = typeRefFormatter.Deserialize(ref reader, options);
+            TypeRef importingSiteTypeWithoutCollectionRef = typeRefFormatter.Deserialize(ref reader, options);
 
             MemberRef? member;
             ParameterRef? parameter;
-            bool isMember = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
+            bool isMember = reader.ReadBoolean();
             if (isMember)
             {
                 member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options)!;
@@ -43,18 +45,20 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public void Serialize(ref MessagePackWriter writer, ImportDefinitionBinding value, MessagePackSerializerOptions options)
         {
             options.Resolver.GetFormatterWithVerify<ImportDefinition>().Serialize(ref writer, value.ImportDefinition, options);
-            options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ComposablePartTypeRef, options);
-            options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ImportingSiteTypeRef, options);
-            options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ImportingSiteTypeWithoutCollectionRef, options);
+            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+
+            typeRefFormatter.Serialize(ref writer, value.ComposablePartTypeRef, options);
+            typeRefFormatter.Serialize(ref writer, value.ImportingSiteTypeRef, options);
+            typeRefFormatter.Serialize(ref writer, value.ImportingSiteTypeWithoutCollectionRef, options);
 
             if (value.ImportingMemberRef is null)
             {
-                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, false, options);
+                writer.Write(false);
                 options.Resolver.GetFormatterWithVerify<ParameterRef?>().Serialize(ref writer, value.ImportingParameterRef, options);
             }
             else
             {
-                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, true, options);
+                writer.Write(true);
                 options.Resolver.GetFormatterWithVerify<MemberRef?>().Serialize(ref writer, value.ImportingMemberRef, options);
             }
         }

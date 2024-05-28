@@ -10,6 +10,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
+#pragma warning disable CS8604 // Possible null reference argument.
+
     internal class MetadataDictionaryFormatter : IMessagePackFormatter<IReadOnlyDictionary<string, object?>>
     {
         public static readonly MetadataDictionaryFormatter Instance = new();
@@ -21,7 +23,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, IReadOnlyDictionary<string, object?> value, MessagePackSerializerOptions options)
         {
-            options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.Count, options);
+            writer.Write(value.Count);
 
             // Special case certain values to avoid defeating lazy load later. Check out the
             // ReadMetadata below, how it wraps the return value.
@@ -34,7 +36,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
             foreach (KeyValuePair<string, object?> item in serializedMetadata)
             {
-                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, item.Key, options);
+                writer.Write(item.Key);
 
                 SerializeObject(ref writer, item.Value);
             }
@@ -43,7 +45,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 if (value is null)
                 {
-                    options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)MetadataDictionaryFormatter.ObjectType.Null, options);
+                    messagePackWriter.Write((byte)MetadataDictionaryFormatter.ObjectType.Null);
                     return;
                 }
 
@@ -52,12 +54,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                     case Type objectType when objectType.IsArray:
 
                         var array = (Array)value;
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)MetadataDictionaryFormatter.ObjectType.Array, options);
+                        messagePackWriter.Write((byte)MetadataDictionaryFormatter.ObjectType.Array);
 
                         TypeRef? elementTypeRef = TypeRef.Get(objectType.GetElementType(), options.CompositionResolver());
                         options.Resolver.GetFormatterWithVerify<TypeRef?>().Serialize(ref messagePackWriter, elementTypeRef, options);
-
-                        options.Resolver.GetFormatterWithVerify<int>().Serialize(ref messagePackWriter, array.Length, options);
+                        messagePackWriter.Write(array.Length);
                         foreach (object? item in array)
                         {
                             SerializeObject(ref messagePackWriter, item);
@@ -67,113 +68,113 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
                     case Type objectType when objectType == typeof(bool):
                         ObjectType objectValueType = (bool)value ? ObjectType.BoolTrue : ObjectType.BoolFalse;
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)objectValueType, options);
+                        messagePackWriter.Write((byte)objectValueType);
                         break;
 
                     case Type objectType when objectType == typeof(string):
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.String, options);
-                        options.Resolver.GetFormatterWithVerify<string>().Serialize(ref messagePackWriter, (string)value, options);
+                        messagePackWriter.Write((byte)ObjectType.String);
+                        messagePackWriter.Write((string)value);
                         break;
 
                     case Type objectType when objectType == typeof(long):
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.Int64, options);
-                        options.Resolver.GetFormatterWithVerify<long>().Serialize(ref messagePackWriter, (long)value, options);
+                        messagePackWriter.Write((byte)ObjectType.Int64);
+                        messagePackWriter.Write((long)value);
                         break;
 
                     case Type objectType when objectType == typeof(ulong):
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.UInt64, options);
-                        options.Resolver.GetFormatterWithVerify<ulong>().Serialize(ref messagePackWriter, (ulong)value, options);
+                        messagePackWriter.Write((byte)ObjectType.UInt64);
+                        messagePackWriter.Write((ulong)value);
                         break;
 
                     case Type objectType when objectType == typeof(int):
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.Int32, options);
-                        options.Resolver.GetFormatterWithVerify<int>().Serialize(ref messagePackWriter, (int)value, options);
+                        messagePackWriter.Write((byte)ObjectType.Int32);
+                        messagePackWriter.Write((int)value);
                         break;
 
                     case Type objectType when objectType == typeof(uint):
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.UInt32, options);
-                        options.Resolver.GetFormatterWithVerify<uint>().Serialize(ref messagePackWriter, (uint)value, options);
+                        messagePackWriter.Write((byte)ObjectType.UInt32);
+                        messagePackWriter.Write((uint)value);
                         break;
 
                     case Type objectType when objectType == typeof(short):
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.Int16, options);
-                        options.Resolver.GetFormatterWithVerify<short>().Serialize(ref messagePackWriter, (short)value, options);
+                        messagePackWriter.Write((byte)ObjectType.Int16);
+                        messagePackWriter.Write((short)value);
                         break;
 
                     case Type objectType when objectType == typeof(ushort):
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.UInt16, options);
-                        options.Resolver.GetFormatterWithVerify<ushort>().Serialize(ref messagePackWriter, (ushort)value, options);
+                        messagePackWriter.Write((byte)ObjectType.UInt16);
+                        messagePackWriter.Write((ushort)value);
                         break;
 
                     case Type objectType when objectType == typeof(byte):
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.Byte, options);
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)value, options);
+                        messagePackWriter.Write((byte)ObjectType.Byte);
+                        messagePackWriter.Write((byte)value);
                         break;
 
                     case Type objectType when objectType == typeof(sbyte):
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.SByte, options);
-                        options.Resolver.GetFormatterWithVerify<sbyte>().Serialize(ref messagePackWriter, (sbyte)value, options);
+                        messagePackWriter.Write((byte)ObjectType.SByte);
+                        messagePackWriter.Write((sbyte)value);
                         break;
 
                     case Type objectType when objectType == typeof(float):
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.Single, options);
-                        options.Resolver.GetFormatterWithVerify<float>().Serialize(ref messagePackWriter, (float)value, options);
+                        messagePackWriter.Write((byte)ObjectType.Single);
+                        messagePackWriter.Write((float)value);
                         break;
 
                     case Type objectType when objectType == typeof(double):
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.Double, options);
-                        options.Resolver.GetFormatterWithVerify<double>().Serialize(ref messagePackWriter, (double)value, options);
+                        messagePackWriter.Write((byte)ObjectType.Double);
+                        messagePackWriter.Write((double)value);
                         break;
 
                     case Type objectType when objectType == typeof(char):
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.Char, options);
-                        options.Resolver.GetFormatterWithVerify<char>().Serialize(ref messagePackWriter, (char)value, options);
+                        messagePackWriter.Write((byte)ObjectType.Char);
+                        messagePackWriter.Write((char)value);
                         break;
 
                     case Type objectType when objectType == typeof(Guid):
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.Guid, options);
+                        messagePackWriter.Write((byte)ObjectType.Guid);
                         options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref messagePackWriter, (Guid)value, options);
                         break;
 
                     case Type objectType when objectType == typeof(CreationPolicy):
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.CreationPolicy, options);
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)(CreationPolicy)value, options);
+                        messagePackWriter.Write((byte)ObjectType.CreationPolicy);
+                        messagePackWriter.Write((byte)(CreationPolicy)value);
                         break;
 
                     case Type objectType when typeof(Type).GetTypeInfo().IsAssignableFrom(objectType):
                         TypeRef typeRefValue = TypeRef.Get((Type)value, options.CompositionResolver());
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.Type, options);
+                        messagePackWriter.Write((byte)ObjectType.Type);
                         options.Resolver.GetFormatterWithVerify<TypeRef?>().Serialize(ref messagePackWriter, typeRefValue, options);
                         break;
 
                     case Type objectType when objectType == typeof(TypeRef):
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.TypeRef, options);
+                        messagePackWriter.Write((byte)ObjectType.TypeRef);
                         options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref messagePackWriter, (TypeRef)value, options);
                         break;
 
                     case Type objectType when typeof(LazyMetadataWrapper.Enum32Substitution) == objectType:
                         var enum32SubstitutionValue = (LazyMetadataWrapper.Enum32Substitution)value;
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.Enum32Substitution, options);
+                        messagePackWriter.Write((byte)ObjectType.Enum32Substitution);
                         options.Resolver.GetFormatterWithVerify<TypeRef?>().Serialize(ref messagePackWriter, enum32SubstitutionValue.EnumType, options);
                         options.Resolver.GetFormatterWithVerify<int?>().Serialize(ref messagePackWriter, enum32SubstitutionValue.RawValue, options);
                         break;
 
                     case Type objectType when typeof(LazyMetadataWrapper.TypeSubstitution) == objectType:
                         var typeSubstitutionValue = (LazyMetadataWrapper.TypeSubstitution)value;
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.TypeSubstitution, options);
+                        messagePackWriter.Write((byte)ObjectType.TypeSubstitution);
                         options.Resolver.GetFormatterWithVerify<TypeRef?>().Serialize(ref messagePackWriter, typeSubstitutionValue.TypeRef, options);
                         break;
 
                     case Type objectType when typeof(LazyMetadataWrapper.TypeArraySubstitution) == objectType:
                         var typeArraySubstitutionValue = (LazyMetadataWrapper.TypeArraySubstitution)value;
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.TypeArraySubstitution, options);
+                        messagePackWriter.Write((byte)ObjectType.TypeArraySubstitution);
                         options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<TypeRef?>>().Serialize(ref messagePackWriter, typeArraySubstitutionValue.TypeRefArray, options);
 
                         break;
 
                     default:
                         var typeLessData = MessagePackSerializer.Typeless.Serialize(value);
-                        options.Resolver.GetFormatterWithVerify<byte>().Serialize(ref messagePackWriter, (byte)ObjectType.TypeLess, options);
+                        messagePackWriter.Write((byte)ObjectType.TypeLess);
                         options.Resolver.GetFormatterWithVerify<byte[]>().Serialize(ref messagePackWriter, typeLessData, options);
                         break;
                 }
@@ -184,14 +185,14 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
             ImmutableDictionary<string, object?>.Builder builder = ImmutableDictionary.CreateBuilder<string, object?>();
 
-            int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+            int count = reader.ReadInt32();
             ImmutableDictionary<string, object?> metadata = ImmutableDictionary<string, object?>.Empty;
 
             if (count > 0)
             {
                 for (int i = 0; i < count; i++)
                 {
-                    string key = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                    string? key = reader.ReadString();
                     object? value = DeserializeObject(ref reader);
 
                     builder.Add(key, value);
@@ -218,7 +219,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                     case ObjectType.Array:
                         Type elementType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref messagePackReader, options).Resolve();
 
-                        int arrayLength = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref messagePackReader, options);
+                        int arrayLength = messagePackReader.ReadInt32();
                         var arrayObject = Array.CreateInstance(elementType, (int)arrayLength);
 
                         for (int i = 0; i < arrayObject.Length; i++)
@@ -239,51 +240,51 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                         break;
 
                     case ObjectType.UInt64:
-                        response = options.Resolver.GetFormatterWithVerify<ulong>().Deserialize(ref messagePackReader, options);
+                        response = messagePackReader.ReadUInt64();
                         break;
 
                     case ObjectType.Int32:
-                        response = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref messagePackReader, options);
+                        response = messagePackReader.ReadInt32();
                         break;
 
                     case ObjectType.UInt32:
-                        response = options.Resolver.GetFormatterWithVerify<uint>().Deserialize(ref messagePackReader, options);
+                        response = messagePackReader.ReadUInt32();
                         break;
 
                     case ObjectType.Int16:
-                        response = options.Resolver.GetFormatterWithVerify<short>().Deserialize(ref messagePackReader, options);
+                        response = messagePackReader.ReadInt16();
                         break;
 
                     case ObjectType.UInt16:
-                        response = options.Resolver.GetFormatterWithVerify<ushort>().Deserialize(ref messagePackReader, options);
+                        response = messagePackReader.ReadUInt16();
                         break;
 
                     case ObjectType.Int64:
-                        response = options.Resolver.GetFormatterWithVerify<long>().Deserialize(ref messagePackReader, options);
+                        response = messagePackReader.ReadInt64();
                         break;
 
                     case ObjectType.Byte:
-                        response = options.Resolver.GetFormatterWithVerify<byte>().Deserialize(ref messagePackReader, options);
+                        response = messagePackReader.ReadByte();
                         break;
 
                     case ObjectType.SByte:
-                        response = options.Resolver.GetFormatterWithVerify<sbyte>().Deserialize(ref messagePackReader, options);
+                        response = messagePackReader.ReadSByte();
                         break;
 
                     case ObjectType.Single:
-                        response = options.Resolver.GetFormatterWithVerify<float>().Deserialize(ref messagePackReader, options);
+                        response = messagePackReader.ReadSingle();
                         break;
 
                     case ObjectType.Double:
-                        response = options.Resolver.GetFormatterWithVerify<double>().Deserialize(ref messagePackReader, options);
+                        response = messagePackReader.ReadDouble();
                         break;
 
                     case ObjectType.String:
-                        response = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref messagePackReader, options);
+                        response = messagePackReader.ReadString();
                         break;
 
                     case ObjectType.Char:
-                        response = options.Resolver.GetFormatterWithVerify<char>().Deserialize(ref messagePackReader, options);
+                        response = messagePackReader.ReadChar();
                         break;
 
                     case ObjectType.Guid:
@@ -291,7 +292,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                         break;
 
                     case ObjectType.CreationPolicy:
-                        response = (CreationPolicy)options.Resolver.GetFormatterWithVerify<byte>().Deserialize(ref messagePackReader, options);
+                        response = (CreationPolicy)messagePackReader.ReadByte();
                         break;
 
                     case ObjectType.Type:

@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.Composition
 
             return Task.Run(() =>
             {
-                using var context = new MessagePackSerializerContext(composition.Parts.Count * 5, ContractlessStandardResolver.Instance, composition.Resolver);
+                using var context = new MessagePackSerializerContext(ContractlessStandardResolver.Instance, composition.Resolver);
                 MessagePackSerializer.Serialize(cacheStream, composition, context, cancellationToken);
             });
         }

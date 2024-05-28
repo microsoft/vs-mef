@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
             if (options.TryPrepareDeserializeReusableObject(out uint id, out RuntimeExport? value, ref reader))
             {
-                string contractName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
+                string contractName = reader.ReadString()!;
                 TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
                 MemberRef? member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options);
                 TypeRef exportedValueType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
@@ -34,7 +34,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                     member,
                     exportedValueType,
                     metadata);
-
                 options.OnDeserializedReusableObject(id, value);
             }
 
@@ -46,7 +45,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
-                options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value!.ContractName, options);
+                writer.Write(value!.ContractName);
                 options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringTypeRef, options);
                 options.Resolver.GetFormatterWithVerify<MemberRef?>().Serialize(ref writer, value.MemberRef, options);
                 options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ExportedValueTypeRef, options);

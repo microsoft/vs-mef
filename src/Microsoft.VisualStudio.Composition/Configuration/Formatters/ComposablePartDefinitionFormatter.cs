@@ -4,6 +4,7 @@
 namespace Microsoft.VisualStudio.Composition.Formatter
 {
     using System.Collections.Immutable;
+    using System.Reflection;
     using MessagePack;
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
@@ -21,34 +22,40 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
             TypeRef partType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
             IReadOnlyDictionary<string, object?> partMetadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
-            IReadOnlyList<ExportDefinition> exportedTypes = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ExportDefinition>>().Deserialize(ref reader, options);
+
+            IMessagePackFormatter<IReadOnlyList<ExportDefinition>> exportDefinitionFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ExportDefinition>>();
+            IMessagePackFormatter<MemberRef> memberRefFormatter = options.Resolver.GetFormatterWithVerify<MemberRef>();
+
+            IReadOnlyList<ExportDefinition> exportedTypes = exportDefinitionFormatter.Deserialize(ref reader, options);
 
             ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Builder exportingMembers = ImmutableDictionary.CreateBuilder<MemberRef, IReadOnlyCollection<ExportDefinition>>();
-            int exportedMembersCount = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
+            int exportedMembersCount = reader.ReadInt32();
 
             for (int i = 0; i < exportedMembersCount; i++)
             {
-                MemberRef member = options.Resolver.GetFormatterWithVerify<MemberRef>().Deserialize(ref reader, options);
-                IReadOnlyList<ExportDefinition> exports = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ExportDefinition>>().Deserialize(ref reader, options);
+                MemberRef member = memberRefFormatter.Deserialize(ref reader, options);
+                IReadOnlyList<ExportDefinition> exports = exportDefinitionFormatter.Deserialize(ref reader, options);
 
                 exportingMembers.Add(member, exports);
             }
 
-            IReadOnlyList<ImportDefinitionBinding> importingMembers = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ImportDefinitionBinding>>().Deserialize(ref reader, options);
-            string? sharingBoundary = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
+            IMessagePackFormatter<IReadOnlyList<ImportDefinitionBinding>> importDefinitionBindingFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ImportDefinitionBinding>>();
+            IReadOnlyList<ImportDefinitionBinding> importingMembers = importDefinitionBindingFormatter.Deserialize(ref reader, options);
+
+            string? sharingBoundary = reader.ReadString();
             IReadOnlyList<MethodRef> onImportsSatisfiedMethods = options.Resolver.GetFormatterWithVerify<IReadOnlyList<MethodRef>>().Deserialize(ref reader, options);
 
             var importingConstructor = default(MethodRef);
             IReadOnlyList<ImportDefinitionBinding>? importingConstructorImports = null;
 
-            if (options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options))
+            if (reader.ReadBoolean())
             {
                 importingConstructor = options.Resolver.GetFormatterWithVerify<MethodRef?>().Deserialize(ref reader, options);
-                importingConstructorImports = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ImportDefinitionBinding?>>().Deserialize(ref reader, options)!;
+                importingConstructorImports = importDefinitionBindingFormatter.Deserialize(ref reader, options);
             }
 
             CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
-            bool isSharingBoundaryInferred = options.Resolver.GetFormatterWithVerify<bool>().Deserialize(ref reader, options);
+            bool isSharingBoundaryInferred = reader.ReadBoolean();
 
             return new ComposablePartDefinition(
                 partType,
@@ -69,33 +76,38 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.TypeRef, options);
             MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
-            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ExportDefinition>>().Serialize(ref writer, value.ExportedTypes, options);
 
-            options.Resolver.GetFormatterWithVerify<int>().Serialize(ref writer, value.ExportingMembers.Count(), options);
+            IMessagePackFormatter<IReadOnlyCollection<ExportDefinition>> exportDefinitionFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ExportDefinition>>();
+            IMessagePackFormatter<MemberRef> memberRefFormatter = options.Resolver.GetFormatterWithVerify<MemberRef>();
+
+            exportDefinitionFormatter.Serialize(ref writer, value.ExportedTypes, options);
+            writer.Write(value.ExportingMembers.Count);
+
             foreach (KeyValuePair<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMember in value.ExportingMembers)
             {
-                options.Resolver.GetFormatterWithVerify<MemberRef>().Serialize(ref writer, exportingMember.Key, options);
-                options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ExportDefinition>>().Serialize(ref writer, exportingMember.Value, options);
+                memberRefFormatter.Serialize(ref writer, exportingMember.Key, options);
+                exportDefinitionFormatter.Serialize(ref writer, exportingMember.Value, options);
             }
 
-            options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ImportDefinitionBinding>>().Serialize(ref writer, value.ImportingMembers, options);
+            IMessagePackFormatter<IReadOnlyCollection<ImportDefinitionBinding>> importDefinitionBindingFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ImportDefinitionBinding>>();
+            importDefinitionBindingFormatter.Serialize(ref writer, value.ImportingMembers, options);
 
-            options.Resolver.GetFormatterWithVerify<string?>().Serialize(ref writer, value.SharingBoundary, options);
+            writer.Write(value.SharingBoundary);
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<MethodRef>>().Serialize(ref writer, value.OnImportsSatisfiedMethodRefs, options);
 
             if (value.ImportingConstructorOrFactoryRef is null)
             {
-                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, false, options);
+                writer.Write(false);
             }
             else
             {
-                options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, true, options);
+                writer.Write(true);
                 options.Resolver.GetFormatterWithVerify<MethodRef?>().Serialize(ref writer, value.ImportingConstructorOrFactoryRef, options);
-                options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ImportDefinitionBinding?>>().Serialize(ref writer, value.ImportingConstructorImports!, options);
+                importDefinitionBindingFormatter.Serialize(ref writer, value.ImportingConstructorImports!, options);
             }
 
             options.Resolver.GetFormatterWithVerify<CreationPolicy>().Serialize(ref writer, value.CreationPolicy, options);
-            options.Resolver.GetFormatterWithVerify<bool>().Serialize(ref writer, value.IsSharingBoundaryInferred, options);
+            writer.Write(value.IsSharingBoundaryInferred);
         }
     }
 }
