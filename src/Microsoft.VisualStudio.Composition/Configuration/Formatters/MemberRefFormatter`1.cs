@@ -98,8 +98,10 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 string name = reader.ReadString()!;
                 bool isStatic = reader.ReadBoolean();
 
-                ImmutableArray<TypeRef?> parameterTypes = TypeRefObjectFormatter.ReadTypeRefImmutableArray(ref reader, options);
-                ImmutableArray<TypeRef?> genericMethodArguments = TypeRefObjectFormatter.ReadTypeRefImmutableArray(ref reader, options);
+                IMessagePackFormatter<ImmutableArray<TypeRef?>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef?>>();
+
+                ImmutableArray<TypeRef?> parameterTypes = typeRefFormatter.Deserialize(ref reader, options);
+                ImmutableArray<TypeRef?> genericMethodArguments = typeRefFormatter.Deserialize(ref reader, options);
 
                 value = new MethodRef(declaringType, metadataToken, name, isStatic, parameterTypes!, genericMethodArguments!);
                 options.OnDeserializedReusableObject(id, value);
@@ -172,8 +174,9 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 writer.Write(value.Name);
                 writer.Write(value.IsStatic);
 
-                MessagePackCollectionFormatter<TypeRef>.Instance.Serialize(ref writer, value.ParameterTypes, options);
-                MessagePackCollectionFormatter<TypeRef>.Instance.Serialize(ref writer, value.GenericMethodArguments, options);
+                IMessagePackFormatter<ImmutableArray<TypeRef>> typeREfFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>();
+                typeREfFormatter.Serialize(ref writer, value.ParameterTypes, options);
+                typeREfFormatter.Serialize(ref writer, value.GenericMethodArguments, options);
             }
         }
 

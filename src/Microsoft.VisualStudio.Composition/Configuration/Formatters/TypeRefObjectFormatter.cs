@@ -22,14 +22,15 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
             if (options.TryPrepareDeserializeReusableObject(out uint id, out TypeRef? value, ref reader))
             {
+                IMessagePackFormatter<ImmutableArray<TypeRef?>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef?>>();
                 StrongAssemblyIdentity assemblyId = options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Deserialize(ref reader, options);
                 int metadataToken = reader.ReadInt32();
                 string fullName = reader.ReadString()!;
                 TypeRefFlags flags = options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Deserialize(ref reader, options);
                 int genericTypeParameterCount = reader.ReadInt32();
-                ImmutableArray<TypeRef?> genericTypeArguments = ReadTypeRefImmutableArray(ref reader, options);
+                ImmutableArray<TypeRef?> genericTypeArguments = typeRefFormatter.Deserialize(ref reader, options);
                 bool shallow = reader.ReadBoolean();
-                ImmutableArray<TypeRef?> baseTypes = !shallow ? ReadTypeRefImmutableArray(ref reader, options) : ImmutableArray<TypeRef?>.Empty;
+                ImmutableArray<TypeRef?> baseTypes = !shallow ? typeRefFormatter.Deserialize(ref reader, options) : ImmutableArray<TypeRef?>.Empty;
                 bool hasElementType = reader.ReadInt32() != 0;
                 TypeRef? elementType = hasElementType
                        ? options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options)
@@ -52,12 +53,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 writer.Write(value.FullName);
                 options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Serialize(ref writer, value.TypeFlags, options);
                 writer.Write(value.GenericTypeParameterCount);
-                MessagePackCollectionFormatter<TypeRef>.Instance.Serialize(ref writer, value.GenericTypeArguments, options);
+                options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>().Serialize(ref writer, value.GenericTypeArguments, options);
                 writer.Write(value.IsShallow);
 
                 if (!value.IsShallow)
                 {
-                    MessagePackCollectionFormatter<TypeRef>.Instance.Serialize(ref writer, value.BaseTypes, options);
+                    options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>().Serialize(ref writer, value.BaseTypes, options);
                 }
 
                 writer.Write(value.ElementTypeRef.Equals(value) ? 0 : 1);
