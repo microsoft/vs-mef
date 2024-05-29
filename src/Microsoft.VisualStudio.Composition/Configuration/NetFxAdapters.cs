@@ -302,7 +302,6 @@ namespace Microsoft.VisualStudio.Composition
             }
         }
 
-        [MessagePackFormatter(typeof(ImportSatisfiabilityConstraintFormatter))]
         internal class ImportConstraint : IImportSatisfiabilityConstraint
         {
             private readonly MefV1.Primitives.ImportDefinition definition;

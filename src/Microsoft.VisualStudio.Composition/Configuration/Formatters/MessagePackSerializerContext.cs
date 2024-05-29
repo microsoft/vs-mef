@@ -9,6 +9,7 @@ namespace Microsoft.VisualStudio.Composition
     using MessagePack;
     using MessagePack.Formatters;
     using MessagePack.Resolvers;
+    using Microsoft.VisualStudio.Composition.Formatter;
 
 #pragma warning disable CS8602 // possible dereference of null reference
 #pragma warning disable CS8604 // null reference as argument

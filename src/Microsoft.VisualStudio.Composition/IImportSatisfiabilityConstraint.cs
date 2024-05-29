@@ -10,8 +10,13 @@ namespace Microsoft.VisualStudio.Composition
     using System.Threading.Tasks;
     using MessagePack;
     using Microsoft.VisualStudio.Composition.Formatter;
+    using static Microsoft.VisualStudio.Composition.NetFxAdapters;
 
-    [MessagePackFormatter(typeof(ImportSatisfiabilityConstraintFormatter))]
+    [Union(0, typeof(ImportConstraint))]
+    [Union(1, typeof(ExportMetadataValueImportConstraint))]
+    [Union(2, typeof(ExportTypeIdentityConstraint))]
+    [Union(3, typeof(ImportMetadataViewConstraint))]
+    [Union(4, typeof(PartCreationPolicyConstraint))]
     public interface IImportSatisfiabilityConstraint : IEquatable<IImportSatisfiabilityConstraint>
     {
         bool IsSatisfiedBy(ExportDefinition exportDefinition);

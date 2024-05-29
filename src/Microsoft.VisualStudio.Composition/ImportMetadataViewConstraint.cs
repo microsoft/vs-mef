@@ -13,10 +13,11 @@ namespace Microsoft.VisualStudio.Composition
     using System.Text;
     using System.Threading.Tasks;
     using MessagePack;
+    using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Formatter;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    [MessagePackFormatter(typeof(ImportSatisfiabilityConstraintFormatter))]
+    [MessagePackFormatter(typeof(ImportMetadataViewConstraintFormatter))]
     public class ImportMetadataViewConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
         private static readonly ImportMetadataViewConstraint EmptyInstance = new ImportMetadataViewConstraint(ImmutableDictionary<string, MetadatumRequirement>.Empty, resolver: null);

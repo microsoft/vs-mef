@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition
     using Microsoft.VisualStudio.Composition.Formatter;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    [MessagePackFormatter(typeof(ImportSatisfiabilityConstraintFormatter))]
+    [MessagePackObject]
     public class ExportTypeIdentityConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
         public ExportTypeIdentityConstraint(Type typeIdentity)
@@ -29,6 +29,7 @@ namespace Microsoft.VisualStudio.Composition
             this.TypeIdentityName = typeIdentityName;
         }
 
+        [Key(0)]
         public string TypeIdentityName { get; private set; }
 
         public static ImmutableDictionary<string, object?> GetExportMetadata(Type type)

@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Composition
     /// A constraint that may be included in an <see cref="ImportDefinition"/> that only matches
     /// exports whose parts have a compatible <see cref="CreationPolicy"/>.
     /// </summary>
-    [MessagePackFormatter(typeof(ImportSatisfiabilityConstraintFormatter))]
+    [MessagePackFormatter(typeof(PartCreationPolicyConstraintFormatter))]
     public class PartCreationPolicyConstraint : IImportSatisfiabilityConstraint, IDescriptiveToString
     {
         /// <summary>
@@ -35,6 +35,7 @@ namespace Microsoft.VisualStudio.Composition
             this.RequiredCreationPolicy = creationPolicy;
         }
 
+        [Key(0)]
         public CreationPolicy RequiredCreationPolicy { get; private set; }
 
         /// <summary>
