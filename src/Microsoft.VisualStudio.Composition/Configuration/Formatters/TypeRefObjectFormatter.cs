@@ -69,55 +69,5 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 }
             }
         }
-
-        internal static ImmutableArray<TypeRef?> ReadTypeRefImmutableArray(ref MessagePackReader reader, MessagePackSerializerOptions options)
-        {
-            int count = options.Resolver.GetFormatterWithVerify<int>().Deserialize(ref reader, options);
-            ImmutableArray<TypeRef?>? response = count switch
-            {
-                0 => ImmutableArray<TypeRef?>.Empty,
-                1 => ImmutableArray.Create(ReadTypeRef(ref reader, options)),
-                2 => ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options)),
-                3 => ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options)),
-                4 => ImmutableArray.Create(ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options), ReadTypeRef(ref reader, options)),
-                _ => null,
-            };
-
-            if (response is not null)
-            {
-                return response.Value;
-            }
-
-            if (count > 0xffff)
-            {
-                // Probably either file corruption or a bug in serialization. Let's not take untold
-                // amounts of memory by throwing out suspiciously large lengths.
-                throw new NotSupportedException();
-            }
-
-            Stack<ImmutableArray<TypeRef?>.Builder> typeRefBuilders = new Stack<ImmutableArray<TypeRef?>.Builder>();
-
-            // Larger arrays need to use a builder to prevent duplicate array allocations. Reuse
-            // builders to save on GC pressure
-            ImmutableArray<TypeRef?>.Builder builder = typeRefBuilders.Count > 0 ? typeRefBuilders.Pop() : ImmutableArray.CreateBuilder<TypeRef?>();
-
-            builder.Capacity = count;
-            for (int i = 0; i < count; i++)
-            {
-                builder.Add(ReadTypeRef(ref reader, options));
-            }
-
-            ImmutableArray<TypeRef?> result = builder.MoveToImmutable();
-
-            // Place builder back in cache
-            typeRefBuilders.Push(builder);
-
-            return result;
-
-            TypeRef? ReadTypeRef(ref MessagePackReader messagePackReader, MessagePackSerializerOptions messagePackSerializerOptions)
-            {
-                return options.Resolver.GetFormatterWithVerify<TypeRef?>().Deserialize(ref messagePackReader, messagePackSerializerOptions);
-            }
-        }
     }
 }
