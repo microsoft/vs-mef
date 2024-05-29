@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.Composition
     /// An exception that may be thrown during MEF part discovery.
     /// </summary>
     [Serializable]
-    [MessagePackObject(true)]
+    [MessagePackObject]
     public class PartDiscoveryException : Exception
     {
         /// <summary>
