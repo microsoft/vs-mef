@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using Microsoft.VisualStudio.Composition.Reflection;
     using static Microsoft.VisualStudio.Composition.RuntimeComposition;
 
-    internal class RuntimeImportFormatter : IMessagePackFormatter<RuntimeImport>
+    internal class RuntimeImportFormatter : BaseMessagePackFormatter<RuntimeImport>
     {
         public static readonly RuntimeImportFormatter Instance = new();
 
@@ -28,8 +28,9 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public RuntimeImport Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        protected override RuntimeImport DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
+            this.CheckArrayHeaderCount(ref reader, 7);
             var flags = (RuntimeImportFlags)reader.ReadByte();
             ImportCardinality cardinality =
               (flags & RuntimeImportFlags.CardinalityOneOrZero) == RuntimeImportFlags.CardinalityOneOrZero ? ImportCardinality.OneOrZero :
@@ -84,8 +85,10 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, RuntimeImport value, MessagePackSerializerOptions options)
+        protected override void SerializeData(ref MessagePackWriter writer, RuntimeImport value, MessagePackSerializerOptions options)
         {
+            writer.WriteArrayHeader(7);
+
             RuntimeImportFlags flags = RuntimeImportFlags.None;
             flags |= value.ImportingMemberRef == null ? RuntimeImportFlags.IsParameter : 0;
             flags |= value.IsNonSharedInstanceRequired ? RuntimeImportFlags.IsNonSharedInstanceRequired : 0;

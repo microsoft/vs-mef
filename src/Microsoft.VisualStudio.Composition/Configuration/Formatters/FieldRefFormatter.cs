@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
 #pragma warning disable RS0041 // No oblivious reference types
 
-    internal class FieldRefFormatter : IMessagePackFormatter<FieldRef?>
+    internal class FieldRefFormatter : BaseMessagePackFormatter<FieldRef?>
     {
         public static readonly FieldRefFormatter Instance = new();
 
@@ -20,15 +20,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
         }
 
-        public FieldRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        protected override FieldRef? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.TryReadNil())
-            {
-                return null;
-            }
-
             if (options.TryPrepareDeserializeReusableObject(out uint id, out FieldRef? value, ref reader))
             {
+                this.CheckArrayHeaderCount(ref reader, 5);
+
                 IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 
                 TypeRef declaringType = typeRefFormatter.Deserialize(ref reader, options);
@@ -44,20 +41,16 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             return value;
         }
 
-        public void Serialize(ref MessagePackWriter writer, FieldRef? value, MessagePackSerializerOptions options)
+        protected override void SerializeData(ref MessagePackWriter writer, FieldRef? value, MessagePackSerializerOptions options)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-                return;
-            }
-
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
+                writer.WriteArrayHeader(5);
+
                 IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 
-                typeRefFormatter.Serialize(ref writer, value.DeclaringType, options);
-                typeRefFormatter.Serialize(ref writer, value.FieldTypeRef, options);
+                typeRefFormatter.Serialize(ref writer, value!.DeclaringType, options);
+                typeRefFormatter.Serialize(ref writer, value!.FieldTypeRef, options);
                 writer.Write(value.MetadataToken);
                 writer.Write(value.Name);
                 writer.Write(value.IsStatic);

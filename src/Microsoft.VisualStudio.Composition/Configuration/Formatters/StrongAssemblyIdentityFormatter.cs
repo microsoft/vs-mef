@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack;
     using MessagePack.Formatters;
 
-    internal class StrongAssemblyIdentityFormatter : IMessagePackFormatter<StrongAssemblyIdentity?>
+    internal class StrongAssemblyIdentityFormatter : BaseMessagePackFormatter<StrongAssemblyIdentity?>
     {
         public static readonly StrongAssemblyIdentityFormatter Instance = new();
 
@@ -16,10 +16,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public StrongAssemblyIdentity? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        protected override StrongAssemblyIdentity? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareDeserializeReusableObject(out uint id, out StrongAssemblyIdentity? value, ref reader))
             {
+                this.CheckArrayHeaderCount(ref reader, 3);
                 Guid mvid = options.Resolver.GetFormatterWithVerify<Guid>().Deserialize(ref reader, options);
                 string fullName = reader.ReadString()!;
 
@@ -33,10 +34,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, StrongAssemblyIdentity? value, MessagePackSerializerOptions options)
+        protected override void SerializeData(ref MessagePackWriter writer, StrongAssemblyIdentity? value, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
+                writer.WriteArrayHeader(3);
                 options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value!.Mvid, options);
                 writer.Write(value.Name.FullName);
                 writer.Write(value.Name.CodeBase!.ToString());

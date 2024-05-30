@@ -11,16 +11,18 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
 #pragma warning disable CS8604 // Possible null reference argument.
 
-    internal class ImportMetadataViewConstraintFormatter : IMessagePackFormatter<ImportMetadataViewConstraint>
+    internal class ImportMetadataViewConstraintFormatter : BaseMessagePackFormatter<ImportMetadataViewConstraint>
     {
-        public ImportMetadataViewConstraint Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        protected override ImportMetadataViewConstraint DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
+            this.CheckArrayHeaderCount(ref reader, 1);
             ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement> requirements = options.Resolver.GetFormatterWithVerify<ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>>().Deserialize(ref reader, options);
             return new ImportMetadataViewConstraint(requirements, options.CompositionResolver());
         }
 
-        public void Serialize(ref MessagePackWriter writer, ImportMetadataViewConstraint value, MessagePackSerializerOptions options)
+        protected override void SerializeData(ref MessagePackWriter writer, ImportMetadataViewConstraint value, MessagePackSerializerOptions options)
         {
+            writer.WriteArrayHeader(1);
             options.Resolver.GetFormatterWithVerify<ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>>().Serialize(ref writer, value.Requirements, options);
         }
     }

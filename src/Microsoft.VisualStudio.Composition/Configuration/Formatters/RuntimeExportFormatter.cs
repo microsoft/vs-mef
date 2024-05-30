@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using Microsoft.VisualStudio.Composition.Reflection;
     using static Microsoft.VisualStudio.Composition.RuntimeComposition;
 
-    internal class RuntimeExportFormatter : IMessagePackFormatter<RuntimeExport?>
+    internal class RuntimeExportFormatter : BaseMessagePackFormatter<RuntimeExport?>
     {
         public static readonly RuntimeExportFormatter Instance = new();
 
@@ -18,10 +18,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public RuntimeExport? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        protected override RuntimeExport? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareDeserializeReusableObject(out uint id, out RuntimeExport? value, ref reader))
             {
+                this.CheckArrayHeaderCount(ref reader, 5);
                 string contractName = reader.ReadString()!;
                 TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
                 MemberRef? member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options);
@@ -41,10 +42,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, RuntimeExport? value, MessagePackSerializerOptions options)
+        protected override void SerializeData(ref MessagePackWriter writer, RuntimeExport? value, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
+                writer.WriteArrayHeader(5);
                 writer.Write(value!.ContractName);
                 options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringTypeRef, options);
                 options.Resolver.GetFormatterWithVerify<MemberRef?>().Serialize(ref writer, value.MemberRef, options);

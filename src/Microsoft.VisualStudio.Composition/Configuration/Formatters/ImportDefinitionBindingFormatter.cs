@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class ImportDefinitionBindingFormatter : IMessagePackFormatter<ImportDefinitionBinding>
+    internal class ImportDefinitionBindingFormatter : BaseMessagePackFormatter<ImportDefinitionBinding>
     {
         public static readonly ImportDefinitionBindingFormatter Instance = new();
 
@@ -17,8 +17,9 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public ImportDefinitionBinding Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        protected override ImportDefinitionBinding DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
+            this.CheckArrayHeaderCount(ref reader, 6);
             ImportDefinition importDefinition = options.Resolver.GetFormatterWithVerify<ImportDefinition>().Deserialize(ref reader, options);
             IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 
@@ -42,8 +43,9 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, ImportDefinitionBinding value, MessagePackSerializerOptions options)
+        protected override void SerializeData(ref MessagePackWriter writer, ImportDefinitionBinding value, MessagePackSerializerOptions options)
         {
+            writer.WriteArrayHeader(6);
             options.Resolver.GetFormatterWithVerify<ImportDefinition>().Serialize(ref writer, value.ImportDefinition, options);
             IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 

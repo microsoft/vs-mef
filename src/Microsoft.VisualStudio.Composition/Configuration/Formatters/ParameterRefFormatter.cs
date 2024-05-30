@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class ParameterRefFormatter : IMessagePackFormatter<ParameterRef?>
+    internal class ParameterRefFormatter : BaseMessagePackFormatter<ParameterRef?>
     {
         public static readonly ParameterRefFormatter Instance = new();
 
@@ -17,15 +17,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public ParameterRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        protected override ParameterRef? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.TryReadNil())
-            {
-                return null;
-            }
-
             if (options.TryPrepareDeserializeReusableObject(out uint id, out ParameterRef? value, ref reader))
             {
+                this.CheckArrayHeaderCount(ref reader, 2);
                 MethodRef method = options.Resolver.GetFormatterWithVerify<MethodRef>().Deserialize(ref reader, options);
                 int parameterIndex = reader.ReadInt32();
                 value = new ParameterRef(method, parameterIndex);
@@ -37,16 +33,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, ParameterRef? value, MessagePackSerializerOptions options)
+        protected override void SerializeData(ref MessagePackWriter writer, ParameterRef? value, MessagePackSerializerOptions options)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-                return;
-            }
-
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
+                writer.WriteArrayHeader(2);
                 options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value!.Method, options);
                 writer.Write(value.ParameterIndex);
             }

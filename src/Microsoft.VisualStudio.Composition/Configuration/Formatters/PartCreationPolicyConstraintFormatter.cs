@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class PartCreationPolicyConstraintFormatter : IMessagePackFormatter<PartCreationPolicyConstraint>
+    internal class PartCreationPolicyConstraintFormatter : BaseMessagePackFormatter<PartCreationPolicyConstraint>
     {
         public static readonly PartCreationPolicyConstraintFormatter Instance = new();
 
@@ -16,14 +16,16 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
         }
 
-        public PartCreationPolicyConstraint Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        protected override PartCreationPolicyConstraint DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
+            this.CheckArrayHeaderCount(ref reader, 1);
             CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
             return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy)!;
         }
 
-        public void Serialize(ref MessagePackWriter writer, PartCreationPolicyConstraint value, MessagePackSerializerOptions options)
+        protected override void SerializeData(ref MessagePackWriter writer, PartCreationPolicyConstraint value, MessagePackSerializerOptions options)
         {
+            writer.WriteArrayHeader(1);
             options.Resolver.GetFormatterWithVerify<CreationPolicy>().Serialize(ref writer, value.RequiredCreationPolicy, options);
         }
     }

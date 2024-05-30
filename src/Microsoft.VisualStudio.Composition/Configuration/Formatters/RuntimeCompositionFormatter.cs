@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using Microsoft.VisualStudio.Composition.Reflection;
     using static Microsoft.VisualStudio.Composition.RuntimeComposition;
 
-    internal class RuntimeCompositionFormatter : IMessagePackFormatter<RuntimeComposition>
+    internal class RuntimeCompositionFormatter : BaseMessagePackFormatter<RuntimeComposition>
     {
         public static readonly RuntimeCompositionFormatter Instance = new();
 
@@ -17,41 +17,22 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public RuntimeComposition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        protected override RuntimeComposition DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
+            this.CheckArrayHeaderCount(ref reader, 2);
             IReadOnlyList<RuntimePart> parts = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimePart>>().Deserialize(ref reader, options);
-            int count = reader.ReadInt32();
-            ImmutableDictionary<TypeRef, RuntimeExport>.Builder builder = ImmutableDictionary.CreateBuilder<TypeRef, RuntimeComposition.RuntimeExport>();
 
-            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
-            IMessagePackFormatter<RuntimeExport> exportFormatter = options.Resolver.GetFormatterWithVerify<RuntimeExport>();
-
-            for (uint i = 0; i < count; i++)
-            {
-                TypeRef key = typeRefFormatter.Deserialize(ref reader, options);
-                RuntimeExport value = exportFormatter.Deserialize(ref reader, options);
-                builder.Add(key, value!);
-            }
-
-            IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders = builder.ToImmutable();
+            IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders = options.Resolver.GetFormatterWithVerify<IReadOnlyDictionary<TypeRef, RuntimeExport>>().Deserialize(ref reader, options);
 
             return RuntimeComposition.CreateRuntimeComposition(parts, metadataViewsAndProviders, options.CompositionResolver());
         }
 
         /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, RuntimeComposition value, MessagePackSerializerOptions options)
+        protected override void SerializeData(ref MessagePackWriter writer, RuntimeComposition value, MessagePackSerializerOptions options)
         {
+            writer.WriteArrayHeader(2);
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimePart>>().Serialize(ref writer, value.Parts, options);
-            writer.Write(value.MetadataViewsAndProviders.Count);
-
-            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
-            IMessagePackFormatter<RuntimeExport> exportFormatter = options.Resolver.GetFormatterWithVerify<RuntimeExport>();
-
-            foreach (KeyValuePair<TypeRef, RuntimeExport> item in value.MetadataViewsAndProviders)
-            {
-                typeRefFormatter.Serialize(ref writer, item.Key, options);
-                exportFormatter.Serialize(ref writer, item.Value, options);
-            }
+            options.Resolver.GetFormatterWithVerify<IReadOnlyDictionary<TypeRef, RuntimeExport>>().Serialize(ref writer, value.MetadataViewsAndProviders, options);
         }
     }
 }

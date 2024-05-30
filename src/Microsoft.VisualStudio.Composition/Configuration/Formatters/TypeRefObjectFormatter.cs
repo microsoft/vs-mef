@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class TypeRefObjectFormatter : IMessagePackFormatter<TypeRef?>
+    internal class TypeRefObjectFormatter : BaseMessagePackFormatter<TypeRef?>
     {
         public static readonly TypeRefObjectFormatter Instance = new();
 
@@ -18,10 +18,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public TypeRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        protected override TypeRef? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareDeserializeReusableObject(out uint id, out TypeRef? value, ref reader))
             {
+                this.CheckArrayHeaderCount(ref reader, 10);
                 IMessagePackFormatter<ImmutableArray<TypeRef?>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef?>>();
                 StrongAssemblyIdentity assemblyId = options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Deserialize(ref reader, options);
                 int metadataToken = reader.ReadInt32();
@@ -44,10 +45,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, TypeRef? value, MessagePackSerializerOptions options)
+        protected override void SerializeData(ref MessagePackWriter writer, TypeRef? value, MessagePackSerializerOptions options)
         {
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
+                writer.WriteArrayHeader(10);
                 options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Serialize(ref writer, value!.AssemblyId, options);
                 writer.Write(value.MetadataToken);
                 writer.Write(value.FullName);

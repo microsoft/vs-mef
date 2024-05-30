@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack;
     using MessagePack.Formatters;
 
-    internal class ComposableCatalogFormatter : IMessagePackFormatter<ComposableCatalog>
+    internal class ComposableCatalogFormatter : BaseMessagePackFormatter<ComposableCatalog>
     {
         public static readonly ComposableCatalogFormatter Instance = new();
 
@@ -16,15 +16,17 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public ComposableCatalog Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        protected override ComposableCatalog DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
+            this.CheckArrayHeaderCount(ref reader, 1);
             IReadOnlyList<ComposablePartDefinition> composablePartDefinition = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ComposablePartDefinition>>().Deserialize(ref reader, options);
             return ComposableCatalog.Create(options.CompositionResolver()).AddParts(composablePartDefinition);
         }
 
         /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, ComposableCatalog value, MessagePackSerializerOptions options)
+        protected override void SerializeData(ref MessagePackWriter writer, ComposableCatalog value, MessagePackSerializerOptions options)
         {
+            writer.WriteArrayHeader(1);
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ComposablePartDefinition>>().Serialize(ref writer, value.Parts, options);
         }
     }

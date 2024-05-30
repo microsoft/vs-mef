@@ -3,13 +3,15 @@
 
 namespace Microsoft.VisualStudio.Composition.Formatter
 {
+    using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Collections.ObjectModel;
     using System.Reflection;
     using MessagePack;
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class ComposablePartDefinitionFormatter : IMessagePackFormatter<ComposablePartDefinition>
+    internal class ComposablePartDefinitionFormatter : BaseMessagePackFormatter<ComposablePartDefinition>
     {
         public static readonly ComposablePartDefinitionFormatter Instance = new();
 
@@ -18,8 +20,10 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public ComposablePartDefinition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        protected override ComposablePartDefinition DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
+            this.CheckArrayHeaderCount(ref reader, 12);
+
             TypeRef partType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
             IReadOnlyDictionary<string, object?> partMetadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
 
@@ -28,16 +32,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
             IReadOnlyList<ExportDefinition> exportedTypes = exportDefinitionFormatter.Deserialize(ref reader, options);
 
-            ImmutableDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>.Builder exportingMembers = ImmutableDictionary.CreateBuilder<MemberRef, IReadOnlyCollection<ExportDefinition>>();
-            int exportedMembersCount = reader.ReadInt32();
-
-            for (int i = 0; i < exportedMembersCount; i++)
-            {
-                MemberRef member = memberRefFormatter.Deserialize(ref reader, options);
-                IReadOnlyList<ExportDefinition> exports = exportDefinitionFormatter.Deserialize(ref reader, options);
-
-                exportingMembers.Add(member, exports);
-            }
+            IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMembers = options.Resolver.GetFormatterWithVerify<IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>>().Deserialize(ref reader, options);
 
             IMessagePackFormatter<IReadOnlyList<ImportDefinitionBinding>> importDefinitionBindingFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ImportDefinitionBinding>>();
             IReadOnlyList<ImportDefinitionBinding> importingMembers = importDefinitionBindingFormatter.Deserialize(ref reader, options);
@@ -61,7 +56,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 partType,
                 partMetadata,
                 exportedTypes,
-                exportingMembers.ToImmutable(),
+                exportingMembers,
                 importingMembers,
                 sharingBoundary,
                 onImportsSatisfiedMethods,
@@ -72,8 +67,10 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         }
 
         /// <inheritdoc/>
-        public void Serialize(ref MessagePackWriter writer, ComposablePartDefinition value, MessagePackSerializerOptions options)
+        protected override void SerializeData(ref MessagePackWriter writer, ComposablePartDefinition value, MessagePackSerializerOptions options)
         {
+            writer.WriteArrayHeader(12);
+
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.TypeRef, options);
             MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
 
@@ -81,13 +78,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             IMessagePackFormatter<MemberRef> memberRefFormatter = options.Resolver.GetFormatterWithVerify<MemberRef>();
 
             exportDefinitionFormatter.Serialize(ref writer, value.ExportedTypes, options);
-            writer.Write(value.ExportingMembers.Count);
 
-            foreach (KeyValuePair<MemberRef, IReadOnlyCollection<ExportDefinition>> exportingMember in value.ExportingMembers)
-            {
-                memberRefFormatter.Serialize(ref writer, exportingMember.Key, options);
-                exportDefinitionFormatter.Serialize(ref writer, exportingMember.Value, options);
-            }
+            options.Resolver.GetFormatterWithVerify<IReadOnlyDictionary<MemberRef, IReadOnlyCollection<ExportDefinition>>>().Serialize(ref writer, value.ExportingMembers, options);
 
             IMessagePackFormatter<IReadOnlyCollection<ImportDefinitionBinding>> importDefinitionBindingFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ImportDefinitionBinding>>();
             importDefinitionBindingFormatter.Serialize(ref writer, value.ImportingMembers, options);

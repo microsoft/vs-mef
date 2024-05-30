@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using Microsoft.VisualStudio.Composition;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class MethodRefFormatter : IMessagePackFormatter<MethodRef?>
+    internal class MethodRefFormatter : BaseMessagePackFormatter<MethodRef?>
     {
         public static readonly MethodRefFormatter Instance = new();
 
@@ -18,15 +18,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
         }
 
-        public MethodRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        protected override MethodRef? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.TryReadNil())
-            {
-                return null;
-            }
-
             if (options.TryPrepareDeserializeReusableObject(out uint id, out MethodRef? value, ref reader))
             {
+                this.CheckArrayHeaderCount(ref reader, 6);
                 TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
 
                 int metadataToken = reader.ReadInt32();
@@ -45,19 +41,14 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             return value;
         }
 
-        public void Serialize(ref MessagePackWriter writer, MethodRef? value, MessagePackSerializerOptions options)
+        protected override void SerializeData(ref MessagePackWriter writer, MethodRef? value, MessagePackSerializerOptions options)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-                return;
-            }
-
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
+                writer.WriteArrayHeader(6);
                 IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 
-                typeRefFormatter.Serialize(ref writer, value.DeclaringType, options);
+                typeRefFormatter.Serialize(ref writer, value!.DeclaringType, options);
 
                 writer.Write(value.MetadataToken);
                 writer.Write(value.Name);

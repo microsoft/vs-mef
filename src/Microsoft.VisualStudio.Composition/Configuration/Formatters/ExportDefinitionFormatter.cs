@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Composition
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Formatter;
 
-    internal class ExportDefinitionFormatter : IMessagePackFormatter<ExportDefinition>
+    internal class ExportDefinitionFormatter : BaseMessagePackFormatter<ExportDefinition>
     {
         public static readonly ExportDefinitionFormatter Instance = new();
 
@@ -17,16 +17,18 @@ namespace Microsoft.VisualStudio.Composition
         }
 
         /// <inheritdoc/>
-        public ExportDefinition Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        protected override ExportDefinition DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
+            this.CheckArrayHeaderCount(ref reader, 2);
             string contractName = reader.ReadString()!;
             IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
 
             return new ExportDefinition(contractName, metadata);
         }
 
-        public void Serialize(ref MessagePackWriter writer, ExportDefinition value, MessagePackSerializerOptions options)
+        protected override void SerializeData(ref MessagePackWriter writer, ExportDefinition value, MessagePackSerializerOptions options)
         {
+            writer.WriteArrayHeader(2);
             writer.Write(value.ContractName);
             MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
         }

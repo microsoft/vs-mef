@@ -10,7 +10,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using Microsoft.VisualStudio.Composition;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-    internal class PropertyRefFormatter : IMessagePackFormatter<PropertyRef?>
+    internal class PropertyRefFormatter : BaseMessagePackFormatter<PropertyRef?>
     {
         public static readonly PropertyRefFormatter Instance = new();
 
@@ -18,15 +18,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
         }
 
-        public PropertyRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+        protected override PropertyRef? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (reader.TryReadNil())
-            {
-                return null;
-            }
-
             if (options.TryPrepareDeserializeReusableObject(out uint id, out PropertyRef? value, ref reader))
             {
+                this.CheckArrayHeaderCount(ref reader, 7);
+
                 IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 
                 TypeRef declaringType = typeRefFormatter.Deserialize(ref reader, options);
@@ -53,20 +50,15 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             return value;
         }
 
-        public void Serialize(ref MessagePackWriter writer, PropertyRef? value, MessagePackSerializerOptions options)
+        protected override void SerializeData(ref MessagePackWriter writer, PropertyRef? value, MessagePackSerializerOptions options)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-                return;
-            }
-
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
+                writer.WriteArrayHeader(7);
                 IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 
-                typeRefFormatter.Serialize(ref writer, value.DeclaringType, options);
-                typeRefFormatter.Serialize(ref writer, value.PropertyTypeRef, options);
+                typeRefFormatter.Serialize(ref writer, value!.DeclaringType, options);
+                typeRefFormatter.Serialize(ref writer, value!.PropertyTypeRef, options);
 
                 writer.Write(value.MetadataToken);
                 writer.Write(value.Name);
