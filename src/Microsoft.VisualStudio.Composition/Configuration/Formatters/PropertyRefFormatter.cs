@@ -15,73 +15,62 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly PropertyRefFormatter Instance = new();
 
         private PropertyRefFormatter()
+            : base(arrayElementCount: 7, enableDedup: true)
         {
         }
 
         protected override PropertyRef? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (options.TryPrepareDeserializeReusableObject(out uint id, out PropertyRef? value, ref reader))
+            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+
+            TypeRef declaringType = typeRefFormatter.Deserialize(ref reader, options);
+            TypeRef propertyType = typeRefFormatter.Deserialize(ref reader, options);
+            int metadataToken = reader.ReadInt32();
+            string name = reader.ReadString()!;
+            bool isStatic = reader.ReadBoolean();
+            int? setter = null;
+            int? getter = null;
+            if (reader.ReadBoolean())
             {
-                this.CheckArrayHeaderCount(ref reader, 7);
-
-                IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
-
-                TypeRef declaringType = typeRefFormatter.Deserialize(ref reader, options);
-                TypeRef propertyType = typeRefFormatter.Deserialize(ref reader, options);
-                int metadataToken = reader.ReadInt32();
-                string name = reader.ReadString()!;
-                bool isStatic = reader.ReadBoolean();
-                int? setter = null;
-                int? getter = null;
-                if (reader.ReadBoolean())
-                {
-                    setter = reader.ReadInt32();
-                }
-
-                if (reader.ReadBoolean())
-                {
-                    getter = reader.ReadInt32();
-                }
-
-                value = new PropertyRef(declaringType, propertyType, metadataToken, getter, setter, name, isStatic);
-                options.OnDeserializedReusableObject(id, value);
+                setter = reader.ReadInt32();
             }
 
-            return value;
+            if (reader.ReadBoolean())
+            {
+                getter = reader.ReadInt32();
+            }
+
+            return new PropertyRef(declaringType, propertyType, metadataToken, getter, setter, name, isStatic);
         }
 
         protected override void SerializeData(ref MessagePackWriter writer, PropertyRef? value, MessagePackSerializerOptions options)
         {
-            if (options.TryPrepareSerializeReusableObject(value, ref writer))
+            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+
+            typeRefFormatter.Serialize(ref writer, value!.DeclaringType, options);
+            typeRefFormatter.Serialize(ref writer, value!.PropertyTypeRef, options);
+
+            writer.Write(value.MetadataToken);
+            writer.Write(value.Name);
+            writer.Write(value.IsStatic);
+            if (value.SetMethodMetadataToken.HasValue)
             {
-                writer.WriteArrayHeader(7);
-                IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+                writer.Write(true);
+                writer.Write(value.SetMethodMetadataToken.Value);
+            }
+            else
+            {
+                writer.Write(false);
+            }
 
-                typeRefFormatter.Serialize(ref writer, value!.DeclaringType, options);
-                typeRefFormatter.Serialize(ref writer, value!.PropertyTypeRef, options);
-
-                writer.Write(value.MetadataToken);
-                writer.Write(value.Name);
-                writer.Write(value.IsStatic);
-                if (value.SetMethodMetadataToken.HasValue)
-                {
-                    writer.Write(true);
-                    writer.Write(value.SetMethodMetadataToken.Value);
-                }
-                else
-                {
-                    writer.Write(false);
-                }
-
-                if (value.GetMethodMetadataToken.HasValue)
-                {
-                    writer.Write(true);
-                    writer.Write(value.GetMethodMetadataToken.Value);
-                }
-                else
-                {
-                    writer.Write(false);
-                }
+            if (value.GetMethodMetadataToken.HasValue)
+            {
+                writer.Write(true);
+                writer.Write(value.GetMethodMetadataToken.Value);
+            }
+            else
+            {
+                writer.Write(false);
             }
         }
     }

@@ -14,6 +14,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly RuntimeImportFormatter Instance = new();
 
         private RuntimeImportFormatter()
+            : base(arrayElementCount: 7)
         {
         }
 
@@ -30,7 +31,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         protected override RuntimeImport DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            this.CheckArrayHeaderCount(ref reader, 7);
             var flags = (RuntimeImportFlags)reader.ReadByte();
             ImportCardinality cardinality =
               (flags & RuntimeImportFlags.CardinalityOneOrZero) == RuntimeImportFlags.CardinalityOneOrZero ? ImportCardinality.OneOrZero :
@@ -87,8 +87,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         protected override void SerializeData(ref MessagePackWriter writer, RuntimeImport value, MessagePackSerializerOptions options)
         {
-            writer.WriteArrayHeader(7);
-
             RuntimeImportFlags flags = RuntimeImportFlags.None;
             flags |= value.ImportingMemberRef == null ? RuntimeImportFlags.IsParameter : 0;
             flags |= value.IsNonSharedInstanceRequired ? RuntimeImportFlags.IsNonSharedInstanceRequired : 0;

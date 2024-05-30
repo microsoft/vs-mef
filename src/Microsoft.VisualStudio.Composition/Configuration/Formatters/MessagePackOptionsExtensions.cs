@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.Composition
     internal static class MessagePackOptionsExtensions
     {
         public static bool TryPrepareDeserializeReusableObject<T>(this MessagePackSerializerOptions option, out uint id, out T? value, ref MessagePackReader reader)
-                   where T : class
+                   where T : class?
         {
             var messagePackFormatterContext = (MessagePackSerializerContext)option!;
             return messagePackFormatterContext.TryPrepareDeserializeReusableObject(out id, out value, ref reader, option);

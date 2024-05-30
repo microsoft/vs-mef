@@ -14,13 +14,13 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly RuntimePartFormatter Instance = new();
 
         private RuntimePartFormatter()
+            : base(arrayElementCount: 8)
         {
         }
 
         /// <inheritdoc/>
         protected override RuntimePart DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            this.CheckArrayHeaderCount(ref reader, 8);
             var importingCtor = default(MethodRef);
             IReadOnlyList<RuntimeComposition.RuntimeImport> importingCtorArguments = ImmutableList<RuntimeComposition.RuntimeImport>.Empty;
 
@@ -57,7 +57,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         protected override void SerializeData(ref MessagePackWriter writer, RuntimePart value, MessagePackSerializerOptions options)
         {
-            writer.WriteArrayHeader(8);
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.TypeRef, options);
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimeExport>>().Serialize(ref writer, value.Exports, options);
 

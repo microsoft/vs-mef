@@ -12,13 +12,13 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly ComposableCatalogFormatter Instance = new();
 
         private ComposableCatalogFormatter()
+            : base(arrayElementCount: 1)
         {
         }
 
         /// <inheritdoc/>
         protected override ComposableCatalog DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            this.CheckArrayHeaderCount(ref reader, 1);
             IReadOnlyList<ComposablePartDefinition> composablePartDefinition = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ComposablePartDefinition>>().Deserialize(ref reader, options);
             return ComposableCatalog.Create(options.CompositionResolver()).AddParts(composablePartDefinition);
         }
@@ -26,7 +26,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         protected override void SerializeData(ref MessagePackWriter writer, ComposableCatalog value, MessagePackSerializerOptions options)
         {
-            writer.WriteArrayHeader(1);
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ComposablePartDefinition>>().Serialize(ref writer, value.Parts, options);
         }
     }

@@ -14,45 +14,35 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly RuntimeExportFormatter Instance = new();
 
         private RuntimeExportFormatter()
+            : base(arrayElementCount: 5)
         {
         }
 
         /// <inheritdoc/>
         protected override RuntimeExport? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (options.TryPrepareDeserializeReusableObject(out uint id, out RuntimeExport? value, ref reader))
-            {
-                this.CheckArrayHeaderCount(ref reader, 5);
-                string contractName = reader.ReadString()!;
-                TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-                MemberRef? member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options);
-                TypeRef exportedValueType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
-                IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
+            string contractName = reader.ReadString()!;
+            TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+            MemberRef? member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options);
+            TypeRef exportedValueType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
+            IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
 
-                value = new RuntimeComposition.RuntimeExport(
-                    contractName,
-                    declaringType,
-                    member,
-                    exportedValueType,
-                    metadata);
-                options.OnDeserializedReusableObject(id, value);
-            }
-
-            return value;
+            return new RuntimeComposition.RuntimeExport(
+                contractName,
+                declaringType,
+                member,
+                exportedValueType,
+                metadata);
         }
 
         /// <inheritdoc/>
         protected override void SerializeData(ref MessagePackWriter writer, RuntimeExport? value, MessagePackSerializerOptions options)
         {
-            if (options.TryPrepareSerializeReusableObject(value, ref writer))
-            {
-                writer.WriteArrayHeader(5);
-                writer.Write(value!.ContractName);
-                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringTypeRef, options);
-                options.Resolver.GetFormatterWithVerify<MemberRef?>().Serialize(ref writer, value.MemberRef, options);
-                options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ExportedValueTypeRef, options);
-                MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
-            }
+            writer.Write(value!.ContractName);
+            options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringTypeRef, options);
+            options.Resolver.GetFormatterWithVerify<MemberRef?>().Serialize(ref writer, value.MemberRef, options);
+            options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ExportedValueTypeRef, options);
+            MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
         }
     }
 }

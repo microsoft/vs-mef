@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Composition
         private Dictionary<uint, object?>? deserializingObjectTable;
 
         public bool TryPrepareDeserializeReusableObject<T>(out uint id, out T? value, ref MessagePackReader reader, MessagePackSerializerOptions options)
-            where T : class
+            where T : class?
         {
             id = options.Resolver.GetFormatterWithVerify<uint>().Deserialize(ref reader, options);
 

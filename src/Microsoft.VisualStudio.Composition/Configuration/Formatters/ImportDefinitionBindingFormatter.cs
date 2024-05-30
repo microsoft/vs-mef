@@ -13,13 +13,13 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly ImportDefinitionBindingFormatter Instance = new();
 
         private ImportDefinitionBindingFormatter()
+            : base(arrayElementCount: 6)
         {
         }
 
         /// <inheritdoc/>
         protected override ImportDefinitionBinding DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            this.CheckArrayHeaderCount(ref reader, 6);
             ImportDefinition importDefinition = options.Resolver.GetFormatterWithVerify<ImportDefinition>().Deserialize(ref reader, options);
             IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 
@@ -45,7 +45,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         protected override void SerializeData(ref MessagePackWriter writer, ImportDefinitionBinding value, MessagePackSerializerOptions options)
         {
-            writer.WriteArrayHeader(6);
             options.Resolver.GetFormatterWithVerify<ImportDefinition>().Serialize(ref writer, value.ImportDefinition, options);
             IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 

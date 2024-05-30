@@ -17,44 +17,32 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly FieldRefFormatter Instance = new();
 
         private FieldRefFormatter()
+            : base(arrayElementCount: 5, enableDedup: true)
         {
         }
 
         protected override FieldRef? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            if (options.TryPrepareDeserializeReusableObject(out uint id, out FieldRef? value, ref reader))
-            {
-                this.CheckArrayHeaderCount(ref reader, 5);
+            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 
-                IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
+            TypeRef declaringType = typeRefFormatter.Deserialize(ref reader, options);
+            TypeRef fieldType = typeRefFormatter.Deserialize(ref reader, options);
+            int metadataToken = reader.ReadInt32();
+            string name = reader.ReadString()!;
+            bool isStatic = reader.ReadBoolean();
 
-                TypeRef declaringType = typeRefFormatter.Deserialize(ref reader, options);
-                TypeRef fieldType = typeRefFormatter.Deserialize(ref reader, options);
-                int metadataToken = reader.ReadInt32();
-                string name = reader.ReadString()!;
-                bool isStatic = reader.ReadBoolean();
-
-                value = new FieldRef(declaringType, fieldType, metadataToken, name, isStatic);
-                options.OnDeserializedReusableObject(id, value);
-            }
-
-            return value;
+            return new FieldRef(declaringType, fieldType, metadataToken, name, isStatic);
         }
 
         protected override void SerializeData(ref MessagePackWriter writer, FieldRef? value, MessagePackSerializerOptions options)
         {
-            if (options.TryPrepareSerializeReusableObject(value, ref writer))
-            {
-                writer.WriteArrayHeader(5);
+            IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 
-                IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
-
-                typeRefFormatter.Serialize(ref writer, value!.DeclaringType, options);
-                typeRefFormatter.Serialize(ref writer, value!.FieldTypeRef, options);
-                writer.Write(value.MetadataToken);
-                writer.Write(value.Name);
-                writer.Write(value.IsStatic);
-            }
+            typeRefFormatter.Serialize(ref writer, value!.DeclaringType, options);
+            typeRefFormatter.Serialize(ref writer, value!.FieldTypeRef, options);
+            writer.Write(value.MetadataToken);
+            writer.Write(value.Name);
+            writer.Write(value.IsStatic);
         }
     }
 }

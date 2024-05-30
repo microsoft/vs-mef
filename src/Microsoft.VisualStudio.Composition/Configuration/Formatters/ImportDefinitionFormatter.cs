@@ -13,13 +13,13 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly ImportDefinitionFormatter Instance = new();
 
         private ImportDefinitionFormatter()
+            : base(arrayElementCount: 5)
         {
         }
 
         /// <inheritdoc/>
         protected override ImportDefinition DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            this.CheckArrayHeaderCount(ref reader, expectedCount: 5);
             string contractName = reader.ReadString()!;
             ImportCardinality cardinality = options.Resolver.GetFormatterWithVerify<ImportCardinality>().Deserialize(ref reader, options);
             IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
@@ -33,7 +33,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         protected override void SerializeData(ref MessagePackWriter writer, ImportDefinition value, MessagePackSerializerOptions options)
         {
-            writer.WriteArrayHeader(5);
             writer.Write(value.ContractName);
             options.Resolver.GetFormatterWithVerify<ImportCardinality>().Serialize(ref writer, value.Cardinality, options);
             MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);

@@ -13,19 +13,18 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly PartCreationPolicyConstraintFormatter Instance = new();
 
         private PartCreationPolicyConstraintFormatter()
+            : base(arrayElementCount: 1)
         {
         }
 
         protected override PartCreationPolicyConstraint DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            this.CheckArrayHeaderCount(ref reader, 1);
             CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
             return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy)!;
         }
 
         protected override void SerializeData(ref MessagePackWriter writer, PartCreationPolicyConstraint value, MessagePackSerializerOptions options)
         {
-            writer.WriteArrayHeader(1);
             options.Resolver.GetFormatterWithVerify<CreationPolicy>().Serialize(ref writer, value.RequiredCreationPolicy, options);
         }
     }

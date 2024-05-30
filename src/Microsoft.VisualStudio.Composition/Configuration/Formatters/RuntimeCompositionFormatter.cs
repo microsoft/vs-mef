@@ -13,13 +13,13 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly RuntimeCompositionFormatter Instance = new();
 
         private RuntimeCompositionFormatter()
+              : base(arrayElementCount: 2)
         {
         }
 
         /// <inheritdoc/>
         protected override RuntimeComposition DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            this.CheckArrayHeaderCount(ref reader, 2);
             IReadOnlyList<RuntimePart> parts = options.Resolver.GetFormatterWithVerify<IReadOnlyList<RuntimePart>>().Deserialize(ref reader, options);
 
             IReadOnlyDictionary<TypeRef, RuntimeExport> metadataViewsAndProviders = options.Resolver.GetFormatterWithVerify<IReadOnlyDictionary<TypeRef, RuntimeExport>>().Deserialize(ref reader, options);
@@ -30,7 +30,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         protected override void SerializeData(ref MessagePackWriter writer, RuntimeComposition value, MessagePackSerializerOptions options)
         {
-            writer.WriteArrayHeader(2);
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<RuntimePart>>().Serialize(ref writer, value.Parts, options);
             options.Resolver.GetFormatterWithVerify<IReadOnlyDictionary<TypeRef, RuntimeExport>>().Serialize(ref writer, value.MetadataViewsAndProviders, options);
         }

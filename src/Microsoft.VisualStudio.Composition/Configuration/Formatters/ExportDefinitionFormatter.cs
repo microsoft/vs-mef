@@ -13,13 +13,13 @@ namespace Microsoft.VisualStudio.Composition
         public static readonly ExportDefinitionFormatter Instance = new();
 
         private ExportDefinitionFormatter()
+            : base(arrayElementCount: 2)
         {
         }
 
         /// <inheritdoc/>
         protected override ExportDefinition DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            this.CheckArrayHeaderCount(ref reader, 2);
             string contractName = reader.ReadString()!;
             IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
 
@@ -28,7 +28,6 @@ namespace Microsoft.VisualStudio.Composition
 
         protected override void SerializeData(ref MessagePackWriter writer, ExportDefinition value, MessagePackSerializerOptions options)
         {
-            writer.WriteArrayHeader(2);
             writer.Write(value.ContractName);
             MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
         }

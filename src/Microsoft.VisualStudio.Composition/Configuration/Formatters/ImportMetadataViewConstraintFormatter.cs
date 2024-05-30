@@ -13,16 +13,21 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
     internal class ImportMetadataViewConstraintFormatter : BaseMessagePackFormatter<ImportMetadataViewConstraint>
     {
+        public static readonly ImportMetadataViewConstraintFormatter Instance = new();
+
+        private ImportMetadataViewConstraintFormatter()
+            : base(arrayElementCount: 1)
+        {
+        }
+
         protected override ImportMetadataViewConstraint DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            this.CheckArrayHeaderCount(ref reader, 1);
             ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement> requirements = options.Resolver.GetFormatterWithVerify<ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>>().Deserialize(ref reader, options);
             return new ImportMetadataViewConstraint(requirements, options.CompositionResolver());
         }
 
         protected override void SerializeData(ref MessagePackWriter writer, ImportMetadataViewConstraint value, MessagePackSerializerOptions options)
         {
-            writer.WriteArrayHeader(1);
             options.Resolver.GetFormatterWithVerify<ImmutableDictionary<string, ImportMetadataViewConstraint.MetadatumRequirement>>().Serialize(ref writer, value.Requirements, options);
         }
     }

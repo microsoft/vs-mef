@@ -4,6 +4,7 @@
 namespace Microsoft.VisualStudio.Composition.Formatter
 {
     using System.Collections.Immutable;
+    using System.Reflection.Emit;
     using MessagePack;
     using MessagePack.Formatters;
 
@@ -14,6 +15,13 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     internal abstract class BaseMessagePackFormatter<TRequest> : IMessagePackFormatter<TRequest?>
            where TRequest : class?
     {
+        protected BaseMessagePackFormatter(int arrayElementCount, bool enableDefaultCheckArrayHeader = true, bool enableDedup = false)
+        {
+            this.EnableDefaultCheckArrayHeader = enableDefaultCheckArrayHeader;
+            this.ArrayElementCount = arrayElementCount;
+            this.EnableDedup = enableDedup;
+        }
+
         /// <inheritdoc/>
         public TRequest? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
@@ -26,7 +34,23 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             TRequest? response;
             try
             {
-                response = this.DeserializeData(ref reader, options);
+                if (this.EnableDedup)
+                {
+                    if (options.TryPrepareDeserializeReusableObject(out uint id, out TRequest? value, ref reader))
+                    {
+                        this.CheckArrayHeaderCount(ref reader, this.ArrayElementCount);
+                        value = this.DeserializeData(ref reader, options);
+                        options.OnDeserializedReusableObject(id, value);
+                    }
+
+                    response = value;
+                }
+                else
+                {
+                    this.CheckArrayHeaderCount(ref reader, this.ArrayElementCount);
+                    response = this.DeserializeData(ref reader, options);
+                }
+
             }
             finally
             {
@@ -45,17 +69,52 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 return;
             }
 
-            this.SerializeData(ref writer, value, options);
+            if (this.EnableDedup)
+            {
+                if (options.TryPrepareSerializeReusableObject(value, ref writer))
+                {
+                    WriteSerializedData(ref writer);
+                }
+            }
+            else
+            {
+                WriteSerializedData(ref writer);
+            }
+
+            void WriteSerializedData(ref MessagePackWriter writerRef)
+            {
+                if (this.EnableDefaultCheckArrayHeader)
+                {
+                    writerRef.WriteArrayHeader(this.ArrayElementCount);
+                }
+
+                this.SerializeData(ref writerRef, value, options);
+            }
         }
 
         protected virtual void CheckArrayHeaderCount(ref MessagePackReader reader, int expectedCount)
         {
-            var actualCount = reader.ReadArrayHeader();
-            if (actualCount != expectedCount)
+            if (this.EnableDefaultCheckArrayHeader)
             {
-                throw new MessagePackSerializationException($"Invalid array count for type {typeof(TRequest).Name}. Expected: {expectedCount}, Actual: {actualCount}");
+                var actualCount = reader.ReadArrayHeader();
+                if (actualCount != expectedCount)
+                {
+                    throw new MessagePackSerializationException($"Invalid array count for type {typeof(TRequest).Name}. Expected: {expectedCount}, Actual: {actualCount}");
+                }
             }
         }
+
+        private bool EnableDedup { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to enable default check array header.
+        /// </summary>
+        protected virtual bool EnableDefaultCheckArrayHeader { get; set; }
+
+        /// <summary>
+        /// Gets the number of elements in the array.
+        /// </summary>
+        protected virtual int ArrayElementCount { get; private set; }
 
         /// <summary>
         /// Deserializes the request from the MessagePackReader.

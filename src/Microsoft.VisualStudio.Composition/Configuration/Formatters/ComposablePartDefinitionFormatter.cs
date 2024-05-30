@@ -16,14 +16,13 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly ComposablePartDefinitionFormatter Instance = new();
 
         private ComposablePartDefinitionFormatter()
+            : base(arrayElementCount: 12)
         {
         }
 
         /// <inheritdoc/>
         protected override ComposablePartDefinition DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            this.CheckArrayHeaderCount(ref reader, 12);
-
             TypeRef partType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
             IReadOnlyDictionary<string, object?> partMetadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
 
@@ -69,8 +68,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         protected override void SerializeData(ref MessagePackWriter writer, ComposablePartDefinition value, MessagePackSerializerOptions options)
         {
-            writer.WriteArrayHeader(12);
-
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.TypeRef, options);
             MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
 
