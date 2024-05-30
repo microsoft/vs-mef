@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using Microsoft.VisualStudio.Composition.Formatter;
 
     [DebuggerDisplay("{" + nameof(DebuggerDisplay) + ",nq}")]
-    [MessagePackFormatter(typeof(MemberRefFormatter<PropertyRef>))]
+    [MessagePackFormatter(typeof(PropertyRefFormatter))]
     public class PropertyRef : MemberRef, IEquatable<PropertyRef>
     {
         /// <summary>
@@ -36,6 +36,7 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         /// </summary>
         private readonly int? setMethodMetadataToken;
 
+        [SerializationConstructor]
         public PropertyRef(TypeRef declaringType, TypeRef propertyTypeRef, int metadataToken, int? getMethodMetadataToken, int? setMethodMetadataToken, string name, bool isStatic)
             : base(declaringType, metadataToken, isStatic)
         {

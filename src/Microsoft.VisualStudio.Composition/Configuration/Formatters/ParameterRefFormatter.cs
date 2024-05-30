@@ -19,6 +19,11 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         public ParameterRef? Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
+            if (reader.TryReadNil())
+            {
+                return null;
+            }
+
             if (options.TryPrepareDeserializeReusableObject(out uint id, out ParameterRef? value, ref reader))
             {
                 MethodRef method = options.Resolver.GetFormatterWithVerify<MethodRef>().Deserialize(ref reader, options);
@@ -34,6 +39,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         public void Serialize(ref MessagePackWriter writer, ParameterRef? value, MessagePackSerializerOptions options)
         {
+            if (value == null)
+            {
+                writer.WriteNil();
+                return;
+            }
+
             if (options.TryPrepareSerializeReusableObject(value, ref writer))
             {
                 options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value!.Method, options);

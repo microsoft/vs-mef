@@ -15,7 +15,10 @@ namespace Microsoft.VisualStudio.Composition.Reflection
     using MessagePack;
     using Microsoft.VisualStudio.Composition.Formatter;
 
-    [MessagePackFormatter(typeof(MemberRefFormatter<MemberRef>))]
+    [Union(0, typeof(FieldRef))]
+    [Union(1, typeof(PropertyRef))]
+    [Union(2, typeof(MethodRef))]
+    [MessagePackObject]
     public abstract class MemberRef : IEquatable<MemberRef>
     {
         /// <summary>
@@ -58,14 +61,19 @@ namespace Microsoft.VisualStudio.Composition.Reflection
         {
         }
 
+        [Key(0)]
         public TypeRef DeclaringType { get; }
 
+        [IgnoreMember]
         public AssemblyName AssemblyName => this.DeclaringType.AssemblyName;
 
+        [Key(1)]
         public abstract string Name { get; }
 
+        [Key(2)]
         public bool IsStatic { get; }
 
+        [Key(3)]
         public int MetadataToken => this.metadataToken ?? this.cachedMemberInfo?.GetMetadataTokenSafe() ?? 0;
 
         [IgnoreMember]
