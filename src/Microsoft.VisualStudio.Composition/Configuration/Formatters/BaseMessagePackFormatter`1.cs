@@ -57,16 +57,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             }
         }
 
-        ///// <summary>
-        ///// Gets or sets a value indicating whether to enable default check array header.
-        ///// </summary>
-        //protected virtual bool EnableDefaultCheckArrayHeader { get; set; } = true;
-
-        ///// <summary>
-        ///// Gets the number of elements in the array.
-        ///// </summary>
-        //protected abstract int ArrayElementCount { get; }
-
         /// <summary>
         /// Deserializes the request from the MessagePackReader.
         /// </summary>
