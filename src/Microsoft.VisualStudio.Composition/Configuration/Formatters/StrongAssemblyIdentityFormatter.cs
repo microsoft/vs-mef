@@ -30,7 +30,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         protected override void SerializeData(ref MessagePackWriter writer, StrongAssemblyIdentity? value, MessagePackSerializerOptions options)
         {
-
             options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value!.Mvid, options);
             writer.Write(value.Name.FullName);
             writer.Write(value.Name.CodeBase!.ToString());

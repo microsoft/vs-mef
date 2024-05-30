@@ -50,7 +50,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                     this.CheckArrayHeaderCount(ref reader, this.ArrayElementCount);
                     response = this.DeserializeData(ref reader, options);
                 }
-
             }
             finally
             {
