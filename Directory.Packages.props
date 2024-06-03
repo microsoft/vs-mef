@@ -20,7 +20,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.VisualBasic.Workspaces" version="$(CodeAnalysisVersion)" />
     <PackageVersion Include="Microsoft.CodeAnalysis" Version="$(CodeAnalysisVersion)" />
     <PackageVersion Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Internal.MicroBuild.NonShipping" Version="$(MicroBuildVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.10.48" />
     <PackageVersion Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
