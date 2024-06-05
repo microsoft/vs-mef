@@ -3,13 +3,6 @@
 
 namespace Microsoft.VisualStudio.Composition.Analyzers
 {
-    using System;
-    using System.Collections.Immutable;
-    using System.Linq;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.Diagnostics;
-
     /// <summary>
     /// Creates a diagnostic when `[Import]` is applied to a property with no setter.
     /// </summary>
