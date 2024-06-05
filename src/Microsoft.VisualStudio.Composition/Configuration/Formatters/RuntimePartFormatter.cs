@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly RuntimePartFormatter Instance = new();
 
         private RuntimePartFormatter()
-            : base(arrayElementCount: 8)
+            : base(expectedArrayElementCount: 8)
         {
         }
 

@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly PropertyRefFormatter Instance = new();
 
         private PropertyRefFormatter()
-            : base(arrayElementCount: 7)
+            : base(expectedArrayElementCount: 7)
         {
         }
 

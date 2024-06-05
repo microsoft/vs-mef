@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly RuntimeCompositionFormatter Instance = new();
 
         private RuntimeCompositionFormatter()
-              : base(arrayElementCount: 2)
+              : base(expectedArrayElementCount: 2)
         {
         }
 

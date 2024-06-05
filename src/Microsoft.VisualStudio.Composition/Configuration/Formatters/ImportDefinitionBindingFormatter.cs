@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly ImportDefinitionBindingFormatter Instance = new();
 
         private ImportDefinitionBindingFormatter()
-            : base(arrayElementCount: 6)
+            : base(expectedArrayElementCount: 6)
         {
         }
 

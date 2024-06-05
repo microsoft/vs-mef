@@ -15,10 +15,10 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     internal abstract class BaseMessagePackFormatter<TRequest> : IMessagePackFormatter<TRequest?>
            where TRequest : class?
     {
-        protected BaseMessagePackFormatter(int arrayElementCount, bool enableDefaultCheckArrayHeader = true)
+        protected BaseMessagePackFormatter(int expectedArrayElementCount, bool enableDefaultCheckArrayHeader = true)
         {
             this.EnableDefaultCheckArrayHeader = enableDefaultCheckArrayHeader;
-            this.ArrayElementCount = arrayElementCount;
+            this.ExpectedArrayElementCount = expectedArrayElementCount;
         }
 
         /// <inheritdoc/>
@@ -33,7 +33,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             TRequest? response;
             try
             {
-                this.CheckArrayHeaderCount(ref reader, this.ArrayElementCount);
+                this.CheckArrayHeaderCount(ref reader, this.ExpectedArrayElementCount);
                 response = this.DeserializeData(ref reader, options);
             }
             finally
@@ -59,7 +59,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 if (this.EnableDefaultCheckArrayHeader)
                 {
-                    writerRef.WriteArrayHeader(this.ArrayElementCount);
+                    writerRef.WriteArrayHeader(this.ExpectedArrayElementCount);
                 }
 
                 this.SerializeData(ref writerRef, value, options);
@@ -86,7 +86,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <summary>
         /// Gets the number of elements in the array.
         /// </summary>
-        protected virtual int ArrayElementCount { get; private set; }
+        protected virtual int ExpectedArrayElementCount { get; private set; }
 
         /// <summary>
         /// Deserializes the request from the MessagePackReader.

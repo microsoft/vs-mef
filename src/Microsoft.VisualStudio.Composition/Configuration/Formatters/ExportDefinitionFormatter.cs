@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Composition
         public static readonly ExportDefinitionFormatter Instance = new();
 
         private ExportDefinitionFormatter()
-            : base(arrayElementCount: 2)
+            : base(expectedArrayElementCount: 2)
         {
         }
 

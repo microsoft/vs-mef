@@ -10,14 +10,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using Microsoft.VisualStudio.Composition;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-#pragma warning disable RS0041 // No oblivious reference types
-
     internal class FieldRefFormatter : BaseMessagePackFormatter<FieldRef?>
     {
         public static readonly FieldRefFormatter Instance = new();
 
         private FieldRefFormatter()
-            : base(arrayElementCount: 5)
+            : base(expectedArrayElementCount: 5)
         {
         }
 

@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly RuntimeImportFormatter Instance = new();
 
         private RuntimeImportFormatter()
-            : base(arrayElementCount: 7)
+            : base(expectedArrayElementCount: 7)
         {
         }
 

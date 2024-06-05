@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly PartCreationPolicyConstraintFormatter Instance = new();
 
         private PartCreationPolicyConstraintFormatter()
-            : base(arrayElementCount: 1)
+            : base(expectedArrayElementCount: 1)
         {
         }
 

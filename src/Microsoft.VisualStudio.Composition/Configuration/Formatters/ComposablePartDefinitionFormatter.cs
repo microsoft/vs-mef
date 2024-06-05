@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly ComposablePartDefinitionFormatter Instance = new();
 
         private ComposablePartDefinitionFormatter()
-            : base(arrayElementCount: 12)
+            : base(expectedArrayElementCount: 12)
         {
         }
 

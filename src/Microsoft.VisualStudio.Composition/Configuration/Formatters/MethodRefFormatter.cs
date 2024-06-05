@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly MethodRefFormatter Instance = new();
 
         private MethodRefFormatter()
-             : base(arrayElementCount: 6)
+             : base(expectedArrayElementCount: 6)
         {
         }
 

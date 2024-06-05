@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly TypeRefObjectFormatter Instance = new();
 
         private TypeRefObjectFormatter()
-            : base(arrayElementCount: 10)
+            : base(expectedArrayElementCount: 10)
         {
         }
 
@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         protected override TypeRef? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             IMessagePackFormatter<ImmutableArray<TypeRef?>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef?>>();
+
             StrongAssemblyIdentity assemblyId = options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Deserialize(ref reader, options);
             int metadataToken = reader.ReadInt32();
             string fullName = reader.ReadString()!;
@@ -46,8 +47,10 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             writer.Write(value.FullName);
             options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Serialize(ref writer, value.TypeFlags, options);
             writer.Write(value.GenericTypeParameterCount);
+
             IMessagePackFormatter<ImmutableArray<TypeRef>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>();
             typeRefFormatter.Serialize(ref writer, value.GenericTypeArguments, options);
+
             writer.Write(value.IsShallow);
 
             if (!value.IsShallow)

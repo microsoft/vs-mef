@@ -13,9 +13,6 @@ namespace Microsoft.VisualStudio.Composition
     using MessagePack.Resolvers;
     using Microsoft.VisualStudio.Composition.Formatter;
 
-#pragma warning disable CS8602 // possible dereference of null reference
-#pragma warning disable CS8604 // null reference as argument
-
     internal class MessagePackSerializerContext : MessagePackSerializerOptions, IDisposable
     {
         public MessagePackSerializerContext(IFormatterResolver resolver, Resolver compositionResolver)
@@ -33,7 +30,8 @@ namespace Microsoft.VisualStudio.Composition
 
         private static IFormatterResolver GetIFormatterResolver(IFormatterResolver resolver) =>
             CompositeResolver.Create(
-                 [
+                new IMessagePackFormatter[]
+                {
                     new IgnoreFormatter<CancellationToken>(),
                     new IgnoreFormatter<Task>(),
                     ComposableCatalogFormatter.Instance,
@@ -55,10 +53,11 @@ namespace Microsoft.VisualStudio.Composition
                     RuntimeImportFormatter.Instance,
                     RuntimePartFormatter.Instance,
                     new StringInterningFormatter(),
-                ],
-                 [
-                    new DedupingResolver(resolver)
-                 ]);
+                },
+                new IFormatterResolver[]
+                {
+                     new DedupingResolver(resolver),
+                });
 
         private class DedupingResolver : IFormatterResolver
         {

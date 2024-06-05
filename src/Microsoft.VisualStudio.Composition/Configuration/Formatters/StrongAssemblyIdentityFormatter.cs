@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly StrongAssemblyIdentityFormatter Instance = new();
 
         private StrongAssemblyIdentityFormatter()
-            : base(arrayElementCount: 3)
+            : base(expectedArrayElementCount: 3)
         {
         }
 

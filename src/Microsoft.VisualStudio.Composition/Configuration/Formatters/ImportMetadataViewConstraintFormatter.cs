@@ -9,14 +9,12 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     using MessagePack.Formatters;
     using Microsoft.VisualStudio.Composition.Reflection;
 
-#pragma warning disable CS8604 // Possible null reference argument.
-
     internal class ImportMetadataViewConstraintFormatter : BaseMessagePackFormatter<ImportMetadataViewConstraint>
     {
         public static readonly ImportMetadataViewConstraintFormatter Instance = new();
 
         private ImportMetadataViewConstraintFormatter()
-            : base(arrayElementCount: 1)
+            : base(expectedArrayElementCount: 1)
         {
         }
 

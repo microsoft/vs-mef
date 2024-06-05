@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly ComposableCatalogFormatter Instance = new();
 
         private ComposableCatalogFormatter()
-            : base(arrayElementCount: 1)
+            : base(expectedArrayElementCount: 1)
         {
         }
 

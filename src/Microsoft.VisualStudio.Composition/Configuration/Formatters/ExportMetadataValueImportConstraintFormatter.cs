@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly ExportMetadataValueImportConstraintFormatter Instance = new();
 
         private ExportMetadataValueImportConstraintFormatter()
-            : base(arrayElementCount: 2)
+            : base(expectedArrayElementCount: 2)
         {
         }
 

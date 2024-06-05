@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly ExportTypeIdentityConstraintFormatter Instance = new();
 
         private ExportTypeIdentityConstraintFormatter()
-            : base(arrayElementCount: 1)
+            : base(expectedArrayElementCount: 1)
         {
         }
 
