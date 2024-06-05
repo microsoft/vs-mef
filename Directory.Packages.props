@@ -36,11 +36,11 @@
     <PackageVersion Include="System.Reflection.Emit" Version="4.7.0" />
     <PackageVersion Include="System.Reflection.Metadata" Version="6.0.0" />
     <PackageVersion Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
-    <PackageVersion Include="xunit.extensibility.execution" Version="2.8.0" />
+    <PackageVersion Include="xunit.extensibility.execution" Version="2.8.1" />
     <PackageVersion Include="xunit.runner.console" Version="2.5.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.0" />
     <PackageVersion Include="Xunit.SkippableFact" Version="1.4.13" />
-    <PackageVersion Include="xunit" Version="2.8.0" />
+    <PackageVersion Include="xunit" Version="2.8.1" />
   </ItemGroup>
   <ItemGroup Condition="'$(IsTestProject)'=='true'">
     <PackageVersion Update="Microsoft.CodeAnalysis" Version="$(CodeAnalysisVersionForTesting)" />
