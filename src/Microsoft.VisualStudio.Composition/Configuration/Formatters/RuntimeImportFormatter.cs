@@ -50,7 +50,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             }
 
             IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
-
             TypeRef importingSiteTypeRef = typeRefFormatter.Deserialize(ref reader, options);
             TypeRef importingSiteTypeWithoutCollectionRef =
     cardinality == ImportCardinality.ZeroOrMore ? typeRefFormatter.Deserialize(ref reader, options) : importingSiteTypeRef;
@@ -107,7 +106,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             }
 
             IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
-
             typeRefFormatter.Serialize(ref writer, value.ImportingSiteTypeRef, options);
 
             if (value.Cardinality == ImportCardinality.ZeroOrMore)

@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly FieldRefFormatter Instance = new();
 
         private FieldRefFormatter()
-            : base(arrayElementCount: 5, enableDedup: true)
+            : base(arrayElementCount: 5)
         {
         }
 

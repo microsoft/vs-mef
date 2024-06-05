@@ -4,6 +4,7 @@
 namespace Microsoft.VisualStudio.Composition
 {
     using System.Collections.Concurrent;
+    using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Reflection;
     using MessagePack;
@@ -16,124 +17,143 @@ namespace Microsoft.VisualStudio.Composition
 
     internal class MessagePackSerializerContext : MessagePackSerializerOptions, IDisposable
     {
-        public Resolver CompositionResolver { get; }
-
-        private static IFormatterResolver GetIFormatterResolver(IFormatterResolver resolver) => CompositeResolver.Create(
-                [
-                    new IgnoreFormatter<System.Threading.CancellationToken>(),
-                    new IgnoreFormatter<System.Threading.Tasks.Task>(),
-                ],
-                [resolver]);
-
         public MessagePackSerializerContext(IFormatterResolver resolver, Resolver compositionResolver)
             : base(GetIFormatterResolver(resolver))
         {
-            this.deserializingObjectTable = new Dictionary<uint, object?>();
-            this.serializingObjectTable = new Dictionary<object, uint>(SmartInterningEqualityComparer.Default);
             this.CompositionResolver = compositionResolver;
         }
 
-        private Dictionary<object, uint>? serializingObjectTable;
-        private Dictionary<uint, object?>? deserializingObjectTable;
-
-        public bool TryPrepareDeserializeReusableObject<T>(out uint id, out T? value, ref MessagePackReader reader, MessagePackSerializerOptions options)
-            where T : class?
-        {
-            id = options.Resolver.GetFormatterWithVerify<uint>().Deserialize(ref reader, options);
-
-            if (id == 0)
-            {
-                value = null;
-                return false;
-            }
-
-            if (this.deserializingObjectTable.TryGetValue(id, out object? obj))
-            {
-                // The object has already been deserialized.
-                value = (T?)obj;
-                return false;
-            }
-            else
-            {
-                value = null;
-
-                // asking to deserialize the object to caller
-                return true;
-            }
-        }
-
-        public void OnDeserializedReusableObject(uint id, object value)
-        {
-            this.deserializingObjectTable.Add(id, value);
-        }
-
-        public bool TryPrepareSerializeReusableObject([NotNullWhen(true)] object? value, ref MessagePackWriter writer, MessagePackSerializerOptions options)
-        {
-            if (value is null)
-            {
-                options.Resolver.GetFormatterWithVerify<uint>().Serialize(ref writer, 0, options);
-                return false;
-            }
-
-            if (this.serializingObjectTable.TryGetValue(value, out uint id))
-            {
-                options.Resolver.GetFormatterWithVerify<uint>().Serialize(ref writer, id, options);
-
-                // The object has already been serialized.
-                return false;
-            }
-            else
-            {
-                // asking to serialize the object to caller
-                this.serializingObjectTable.Add(value, id = (uint)this.serializingObjectTable.Count + 1);
-                options.Resolver.GetFormatterWithVerify<uint>().Serialize(ref writer, id, options);
-                return true;
-            }
-        }
+        public Resolver CompositionResolver { get; }
 
         public void Dispose()
         {
-            this.Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        protected virtual void Dispose(bool disposing)
+        private static IFormatterResolver GetIFormatterResolver(IFormatterResolver resolver) => CompositeResolver.Create(
+                 [
+                    new IgnoreFormatter<CancellationToken>(),
+                    new IgnoreFormatter<Task>(),
+                    ComposableCatalogFormatter.Instance,
+                    ComposablePartDefinitionFormatter.Instance,
+                    ExportDefinitionFormatter.Instance,
+                    FieldRefFormatter.Instance,
+                    ImportDefinitionBindingFormatter.Instance,
+                    ImportDefinitionFormatter.Instance,
+                    ImportMetadataViewConstraintFormatter.Instance,
+                    ExportMetadataValueImportConstraintFormatter.Instance,
+                    ExportTypeIdentityConstraintFormatter.Instance,
+                    MetadataDictionaryFormatter.Instance,
+                    MethodRefFormatter.Instance,
+                    ParameterRefFormatter.Instance,
+                    PartCreationPolicyConstraintFormatter.Instance,
+                    PropertyRefFormatter.Instance,
+                    RuntimeCompositionFormatter.Instance,
+                    RuntimeExportFormatter.Instance,
+                    RuntimeImportFormatter.Instance,
+                    RuntimePartFormatter.Instance,
+                    new StringInterningFormatter(),
+                ],
+                 [
+                    new DedupingResolver(resolver)
+                ]);
+
+        private class DedupingResolver : IFormatterResolver
         {
-            if (disposing)
+            private const sbyte ReferenceExtensionTypeCode = 1;
+            private readonly Dictionary<Type, IMessagePackFormatter> dedupingFormatters = new();
+            private readonly List<object?> deserializedObjects = new();
+            private readonly IFormatterResolver inner;
+            private readonly Dictionary<object, int> serializedObjects = new();
+            private int serializingObjectCounter;
+
+            internal DedupingResolver(IFormatterResolver inner)
             {
-                this.serializingObjectTable?.Clear();
-                this.deserializingObjectTable?.Clear();
-            }
-        }
-
-        private class SmartInterningEqualityComparer : IEqualityComparer<object>
-        {
-            internal static readonly IEqualityComparer<object> Default = new SmartInterningEqualityComparer();
-
-            private static readonly IEqualityComparer<object> Fallback = EqualityComparer<object>.Default;
-
-            private SmartInterningEqualityComparer()
-            {
+                this.inner = inner;
             }
 
-            public new bool Equals(object? x, object? y)
+            public IMessagePackFormatter<T>? GetFormatter<T>()
             {
-                if (x is AssemblyName && y is AssemblyName)
+                if (!typeof(T).IsValueType)
                 {
-                    return ByValueEquality.AssemblyName.Equals((AssemblyName)x, (AssemblyName)y);
+                    return this.GetDedupingFormatter<T>();
                 }
 
-                return Fallback.Equals(x, y);
+                return this.inner.GetFormatter<T>();
             }
 
-            public int GetHashCode(object obj)
+            private IMessagePackFormatter<T>? GetDedupingFormatter<T>()
             {
-                if (obj is AssemblyName)
+                if (!this.dedupingFormatters.TryGetValue(typeof(T), out IMessagePackFormatter? formatter))
                 {
-                    return ByValueEquality.AssemblyName.GetHashCode((AssemblyName)obj);
+                    formatter = new DedupingFormatter<T>(this);
+                    this.dedupingFormatters.Add(typeof(T), formatter);
                 }
 
-                return Fallback.GetHashCode(obj);
+                return (IMessagePackFormatter<T>)formatter;
+            }
+
+            private class DedupingFormatter<T> : IMessagePackFormatter<T>
+            {
+                private readonly DedupingResolver owner;
+
+                internal DedupingFormatter(DedupingResolver owner)
+                {
+                    this.owner = owner;
+                }
+
+                public T Deserialize(ref MessagePackReader reader, MessagePackSerializerOptions options)
+                {
+                    if (!typeof(T).IsValueType && reader.TryReadNil())
+                    {
+                        return default!;
+                    }
+
+                    if (reader.NextMessagePackType == MessagePackType.Extension)
+                    {
+                        MessagePackReader provisionaryReader = reader.CreatePeekReader();
+                        ExtensionHeader extensionHeader = provisionaryReader.ReadExtensionFormatHeader();
+                        if (extensionHeader.TypeCode == ReferenceExtensionTypeCode)
+                        {
+                            int id = provisionaryReader.ReadInt32();
+                            reader = provisionaryReader;
+
+                            return (T)(this.owner.deserializedObjects[id] ?? throw new MessagePackSerializationException("Unexpected null element in shared object array. Dependency cycle?"));
+                        }
+                    }
+
+                    // Reserve our position in the array.
+                    int reservation = this.owner.deserializedObjects.Count;
+                    this.owner.deserializedObjects.Add(null);
+
+                    T value = this.owner.inner.GetFormatterWithVerify<T>().Deserialize(ref reader, options);
+                    this.owner.deserializedObjects[reservation] = value;
+
+                    return value;
+                }
+
+                public void Serialize(ref MessagePackWriter writer, T value, MessagePackSerializerOptions options)
+                {
+                    if (value is null)
+                    {
+                        writer.WriteNil();
+                        return;
+                    }
+
+                    if (this.owner.serializedObjects.TryGetValue(value, out int referenceId))
+                    {
+                        // This object has already been written. Skip it this time.
+                        int packLength = MessagePackWriter.GetEncodedLength(referenceId);
+                        writer.WriteExtensionFormatHeader(new ExtensionHeader(ReferenceExtensionTypeCode, packLength));
+                        writer.Write(referenceId);
+                        return;
+                    }
+                    else
+                    {
+                        this.owner.serializedObjects.Add(value, this.owner.serializingObjectCounter++);
+                        this.owner.inner.GetFormatterWithVerify<T>().Serialize(ref writer, value, options);
+                    }
+                }
             }
         }
     }

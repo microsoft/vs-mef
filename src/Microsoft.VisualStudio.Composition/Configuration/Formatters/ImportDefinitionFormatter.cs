@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
 
             IReadOnlyList<IImportSatisfiabilityConstraint> constraints = options.Resolver.GetFormatterWithVerify<IReadOnlyList<IImportSatisfiabilityConstraint>>().Deserialize(ref reader, options);
-            IReadOnlyList<string> sharingBoundaries = options.Resolver.GetFormatterWithVerify<IReadOnlyList<string>>().Deserialize(ref reader, options);
+            IReadOnlyCollection<string> sharingBoundaries = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<string>>().Deserialize(ref reader, options);
 
             return new ImportDefinition(contractName, cardinality, metadata, constraints!, sharingBoundaries!);
         }

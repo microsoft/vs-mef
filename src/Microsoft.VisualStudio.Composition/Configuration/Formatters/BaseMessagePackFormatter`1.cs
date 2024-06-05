@@ -15,11 +15,10 @@ namespace Microsoft.VisualStudio.Composition.Formatter
     internal abstract class BaseMessagePackFormatter<TRequest> : IMessagePackFormatter<TRequest?>
            where TRequest : class?
     {
-        protected BaseMessagePackFormatter(int arrayElementCount, bool enableDefaultCheckArrayHeader = true, bool enableDedup = false)
+        protected BaseMessagePackFormatter(int arrayElementCount, bool enableDefaultCheckArrayHeader = true)
         {
             this.EnableDefaultCheckArrayHeader = enableDefaultCheckArrayHeader;
             this.ArrayElementCount = arrayElementCount;
-            this.EnableDedup = enableDedup;
         }
 
         /// <inheritdoc/>
@@ -34,22 +33,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             TRequest? response;
             try
             {
-                if (this.EnableDedup)
-                {
-                    if (options.TryPrepareDeserializeReusableObject(out uint id, out TRequest? value, ref reader))
-                    {
-                        this.CheckArrayHeaderCount(ref reader, this.ArrayElementCount);
-                        value = this.DeserializeData(ref reader, options);
-                        options.OnDeserializedReusableObject(id, value);
-                    }
-
-                    response = value;
-                }
-                else
-                {
-                    this.CheckArrayHeaderCount(ref reader, this.ArrayElementCount);
-                    response = this.DeserializeData(ref reader, options);
-                }
+                this.CheckArrayHeaderCount(ref reader, this.ArrayElementCount);
+                response = this.DeserializeData(ref reader, options);
             }
             finally
             {
@@ -68,17 +53,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 return;
             }
 
-            if (this.EnableDedup)
-            {
-                if (options.TryPrepareSerializeReusableObject(value, ref writer))
-                {
-                    WriteSerializedData(ref writer);
-                }
-            }
-            else
-            {
-                WriteSerializedData(ref writer);
-            }
+            WriteSerializedData(ref writer);
 
             void WriteSerializedData(ref MessagePackWriter writerRef)
             {
@@ -102,8 +77,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 }
             }
         }
-
-        private bool EnableDedup { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to enable default check array header.

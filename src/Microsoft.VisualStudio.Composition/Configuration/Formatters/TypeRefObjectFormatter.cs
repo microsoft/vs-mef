@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         public static readonly TypeRefObjectFormatter Instance = new();
 
         private TypeRefObjectFormatter()
-            : base(arrayElementCount: 10, enableDedup: true)
+            : base(arrayElementCount: 10)
         {
         }
 
@@ -46,12 +46,13 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             writer.Write(value.FullName);
             options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Serialize(ref writer, value.TypeFlags, options);
             writer.Write(value.GenericTypeParameterCount);
-            options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>().Serialize(ref writer, value.GenericTypeArguments, options);
+            IMessagePackFormatter<ImmutableArray<TypeRef>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>();
+            typeRefFormatter.Serialize(ref writer, value.GenericTypeArguments, options);
             writer.Write(value.IsShallow);
 
             if (!value.IsShallow)
             {
-                options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef>>().Serialize(ref writer, value.BaseTypes, options);
+                typeRefFormatter.Serialize(ref writer, value.BaseTypes, options);
             }
 
             writer.Write(value.ElementTypeRef.Equals(value) ? 0 : 1);
