@@ -7,6 +7,7 @@ namespace Microsoft.VisualStudio.Composition
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
     using System.Reflection;
+    using System.Runtime.Serialization;
     using MessagePack;
     using MessagePack.Formatters;
     using MessagePack.Resolvers;
@@ -30,7 +31,8 @@ namespace Microsoft.VisualStudio.Composition
             GC.SuppressFinalize(this);
         }
 
-        private static IFormatterResolver GetIFormatterResolver(IFormatterResolver resolver) => CompositeResolver.Create(
+        private static IFormatterResolver GetIFormatterResolver(IFormatterResolver resolver) =>
+            CompositeResolver.Create(
                  [
                     new IgnoreFormatter<CancellationToken>(),
                     new IgnoreFormatter<Task>(),
@@ -56,7 +58,7 @@ namespace Microsoft.VisualStudio.Composition
                 ],
                  [
                     new DedupingResolver(resolver)
-                ]);
+                 ]);
 
         private class DedupingResolver : IFormatterResolver
         {
