@@ -20,13 +20,13 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
         protected override ExportTypeIdentityConstraint DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            string typeIdentityName = reader.ReadString()!;
+            string typeIdentityName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
             return new ExportTypeIdentityConstraint(typeIdentityName);
         }
 
         protected override void SerializeData(ref MessagePackWriter writer, ExportTypeIdentityConstraint value, MessagePackSerializerOptions options)
         {
-            writer.Write(value.TypeIdentityName);
+            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.TypeIdentityName, options);
         }
     }
 }

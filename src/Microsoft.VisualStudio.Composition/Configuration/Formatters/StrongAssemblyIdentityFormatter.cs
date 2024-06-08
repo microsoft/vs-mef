@@ -20,10 +20,10 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         protected override StrongAssemblyIdentity? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
             Guid mvid = options.Resolver.GetFormatterWithVerify<Guid>().Deserialize(ref reader, options);
-            string fullName = reader.ReadString()!;
+            string fullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
 
             var assemblyName = new AssemblyName(fullName);
-            assemblyName.CodeBase = reader.ReadString()!;
+            assemblyName.CodeBase = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
             return new StrongAssemblyIdentity(assemblyName, mvid);
         }
 
@@ -31,8 +31,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         protected override void SerializeData(ref MessagePackWriter writer, StrongAssemblyIdentity? value, MessagePackSerializerOptions options)
         {
             options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value!.Mvid, options);
-            writer.Write(value.Name.FullName);
-            writer.Write(value.Name.CodeBase!.ToString());
+            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.FullName, options);
+            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.CodeBase, options);
         }
     }
 }

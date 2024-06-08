@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Composition
         /// <inheritdoc/>
         protected override ExportDefinition DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            string contractName = reader.ReadString()!;
+            string contractName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
             IReadOnlyDictionary<string, object?> metadata = MetadataDictionaryFormatter.Instance.Deserialize(ref reader, options);
 
             return new ExportDefinition(contractName, metadata);
@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Composition
 
         protected override void SerializeData(ref MessagePackWriter writer, ExportDefinition value, MessagePackSerializerOptions options)
         {
-            writer.Write(value.ContractName);
+            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.ContractName, options);
             MetadataDictionaryFormatter.Instance.Serialize(ref writer, value.Metadata, options);
         }
     }

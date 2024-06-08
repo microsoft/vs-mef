@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.Composition
 
             return Task.Run(() =>
             {
-                using var context = new MessagePackSerializerContext(ContractlessStandardResolver.Instance, catalog.Resolver);
+                using var context = new MessagePackSerializerContext(StandardResolver.Instance, catalog.Resolver);
                 MessagePackSerializer.Serialize(cacheStream, catalog, context, cancellationToken);
             });
         }
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.Composition
             Requires.NotNull(cacheStream, nameof(cacheStream));
             Requires.NotNull(resolver, nameof(resolver));
 
-            using var context = new MessagePackSerializerContext(ContractlessStandardResolver.Instance, resolver);
+            using var context = new MessagePackSerializerContext(MessagePack.Resolvers.StandardResolver.Instance, resolver);
             return await MessagePackSerializer.DeserializeAsync<ComposableCatalog>(cacheStream, context, cancellationToken);
         }
 

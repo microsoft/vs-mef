@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         protected override RuntimeExport? DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
-            string contractName = reader.ReadString()!;
+            string contractName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
             TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
             MemberRef? member = options.Resolver.GetFormatterWithVerify<MemberRef?>().Deserialize(ref reader, options);
             TypeRef exportedValueType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         /// <inheritdoc/>
         protected override void SerializeData(ref MessagePackWriter writer, RuntimeExport? value, MessagePackSerializerOptions options)
         {
-            writer.Write(value!.ContractName);
+            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.ContractName, options);
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringTypeRef, options);
             options.Resolver.GetFormatterWithVerify<MemberRef?>().Serialize(ref writer, value.MemberRef, options);
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.ExportedValueTypeRef, options);

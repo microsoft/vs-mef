@@ -42,7 +42,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             IReadOnlyList<RuntimeImport> importingMembers = runtimeImportFormatter.Deserialize(ref reader, options);
             IReadOnlyList<MethodRef> onImportsSatisfiedMethods = options.Resolver.GetFormatterWithVerify<IReadOnlyList<MethodRef>>().Deserialize(ref reader, options);
 
-            string sharingBoundary = reader.ReadString()!;
+            string? sharingBoundary = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
 
             return new RuntimeComposition.RuntimePart(
                       typeRef,
@@ -77,7 +77,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             runtimeImportFormatter.Serialize(ref writer, value.ImportingMembers, options);
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<MethodRef>>().Serialize(ref writer, value.OnImportsSatisfiedMethodRefs, options);
 
-            writer.Write(value.SharingBoundary);
+            options.Resolver.GetFormatterWithVerify<string?>().Serialize(ref writer, value.SharingBoundary, options);
         }
     }
 }

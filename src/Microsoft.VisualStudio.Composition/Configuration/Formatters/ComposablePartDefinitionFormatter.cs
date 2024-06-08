@@ -36,7 +36,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             IMessagePackFormatter<IReadOnlyList<ImportDefinitionBinding>> importDefinitionBindingFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyList<ImportDefinitionBinding>>();
             IReadOnlyList<ImportDefinitionBinding> importingMembers = importDefinitionBindingFormatter.Deserialize(ref reader, options);
 
-            string? sharingBoundary = reader.ReadString();
+            string? sharingBoundary = options.Resolver.GetFormatterWithVerify<string?>().Deserialize(ref reader, options);
             IReadOnlyList<MethodRef> onImportsSatisfiedMethods = options.Resolver.GetFormatterWithVerify<IReadOnlyList<MethodRef>>().Deserialize(ref reader, options);
 
             var importingConstructor = default(MethodRef);
@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             IMessagePackFormatter<IReadOnlyCollection<ImportDefinitionBinding>> importDefinitionBindingFormatter = options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ImportDefinitionBinding>>();
             importDefinitionBindingFormatter.Serialize(ref writer, value.ImportingMembers, options);
 
-            writer.Write(value.SharingBoundary);
+            options.Resolver.GetFormatterWithVerify<string?>().Serialize(ref writer, value.SharingBoundary, options);
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<MethodRef>>().Serialize(ref writer, value.OnImportsSatisfiedMethodRefs, options);
 
             if (value.ImportingConstructorOrFactoryRef is null)

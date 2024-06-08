@@ -32,8 +32,8 @@ namespace Microsoft.VisualStudio.Composition
             CompositeResolver.Create(
                 new IMessagePackFormatter[]
                 {
-                    new IgnoreFormatter<CancellationToken>(),
-                    new IgnoreFormatter<Task>(),
+                    //new IgnoreFormatter<CancellationToken>(),
+                    //new IgnoreFormatter<Task>(),
                     ComposableCatalogFormatter.Instance,
                     ComposablePartDefinitionFormatter.Instance,
                     ExportDefinitionFormatter.Instance,

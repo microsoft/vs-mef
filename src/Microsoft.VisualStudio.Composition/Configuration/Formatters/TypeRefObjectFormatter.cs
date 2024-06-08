@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
             StrongAssemblyIdentity assemblyId = options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Deserialize(ref reader, options);
             int metadataToken = reader.ReadInt32();
-            string fullName = reader.ReadString()!;
+            string fullName = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
             TypeRefFlags flags = options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Deserialize(ref reader, options);
             int genericTypeParameterCount = reader.ReadInt32();
             ImmutableArray<TypeRef?> genericTypeArguments = typeRefFormatter.Deserialize(ref reader, options);
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
         {
             options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Serialize(ref writer, value!.AssemblyId, options);
             writer.Write(value.MetadataToken);
-            writer.Write(value.FullName);
+            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.FullName, options);
             options.Resolver.GetFormatterWithVerify<TypeRefFlags>().Serialize(ref writer, value.TypeFlags, options);
             writer.Write(value.GenericTypeParameterCount);
 

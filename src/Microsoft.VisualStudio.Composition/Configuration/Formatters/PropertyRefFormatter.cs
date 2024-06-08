@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             TypeRef declaringType = typeRefFormatter.Deserialize(ref reader, options);
             TypeRef propertyType = typeRefFormatter.Deserialize(ref reader, options);
             int metadataToken = reader.ReadInt32();
-            string name = reader.ReadString()!;
+            string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
             bool isStatic = reader.ReadBoolean();
             int? setter = null;
             int? getter = null;
@@ -51,7 +51,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             typeRefFormatter.Serialize(ref writer, value!.PropertyTypeRef, options);
 
             writer.Write(value.MetadataToken);
-            writer.Write(value.Name);
+            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
             writer.Write(value.IsStatic);
             if (value.SetMethodMetadataToken.HasValue)
             {

@@ -20,15 +20,15 @@ namespace Microsoft.VisualStudio.Composition.Formatter
 
         protected override ExportMetadataValueImportConstraint DeserializeData(ref MessagePackReader reader, MessagePackSerializerOptions options)
         {
+            string name = options.Resolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
             object? value = options.Resolver.GetFormatterWithVerify<object?>().Deserialize(ref reader, options);
-            string name = reader.ReadString()!;
             return new ExportMetadataValueImportConstraint(name, value);
         }
 
         protected override void SerializeData(ref MessagePackWriter writer, ExportMetadataValueImportConstraint value, MessagePackSerializerOptions options)
         {
+            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name, options);
             options.Resolver.GetFormatterWithVerify<object?>().Serialize(ref writer, value.Value, options);
-            writer.Write(value.Name);
         }
     }
 }
