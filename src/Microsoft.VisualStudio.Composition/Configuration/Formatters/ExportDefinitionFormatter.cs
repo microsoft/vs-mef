@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.Composition
             {
                 return null;
             }
+
             options.Security.DepthStep(ref reader);
 
             try
@@ -51,6 +52,7 @@ namespace Microsoft.VisualStudio.Composition
                 writer.WriteNil();
                 return;
             }
+
             writer.WriteArrayHeader(2);
 
             options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.ContractName, options);

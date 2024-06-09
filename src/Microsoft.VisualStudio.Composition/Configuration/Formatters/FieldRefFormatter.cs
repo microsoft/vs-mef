@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 return null;
             }
+
             options.Security.DepthStep(ref reader);
 
             try
@@ -57,6 +58,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 writer.WriteNil();
                 return;
             }
+
             writer.WriteArrayHeader(5);
 
             IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();

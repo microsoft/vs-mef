@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 return null;
             }
+
             options.Security.DepthStep(ref reader);
             try
             {
@@ -32,6 +33,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 {
                     throw new MessagePackSerializationException($"Invalid array count for type {nameof(RuntimePart)}. Expected: {8}, Actual: {actualCount}");
                 }
+
                 var importingCtor = default(MethodRef);
                 IReadOnlyList<RuntimeComposition.RuntimeImport> importingCtorArguments = ImmutableList<RuntimeComposition.RuntimeImport>.Empty;
 
@@ -77,8 +79,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 writer.WriteNil();
                 return;
-
             }
+
             writer.WriteArrayHeader(8);
 
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.TypeRef, options);

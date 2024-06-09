@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 return null;
             }
+
             options.Security.DepthStep(ref reader);
 
             try
@@ -52,13 +53,13 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 writer.WriteNil();
                 return;
-
             }
+
             writer.WriteArrayHeader(3);
 
             options.Resolver.GetFormatterWithVerify<Guid>().Serialize(ref writer, value!.Mvid, options);
             options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.FullName, options);
-            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.CodeBase, options);
+            options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.Name.CodeBase!, options);
         }
     }
 }

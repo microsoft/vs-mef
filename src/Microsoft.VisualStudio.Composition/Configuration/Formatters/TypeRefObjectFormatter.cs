@@ -32,8 +32,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 if (actualCount != 10)
                 {
                     throw new MessagePackSerializationException($"Invalid array count for type {nameof(TypeRef)}. Expected: {10}, Actual: {actualCount}");
-
                 }
+
                 IMessagePackFormatter<ImmutableArray<TypeRef?>> typeRefFormatter = options.Resolver.GetFormatterWithVerify<ImmutableArray<TypeRef?>>();
 
                 StrongAssemblyIdentity assemblyId = options.Resolver.GetFormatterWithVerify<StrongAssemblyIdentity>().Deserialize(ref reader, options);

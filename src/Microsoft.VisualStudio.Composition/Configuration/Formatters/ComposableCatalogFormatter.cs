@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 return null;
             }
+
             options.Security.DepthStep(ref reader);
 
             try
@@ -49,6 +50,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 writer.WriteNil();
                 return;
             }
+
             writer.WriteArrayHeader(1);
 
             options.Resolver.GetFormatterWithVerify<IReadOnlyCollection<ComposablePartDefinition>>().Serialize(ref writer, value.Parts, options);

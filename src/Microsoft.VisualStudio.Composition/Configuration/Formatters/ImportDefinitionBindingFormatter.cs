@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 return null;
             }
+
             options.Security.DepthStep(ref reader);
 
             try
@@ -68,6 +69,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 writer.WriteNil();
                 return;
             }
+
             writer.WriteArrayHeader(6);
 
             options.Resolver.GetFormatterWithVerify<ImportDefinition>().Serialize(ref writer, value.ImportDefinition, options);

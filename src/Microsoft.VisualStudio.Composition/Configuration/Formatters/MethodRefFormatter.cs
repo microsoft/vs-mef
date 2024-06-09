@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 return null;
             }
+
             options.Security.DepthStep(ref reader);
 
             try
@@ -33,6 +34,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 {
                     throw new MessagePackSerializationException($"Invalid array count for type {nameof(MethodRef)}. Expected: {6}, Actual: {actualCount}");
                 }
+
                 TypeRef declaringType = options.Resolver.GetFormatterWithVerify<TypeRef>().Deserialize(ref reader, options);
 
                 int metadataToken = reader.ReadInt32();
@@ -59,8 +61,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 writer.WriteNil();
                 return;
             }
-            writer.WriteArrayHeader(6);
 
+            writer.WriteArrayHeader(6);
 
             IMessagePackFormatter<TypeRef> typeRefFormatter = options.Resolver.GetFormatterWithVerify<TypeRef>();
 

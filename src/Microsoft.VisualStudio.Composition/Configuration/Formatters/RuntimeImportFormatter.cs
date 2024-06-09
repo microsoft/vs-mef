@@ -34,6 +34,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 return null;
             }
+
             try
             {
                 var actualCount = reader.ReadArrayHeader();
@@ -108,10 +109,9 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 writer.WriteNil();
                 return;
-
             }
-            writer.WriteArrayHeader(7);
 
+            writer.WriteArrayHeader(7);
 
             RuntimeImportFlags flags = RuntimeImportFlags.None;
             flags |= value.ImportingMemberRef == null ? RuntimeImportFlags.IsParameter : 0;

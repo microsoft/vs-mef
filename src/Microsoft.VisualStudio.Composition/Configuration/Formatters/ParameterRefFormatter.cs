@@ -23,6 +23,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 return null;
             }
+
             try
             {
                 var actualCount = reader.ReadArrayHeader();
@@ -30,6 +31,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 {
                     throw new MessagePackSerializationException($"Invalid array count for type {nameof(ParameterRef)}. Expected: {2}, Actual: {actualCount}");
                 }
+
                 options.Security.DepthStep(ref reader);
 
                 MethodRef method = options.Resolver.GetFormatterWithVerify<MethodRef>().Deserialize(ref reader, options);
@@ -50,6 +52,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 writer.WriteNil();
                 return;
             }
+
             writer.WriteArrayHeader(2);
 
             options.Resolver.GetFormatterWithVerify<MethodRef>().Serialize(ref writer, value!.Method, options);

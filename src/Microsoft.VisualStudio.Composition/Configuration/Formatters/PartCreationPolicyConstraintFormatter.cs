@@ -22,6 +22,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 return null;
             }
+
             options.Security.DepthStep(ref reader);
             try
             {
@@ -30,6 +31,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 {
                     throw new MessagePackSerializationException($"Invalid array count for type {nameof(PartCreationPolicyConstraint)}. Expected: {1}, Actual: {actualCount}");
                 }
+
                 CreationPolicy creationPolicy = options.Resolver.GetFormatterWithVerify<CreationPolicy>().Deserialize(ref reader, options);
                 return PartCreationPolicyConstraint.GetRequiredCreationPolicyConstraint(creationPolicy)!;
             }
@@ -45,8 +47,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 writer.WriteNil();
                 return;
-
             }
+
             writer.WriteArrayHeader(1);
 
             options.Resolver.GetFormatterWithVerify<CreationPolicy>().Serialize(ref writer, value.RequiredCreationPolicy, options);

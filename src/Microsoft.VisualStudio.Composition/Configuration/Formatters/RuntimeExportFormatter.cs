@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             {
                 return null;
             }
+
             options.Security.DepthStep(ref reader);
 
             try
@@ -61,8 +62,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 writer.WriteNil();
                 return;
             }
-            writer.WriteArrayHeader(5);
 
+            writer.WriteArrayHeader(5);
 
             options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.ContractName, options);
             options.Resolver.GetFormatterWithVerify<TypeRef>().Serialize(ref writer, value.DeclaringTypeRef, options);

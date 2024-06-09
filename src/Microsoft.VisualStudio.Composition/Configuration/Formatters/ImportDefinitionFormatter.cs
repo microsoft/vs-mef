@@ -22,8 +22,8 @@ namespace Microsoft.VisualStudio.Composition.Formatter
             if (reader.TryReadNil())
             {
                 return null;
-
             }
+
             options.Security.DepthStep(ref reader);
 
             try
@@ -57,6 +57,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                 writer.WriteNil();
                 return;
             }
+
             writer.WriteArrayHeader(5);
 
             options.Resolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.ContractName, options);

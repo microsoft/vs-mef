@@ -177,7 +177,6 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                         break;
 
                     default:
-                        //messagePackWriter.WriteArrayHeader(2); to be done
                         messagePackWriter.Write((byte)ObjectType.TypeLess);
                         TypelessFormatter.Instance.Serialize(ref messagePackWriter, value, options);
                         break;
@@ -329,16 +328,7 @@ namespace Microsoft.VisualStudio.Composition.Formatter
                         break;
 
                     case ObjectType.TypeLess:
-                       // messagePackWriter.WriteArrayHeader(2); call before reading type
-                        //messagePackWriter.Write((byte)ObjectType.TypeLess);
                         response = TypelessFormatter.Instance.Deserialize(ref messagePackReader, options);
-
-                        // messagePackWriter.WriteArrayHeader(2); call before reading type  To be done
-                        //var actualCount = messagePackReader.ReadArrayHeader();
-                        //if (actualCount != 2)
-                        //{
-                        //    throw new MessagePackSerializationException($"Invalid array count for type {ObjectType.TypeLess}. Expected: {2}, Actual: {actualCount}");
-                        //}
                         break;
 
                     default:
